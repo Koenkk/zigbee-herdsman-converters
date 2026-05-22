@@ -64,6 +64,7 @@ const {
     w600PresetTemperatureTable,
     w600Schedule,
     w600Thermostat,
+    w600ValvePosition,
     w600WeeklySchedule,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
@@ -2474,7 +2475,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Multi-state sensor P100",
         extend: [
-            m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.addManuSpecificLumiCluster(),
             lumi.lumiModernExtend.lumiPreventReset(),
             lumi.lumiModernExtend.lumiBattery({
@@ -2482,30 +2482,31 @@ export const definitions: DefinitionWithExtend[] = [
                 percentageAttribute: 0x18,
             }),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "device_mode",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0116, type: 0x20},
+                attribute: {ID: 0x0116, type: Zcl.DataType.UINT8},
                 lookup: {door_window: 3, object: 5},
                 description: "Device operating mode",
                 access: "STATE_SET",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "door_window_type",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01eb, type: 0x20},
+                attribute: {ID: 0x01eb, type: Zcl.DataType.UINT8},
                 lookup: {casement_window: 1, hopper_window: 2, composite_window: 3, hinged_door: 4},
-                description: "Door/window type (applies when device_mode = door window)",
+                description: "Door/window type (applies when device_mode = door_window)",
                 access: "STATE_SET",
+                label: "Door/window type",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.numeric({
+            m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "sensitivity",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x010c, type: 0x20},
+                attribute: {ID: 0x010c, type: Zcl.DataType.UINT8},
                 valueMin: 1,
                 valueMax: 10,
                 description: "Detection sensitivity (1 = low, 10 = high)",
@@ -2513,90 +2514,90 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.numeric({
+            m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "report_interval",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ec, type: 0x23},
+                attribute: {ID: 0x01ec, type: Zcl.DataType.UINT32},
                 unit: "s",
                 valueMin: 5,
                 valueMax: 300,
-                description: "Reporting interval in seconds",
+                description:
+                    "Reporting interval in seconds. Also drives the device's 802.15.4 poll cadence — lower values are more responsive but reduce battery life.",
                 access: "STATE_SET",
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "orientation_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01f0, type: 0x10},
+                attribute: {ID: 0x01f0, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable orientation event detection",
+                description: "Enable orientation event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "movement_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ed, type: 0x10},
+                attribute: {ID: 0x01ed, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable movement event detection",
+                description: "Enable movement event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "fall_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01d8, type: 0x10},
+                attribute: {ID: 0x01d8, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable fall event detection",
+                description: "Enable fall event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "vibration_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0107, type: 0x10},
+                attribute: {ID: 0x0107, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable vibration event detection",
+                description: "Enable vibration event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.binary({
+            m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "triple_tap_detection",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ef, type: 0x10},
+                attribute: {ID: 0x01ef, type: Zcl.DataType.BOOLEAN},
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
-                description: "Enable triple-tap event detection",
+                description: "Enable triple-tap event detection (object mode, requires device button press)",
                 access: "STATE_SET",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "orientation",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01f1, type: 0x20},
+                attribute: {ID: 0x01f1, type: Zcl.DataType.UINT8},
                 lookup: {face_up: 1, face_down: 2, vertical: 3, tilt: 4},
                 description: "Last reported orientation (relevant when action = orientation)",
                 access: "STATE",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            // 0x01f3 fires true on every detection but never resets — no signal beyond `action`, not exposed.
-            m.actionEnumLookup({
+            // Primary actions on closuresDoorLock 0x0055
+            m.actionEnumLookup<"closuresDoorLock", undefined>({
                 cluster: "closuresDoorLock",
-                attribute: {ID: 0x0055, type: 0x21},
-                actionLookup: {
-                    triple_tap: 0,
-                    movement: 1,
-                    vibration: 2,
-                    orientation: 3,
-                    fall: 4,
-                },
+                attribute: {ID: 0x0055, type: Zcl.DataType.UINT16},
+                actionLookup: {triple_tap: 0, movement: 1, vibration: 2, orientation: 3, fall: 4},
+                extraActions: ["static"],
             }),
-            m.binary({
+            // and the static-state edge on manuSpecificLumi 0x01F3, declared as an
+            // extraAction above. Emits true transition only (the device does
+            // report the false transition)
+            lumi.lumiModernExtend.lumiStaticStateAction(),
+            m.binary<"genOnOff", undefined>({
                 name: "contact",
                 cluster: "genOnOff",
                 attribute: "onOff",
@@ -2605,12 +2606,12 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Door/window state (door/window mode only)",
                 access: "STATE",
             }),
-            m.enumLookup({
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "device_posture",
                 cluster: "manuSpecificLumi",
-                attribute: {ID: 0x01ee, type: 0x20},
+                attribute: {ID: 0x01ee, type: Zcl.DataType.UINT8},
                 lookup: {normal: 1, abnormal: 2},
-                description: "Mounting orientation check — 'abnormal' when the sensor is incorrectly installed or needs calibration",
+                description: "Door/window mounting orientation check — 'abnormal' if the sensor is incorrectly installed or needs calibration",
                 access: "STATE",
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {manufacturerCode},
@@ -5678,20 +5679,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             w600PresetTemperatureTable(),
             w600WeeklySchedule(),
-            m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "position",
-                valueMin: 0,
-                valueMax: 100,
-                scale: 1,
-                precision: 2,
-                unit: "%",
-                access: "STATE_GET",
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0360, type: Zcl.DataType.SINGLE_PREC},
-                description: "Position of the valve, 100% is fully open",
-                label: "Valve position",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            w600ValvePosition(),
             m.identify(),
             lumiZigbeeOTA(),
         ],
@@ -6025,5 +6013,54 @@ export const definitions: DefinitionWithExtend[] = [
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
+    },
+    {
+        zigbeeModel: ["aqara.toilet.acn002", "lumi.sen_gas.hrcn01"], // The reason for adding lumi.sen_gas.hrcn01 is that the model number reported by a toilet is exactly this
+        model: "ACN002",
+        vendor: "Aqara",
+        description: "Smart Toilet T1",
+        fromZigbee: [lumi.fromZigbee.lumi_toilet],
+        toZigbee: [lumi.toZigbee.lumi_toilet],
+        exposes: [
+            e.binary("lid_switch", ea.STATE_SET, "OPEN", "CLOSE").withDescription("Lid status"),
+            e.binary("seat_switch", ea.STATE_SET, "OPEN", "CLOSE").withDescription("Seat status"),
+            e.binary("night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light"),
+            e
+                .enum("seat_temp", ea.STATE_SET, ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"])
+                .withDescription("Seat heating temperature"),
+            e
+                .enum("cleaning_mode", ea.STATE_SET, ["Stop", "Rear", "Rear_Moving", "Female", "Female_Moving", "Child"])
+                .withDescription("Cleaning mode"),
+            e
+                .enum("water_temp", ea.STATE_SET, ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"])
+                .withDescription("Cleaning water temperature"),
+            e
+                .enum("water_pressure", ea.STATE_SET, ["Weak", "Slightly_Weak", "Middle", "Slightly_Strong", "Strong"])
+                .withDescription("Water pressure"),
+            e
+                .enum("nozzle_position", ea.STATE_SET, ["Back", "Slightly_Back", "Middle", "Slightly_Front", "Front"])
+                .withDescription("Nozzle position"),
+            e
+                .enum("dryer_temp", ea.STATE_SET, ["Off", "Normal", "Low", "Mid_Low", "Middle", "Mid_High", "High"])
+                .withDescription("Dryer wind temperature"),
+            e.enum("nozzle_clean", ea.STATE_SET, ["Off", "Auto", "Manual"]).withDescription("Nozzle self-cleaning"),
+            e.binary("occupancy_status", ea.STATE, true, false).withDescription("Occupancy status"),
+            e.enum("stop_button", ea.SET, ["STOP"]).withDescription("Stop operation"),
+            e.enum("flush_big", ea.SET, ["FLUSH"]).withDescription("Full flush"),
+            e.enum("flush_small", ea.SET, ["FLUSH"]).withDescription("Small flush"),
+            e.enum("foam_shield", ea.SET, ["RELEASE"]).withDescription("Release splash-proof foam"),
+            e.binary("pre_mist_switch", ea.STATE_SET, "ON", "OFF").withDescription("Pre-mist when sitting").withCategory("config"),
+            e.binary("auto_foam_on_sit", ea.STATE_SET, "ON", "OFF").withDescription("Automatic foam when sitting").withCategory("config"),
+            e.binary("auto_foam_on_leave", ea.STATE_SET, "ON", "OFF").withDescription("Automatic foam when leaving").withCategory("config"),
+            e.binary("child_seat_mode", ea.STATE_SET, "ON", "OFF").withDescription("Child seat mode").withCategory("config"),
+            e.binary("foot_sensor_switch", ea.STATE_SET, "ON", "OFF").withDescription("Foot sensor").withCategory("config"),
+            e.binary("auto_flush_after_leave", ea.STATE_SET, "ON", "OFF").withDescription("Auto flush after leaving").withCategory("config"),
+            e.binary("beeper_switch", ea.STATE_SET, "ON", "OFF").withDescription("Beeper sound").withCategory("config"),
+        ],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0xfff1], {manufacturerCode: manufacturerCode});
+        },
     },
 ];

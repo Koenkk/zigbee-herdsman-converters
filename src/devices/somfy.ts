@@ -77,7 +77,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["Ysia 1 Zigbee Europe"],
+        zigbeeModel: ["Ysia 1 Zigbee Europe", "Ysia 1 HP Zigbee"],
         model: "1871157",
         vendor: "SOMFY",
         description: "Ysia 1 channel blinds remote",
@@ -135,5 +135,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Somfy",
         description: "Connected plug E type with power monitoring",
         extend: [m.onOff(), m.electricityMeter()],
+    },
+    {
+        zigbeeModel: ["Situo 4 Zigbee"],
+        model: "1800195",
+        vendor: "SOMFY",
+        description: "Situo 4 channel blinds remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "232": 232}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsWindowCovering({endpointNames: ["1", "2", "3", "4"]}),
+        ],
     },
 ];

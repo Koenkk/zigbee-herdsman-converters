@@ -1,13 +1,12 @@
 import {Zcl} from "zigbee-herdsman";
 
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Fz, KeyValue, Publish} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Publish, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -52,7 +51,34 @@ function handleKmpcilPresence(
     return {presence: true};
 }
 
-const kmpcilConverters = {
+const tzLocal = {
+    kmpcil_res005_on_off: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const options = {disableDefaultResponse: true};
+            value = value.toLowerCase();
+            utils.assertString(value, key);
+            utils.validateValue(value, ["toggle", "off", "on"]);
+            if (value === "toggle") {
+                if (meta.state.state === undefined) {
+                    throw new Error("Cannot toggle, state not known yet");
+                }
+                const payload = {presentValue: meta.state.state === "OFF" ? 0x01 : 0x00};
+                await entity.write("genBinaryOutput", payload, options);
+                return {state: {state: meta.state.state === "OFF" ? "ON" : "OFF"}};
+            }
+            const payload = {presentValue: value.toUpperCase() === "OFF" ? 0x00 : 0x01};
+            await entity.write("genBinaryOutput", payload, options);
+            return {state: {state: value.toUpperCase()}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genBinaryOutput", ["presentValue"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
     presence_binary_input: {
         cluster: "genBinaryInput",
         type: ["attributeReport", "readResponse"],
@@ -83,6 +109,20 @@ const kmpcilConverters = {
             return payload;
         },
     } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+    kmpcil_res005_occupancy: {
+        cluster: "genBinaryInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {occupancy: msg.data.presentValue === 1};
+        },
+    } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
+    kmpcil_res005_on_off: {
+        cluster: "genBinaryOutput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {state: msg.data.presentValue === 0 ? "OFF" : "ON"};
+        },
+    } satisfies Fz.Converter<"genBinaryOutput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -92,8 +132,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "KMPCIL",
         description: "Environment sensor",
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.occupancy(), e.switch()],
-        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fz.kmpcil_res005_occupancy, fz.kmpcil_res005_on_off],
-        toZigbee: [tz.kmpcil_res005_on_off],
+        fromZigbee: [fz.battery, fz.temperature, fz.humidity, fz.pressure, fzLocal.kmpcil_res005_occupancy, fzLocal.kmpcil_res005_on_off],
+        toZigbee: [tzLocal.kmpcil_res005_on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(8);
             const binds = [
@@ -157,7 +197,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KMPCIL-tag-001",
         vendor: "KMPCIL",
         description: "Arrival sensor",
-        fromZigbee: [kmpcilConverters.presence_binary_input, kmpcilConverters.presence_power, fz.temperature],
+        fromZigbee: [fzLocal.presence_binary_input, fzLocal.presence_power, fz.temperature],
         exposes: [
             e.battery(),
             e.presence(),

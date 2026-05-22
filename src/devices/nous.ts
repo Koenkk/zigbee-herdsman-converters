@@ -9,6 +9,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 const te = tuya.exposes;
+const tvc = tuya.valueConverter;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -259,56 +260,80 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart energy meter with leakage and prepayment",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.energy(),
-            e.produced_energy(),
+            te
+                .switch()
+                .withDescription(
+                    "On/off state of the circuit (WARNING: It may automatically switch ON after a fault is cleared. See Reclosing option)",
+                ),
+            te.countdown().withValueMax(86400),
+            te
+                .powerOnBehavior()
+                .withAccess(ea.STATE_SET)
+                .withDescription("State to apply after a power outage (It takes ~35s to check faults before applying)"),
+            te.inchingSwitch2(),
+
+            te.circuitBreakerStatus(),
+            e.power(),
             e.current(),
-            e.temperature(),
-            e.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Leakage current"),
-            e.switch().withDescription("Relay switch control"),
-            e.binary("reclosing_enable", ea.ALL, true, false).withDescription("Reclosing enable"),
-            e.numeric("timer", ea.ALL).withDescription("Timer (schedule control in seconds)").withValueMin(0).withValueMax(86400),
-            e.text("cycle_schedule", ea.ALL).withDescription("Cycle schedule configuration (JSON string)"),
-            e.binary("clear_energy", ea.SET, true, false).withDescription("Clear accumulated forward and reverse energy"),
-            e.binary("switch_prepayment", ea.STATE_SET, true, false).withDescription("Switch prepayment mode ON/OFF"),
-            e.numeric("balance_energy", ea.STATE).withUnit("kWh").withDescription("Remaining energy balance for prepayment"),
-            e.numeric("charge_energy", ea.STATE).withUnit("kWh").withDescription("Last charged energy amount"),
-            e.binary("fault", ea.STATE, true, false).withDescription("General fault detected"),
-            e.text("status", ea.STATE).withDescription("Detailed status information (e.g., fault codes)"),
-            e.numeric("reclose_recover_seconds", ea.STATE).withUnit("s").withDescription("Time for auto reclosing recovery"),
-            e.numeric("power_on_delay", ea.STATE).withUnit("s").withDescription("Power-on delay time"),
-            e.numeric("overcurrent_threshold_time", ea.STATE).withUnit("s").withDescription("Overcurrent event threshold time"),
-            e.numeric("lost_flow_threshold_time", ea.STATE).withUnit("s").withDescription("Lost flow event threshold time"),
-            e.binary("relay_status_on_power_on", ea.STATE, true, false).withDescription("Relay status after power on (true=ON)"),
-            e.text("alarm_set_1", ea.ALL).withDescription("Alarm set 1 configuration"),
-            e.text("alarm_set_2", ea.ALL).withDescription("Alarm set 2 configuration"),
-            e.text("alarm_set_3", ea.ALL).withDescription("Alarm set 3 configuration"),
+            e.voltage(),
+            e.energy(),
+            e.energy_produced(),
+            te
+                .leakageCurrent()
+                .withDescription("Current measured by the external ring. Place it over BOTH live and neutral wires to detect leakage current"),
+
+            e.device_temperature(),
+            te.circuitBreakerFaults(),
+
+            te
+                .reclosing()
+                .withDescription(
+                    "Automatically attempt switching ON the circuit after it was turned OFF by a detected fault (WARNING: It seems this happens even when disabled)",
+                ),
+            te.reclosing_delay(),
+            te.reclosing_count(),
+
+            te.energyPrepayment(),
+            te.energyBalance(),
+            te.energyBalanceAdd(),
+            te.energyBalanceReset(),
+
+            te.leakageCurrentAndTemperatureAlarm(),
+            te.overCurrentThresholdTime(),
+            te.currentAndVoltageAlarm(),
+            te.lostFlowAlarm(),
+            te.lostFlowThresholdTime(),
         ],
 
         meta: {
             tuyaDatapoints: [
-                [1, "energy", tuya.valueConverter.divideBy100],
-                [6, "current", tuya.valueConverter.divideBy1000],
-                [15, "leakage_current", tuya.valueConverter.divideBy10],
-                [110, "produced_energy", tuya.valueConverter.divideBy100],
-                [16, "state", tuya.valueConverter.onOff],
-                [9, "fault", tuya.valueConverter.trueFalse1],
-                [103, "temperature", tuya.valueConverter.raw],
-                [104, "reclosing_enable", tuya.valueConverter.trueFalse1],
-                [105, "timer", tuya.valueConverter.raw],
-                [106, "cycle_schedule", tuya.valueConverter.raw],
-                [107, "reclose_recover_seconds", tuya.valueConverter.raw],
-                [127, "status", tuya.valueConverter.raw],
-                [134, "relay_status_on_power_on", tuya.valueConverter.raw],
-                [11, "switch_prepayment", tuya.valueConverter.trueFalse1],
-                [12, "clear_energy", tuya.valueConverter.raw],
-                [13, "balance_energy", tuya.valueConverter.divideBy100],
-                [14, "charge_energy", tuya.valueConverter.divideBy100],
-                [17, "alarm_set_1", tuya.valueConverter.raw],
-                [18, "alarm_set_2", tuya.valueConverter.raw],
-                [119, "power_on_delay", tuya.valueConverter.raw],
-                [124, "overcurrent_threshold_time", tuya.valueConverter.raw],
-                [125, "lost_flow_threshold_time", tuya.valueConverter.raw],
-                [126, "alarm_set_3", tuya.valueConverter.raw],
+                [1, "energy", tvc.divideBy100], // total_forward_energy
+                [6, null, tvc.phaseVariant4],
+                [9, "faults", tvc.circuitBreakerFaults],
+                [11, "prepayment", tvc.onOff], // switch_prepayment
+                [12, "energy_balance_reset", tvc.energyBalanceReset], // clear_energy
+                [13, "energy_balance", tvc.divideBy100], // balance_energy
+                [14, "energy_balance_add", tvc.energyBalanceAdd], // charge_energy
+                [15, "leakage_current", tvc.raw],
+                [16, "state", tvc.onOffWithZeros],
+                [17, "alarm_set_1", tvc.threshold_4],
+                [18, "alarm_set_2", tvc.threshold_5],
+                [101, null, null], // something deprecated
+                [102, "reclosing_count", tvc.raw], // reclosing_allowed_times
+                [103, "device_temperature", tvc.raw], // temp_current
+                [104, "reclosing", tvc.onOff], // reclosing_enable
+                [105, "countdown", tvc.raw], // timer
+                [106, "cycle_schedule", tvc.cycleSchedule], // device responds, but it's not effective, even in tuya app??
+                [107, "reclosing_delay", tvc.raw], // reclose_recover_seconds
+                [108, "random_timing", tvc.raw], // unused in tuya app
+                [109, "inching", tvc.inchingSwitch2], // switch_inching
+                [110, "energy_produced", tvc.divideBy100], // reverse_energy_total
+                [119, "power_on_delay", tvc.raw], // device not responding, even in tuya app
+                [124, "over_current_threshold_time", tvc.raw], // overcurrent_event_threshold_time
+                [125, "lost_flow_threshold_time", tvc.raw], // unknown
+                [126, "alarm_set_3", tvc.threshold_6],
+                [127, "status", tvc.circuitBreakerStatus],
+                [134, "power_on_behavior", tvc.powerOnBehaviorEnum], // relay_status_for_power_on
             ],
         },
     },
@@ -320,6 +345,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.clusters.addTuyaCommonPrivateCluster(),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: true,
                 onOffCountdown: true,

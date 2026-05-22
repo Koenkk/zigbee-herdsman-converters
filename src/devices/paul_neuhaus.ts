@@ -52,6 +52,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Various color temperature lights (e.g. 100.424.11)",
         extend: [m.light({colorTemp: {range: undefined}})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["Neuhaus NLG-TW light", "NLG-TW light"],
@@ -59,6 +60,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Various tunable white lights (e.g. 8195-55)",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["NLG-RGBW light "], // the space as the end is intentional, as this is what the device sends
@@ -66,6 +68,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Various RGBW lights (e.g. 100.110.39)",
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        meta: {omitOptionalLevelParams: true},
         endpoint: (device) => {
             return {default: 2};
         },
@@ -76,6 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Various RGBW lights (e.g. 100.111.57)",
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["NLG-RGB-TW light"],
@@ -83,6 +87,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Various RGB + tunable white lights (e.g. 100.470.92)",
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["NLG-plug"],
@@ -97,6 +102,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Q-FLAG LED panel, Smart-Home CCT",
         extend: [m.light({colorTemp: {range: undefined}})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["JZ-RC-J4R"],
@@ -138,6 +144,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {default: 2};
         },
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["JZD60-J4R150"],
@@ -145,6 +152,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Q-LED Lamp RGBW E27 socket",
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        meta: {omitOptionalLevelParams: true},
     },
     {
         zigbeeModel: ["Neuhaus RGB+CCT light"],
@@ -152,5 +160,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Paul Neuhaus",
         description: "Q-MIA LED RGBW wall lamp, 9185-13",
         extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        meta: {omitOptionalLevelParams: true},
     },
 ];

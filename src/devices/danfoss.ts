@@ -491,7 +491,7 @@ const danfossExtend = {
         }),
     danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.binary<"hvacThermostat", DanfossHvacThermostat>({
-            name: "thermostat_vertical_orientation",
+            name: "thermostat_orientation",
             cluster: "hvacThermostat",
             attribute: "danfossThermostatOrientation",
             description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
@@ -709,7 +709,9 @@ const danfossExtend = {
             exposes: [
                 e
                     .text("trigger_time", ea.ALL)
-                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable.")
+                    .withDescription(
+                        "Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable. Note: during DST, the valve may exercise earlier than configured due to a firmware limitation (the TRV uses standard time instead of wall-clock time)",
+                    )
                     .withCategory("config"),
             ],
             fromZigbee: [
@@ -867,7 +869,7 @@ const danfossExtend = {
             attribute: "danfossAdaptionRunControl",
             description: "Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run",
             lookup: {
-                none: 0,
+                idle: 0,
                 initiate_adaptation: 1,
                 cancel_adaptation: 2,
             },
@@ -981,6 +983,16 @@ const danfossExtend = {
         );
         return extend;
     },
+    danfossTimeSyncOnAnnounce: (): ModernExtend => ({
+        isModernExtend: true,
+        onEvent: [
+            async (event) => {
+                if (event.type === "deviceAnnounce") {
+                    await setTime(event.data.device, "queue");
+                }
+            },
+        ],
+    }),
 };
 
 const tzLocal = {
@@ -1086,15 +1098,6 @@ const tzLocal = {
     } satisfies Tz.Converter,
     danfoss_system_status_code: {
         key: ["system_status_code"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertNumber(value, key);
-            await entity.write<"haDiagnostic", DanfossHaDiagnostic>(
-                "haDiagnostic",
-                {danfossSystemStatusCode: value},
-                {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
-            );
-            return {state: {system_status_code: value}};
-        },
         convertGet: async (entity, key, meta) => {
             await entity.read<"haDiagnostic", DanfossHaDiagnostic>("haDiagnostic", ["danfossSystemStatusCode"], {
                 manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
@@ -1310,7 +1313,14 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValueAny = {};
             if (msg.data.danfossSystemStatusCode !== undefined) {
-                result.system_status_code = msg.data.danfossSystemStatusCode;
+                const code = msg.data.danfossSystemStatusCode;
+                const errors: string[] = [];
+                for (const [bit, name] of Object.entries(constants.danfossAllySystemStatusCode)) {
+                    if (code & (1 << Number(bit))) {
+                        errors.push(name);
+                    }
+                }
+                result.system_status_code = errors.length > 0 ? errors.join(",") : "ok";
             }
             return result;
         },
@@ -1377,9 +1387,10 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunSettings(),
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
+            danfossExtend.danfossTimeSyncOnAnnounce(),
             m.poll({
                 key: "danfossTime",
-                defaultIntervalSeconds: 60 * 60 * 24, // 24 hours
+                defaultIntervalSeconds: 60 * 60 * 24,
                 poll: async (device) => {
                     await setTime(device, "queue");
                 },
@@ -1387,16 +1398,25 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e
-                .numeric("system_status_code", ea.STATE_GET)
-                .withDescription("Diagnostic status bitmap (bit 9 = time/clock lost).")
+                .text("system_status_code", ea.STATE_GET)
+                .withDescription("Diagnostic error codes (e.g. 'invalid_clock_information,low_battery'). 'ok' when no errors.")
                 .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
-        toZigbee: [tz.thermostat_clear_weekly_schedule, tzLocal.danfoss_system_status_code, tzLocal.danfoss_preheat_command],
+        toZigbee: [
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tzLocal.danfoss_system_status_code,
+            tzLocal.danfoss_preheat_command,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            } catch {
+                // Bind may fail if already bound (Danfoss rejects duplicate binds)
+            }
             await endpoint.configureReporting<"haDiagnostic", DanfossHaDiagnostic>(
                 "haDiagnostic",
                 [

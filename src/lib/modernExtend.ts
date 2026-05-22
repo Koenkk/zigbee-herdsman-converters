@@ -49,12 +49,12 @@ import {
     exposeEndpoints,
     flatten,
     getEndpointName,
+    getEndpointsWithCluster,
     getFromLookup,
     getFromLookupByValue,
     getOptions,
     hasAlreadyProcessedMessage,
     isEndpoint,
-    isNumber,
     isObject,
     isString,
     noOccupancySince,
@@ -63,20 +63,6 @@ import {
     splitArrayIntoChunks,
     toNumber,
 } from "./utils";
-
-function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
-    if (!device.endpoints) {
-        throw new Error(`${device.ieeeAddr} ${device.endpoints}`);
-    }
-    const endpoints =
-        type === "input"
-            ? device.endpoints.filter((ep) => ep.getInputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)))
-            : device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)));
-    if (endpoints.length === 0) {
-        throw new Error(`Device ${device.ieeeAddr} has no ${type} cluster ${cluster}`);
-    }
-    return endpoints;
-}
 
 const NS = "zhc:modernextend";
 
@@ -2425,7 +2411,7 @@ export function gasMeter(args: GasMeterArgs = {}): ModernExtend {
 // #region Other extends
 
 /**
- * Version of the GP spec: 1.1.1
+ * Version of the GP spec: 1.1.2
  */
 export const GPDF_COMMANDS: Record<number, string> = {
     /*0x00*/ 0: "identify",
@@ -2519,12 +2505,9 @@ export function genericGreenPower(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
                 if (commandID >= 0xe0) return; // Skip op commands
 
-                const gpdfCommandStr = GPDF_COMMANDS[commandID];
-                const payloadBuf = "raw" in msg.data.commandFrame ? msg.data.commandFrame.raw : undefined;
-
                 return {
-                    action: gpdfCommandStr ?? `unknown_${commandID}`,
-                    payload: payloadBuf?.length > 0 ? Array.from(payloadBuf) : [],
+                    action: GPDF_COMMANDS[commandID] ?? `unknown_${commandID}`,
+                    payload: "raw" in msg.data.commandFrame ? Array.from(msg.data.commandFrame.raw) : [],
                 };
             },
         } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
