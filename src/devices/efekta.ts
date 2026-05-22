@@ -9582,7 +9582,7 @@ export const definitions: DefinitionWithExtend[] = [
 				access: "STATE_SET",
             }),
         ],
-    };
+    },
 	{
         zigbeeModel: ["EFEKTA_iAQ2_R2"],
         model: "EFEKTA_iAQ2_R2",
