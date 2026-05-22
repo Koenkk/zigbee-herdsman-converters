@@ -1063,52 +1063,6 @@ const heimanExtend = {
             isModernExtend: true,
         };
     },
-    heimanClusterOccupiedToUnoccupiedDelay: (): ModernExtend => {
-        const clusterName = "msOccupancySensing" as const;
-        const mExtend = m.numeric({
-            name: "unoccupied_delay",
-            unit: "seconds",
-            valueMin: 5,
-            valueMax: 3600,
-            cluster: clusterName,
-            attribute: "pirOToUDelay",
-            description: "occupied to unoccupied delay",
-            access: "ALL",
-        });
-        return {
-            ...mExtend,
-            fromZigbee: [],
-        };
-    },
-    heimanClusterOccupiedRepeatedReportingDuration: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-        const attributeId = 0x0020;
-        const mExtend = m.numeric({
-            name: "repeated_reporting_duration",
-            unit: "minutes",
-            valueMin: 0,
-            valueMax: 65535,
-            cluster: clusterName,
-            attribute: {ID: attributeId, type: Zcl.DataType.UINT16},
-            description: "occupied repeated reporting duartion, 65535 indicates forever",
-            access: "ALL",
-        });
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.data["occupiedToOccupiedDuration"] === undefined) return;
-                    const attrValue = Number(msg.data["occupiedToOccupiedDuration"]);
-                    return {repeated_reporting_duration: attrValue};
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-        return {
-            ...mExtend,
-            fromZigbee,
-        };
-    },
     heimanClusterRadarConfigParam: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const exposes = utils.exposeEndpoints(
