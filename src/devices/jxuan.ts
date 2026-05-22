@@ -4,7 +4,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueNumberString, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -33,6 +33,18 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    WSZ01_on_off_action: {
+        cluster: 65029,
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping: KeyValueNumberString = {0: "release", 1: "single", 2: "double", 3: "hold"};
+            return {action: `${clickMapping[msg.data["1"]]}`};
+        },
+    } satisfies Fz.Converter<65029, undefined, "attributeReport">,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["wall pir"],
@@ -57,7 +69,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WSZ01",
         vendor: "J.XUAN",
         description: "Wireless switch",
-        fromZigbee: [fz.WSZ01_on_off_action, fz.battery],
+        fromZigbee: [fzLocal.WSZ01_on_off_action, fz.battery],
         toZigbee: [],
         exposes: [e.action(["release", "single", "double", "hold"]), e.battery()],
     },

@@ -4,10 +4,21 @@ import * as exposes from "../lib/exposes";
 import {eLegrand, fzLegrand, legrandExtend, tzLegrand} from "../lib/legrand";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    K4003C_binary_input: {
+        cluster: "genBinaryInput",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            return {action: msg.data.presentValue === 1 ? "off" : "on"};
+        },
+    } satisfies Fz.Converter<"genBinaryInput", undefined, "attributeReport">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -16,7 +27,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "BTicino",
         description: "Light switch with neutral",
         ota: true,
-        fromZigbee: [fz.identify, fz.on_off, fz.K4003C_binary_input, fzLegrand.cluster_fc01],
+        fromZigbee: [fz.identify, fz.on_off, fzLocal.K4003C_binary_input, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify],
         extend: [legrandExtend.addLegrandDevicesCluster()],
         exposes: [e.switch(), e.action(["identify", "on", "off"]), eLegrand.identify(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
