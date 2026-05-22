@@ -202,12 +202,6 @@ const heimanExtend = {
                 radarLearningControl: {name: "radarLearningControl", ID: 0x0027, type: Zcl.DataType.UINT16, write: true},
                 radarLearningState: {name: "radarLearningState", ID: 0x0028, type: Zcl.DataType.ENUM8},
                 radarDetectionTargetRange: {name: "radarDetectionTargetRange", ID: 0x0029, type: Zcl.DataType.UINT16},
-                occupanyControlOnOffIlluminanceThreshold: {
-                    name: "occupanyControlOnOffIlluminanceThreshold",
-                    ID: 0x002a,
-                    type: Zcl.DataType.UINT16,
-                    write: true,
-                },
                 radarDetectionMinRange: {name: "radarDetectionMinRange", ID: 0x002b, type: Zcl.DataType.UINT16, write: true},
                 radarDetectionMaxRange: {name: "radarDetectionMaxRange", ID: 0x002c, type: Zcl.DataType.UINT16, write: true},
 
@@ -2717,10 +2711,10 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "Lx",
                 scale: 1,
                 valueMin: 0,
-                valueMax: 1200,
+                valueMax: 1000,
                 cluster: "heimanClusterSpecial",
                 attribute: "illuminanceThreshold",
-                description: "the the illuminance exceeds the threshold, it activates local linkakes.",
+                description: "when the illuminance exceeds the threshold, it activates local linkages.",
                 access: "ALL",
             }),
             m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -3512,6 +3506,17 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "occupiedToOccupiedDuration",
                 description: "occupied repeated reporting duartion, 65535 indicates forever",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "illuminance_threshold",
+                unit: "Lx",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 1200,
+                cluster: "heimanClusterSpecial",
+                attribute: "illuminanceThreshold",
+                description: "when the illuminance exceeds the threshold, it activates local linkages.",
                 access: "ALL",
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
