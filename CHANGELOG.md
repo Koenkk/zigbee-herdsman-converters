@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.54.0...v26.55.0) (2026-05-21)
+
+
+### Features
+
+* Third Reality: expose `led_brightness` ([#12265](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12265)) ([bc42291](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc42291826592e553658a740dd32b3ee74c13b44))
+
+
+### Bug Fixes
+
+* **detect:** Detect `ZeeFan` as Multiterm ZC0101 ([#12257](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12257)) ([b90dfaa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b90dfaa0ba7581114f91ec667eef57a36101e641))
+* Eglo 99099: improve remote controller support ([#12260](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12260)) ([c4fc90c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4fc90ca74cdb87756fb83717e8456cd62b56848))
+* Refactor device specific converters ([#12268](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12268)) ([013ebd4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/013ebd49b1e63da9ee527f850824ca04a6a26902))
+* Schneider Electric CCT711119: refactor to modern extend ([#12228](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12228)) ([66a7970](https://github.com/Koenkk/zigbee-herdsman-converters/commit/66a7970e86429b0cc6d7da6587ed6b2abd39bfd4))
+* Tuya MG-GPO04ZSLP: fix control ([#12262](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12262)) ([273afa3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/273afa3f126fa6d778d89684ce683aecbfcd0a45))
+
 ## [26.54.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.53.0...v26.54.0) (2026-05-20)
 
 

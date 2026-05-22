@@ -5564,7 +5564,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-GPO04ZSLP",
         vendor: "Tuya",
         description: "2 x socket + 1 x light with master switch and metering",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {master: 1, light: 1, left: 2, right: 3}})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {master: 1, light: 1, left: 1, right: 1}})],
         exposes: [
             e.switch().withEndpoint("master").setAccess("state", ea.STATE_SET).withDescription("Master switch controlling all relays"),
             e.switch().withEndpoint("light").setAccess("state", ea.STATE_SET).withDescription("Light relay"),

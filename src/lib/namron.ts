@@ -199,6 +199,18 @@ export const fromZigbee = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", NamronHvacThermostat2, ["attributeReport", "readResponse"]>,
+    namron_hvac_user_interface: {
+        cluster: "hvacUserInterfaceCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.keypadLockout !== undefined) {
+                // Set as child lock instead as keypadlockout
+                result.child_lock = msg.data.keypadLockout === 0 ? "UNLOCK" : "LOCK";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -385,6 +397,17 @@ export const toZigbee = {
                 default: // Unknown key
                     throw new Error(`Unhandled key toZigbee.namron_thermostat.convertGet ${key}`);
             }
+        },
+    } satisfies Tz.Converter,
+    namron_thermostat_child_lock: {
+        key: ["child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            const keypadLockout = Number(value === "LOCK");
+            await entity.write("hvacUserInterfaceCfg", {keypadLockout});
+            return {state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacUserInterfaceCfg", ["keypadLockout"]);
         },
     } satisfies Tz.Converter,
 };

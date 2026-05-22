@@ -2313,24 +2313,6 @@ export const ZMCSW032D_cover_position: Tz.Converter = {
         await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
     },
 };
-export const namron_thermostat_child_lock: Tz.Converter = {
-    key: ["child_lock"],
-    convertSet: async (entity, key, value, meta) => {
-        const keypadLockout = Number(value === "LOCK");
-        await entity.write("hvacUserInterfaceCfg", {keypadLockout});
-        return {state: {child_lock: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacUserInterfaceCfg", ["keypadLockout"]);
-    },
-};
-export const easycode_auto_relock: Tz.Converter = {
-    key: ["auto_relock"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("closuresDoorLock", {autoRelockTime: value ? 1 : 0}, utils.getOptions(meta.mapped, entity));
-        return {state: {auto_relock: value}};
-    },
-};
 export const tuya_led_controller: Tz.Converter = {
     key: ["state", "color"],
     convertSet: async (entity, key, value, meta) => {
