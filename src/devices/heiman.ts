@@ -3228,7 +3228,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "endOfLife",
+                name: "endoflife",
                 lookup: {normal: 0, expires_soon: 1, expired: 2},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorLifeState",
@@ -3237,7 +3237,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "alarm_state",
-                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3 },
+                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorPrealarmState",
                 description: "It indicates the level of alarm states",
@@ -3313,7 +3313,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: "1_SECOND", max: "4_HOURS", change: 0.00001},
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "endOfLife",
+                name: "endoflife",
                 lookup: {normal: 0, expires_soon: 1, expired: 2},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorLifeState",
@@ -3322,7 +3322,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "alarm_state",
-                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3 },
+                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorPrealarmState",
                 description: "It indicates the level of alarm states",
@@ -3561,9 +3561,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "target_distance",
-                unit: "m",
+                unit: "meter(s)",
                 valueMin: 1,
                 valueMax: 10,
+                valueStep: 0.01,
+                scale: 100,
                 cluster: "heimanClusterSpecial",
                 attribute: "radarDetectionTargetRange",
                 description: "The distance of target",
