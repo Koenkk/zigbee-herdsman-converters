@@ -3524,10 +3524,21 @@ export const definitions: DefinitionWithExtend[] = [
             );
         },
         extend: [
-            m.illuminance(),
             heimanExtend.heimanClusterSpecial(),
+            m.illuminance(),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "target_distance",
+                unit: "meter(s)",
+                valueMin: 1,
+                valueMax: 10,
+                valueStep: 0.01,
+                scale: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionTargetRange",
+                description: "The distance of target",
+                access: "STATE_GET",
+            }),
             heimanExtend.heimanClusterDeviceFaultState(),
-            heimanExtend.heimanClusterRadarDetectionRange(),
             m.numeric({
                 name: "unoccupied_delay",
                 unit: "s",
@@ -3538,6 +3549,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "occupied to unoccupied delay",
                 access: "ALL",
             }),
+            heimanExtend.heimanClusterRadarDetectionRange(),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "repeated_reporting_duration",
                 unit: "minute(s)",
@@ -3558,18 +3570,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "illuminanceThreshold",
                 description: "when the illuminance exceeds the threshold, it activates local linkages.",
                 access: "ALL",
-            }),
-            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "target_distance",
-                unit: "meter(s)",
-                valueMin: 1,
-                valueMax: 10,
-                valueStep: 0.01,
-                scale: 100,
-                cluster: "heimanClusterSpecial",
-                attribute: "radarDetectionTargetRange",
-                description: "The distance of target",
-                access: "STATE_GET",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "pir_sensitivity_level",
