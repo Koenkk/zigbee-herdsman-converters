@@ -13189,8 +13189,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
     zigbeeModel: ["ZG-204ZL-z"],
     model: "ZG-204ZL-z",
-    vendor: "PVVX",
-    description: "PIR motion sensor with illuminance",
+    vendor: "Tuya",
+    description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
     ota: true,
     extend: [
         m.battery(),
