@@ -3237,7 +3237,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "alarm_state",
-                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3 },
+                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorPrealarmState",
                 description: "It indicates the level of alarm states",
@@ -3322,7 +3322,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "alarm_state",
-                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3 },
+                lookup: {normal: 0, prealarm: 1, warning_alarm: 2, critical_alarm: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorPrealarmState",
                 description: "It indicates the level of alarm states",
