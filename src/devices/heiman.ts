@@ -3553,7 +3553,7 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "Lx",
                 scale: 1,
                 valueMin: 0,
-                valueMax: 1200,
+                valueMax: 1000,
                 cluster: "heimanClusterSpecial",
                 attribute: "illuminanceThreshold",
                 description: "when the illuminance exceeds the threshold, it activates local linkages.",
