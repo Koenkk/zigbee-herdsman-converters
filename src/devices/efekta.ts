@@ -9404,20 +9404,20 @@ export const definitions: DefinitionWithExtend[] = [
         description: "CO2 Monitor with TFT Display, outdoor temperature and humidity, date and time",
         extend: [
             m.co2({
-				reporting: false,
-				access: 'STATE',
-				}),
+                reporting: false,
+                access: "STATE",
+            }),
             m.temperature({
                 reporting: false,
-				access: 'STATE',
+                access: "STATE",
             }),
             m.humidity({
                 reporting: false,
-				access: 'STATE',
+                access: "STATE",
             }),
             m.illuminance({
                 reporting: false,
-				access: 'STATE',
+                access: "STATE",
             }),
             m.binary({
                 name: "auto_brightness",
@@ -9426,7 +9426,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0203, type: 0x10},
                 description: "Enable or Disable Auto Brightness of the Display",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "night_onoff_backlight",
@@ -9435,7 +9435,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0401, type: 0x10},
                 description: "Complete shutdown of the backlight at night mode",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "night_on_backlight",
@@ -9445,7 +9445,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0405, type: 0x20},
                 description: "Night mode activation time",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "night_off_backlight",
@@ -9455,15 +9455,15 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msIlluminanceMeasurement",
                 attribute: {ID: 0x0406, type: 0x20},
                 description: "Night mode deactivation time",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "long_chart_period",
-				lookup: {"1H": 0, "24H": 1},
+                lookup: {"1H": 0, "24H": 1},
                 cluster: "msCO2",
                 attribute: {ID: 0x0204, type: 0x10},
                 description: "The period of plotting the CO2 level(OFF - 1H | ON - 24H)",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "set_altitude",
@@ -9473,7 +9473,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0205, type: 0x21},
                 description: "Setting the altitude above sea level (for high accuracy of the CO2 sensor)",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "temperature_offset",
@@ -9485,7 +9485,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0210, type: 0x29},
                 description: "Adjust temperature",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "humidity_offset",
@@ -9496,15 +9496,15 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msRelativeHumidity",
                 attribute: {ID: 0x0210, type: 0x29},
                 description: "Adjust humidity",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.enumLookup({
                 name: "th_sensor",
-				lookup: {"INTERNAL": 0, "EXTERNAL": 1},
+                lookup: {INTERNAL: 0, EXTERNAL: 1},
                 cluster: "msCO2",
                 attribute: {ID: 0x0288, type: 0x10},
                 description: "Display data from internal or external TH sensor",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "automatic_scal",
@@ -9513,7 +9513,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0402, type: 0x10},
                 description: "Automatic self calibration",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "forced_recalibration",
@@ -9522,7 +9522,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0202, type: 0x10},
                 description: "Start FRC (Perform Forced Recalibration of the CO2 Sensor)",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "factory_reset_co2",
@@ -9531,7 +9531,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0206, type: 0x10},
                 description: "Factory Reset CO2 sensor",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "manual_forced_recalibration",
@@ -9541,7 +9541,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0207, type: 0x21},
                 description: "Start Manual FRC (Perform Forced Recalibration of the CO2 Sensor)",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "enable_gas",
@@ -9550,7 +9550,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0220, type: 0x10},
                 description: "Enable CO2 Gas Control",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.binary({
                 name: "invert_logic_gas",
@@ -9559,7 +9559,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0225, type: 0x10},
                 description: "Enable invert logic CO2 Gas Control",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "high_gas",
@@ -9569,7 +9569,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0221, type: 0x21},
                 description: "Setting High CO2 Gas Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
             m.numeric({
                 name: "low_gas",
@@ -9579,11 +9579,11 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "msCO2",
                 attribute: {ID: 0x0222, type: 0x21},
                 description: "Setting Low CO2 Gas Border",
-				access: "STATE_SET",
+                access: "STATE_SET",
             }),
         ],
     },
-	{
+    {
         zigbeeModel: ["EFEKTA_iAQ2_R2"],
         model: "EFEKTA_iAQ2_R2",
         vendor: "EFEKTA",
@@ -9655,7 +9655,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "The period of plotting the CO2 level(OFF - 1H | ON - 24H)",
                 access: "STATE_SET",
             }),
-			m.enumLookup({
+            m.enumLookup({
                 name: "rotate",
                 lookup: {"0": 0, "90": 90, "180": 180, "270": 270},
                 cluster: "msCO2",
