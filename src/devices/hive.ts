@@ -372,7 +372,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatTemperatureSetpointHold(endpoint);
             await reporting.thermostatTemperatureSetpointHoldDuration(endpoint);
-        }
+        },
     },
     {
         zigbeeModel: ["OTR1"],
