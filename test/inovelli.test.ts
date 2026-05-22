@@ -1986,15 +1986,16 @@ describe("Inovelli VZM31-SN definition integration", () => {
             model: "VZM31-SN",
             device,
             meta: {multiEndpoint: true, multiEndpointSkip: ["state", "power", "energy", "brightness"]},
-            // 8 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), device (led_effect_complete + main),
-            // electricityMeter (electrical_measurement + metering).
+            // 9 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), ledEffects (led_effect_complete),
+            // buttonTaps (raw EP2 scene parser), parameters (attribute reports), electricityMeter (electrical_measurement + metering).
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
                 {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
                 {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
             ],
@@ -2208,14 +2209,15 @@ describe("Inovelli VZM30-SN definition integration", () => {
                 multiEndpoint: true,
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "temperature", "humidity"],
             },
-            // Same 8 converters as VZM31-SN plus temperature + humidity measurement converters.
+            // Same 9 converters as VZM31-SN plus temperature + humidity measurement converters.
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
                 {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
                 {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
                 {cluster: "msTemperatureMeasurement", type: ["attributeReport", "readResponse"]},
@@ -2419,8 +2421,9 @@ describe("Inovelli VZM32-SN definition integration", () => {
                 multiEndpoint: true,
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
             },
-            // 15 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), device (led_effect_complete + main),
-            // mmWave (main attr report + 3 command converters: anyone_in_reporting_area, report_areas, report_target_info),
+            // 16 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), ledEffects (led_effect_complete),
+            // buttonTaps (raw EP2 scene parser), parameters (INOVELLI + INOVELLI_MMWAVE attribute reports),
+            // mmWave (3 command converters: anyone_in_reporting_area, report_areas, report_target_info),
             // electricityMeter (electrical_measurement + metering), illuminance (measured + raw), occupancy.
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
@@ -2428,8 +2431,9 @@ describe("Inovelli VZM32-SN definition integration", () => {
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
-                {cluster: "manuSpecificInovelliMMWave", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelliMMWave", type: ["readResponse", "attributeReport"]},
                 {cluster: "manuSpecificInovelliMMWave", type: ["commandAnyoneInReportingArea"]},
                 {
                     cluster: "manuSpecificInovelliMMWave",
@@ -2734,14 +2738,16 @@ describe("Inovelli VZM35-SN definition integration", () => {
             device,
             // VZM35-SN does not use m.deviceEndpoints(), so no multiEndpoint meta is set (definition.meta is undefined).
             meta: undefined,
-            // 5 converters: fan (fan_mode + breeze_mode + fan_state), device (led_effect_complete + main).
-            // No light/electricityMeter/etc. extends, so the custom cluster is the only "attrs" source.
+            // 6 converters: fan (fan_mode + breeze_mode + fan_state), ledEffects (led_effect_complete),
+            // buttonTaps (raw EP2 scene parser), parameters (attribute reports). No light/electricityMeter/etc.
+            // extends, so the custom cluster is the only "attrs" source.
             fromZigbeeFingerprint: [
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
             ],
             toZigbeeKeysContain: [
                 // fan() extend
@@ -2899,14 +2905,14 @@ describe("Inovelli VZM36 definition integration", () => {
             // VZM36 defines `fromZigbee: []` on the definition, so every fz converter comes from extends:
             // 2 from light (on_off_for_endpoint(1) + brightness; no level_config/power_on_behavior in split mode)
             // 3 from fan (fan_mode(2) + breeze_mode(2) + fan_state(2))
-            // 1 from device (inovelli -- no led_effect_complete since supportsLedEffects=false)
+            // 1 from parameters (attribute reports -- no ledEffects/buttonTaps for the canopy module)
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
             ],
             toZigbeeKeysContain: [
                 // light() extend (split)
