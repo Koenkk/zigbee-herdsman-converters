@@ -26872,17 +26872,15 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["lwazh9\u0000", "lwazh9"],
         fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_m6lwazh9"])],
-        model: "TS0601_cover_14",
+        model: "TB25-DC-10/25Z",
         vendor: "Tuya",
         description: "Curtain motor/roller blind motor/window pusher/tubular motor",
         whiteLabel: [
             {vendor: "Zemismart", model: "ZM25AZ01"},
             {vendor: "Trublockout", model: "TB25-DC-10/25Z"},
         ],
-        fromZigbee: [legacy.fromZigbee.tuya_cover],
-        toZigbee: [legacy.toZigbee.tuya_cover_control, legacy.toZigbee.tuya_cover_options],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.battery(),
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -26901,7 +26899,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Motor speed regulation (write-only; not confirmed as a reported status)"),
             e.binary("click_control", ea.SET, true, false).withDescription("Trigger a single motor step"),
             e.enum("work_state", ea.STATE, ["stopped", "opening", "closing"]).withDescription("Motor work state reported by the device"),
-            e.numeric("status_debug", ea.STATE).withDescription("Raw DP 103 value for debugging"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -26935,29 +26932,15 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 // DP 19 – Favorite / "My" position
                 [19, "favorite_position", tuya.valueConverter.raw],
-                // DP 103 – Work state: 0 = stopped, 4 = opening, 8 = closing (null key spreads both props into result)
-                // Also emits state: "opening"/"closing" so HA's cover entity reflects the moving state.
-                // When stopped, state is left alone so DP 1's OPEN/CLOSE/STOP value remains.
+                // DP 103 – Work state: 0 = stopped, 4 = opening, 8 = closing
                 [
                     103,
-                    null,
-                    {
-                        from: (v: number) => {
-                            switch (v) {
-                                case 4: {
-                                    return {workstate: "opening", status_debug: v};
-                                }
-                                case 8: {
-                                    return {workstate: "closing", status_debug: v};
-                                }
-                                default: {
-                                    // We return "stopped" for 0, but we're also returning "stopped" for unknown values.
-                                    // Status debug will hold the true value.
-                                    return {workstate: "stopped", status_debug: v};
-                                }
-                            }
-                        },
-                    },
+                    "work_state",
+                    tuya.valueConverterBasic.lookup({
+                        stopped: tuya.enum(0),
+                        opening: tuya.enum(4),
+                        closing: tuya.enum(8),
+                    }),
                 ],
                 // DP 107 – Click/step control (trigger, sends bool true/false)
                 [107, "click_control", tuya.valueConverter.raw],
