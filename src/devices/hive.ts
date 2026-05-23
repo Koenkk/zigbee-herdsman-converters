@@ -361,7 +361,6 @@ export const definitions: DefinitionWithExtend[] = [
                         " used. 0 to 360 to match the remote display",
                 ),
         ],
-        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             const binds = ["genBasic", "genIdentify", "genAlarms", "genTime", "hvacThermostat"];
