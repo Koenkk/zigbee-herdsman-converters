@@ -1,11 +1,52 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    javis_lock_report: {
+        cluster: "genBasic",
+        type: "attributeReport",
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                0: "pairing",
+                1: "keypad",
+                2: "rfid_card_unlock",
+                3: "touch_unlock",
+            };
+            const utf8FromStr = (s: string) => {
+                const a = [];
+                for (let i = 0, enc = encodeURIComponent(s); i < enc.length; ) {
+                    if (enc[i] === "%") {
+                        a.push(Number.parseInt(enc.substr(i + 1, 2), 16));
+                        i += 3;
+                    } else {
+                        a.push(enc.charCodeAt(i++));
+                    }
+                }
+                return a;
+            };
+
+            const data = utf8FromStr(msg.data["16896"] as string);
+
+            clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+            const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000);
+            globalStore.putValue(msg.endpoint, "timer", timer);
+
+            return {
+                action: "unlock",
+                action_user: data[3],
+                action_source: data[5],
+                action_source_name: lookup[data[5]],
+            };
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, "attributeReport">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -17,7 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "JS-SLK2-ZB",
         vendor: "JAVIS",
         description: "Intelligent biometric digital lock",
-        fromZigbee: [fz.javis_lock_report, fz.battery],
+        fromZigbee: [fzLocal.javis_lock_report, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.action(["unlock"])],
     },
