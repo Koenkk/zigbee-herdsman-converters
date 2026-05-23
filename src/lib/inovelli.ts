@@ -2805,8 +2805,8 @@ const fzLocal = {
         cluster: INOVELLI_MMWAVE_CLUSTER_NAME,
         type: ["commandReportTargetInfo"],
         convert: (model, msg, publish, options, meta) => {
-            // Per Inovelli cluster docs: each target is x,y,z,dop,id as int16 (10 bytes), after targetNum.
-            const stride = 10;
+            // Per Inovelli cluster docs: each target is x,y,z,dop (int16) + id (int8) = 9 bytes, after targetNum.
+            const stride = 9;
             const buf = msg.data.targets;
             const targets: Array<{id: number; x: number; y: number; z: number; dop: number}> = [];
             const count = Math.min(msg.data.targetNum, Math.floor(buf.length / stride));
@@ -2816,7 +2816,7 @@ const fzLocal = {
                 const y = buf.readInt16LE(o + 2);
                 const z = buf.readInt16LE(o + 4);
                 const dop = buf.readInt16LE(o + 6);
-                const id = buf.readInt16LE(o + 8);
+                const id = buf.readInt8(o + 8);
                 targets.push({id, x, y, z, dop});
             }
             return {mmwave_targets: targets};
