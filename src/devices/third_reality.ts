@@ -137,6 +137,14 @@ interface ThirdBlindGen2 {
     commandResponses: never;
 }
 
+interface ThirdColorLight {
+    attributes: {
+        allowBind: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdWaterSensor {
     attributes: {
         sirenOnOff: number;
@@ -148,6 +156,7 @@ interface ThirdWaterSensor {
 
 interface ThirdPlug {
     attributes: {
+        ledBrightness: number;
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
@@ -159,6 +168,7 @@ interface ThirdPlug {
 
 interface ThirdPlugGen3 {
     attributes: {
+        ledBrightness: number;
         meteringOnlyMode: number;
         powerRiseThreshold: number;
         powerDropThreshold: number;
@@ -1068,9 +1078,20 @@ export const definitions: DefinitionWithExtend[] = [
                     countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rPlugGen2SpecialCluster", ThirdPlug>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rPlugGen2SpecialCluster",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugGen2SpecialCluster", ThirdPlug>({
                 name: "reset_total_energy",
@@ -1131,6 +1152,25 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
+                ID: Zcl.Clusters.genBasic.ID,
+                attributes: {
+                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, max: 0x64},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"genBasic", ThirdPlugGen3>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "genBasic",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "reset_total_energy",
@@ -1358,7 +1398,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z", "3RCB02070Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
@@ -1369,15 +1409,23 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
-            m.deviceAddCustomCluster("3rColorSpecialCluster", {
-                name: "3rColorSpecialCluster",
+            m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
+                name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0x01},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rColorLightSpecialCluster", ThirdColorLight>({
+                name: "start_bind",
+                lookup: {StartBind: 1},
+                cluster: "3rColorLightSpecialCluster",
+                attribute: "allowBind",
+                description: "Start bind the light to the controller",
+                access: "ALL",
             }),
         ],
     },
@@ -1420,9 +1468,20 @@ export const definitions: DefinitionWithExtend[] = [
                     countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rPlugE2Specialcluster", ThirdPlug>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rPlugE2Specialcluster",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugE2Specialcluster", ThirdPlug>({
                 name: "reset_total_energy",

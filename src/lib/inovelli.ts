@@ -612,31 +612,17 @@ const inovelliExtend = {
             },
         });
     },
-    device: ({
-        model,
+    parameters: ({
         attrs,
-        supportsLedEffects,
-        supportsButtonTaps,
+        model,
         splitValuesByEndpoint = false,
     }: {
-        model: Model;
         attrs: Array<{attributes: {[s: string]: Attribute}; clusterName: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME}>;
-        supportsLedEffects?: boolean;
-        supportsButtonTaps: boolean;
+        model: Model;
         splitValuesByEndpoint?: boolean;
     }): ModernExtend => {
         const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = [];
         const toZigbee: Tz.Converter[] = [];
-        const staticExposes: Expose[] = [];
-
-        if (supportsLedEffects) {
-            fromZigbee.push(fzLocal.led_effect_complete);
-            toZigbee.push(tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect);
-            staticExposes.push(exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete());
-        }
-        if (supportsButtonTaps) {
-            staticExposes.push(e.action(BUTTON_TAP_SEQUENCES));
-        }
 
         for (const attr of attrs) {
             fromZigbee.push(fzLocal.inovelli(attr.attributes, attr.clusterName, splitValuesByEndpoint, model));
@@ -666,15 +652,17 @@ const inovelliExtend = {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
 
-                // Bind for Button Event Reporting
-                const endpoint2 = device.getEndpoint(2);
-                await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+                let endpoint2: Zh.Endpoint | undefined;
+                if (splitValuesByEndpoint) {
+                    endpoint2 = device.getEndpoint(2);
+                    await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+                }
 
                 const fw = device.softwareBuildID ? parseFirmwareVersion(device.softwareBuildID) : undefined;
 
                 for (const attr of attrs) {
                     const filtered = adjustAttributesForDevice(attr.attributes, model, fw);
-                    if (!splitValuesByEndpoint) {
+                    if (!splitValuesByEndpoint || !endpoint2) {
                         await chunkedRead(endpoint, Object.keys(filtered), attr.clusterName);
                     } else {
                         await chunkedRead(
@@ -712,7 +700,29 @@ const inovelliExtend = {
         return {
             fromZigbee,
             toZigbee,
-            exposes: [...staticExposes, dynamicExposes],
+            exposes: [dynamicExposes],
+            configure,
+            isModernExtend: true,
+        };
+    },
+    ledEffects: (): ModernExtend => {
+        return {
+            fromZigbee: [fzLocal.led_effect_complete],
+            toZigbee: [tzLocal.inovelli_led_effect, tzLocal.inovelli_individual_led_effect],
+            exposes: [exposeLedEffects(), exposeIndividualLedEffects(), exposeLedEffectComplete()],
+            isModernExtend: true,
+        };
+    },
+    buttonTaps: (): ModernExtend => {
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint2 = device.getEndpoint(2);
+                await reporting.bind(endpoint2, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
+            },
+        ];
+        return {
+            fromZigbee: [fzLocal.button_taps],
+            exposes: [e.action(BUTTON_TAP_SEQUENCES)],
             configure,
             isModernExtend: true,
         };
@@ -2340,29 +2350,43 @@ const tzLocal = {
         ({
             key: Object.keys(attributes).filter((a) => !attributes[a].readOnly),
             convertSet: async (entity, key, value, meta) => {
-                const {entityToUse} = resolveEndpointAndKey(entity, key, meta);
+                // Walk meta.message rather than just `key`: Z2M dispatches this converter once per SET payload,
+                // so writing only `key` silently drops every other Inovelli key (issue #11698). Bucket by the
+                // resolved endpoint so VZM36 _1/_2 suffixed keys still route correctly.
+                const buckets = new Map<Zh.Endpoint | Zh.Group, {payload: {[id: number]: {value: unknown; type: number}}; state: KeyValue}>();
 
-                if (!(key in attributes)) {
+                for (const [msgKey, msgValue] of Object.entries(meta.message)) {
+                    const attribute = attributes[msgKey];
+                    if (!attribute || attribute.readOnly) {
+                        continue;
+                    }
+
+                    const {entityToUse} = resolveEndpointAndKey(entity, msgKey, meta);
+                    const valueMap = resolveValueMap(attribute, model);
+                    const writeValue = attribute.displayType === "enum" ? valueMap?.[msgValue as string] : msgValue;
+
+                    let bucket = buckets.get(entityToUse);
+                    if (!bucket) {
+                        bucket = {payload: {}, state: {}};
+                        buckets.set(entityToUse, bucket);
+                    }
+                    bucket.payload[attribute.id] = {value: writeValue, type: attribute.dataType};
+                    bucket.state[msgKey] = msgValue;
+                }
+
+                if (buckets.size === 0) {
                     return;
                 }
 
-                const valueMap = resolveValueMap(attributes[key], model);
-                const payload = {
-                    [attributes[key].id]: {
-                        value: attributes[key].displayType === "enum" ? valueMap?.[value as string] : value,
-                        type: attributes[key].dataType,
-                    },
-                };
+                const combinedState: KeyValue = {};
+                for (const [entityToUse, bucket] of buckets) {
+                    await entityToUse.write(cluster, bucket.payload, {
+                        manufacturerCode: INOVELLI,
+                    });
+                    Object.assign(combinedState, bucket.state);
+                }
 
-                await entityToUse.write(cluster, payload, {
-                    manufacturerCode: INOVELLI,
-                });
-
-                return {
-                    state: {
-                        [key]: value,
-                    },
-                };
+                return {state: combinedState};
             },
             convertGet: async (entity, key, meta) => {
                 const {entityToUse, keyToUse} = resolveEndpointAndKey(entity, key, meta);
@@ -2630,45 +2654,40 @@ const fzLocal = {
     ) =>
         ({
             cluster: cluster,
-            type: ["raw", "readResponse", "attributeReport"],
+            type: ["readResponse", "attributeReport"],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.type === "raw" && msg.endpoint.ID === 2 && msg.data[4] === 0x00) {
-                    // Scene Event
-                    // # byte 1 - msg.data[6]
-                    // # 0 - pressed
-                    // # 1 - released
-                    // # 2 - held
-                    // # 3 - 2x
-                    // # 4 - 3x
-                    // # 5 - 4x
-                    // # 6 - 5x
-
-                    // # byte 2 - msg.data[5]
-                    // # 1 - down button
-                    // # 2 - up button
-                    // # 3 - config button
-
-                    const button = buttonLookup[msg.data[5]];
-                    const action = clickLookup[msg.data[6]];
-                    return {action: `${button}_${action}`};
-                }
-                if (msg.type === "readResponse" || msg.type === "attributeReport") {
-                    const result: KeyValue = {};
-                    for (const c of Object.keys(msg.data)) {
-                        const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
-                        const raw = (msg.data as Record<string | number, unknown>)[c];
-                        if (attributes[key] && attributes[key].displayType === "enum") {
-                            const valueMap = resolveValueMap(attributes[key], deviceModel);
-                            result[key] = valueMap ? Object.keys(valueMap).find((k) => valueMap[k] === raw) : raw;
-                        } else {
-                            result[key] = raw;
-                        }
+                const result: KeyValue = {};
+                for (const c of Object.keys(msg.data)) {
+                    const key = splitValuesByEndpoint ? `${c}_${msg.endpoint.ID}` : c;
+                    const raw = (msg.data as Record<string | number, unknown>)[c];
+                    if (attributes[key] && attributes[key].displayType === "enum") {
+                        const valueMap = resolveValueMap(attributes[key], deviceModel);
+                        result[key] = valueMap ? Object.keys(valueMap).find((k) => valueMap[k] === raw) : raw;
+                    } else {
+                        result[key] = raw;
                     }
-                    return result;
                 }
-                return msg.data;
+                return result;
             },
-        }) satisfies Fz.Converter<typeof cluster, undefined, ["raw", "readResponse", "attributeReport"]>,
+        }) satisfies Fz.Converter<typeof cluster, undefined, ["readResponse", "attributeReport"]>,
+    /**
+     * Decodes raw button-tap scene frames sent by the device on endpoint 2 of `manuSpecificInovelli`.
+     *
+     * Frame layout (bytes 4-6 are the scene tuple, the rest of the frame is ignored here):
+     *   data[4]: marker — must be 0x00, otherwise the frame is a different opcode.
+     *   data[5]: button index (`buttonLookup`): 1=down, 2=up, 3=config, 4-6=aux_*.
+     *   data[6]: tap kind (`clickLookup`): 0=pressed, 1=released, 2=held, 3-6=2x..5x.
+     */
+    button_taps: {
+        cluster: INOVELLI_CLUSTER_NAME,
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID !== 2 || msg.data[4] !== 0x00) return;
+            const button = buttonLookup[msg.data[5]];
+            const action = clickLookup[msg.data[6]];
+            return {action: `${button}_${action}`};
+        },
+    } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, undefined, ["raw"]>,
     fan_mode: (endpointId: number) =>
         ({
             cluster: "genLevelCtrl",

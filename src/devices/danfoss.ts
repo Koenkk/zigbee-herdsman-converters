@@ -491,7 +491,7 @@ const danfossExtend = {
         }),
     danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.binary<"hvacThermostat", DanfossHvacThermostat>({
-            name: "thermostat_vertical_orientation",
+            name: "thermostat_orientation",
             cluster: "hvacThermostat",
             attribute: "danfossThermostatOrientation",
             description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
@@ -1412,7 +1412,11 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            } catch {
+                // Bind may fail if already bound (Danfoss rejects duplicate binds)
+            }
             await endpoint.configureReporting<"haDiagnostic", DanfossHaDiagnostic>(
                 "haDiagnostic",
                 [

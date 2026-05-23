@@ -60,6 +60,22 @@ export interface SunricherRemote {
     commandResponses: never;
 }
 
+const SRZGP2801K45C_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "high_low_release",
+    99: "cw_ww_release",
+    98: "cw_dec_ww_inc",
+    100: "ww_inc_cw_dec",
+    65: "r_g_b",
+    66: "b_g_r",
+    64: "rgb_release",
+};
+
 const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
@@ -67,23 +83,9 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return;
-            const lookup = {
-                33: "press_on",
-                32: "press_off",
-                55: "press_high",
-                56: "press_low",
-                53: "hold_high",
-                54: "hold_low",
-                52: "high_low_release",
-                99: "cw_ww_release",
-                98: "cw_dec_ww_inc",
-                100: "ww_inc_cw_dec",
-                65: "r_g_b",
-                66: "b_g_r",
-                64: "rgb_release",
-            };
-            return {action: utils.getFromLookup(commandID, lookup)};
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            return {action: utils.getFromLookup(commandID, SRZGP2801K45C_LOOKUP)};
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ZG9095B: {
@@ -2072,7 +2074,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, namron.fromZigbee.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            namron.fromZigbee.namron_hvac_user_interface,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -2084,7 +2092,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             namron.toZigbee.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
         ],
         exposes: [
             e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor sensor"),
@@ -2434,7 +2442,7 @@ export const definitions: DefinitionWithExtend[] = [
             namron.fromZigbee.namron_thermostat,
             fz.metering,
             fz.electrical_measurement,
-            fz.namron_hvac_user_interface,
+            namron.fromZigbee.namron_hvac_user_interface,
             fzLocal.ZG9095B,
         ],
         toZigbee: [
@@ -2452,7 +2460,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
             namron.toZigbee.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat_child_lock,
             tz.fan_mode,
             tzLocal.ZG9095B.min_setpoint_deadband,
         ],

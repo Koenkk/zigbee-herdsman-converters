@@ -316,6 +316,101 @@ describe("Inovelli toZigbee converters", () => {
             const result = await converter.convertSet(endpoint, "nonExistentKey", 42, meta);
             expect(result).toBeUndefined();
         });
+
+        // Regression test for https://github.com/Koenkk/zigbee-herdsman-converters/issues/11698
+        it("convertSet should write all matching keys from meta.message in one batched payload", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "defaultLevelLocal");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {defaultLevelLocal: 100, defaultLevelRemote: 100},
+            });
+
+            const result = await converter.convertSet(endpoint, "defaultLevelLocal", 100, meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {
+                    13: {value: 100, type: expect.any(Number)},
+                    14: {value: 100, type: expect.any(Number)},
+                },
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {defaultLevelLocal: 100, defaultLevelRemote: 100}});
+        });
+
+        it("convertSet should batch keys regardless of the order they appear in meta.message", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "defaultLevelLocal");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {defaultLevelRemote: 50, defaultLevelLocal: 50},
+            });
+
+            const result = await converter.convertSet(endpoint, "defaultLevelRemote", 50, meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {
+                    13: {value: 50, type: expect.any(Number)},
+                    14: {value: 50, type: expect.any(Number)},
+                },
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {defaultLevelRemote: 50, defaultLevelLocal: 50}});
+        });
+
+        it("convertSet should ignore unknown and read-only keys when batching", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "defaultLevelLocal");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {
+                    defaultLevelLocal: 75,
+                    nonExistentKey: 42,
+                    // internalTemperature is a read-only attribute on the same cluster
+                    internalTemperature: 99,
+                },
+            });
+
+            const result = await converter.convertSet(endpoint, "defaultLevelLocal", 75, meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {13: {value: 75, type: expect.any(Number)}},
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {defaultLevelLocal: 75}});
+        });
+
+        it("convertSet should map enum values when batched alongside numeric values", async () => {
+            const {device, definition} = await setupVZM31();
+            const converter = findTzConverter(definition, "switchType");
+            const endpoint = device.getEndpoint(1);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {switchType: "3-Way Dumb Switch", dimmingSpeedUpRemote: 50},
+            });
+
+            const result = await converter.convertSet(endpoint, "switchType", "3-Way Dumb Switch", meta);
+
+            expect(endpoint.write).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).toHaveBeenCalledWith(
+                "manuSpecificInovelli",
+                {
+                    1: {value: 50, type: expect.any(Number)},
+                    22: {value: 1, type: expect.any(Number)},
+                },
+                {manufacturerCode: 0x122f},
+            );
+            expect(result).toStrictEqual({state: {switchType: "3-Way Dumb Switch", dimmingSpeedUpRemote: 50}});
+        });
     });
 
     describe("VZM36 endpoint resolution", () => {
@@ -331,6 +426,37 @@ describe("Inovelli toZigbee converters", () => {
 
             expect(ep2.write).toHaveBeenCalledWith("manuSpecificInovelli", {1: {value: 25, type: expect.any(Number)}}, {manufacturerCode: 0x122f});
             expect(ep1.write).not.toHaveBeenCalled();
+        });
+
+        it("convertSet should bucket combined _1 / _2 keys to their respective endpoints", async () => {
+            const {device, definition} = await setupVZM36();
+            const converter = findTzConverter(definition, "defaultLevelRemote_1");
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            const meta = buildMeta(device, {
+                mapped: definition,
+                message: {
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_1: 80,
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_2: 40,
+                },
+            });
+
+            const result = await converter.convertSet(ep1, "defaultLevelRemote_1", 80, meta);
+
+            expect(ep1.write).toHaveBeenCalledTimes(1);
+            expect(ep1.write).toHaveBeenCalledWith("manuSpecificInovelli", {14: {value: 80, type: expect.any(Number)}}, {manufacturerCode: 0x122f});
+            expect(ep2.write).toHaveBeenCalledTimes(1);
+            expect(ep2.write).toHaveBeenCalledWith("manuSpecificInovelli", {14: {value: 40, type: expect.any(Number)}}, {manufacturerCode: 0x122f});
+            expect(result).toStrictEqual({
+                state: {
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_1: 80,
+                    // biome-ignore lint/style/useNamingConvention: matches device attribute key format
+                    defaultLevelRemote_2: 40,
+                },
+            });
         });
 
         it("convertGet with suffixed key should read from the correct endpoint", async () => {
@@ -1860,15 +1986,16 @@ describe("Inovelli VZM31-SN definition integration", () => {
             model: "VZM31-SN",
             device,
             meta: {multiEndpoint: true, multiEndpointSkip: ["state", "power", "energy", "brightness"]},
-            // 8 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), device (led_effect_complete + main),
-            // electricityMeter (electrical_measurement + metering).
+            // 9 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), ledEffects (led_effect_complete),
+            // buttonTaps (raw EP2 scene parser), parameters (attribute reports), electricityMeter (electrical_measurement + metering).
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
                 {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
                 {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
             ],
@@ -2082,14 +2209,15 @@ describe("Inovelli VZM30-SN definition integration", () => {
                 multiEndpoint: true,
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "temperature", "humidity"],
             },
-            // Same 8 converters as VZM31-SN plus temperature + humidity measurement converters.
+            // Same 9 converters as VZM31-SN plus temperature + humidity measurement converters.
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
                 {cluster: "haElectricalMeasurement", type: ["attributeReport", "readResponse"]},
                 {cluster: "seMetering", type: ["attributeReport", "readResponse"]},
                 {cluster: "msTemperatureMeasurement", type: ["attributeReport", "readResponse"]},
@@ -2293,8 +2421,9 @@ describe("Inovelli VZM32-SN definition integration", () => {
                 multiEndpoint: true,
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
             },
-            // 15 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), device (led_effect_complete + main),
-            // mmWave (main attr report + 3 command converters: anyone_in_reporting_area, report_areas, report_target_info),
+            // 16 converters: light (on_off EP1 + brightness + level_config + power_on_behavior), ledEffects (led_effect_complete),
+            // buttonTaps (raw EP2 scene parser), parameters (INOVELLI + INOVELLI_MMWAVE attribute reports),
+            // mmWave (3 command converters: anyone_in_reporting_area, report_areas, report_target_info),
             // electricityMeter (electrical_measurement + metering), illuminance (measured + raw), occupancy.
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
@@ -2302,8 +2431,9 @@ describe("Inovelli VZM32-SN definition integration", () => {
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
-                {cluster: "manuSpecificInovelliMMWave", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelliMMWave", type: ["readResponse", "attributeReport"]},
                 {cluster: "manuSpecificInovelliMMWave", type: ["commandAnyoneInReportingArea"]},
                 {
                     cluster: "manuSpecificInovelliMMWave",
@@ -2608,14 +2738,16 @@ describe("Inovelli VZM35-SN definition integration", () => {
             device,
             // VZM35-SN does not use m.deviceEndpoints(), so no multiEndpoint meta is set (definition.meta is undefined).
             meta: undefined,
-            // 5 converters: fan (fan_mode + breeze_mode + fan_state), device (led_effect_complete + main).
-            // No light/electricityMeter/etc. extends, so the custom cluster is the only "attrs" source.
+            // 6 converters: fan (fan_mode + breeze_mode + fan_state), ledEffects (led_effect_complete),
+            // buttonTaps (raw EP2 scene parser), parameters (attribute reports). No light/electricityMeter/etc.
+            // extends, so the custom cluster is the only "attrs" source.
             fromZigbeeFingerprint: [
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["commandLedEffectComplete"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["raw"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
             ],
             toZigbeeKeysContain: [
                 // fan() extend
@@ -2773,14 +2905,14 @@ describe("Inovelli VZM36 definition integration", () => {
             // VZM36 defines `fromZigbee: []` on the definition, so every fz converter comes from extends:
             // 2 from light (on_off_for_endpoint(1) + brightness; no level_config/power_on_behavior in split mode)
             // 3 from fan (fan_mode(2) + breeze_mode(2) + fan_state(2))
-            // 1 from device (inovelli -- no led_effect_complete since supportsLedEffects=false)
+            // 1 from parameters (attribute reports -- no ledEffects/buttonTaps for the canopy module)
             fromZigbeeFingerprint: [
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "genLevelCtrl", type: ["attributeReport", "readResponse"]},
                 {cluster: "manuSpecificInovelli", type: ["attributeReport", "readResponse"]},
                 {cluster: "genOnOff", type: ["attributeReport", "readResponse"]},
-                {cluster: "manuSpecificInovelli", type: ["raw", "readResponse", "attributeReport"]},
+                {cluster: "manuSpecificInovelli", type: ["readResponse", "attributeReport"]},
             ],
             toZigbeeKeysContain: [
                 // light() extend (split)

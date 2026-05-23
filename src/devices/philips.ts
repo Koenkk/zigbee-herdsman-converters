@@ -1322,10 +1322,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LWB006", "LWB014", "LWB019"],
+        zigbeeModel: ["LWB006", "LWB010", "LWB014", "LWB019", "LWF001", "LWF002", "LWW001"],
         model: "9290011370",
         vendor: "Philips",
-        description: "Hue white A60 bulb E27/B22",
+        description: "Hue white A60 bulb",
+        whiteLabel: [
+            {model: "9290011370A"},
+            {model: "9290011370B"},
+            {model: "9290011371"},
+            {model: "9290011371A"},
+            {model: "9290011371B"},
+            {model: "8718696449691"},
+        ],
         extend: [philips.m.light()],
     },
     {
@@ -1403,7 +1411,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290022169",
         vendor: "Philips",
         description: "Hue white ambiance E27 with Bluetooth",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["LTA004"],
@@ -1467,13 +1475,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Flourish white and color ambiance pendant light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["LWB010"],
-        model: "8718696449691",
-        vendor: "Philips",
-        description: "Hue White A60 Single bulb E27/B22",
-        extend: [philips.m.light()],
     },
     {
         zigbeeModel: ["LWG001"],
@@ -1597,7 +1598,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LCA004"],
         model: "9290024896",
         vendor: "Philips",
-        description: "Hue white and color ambiance E27",
+        description: "Hue white and color ambiance E27 800lm",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -2293,13 +2294,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["LWF001", "LWF002", "LWW001"],
-        model: "9290011370B",
-        vendor: "Philips",
-        description: "Hue white A60 bulb E27",
-        extend: [philips.m.light()],
-    },
-    {
         zigbeeModel: ["LWB015"],
         model: "046677476816",
         vendor: "Philips",
@@ -2588,6 +2582,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003809001_01", "929003809001_02", "929003809001_03", "929003809001_04"],
+        model: "929003809001",
+        vendor: "Philips",
+        description: "Hue White & Color ambience Centris V2 ceiling light (3 spots)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["5060830P7_01", "5060830P7_02", "5060830P7_03", "5060830P7_04"],
         model: "5060830P7",
         vendor: "Philips",
@@ -2830,6 +2831,7 @@ export const definitions: DefinitionWithExtend[] = [
             const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write("genBasic", {52: {value: 0, type: 48}}, options);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["RWL020", "RWL021"],
@@ -3298,7 +3300,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["1746730V7"],
+        zigbeeModel: ["1746730V7", "1746730V7-HC3"],
         model: "1746730V7",
         vendor: "Philips",
         description: "Hue Lily outdoor spot light",
