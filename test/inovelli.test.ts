@@ -1842,12 +1842,12 @@ describe("Inovelli fromZigbee converters", () => {
 
         describe("report_target_info", () => {
             it("should parse a single target from buffer", () => {
-                const buf = Buffer.alloc(10);
+                const buf = Buffer.alloc(9);
                 buf.writeInt16LE(100, 0);
                 buf.writeInt16LE(-50, 2);
                 buf.writeInt16LE(200, 4);
                 buf.writeInt16LE(10, 6);
-                buf.writeInt16LE(1, 8);
+                buf.writeInt8(1, 8);
                 const payload = processFromZigbeeMessage(
                     definition,
                     "manuSpecificInovelliMMWave",
@@ -1861,17 +1861,17 @@ describe("Inovelli fromZigbee converters", () => {
             });
 
             it("should parse two targets from buffer", () => {
-                const buf = Buffer.alloc(20);
+                const buf = Buffer.alloc(18);
                 buf.writeInt16LE(100, 0);
                 buf.writeInt16LE(-50, 2);
                 buf.writeInt16LE(200, 4);
                 buf.writeInt16LE(10, 6);
-                buf.writeInt16LE(1, 8);
-                buf.writeInt16LE(-100, 10);
-                buf.writeInt16LE(50, 12);
-                buf.writeInt16LE(-200, 14);
-                buf.writeInt16LE(20, 16);
-                buf.writeInt16LE(2, 18);
+                buf.writeInt8(1, 8);
+                buf.writeInt16LE(-100, 9);
+                buf.writeInt16LE(50, 11);
+                buf.writeInt16LE(-200, 13);
+                buf.writeInt16LE(20, 15);
+                buf.writeInt8(2, 17);
                 const payload = processFromZigbeeMessage(
                     definition,
                     "manuSpecificInovelliMMWave",
@@ -1888,12 +1888,12 @@ describe("Inovelli fromZigbee converters", () => {
             });
 
             it("should limit targets to buffer capacity when targetNum exceeds it", () => {
-                const buf = Buffer.alloc(10);
+                const buf = Buffer.alloc(9);
                 buf.writeInt16LE(50, 0);
                 buf.writeInt16LE(60, 2);
                 buf.writeInt16LE(70, 4);
                 buf.writeInt16LE(80, 6);
-                buf.writeInt16LE(3, 8);
+                buf.writeInt8(3, 8);
                 const payload = processFromZigbeeMessage(
                     definition,
                     "manuSpecificInovelliMMWave",
