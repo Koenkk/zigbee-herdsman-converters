@@ -27005,4 +27005,5 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 },
+},
 ];
