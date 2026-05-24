@@ -26942,4 +26942,150 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        fingerprint: [
+            {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE284_kvg7pqsc',
+        },
+    ],
+    model: 'TS0601_FCU_Thermostat',
+    vendor: 'Tuya',
+    description: 'FCU Thermostat with AC, Floor Heating, and Fresh Air System',
+    extend: [
+        tuya.modernExtend.tuyaBase({ 
+            dp: true,
+            timeStart: '2000',
+        }),
+    ],
+    exposes: [
+        // --- AC / FCU Climate Component ---
+        exposes.binary('fcu_power', ea.STATE_SET, 'ON', 'OFF')
+            .withLabel('AC - Power')
+            .withDescription('Master power switch for the Fan Coil Unit'),
+        e.climate()
+            .withSystemMode(['cool', 'heat', 'dry', 'fan_only'], ea.STATE_SET)
+            .withSetpoint('occupied_cooling_setpoint', 16, 32, 1, ea.STATE_SET)
+            .withSetpoint('occupied_heating_setpoint', 16, 32, 1, ea.STATE_SET)
+            .withLocalTemperature(ea.STATE)
+            .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
+
+        // --- Subsystem Screen Visibility Toggles ---
+        exposes.binary('ac_enabled', ea.STATE_SET, 'ON', 'OFF')
+            .withLabel('Screen - AC Controls')
+            .withDescription('Show/hide AC menus on the physical thermostat display panel'),
+        exposes.binary('floor_heating_enabled', ea.STATE_SET, 'ON', 'OFF')
+            .withLabel('Screen - Floor Heat Controls')
+            .withDescription('Show/hide Floor Heating menus on the physical thermostat display panel'),
+        exposes.binary('fresh_air_enabled', ea.STATE_SET, 'ON', 'OFF')
+            .withLabel('Screen - Fresh Air Controls')
+            .withDescription('Show/hide Fresh Air ventilation menus on the physical thermostat display panel'),
+
+        // --- Floor Heating Group ---
+        exposes.binary('floor_heating_power', ea.STATE_SET, 'ON', 'OFF')
+            .withLabel('Heat - Power')
+            .withDescription('Power switch for the independent floor heating circuit'),
+        exposes.numeric('floor_heating_setpoint', ea.STATE_SET)
+            .withValueMin(16).withValueMax(32).withValueStep(1).withUnit('°C')
+            .withLabel('Heat - Setpoint')
+            .withDescription('Target temperature for the floor heating system'),
+
+        // --- Fresh Air (Ventilation) Group ---
+        exposes.binary('fresh_air_power', ea.STATE_SET, 'ON', 'OFF')
+            .withLabel('Vent - Power')
+            .withDescription('Master power switch for the ventilation system'),
+        exposes.enum('fresh_air_mode', ea.STATE_SET, ['supply', 'exhaust'])
+            .withLabel('Vent - Mode')
+            .withDescription('Selects whether the system is supplying or exhausting air'),
+        exposes.enum('fresh_air_fan_mode', ea.STATE_SET, ['low', 'medium', 'high', 'auto'])
+            .withLabel('Vent - Fan mode')
+            .withDescription('Sets the ventilation fan speed'),
+    ],
+    meta: {
+        // Enforces Home Assistant's native discovery template to neatly bind target configurations
+        homeassistant: [
+            {
+                type: 'climate',
+                object_id: 'climate',
+                discovery_payload: {
+                    temperature_temperature_high_state_topic: null,
+                    temperature_temperature_low_state_topic: null,
+                    temperature_high_command_topic: null,
+                    temperature_low_command_topic: null,
+                    heating_token_topic: null, 
+                    temperature_state_topic: 'occupied_cooling_setpoint',
+                    temperature_command_topic: 'occupied_cooling_setpoint',
+                },
+            },
+        ],
+        tuyaDatapoints: [
+            // AC Core Power (DP 1)
+            [1, 'fcu_power', tuya.valueConverter.onOff],
+
+            // Subsystem Screen Visibilities (DP 108, 109, 110)
+            [108, 'ac_enabled', tuya.valueConverter.onOff],
+            [109, 'floor_heating_enabled', tuya.valueConverter.onOff],
+            [110, 'fresh_air_enabled', tuya.valueConverter.onOff],
+
+            // Floor Heating Execution (DP 101, 102)
+            [101, 'floor_heating_power', {
+                from: (v) => {
+                    const val = (Array.isArray(v) || Buffer.isBuffer(v)) ? v[0] : v;
+                    return (val === true || val === 1 || val === 'ON') ? 'ON' : 'OFF';
+                },
+                to: (v) => v === 'ON',
+            }],
+            [102, 'floor_heating_setpoint', tuya.valueConverter.raw],
+
+            // Fresh Air Ventilation Execution (DP 103, 106, 104)
+            [103, 'fresh_air_power', tuya.valueConverter.onOff],
+            [106, 'fresh_air_mode', {
+                from: (v) => {
+                    const modes = {0: 'supply', 1: 'exhaust'};
+                    return modes[v] || 'supply';
+                },
+                to: (v) => {
+                    const modes = {'supply': 0, 'exhaust': 1};
+                    return modes[v] !== undefined ? modes[v] : 0;
+                }
+            }],
+            [104, 'fresh_air_fan_mode', {
+                from: (v) => {
+                    const fans = {0: 'low', 1: 'medium', 2: 'high', 3: 'auto'};
+                    return fans[v] || 'auto';
+                },
+                to: (v) => {
+                    const fans = {'low': 0, 'medium': 1, 'high': 2, 'auto': 3};
+                    return fans[v] !== undefined ? fans[v] : 3;
+                }
+            }],
+
+            // AC Climate Core Internal Engine Mappings
+            [50, 'occupied_cooling_setpoint', tuya.valueConverter.raw],
+            [50, 'occupied_heating_setpoint', tuya.valueConverter.raw],
+            [16, 'local_temperature', tuya.valueConverter.raw],
+            [2, 'system_mode', {
+                from: (v) => {
+                    const modes = {0: 'cool', 1: 'heat', 2: 'dry', 3: 'fan_only'};
+                    return modes[v] || 'cool';
+                },
+                to: (v) => {
+                    const modes = {'cool': 0, 'heat': 1, 'dry': 2, 'fan_only': 3};
+                    return modes[v] !== undefined ? modes[v] : 0;
+                }
+            }],
+            [49, 'fan_mode', {
+                from: (v) => {
+                    const fans = {0: 'low', 1: 'medium', 2: 'high', 3: 'auto'};
+                    return fans[v] || 'auto';
+                },
+                to: (v) => {
+                    const fans = {'low': 0, 'medium': 1, 'high': 2, 'auto': 3};
+                    return fans[v] !== undefined ? fans[v] : 3;
+                }
+            }],
+        ],
+    },
+}
+    
 ];
