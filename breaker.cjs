@@ -6,7 +6,7 @@ const fz = require("zigbee-herdsman-converters/converters/fromZigbee");
 const e = exposes.presets;
 const ea = exposes.access;
 
-const TS011F_threshold = {
+const Ts011fThreshold = {
     cluster: "manuSpecificTuya3",
     type: ["commandDataReport", "commandDataResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -43,7 +43,7 @@ const TS011F_threshold = {
     },
 };
 
-const TS011F_threshold_tz = {
+const Ts011fThresholdTz = {
     key: [
         "temperature_threshold",
         "temperature_breaker",
@@ -127,8 +127,8 @@ const definition = {
         }),
         tuya.modernExtend.tuyaOnOffAction(),
     ],
-    fromZigbee: [TS011F_threshold, fz.temperature],
-    toZigbee: [TS011F_threshold_tz],
+    fromZigbee: [Ts011fThreshold, fz.temperature],
+    toZigbee: [Ts011fThresholdTz],
     exposes: [
         e.temperature(),
         e
