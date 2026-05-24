@@ -136,13 +136,7 @@ function fp310DetectionRange(): ModernExtend {
                     const zones = Math.round(distance / 0.25);
                     const mask = zones === 0 ? 0 : (1 << zones) - 1;
 
-                    const buffer = Buffer.from([
-                        0x00,
-                        0x03,
-                        mask & 0xff,
-                        (mask >> 8) & 0xff,
-                        (mask >> 16) & 0xff,
-                    ]);
+                    const buffer = Buffer.from([0x00, 0x03, mask & 0xff, (mask >> 8) & 0xff, (mask >> 16) & 0xff]);
 
                     await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
                         "manuSpecificLumi",
@@ -155,16 +149,12 @@ function fp310DetectionRange(): ModernExtend {
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(1);
-                    await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>(
-                        "manuSpecificLumi",
-                        [0x019a],
-                        {manufacturerCode: manufacturerCode},
-                    );
+                    await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode});
                 },
             },
         ],
     };
-};
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -6140,10 +6130,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['lumi.sensor_occupy.acn1'],
-        model: 'FP310',
-        vendor: 'Aqara',
-        description: 'Presence sensor FP310',
+        zigbeeModel: ["lumi.sensor_occupy.acn1"],
+        model: "FP310",
+        vendor: "Aqara",
+        description: "Presence sensor FP310",
         fromZigbee: [lumi.fromZigbee.lumi_specific],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -6354,6 +6344,6 @@ export const definitions: DefinitionWithExtend[] = [
             // OTA
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
-        ]
+        ],
     },
 ];
