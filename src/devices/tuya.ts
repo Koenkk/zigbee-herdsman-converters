@@ -26942,4 +26942,35 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+
+    {
+        fingerprint: [
+            {
+                modelID: "TS0105",
+                manufacturerName: "_TZE600_5cu64znk",
+            },
+        ],
+        model: "ZBCMR-02",
+        vendor: "Nova Digital",
+        description: "Zigbee curtain motor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [e.cover_position()],
+        meta: {
+            coverInverted: false,
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.raw],
+                [3, "position", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
