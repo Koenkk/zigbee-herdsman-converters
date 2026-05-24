@@ -14582,7 +14582,9 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee 3.0 smart light switch module 1 gang",
         extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({switchType: true})],
         configure: async (device, coordinatorEndpoint) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(ep);
             device.powerSource = "Mains (single phase)";
             // Device advertises itself as Router but is an EndDevice
             device.type = "EndDevice";
@@ -14607,7 +14609,9 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            const ep = device.getEndpoint(1);
+            await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(ep);
             device.powerSource = "Mains (single phase)";
             // Device advertises itself as Router but is an EndDevice
             device.type = "EndDevice";
