@@ -6,7 +6,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:shinasystem";
@@ -135,6 +135,47 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    sihas_people_cnt: {
+        cluster: "genAnalogInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {"0": "idle", "1": "in", "2": "out"};
+            const value = utils.precisionRound(msg.data.presentValue, 1);
+            const people = utils.precisionRound(msg.data.presentValue, 0);
+            let result = null;
+            if (value <= 80) {
+                result = {people: people, status: lookup[(value * 10) % 10]};
+                return result;
+            }
+        },
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    sihas_action: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {commandToggle: "long", commandOn: "double", commandOff: "single"};
+            let buttonMapping: KeyValueAny = null;
+            if (model.model === "SBM300ZB2") {
+                buttonMapping = {1: "1", 2: "2"};
+            } else if (model.model === "SBM300ZB3") {
+                buttonMapping = {1: "1", 2: "2", 3: "3"};
+            } else if (model.model === "SBM300ZB4") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            } else if (model.model === "SBM300ZC2") {
+                buttonMapping = {1: "1", 2: "2"};
+            } else if (model.model === "SBM300ZC3") {
+                buttonMapping = {1: "1", 2: "2", 3: "3"};
+            } else if (model.model === "SBM300ZC4") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            } else if (model.model === "MSM-300ZB") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            } else if (model.model === "SQM300ZC4") {
+                buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
+            }
+            const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
+            return {action: `${button}${lookup[msg.type]}`};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 };
 
 const tzLocal = {
@@ -316,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         description: "SiHAS multipurpose sensor",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_people_cnt],
+        fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -340,7 +381,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS multipurpose ToF sensor",
         meta: {battery: {voltageToPercentage: {min: 3200, max: 4100, vOffset: 1000}}},
-        fromZigbee: [fz.battery, fz.sihas_people_cnt],
+        fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
         toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -452,7 +493,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_action],
+        fromZigbee: [fz.battery, fzLocal.sihas_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -502,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action([
@@ -539,7 +580,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_action],
+        fromZigbee: [fz.battery, fzLocal.sihas_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -554,7 +595,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 2 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long"]), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: "3V_2100"}, multiEndpoint: true},
@@ -571,7 +612,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 3 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long", "3_single", "3_double", "3_long"]),
@@ -593,7 +634,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action([
@@ -630,7 +671,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         description: "SiHAS remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery, fz.sihas_action],
+        fromZigbee: [fz.battery, fzLocal.sihas_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -645,7 +686,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 2 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long"]), e.battery(), e.battery_voltage()],
         meta: {battery: {voltageToPercentage: "3V_2100"}, multiEndpoint: true},
@@ -662,7 +703,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 3 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action(["1_single", "1_double", "1_long", "2_single", "2_double", "2_long", "3_single", "3_double", "3_long"]),
@@ -684,7 +725,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 button",
-        fromZigbee: [fz.sihas_action, fz.battery],
+        fromZigbee: [fzLocal.sihas_action, fz.battery],
         toZigbee: [],
         exposes: [
             e.action([
@@ -720,7 +761,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS remote control 4 full button",
-        fromZigbee: [fz.sihas_action],
+        fromZigbee: [fzLocal.sihas_action],
         extend: [m.battery()],
         toZigbee: [],
         exposes: [
@@ -977,7 +1018,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ShinaSystem",
         ota: true,
         description: "SiHAS DI/DO Module",
-        fromZigbee: [fz.sihas_action],
+        fromZigbee: [fzLocal.sihas_action],
         toZigbee: [],
         exposes: [e.action(["single", "double", "long"])],
         extend: [

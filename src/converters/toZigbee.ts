@@ -14,7 +14,6 @@ import {determineEndpoint} from "../lib/utils";
 const NS = "zhc:tz";
 const manufacturerOptions = {
     lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
-    hue: {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V},
     ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
     sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
     tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
@@ -2256,18 +2255,6 @@ export const tuya_relay_din_led_indicator: Tz.Converter = {
         const payload = utils.getFromLookup(value, lookup);
         await entity.write("genOnOff", {32769: {value: payload, type: 0x30}});
         return {state: {indicator_mode: value}};
-    },
-};
-export const hue_wall_switch_device_mode: Tz.Converter = {
-    key: ["device_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value);
-        const values = ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"];
-        utils.validateValue(value, values);
-        await entity.write("genBasic", {52: {value: values.indexOf(value), type: 48}}, manufacturerOptions.hue);
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genBasic", [0x0034], manufacturerOptions.hue);
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`

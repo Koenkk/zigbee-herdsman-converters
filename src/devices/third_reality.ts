@@ -1473,12 +1473,12 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3rPlugGen2SpecialCluster", ThirdPlug>({
+            m.numeric<"3rPlugE2Specialcluster", ThirdPlug>({
                 name: "led_brightness",
                 unit: "%",
                 valueMin: 0,
                 valueMax: 100,
-                cluster: "3rPlugGen2SpecialCluster",
+                cluster: "3rPlugE2Specialcluster",
                 attribute: "ledBrightness",
                 description: "Set the brightness of LED",
                 access: "ALL",
