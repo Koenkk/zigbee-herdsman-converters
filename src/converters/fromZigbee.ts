@@ -2306,30 +2306,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const scenes_recall_scene_65024: Fz.Converter<65024, undefined, ["raw"]> = {
-    cluster: 65024,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
-    },
-};
-export const adeo_button_65024: Fz.Converter<65024, undefined, ["raw"]> = {
-    cluster: 65024,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const clickMapping: KeyValueNumberString = {1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data[6]]}`};
-    },
-};
-export const color_stop_raw: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload = {action: postfixWithEndpointName("color_stop", msg, model, meta)};
-        addActionGroup(payload, msg, model);
-        return payload;
-    },
-};
 export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
     cluster: "ssIasAce",
     type: ["commandArm"],
