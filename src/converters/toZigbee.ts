@@ -2239,13 +2239,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const STS_PRS_251_beep: Tz.Converter = {
-    key: ["beep"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.command("genIdentify", "identify", {identifytime: value as number}, utils.getOptions(meta.mapped, entity));
-    },
-};
 export const tuya_relay_din_led_indicator: Tz.Converter = {
     key: ["indicator_mode"],
     convertSet: async (entity, key, value, meta) => {
