@@ -3489,7 +3489,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "Smart occupancy sensor",
         fromZigbee: [fz.occupancy, fz.battery],
-        exposes: [e.battery(), e.occupancy()],
+        exposes: [],
         configure: async (device, cordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, cordinatorEndpoint, [
@@ -3524,6 +3524,8 @@ export const definitions: DefinitionWithExtend[] = [
             );
         },
         extend: [
+            m.battery(),
+            m.occupancy(),
             heimanExtend.heimanClusterSpecial(),
             m.illuminance(),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -3539,6 +3541,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             heimanExtend.heimanClusterDeviceFaultState(),
+            m.identify(),
             m.numeric({
                 name: "unoccupied_delay",
                 unit: "s",
