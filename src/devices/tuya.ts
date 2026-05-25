@@ -13576,12 +13576,12 @@ export const definitions: DefinitionWithExtend[] = [
                     .withUnit("minutes")
                     .withDescription("Brightness acquisition interval (refresh and update only while active)"),
             ];
-    
+
             if (!isDummyDevice(device) && device.modelID === "AY-204Z") {
                 exposes.splice(5, 1);
                 exposes.splice(1, 1);
             }
-    
+
             return exposes;
         },
         meta: {
