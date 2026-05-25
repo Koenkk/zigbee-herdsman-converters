@@ -13557,18 +13557,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Luminance motion sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        whiteLabel: [
-            {
-                model: "AY-204Z",
-                vendor: "AOYAN",
-                description: "Luminance motion sensor",
-                fingerprint: [
-                    {modelID: "AY-204Z", manufacturerName: "AOYAN"},
-                    {modelID: "AY-204Z", manufacturerName: "AOYAN "},
-                    {modelID: "AY-204Z", manufacturerName: "AOYAN  "},
-                ],
-            },
-        ],
         exposes: (device) => {
             const exposes = [
                 e.occupancy(),
@@ -13590,11 +13578,8 @@ export const definitions: DefinitionWithExtend[] = [
             ];
     
             if (!isDummyDevice(device) && device.modelID === "AY-204Z") {
-                const illuminance = exposes.findIndex((expose) => expose.name === "illuminance");
-                if (illuminance !== -1) exposes.splice(illuminance, 1);
-    
-                const illuminanceInterval = exposes.findIndex((expose) => expose.name === "illuminance_interval");
-                if (illuminanceInterval !== -1) exposes.splice(illuminanceInterval, 1);
+                exposes.splice(5, 1);
+                exposes.splice(1, 1);
             }
     
             return exposes;
@@ -13627,7 +13612,19 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"])],
+        whiteLabel: [
+            tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"]),
+            {
+                model: "AY-204Z",
+                vendor: "AOYAN",
+                description: "Luminance motion sensor",
+                fingerprint: [
+                    {modelID: "AY-204Z", manufacturerName: "AOYAN"},
+                    {modelID: "AY-204Z", manufacturerName: "AOYAN "},
+                    {modelID: "AY-204Z", manufacturerName: "AOYAN  "},
+                ],
+            },
+        ],
     },
     {
         fingerprint: [
