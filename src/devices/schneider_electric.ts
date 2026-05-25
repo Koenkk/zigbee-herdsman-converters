@@ -2853,10 +2853,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.illuminance(),
             m.enumLookup({
                 name: "sensitivity_level",
-                description: "Sensitivity level for the motion sensor",
+                description: "Sensitivity level for the occupancy sensor",
                 attribute: "currentZoneSensitivityLevel",
                 cluster: "ssIasZone",
                 lookup: {low: 0x00, medium: 0x01, high: 0x02},
+                entityCategory: "config",
             }),
         ],
     },
