@@ -26942,4 +26942,196 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        fingerprint: [{modelID: "Excellux", manufacturerName: "DTS1XM9"}],
+        model: "ZG-109TDS",
+        vendor: "Excellux",
+        description: "Probe Temperature with EC && TDS && Salinity && SG && ht(humidity and temperature) Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription(
+                    "Probe temperature sensor warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1",
+                ),
+            e
+                .enum("temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Temperature warning.low :temperature is lower than v0 and v1.high:temperature is higher than v0 and v1"),
+            e
+                .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Humidity warning.low :humidity is lower than v0 and v1.high:humidity is higher than v0 and v1"),
+            e.enum("tds_warning", ea.STATE, ["none", "high"]).withDescription("TDS warning.high:TDS is higher than user setting"),
+            e
+                .enum("ec_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("ec warning.low :ec is lower than v0 and v1.high:ec is higher than v0 and v1"),
+            e.enum("mode", ea.STATE_SET, ["freshwater", "seawater"]).withDescription("Freshwater or Seawater"),
+            e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
+            e
+                .numeric("probe_temperature", ea.STATE)
+                .withValueMin(-40)
+                .withValueMax(120)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor"),
+            e.temperature(),
+            e.humidity(),
+            e
+                .numeric("tds", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(13000)
+                .withValueStep(1)
+                .withUnit("ppm")
+                .withDescription("Total Dissolved Solids(0~13000 ppm)"),
+            e
+                .numeric("salinity", ea.STATE)
+                .withValueMin(0.1)
+                .withValueMax(50)
+                .withValueStep(0.1)
+                .withUnit("‰")
+                .withDescription("Salinity value(0.1‰~50‰)"),
+            e
+                .numeric("ec", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(20000)
+                .withValueStep(1)
+                .withUnit("μS/cm")
+                .withDescription("EC value @ 25°C Standard Temperature (0~20000us/cm)"),
+            e.numeric("sg", ea.STATE).withValueMin(1000).withValueMax(1100).withValueStep(1).withDescription("specific gravity(1.000~1.100)"),
+
+            e
+                .numeric("sampling_interval", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1200)
+                .withValueStep(5)
+                .withUnit("s")
+                .withDescription("sampling interval"),
+
+            e
+                .numeric("probe_temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor calibration"),
+            e
+                .numeric("probe_temperature_v0_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(125)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor v0 threshold setting"),
+            e
+                .numeric("probe_temperature_v1_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(125)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Probe temperature sensor v1 threshold setting"),
+
+            e
+                .numeric("tds_warning_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(13000)
+                .withValueStep(1)
+                .withUnit("ppm")
+                .withDescription("TDS alarm threshold settings"),
+
+            e
+                .numeric("ec_v0_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(20000)
+                .withValueStep(1)
+                .withUnit("μS/cm")
+                .withDescription("EC v0 threshold setting"),
+            e
+                .numeric("ec_v1_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(20000)
+                .withValueStep(1)
+                .withUnit("μS/cm")
+                .withDescription("EC v1 threshold setting"),
+
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.01)
+                .withUnit("°C")
+                .withDescription("Temperature calibration"),
+            e
+                .numeric("temperature_v0_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.01)
+                .withUnit("°C")
+                .withDescription("Temperature v0 threshold setting"),
+            e
+                .numeric("temperature_v1_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.01)
+                .withUnit("°C")
+                .withDescription("Temperature v1 threshold setting"),
+
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.01)
+                .withUnit("%")
+                .withDescription("Humidity calibration"),
+            e
+                .numeric("humidity_v0_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(0.01)
+                .withUnit("%")
+                .withDescription("Humidity v0 threshold setting"),
+            e
+                .numeric("humidity_v1_set", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(0.01)
+                .withUnit("%")
+                .withDescription("Humidity v1 threshold setting"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "probe_temperature", tuya.valueConverter.divideBy10],
+                [4, "battery", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy100],
+
+                [101, "sampling_interval", tuya.valueConverter.raw],
+
+                [108, "probe_temperature_calibration", tuya.valueConverter.divideBy10],
+                [109, "probe_temperature_v0_set", tuya.valueConverter.divideBy10],
+                [110, "probe_temperature_v1_set", tuya.valueConverter.divideBy10],
+                [112, "probe_temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+
+                [114, "temperature_calibration", tuya.valueConverter.divideBy100],
+                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
+                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+
+                [118, "humidity", tuya.valueConverter.divideBy100],
+                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
+                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
+                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+
+                [124, "tds", tuya.valueConverter.raw],
+                [125, "tds_warning_set", tuya.valueConverter.raw],
+                [126, "tds_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), high: tuya.enum(1)})],
+
+                [127, "ec", tuya.valueConverter.raw],
+                [128, "ec_v0_set", tuya.valueConverter.raw],
+                [129, "ec_v1_set", tuya.valueConverter.raw],
+                [130, "ec_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+
+                [131, "salinity", tuya.valueConverter.divideBy10],
+                [132, "sg", tuya.valueConverter.divideBy1000],
+                [133, "mode", tuya.valueConverterBasic.lookup({freshwater: tuya.enum(0), seawater: tuya.enum(1)})],
+            ],
+        },
+    },
 ];
