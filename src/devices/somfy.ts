@@ -81,6 +81,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "1871157",
         vendor: "SOMFY",
         description: "Ysia 1 channel blinds remote",
+        whiteLabel: [{vendor: "SOMFY", model: "5163664A"}],
         extend: [m.battery(), m.commandsOnOff(), m.commandsWindowCovering()],
     },
     {

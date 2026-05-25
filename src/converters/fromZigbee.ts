@@ -2274,19 +2274,6 @@ export const konke_action: Fz.Converter<"genOnOff", undefined, ["attributeReport
         return lookup[value] ? {action: lookup[value]} : null;
     },
 };
-export const qlwz_letv8key_switch: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genMultistateInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {4: "up", 2: "down", 5: "left", 3: "right", 8: "center", 1: "back", 7: "play", 6: "voice"};
-        const actionLookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "tripple"};
-        const button = buttonLookup[msg.endpoint.ID];
-        const action = actionLookup[msg.data.presentValue] || msg.data.presentValue;
-        if (button) {
-            return {action: `${action}_${button}`};
-        }
-    },
-};
 export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
@@ -2488,43 +2475,6 @@ export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["a
         return {presence: true};
     },
 };
-export const javis_lock_report: Fz.Converter<"genBasic", undefined, "attributeReport"> = {
-    cluster: "genBasic",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            0: "pairing",
-            1: "keypad",
-            2: "rfid_card_unlock",
-            3: "touch_unlock",
-        };
-        const utf8FromStr = (s: string) => {
-            const a = [];
-            for (let i = 0, enc = encodeURIComponent(s); i < enc.length; ) {
-                if (enc[i] === "%") {
-                    a.push(Number.parseInt(enc.substr(i + 1, 2), 16));
-                    i += 3;
-                } else {
-                    a.push(enc.charCodeAt(i++));
-                }
-            }
-            return a;
-        };
-
-        const data = utf8FromStr(msg.data["16896"] as string);
-
-        clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-        const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000);
-        globalStore.putValue(msg.endpoint, "timer", timer);
-
-        return {
-            action: "unlock",
-            action_user: data[3],
-            action_source: data[5],
-            action_source_name: lookup[data[5]],
-        };
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const CC2530ROUTER_led: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
@@ -2644,47 +2594,6 @@ export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["co
     convert: (model, msg, publish, options, meta) => {
         const scenes: KeyValueAny = {2: "1", 52: "2", 102: "3", 153: "4", 194: "5", 254: "6"};
         return {action: `scene_${scenes[msg.data.level]}`};
-    },
-};
-export const sihas_people_cnt: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genAnalogInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {"0": "idle", "1": "in", "2": "out"};
-        const value = precisionRound(msg.data.presentValue, 1);
-        const people = precisionRound(msg.data.presentValue, 0);
-        let result = null;
-        if (value <= 80) {
-            result = {people: people, status: lookup[(value * 10) % 10]};
-            return result;
-        }
-    },
-};
-export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
-    cluster: "genOnOff",
-    type: ["commandOn", "commandOff", "commandToggle"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {commandToggle: "long", commandOn: "double", commandOff: "single"};
-        let buttonMapping: KeyValueAny = null;
-        if (model.model === "SBM300ZB2") {
-            buttonMapping = {1: "1", 2: "2"};
-        } else if (model.model === "SBM300ZB3") {
-            buttonMapping = {1: "1", 2: "2", 3: "3"};
-        } else if (model.model === "SBM300ZB4") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        } else if (model.model === "SBM300ZC2") {
-            buttonMapping = {1: "1", 2: "2"};
-        } else if (model.model === "SBM300ZC3") {
-            buttonMapping = {1: "1", 2: "2", 3: "3"};
-        } else if (model.model === "SBM300ZC4") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        } else if (model.model === "MSM-300ZB") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        } else if (model.model === "SQM300ZC4") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        }
-        const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
-        return {action: `${button}${lookup[msg.type]}`};
     },
 };
 const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {

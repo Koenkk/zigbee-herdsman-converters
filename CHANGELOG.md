@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.56.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.55.0...v26.56.0) (2026-05-23)
+
+
+### Features
+
+* **add:** EFEKTA_iAQ_S_I, EFEKTA_iAQ2_R2 ([#12279](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12279)) ([915d183](https://github.com/Koenkk/zigbee-herdsman-converters/commit/915d183a246f0a82e227bb9c37d3528a838d35d7))
+* Moes ZWV-YC: expose countdown, battery_state and error_status ([#12283](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12283)) ([465dacd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/465dacddcbab422a2ecf54fc0f6b1875ef536f9d))
+
+
+### Bug Fixes
+
+* Hive SLR1d: fix state not reporting ([#12276](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12276)) ([a4240c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a4240c9b6c66ce63a6b014c3f17ae3f9d47a8249))
+* **ignore:** Update third_reality.ts ([#12274](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12274)) ([6bb9d68](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6bb9d687afc935961786b013d692302e0c4e8c0c))
+* Inovelli: parse mmWave target id as int8 per updated docs ([#12284](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12284)) ([4c12ac5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c12ac5b5eb4bc9046512020c69b8cf2959eb825))
+* Inovelli: split m.device into m.parameters/ledEffects/buttonTaps ([#12134](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12134)) ([03f5907](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03f5907a1f013b2bedd43701dd618ead6563400c))
+* Philips 9290022169: Fix color temp range ([#12278](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12278)) ([a179ca5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a179ca5870675e0a30a28bf0dff0e05707e9901b))
+* Refactor device specific converters ([#12272](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12272)) ([7c1ee11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7c1ee1100c895a860304ce4f01a0a09a8e238731))
+* Shelly S4SN-0071A: fix configure failing https://github.com/Koenkk/zigbee-herdsman-converters/issues/12266 ([f01d121](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f01d121a1f3801535d6860cb4e2ad0e286a10e4d))
+* SOMFY 5163664A: add whitelabel ([#12273](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12273)) ([4a20dd1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4a20dd1929d91449027f7d2dc46381393ef4a596))
+
 ## [26.55.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.54.0...v26.55.0) (2026-05-21)
 
 
