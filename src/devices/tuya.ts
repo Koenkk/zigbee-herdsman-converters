@@ -13556,7 +13556,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZL"],
+        zigbeeModel: ["ZG-204ZL", "AY-204Z"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_3towulqd",
             "_TZE200_1ibpyhdc",
@@ -13572,24 +13572,33 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Luminance motion sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.occupancy(),
-            e.illuminance().withUnit("lx"),
-            e.battery(),
-            e
-                .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
-                .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
-            e
-                .enum("keep_time", ea.STATE_SET, ["10", "30", "60", "120"])
-                .withDescription("PIR keep time in seconds (refresh and update only while active)"),
-            e
-                .numeric("illuminance_interval", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(720)
-                .withValueStep(1)
-                .withUnit("minutes")
-                .withDescription("Brightness acquisition interval (refresh and update only while active)"),
-        ],
+        exposes: (device) => {
+            const exposes = [
+                e.occupancy(),
+                e.illuminance().withUnit("lx"),
+                e.battery(),
+                e
+                    .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high"])
+                    .withDescription("PIR sensor sensitivity (refresh and update only while active)"),
+                e
+                    .enum("keep_time", ea.STATE_SET, ["10", "30", "60", "120"])
+                    .withDescription("PIR keep time in seconds (refresh and update only while active)"),
+                e
+                    .numeric("illuminance_interval", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(720)
+                    .withValueStep(1)
+                    .withUnit("minutes")
+                    .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+            ];
+
+            if (!isDummyDevice(device) && device.modelID === "AY-204Z") {
+                exposes.splice(5, 1);
+                exposes.splice(1, 1);
+            }
+
+            return exposes;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "occupancy", tuya.valueConverter.trueFalse0],
@@ -13618,7 +13627,19 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"])],
+        whiteLabel: [
+            tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"]),
+            {
+                model: "AY-204Z",
+                vendor: "AOYAN",
+                description: "Luminance motion sensor",
+                fingerprint: [
+                    {modelID: "AY-204Z", manufacturerName: "AOYAN"},
+                    {modelID: "AY-204Z", manufacturerName: "AOYAN "},
+                    {modelID: "AY-204Z", manufacturerName: "AOYAN  "},
+                ],
+            },
+        ],
     },
     {
         fingerprint: [
