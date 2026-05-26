@@ -12419,7 +12419,7 @@ export const definitions: DefinitionWithExtend[] = [
                     setTimeout(async () => {
                         try {
                             await event.data.device.endpoints[0].command("manuSpecificTuya", "dataQuery", {});
-                        } catch (e) {
+                        } catch (_e) {
                             // silently ignore - device may be temporarily unreachable
                         }
                         setTimer();
