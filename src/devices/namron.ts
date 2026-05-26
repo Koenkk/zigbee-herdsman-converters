@@ -1716,7 +1716,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x0008, type: Zcl.DataType.UINT8},
                 description:
-                    "Heating demand in percent (0-100). In 'percent' sensor_mode this sets regulator output target; readback may reflect instantaneous output.",
+                    "Heating demand in percent (0-100). When sensor mode is set to 'percent', this sets regulator output target; readback may reflect instantaneous output.",
             }),
         ],
         exposes: [

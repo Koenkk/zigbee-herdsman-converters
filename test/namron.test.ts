@@ -95,6 +95,9 @@ describe("Namron 4512758 thermostat", () => {
 
         expect(piHeatingDemand?.convertSet).toBeDefined();
         expect(dutyCycle?.convertSet).toBeDefined();
+        if (!piHeatingDemand?.convertSet || !dutyCycle?.convertSet) {
+            throw new Error("Expected pi_heating_demand and duty_cycle to have convertSet handlers");
+        }
 
         await piHeatingDemand.convertSet(endpoint, "pi_heating_demand", 55, meta);
         await dutyCycle.convertSet(endpoint, "duty_cycle", 10, meta);
