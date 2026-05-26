@@ -6,7 +6,8 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 import {centraliteExtend, fzLocal as fzCentralite, type ManuSpecificCentraliteHumidity} from "./centralite";
 
 const e = exposes.presets;
@@ -63,6 +64,16 @@ export const smartthingsExtend = {
         }),
 };
 
+const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    STS_PRS_251_beep: {
+        key: ["beep"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.command("genIdentify", "identify", {identifytime: value as number}, utils.getOptions(meta.mapped, entity));
+        },
+    } satisfies Tz.Converter,
+};
+
 export const fzLocal = {
     acceleration: {
         cluster: "manuSpecificSamsungAccelerometer",
@@ -102,6 +113,21 @@ export const fzLocal = {
             return {presence: true};
         },
     } satisfies Fz.Converter<"manuSpecificSmartThingsArrivalSensor", SmartThingsArrivalSensor, "commandArrivalSensorNotify">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    STS_PRS_251_presence: {
+        cluster: "genBinaryInput",
+        type: ["attributeReport", "readResponse"],
+        options: [exposes.options.presence_timeout()],
+        convert: (model, msg, publish, options, meta) => {
+            const useOptionsTimeout = options?.presence_timeout != null;
+            const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
+            // Stop existing timer because motion is detected and set a new one.
+            clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            globalStore.putValue(msg.endpoint, "timer", timer);
+            return {presence: true};
+        },
+    } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -128,14 +154,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "STS-PRS-251",
         vendor: "SmartThings",
         description: "Arrival sensor",
-        fromZigbee: [fz.STS_PRS_251_presence, fz.battery, fz.identify],
+        fromZigbee: [fzLocal.STS_PRS_251_presence, fz.battery, fz.identify],
         exposes: [
             e.battery(),
             e.presence(),
             e.action(["identify"]),
             e.enum("beep", ea.SET, ["2", "5", "10", "15", "30"]).withDescription("Trigger beep for x seconds"),
         ],
-        toZigbee: [tz.STS_PRS_251_beep],
+        toZigbee: [tzLocal.STS_PRS_251_beep],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
