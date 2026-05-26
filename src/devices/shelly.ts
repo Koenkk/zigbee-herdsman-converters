@@ -1031,11 +1031,63 @@ const shellyModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    shellyLightLevel(args?: {reporting?: false | m.ReportingConfigWithoutAttribute}): ModernExtend[] {
+        const reporting = args?.reporting ?? {min: "1_MINUTE", max: 900, change: 0};
+        return [
+            m.deviceAddCustomCluster("shellyLightLevel", {
+                name: "shellyLightLevel",
+                ID: 0xfc21,
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+                attributes: {
+                    lightLevel: {name: "lightLevel", ID: 0x0000, type: Zcl.DataType.UINT8},
+                    darkThreshold: {name: "darkThreshold", ID: 0x0001, type: Zcl.DataType.UINT24, write: true},
+                    brightThreshold: {name: "brightThreshold", ID: 0x0002, type: Zcl.DataType.UINT24, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.enumLookup<"shellyLightLevel", ShellyLightLevel>({
+                name: "light_level",
+                cluster: "shellyLightLevel",
+                attribute: "lightLevel",
+                lookup: {dark: 0, twilight: 1, bright: 2},
+                description: "Coarse light level",
+                reporting,
+                access: "STATE_GET",
+            }),
+            m.numeric<"shellyLightLevel", ShellyLightLevel>({
+                name: "dark_threshold",
+                cluster: "shellyLightLevel",
+                attribute: "darkThreshold",
+                valueMin: 0,
+                valueMax: 65535,
+                reporting: false,
+                description: "Lux threshold below which light level is dark",
+                unit: "lx",
+                access: "ALL",
+            }),
+            m.numeric<"shellyLightLevel", ShellyLightLevel>({
+                name: "bright_threshold",
+                cluster: "shellyLightLevel",
+                attribute: "brightThreshold",
+                valueMin: 0,
+                valueMax: 65535,
+                reporting: false,
+                description: "Lux threshold above which light level is bright",
+                unit: "lx",
+                access: "ALL",
+            }),
+        ];
+    },
 };
 
 // =============================================================================
 // Local From Zigbee Converters
 // =============================================================================
+
+const handlePosition = e
+    .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
+    .withDescription("Handle position: closed, tilted (partly open), or open");
 
 const fzLocal = {
     one_button_events: {
@@ -1186,6 +1238,30 @@ const fzLocal = {
             return {[`switch_type_${epName}`]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
     } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+
+    blu_door_window: {
+        cluster: "ssIasZone",
+        type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+            if (zoneStatus === undefined) return;
+            const alarm1 = (zoneStatus & 1) > 0;
+            const alarm2 = (zoneStatus & (1 << 1)) > 0;
+            // Zone type 0x0016 (door/window handle) per ZigBee spec Table 8-7:
+            //   alarm1=0, alarm2=0 -> closed
+            //   alarm1=1, alarm2=0 -> tilted (partly open)
+            //   alarm1=1, alarm2=1 -> open
+            let position: string;
+            if (!alarm1 && !alarm2) position = "closed";
+            else if (alarm1 && !alarm2) position = "tilted";
+            else position = "open";
+            return {
+                contact: position === "closed",
+                handle_position: position,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -1665,54 +1741,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBHT-103C",
         vendor: "Shelly",
         description: "BLU H&T display Zigbee",
-        extend: [
-            m.battery(),
-            m.temperature(),
-            m.humidity(),
-            m.deviceAddCustomCluster("shellyLightLevel", {
-                name: "shellyLightLevel",
-                ID: 0xfc21,
-                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {
-                    lightLevel: {name: "lightLevel", ID: 0x0000, type: Zcl.DataType.UINT8},
-                    darkThreshold: {name: "darkThreshold", ID: 0x0001, type: Zcl.DataType.UINT24},
-                    brightThreshold: {name: "brightThreshold", ID: 0x0002, type: Zcl.DataType.UINT24},
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            m.enumLookup<"shellyLightLevel", ShellyLightLevel>({
-                name: "light_level",
-                cluster: "shellyLightLevel",
-                attribute: "lightLevel",
-                lookup: {dark: 0, twilight: 1, bright: 2},
-                description: "Coarse light level",
-                reporting: {min: "1_MINUTE", max: 900, change: 0},
-                access: "STATE_GET",
-            }),
-            m.numeric<"shellyLightLevel", ShellyLightLevel>({
-                name: "dark_threshold",
-                cluster: "shellyLightLevel",
-                attribute: "darkThreshold",
-                valueMin: 0,
-                valueMax: 65535,
-                reporting: false,
-                description: "Lux threshold below which light level is dark",
-                unit: "lx",
-                access: "ALL",
-            }),
-            m.numeric<"shellyLightLevel", ShellyLightLevel>({
-                name: "bright_threshold",
-                cluster: "shellyLightLevel",
-                attribute: "brightThreshold",
-                valueMin: 0,
-                valueMax: 65535,
-                reporting: false,
-                description: "Lux threshold above which light level is bright",
-                unit: "lx",
-                access: "ALL",
-            }),
-        ],
+        extend: [m.battery(), m.temperature(), m.humidity(), ...shellyModernExtend.shellyLightLevel()],
     },
     {
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
@@ -1907,63 +1936,54 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy({reporting: false, endpointNames: ["8"]}),
             m.occupancy({reporting: false, endpointNames: ["9"]}),
             m.occupancy({reporting: false, endpointNames: ["10"]}),
-            m.deviceAddCustomCluster("shellyLightLevel", {
-                name: "shellyLightLevel",
-                ID: 0xfc21,
-                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {
-                    lightLevel: {name: "lightLevel", ID: 0x0000, type: Zcl.DataType.UINT8},
-                    darkThreshold: {name: "darkThreshold", ID: 0x0001, type: Zcl.DataType.UINT24},
-                    brightThreshold: {name: "brightThreshold", ID: 0x0002, type: Zcl.DataType.UINT24},
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            m.enumLookup<"shellyLightLevel", ShellyLightLevel>({
-                name: "light_level",
-                cluster: "shellyLightLevel",
-                attribute: "lightLevel",
-                lookup: {dark: 0, twilight: 1, bright: 2},
-                description: "Coarse light level",
-                reporting: false,
-                access: "STATE_GET",
-            }),
-            m.numeric<"shellyLightLevel", ShellyLightLevel>({
-                name: "dark_threshold",
-                cluster: "shellyLightLevel",
-                attribute: "darkThreshold",
-                valueMin: 0,
-                valueMax: 65535,
-                reporting: false,
-                description: "Lux threshold below which light level is dark",
-                unit: "lx",
-                access: "ALL",
-            }),
-            m.numeric<"shellyLightLevel", ShellyLightLevel>({
-                name: "bright_threshold",
-                cluster: "shellyLightLevel",
-                attribute: "brightThreshold",
-                valueMin: 0,
-                valueMax: 65535,
-                reporting: false,
-                description: "Lux threshold above which light level is bright",
-                unit: "lx",
-                access: "ALL",
-            }),
+            ...shellyModernExtend.shellyLightLevel(),
             m.identify(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-103C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read<"shellyLightLevel", ShellyLightLevel>("shellyLightLevel", ["lightLevel", "darkThreshold", "brightThreshold"], {
-                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-            });
-            await endpoint.configureReporting<"shellyLightLevel", ShellyLightLevel>(
-                "shellyLightLevel",
-                [{attribute: "lightLevel", minimumReportInterval: 60, maximumReportInterval: 900, reportableChange: 0}],
-                {manufacturerCode: Zcl.ManufacturerCode.SHELLY},
-            );
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU Motion ZB", manufacturerName: "Shelly"}],
+        model: "SBMO-103Z",
+        vendor: "Shelly",
+        description: "BLU Motion ZB",
+        extend: [
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.battery(),
+            ...shellyModernExtend.shellyLightLevel(),
+            m.enumLookup({
+                name: "motion_sensitivity",
+                cluster: "ssIasZone",
+                attribute: "currentZoneSensitivityLevel",
+                lookup: {low: 1, medium: 2, high: 3},
+                description: "Motion sensor sensitivity",
+                access: "ALL",
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
+            }
         },
     },
 ];
