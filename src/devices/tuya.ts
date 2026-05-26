@@ -5141,6 +5141,35 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS130F", ["_TZE20C_xbexmf8h"]),
+        model: "TS130F_xbexmf8h",
+        vendor: "Tuya",
+        description: "Blind/curtain motor controller",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover().withPosition(),
+            e
+                .numeric("calibration_time", ea.STATE)
+                .withUnit("s")
+                .withValueStep(0.1)
+                .withDescription("Calibration time measured by motor")
+                .withCategory("diagnostic"),
+            e.binary("motor_reversal", ea.ALL, "ON", "OFF").withDescription("Reverse motor direction").withCategory("config"),
+            e.binary("calibration", ea.ALL, "ON", "OFF").withDescription("Calibration mode").withCategory("config"),
+            e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Switch backlight").withCategory("config"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "calibration", tuya.valueConverter.onOffEnumOn0],
+                [8, "motor_reversal", tuya.valueConverter.onOffEnumOn1],
+                [10, "calibration_time", {from: (v: number) => v / 10}],
+                [14, "backlight_mode", tuya.valueConverter.onOffEnumOn0],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["qnazj70", "kjintbl"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_oisqyl4o", "_TZ3000_uim07oem", "_TZE200_js3mgbjb", "_TZE200_7deq70b8", "_TZE204_ptaqh9tk"]),
         model: "TS0601_switch",
