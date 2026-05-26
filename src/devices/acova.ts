@@ -16,7 +16,10 @@ const acova = {
             convert: (model, msg, publish, options, meta) => {
                 const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
                 if (result && msg.data.systemMode !== undefined) {
-                    result.system_mode = utils.getFromLookup(msg.data.systemMode, constants.acovaThermostatSystemModes as Record<string | number, string>,);
+                    result.system_mode = utils.getFromLookup(
+                        msg.data.systemMode,
+                        constants.acovaThermostatSystemModes as Record<string | number, string>,
+                    );
                     if (result.system_mode === "off") {
                         result.hvac_action = "off";
                     }
