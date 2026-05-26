@@ -127,7 +127,13 @@ const fzLocal = {
             // map running *mode* to *state*, as that's what used
             // in homeAssistant climate ui card (red background)
             if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
-            return fz.thermostat.convert(model, msg, publish, options, meta); // as KeyValue;
+            const pIHeatingDemand = msg.data.pIHeatingDemand;
+            delete msg.data.pIHeatingDemand;
+            const thermostatResult = fz.thermostat.convert(model, msg, publish, options, meta);
+            const result: KeyValue = {};
+            if (thermostatResult && !(thermostatResult instanceof Promise)) Object.assign(result, thermostatResult);
+            if (pIHeatingDemand !== undefined) result.pi_heating_demand = pIHeatingDemand;
+            return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     namronSimplifyRemote: {
@@ -1687,8 +1693,30 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {air: 0, floor: 1, both: 2, percent: 6},
                 cluster: "hvacThermostat",
                 attribute: "sensorMode",
-                description: "Select which sensor the thermostat uses to control the room",
+                description: "Select which sensor the thermostat uses to control the room. Use 'percent' to operate as an open-loop regulator.",
                 entityCategory: "config",
+            }),
+            m.numeric<"hvacThermostat", undefined>({
+                name: "duty_cycle",
+                unit: "min",
+                valueMin: 1,
+                valueMax: 30,
+                valueStep: 1,
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x8007, type: Zcl.DataType.UINT8},
+                description: "Regulator duty cycle period in minutes (1-30).",
+                entityCategory: "config",
+            }),
+            m.numeric<"hvacThermostat", undefined>({
+                name: "pi_heating_demand",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 5,
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x0008, type: Zcl.DataType.UINT8},
+                description:
+                    "Heating demand in percent (0-100). In 'percent' sensor_mode this sets regulator output target; readback may reflect instantaneous output.",
             }),
         ],
         exposes: [
@@ -1724,7 +1752,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "antiFrost",
                 "windowState",
                 "sensorMode",
+                "displayActiveBacklight",
+                "backlightOnoff",
             ]);
+            await endpoint.read("hvacThermostat", [0x8007]);
 
             device.powerSource = "Mains (single phase)";
             device.save();
