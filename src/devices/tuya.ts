@@ -26942,4 +26942,68 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+    fingerprint: [
+        {
+            modelID: 'TS0601',
+            manufacturerName: '_TZE284_kvg7pqsc',
+        },
+    ],
+    model: 'TS0601_FCU_Thermostat',
+    vendor: 'Tuya',
+    description: 'FCU Thermostat with AC, Floor Heating, and Fresh Air System',
+    // Modern extend handles the boilerplate for custom Tuya devices
+    extend: [
+        tuya.modernExtend.tuyaBase({
+            dp: true,
+        }),
+    ],
+    options: [
+        e.enum('fcu_mode_support', ea.SET, ['cooling_only', 'cooling_and_heating'])
+            .withLabel('FCU Mode Support')
+            .withDescription('Select if your FCU supports both heating and cooling, or cooling only.'),
+    ],
+    exposes: (device, options) => {
+        const fcu_modes: any[] = ['cool', 'heat', 'dry', 'fan_only'];
+        if (options.fcu_mode_support !== 'cooling_and_heating') {
+            const heatIndex = fcu_modes.indexOf('heat');
+            if (heatIndex > -1) fcu_modes.splice(heatIndex, 1);
+        }
+
+        return [
+            e.binary('fcu_power', ea.STATE_SET, 'ON', 'OFF').withLabel('AC - Power'),
+            e.climate()
+                .withSystemMode(fcu_modes, ea.STATE_SET)
+                .withSetpoint('current_heating_setpoint', 16, 32, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withFanMode(['low', 'medium', 'high', 'auto'], ea.STATE_SET),
+            e.binary('ac_enabled', ea.STATE_SET, 'ON', 'OFF').withLabel('Screen - AC Controls'),
+            e.binary('floor_heating_enabled', ea.STATE_SET, 'ON', 'OFF').withLabel('Screen - Floor Heat Controls'),
+            e.binary('fresh_air_enabled', ea.STATE_SET, 'ON', 'OFF').withLabel('Screen - Fresh Air Controls'),
+            e.binary('floor_heating_power', ea.STATE_SET, 'ON', 'OFF').withLabel('Heat - Power'),
+            e.numeric('floor_heating_setpoint', ea.STATE_SET).withValueMin(16).withValueMax(32).withValueStep(1).withUnit('°C').withLabel('Heat - Setpoint'),
+            e.binary('fresh_air_power', ea.STATE_SET, 'ON', 'OFF').withLabel('Vent - Power'),
+            e.enum('fresh_air_mode', ea.STATE_SET, ['supply', 'exhaust']).withLabel('Vent - Mode'),
+            e.enum('fresh_air_fan_mode', ea.STATE_SET, ['low', 'medium', 'high', 'auto']).withLabel('Vent - Fan mode'),
+        ];
+    },
+    meta: {
+        tuyaDatapoints: [
+            [1, 'fcu_power', tuya.valueConverter.onOff],
+            [108, 'ac_enabled', tuya.valueConverter.onOff],
+            [109, 'floor_heating_enabled', tuya.valueConverter.onOff],
+            [110, 'fresh_air_enabled', tuya.valueConverter.onOff],
+            [101, 'floor_heating_power', tuya.valueConverter.onOff],
+            [102, 'floor_heating_setpoint', tuya.valueConverter.raw],
+            [103, 'fresh_air_power', tuya.valueConverter.onOff],
+            [106, 'fresh_air_mode', tuya.valueConverter.lookup({'supply': 0, 'exhaust': 1})],
+            [104, 'fresh_air_fan_mode', tuya.valueConverter.lookup({'low': 0, 'medium': 1, 'high': 2, 'auto': 3})],
+            [50, 'current_heating_setpoint', tuya.valueConverter.raw],
+            [16, 'local_temperature', tuya.valueConverter.raw],
+            [2, 'system_mode', tuya.valueConverter.lookup({'cool': 0, 'heat': 1, 'dry': 2, 'fan_only': 3})],
+            [49, 'fan_mode', tuya.valueConverter.lookup({'low': 0, 'medium': 1, 'high': 2, 'auto': 3})],
+        ],
+    },
+},
+},
 ];
