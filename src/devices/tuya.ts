@@ -14595,6 +14595,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-SEC01-U",
         vendor: "Tuya",
         description: "Zigbee 3.0 smart light switch module 1 gang",
+        version: "0.0.1",
         extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({switchType: true})],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(1);
@@ -14611,6 +14612,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-SEC01-DC",
         vendor: "Tuya",
         description: "Mini 1 Gang Zigbee Switch Module",
+        version: "0.0.1",
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({powerOutageMemory: true}),
