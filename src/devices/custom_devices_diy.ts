@@ -256,6 +256,36 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_led: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {led: msg.data.onOff === 1};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_meta: {
+        cluster: "genBinaryValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            return {
+                description: data.description,
+                type: data.inactiveText,
+                rssi: data.presentValue,
+            };
+        },
+    } satisfies Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    DNCKAT_S00X_buttons: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data.onOff === 1 ? "release" : "hold";
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -424,7 +454,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CC2530.ROUTER",
         vendor: "Custom devices (DiY)",
         description: "CC2530 router",
-        fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta],
+        fromZigbee: [fzLocal.CC2530ROUTER_led, fzLocal.CC2530ROUTER_meta],
         toZigbee: [tz.ptvo_switch_trigger],
         exposes: [e.binary("led", ea.STATE, true, false)],
     },
@@ -769,7 +799,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW002",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT double key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"]})],
         exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right"])],
     },
@@ -778,7 +808,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW003",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT triple key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ["left", "center", "right"]})],
         exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right", "release_center", "hold_center"])],
     },
@@ -787,7 +817,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW004",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT quadruple key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [
             m.deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
             m.onOff({endpointNames: ["bottom_left", "bottom_right", "top_left", "top_right"]}),
