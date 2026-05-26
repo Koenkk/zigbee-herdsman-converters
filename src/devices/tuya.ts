@@ -7375,33 +7375,47 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r0jdjrvi", "_TZE200_g5xqosu7", "_TZE204_g5xqosu7", "_TZE284_fzo2pocs", "_TZE200_9vpe3fl1"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_r0jdjrvi",
+            "_TZE200_g5xqosu7",
+            "_TZE204_g5xqosu7",
+            "_TZE284_fzo2pocs",
+            "_TZE200_9vpe3fl1",
+            "_TZE28C1000000_alh14edn",
+        ]),
         model: "TS0601_cover_8",
         vendor: "Tuya",
         description: "Cover motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
-            e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor Fault"),
-            e
-                .enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
-                .withDescription("Set or Reset the upper stroke limit")
-                .withCategory("config"),
-            e
-                .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
-                .withDescription("Set or Reset the middle stroke limit")
-                .withCategory("config"),
-            e
-                .enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
-                .withDescription("Set or Reset the lower stroke limit")
-                .withCategory("config"),
-            e
-                .enum("motor_working_mode", ea.STATE_SET, ["continuous", "intermittently"])
-                .withDescription("Motor operating mode")
-                .withCategory("config"),
-        ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                e.cover_position().setAccess("position", ea.STATE_SET),
+                e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
+            ];
+            if (!device || device.manufacturerName !== "_TZE28C1000000_alh14edn") {
+                exps.push(
+                    e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor Fault"),
+                    e
+                        .enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                        .withDescription("Set or Reset the upper stroke limit")
+                        .withCategory("config"),
+                    e
+                        .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                        .withDescription("Set or Reset the middle stroke limit")
+                        .withCategory("config"),
+                    e
+                        .enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                        .withDescription("Set or Reset the lower stroke limit")
+                        .withCategory("config"),
+                    e
+                        .enum("motor_working_mode", ea.STATE_SET, ["continuous", "intermittently"])
+                        .withDescription("Motor operating mode")
+                        .withCategory("config"),
+                );
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [
@@ -7434,6 +7448,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lilistore", "TS0601_lilistore", "Cover motor", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Zemismart", "ZM90E-DT250N/A400", "Window opener", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Nova Digital", "CMR-1", "Roller Blind Motor", ["_TZE200_9vpe3fl1"]),
+            tuya.whitelabel("Tuya", "TS0601_alh14edn", "Smart Blinds Controller", ["_TZE28C1000000_alh14edn"]),
         ],
     },
     {
