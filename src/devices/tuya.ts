@@ -5141,51 +5141,77 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint('TS130F', ['_TZE20C_xbexmf8h']),
-        model: 'TS130F_xbexmf8h',
-        vendor: 'Tuya',
-        description: 'Blind/curtain motor controller',
+        fingerprint: tuya.fingerprint("TS130F", ["_TZE20C_xbexmf8h"]),
+        model: "TS130F_xbexmf8h",
+        vendor: "Tuya",
+        description: "Blind/curtain motor controller",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
         exposes: [
             e.cover().withPosition(),
-            e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])
-                .withDescription('Moving direction'),
-            e.numeric('calibration_time', ea.STATE)
-                .withUnit('s').withValueStep(0.1)
-                .withDescription('Calibration time measured by motor')
-                .withCategory('diagnostic'),
-            e.binary('motor_reversal', ea.ALL, 'ON', 'OFF')
-                .withDescription('Reverse motor direction')
-                .withCategory('config'),
-            e.binary('calibration', ea.ALL, 'ON', 'OFF')
-                .withDescription('Calibration mode')
-                .withCategory('config'),
-            e.binary('backlight_mode', ea.ALL, 'ON', 'OFF')
-                .withDescription('Switch backlight')
-                .withCategory('config'),
+            e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]).withDescription("Moving direction"),
+            e
+                .numeric("calibration_time", ea.STATE)
+                .withUnit("s")
+                .withValueStep(0.1)
+                .withDescription("Calibration time measured by motor")
+                .withCategory("diagnostic"),
+            e.binary("motor_reversal", ea.ALL, "ON", "OFF").withDescription("Reverse motor direction").withCategory("config"),
+            e.binary("calibration", ea.ALL, "ON", "OFF").withDescription("Calibration mode").withCategory("config"),
+            e.binary("backlight_mode", ea.ALL, "ON", "OFF").withDescription("Switch backlight").withCategory("config"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverterBasic.lookup({
-                    'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2),
-                })],
-                [1, 'moving', tuya.valueConverterBasic.lookup({
-                    'UP': tuya.enum(0), 'STOP': tuya.enum(1), 'DOWN': tuya.enum(2),
-                })],
-                [2, 'position', tuya.valueConverter.coverPosition],
-                [3, 'calibration', tuya.valueConverterBasic.lookup({
-                    'ON': tuya.enum(0), 'OFF': tuya.enum(1),
-                })],
-                [8, 'motor_reversal', tuya.valueConverterBasic.lookup({
-                    'OFF': tuya.enum(0), 'ON': tuya.enum(1),
-                })],
-                [10, 'calibration_time', {
-                    from: (v: number) => v / 10,
-                }],
-                [14, 'backlight_mode', tuya.valueConverterBasic.lookup({
-                    'ON': tuya.enum(0), 'OFF': tuya.enum(1),
-                })],
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [
+                    1,
+                    "moving",
+                    tuya.valueConverterBasic.lookup({
+                        UP: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        DOWN: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    3,
+                    "calibration",
+                    tuya.valueConverterBasic.lookup({
+                        ON: tuya.enum(0),
+                        OFF: tuya.enum(1),
+                    }),
+                ],
+                [
+                    8,
+                    "motor_reversal",
+                    tuya.valueConverterBasic.lookup({
+                        OFF: tuya.enum(0),
+                        ON: tuya.enum(1),
+                    }),
+                ],
+                [
+                    10,
+                    "calibration_time",
+                    {
+                        from: (v: number) => v / 10,
+                    },
+                ],
+                [
+                    14,
+                    "backlight_mode",
+                    tuya.valueConverterBasic.lookup({
+                        ON: tuya.enum(0),
+                        OFF: tuya.enum(1),
+                    }),
+                ],
             ],
         },
     },
