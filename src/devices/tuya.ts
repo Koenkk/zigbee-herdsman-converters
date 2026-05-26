@@ -5147,7 +5147,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: 'Blind/curtain motor controller',
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         exposes: [
             e.cover().withPosition(),
             e.enum('moving', ea.STATE, ['UP', 'STOP', 'DOWN'])
