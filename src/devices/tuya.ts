@@ -12413,7 +12413,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "24GHz mmWave human presence sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: async (event: KeyValueAny) => {
+        onEvent: (event: KeyValueAny) => {
             if (event.type === "start") {
                 const setTimer = () => {
                     setTimeout(async () => {
