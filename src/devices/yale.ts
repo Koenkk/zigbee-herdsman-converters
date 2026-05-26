@@ -775,7 +775,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["YDM60"],
         model: "YDM60",
         vendor: "Yale",
-        description: "Digital Lock YDM 60",
+        description: "Digital lock",
         fromZigbee: [fzLocal.ymc_action],
         extend: [lockExtend()],
         exposes: [
