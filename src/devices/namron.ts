@@ -122,14 +122,15 @@ const fzLocal = {
         options: [exposes.options.local_temperature_based_on_sensor()],
         convert: (model, msg, publish, options, meta) => {
             const runningModeStateMap: Record<number, number> = {0: 0, 3: 2, 4: 5};
+            const data = {...msg.data};
             // override mode "idle" - not a supported running mode
-            if (msg.data.runningMode === 0x10) msg.data.runningMode = 0;
+            if (data.runningMode === 0x10) data.runningMode = 0;
             // map running *mode* to *state*, as that's what used
             // in homeAssistant climate ui card (red background)
-            if (msg.data.runningMode !== undefined) msg.data.runningState = runningModeStateMap[msg.data.runningMode];
-            const pIHeatingDemand = msg.data.pIHeatingDemand;
-            delete msg.data.pIHeatingDemand;
-            const thermostatResult = fz.thermostat.convert(model, msg, publish, options, meta);
+            if (data.runningMode !== undefined) data.runningState = runningModeStateMap[data.runningMode];
+            const pIHeatingDemand = data.pIHeatingDemand;
+            delete data.pIHeatingDemand;
+            const thermostatResult = fz.thermostat.convert(model, {...msg, data}, publish, options, meta);
             const result: KeyValue = {};
             if (thermostatResult && !(thermostatResult instanceof Promise)) Object.assign(result, thermostatResult);
             if (pIHeatingDemand !== undefined) result.pi_heating_demand = pIHeatingDemand;
@@ -1693,7 +1694,8 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {air: 0, floor: 1, both: 2, percent: 6},
                 cluster: "hvacThermostat",
                 attribute: "sensorMode",
-                description: "Select which sensor the thermostat uses to control the room. Use 'percent' to operate as an open-loop regulator.",
+                description:
+                    "Select which sensor the thermostat uses to control the room. In 'percent' mode, temperature sensors are bypassed and output is set by pi_heating_demand.",
                 entityCategory: "config",
             }),
             m.numeric<"hvacThermostat", undefined>({
@@ -1716,7 +1718,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x0008, type: Zcl.DataType.UINT8},
                 description:
-                    "Heating demand in percent (0-100). When sensor mode is set to 'percent', this sets regulator output target; readback may reflect instantaneous output.",
+                    "Heating demand in percent (0-100). In 'percent' sensor mode this sets duty output target, but reads report current instantaneous output so read values can differ from the last set value.",
             }),
         ],
         exposes: [
