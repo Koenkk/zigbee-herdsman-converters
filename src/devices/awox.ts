@@ -341,4 +341,12 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
     },
+    {
+        zigbeeModel: ['TLSR82xx'],
+        model: 'TLSR82xx',
+        vendor: 'AwoX',
+        description: 'Smart Home LED Light Bulb E27, ST64, dimmable',
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3}}), m.light()],
+        whiteLabel: [{vendor: "EGLO", model: "110285"}],
+    },
 ];
