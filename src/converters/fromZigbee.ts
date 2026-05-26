@@ -2433,24 +2433,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
         return result;
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_contact: Fz.Converter<"ssIasZone", undefined, ["raw"]> = {
-    cluster: "ssIasZone",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {contact: msg.data[7] === 0};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_occupancy: Fz.Converter<"msOccupancySensing", undefined, ["raw"]> = {
-    cluster: "msOccupancySensing",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data[7] === 1) {
-            return {action: "motion"};
-        }
-    },
-};
 export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
