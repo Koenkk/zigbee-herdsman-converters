@@ -2434,27 +2434,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_led: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {led: msg.data.onOff === 1};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_meta: Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryValue",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const data = msg.data;
-        return {
-            description: data.description,
-            type: data.inactiveText,
-            rssi: data.presentValue,
-        };
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const KAMI_contact: Fz.Converter<"ssIasZone", undefined, ["raw"]> = {
     cluster: "ssIasZone",
     type: ["raw"],
@@ -2470,15 +2449,6 @@ export const KAMI_occupancy: Fz.Converter<"msOccupancySensing", undefined, ["raw
         if (msg.data[7] === 1) {
             return {action: "motion"};
         }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const DNCKAT_S00X_buttons: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const action = msg.data.onOff === 1 ? "release" : "hold";
-        return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
 export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
