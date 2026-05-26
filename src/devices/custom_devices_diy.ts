@@ -1368,17 +1368,13 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ZG-204ZL-z"],
         model: "ZG-204ZL-z",
-        vendor: "Tuya",
+        vendor: "Custom devices (DiY)",
         description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
         ota: true,
-        fromZigbee: [fz.occupancy, fz.illuminance, fz.battery],
-        toZigbee: [tz.power_on_behavior],
-
         extend: [
             m.battery(),
             m.occupancy(),
             m.illuminance(),
-
             m.enumLookup({
                 name: "power_on_behavior",
                 cluster: "genOnOff",
@@ -1391,7 +1387,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 description: "Power-on behavior",
             }),
-
             m.numeric({
                 name: "pir_timeout",
                 cluster: "msOccupancySensing",
