@@ -1365,4 +1365,38 @@ export const definitions: DefinitionWithExtend[] = [
             publishDuplicateTransaction: true,
         },
     },
+    {
+        zigbeeModel: ["ZG-204ZL-z"],
+        model: "ZG-204ZL-z",
+        vendor: "Custom devices (DiY)",
+        description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery(),
+            m.occupancy(),
+            m.illuminance(),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR timeout in seconds",
+            }),
+        ],
+    },
 ];
