@@ -2609,10 +2609,8 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint1.read("genOnOffSwitchCfg", ["switchActions"]);
             await endpoint2.read("genOnOffSwitchCfg", ["switchActions"]);
-            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
-                "heimanClusterSpecial", ["switchType"]);
-            await endpoint2.read<"heimanClusterSpecial", HeimanPrivateCluster>(
-                "heimanClusterSpecial", ["switchType"]);
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["switchType"]);
+            await endpoint2.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["switchType"]);
             await endpoint1.read("haDiagnostic", ["lastMessageLqi", "lastMessageRssi"]);
         },
     },
