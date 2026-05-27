@@ -2584,7 +2584,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.enumLookup({
-                name: "switch_actions",
+                name: "switch_actions_l1",
                 endpointName: "l1",
                 lookup: {on_off: 0, off_on: 1, toggle: 2},
                 cluster: "genOnOffSwitchCfg",
@@ -2592,7 +2592,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Actions for switch 1",
             }),
             m.enumLookup({
-                name: "switch_actions",
+                name: "switch_actions_l2",
                 endpointName: "l2",
                 lookup: {on_off: 0, off_on: 1, toggle: 2},
                 cluster: "genOnOffSwitchCfg",
@@ -2603,12 +2603,16 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "haDiagnostic"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial", "haDiagnostic"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "heimanClusterSpecial"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
-            await endpoint1.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
-            await endpoint2.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
+            await endpoint1.read("genOnOffSwitchCfg", ["switchActions"]);
+            await endpoint2.read("genOnOffSwitchCfg", ["switchActions"]);
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial", ["switchType"]);
+            await endpoint2.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial", ["switchType"]);
             await endpoint1.read("haDiagnostic", ["lastMessageLqi", "lastMessageRssi"]);
         },
     },
