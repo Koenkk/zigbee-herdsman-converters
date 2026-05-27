@@ -4,7 +4,8 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueNumberString, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,6 +24,30 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    scenes_recall_scene_65024: {
+        cluster: 65024,
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
+        },
+    } satisfies Fz.Converter<65024, undefined, ["raw"]>,
+    adeo_button_65024: {
+        cluster: 65024,
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping: KeyValueNumberString = {1: "single", 2: "double", 3: "hold"};
+            return {action: `${clickMapping[msg.data[6]]}`};
+        },
+    } satisfies Fz.Converter<65024, undefined, ["raw"]>,
+    color_stop_raw: {
+        cluster: "lightingColorCtrl",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: utils.postfixWithEndpointName("color_stop", msg, model, meta)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -272,8 +297,8 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_color_temperature,
             fz.command_step_hue,
             fz.command_step_saturation,
-            fz.color_stop_raw,
-            fz.scenes_recall_scene_65024,
+            fzLocal.color_stop_raw,
+            fzLocal.scenes_recall_scene_65024,
         ],
         toZigbee: [],
         exposes: [
@@ -442,7 +467,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "83633204",
         vendor: "ADEO",
         description: "1-key remote control",
-        fromZigbee: [fz.adeo_button_65024, fz.battery],
+        fromZigbee: [fzLocal.adeo_button_65024, fz.battery],
         exposes: [e.action(["single", "double", "hold"]), e.battery()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {

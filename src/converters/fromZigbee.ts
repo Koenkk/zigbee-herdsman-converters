@@ -2306,30 +2306,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const scenes_recall_scene_65024: Fz.Converter<65024, undefined, ["raw"]> = {
-    cluster: 65024,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
-    },
-};
-export const adeo_button_65024: Fz.Converter<65024, undefined, ["raw"]> = {
-    cluster: 65024,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const clickMapping: KeyValueNumberString = {1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data[6]]}`};
-    },
-};
-export const color_stop_raw: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload = {action: postfixWithEndpointName("color_stop", msg, model, meta)};
-        addActionGroup(payload, msg, model);
-        return payload;
-    },
-};
 export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
     cluster: "ssIasAce",
     type: ["commandArm"],
@@ -2455,72 +2431,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
             result.state = result.position === 0 ? "CLOSE" : "OPEN";
         }
         return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.presence_timeout()],
-    convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options?.presence_timeout != null;
-        const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
-
-        // Stop existing timer because motion is detected and set a new one.
-        clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
-        globalStore.putValue(msg.endpoint, "timer", timer);
-
-        return {presence: true};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_led: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {led: msg.data.onOff === 1};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_meta: Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryValue",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const data = msg.data;
-        return {
-            description: data.description,
-            type: data.inactiveText,
-            rssi: data.presentValue,
-        };
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_contact: Fz.Converter<"ssIasZone", undefined, ["raw"]> = {
-    cluster: "ssIasZone",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {contact: msg.data[7] === 0};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_occupancy: Fz.Converter<"msOccupancySensing", undefined, ["raw"]> = {
-    cluster: "msOccupancySensing",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data[7] === 1) {
-            return {action: "motion"};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const DNCKAT_S00X_buttons: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const action = msg.data.onOff === 1 ? "release" : "hold";
-        return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
 export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {

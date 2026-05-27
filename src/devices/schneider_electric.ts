@@ -2846,16 +2846,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT595011",
         vendor: "Schneider Electric",
         description: "Wiser motion sensor",
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["genPowerCfg"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.battery(), e.occupancy()],
-        extend: [m.illuminance()],
+        version: "0.0.1",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_2", "battery_low"]}),
+            m.illuminance(),
+            m.enumLookup({
+                name: "sensitivity_level",
+                description: "Sensitivity level for the occupancy sensor",
+                attribute: "currentZoneSensitivityLevel",
+                cluster: "ssIasZone",
+                lookup: {low: 0x00, medium: 0x01, high: 0x02},
+                entityCategory: "config",
+            }),
+        ],
     },
     {
         zigbeeModel: ["CH/Socket/2"],
