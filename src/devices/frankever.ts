@@ -37,7 +37,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart water valve with flow meter and temperature sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetLocalTime,
+        onEvent: tuya.onEvent,
         configure: tuya.configureMagicPacket,
         exposes: [
             // --- Valve Controls ---
