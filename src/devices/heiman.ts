@@ -3514,8 +3514,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "M1-PE",
         vendor: "Heiman",
         description: "Smart occupancy sensor",
-        fromZigbee: [fz.occupancy, fz.battery],
-        exposes: [],
         configure: async (device, cordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, cordinatorEndpoint, [
