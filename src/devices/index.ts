@@ -199,6 +199,7 @@ import {definitions as lytko} from "./lytko";
 import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
 import {definitions as matcallBv} from "./matcall_bv";
+import {definitions as mateuszSury} from "./mateusz_sury";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
 import {definitions as megaman} from "./megaman";
@@ -574,6 +575,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mElec,
     ...makegood,
     ...matcallBv,
+    ...mateuszSury,
     ...mazda,
     ...meazon,
     ...megaman,
