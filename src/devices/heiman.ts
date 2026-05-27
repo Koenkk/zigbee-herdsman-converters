@@ -96,6 +96,7 @@ interface HeimanPrivateCluster {
         indicatorLightOnOff: number;
         remoteSelfTest: number;
         temperatureOffset: number;
+        switchType: number;
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
@@ -217,6 +218,7 @@ const heimanExtend = {
                 indicatorLightOnOff: {name: "indicatorLightOnOff", ID: 0x1008, type: Zcl.DataType.UINT8, write: true},
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16, write: true},
+                switchType: {name: "switchType", ID: 0x1010, type: Zcl.DataType.ENUM8, write: true},
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
@@ -2563,22 +2565,22 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({endpointNames: ["l1", "l2"]}),
             m.deviceTemperature(),
             m.identify(),
-            m.enumLookup({
-                name: "switch_type",
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "switch_type_l1",
                 endpointName: "l1",
                 lookup: {toggle: 0, momentary: 1},
-                cluster: "genOnOffSwitchCfg",
-                attribute: {ID: 0x0000, type: 0x30},
-                description: "Switch input type for l1",
+                cluster: "heimanClusterSpecial",
+                attribute: "switchType",
+                description: "Switch input type for l1.",
                 access: "ALL",
             }),
-            m.enumLookup({
-                name: "switch_type",
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "switch_type_l2",
                 endpointName: "l2",
                 lookup: {toggle: 0, momentary: 1},
-                cluster: "genOnOffSwitchCfg",
-                attribute: {ID: 0x0000, type: 0x30},
-                description: "Switch input type for l2",
+                cluster: "heimanClusterSpecial",
+                attribute: "switchType",
+                description: "Switch input type for l2.",
                 access: "ALL",
             }),
             m.enumLookup({
