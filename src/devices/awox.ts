@@ -354,7 +354,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
         ],
-        model: "EGLO_ST64",
+        model: "110285",
         vendor: "AwoX",
         description: "Smart Home LED Light Bulb E27, ST64, dimmable",
         extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.light()],
