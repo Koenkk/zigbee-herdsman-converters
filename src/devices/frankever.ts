@@ -35,9 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FK-BV05",
         vendor: "FrankEver",
         description: "Zigbee smart water valve with flow meter and temperature sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             // --- Valve Controls ---
             e.switch().setAccess("state", ea.STATE_SET),
