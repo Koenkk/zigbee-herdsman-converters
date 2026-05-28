@@ -22544,12 +22544,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k", "_TZE21C_i2ij4rb3"]),
-        model: (device: Zh.Device) => (device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "1-ZB-WSD" : "TYONOFFTS"),
-        vendor: (device: Zh.Device) => (device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "Scimagic-RC" : "Scimagic"),
-        description: (device: Zh.Device) =>
-            device?.manufacturerName === "_TZE21C_i2ij4rb3"
-                ? "Smart temperature and humidity switch (thermostat/hygrostat)"
-                : "Smart switch with temperature sensor",
+        model: "1-ZB-WSD",
+        vendor: "Scimagic",
+        description: "Smart temperature and humidity switch (thermostat/hygrostat)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device, options) => {
             const exps: Expose[] = [e.switch(), e.temperature()];
