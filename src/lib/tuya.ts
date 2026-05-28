@@ -1372,6 +1372,18 @@ export const valueConverter = {
             return result;
         },
     },
+    onOffFingerbot: {
+        to: (v: string) => {
+            if (v === "OFF") return false;
+            if (v === "ON") return true;
+        },
+        from: (v: boolean, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            publish({switch_states: "idle"});
+
+            if (v) return "ON";
+            return "OFF";
+        },
+    },
     power: {
         from: (v: number) => {
             // Support negative readings
@@ -2644,6 +2656,29 @@ export const valueConverter = {
                 return `Unknown (${value})`;
             },
         };
+    },
+    autoAdjustment: {
+        to: (v: string) => {
+            return v === "START";
+        },
+        from: (v: boolean) => {
+            return "idle";
+        },
+    },
+    switchStates: {
+        to: (v: string, meta: Tz.Meta) => {
+            if (v === "SWITCH") {
+                switch (meta.state.state) {
+                    case "ON":
+                        return false;
+                    case "OFF":
+                        return true;
+                }
+            }
+        },
+        from: (v: boolean) => {
+            return "idle";
+        },
     },
 };
 
