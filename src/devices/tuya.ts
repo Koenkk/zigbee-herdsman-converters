@@ -22542,13 +22542,14 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   {
+    {
         fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k", "_TZE21C_i2ij4rb3"]),
-        model: (device) => device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "1-ZB-WSD" : "TYONOFFTS",
-        vendor: (device) => device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "Scimagic-RC" : "Scimagic",
-        description: (device) => device?.manufacturerName === "_TZE21C_i2ij4rb3" 
-            ? "Smart temperature and humidity switch (thermostat/hygrostat)" // for _TZE21C_i2ij4rb3
-            : "Smart switch with temperature sensor",
+        model: (device) => (device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "1-ZB-WSD" : "TYONOFFTS"),
+        vendor: (device) => (device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "Scimagic-RC" : "Scimagic"),
+        description: (device) =>
+            device?.manufacturerName === "_TZE21C_i2ij4rb3"
+                ? "Smart temperature and humidity switch (thermostat/hygrostat)" // for _TZE21C_i2ij4rb3
+                : "Smart switch with temperature sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device, options) => {
             const exps: Expose[] = [e.switch(), e.temperature()];
@@ -22558,73 +22559,78 @@ export const definitions: DefinitionWithExtend[] = [
             }
             // for all
             exps.push(
-                e.numeric("temperature_calibration", ea.STATE_SET)
+                e
+                    .numeric("temperature_calibration", ea.STATE_SET)
                     .withValueMin(-10)
                     .withValueMax(10)
                     .withValueStep(0.5)
                     .withUnit("°C")
-                    .withDescription("Temperature calibration")
+                    .withDescription("Temperature calibration"),
             );
             // for _TZE21C_i2ij4rb3
             if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
                 exps.push(
-                    e.numeric("humidity_calibration", ea.STATE_SET)
+                    e
+                        .numeric("humidity_calibration", ea.STATE_SET)
                         .withValueMin(-9)
                         .withValueMax(9)
                         .withValueStep(1)
                         .withUnit("%")
-                        .withDescription("Humidity calibration")
+                        .withDescription("Humidity calibration"),
                 );
             }
             // for all
             exps.push(
-                e.binary("auto_work", ea.STATE_SET, "ON", "OFF")
-                    .withDescription("Auto work mode"),
-                e.numeric("temperature_target", ea.STATE_SET)
+                e.binary("auto_work", ea.STATE_SET, "ON", "OFF").withDescription("Auto work mode"),
+                e
+                    .numeric("temperature_target", ea.STATE_SET)
                     .withValueMin(-100)
                     .withValueMax(100)
                     .withValueStep(0.5)
                     .withUnit("°C")
                     .withDescription("Temperature target"),
-                e.numeric("temperature_range", ea.STATE_SET)
+                e
+                    .numeric("temperature_range", ea.STATE_SET)
                     .withValueMin(1)
                     .withValueMax(10)
                     .withValueStep(0.1)
                     .withUnit("°C")
-                    .withDescription("Keep the temperature in a range")
+                    .withDescription("Keep the temperature in a range"),
             );
             // for _TZE21C_i2ij4rb3
             if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
                 exps.push(
-                    e.numeric("humidity_range", ea.STATE_SET)
-                        .withValueMin(1).withValueMax(10).withValueStep(1).withUnit("%")
+                    e
+                        .numeric("humidity_range", ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(10)
+                        .withValueStep(1)
+                        .withUnit("%")
                         .withDescription("Humidity range / hysteresis"),
-                    e.numeric("humidity_target", ea.STATE_SET)
-                        .withValueMin(1).withValueMax(99).withValueStep(1).withUnit("%")
-                        .withDescription("Target humidity")
+                    e
+                        .numeric("humidity_target", ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(99)
+                        .withValueStep(1)
+                        .withUnit("%")
+                        .withDescription("Target humidity"),
                 );
             }
             if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
-                exps.push(
-                    e.enum("mode", ea.STATE_SET, ["Heating", "Dehumidify", "Cooling", "Wet"])
-                        .withDescription("Work mode")
-                );
+                exps.push(e.enum("mode", ea.STATE_SET, ["Heating", "Dehumidify", "Cooling", "Wet"]).withDescription("Work mode"));
             } else {
-                exps.push(
-                    e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"])
-                        .withDescription("Work mode")
-                );
+                exps.push(e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"]).withDescription("Work mode"));
             }
             // for all
             exps.push(
-                e.binary("delay", ea.STATE_SET, "ON", "OFF")
-                    .withDescription("Switch delay time mode"),
-                e.numeric("delay_time", ea.STATE_SET)
+                e.binary("delay", ea.STATE_SET, "ON", "OFF").withDescription("Switch delay time mode"),
+                e
+                    .numeric("delay_time", ea.STATE_SET)
                     .withValueMin(0)
                     .withValueMax(10)
                     .withValueStep(1)
                     .withUnit("minute")
-                    .withDescription("Switch delay time")
+                    .withDescription("Switch delay time"),
             );
             return exps;
         },
