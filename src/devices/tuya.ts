@@ -1716,6 +1716,58 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zofmmt9s"]),
+        model: "ZSM-01",
+        vendor: "Novato",
+        description: "Curtain motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("control_back_mode", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control (up/down)"),
+            e
+                .numeric("position_best", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Preferred position"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                // DP9 = set position, DP8 = position report; DP9 first so writes go to it
+                [9, "position", tuya.valueConverter.coverPosition],
+                [8, "position", tuya.valueConverter.coverPosition],
+                [
+                    11,
+                    "control_back_mode",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+                [19, "position_best", tuya.valueConverter.raw],
+                [
+                    20,
+                    "click_control",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["TS0204"],
         model: "TS0204",
         vendor: "Tuya",
