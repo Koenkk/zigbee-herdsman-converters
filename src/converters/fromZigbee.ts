@@ -3,7 +3,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
-import type {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from "../lib/types";
+import type {Fz, KeyValue, KeyValueAny} from "../lib/types";
 import * as utils from "../lib/utils";
 import {
     addActionGroup,
@@ -1982,41 +1982,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const lookup: KeyValueAny = {1: "pressed"};
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            action: lookup[zoneStatus & 1],
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
-    },
-};
-export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasWd",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.maxDuration !== undefined) result.duration = msg.data.maxDuration;
-        if (msg.data["2"] !== undefined) {
-            result.volume = mapNumberRange(msg.data["2"] as number, 100, 10, 0, 100);
-        }
-
-        if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName) && typeof msg.data["2"] === "number") {
-            const volData = msg.data["2"];
-            result.volume = volData === 0 ? 0 : mapNumberRange(volData, 100, 33, 1, 100);
-        }
-
-        if (msg.data["61440"] !== undefined) {
-            result.alarm = msg.data["61440"] !== 0;
-        }
-        return result;
-    },
-};
 export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateValue",
     type: ["attributeReport", "readResponse"],
@@ -2433,22 +2398,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
         return result;
     },
 };
-export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const property = 0x8001;
-
-        if (msg.data[property] !== undefined) {
-            const dict: KeyValueNumberString = {0: "off", 1: "on_off", 2: "off_on"};
-            const value = msg.data[property] as number;
-
-            if (dict[value] !== undefined) {
-                return {[postfixWithEndpointName("indicator_mode", msg, model, meta)]: dict[value]};
-            }
-        }
-    },
-};
 export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2552,20 +2501,6 @@ export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["com
         } else {
             return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
         }
-    },
-};
-export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined, "raw"> = {
-    cluster: "lightingColorCtrl",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // commandStopMove without params
-        if (msg.data[2] !== 71) return;
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const movestop = "stop";
-        const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
-        const payload = {action};
-        addActionGroup(payload, msg, model);
-        return payload;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -2825,72 +2760,5 @@ export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined,
     convert: (model, msg, publish, options, meta) => {
         const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
         return occupancy_with_timeout.convert(model, newMsg, publish, options, meta);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZM35HQ_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasZone",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        let result: KeyValueAny = {};
-        const data = msg.data;
-        if (data && data.zoneStatus !== undefined) {
-            const result1 = ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
-            result = {...result1};
-        }
-        if (data && data.currentZoneSensitivityLevel !== undefined) {
-            const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
-            result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
-        }
-        if (data && data["61441"] !== undefined) {
-            const keeptimelookup: Record<number, number> = {0: 30, 1: 60, 2: 120};
-            result.keep_time = keeptimelookup[data["61441"] as number];
-        }
-        return result;
-    },
-};
-export const TS110E: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValue = {};
-        if (msg.data["64515"] !== undefined) {
-            result.min_brightness = utils.mapNumberRange(msg.data["64515"] as number, 0, 1000, 1, 255);
-        }
-        if (msg.data["64516"] !== undefined) {
-            result.max_brightness = utils.mapNumberRange(msg.data["64516"] as number, 0, 1000, 1, 255);
-        }
-        if (msg.data["61440"] !== undefined) {
-            const propertyName = utils.postfixWithEndpointName("brightness", msg, model, meta);
-            result[propertyName] = utils.mapNumberRange(msg.data["61440"] as number, 0, 1000, 0, 255);
-        }
-        return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_light_type: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValue = {};
-        if (msg.data["64514"] !== undefined) {
-            const lookup: Record<number, string> = {0: "led", 1: "incandescent", 2: "halogen"};
-            result.light_type = lookup[msg.data["64514"] as number];
-        }
-        return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_switch_type: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValue = {};
-        if (msg.data["64514"] !== undefined) {
-            const lookup: Record<number, string> = {0: "momentary", 1: "toggle", 2: "state"};
-            const propertyName = utils.postfixWithEndpointName("switch_type", msg, model, meta);
-            result[propertyName] = lookup[msg.data["64514"] as number];
-        }
-        return result;
     },
 };
