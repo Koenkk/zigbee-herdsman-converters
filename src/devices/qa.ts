@@ -1,5 +1,4 @@
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
@@ -284,8 +283,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "Dimmer 1 channel",
         extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
-        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
     },
     {
@@ -299,8 +298,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.light({endpointNames: ["l1", "l2"], powerOnBehavior: false, configureReporting: true, effect: false}),
         ],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
-        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
     },
     {
