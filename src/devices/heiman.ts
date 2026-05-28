@@ -3589,7 +3589,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "illuminance_threshold",
-                unit: "Lx",
+                unit: "lx",
                 scale: 1,
                 valueMin: 0,
                 valueMax: 1000,
