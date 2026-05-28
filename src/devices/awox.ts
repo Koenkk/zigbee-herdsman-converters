@@ -317,6 +317,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["EGLO_ZM_RGB_W"],
+        model: "EGLO_ZM_RGB_W",
+        vendor: "AwoX",
+        description: "RGB bulb with dedicated 3000 K white LED",
+        extend: [m.light({colorTemp: {range: [333, 333], startup: false}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [{vendor: "EGLO", model: "113135"}],
+    },
+    {
         zigbeeModel: ["EPIR_Zm"],
         model: "EPIR_Zm",
         vendor: "AwoX",
@@ -332,5 +340,23 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
+    },
+    {
+        fingerprint: [
+            {
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599, 10], outputClusters: [6]},
+                    {ID: 3, profileID: 4751, deviceID: 257, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+                ],
+            },
+        ],
+        model: "110285",
+        vendor: "AwoX",
+        description: "Smart Home LED Light Bulb E27, ST64, dimmable",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.light()],
+        whiteLabel: [{vendor: "EGLO", model: "110285"}],
     },
 ];

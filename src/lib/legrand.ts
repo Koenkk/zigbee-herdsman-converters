@@ -61,7 +61,25 @@ const getApplicableCalibrationModes = (isNLLVSwitch: boolean): KeyValueString =>
 
 export const legrandOptions = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
 
-interface LegrandDevicesCluster {
+const LEGRAND_GREENPOWER_LOOKUP: Record<number, string> = {
+    16: "home_arrival",
+    17: "home_departure", // ZLGP14
+    18: "daytime_day",
+    19: "daytime_night", // ZLGP16, yes these commandIDs are lower than ZLGP15s'
+    20: "press_1",
+    21: "press_2",
+    22: "press_3",
+    23: "press_4", // ZLGP15
+    34: "press_once",
+    32: "press_twice", // ZLGP17, ZLGP18
+    51: "down_hold", // ZLGP17, ZLGP18
+    52: "stop",
+    53: "up",
+    54: "down", // 600087l
+    55: "up_hold", // ZLGP17, ZLGP18
+};
+
+export interface LegrandDevicesCluster {
     attributes: {
         deviceMode: number;
         ledInDark: number;
@@ -87,6 +105,16 @@ interface LegrandClosuresWindowCovering {
         calibrationMode?: number;
         targetPositionTiltPercentage?: number;
         stepPositionTilt?: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export interface LegrandHaElectricalMeasurement {
+    attributes: {
+        // powerAlarmActiveValue: number;
+        powerAlarmEnabled: boolean;
+        powerAlarmWhThreshold: number;
     };
     commands: never;
     commandResponses: never;
@@ -166,6 +194,36 @@ export const legrandExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
                     write: true,
                     max: 0xff,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addLegrandHaElectricalMeasurement: () =>
+        m.deviceAddCustomCluster("haElectricalMeasurement", {
+            name: "haElectricalMeasurement",
+            ID: Zcl.Clusters.haElectricalMeasurement.ID,
+            attributes: {
+                //    type not declared in the code
+                // powerAlarmActiveValue: {
+                //     name: "powerAlarmActiveValue",
+                //     ID: 0xf000,  // 61440
+                //     type: Zcl.DataType.??,
+                //     manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                // },
+                powerAlarmEnabled: {
+                    name: "powerAlarmEnabled",
+                    ID: 0xf001, // 61441
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                    write: true,
+                },
+                powerAlarmWhThreshold: {
+                    name: "powerAlarmWhThreshold",
+                    ID: 0xf002, // 61442
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP,
+                    write: true,
                 },
             },
             commands: {},
@@ -322,7 +380,7 @@ export const tzLegrand = {
             await entity.read("manuSpecificLegrandDevices", [0x0000, 0x0001, 0x0002], legrandOptions);
         },
     } satisfies Tz.Converter,
-    legrand_pilot_wire_mode: {
+    pilot_wire_mode: {
         key: ["pilot_wire_mode"],
         convertSet: async (entity, key, value, meta) => {
             const modeLookup = {
@@ -344,6 +402,25 @@ export const tzLegrand = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("manuSpecificLegrandDevices2", [0x0000], legrandOptions);
+        },
+    } satisfies Tz.Converter,
+    power_alarm: {
+        key: ["power_alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const enableAlarm = !(value === "DISABLE" || value === false);
+            const payloadBolean = {61441: {value: enableAlarm ? 0x01 : 0x00, type: 0x10}};
+            const payloadValue = {61442: {value: value, type: 0x29}};
+            await entity.write("haElectricalMeasurement", payloadValue);
+            await entity.write("haElectricalMeasurement", payloadBolean);
+            // To have consistent information in the system.
+            await entity.read("haElectricalMeasurement", [0xf000, 0xf001, 0xf002]);
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"haElectricalMeasurement", LegrandHaElectricalMeasurement>("haElectricalMeasurement", [
+                0xf000,
+                "powerAlarmEnabled",
+                "powerAlarmWhThreshold",
+            ]);
         },
     } satisfies Tz.Converter,
 };
@@ -446,7 +523,7 @@ export const fzLegrand = {
             return {};
         },
     } satisfies Fz.Converter<"genIdentify", undefined, ["attributeReport", "readResponse"]>,
-    legrand_master_switch_center: {
+    master_switch_center: {
         cluster: "manuSpecificLegrandDevices",
         type: "raw",
         convert: (model, msg, publish, options, meta) => {
@@ -456,7 +533,7 @@ export const fzLegrand = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificLegrandDevices", LegrandDevicesCluster, "raw">,
-    legrand_pilot_wire_mode: {
+    pilot_wire_mode: {
         cluster: "manuSpecificLegrandDevices2",
         type: ["readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -478,4 +555,74 @@ export const fzLegrand = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificLegrandDevices2", LegrandDevicesCluster2, ["readResponse"]>,
+    binary_input_moving: {
+        cluster: "genBinaryInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: msg.data.presentValue ? "moving" : "stopped"};
+        },
+    } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
+    binary_input_on_off: {
+        cluster: "genBinaryInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const multiEndpoint = model.meta?.multiEndpoint;
+            const property = multiEndpoint ? utils.postfixWithEndpointName("state", msg, model, meta) : "state";
+            return {[property]: msg.data.presentValue ? "ON" : "OFF"};
+        },
+    } satisfies Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]>,
+    scenes: {
+        cluster: "genScenes",
+        type: "commandRecall",
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                65527: "enter",
+                65526: "leave",
+                65524: "sleep",
+                65525: "wakeup",
+                65518: "ambiance_I",
+                65519: "ambiance_II",
+                65520: "ambiance_III",
+            };
+            return {action: lookup[msg.data.groupid] ? lookup[msg.data.groupid] : "default"};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
+    power_alarm: {
+        cluster: "haElectricalMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+
+            // 0xf000 = 61440
+            // This attribute returns usually 2 when power is over the defined threshold.
+            if (msg.data["61440"] !== undefined) {
+                payload.power_alarm_active_value = msg.data["61440"];
+                payload.power_alarm_active = payload.power_alarm_active_value > 0;
+            }
+            // 0xf001 = 61441
+            if (msg.data.powerAlarmEnabled !== undefined) {
+                payload.power_alarm_enabled = msg.data.powerAlarmEnabled;
+            }
+            // 0xf002 = 61442, wh = watt hour
+            if (msg.data.powerAlarmWhThreshold !== undefined) {
+                payload.power_alarm_wh_threshold = msg.data.powerAlarmWhThreshold;
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter<"haElectricalMeasurement", LegrandHaElectricalMeasurement, ["attributeReport", "readResponse"]>,
+    greenpower: {
+        cluster: "greenPower",
+        type: ["commandNotification", "commandCommissioningNotification"],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            if (LEGRAND_GREENPOWER_LOOKUP[commandID] === undefined) {
+                logger.error(`Legrand GreenPower: missing command '${commandID}'`, NS);
+            } else {
+                return {action: LEGRAND_GREENPOWER_LOOKUP[commandID]};
+            }
+        },
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };

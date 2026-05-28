@@ -54,6 +54,14 @@ const tzLocal = {
             return;
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZigUP_lock: {
+        key: ["led"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
+            await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -218,6 +226,66 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    ZigUP: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                "0": "timer",
+                "1": "key",
+                "2": "dig-in",
+            };
+
+            let ds18b20Id = null;
+            let ds18b20Value = null;
+            if (msg.data["41368"]) {
+                ds18b20Id = (msg.data["41368"] as string).split(":")[0];
+                ds18b20Value = utils.precisionRound(Number.parseFloat((msg.data["41368"] as string).split(":")[1]), 2);
+            }
+
+            return {
+                state: msg.data.onOff === 1 ? "ON" : "OFF",
+                cpu_temperature: utils.precisionRound(msg.data["41361"] as number, 2),
+                external_temperature: utils.precisionRound(msg.data["41362"] as number, 1),
+                external_humidity: utils.precisionRound(msg.data["41363"] as number, 1),
+                s0_counts: msg.data["41364"],
+                adc_volt: utils.precisionRound(msg.data["41365"] as number, 3),
+                dig_input: msg.data["41366"],
+                reason: lookup[msg.data["41367"] as number],
+                [`${ds18b20Id}`]: ds18b20Value,
+            };
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_led: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {led: msg.data.onOff === 1};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_meta: {
+        cluster: "genBinaryValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            return {
+                description: data.description,
+                type: data.inactiveText,
+                rssi: data.presentValue,
+            };
+        },
+    } satisfies Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    DNCKAT_S00X_buttons: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data.onOff === 1 ? "release" : "hold";
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -386,7 +454,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CC2530.ROUTER",
         vendor: "Custom devices (DiY)",
         description: "CC2530 router",
-        fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta],
+        fromZigbee: [fzLocal.CC2530ROUTER_led, fzLocal.CC2530ROUTER_meta],
         toZigbee: [tz.ptvo_switch_trigger],
         exposes: [e.binary("led", ea.STATE, true, false)],
     },
@@ -731,7 +799,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW002",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT double key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"]})],
         exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right"])],
     },
@@ -740,7 +808,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW003",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT triple key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ["left", "center", "right"]})],
         exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right", "release_center", "hold_center"])],
     },
@@ -749,7 +817,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW004",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT quadruple key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [
             m.deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
             m.onOff({endpointNames: ["bottom_left", "bottom_right", "top_left", "top_right"]}),
@@ -772,8 +840,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZigUP",
         vendor: "Custom devices (DiY)",
         description: "CC2530 based Zigbee relais, switch, sensor and router",
-        fromZigbee: [fz.ZigUP],
-        toZigbee: [tz.on_off, tz.light_color, tz.ZigUP_lock],
+        fromZigbee: [fzLocal.ZigUP],
+        toZigbee: [tz.on_off, tz.light_color, tzLocal.ZigUP_lock],
         exposes: [e.switch()],
     },
     {
@@ -1326,5 +1394,39 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             publishDuplicateTransaction: true,
         },
+    },
+    {
+        zigbeeModel: ["ZG-204ZL-z"],
+        model: "ZG-204ZL-z",
+        vendor: "Custom devices (DiY)",
+        description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery(),
+            m.occupancy(),
+            m.illuminance(),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR timeout in seconds",
+            }),
+        ],
     },
 ];

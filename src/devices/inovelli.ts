@@ -14,11 +14,11 @@ export const definitions: DefinitionWithExtend[] = [
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "temperature", "humidity"],
             }),
             inovelli.m.light(),
-            inovelli.m.device({
-                model: inovelli.Model.VZM30,
+            inovelli.m.ledEffects(),
+            inovelli.m.buttonTaps(),
+            inovelli.m.parameters({
                 attrs: [{attributes: inovelli.VZM30_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
-                supportsLedEffects: true,
-                supportsButtonTaps: true,
+                model: inovelli.Model.VZM30,
             }),
             inovelli.m.addCustomCluster(),
             m.identify(),
@@ -40,11 +40,11 @@ export const definitions: DefinitionWithExtend[] = [
                 multiEndpointSkip: ["state", "power", "energy", "brightness"],
             }),
             inovelli.m.light(),
-            inovelli.m.device({
-                model: inovelli.Model.VZM31,
+            inovelli.m.ledEffects(),
+            inovelli.m.buttonTaps(),
+            inovelli.m.parameters({
                 attrs: [{attributes: inovelli.VZM31_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
-                supportsLedEffects: true,
-                supportsButtonTaps: true,
+                model: inovelli.Model.VZM31,
             }),
             inovelli.m.addCustomCluster(),
             m.identify(),
@@ -69,14 +69,14 @@ export const definitions: DefinitionWithExtend[] = [
                 multiEndpointSkip: ["state", "voltage", "power", "current", "energy", "brightness", "illuminance", "occupancy"],
             }),
             inovelli.m.light(),
-            inovelli.m.device({
-                model: inovelli.Model.VZM32,
+            inovelli.m.ledEffects(),
+            inovelli.m.buttonTaps(),
+            inovelli.m.parameters({
                 attrs: [
                     {attributes: inovelli.VZM32_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME},
                     {attributes: inovelli.VZM32_MMWAVE_ATTRIBUTES, clusterName: inovelli.MMWAVE_CLUSTER_NAME},
                 ],
-                supportsLedEffects: true,
-                supportsButtonTaps: true,
+                model: inovelli.Model.VZM32,
             }),
             inovelli.m.mmWave(),
             inovelli.m.addCustomCluster(),
@@ -98,11 +98,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Fan controller",
         extend: [
             inovelli.m.fan({endpointId: 1}),
-            inovelli.m.device({
-                model: inovelli.Model.VZM35,
+            inovelli.m.ledEffects(),
+            inovelli.m.buttonTaps(),
+            inovelli.m.parameters({
                 attrs: [{attributes: inovelli.VZM35_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
-                supportsLedEffects: true,
-                supportsButtonTaps: true,
+                model: inovelli.Model.VZM35,
             }),
             inovelli.m.addCustomCluster(),
             m.identify(),
@@ -119,12 +119,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             inovelli.m.light({splitValuesByEndpoint: true}),
             inovelli.m.fan({endpointId: 2, splitValuesByEndpoint: true}),
-            inovelli.m.device({
-                model: inovelli.Model.VZM36,
+            inovelli.m.parameters({
                 attrs: [{attributes: inovelli.VZM36_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
-                supportsLedEffects: false,
+                model: inovelli.Model.VZM36,
                 splitValuesByEndpoint: true,
-                supportsButtonTaps: false,
             }),
             inovelli.m.addCustomCluster(),
             m.identify(),

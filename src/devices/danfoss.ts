@@ -491,7 +491,7 @@ const danfossExtend = {
         }),
     danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.binary<"hvacThermostat", DanfossHvacThermostat>({
-            name: "thermostat_vertical_orientation",
+            name: "thermostat_orientation",
             cluster: "hvacThermostat",
             attribute: "danfossThermostatOrientation",
             description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
@@ -709,7 +709,9 @@ const danfossExtend = {
             exposes: [
                 e
                     .text("trigger_time", ea.ALL)
-                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable.")
+                    .withDescription(
+                        "Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable. Note: during DST, the valve may exercise earlier than configured due to a firmware limitation (the TRV uses standard time instead of wall-clock time)",
+                    )
                     .withCategory("config"),
             ],
             fromZigbee: [
@@ -1401,11 +1403,20 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
-        toZigbee: [tz.thermostat_clear_weekly_schedule, tzLocal.danfoss_system_status_code, tzLocal.danfoss_preheat_command],
+        toZigbee: [
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tzLocal.danfoss_system_status_code,
+            tzLocal.danfoss_preheat_command,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            } catch {
+                // Bind may fail if already bound (Danfoss rejects duplicate binds)
+            }
             await endpoint.configureReporting<"haDiagnostic", DanfossHaDiagnostic>(
                 "haDiagnostic",
                 [
