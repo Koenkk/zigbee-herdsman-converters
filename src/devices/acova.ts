@@ -24,6 +24,7 @@ const acova = {
                         result.hvac_action = "off";
                     }
                 }
+                delete result.local_temperature;
                 return result;
             },
         } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
@@ -41,7 +42,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Alcantara 2 heater",
         fromZigbee: [acova.fz.thermostat, fz.hvac_user_interface],
         toZigbee: [
-            tz.thermostat_local_temperature,
             tz.acova_thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -52,14 +52,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 7, 28, 0.5)
                 .withSetpoint("unoccupied_heating_setpoint", 7, 28, 0.5)
-                .withLocalTemperature()
                 .withSystemMode(["off", "heat", "auto"])
                 .withRunningState(["idle", "heat"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat"]);
-            await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
@@ -72,7 +70,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Alcantara 3 heater",
         fromZigbee: [acova.fz.thermostat, fz.hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
-            tz.thermostat_local_temperature,
             tz.acova_thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -83,7 +80,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 7, 28, 0.5)
                 .withSetpoint("unoccupied_heating_setpoint", 7, 28, 0.5)
-                .withLocalTemperature()
                 .withSystemMode(["off", "heat", "auto"])
                 .withRunningState(["idle", "heat"]),
             e.power_apparent(),
@@ -91,7 +87,6 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "haElectricalMeasurement"]);
-            await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatRunningState(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
