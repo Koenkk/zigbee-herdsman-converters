@@ -22542,49 +22542,89 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
+   {
         fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k", "_TZE21C_i2ij4rb3"]),
-        model: "TYONOFFTS",
-        vendor: "Scimagic",
-        description: "Smart switch with temperature sensor",
+        model: (device) => device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "1-ZB-WSD" : "TYONOFFTS",
+        vendor: (device) => device?.manufacturerName === "_TZE21C_i2ij4rb3" ? "Scimagic-RC" : "Scimagic",
+        description: (device) => device?.manufacturerName === "_TZE21C_i2ij4rb3" 
+            ? "Smart temperature and humidity switch (thermostat/hygrostat)" // for _TZE21C_i2ij4rb3
+            : "Smart switch with temperature sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device, options) => {
             const exps: Expose[] = [e.switch(), e.temperature()];
+            // for _TZE21C_i2ij4rb3
             if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
                 exps.push(e.humidity());
             }
+            // for all
             exps.push(
-                e
-                    .numeric("temperature_calibration", ea.STATE_SET)
+                e.numeric("temperature_calibration", ea.STATE_SET)
                     .withValueMin(-10)
                     .withValueMax(10)
                     .withValueStep(0.5)
                     .withUnit("°C")
-                    .withDescription("Temperature calibration"),
-                e
-                    .numeric("temperature_range", ea.STATE_SET)
-                    .withValueMin(1)
-                    .withValueMax(10)
-                    .withValueStep(0.1)
-                    .withUnit("°C")
-                    .withDescription("Keep the temperature in a range"),
-                e.binary("auto_work", ea.STATE_SET, "ON", "OFF").withDescription("Auto work mode"),
-                e
-                    .numeric("temperature_target", ea.STATE_SET)
+                    .withDescription("Temperature calibration")
+            );
+            // for _TZE21C_i2ij4rb3
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(
+                    e.numeric("humidity_calibration", ea.STATE_SET)
+                        .withValueMin(-9)
+                        .withValueMax(9)
+                        .withValueStep(1)
+                        .withUnit("%")
+                        .withDescription("Humidity calibration")
+                );
+            }
+            // for all
+            exps.push(
+                e.binary("auto_work", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Auto work mode"),
+                e.numeric("temperature_target", ea.STATE_SET)
                     .withValueMin(-100)
                     .withValueMax(100)
                     .withValueStep(0.5)
                     .withUnit("°C")
                     .withDescription("Temperature target"),
-                e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"]).withDescription("Work mode"),
-                e.binary("delay", ea.STATE_SET, "ON", "OFF").withDescription("Switch delay time mode"),
-                e
-                    .numeric("delay_time", ea.STATE_SET)
+                e.numeric("temperature_range", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Keep the temperature in a range")
+            );
+            // for _TZE21C_i2ij4rb3
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(
+                    e.numeric("humidity_range", ea.STATE_SET)
+                        .withValueMin(1).withValueMax(10).withValueStep(1).withUnit("%")
+                        .withDescription("Humidity range / hysteresis"),
+                    e.numeric("humidity_target", ea.STATE_SET)
+                        .withValueMin(1).withValueMax(99).withValueStep(1).withUnit("%")
+                        .withDescription("Target humidity")
+                );
+            }
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(
+                    e.enum("mode", ea.STATE_SET, ["Heating", "Dehumidify", "Cooling", "Wet"])
+                        .withDescription("Work mode")
+                );
+            } else {
+                exps.push(
+                    e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"])
+                        .withDescription("Work mode")
+                );
+            }
+            // for all
+            exps.push(
+                e.binary("delay", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Switch delay time mode"),
+                e.numeric("delay_time", ea.STATE_SET)
                     .withValueMin(0)
                     .withValueMax(10)
                     .withValueStep(1)
                     .withUnit("minute")
-                    .withDescription("Switch delay time"),
+                    .withDescription("Switch delay time")
             );
             return exps;
         },
@@ -22597,9 +22637,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x1d, "temperature_range", tuya.valueConverter.divideBy10],
                 [0x09, "auto_work", tuya.valueConverter.onOff],
                 [0x16, "temperature_target", tuya.valueConverter.divideBy10],
-                [0x08, "mode", tuya.valueConverterBasic.lookup({Heating: 0, Cooling: 2})],
+                [0x08, "mode", tuya.valueConverterBasic.lookup({Heating: 0, Dehumidify: 1, Cooling: 2, Wet: 3})],
                 [0x38, "delay", tuya.valueConverter.onOff],
                 [0x37, "delay_time", tuya.valueConverter.raw],
+                [0x29, "humidity_target", tuya.valueConverter.raw],
+                [0x2a, "humidity_range", tuya.valueConverter.raw],
+                [0x2f, "humidity_calibration", tuya.valueConverter.raw],
             ],
         },
     },
