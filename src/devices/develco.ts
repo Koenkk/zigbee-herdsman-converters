@@ -249,6 +249,13 @@ const develco = {
                 await entity.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
+        arm_mode: {
+            key: ["arm_mode"],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject(value, key);
+                await tz.arm_mode.convertSet?.(entity, key, {...value, audiblenotif: value.audiblenotif ?? 1}, meta);
+            },
+        } satisfies Tz.Converter,
     },
 };
 
@@ -1017,7 +1024,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ignore_iaszone_attreport,
             fz.ignore_iasace_commandgetpanelstatus,
         ],
-        toZigbee: [tz.arm_mode],
+        toZigbee: [develco.tz.arm_mode],
         exposes: [
             e.battery_low(),
             e.tamper(),
@@ -1038,7 +1045,7 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
-            m.iasGetPanelStatusResponse(),
+            m.iasGetPanelStatusResponse({audiblenotif: 1}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(44);

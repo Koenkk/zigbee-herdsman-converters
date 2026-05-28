@@ -313,9 +313,20 @@ export const arm_mode: Tz.Converter = {
             delayUntil = performance.now() + value.delay * 1000;
         }
 
+        let audibleNotif = 0;
+        if (value.audiblenotif != null) {
+            utils.assertNumber(value.audiblenotif, "audiblenotif");
+            if (!utils.isInRange(0, 255, value.audiblenotif)) {
+                throw new Error(`Invalid audiblenotif value: ${value.audiblenotif} (expected ${0} to ${255})`);
+            }
+
+            audibleNotif = Math.round(value.audiblenotif);
+        }
+
         globalStore.putValue(entity, "panelStatus", panelStatus);
         globalStore.putValue(entity, "delayUntil", delayUntil);
-        const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: 0, alarmstatus: 0};
+        globalStore.putValue(entity, "audibleNotif", audibleNotif);
+        const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: 0};
         await entity.commandResponse("ssIasAce", "panelStatusChanged", payload);
     },
 };
