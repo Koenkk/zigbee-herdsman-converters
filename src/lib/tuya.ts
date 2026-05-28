@@ -1736,6 +1736,17 @@ export const valueConverter = {
             return v;
         },
     },
+    localTempCalibration5: {
+        from: (v: number) => {
+            if (v > 0x7fffffff) v -= 0x100000000;
+            return v;
+        },
+        to: (v: number) => {
+            if (v > 0) return v;
+            if (v < 0) return v + 0x100000000;
+            return v;
+        },
+    },
     thermostatHolidayStartStop: {
         from: (v: string) => {
             const start = {
