@@ -25425,21 +25425,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("temperature_calibration", ea.STATE_SET)
                 .withValueMin(-2)
                 .withValueMax(2)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature calibration"),
             e
                 .numeric("temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v0 threshold setting"),
             e
                 .numeric("temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v1 threshold setting"),
 
@@ -25447,37 +25447,37 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("humidity_calibration", ea.STATE_SET)
                 .withValueMin(-10)
                 .withValueMax(10)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity calibration"),
             e
                 .numeric("humidity_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v0 threshold setting"),
             e
                 .numeric("humidity_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy100],
+                [5, "temperature", tuya.valueConverter.localTempCalibration4],
                 [101, "sampling_interval", tuya.valueConverter.raw],
-                [114, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
-                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [114, "temperature_calibration", tuya.valueConverter.localTempCalibration4],
+                [115, "temperature_v0_set", tuya.valueConverter.localTempCalibration4],
+                [116, "temperature_v1_set", tuya.valueConverter.localTempCalibration4],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-                [118, "humidity", tuya.valueConverter.divideBy100],
-                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
-                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
-                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [118, "humidity", tuya.valueConverter.localTempCalibration4],
+                [119, "humidity_calibration", tuya.valueConverter.localTempCalibration4],
+                [120, "humidity_v0_set", tuya.valueConverter.localTempCalibration4],
+                [121, "humidity_v1_set", tuya.valueConverter.localTempCalibration4],
                 [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
@@ -25506,7 +25506,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
                 .withValueMax(120)
-                .withValueStep(1)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor"),
             e.temperature(),
@@ -25531,14 +25531,14 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("probe_temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(125)
-                .withValueStep(1)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor v0 threshold setting"),
             e
                 .numeric("probe_temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(125)
-                .withValueStep(1)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor v1 threshold setting"),
 
@@ -25546,21 +25546,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("temperature_calibration", ea.STATE_SET)
                 .withValueMin(-2)
                 .withValueMax(2)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature calibration"),
             e
                 .numeric("temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v0 threshold setting"),
             e
                 .numeric("temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v1 threshold setting"),
 
@@ -25568,42 +25568,42 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("humidity_calibration", ea.STATE_SET)
                 .withValueMin(-10)
                 .withValueMax(10)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity calibration"),
             e
                 .numeric("humidity_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v0 threshold setting"),
             e
                 .numeric("humidity_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "probe_temperature", tuya.valueConverter.divideBy10],
+                [1, "probe_temperature", tuya.valueConverter.localTempCalibration3],
                 [4, "battery", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy100],
+                [5, "temperature", tuya.valueConverter.localTempCalibration4],
                 [101, "sampling_interval", tuya.valueConverter.raw],
-                [108, "probe_temperature_calibration", tuya.valueConverter.divideBy10],
-                [109, "probe_temperature_v0_set", tuya.valueConverter.divideBy10],
-                [110, "probe_temperature_v1_set", tuya.valueConverter.divideBy10],
+                [108, "probe_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "probe_temperature_v0_set", tuya.valueConverter.localTempCalibration3],
+                [110, "probe_temperature_v1_set", tuya.valueConverter.localTempCalibration3],
                 [112, "probe_temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-                [114, "temperature_calibration", tuya.valueConverter.divideBy100],
-                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
-                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [114, "temperature_calibration", tuya.valueConverter.localTempCalibration4],
+                [115, "temperature_v0_set", tuya.valueConverter.localTempCalibration4],
+                [116, "temperature_v1_set", tuya.valueConverter.localTempCalibration4],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-                [118, "humidity", tuya.valueConverter.divideBy100],
-                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
-                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
-                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [118, "humidity", tuya.valueConverter.localTempCalibration4],
+                [119, "humidity_calibration", tuya.valueConverter.localTempCalibration4],
+                [120, "humidity_v0_set", tuya.valueConverter.localTempCalibration4],
+                [121, "humidity_v1_set", tuya.valueConverter.localTempCalibration4],
                 [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
