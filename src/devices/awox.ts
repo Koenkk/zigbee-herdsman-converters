@@ -342,7 +342,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
     },
     {
-        zigbeeModel: ["EGLO_ST64"],
         fingerprint: [
             {
                 type: "Router",
