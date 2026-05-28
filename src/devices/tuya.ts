@@ -22614,9 +22614,9 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             }
             if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
-                exps.push(e.enum("mode", ea.STATE_SET, ["Heating", "Dehumidify", "Cooling", "Wet"]).withDescription("Work mode"));
+                exps.push(e.enum("mode", ea.STATE_SET, ["heating", "dehumidify", "cooling", "wet"]).withDescription("Work mode"));
             } else {
-                exps.push(e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"]).withDescription("Work mode"));
+                exps.push(e.enum("mode", ea.STATE_SET, ["heating", "cooling"]).withDescription("Work mode"));
             }
             // for all
             exps.push(
@@ -22640,7 +22640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x1d, "temperature_range", tuya.valueConverter.divideBy10],
                 [0x09, "auto_work", tuya.valueConverter.onOff],
                 [0x16, "temperature_target", tuya.valueConverter.divideBy10],
-                [0x08, "mode", tuya.valueConverterBasic.lookup({Heating: 0, Dehumidify: 1, Cooling: 2, Wet: 3})],
+                [0x08, "mode", tuya.valueConverterBasic.lookup({heating: 0, dehumidify: 1, cooling: 2, wet: 3})],
                 [0x38, "delay", tuya.valueConverter.onOff],
                 [0x37, "delay_time", tuya.valueConverter.raw],
                 [0x29, "humidity_target", tuya.valueConverter.raw],
