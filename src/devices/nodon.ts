@@ -309,6 +309,7 @@ export const definitions: DefinitionWithExtend[] = [
                 producedEnergy: true,
             }),
         ],
+        exposes: [e.power_apparent()],
         ota: true,
     },
     {
