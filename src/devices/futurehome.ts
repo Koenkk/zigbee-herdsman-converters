@@ -50,44 +50,44 @@ const futurehomeExtend = {
                             | "3: plugged_in_paused"
                             | "5X: running"
                             | "8X: failure" = "plugged_out";
-                        let charging = false;
+                        let chargingOn = false;
 
                         switch (status) {
                             case 0x01: // Off
                                 chargerStatus = "1X: Off";
-                                charging = false;
+                                chargingOn = false;
                                 break;
 
                             case 0x02: // StandBy → charging
                                 chargerStatus = "2: plugged_in_charging";
-                                charging = true;
+                                chargingOn = true;
                                 break;
 
                             case 0x03: // Programmed (paused by user)
                                 chargerStatus = "3: plugged_in_paused";
-                                charging = false;
+                                chargingOn = false;
                                 break;
 
                             case 0x04: // ProgrammedWaitingToStart
                                 chargerStatus = "4: plugged_in";
-                                charging = false;
+                                chargingOn = false;
                                 break;
 
                             case 0x05: // Running
                                 chargerStatus = "5X: running";
-                                charging = false;
+                                chargingOn = false;
                                 break;
 
                             case 0x08: // Failure
                                 chargerStatus = "8X: failure";
-                                charging = false;
+                                chargingOn = false;
                                 break;
 
                             default:
                                 chargerStatus = "plugged_out";
-                                charging = false;
+                                chargingOn = false;
                         }
-                        return {charger_status: chargerStatus, charging};
+                        return {charger_status: chargerStatus, charging_on: chargingOn};
                     },
                 } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
             ],
@@ -98,6 +98,15 @@ const futurehomeExtend = {
                         await entity.command("haApplianceControl", "signalState", {});
                     },
                 } satisfies Tz.Converter,
+            ],
+            configure: [
+                async (device, coordinatorEndpoint, logger) => {
+                    for (const endpoint of device.endpoints) {
+                        if (endpoint.supportsInputCluster("haApplianceControl")) {
+                            await endpoint.bind("haApplianceControl", coordinatorEndpoint);
+                        }
+                    }
+                },
             ],
             exposes: [
                 exposes
@@ -111,6 +120,7 @@ const futurehomeExtend = {
                         "8X: failure",
                     ])
                     .withDescription("Current EV charger state"),
+                exposes.binary("charging_on", ea.STATE, "ON", "OFF").withDescription("Indicates if the charger is actively delivering power"),
             ],
         };
     },
