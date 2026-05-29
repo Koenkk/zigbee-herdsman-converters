@@ -1182,6 +1182,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ["929003052701"],
+        model: "929003052701",
+        vendor: "Philips",
+        description: "Hue Flourish white and color ambiance ceiling light with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["4090431P9"],
         model: "4090431P9",
         vendor: "Philips",
