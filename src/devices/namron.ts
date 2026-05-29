@@ -1973,10 +1973,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["4512782", "4512781"],
-        model: "4512782",
+        zigbeeModel: ["4512782", "4512781", "4566700", "4566701"],
+        model: "4512782 / 4512781 / 4566700 / 4566701",
         vendor: "Namron",
-        description: "Rotary dimmer with screen",
+        description: "Namron Edge Dimmer",
         extend: [
             m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
             m.electricityMeter({voltage: false, current: false, configureReporting: true}),
