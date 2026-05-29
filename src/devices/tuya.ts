@@ -14477,6 +14477,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ibefeicf",
             "_TZ3000_zjchz7pd",
             "_TZ3000_zv6x8bt2",
+            "_TZ3000_yi0n4xfd",
         ]),
         model: "TS011F_with_threshold",
         description: "Din rail switch with power monitoring and threshold settings",
