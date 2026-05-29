@@ -457,7 +457,7 @@ const buildSonoffTrvzbtTemperatureControlHistoryResult = (
 
     return {
         type: request.type,
-        timeRange: request.timeRange,
+        time_range: request.timeRange,
         temperatureData: buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x00] ?? [], request),
         targetTemperatureData: buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x02] ?? [], request),
     };
@@ -1852,7 +1852,7 @@ const sonoffExtend = {
                 .withFeature(e.enum("type", ea.SET, Object.keys(typeLookup)))
                 .withFeature(
                     e
-                        .composite("timeRange", "timeRange", ea.SET)
+                        .composite("time_range", "time_range", ea.SET)
                         .withFeature(e.text("start", ea.SET).withDescription("Start time in ISO format with timezone."))
                         .withFeature(e.text("end", ea.SET).withDescription("End time in ISO format with timezone.")),
                 ),
@@ -1953,11 +1953,11 @@ const sonoffExtend = {
                     if (subCmd === undefined) {
                         throw new Error(`Invalid ${key}.type: expected day, month or half_year`);
                     }
-                    const timeRange = utils.isObject(value.timeRange) ? value.timeRange : undefined;
+                    const timeRange = utils.isObject(value.time_range) ? value.time_range : undefined;
                     const timeStart = utils.isString(timeRange?.start) ? timeRange.start : undefined;
                     const timeEnd = utils.isString(timeRange?.end) ? timeRange.end : undefined;
                     if (!timeStart || !timeEnd) {
-                        throw new Error(`Invalid ${key}: timeRange.start and timeRange.end are required ISO datetimes with timezone`);
+                        throw new Error(`Invalid ${key}: time_range.start and time_range.end are required ISO datetimes with timezone`);
                     }
 
                     const startUtcSec = parseIsoWithOffsetToUtcSeconds(timeStart);
@@ -1972,7 +1972,7 @@ const sonoffExtend = {
                         throw new Error(`Invalid ${key}: converted device time is out of range`);
                     }
                     if (endDeviceSec < startDeviceSec) {
-                        throw new Error(`Invalid ${key}: timeRange.end earlier than timeRange.start`);
+                        throw new Error(`Invalid ${key}: time_range.end earlier than time_range.start`);
                     }
                     const displayOffsetSeconds = getSonoffTrvzbtTemperatureControlHistoryDisplayOffsetSeconds(timeStart) ?? offsetSeconds;
 
@@ -2007,7 +2007,7 @@ const sonoffExtend = {
                         {data: Array.from(payload)},
                         disableDefaultResponseOptions,
                     );
-                    return {state: {[key]: {type, timeRange: {start: timeStart, end: timeEnd}}}};
+                    return {state: {[key]: {type, time_range: {start: timeStart, end: timeEnd}}}};
                 },
             },
         ];
