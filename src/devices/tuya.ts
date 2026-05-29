@@ -14574,6 +14574,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tomzn", "TOB9Z-VAP", "Smart circuit breaker", ["_TZ3000_303avxxt", "_TZ3000_ibefeicf"]),
             tuya.whitelabel("Immax", "07573L", "Smart circuit breaker", ["_TZ3000_zjchz7pd"]),
             tuya.whitelabel("Moes", "A5", "Smart circuit breaker", ["_TZ3000_zv6x8bt2"]),
+            tuya.whitelabel("AT", "TO-Q-SY2-163JZT", "Smart circuit breaker", ["_TZ3000_yi0n4xfd"]),
         ],
     },
     {
