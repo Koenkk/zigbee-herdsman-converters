@@ -91,6 +91,14 @@ const futurehomeExtend = {
                     },
                 } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
             ],
+            toZigbee: [
+                {
+                    key: ["charger_status"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
+                    },
+                } satisfies Tz.Converter,
+            ],
             exposes: [
                 exposes
                     .enum("charger_status", ea.STATE_GET, ["plugged_out", "plugged_in", "plugged_in_charging", "plugged_in_paused"])
@@ -109,6 +117,9 @@ const futurehomeExtend = {
                         const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
                         await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
                         return {state: {charging: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
                     },
                 } satisfies Tz.Converter,
             ],
@@ -241,22 +252,38 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["UNLOCK", 0x00],
                 valueOn: ["LOCK", 0x02],
                 description: "Permanently lock cable when not charging.",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
-            // 'closuresDoorLock': {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
-            // 'genMultistateValue': {"numberOfStates":8,"outOfService":0,"presentValue":5}
-            // 'genMultistateInput': {"numberOfStates":6,"outOfService":0,"presentValue":65}
+            // 'closuresDoorLock':
+            // {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
+            // 'under lading  {"actuatorEnabled":177,"supportedOperatingModes":261,"operatingMode":0,"lockType":null,"lockState":1}
+
+            // genAnalogOutput':
+            // Under lading {"maxPresentValue":32,"outOfService":0,"presentValue":7,"statusFlags":0}
+
+            // 'genMultistateValue':
+            // {"numberOfStates":8,"outOfService":0,"presentValue":5}
+            // under lading '{"numberOfStates":8,"outOfService":0,"presentValue":5,"reliability":0,"statusFlags":0}
+
+            // 'genMultistateInput':
+            // {"numberOfStates":6,"outOfService":0,"presentValue":65}
+            // under lading  {"numberOfStates":6,"outOfService":0,"presentValue":67,"statusFlags":0}
             m.numeric({
                 name: "setpoint_charging_current",
                 cluster: "genAnalogOutput",
                 attribute: "presentValue",
-                description: "Setpoint charging current (as defined by charger) ??",
+                description: "Setpoint charging current",
                 unit: "A",
-                access: "STATE",
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                access: "ALL",
+                valueMin: 6,
+                valueMax: 32,
+                valueStep: 1,
+                // reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
             }),
 
             m.numeric({
-                name: "current_limit",
+                name: "charging_current_limit",
                 cluster: "genAnalogOutput",
                 attribute: "maxPresentValue",
                 description: "Maximum charging current.",
@@ -265,8 +292,10 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 6,
                 valueMax: 32,
                 valueStep: 1,
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
-            // genAnalogOutput: outOfService 0
+            // genAnalogOutput': {"presentValue":8,"maxPresentValue":32,"outOfService":0,"statusFlags":0}
             m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "auto_charge",
                 cluster: "haApplianceControl",
