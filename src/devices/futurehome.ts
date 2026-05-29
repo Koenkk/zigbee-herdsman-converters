@@ -242,21 +242,27 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 0x02],
                 description: "Permanently lock cable when not charging.",
             }),
-            // 'closuresDoorLock': {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
+            // 'closuresDoorLock':
+            // {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
+            // 'under lading  {"actuatorEnabled":177,"supportedOperatingModes":261,"operatingMode":0,"lockType":null,"lockState":1}
+
             // 'genMultistateValue': {"numberOfStates":8,"outOfService":0,"presentValue":5}
             // 'genMultistateInput': {"numberOfStates":6,"outOfService":0,"presentValue":65}
             m.numeric({
                 name: "setpoint_charging_current",
                 cluster: "genAnalogOutput",
                 attribute: "presentValue",
-                description: "Setpoint charging current (as defined by charger) ??",
+                description: "Setpoint charging current",
                 unit: "A",
-                access: "STATE",
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                access: "ALL",
+                valueMin: 6,
+                valueMax: 32,
+                valueStep: 1,
+                // reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
             }),
 
             m.numeric({
-                name: "current_limit",
+                name: "charging_current_limit",
                 cluster: "genAnalogOutput",
                 attribute: "maxPresentValue",
                 description: "Maximum charging current.",
@@ -266,7 +272,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 32,
                 valueStep: 1,
             }),
-            // genAnalogOutput: outOfService 0
+            // genAnalogOutput': {"presentValue":8,"maxPresentValue":32,"outOfService":0,"statusFlags":0}
             m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "auto_charge",
                 cluster: "haApplianceControl",
