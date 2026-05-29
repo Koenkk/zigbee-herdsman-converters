@@ -1372,6 +1372,18 @@ export const valueConverter = {
             return result;
         },
     },
+    onOffFingerbot: {
+        to: (v: string) => {
+            if (v === "OFF") return false;
+            if (v === "ON") return true;
+        },
+        from: (v: boolean, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            publish({switch_states: "idle"});
+
+            if (v) return "ON";
+            return "OFF";
+        },
+    },
     power: {
         from: (v: number) => {
             // Support negative readings
@@ -1722,6 +1734,28 @@ export const valueConverter = {
         to: (v: number) => {
             if (v > 0) return v * 10;
             if (v < 0) return v * 10 + 0x100000000;
+            return v;
+        },
+    },
+    localTempCalibration4: {
+        from: (v: number) => {
+            if (v > 0x7fffffff) v -= 0x100000000;
+            return v / 100;
+        },
+        to: (v: number) => {
+            if (v > 0) return v * 100;
+            if (v < 0) return v * 100 + 0x100000000;
+            return v;
+        },
+    },
+    localTempCalibration5: {
+        from: (v: number) => {
+            if (v > 0x7fffffff) v -= 0x100000000;
+            return v;
+        },
+        to: (v: number) => {
+            if (v > 0) return v;
+            if (v < 0) return v + 0x100000000;
             return v;
         },
     },
@@ -2645,6 +2679,29 @@ export const valueConverter = {
             },
         };
     },
+    autoAdjustment: {
+        to: (v: string) => {
+            return v === "START";
+        },
+        from: (v: boolean) => {
+            return "idle";
+        },
+    },
+    switchStates: {
+        to: (v: string, meta: Tz.Meta) => {
+            if (v === "SWITCH") {
+                switch (meta.state.state) {
+                    case "ON":
+                        return false;
+                    case "OFF":
+                        return true;
+                }
+            }
+        },
+        from: (v: boolean) => {
+            return "idle";
+        },
+    },
 };
 
 const tuyaTz = {
@@ -3027,6 +3084,43 @@ const tuyaTz = {
             if (key === "brightness") await entity.read("genLevelCtrl", [61440]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS110E_options: {
+        key: ["min_brightness", "max_brightness", "light_type", "switch_type"],
+        convertSet: async (entity, key, value, meta) => {
+            let payload = null;
+            if (key === "min_brightness" || key === "max_brightness") {
+                const id = key === "min_brightness" ? 64515 : 64516;
+                payload = {[id]: {value: utils.mapNumberRange(utils.toNumber(value, key), 1, 255, 0, 1000), type: 0x21}};
+            } else if (key === "light_type" || key === "switch_type") {
+                utils.assertString(value, "light_type/switch_type");
+                const lookup: KeyValue = key === "light_type" ? {led: 0, incandescent: 1, halogen: 2} : {momentary: 0, toggle: 1, state: 2};
+                payload = {64514: {value: lookup[value], type: 0x20}};
+            }
+            await entity.write("genLevelCtrl", payload, utils.getOptions(meta.mapped, entity));
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            let id = null;
+            if (key === "min_brightness") id = 64515;
+            if (key === "max_brightness") id = 64516;
+            if (key === "light_type" || key === "switch_type") id = 64514;
+            await entity.read("genLevelCtrl", [id]);
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS110E_light_onoff_brightness: {
+        ...tz.light_onoff_brightness,
+        convertSet: async (entity, key, value, meta) => {
+            const {message} = meta;
+            if (message.state === "ON" || (typeof message.brightness === "number" && message.brightness > 1)) {
+                // Does not turn off with physical press when turned on with just moveToLevelWithOnOff, required on before.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
+                await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
+            }
+            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
     cover_reversal: {
         key: ["motor_reversal"],
         convertSet: async (entity, key, value, meta) => {
@@ -3218,6 +3312,102 @@ const tuyaTz = {
                 "tuyaRgbMode",
                 "colorTemperature",
             ]);
+        },
+    } satisfies Tz.Converter,
+    relay_din_led_indicator: {
+        key: ["indicator_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            value = value.toLowerCase();
+            const lookup = {off: 0x00, on_off: 0x01, off_on: 0x02};
+            const payload = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {32769: {value: payload, type: 0x30}});
+            return {state: {indicator_mode: value}};
+        },
+    } satisfies Tz.Converter,
+    led_controller: {
+        key: ["state", "color"],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "state") {
+                utils.assertString(value, key);
+                if (value.toLowerCase() === "off") {
+                    await entity.command("genOnOff", "offWithEffect", {effectid: 0x01, effectvariant: 0x01}, utils.getOptions(meta.mapped, entity));
+                } else {
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevelWithOnOff",
+                        {level: 255, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                }
+                return {state: {state: value.toUpperCase()}};
+            }
+            if (key === "color") {
+                utils.assertObject(value);
+                const hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
+                const saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
+                const transtime = 0;
+                const direction = 0;
+
+                await entity.command(
+                    "lightingColorCtrl",
+                    "moveToHue",
+                    {hue, transtime, direction, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
+                await entity.command(
+                    "lightingColorCtrl",
+                    "moveToSaturation",
+                    {saturation, transtime, optionsMask: 0, optionsOverride: 0},
+                    utils.getOptions(meta.mapped, entity),
+                );
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            if (key === "state") {
+                await entity.read("genOnOff", ["onOff"]);
+            } else if (key === "color") {
+                await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation"]);
+            }
+        },
+    } satisfies Tz.Converter,
+    ts0216_duration: {
+        key: ["duration"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {maxDuration: value as number});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", ["maxDuration"]);
+        },
+    } satisfies Tz.Converter,
+    ts0216_volume: {
+        key: ["volume"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+
+            if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName)) {
+                const volume = value === 0 ? 0 : utils.mapNumberRange(value, 1, 100, 100, 33);
+                await entity.write("ssIasWd", {2: {value: volume, type: 0x20}});
+                return;
+            }
+
+            await entity.write("ssIasWd", {2: {value: utils.mapNumberRange(value, 0, 100, 100, 10), type: 0x20}});
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", [0x0002]);
+        },
+    } satisfies Tz.Converter,
+    ts0216_alarm: {
+        key: ["alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const info = value ? (2 << 4) + (1 << 2) + 0 : 0;
+
+            await entity.command(
+                "ssIasWd",
+                "startWarning",
+                {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 3},
+                utils.getOptions(meta.mapped, entity),
+            );
         },
     } satisfies Tz.Converter,
 };
@@ -3628,6 +3818,88 @@ const tuyaFz = {
             return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
         },
     } satisfies Fz.Converter<"lightingColorCtrl", TuyaLightingColorCtrl, ["attributeReport", "readResponse"]>,
+    relay_din_led_indicator: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const property = 0x8001;
+
+            if (msg.data[property] !== undefined) {
+                const dict: KeyValueNumberString = {0: "off", 1: "on_off", 2: "off_on"};
+                const value = msg.data[property] as number;
+
+                if (dict[value] !== undefined) {
+                    return {[utils.postfixWithEndpointName("indicator_mode", msg, model, meta)]: dict[value]};
+                }
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    TS110E: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data["64515"] !== undefined) {
+                result.min_brightness = utils.mapNumberRange(msg.data["64515"] as number, 0, 1000, 1, 255);
+            }
+            if (msg.data["64516"] !== undefined) {
+                result.max_brightness = utils.mapNumberRange(msg.data["64516"] as number, 0, 1000, 1, 255);
+            }
+            if (msg.data["61440"] !== undefined) {
+                const propertyName = utils.postfixWithEndpointName("brightness", msg, model, meta);
+                result[propertyName] = utils.mapNumberRange(msg.data["61440"] as number, 0, 1000, 0, 255);
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS110E_light_type: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data["64514"] !== undefined) {
+                const lookup: Record<number, string> = {0: "led", 1: "incandescent", 2: "halogen"};
+                result.light_type = lookup[msg.data["64514"] as number];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS110E_switch_type: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (msg.data["64514"] !== undefined) {
+                const lookup: Record<number, string> = {0: "momentary", 1: "toggle", 2: "state"};
+                const propertyName = utils.postfixWithEndpointName("switch_type", msg, model, meta);
+                result[propertyName] = lookup[msg.data["64514"] as number];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+    ts0216_siren: {
+        cluster: "ssIasWd",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if (msg.data.maxDuration !== undefined) result.duration = msg.data.maxDuration;
+            if (msg.data["2"] !== undefined) {
+                result.volume = utils.mapNumberRange(msg.data["2"] as number, 100, 10, 0, 100);
+            }
+
+            if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName) && typeof msg.data["2"] === "number") {
+                const volData = msg.data["2"];
+                result.volume = volData === 0 ? 0 : utils.mapNumberRange(volData, 100, 33, 1, 100);
+            }
+
+            if (msg.data["61440"] !== undefined) {
+                result.alarm = msg.data["61440"] !== 0;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export {tuyaFz as fz};

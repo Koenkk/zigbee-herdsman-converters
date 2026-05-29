@@ -313,9 +313,20 @@ export const arm_mode: Tz.Converter = {
             delayUntil = performance.now() + value.delay * 1000;
         }
 
+        let audibleNotif = 0;
+        if (value.audiblenotif != null) {
+            utils.assertNumber(value.audiblenotif, "audiblenotif");
+            if (!utils.isInRange(0, 255, value.audiblenotif)) {
+                throw new Error(`Invalid audiblenotif value: ${value.audiblenotif} (expected ${0} to ${255})`);
+            }
+
+            audibleNotif = Math.round(value.audiblenotif);
+        }
+
         globalStore.putValue(entity, "panelStatus", panelStatus);
         globalStore.putValue(entity, "delayUntil", delayUntil);
-        const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: 0, alarmstatus: 0};
+        globalStore.putValue(entity, "audibleNotif", audibleNotif);
+        const payload = {panelstatus: panelStatus, secondsremain: secondsRemain, audiblenotif: audibleNotif, alarmstatus: 0};
         await entity.commandResponse("ssIasAce", "panelStatusChanged", payload);
     },
 };
@@ -2239,17 +2250,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const tuya_relay_din_led_indicator: Tz.Converter = {
-    key: ["indicator_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        value = value.toLowerCase();
-        const lookup = {off: 0x00, on_off: 0x01, off_on: 0x02};
-        const payload = utils.getFromLookup(value, lookup);
-        await entity.write("genOnOff", {32769: {value: payload, type: 0x30}});
-        return {state: {indicator_mode: value}};
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const ZMCSW032D_cover_position: Tz.Converter = {
     key: ["position", "tilt"],
@@ -2291,52 +2291,6 @@ export const ZMCSW032D_cover_position: Tz.Converter = {
     convertGet: async (entity, key, meta) => {
         const isPosition = key === "position";
         await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
-    },
-};
-export const tuya_led_controller: Tz.Converter = {
-    key: ["state", "color"],
-    convertSet: async (entity, key, value, meta) => {
-        if (key === "state") {
-            utils.assertString(value, key);
-            if (value.toLowerCase() === "off") {
-                await entity.command("genOnOff", "offWithEffect", {effectid: 0x01, effectvariant: 0x01}, utils.getOptions(meta.mapped, entity));
-            } else {
-                await entity.command(
-                    "genLevelCtrl",
-                    "moveToLevelWithOnOff",
-                    {level: 255, transtime: 0, optionsMask: 0, optionsOverride: 0},
-                    utils.getOptions(meta.mapped, entity),
-                );
-            }
-            return {state: {state: value.toUpperCase()}};
-        }
-        if (key === "color") {
-            utils.assertObject(value);
-            const hue = utils.mapNumberRange(value.h, 0, 360, 0, 254);
-            const saturation = utils.mapNumberRange(value.s, 0, 100, 0, 254);
-            const transtime = 0;
-            const direction = 0;
-
-            await entity.command(
-                "lightingColorCtrl",
-                "moveToHue",
-                {hue, transtime, direction, optionsMask: 0, optionsOverride: 0},
-                utils.getOptions(meta.mapped, entity),
-            );
-            await entity.command(
-                "lightingColorCtrl",
-                "moveToSaturation",
-                {saturation, transtime, optionsMask: 0, optionsOverride: 0},
-                utils.getOptions(meta.mapped, entity),
-            );
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        if (key === "state") {
-            await entity.read("genOnOff", ["onOff"]);
-        } else if (key === "color") {
-            await entity.read("lightingColorCtrl", ["currentHue", "currentSaturation"]);
-        }
     },
 };
 export const ptvo_switch_trigger: Tz.Converter = {
@@ -2815,75 +2769,6 @@ export const TS0003_curtain_switch: Tz.Converter = {
         await entity.read("genOnOff", ["onOff"]);
     },
 };
-export const ts0216_duration: Tz.Converter = {
-    key: ["duration"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {maxDuration: value as number});
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", ["maxDuration"]);
-    },
-};
-export const ts0216_volume: Tz.Converter = {
-    key: ["volume"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value);
-
-        if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName)) {
-            const volume = value === 0 ? 0 : utils.mapNumberRange(value, 1, 100, 100, 33);
-            await entity.write("ssIasWd", {2: {value: volume, type: 0x20}});
-            return;
-        }
-
-        await entity.write("ssIasWd", {2: {value: utils.mapNumberRange(value, 0, 100, 100, 10), type: 0x20}});
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", [0x0002]);
-    },
-};
-export const ts0216_alarm: Tz.Converter = {
-    key: ["alarm"],
-    convertSet: async (entity, key, value, meta) => {
-        const info = value ? (2 << 4) + (1 << 2) + 0 : 0;
-
-        await entity.command(
-            "ssIasWd",
-            "startWarning",
-            {startwarninginfo: info, warningduration: 0, strobedutycycle: 0, strobelevel: 3},
-            utils.getOptions(meta.mapped, entity),
-        );
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZM35HQ_attr: Tz.Converter = {
-    key: ["sensitivity", "keep_time"],
-    convertSet: async (entity, key, value, meta) => {
-        switch (key) {
-            case "sensitivity":
-                await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {low: 0, medium: 1, high: 2})});
-                break;
-            case "keep_time":
-                await entity.write("ssIasZone", {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
-                break;
-            default: // Unknown key
-                throw new Error(`Unhandled key ${key}`);
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
-        // Therefore, read "zoneStatus" as well.
-        await entity.read("ssIasZone", ["currentZoneSensitivityLevel", 61441, "zoneStatus"]);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS0210_sensitivity: Tz.Converter = {
-    key: ["sensitivity"],
-    convertSet: async (entity, key, value, meta) => {
-        value = utils.toNumber(value, "sensitivity");
-        await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
-        return {state: {sensitivity: value}};
-    },
-};
 export const dawondns_only_off: Tz.Converter = {
     key: ["state"],
     convertSet: async (entity, key, value, meta) => {
@@ -2976,42 +2861,5 @@ export const ptvo_switch_light_brightness: Tz.Converter = {
             return await light_onoff_brightness.convertGet(entity, key, meta);
         }
         throw new Error("LevelControl not supported on this endpoint.");
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_options: Tz.Converter = {
-    key: ["min_brightness", "max_brightness", "light_type", "switch_type"],
-    convertSet: async (entity, key, value, meta) => {
-        let payload = null;
-        if (key === "min_brightness" || key === "max_brightness") {
-            const id = key === "min_brightness" ? 64515 : 64516;
-            payload = {[id]: {value: utils.mapNumberRange(utils.toNumber(value, key), 1, 255, 0, 1000), type: 0x21}};
-        } else if (key === "light_type" || key === "switch_type") {
-            utils.assertString(value, "light_type/switch_type");
-            const lookup: KeyValue = key === "light_type" ? {led: 0, incandescent: 1, halogen: 2} : {momentary: 0, toggle: 1, state: 2};
-            payload = {64514: {value: lookup[value], type: 0x20}};
-        }
-        await entity.write("genLevelCtrl", payload, utils.getOptions(meta.mapped, entity));
-        return {state: {[key]: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        let id = null;
-        if (key === "min_brightness") id = 64515;
-        if (key === "max_brightness") id = 64516;
-        if (key === "light_type" || key === "switch_type") id = 64514;
-        await entity.read("genLevelCtrl", [id]);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_light_onoff_brightness: Tz.Converter = {
-    ...light_onoff_brightness,
-    convertSet: async (entity, key, value, meta) => {
-        const {message} = meta;
-        if (message.state === "ON" || (typeof message.brightness === "number" && message.brightness > 1)) {
-            // Does not turn off with physical press when turned on with just moveToLevelWithOnOff, required on before.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/15902#issuecomment-1382848150
-            await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-        }
-        return await light_onoff_brightness.convertSet(entity, key, value, meta);
     },
 };

@@ -1050,6 +1050,36 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZM35HQ_attr: {
+        key: ["sensitivity", "keep_time"],
+        convertSet: async (entity, key, value, meta) => {
+            switch (key) {
+                case "sensitivity":
+                    await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {low: 0, medium: 1, high: 2})});
+                    break;
+                case "keep_time":
+                    await entity.write("ssIasZone", {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
+                    break;
+                default: // Unknown key
+                    throw new Error(`Unhandled key ${key}`);
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
+            // Therefore, read "zoneStatus" as well.
+            await entity.read("ssIasZone", ["currentZoneSensitivityLevel", 61441, "zoneStatus"]);
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0210_sensitivity: {
+        key: ["sensitivity"],
+        convertSet: async (entity, key, value, meta) => {
+            value = utils.toNumber(value, "sensitivity");
+            await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
+            return {state: {sensitivity: value}};
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1646,6 +1676,42 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZM35HQ_attr: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            let result: KeyValueAny = {};
+            const data = msg.data;
+            if (data && data.zoneStatus !== undefined) {
+                const result1 = fz.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+                result = {...result1};
+            }
+            if (data && data.currentZoneSensitivityLevel !== undefined) {
+                const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
+                result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
+            }
+            if (data && data["61441"] !== undefined) {
+                const keeptimelookup: Record<number, number> = {0: 30, 1: 60, 2: 120};
+                result.keep_time = keeptimelookup[data["61441"] as number];
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+    command_stop_move_raw: {
+        cluster: "lightingColorCtrl",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            // commandStopMove without params
+            if (msg.data[2] !== 71) return;
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            const movestop = "stop";
+            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
+            const payload = {action};
+            addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -3856,8 +3922,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM-35H-Q",
         vendor: "Tuya",
         description: "Motion sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ZM35HQ_attr, legacy.fromZigbee.ZM35HQ_battery],
-        toZigbee: [tz.ZM35HQ_attr],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fzLocal.ZM35HQ_attr, legacy.fromZigbee.ZM35HQ_battery],
+        toZigbee: [tzLocal.ZM35HQ_attr],
         extend: [m.quirkCheckinInterval(15000)],
         exposes: [
             e.occupancy(),
@@ -3875,8 +3941,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IH012-RT01",
         vendor: "Tuya",
         description: "Motion sensor",
-        fromZigbee: [fz.ZM35HQ_attr, fz.battery],
-        toZigbee: [tz.ZM35HQ_attr],
+        fromZigbee: [fzLocal.ZM35HQ_attr, fz.battery],
+        toZigbee: [tzLocal.ZM35HQ_attr],
         extend: [
             m.quirkCheckinInterval(15000),
             // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
@@ -3914,8 +3980,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IH012-RT02",
         vendor: "Tuya",
         description: "Motion sensor",
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ZM35HQ_attr, fz.battery],
-        toZigbee: [tz.ZM35HQ_attr],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.ZM35HQ_attr, fz.battery],
+        toZigbee: [tzLocal.ZM35HQ_attr],
         extend: [m.quirkCheckinInterval(15000)],
         exposes: [
             e.occupancy(),
@@ -5688,7 +5754,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Led strip controller HSB",
         extend: [tuyaLight()],
         fromZigbee: [fz.on_off, tuya.fz.led_controller],
-        toZigbee: [tz.tuya_led_controller, tz.ignore_transition, tz.ignore_rate],
+        toZigbee: [tuya.tz.led_controller, tz.ignore_transition, tz.ignore_rate],
     },
     {
         zigbeeModel: ["TS0502A"],
@@ -6519,7 +6585,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i", "_TZ3000_pxfjrzyj"]),
         model: "TS0002_power",
         vendor: "Tuya",
         description: "2 gang switch with power monitoring",
@@ -9920,9 +9986,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
-                [101, "humidity", tuya.valueConverter.raw],
+                [101, "humidity", tuya.valueConverter.localTempCalibration5],
                 [102, "illuminance", tuya.valueConverter.raw],
-                [103, "humidity_calibration", tuya.valueConverter.raw],
+                [103, "humidity_calibration", tuya.valueConverter.localTempCalibration5],
                 [104, "report_interval", tuya.valueConverter.raw],
             ],
         },
@@ -11203,14 +11269,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0216",
         vendor: "Tuya",
         description: "Sound and flash siren",
-        fromZigbee: [fz.ts0216_siren, fz.battery],
+        fromZigbee: [tuya.fz.ts0216_siren, fz.battery],
         exposes: [
             e.battery(),
             e.binary("alarm", ea.STATE_SET, true, false),
             e.numeric("volume", ea.ALL).withValueMin(0).withValueMax(100).withDescription("Volume of siren"),
         ],
         whiteLabel: [tuya.whitelabel("Hejhome", "GKZ-SA141", "Sound and flash siren", ["_TYZB01_sbpc1zrb"])],
-        toZigbee: [tz.ts0216_alarm, tz.ts0216_duration, tz.ts0216_volume],
+        toZigbee: [tuya.tz.ts0216_alarm, tuya.tz.ts0216_duration, tuya.tz.ts0216_volume],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
@@ -11859,7 +11925,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("ONENUO", "TS0210_5oy7cysk", "Vibration sensor", ["'_TZ32101000000_5oy7cysk'"]),
         ],
         fromZigbee: [fz.battery, fz.ias_vibration_alarm_1_with_timeout],
-        toZigbee: [tz.TS0210_sensitivity],
+        toZigbee: [tzLocal.TS0210_sensitivity],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -11880,8 +11946,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Din smart relay (with power monitoring)",
         vendor: "Tuya",
         extend: [tuyaBase()],
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
+        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, tuya.fz.power_outage_memory, tuya.fz.relay_din_led_indicator],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.relay_din_led_indicator],
         whiteLabel: [{vendor: "MatSee Plus", model: "ATMS1602Z"}],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -11916,8 +11982,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS011F_din_smart_relay_polling",
         description: "Din smart relay (with power monitoring via polling)",
         vendor: "Tuya",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
+        // Device reports weird temperature value
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32125
+        fromZigbee: [
+            fz.on_off,
+            fz.electrical_measurement,
+            fz.metering,
+            tuya.fz.power_outage_memory,
+            tuya.fz.relay_din_led_indicator,
+            fz.ignore_temperature_report,
+        ],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.relay_din_led_indicator],
         whiteLabel: [
             tuya.whitelabel("Tongou", "TO-Q-SY1-JZT", "Din smart relay (with power monitoring via polling)", ["_TZ3000_qeuvnohg"]),
             tuya.whitelabel("TOMZN", "TOB9Z-63M", "Din smart relay (with power monitoring via polling)", ["_TZ3000_6l1pjfqe"]),
@@ -11958,8 +12033,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Din smart relay (without power monitoring)",
         vendor: "Tuya",
         extend: [tuyaBase()],
-        fromZigbee: [fz.on_off, tuya.fz.power_outage_memory, fz.tuya_relay_din_led_indicator],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tz.tuya_relay_din_led_indicator],
+        fromZigbee: [fz.on_off, tuya.fz.power_outage_memory, tuya.fz.relay_din_led_indicator],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.relay_din_led_indicator],
         whiteLabel: [tuya.whitelabel("Tongou", "TO-Q-SY1-ZT", "Din smart relay (without power monitoring)", ["_TZ3000_gzvniqjb"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -12514,7 +12589,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_toggle,
             fz.command_move_hue,
             fz.command_step_color_temperature,
-            fz.command_stop_move_raw,
+            fzLocal.command_stop_move_raw,
             tuya.fz.multi_action,
             tuya.fz.operation_mode,
             fz.battery,
@@ -13963,8 +14038,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "1 channel dimmer",
         extend: [tuyaBase(), m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
-        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType(), e.min_brightness(), e.max_brightness()],
         configure: tuya.configureMagicPacket,
     },
@@ -13978,10 +14053,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lonsonho", "QS-Zigbee-D02-TRIAC-LN_1", "1 channel dimmer", ["_TZ3210_ngqk6jia"]),
         ],
         ota: true,
-        fromZigbee: [fz.TS110E, fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
+        fromZigbee: [tuya.fz.TS110E, tuya.fz.TS110E_light_type, tuya.fz.power_on_behavior_1, fz.on_off],
         toZigbee: [
             tuya.tz.TS110E_onoff_brightness,
-            tz.TS110E_options,
+            tuya.tz.TS110E_options,
             tuya.tz.power_on_behavior_1,
             tz.light_brightness_move,
             tzLocal.ts110eCountdown,
@@ -14011,8 +14086,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Ekaza",
         description: "1 channel dimmer",
         extend: [tuyaBase()],
-        fromZigbee: [fz.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
-        toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
+        fromZigbee: [tuya.fz.TS110E, tuya.fz.power_on_behavior_1, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_onoff_brightness, tuya.tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness(), e.power_on_behavior().withAccess(ea.ALL)],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -14051,8 +14126,8 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
             }),
         ],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E],
-        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E],
+        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         configure: tuya.configureMagicPacket,
         exposes: [
             e.min_brightness().withEndpoint("l1"),
@@ -14071,8 +14146,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 channel dimmer",
         whiteLabel: [tuya.whitelabel("Nedis", "ZBWD20RD", "SmartLife Triac Dimmer", ["_TZ3210_mt5xjoy6"])],
         extend: [tuyaBase()],
-        fromZigbee: [fz.TS110E, fz.TS110E_switch_type, tuya.fz.power_on_behavior_1, fz.on_off],
-        toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
+        fromZigbee: [tuya.fz.TS110E, tuya.fz.TS110E_switch_type, tuya.fz.power_on_behavior_1, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_onoff_brightness, tuya.tz.TS110E_options, tuya.tz.power_on_behavior_1, tz.light_brightness_move],
         meta: {multiEndpoint: true},
         exposes: [
             e.power_on_behavior(),
@@ -18785,9 +18860,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-D04",
         vendor: "LEDRON",
         description: "0-10v dimmer",
-        fromZigbee: [fz.TS110E, fz.on_off],
+        fromZigbee: [tuya.fz.TS110E, fz.on_off],
         extend: [tuyaBase()],
-        toZigbee: [tuya.tz.TS110E_onoff_brightness, tz.TS110E_options, tz.light_brightness_move],
+        toZigbee: [tuya.tz.TS110E_onoff_brightness, tuya.tz.TS110E_options, tz.light_brightness_move],
         whiteLabel: [tuya.whitelabel("Ledron", "QS-Zigbee-D06-DC", "Dimmer 12-36v", ["_TZ3210_hquixjeg"])],
         exposes: [e.light_brightness().withMinBrightness().withMaxBrightness()],
         configure: async (device, coordinatorEndpoint) => {
@@ -23566,15 +23641,15 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy10],
+                [5, "temperature", tuya.valueConverter.localTempCalibration3],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [103, "soil_sampling", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
-                [105, "humidity_calibration", tuya.valueConverter.raw],
-                [106, "illuminance_calibration", tuya.valueConverter.raw],
-                [107, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [105, "humidity_calibration", tuya.valueConverter.localTempCalibration5],
+                [106, "illuminance_calibration", tuya.valueConverter.localTempCalibration5],
+                [107, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
                 [110, "soil_warning", tuya.valueConverter.raw],
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
             ],
@@ -25000,15 +25075,15 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy10],
+                [5, "temperature", tuya.valueConverter.localTempCalibration3],
                 [14, "battery", tuya.valueConverter.raw],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [103, "soil_sampling", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
-                [105, "humidity_calibration", tuya.valueConverter.raw],
-                [106, "illuminance_calibration", tuya.valueConverter.raw],
-                [107, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [105, "humidity_calibration", tuya.valueConverter.localTempCalibration5],
+                [106, "illuminance_calibration", tuya.valueConverter.localTempCalibration5],
+                [107, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
                 [110, "soil_warning", tuya.valueConverter.raw],
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
                 [112, "soil_fertility", tuya.valueConverter.raw],
@@ -25425,21 +25500,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("temperature_calibration", ea.STATE_SET)
                 .withValueMin(-2)
                 .withValueMax(2)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature calibration"),
             e
                 .numeric("temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v0 threshold setting"),
             e
                 .numeric("temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v1 threshold setting"),
 
@@ -25447,37 +25522,37 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("humidity_calibration", ea.STATE_SET)
                 .withValueMin(-10)
                 .withValueMax(10)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity calibration"),
             e
                 .numeric("humidity_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v0 threshold setting"),
             e
                 .numeric("humidity_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy100],
+                [5, "temperature", tuya.valueConverter.localTempCalibration4],
                 [101, "sampling_interval", tuya.valueConverter.raw],
-                [114, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
-                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [114, "temperature_calibration", tuya.valueConverter.localTempCalibration4],
+                [115, "temperature_v0_set", tuya.valueConverter.localTempCalibration4],
+                [116, "temperature_v1_set", tuya.valueConverter.localTempCalibration4],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-                [118, "humidity", tuya.valueConverter.divideBy100],
-                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
-                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
-                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [118, "humidity", tuya.valueConverter.localTempCalibration4],
+                [119, "humidity_calibration", tuya.valueConverter.localTempCalibration4],
+                [120, "humidity_v0_set", tuya.valueConverter.localTempCalibration4],
+                [121, "humidity_v1_set", tuya.valueConverter.localTempCalibration4],
                 [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
@@ -25506,7 +25581,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
                 .withValueMax(120)
-                .withValueStep(1)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor"),
             e.temperature(),
@@ -25531,14 +25606,14 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("probe_temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(125)
-                .withValueStep(1)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor v0 threshold setting"),
             e
                 .numeric("probe_temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(125)
-                .withValueStep(1)
+                .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor v1 threshold setting"),
 
@@ -25546,21 +25621,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("temperature_calibration", ea.STATE_SET)
                 .withValueMin(-2)
                 .withValueMax(2)
-                .withValueStep(0.1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature calibration"),
             e
                 .numeric("temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v0 threshold setting"),
             e
                 .numeric("temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(85)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("°C")
                 .withDescription("Temperature v1 threshold setting"),
 
@@ -25568,42 +25643,42 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("humidity_calibration", ea.STATE_SET)
                 .withValueMin(-10)
                 .withValueMax(10)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity calibration"),
             e
                 .numeric("humidity_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v0 threshold setting"),
             e
                 .numeric("humidity_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(1)
+                .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "probe_temperature", tuya.valueConverter.divideBy10],
+                [1, "probe_temperature", tuya.valueConverter.localTempCalibration3],
                 [4, "battery", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy100],
+                [5, "temperature", tuya.valueConverter.localTempCalibration4],
                 [101, "sampling_interval", tuya.valueConverter.raw],
-                [108, "probe_temperature_calibration", tuya.valueConverter.divideBy10],
-                [109, "probe_temperature_v0_set", tuya.valueConverter.divideBy10],
-                [110, "probe_temperature_v1_set", tuya.valueConverter.divideBy10],
+                [108, "probe_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "probe_temperature_v0_set", tuya.valueConverter.localTempCalibration3],
+                [110, "probe_temperature_v1_set", tuya.valueConverter.localTempCalibration3],
                 [112, "probe_temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-                [114, "temperature_calibration", tuya.valueConverter.divideBy100],
-                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
-                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [114, "temperature_calibration", tuya.valueConverter.localTempCalibration4],
+                [115, "temperature_v0_set", tuya.valueConverter.localTempCalibration4],
+                [116, "temperature_v1_set", tuya.valueConverter.localTempCalibration4],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
-                [118, "humidity", tuya.valueConverter.divideBy100],
-                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
-                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
-                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [118, "humidity", tuya.valueConverter.localTempCalibration4],
+                [119, "humidity_calibration", tuya.valueConverter.localTempCalibration4],
+                [120, "humidity_v0_set", tuya.valueConverter.localTempCalibration4],
+                [121, "humidity_v1_set", tuya.valueConverter.localTempCalibration4],
                 [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
@@ -25673,7 +25748,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "sampling_interval", tuya.valueConverter.raw],
                 [104, "illuminance_v0", tuya.valueConverter.raw],
                 [105, "illuminance_v1", tuya.valueConverter.raw],
-                [106, "illuminance_calibration", tuya.valueConverter.raw],
+                [106, "illuminance_calibration", tuya.valueConverter.localTempCalibration5],
                 [107, "illuminance_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
@@ -25837,15 +25912,15 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy10],
+                [5, "temperature", tuya.valueConverter.localTempCalibration3],
                 [15, "battery", tuya.valueConverter.raw],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
                 [103, "report_period", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
                 [105, "humidity_calibration", tuya.valueConverter.raw],
-                [106, "illuminance_calibration", tuya.valueConverter.raw],
-                [107, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [106, "illuminance_calibration", tuya.valueConverter.localTempCalibration5],
+                [107, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
                 [110, "soil_warning", tuya.valueConverter.raw],
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
                 [112, "soil_fertility", tuya.valueConverter.raw],
@@ -27168,26 +27243,26 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "probe_temperature", tuya.valueConverter.divideBy10],
+                [1, "probe_temperature", tuya.valueConverter.localTempCalibration3],
                 [4, "battery", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy100],
+                [5, "temperature", tuya.valueConverter.localTempCalibration4],
 
                 [101, "sampling_interval", tuya.valueConverter.raw],
 
-                [108, "probe_temperature_calibration", tuya.valueConverter.divideBy10],
-                [109, "probe_temperature_v0_set", tuya.valueConverter.divideBy10],
-                [110, "probe_temperature_v1_set", tuya.valueConverter.divideBy10],
+                [108, "probe_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "probe_temperature_v0_set", tuya.valueConverter.localTempCalibration3],
+                [110, "probe_temperature_v1_set", tuya.valueConverter.localTempCalibration3],
                 [112, "probe_temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
 
-                [114, "temperature_calibration", tuya.valueConverter.divideBy100],
-                [115, "temperature_v0_set", tuya.valueConverter.divideBy100],
-                [116, "temperature_v1_set", tuya.valueConverter.divideBy100],
+                [114, "temperature_calibration", tuya.valueConverter.localTempCalibration4],
+                [115, "temperature_v0_set", tuya.valueConverter.localTempCalibration4],
+                [116, "temperature_v1_set", tuya.valueConverter.localTempCalibration4],
                 [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
 
-                [118, "humidity", tuya.valueConverter.divideBy100],
-                [119, "humidity_calibration", tuya.valueConverter.divideBy100],
-                [120, "humidity_v0_set", tuya.valueConverter.divideBy100],
-                [121, "humidity_v1_set", tuya.valueConverter.divideBy100],
+                [118, "humidity", tuya.valueConverter.localTempCalibration4],
+                [119, "humidity_calibration", tuya.valueConverter.localTempCalibration4],
+                [120, "humidity_v0_set", tuya.valueConverter.localTempCalibration4],
+                [121, "humidity_v1_set", tuya.valueConverter.localTempCalibration4],
                 [122, "humidity_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
 
                 [124, "tds", tuya.valueConverter.raw],
