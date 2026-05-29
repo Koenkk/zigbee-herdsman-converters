@@ -14885,7 +14885,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Homeetec", "37022714", "4 Gang switch with backlight", ["_TZE200_hewlydpz"])],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE204_p6vz3wzt", "_TZE284_uqfph8ah", "_TZE284_waa352qv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p6vz3wzt", "_TZE204_p6vz3wzt", "_TZE284_waa352qv"]),
         model: "TS0601_cover_5",
         vendor: "Tuya",
         description: "Curtain/blind switch",
@@ -14930,10 +14930,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "child_lock", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [
-            tuya.whitelabel("Homeetec", "37022483", "Curtain/blind switch", ["_TZE200_p6vz3wzt"]),
-            tuya.whitelabel("BSEED", "_TZE284_uqfph8ah", "Curtain/blind switch", ["_TZE284_uqfph8ah"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Homeetec", "37022483", "Curtain/blind switch", ["_TZE200_p6vz3wzt"])],
     },
     {
         zigbeeModel: ["TS030F"],
@@ -23606,6 +23603,64 @@ export const definitions: DefinitionWithExtend[] = [
                 [12, "fault", tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_uqfph8ah"]),
+        model: "TS0601_cover_14",
+        vendor: "Tuya",
+        description: "Curtain/blind switch",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.cover_position().setAccess("position", ea.STATE_SET),
+            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
+            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
+            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
+            e.numeric("quick_calibration", ea.STATE_SET).withValueMin(0).withValueMax(900).withUnit("s").withDescription("Set quick calibration"),
+            e.enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"]).withDescription("LED indicator mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "state",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        STOP: tuya.enum(1),
+                        CLOSE: tuya.enum(2),
+                    }),
+                ],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    3,
+                    "calibration",
+                    tuya.valueConverterBasic.lookup({
+                        START: tuya.enum(0),
+                        END: tuya.enum(1),
+                    }),
+                ],
+                [7, "backlight_mode", tuya.valueConverter.onOff],
+                [
+                    8,
+                    "motor_steering",
+                    tuya.valueConverterBasic.lookup({
+                        FORWARD: tuya.enum(0),
+                        BACKWARD: tuya.enum(1),
+                    }),
+                ],
+                [10, "quick_calibration", tuya.valueConverter.raw],
+                [
+                    14,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on_off_status: tuya.enum(1),
+                        switch_position: tuya.enum(2),
+                    }),
+                ],
+            ],
+        },
+        whiteLabel: [tuya.whitelabel("BSEED", "_TZE284_uqfph8ah", "Curtain/blind switch", ["_TZE284_uqfph8ah"])],
     },
     {
         zigbeeModel: ["ZS-304Z"],
