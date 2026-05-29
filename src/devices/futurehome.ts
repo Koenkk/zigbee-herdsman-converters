@@ -91,17 +91,25 @@ const futurehomeExtend = {
                     },
                 } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
             ],
-            toZigbee: [
-                {
-                    key: ["charger_status"],
-                    convertGet: async (entity, key, meta) => {
-                        await entity.command("haApplianceControl", "signalState", {});
-                    },
-                } satisfies Tz.Converter,
-            ],
+            // toZigbee: [
+            //     {
+            //         key: ["charger_status"],
+            //         convertGet: async (entity, key, meta) => {
+            //             await entity.command("haApplianceControl", "signalState", {});
+            //         },
+            //     } satisfies Tz.Converter,
+            // ],
             exposes: [
                 exposes
-                    .enum("charger_status", ea.STATE_GET, ["plugged_out", "plugged_in", "plugged_in_charging", "plugged_in_paused"])
+                    .enum("charger_status", ea.STATE_GET, [
+                        "plugged_out",
+                        "1X: Off",
+                        "2: plugged_in_charging",
+                        "3: plugged_in_paused",
+                        "4: plugged_in",
+                        "5X: running",
+                        "8X: failure",
+                    ])
                     .withDescription("Current EV charger state"),
             ],
         };
