@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.59.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.59.0...v26.59.1) (2026-05-29)
+
+
+### Bug Fixes
+
+* **ignore:** Revert "fix: Acova Alcantara 2 and Alcantara 3: remove local_temperature expose ([#12331](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12331))" ([669c614](https://github.com/Koenkk/zigbee-herdsman-converters/commit/669c614395de83f08552e422d14000f8426bb8fc))
+
 ## [26.59.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.58.0...v26.59.0) (2026-05-29)
 
 
