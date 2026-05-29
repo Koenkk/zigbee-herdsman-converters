@@ -726,7 +726,8 @@ export function iasArmCommandDefaultResponse(): ModernExtend {
     return {fromZigbee: [converter], isModernExtend: true};
 }
 
-export function iasGetPanelStatusResponse(): ModernExtend {
+export function iasGetPanelStatusResponse(options?: {audiblenotif?: number}): ModernExtend {
+    const defaultAudibleNotif = options?.audiblenotif ?? 0;
     const converter: Fz.Converter<"ssIasAce", undefined, ["commandGetPanelStatus"]> = {
         cluster: "ssIasAce",
         type: ["commandGetPanelStatus"],
@@ -737,7 +738,7 @@ export function iasGetPanelStatusResponse(): ModernExtend {
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
                     secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
-                    audiblenotif: 0x00,
+                    audiblenotif: globalStore.getValue(msg.endpoint, "audibleNotif", defaultAudibleNotif),
                     alarmstatus: 0x00,
                 };
                 assertNumber(msg.meta.zclTransactionSequenceNumber);

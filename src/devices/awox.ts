@@ -341,4 +341,22 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
     },
+    {
+        fingerprint: [
+            {
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599, 10], outputClusters: [6]},
+                    {ID: 3, profileID: 4751, deviceID: 257, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+                ],
+            },
+        ],
+        model: "110285",
+        vendor: "AwoX",
+        description: "Smart Home LED Light Bulb E27, ST64, dimmable",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.light()],
+        whiteLabel: [{vendor: "EGLO", model: "110285"}],
+    },
 ];
