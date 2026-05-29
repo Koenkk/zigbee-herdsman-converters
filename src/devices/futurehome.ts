@@ -91,14 +91,14 @@ const futurehomeExtend = {
                     },
                 } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
             ],
-            // toZigbee: [
-            //     {
-            //         key: ["charger_status"],
-            //         convertGet: async (entity, key, meta) => {
-            //             await entity.command("haApplianceControl", "signalState", {});
-            //         },
-            //     } satisfies Tz.Converter,
-            // ],
+            toZigbee: [
+                {
+                    key: ["charger_status"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
+                    },
+                } satisfies Tz.Converter,
+            ],
             exposes: [
                 exposes
                     .enum("charger_status", ea.STATE_GET, [
