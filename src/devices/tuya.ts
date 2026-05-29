@@ -14617,6 +14617,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_ibefeicf",
             "_TZ3000_zjchz7pd",
             "_TZ3000_zv6x8bt2",
+            "_TZ3000_yi0n4xfd",
         ]),
         model: "TS011F_with_threshold",
         description: "Din rail switch with power monitoring and threshold settings",
@@ -14636,7 +14637,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [];
-            if (!["_TZ3000_303avxxt", "_TZ3000_ibefeicf", "_TZ3000_zjchz7pd"].includes(device.manufacturerName)) {
+            if (!["_TZ3000_303avxxt", "_TZ3000_ibefeicf", "_TZ3000_yi0n4xfd", "_TZ3000_zjchz7pd"].includes(device.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e
@@ -14706,7 +14707,7 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         whiteLabel: [
-            tuya.whitelabel("Tongou", "TO-Q-SY2-163JZT", "Smart circuit breaker", ["_TZ3000_cayepv1a"]),
+            tuya.whitelabel("Tongou", "TO-Q-SY2-163JZT", "Smart circuit breaker", ["_TZ3000_cayepv1a", "_TZ3000_yi0n4xfd"]),
             tuya.whitelabel("EARU", "EAKCB-T-M-Z", "Smart circuit breaker", ["_TZ3000_lepzuhto"]),
             tuya.whitelabel("EARU", "EAYCB-Z-2P", "Smart circuit breaker with leakage protection", ["_TZ3000_zrm3oxsh"]),
             tuya.whitelabel("UNSH", "SMKG-1KNL-EU-Z", "Smart circuit Breaker", ["_TZ3000_qystbcjg"]),
