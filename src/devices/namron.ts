@@ -96,22 +96,22 @@ const fzLocal = {
                 result.window_open = data.windowOpen === 1;
             }
             // PRO-specific attributes
-            if (data[0x2009] !== undefined) {
+            if (data.controlMethod !== undefined) {
                 // System control method: 0=PID, 1=Hysteresis
-                result.control_method = data[0x2009] === 0 ? "pid" : "hysteresis";
+                result.control_method = data.controlMethod === 0 ? "pid" : "hysteresis";
             }
-            if (data[0x100c] !== undefined) {
+            if (data.adaptiveFunction !== undefined) {
                 // Adaptive function AS: 0=Enable, 1=Disable
-                result.adaptive_function = data[0x100c] === 0;
+                result.adaptive_function = data.adaptiveFunction === 0;
             }
-            if (data[0x2006] !== undefined) {
-                result.pid_kp = (data[0x2006] as number) / 1000.0;
+            if (data.pidKp !== undefined) {
+                result.pid_kp = data.pidKp / 1000.0;
             }
-            if (data[0x2007] !== undefined) {
-                result.pid_kd = (data[0x2007] as number) / 1000.0;
+            if (data.pidKd !== undefined) {
+                result.pid_kd = data.pidKd / 1000.0;
             }
-            if (data[0x2008] !== undefined) {
-                result.pid_ki = (data[0x2008] as number) / 1000.0;
+            if (data.pidKi !== undefined) {
+                result.pid_ki = data.pidKi / 1000.0;
             }
             return result;
         },
@@ -325,7 +325,7 @@ const tzLocal = {
             return {state: {control_method: raw === 0 ? "pid" : "hysteresis"}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", [0x2009], sunricherManufacturer);
+            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["controlMethod"], sunricherManufacturer);
         },
     } satisfies Tz.Converter,
     namron_panelheater_pro_adaptive_function: {
@@ -338,7 +338,7 @@ const tzLocal = {
             return {state: {adaptive_function: enable}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", [0x100c], sunricherManufacturer);
+            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["adaptiveFunction"], sunricherManufacturer);
         },
     } satisfies Tz.Converter,
     namron_panelheater_pro_pid_kp: {
@@ -350,7 +350,7 @@ const tzLocal = {
             return {state: {pid_kp: num}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", [0x2006], sunricherManufacturer);
+            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["pidKp"], sunricherManufacturer);
         },
     } satisfies Tz.Converter,
     namron_panelheater_pro_pid_ki: {
@@ -362,7 +362,7 @@ const tzLocal = {
             return {state: {pid_ki: num}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", [0x2008], sunricherManufacturer);
+            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["pidKi"], sunricherManufacturer);
         },
     } satisfies Tz.Converter,
     namron_panelheater_pro_pid_kd: {
@@ -374,7 +374,7 @@ const tzLocal = {
             return {state: {pid_kd: num}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", [0x2007], sunricherManufacturer);
+            await entity.read<"hvacThermostat", namron.NamronHvacThermostat>("hvacThermostat", ["pidKd"], sunricherManufacturer);
         },
     } satisfies Tz.Converter,
     namron_panelheater_pro_state: {
@@ -1505,11 +1505,11 @@ export const definitions: DefinitionWithExtend[] = [
                         "windowOpenCheck2",
                         "hysterersis",
                         "windowOpen",
-                        0x100c,
-                        0x2006,
-                        0x2007,
-                        0x2008,
-                        0x2009,
+                        "adaptiveFunction",
+                        "pidKp",
+                        "pidKd",
+                        "pidKi",
+                        "controlMethod",
                     ],
                     sunricherManufacturer,
                 );
