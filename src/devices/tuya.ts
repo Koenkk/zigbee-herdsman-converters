@@ -22619,15 +22619,17 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k", "_TZE21C_i2ij4rb3"]),
-        model: "TYONOFFTS",
+        model: "1-ZB-WSD",
         vendor: "Scimagic",
-        description: "Smart switch with temperature sensor",
+        description: "Smart temperature and humidity switch (thermostat/hygrostat)",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: (device, options) => {
             const exps: Expose[] = [e.switch(), e.temperature()];
+            // for _TZE21C_i2ij4rb3
             if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
                 exps.push(e.humidity());
             }
+            // for all
             exps.push(
                 e
                     .numeric("temperature_calibration", ea.STATE_SET)
@@ -22636,13 +22638,21 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(0.5)
                     .withUnit("°C")
                     .withDescription("Temperature calibration"),
-                e
-                    .numeric("temperature_range", ea.STATE_SET)
-                    .withValueMin(1)
-                    .withValueMax(10)
-                    .withValueStep(0.1)
-                    .withUnit("°C")
-                    .withDescription("Keep the temperature in a range"),
+            );
+            // for _TZE21C_i2ij4rb3
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(
+                    e
+                        .numeric("humidity_calibration", ea.STATE_SET)
+                        .withValueMin(-9)
+                        .withValueMax(9)
+                        .withValueStep(1)
+                        .withUnit("%")
+                        .withDescription("Humidity calibration"),
+                );
+            }
+            // for all
+            exps.push(
                 e.binary("auto_work", ea.STATE_SET, "ON", "OFF").withDescription("Auto work mode"),
                 e
                     .numeric("temperature_target", ea.STATE_SET)
@@ -22651,7 +22661,40 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueStep(0.5)
                     .withUnit("°C")
                     .withDescription("Temperature target"),
-                e.enum("mode", ea.STATE_SET, ["Heating", "Cooling"]).withDescription("Work mode"),
+                e
+                    .numeric("temperature_range", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("°C")
+                    .withDescription("Keep the temperature in a range"),
+            );
+            // for _TZE21C_i2ij4rb3
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(
+                    e
+                        .numeric("humidity_range", ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(10)
+                        .withValueStep(1)
+                        .withUnit("%")
+                        .withDescription("Humidity range / hysteresis"),
+                    e
+                        .numeric("humidity_target", ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(99)
+                        .withValueStep(1)
+                        .withUnit("%")
+                        .withDescription("Target humidity"),
+                );
+            }
+            if (device?.manufacturerName === "_TZE21C_i2ij4rb3") {
+                exps.push(e.enum("mode", ea.STATE_SET, ["heating", "dehumidify", "cooling", "wet"]).withDescription("Work mode"));
+            } else {
+                exps.push(e.enum("mode", ea.STATE_SET, ["heating", "cooling"]).withDescription("Work mode"));
+            }
+            // for all
+            exps.push(
                 e.binary("delay", ea.STATE_SET, "ON", "OFF").withDescription("Switch delay time mode"),
                 e
                     .numeric("delay_time", ea.STATE_SET)
@@ -22672,9 +22715,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x1d, "temperature_range", tuya.valueConverter.divideBy10],
                 [0x09, "auto_work", tuya.valueConverter.onOff],
                 [0x16, "temperature_target", tuya.valueConverter.divideBy10],
-                [0x08, "mode", tuya.valueConverterBasic.lookup({Heating: 0, Cooling: 2})],
+                [0x08, "mode", tuya.valueConverterBasic.lookup({heating: 0, dehumidify: 1, cooling: 2, wet: 3})],
                 [0x38, "delay", tuya.valueConverter.onOff],
                 [0x37, "delay_time", tuya.valueConverter.raw],
+                [0x29, "humidity_target", tuya.valueConverter.raw],
+                [0x2a, "humidity_range", tuya.valueConverter.raw],
+                [0x2f, "humidity_calibration", tuya.valueConverter.raw],
             ],
         },
     },
