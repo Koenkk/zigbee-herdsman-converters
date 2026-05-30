@@ -14944,13 +14944,29 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Curtain/blind switch",
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
-            e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
-            e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
-        ],
+        exposes: (device, options) => {
+            const exps: Expose[] = [
+                e.cover_position().setAccess("position", ea.STATE_SET),
+                e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
+                e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Backlight"),
+                e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
+            ];
+
+            if (!device || device.manufacturerName === "_TZE284_uqfph8ah") {
+                exps.push(
+                    e
+                        .numeric("quick_calibration", ea.STATE_SET)
+                        .withValueMin(1)
+                        .withValueMax(120)
+                        .withUnit("s")
+                        .withDescription("Set quick calibration"),
+                );
+                exps.push(e.enum("indicator_mode", ea.STATE_SET, ["relay", "pos", "none"]).withDescription("LED indicator mode"));
+            } else {
+                exps.push(e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"));
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [
@@ -14978,6 +14994,16 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         FORWARD: tuya.enum(0),
                         BACKWARD: tuya.enum(1),
+                    }),
+                ],
+                [10, "quick_calibration", tuya.valueConverter.raw],
+                [
+                    14,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        relay: tuya.enum(0),
+                        pos: tuya.enum(1),
+                        none: tuya.enum(2),
                     }),
                 ],
                 [103, "child_lock", tuya.valueConverter.onOff],
