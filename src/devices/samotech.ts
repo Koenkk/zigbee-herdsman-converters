@@ -53,7 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{manufacturerName: "Samotech", modelID: "Dimmer-Switch-ZB3.0"}],
         model: "SM323_v1",
         vendor: "Samotech",
-        description: "Zigbee retrofit dimmer 250W",
+        description: "Zigbee dimmer switch",
         extend: [m.light({configureReporting: true})],
     },
     {
