@@ -27406,37 +27406,38 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE284_aaeasoll']),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aaeasoll"]),
 
-        model: 'TZE284_aaeasoll',
-        vendor: 'SMARTERCURRY',
-        description: 'Illuminance sensor',
+        model: "TZE284_aaeasoll",
+        vendor: "SMARTERCURRY",
+        description: "Illuminance sensor",
 
-        extend: [
-            tuya.modernExtend.tuyaBase({ dp: true }),
-        ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
 
         exposes: [
             e.illuminance().withAccess(ea.STATE),
             e.battery().withAccess(ea.STATE),
 
-            e.enum('report_interval', ea.STATE_SET, ['5m', '10m', '15m', '20m', '30m', '1h'])
-                .withDescription('Data reporting interval'),
+            e.enum("report_interval", ea.STATE_SET, ["5m", "10m", "15m", "20m", "30m", "1h"]).withDescription("Data reporting interval"),
         ],
 
         meta: {
             tuyaDatapoints: [
-                [2, 'illuminance', tuya.valueConverter.raw],
-                [4, 'battery', tuya.valueConverter.raw],
+                [2, "illuminance", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw],
 
-                [101, 'report_interval', tuya.valueConverterBasic.lookup({
-                    '5m':  0,
-                    '10m': 1,
-                    '15m': 2,
-                    '20m': 3,
-                    '30m': 4,
-                    '1h':  5,
-                })],
+                [
+                    101,
+                    "report_interval",
+                    tuya.valueConverterBasic.lookup({
+                        "5m": 0,
+                        "10m": 1,
+                        "15m": 2,
+                        "20m": 3,
+                        "30m": 4,
+                        "1h": 5,
+                    }),
+                ],
             ],
         },
 
