@@ -104,10 +104,30 @@ const futurehomeExtend = {
                     for (const endpoint of device.endpoints) {
                         if (endpoint.supportsInputCluster("haApplianceControl")) {
                             await endpoint.bind("haApplianceControl", coordinatorEndpoint);
+                            try {
+                                await endpoint.command("haApplianceControl", "signalState", {});
+                            } catch {
+                                // do nothing
+                            }
                         }
                     }
                 },
             ],
+            onEvent: m.poll({
+                key: "charger_status_poll",
+                optionKey: "charger_status_poll_interval",
+                option: e
+                    .numeric("charger_status_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint = device.endpoints.find((e) => e.supportsInputCluster("haApplianceControl"));
+                    if (endpoint) {
+                        await endpoint.command("haApplianceControl", "signalState", {});
+                    }
+                },
+            }).onEvent,
             exposes: [
                 exposes
                     .enum("charger_status", ea.STATE_GET, [
@@ -134,6 +154,11 @@ const futurehomeExtend = {
                     convertSet: async (entity, key, value, meta) => {
                         const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
                         await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
+                        try {
+                            await entity.command("haApplianceControl", "signalState", {});
+                        } catch {
+                            // do nothing
+                        }
                         return {state: {charging: value}};
                     },
                     convertGet: async (entity, key, meta) => {
@@ -236,14 +261,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Futurehome",
         description: "Futurehome Charge (EV Charger)",
         extend: [
-            // m.numeric({
-            //     "name":"analog_output_1",
-            //     "valueMax":2143289344,
-            //     "cluster":"genAnalogOutput",
-            //     "attribute":"presentValue",
-            //     "reporting":{"min":"MIN","max":"MAX","change":1},
-            //     "description":"Analog Output analog_output_1 on endpoint 1","access":"ALL"
-            // }),
             // m.lock({"pinCodeCount":50}),
             // m.electricityMeter(),
             m.deviceAddCustomCluster("haApplianceControl", {
