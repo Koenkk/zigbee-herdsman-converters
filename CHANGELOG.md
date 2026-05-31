@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.60.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.59.1...v26.60.0) (2026-05-31)
+
+
+### Features
+
+* **add:** TS0601_thermostat_fancoil ([#12348](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12348)) ([5cb0174](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5cb01741e25760ad175ca628fa4f6559c0ce02cf))
+* **add:** TZE284_aaeasoll ([#12347](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12347)) ([fe8b81d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fe8b81dc685620fb76246b9405592447d4d7afa4))
+
+
+### Bug Fixes
+
+* Acova Alcantara 2 and Alcantara 3: don’t expose local temperature value ([#12344](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12344)) ([afc3b4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/afc3b4fa03a17a672f111cbe6164d34861edcde5))
+* **detect:** Detect `_TZE200_2jwrgrro` as Tuya TS0601_cover_1 ([#12349](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12349)) ([04eb153](https://github.com/Koenkk/zigbee-herdsman-converters/commit/04eb1538bb68bec085cf38b809f6ca47c9d0f1c5))
+* Fallback to `transition` device option with `hue_native_control` ([#12352](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12352)) ([7d45517](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7d4551762e0aca09dbbaa7ece702c14cd2eb3034))
+* Samotech SM323_v1: update description ([#12350](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12350)) ([b0fb233](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b0fb2333527ff9117db2219413c1a390073a3670))
+* Tuya _TZE284_uqfph8ah: expose more features ([#12339](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12339)) ([02a343e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/02a343e3331ef90707481f67f0a4be549bae8d2e))
+* Tuya TS0601_bed_presence_sensor: fix illuminance unit https://github.com/Koenkk/zigbee2mqtt/issues/32145 ([4bfab84](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4bfab843789c98b5eb8359f849390ed131de8a5e))
+
 ## [26.59.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.59.0...v26.59.1) (2026-05-29)
 
 
