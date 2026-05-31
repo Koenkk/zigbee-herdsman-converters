@@ -7388,6 +7388,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_m6lwazh9", // incomplete, see https://github.com/Koenkk/zigbee2mqtt/issues/31774
                 "_TZE204_zuq5xxib",
                 "_TZE200_swlgvdlh",
+                "_TZE200_2jwrgrro",
             ]),
             ...tuya.fingerprint("zo2pocs\u0000", ["_TYST11_fzo2pocs"]),
             ...tuya.fingerprint("dank5zs\u0000", ["_TYST11_udank5zs"]),
