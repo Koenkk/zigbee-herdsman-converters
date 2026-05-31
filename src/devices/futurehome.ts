@@ -168,38 +168,38 @@ const futurehomeExtend = {
                             | "3: plugged_in_paused"
                             | "5X: running"
                             | "8X: failure" = "plugged_out";
-                        let chargingOn = false;
+                        let chargingOn = 0;
 
                         switch (status) {
                             case 0x01: // Off
                                 chargerStatus = "1X: Off";
-                                chargingOn = false;
+                                chargingOn = 0;
                                 break;
                             case 0x02: // StandBy → charging
                                 chargerStatus = "2: plugged_in_charging";
-                                chargingOn = true;
+                                chargingOn = 1;
                                 break;
                             case 0x03: // Programmed (paused by user)
                                 chargerStatus = "3: plugged_in_paused";
-                                chargingOn = false;
+                                chargingOn = 0;
                                 break;
                             case 0x04: // ProgrammedWaitingToStart
                                 chargerStatus = "4: plugged_in";
-                                chargingOn = false;
+                                chargingOn = 0;
                                 break;
                             case 0x05: // Running
                                 chargerStatus = "5X: running";
-                                chargingOn = false;
+                                chargingOn = 0;
                                 break;
                             case 0x08: // Failure
                                 chargerStatus = "8X: failure";
-                                chargingOn = false;
+                                chargingOn = 0;
                                 break;
                             default:
                                 chargerStatus = "plugged_out";
-                                chargingOn = false;
+                                chargingOn = 0;
                         }
-                        return {charger_status: chargerStatus, charging_on: chargingOn};
+                        return {charger_status: chargerStatus, charging_on: chargingOn === 1};
                     },
                 } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
             ],
