@@ -1713,7 +1713,15 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
 };
-
+const disCurrentPoll = m.poll({
+    key: "dis_current",
+    optionKey: "measurement_poll_interval",
+    defaultIntervalSeconds: 60,
+    option: exposes.options.measurement_poll_interval(),
+    poll: async (device: Zh.Device) => {
+        await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+    },
+});
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zofmmt9s"]),
@@ -12413,22 +12421,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "24GHz mmWave human presence sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: (event: KeyValueAny) => {
-            if (event.type === "start") {
-                const setTimer = () => {
-                    setTimeout(async () => {
-                        try {
-                            await event.data.device.endpoints[0].command("manuSpecificTuya", "dataQuery", {});
-                        } catch (_e) {
-                            // silently ignore - device may be temporarily unreachable
-                        }
-                        setTimer();
-                    }, 5000);
-                };
-                setTimer();
+        onEvent: async (event: KeyValueAny) => {
+            for (const handler of disCurrentPoll.onEvent) {
+                await handler(event);
             }
         },
         configure: tuya.configureMagicPacket,
+        options: disCurrentPoll.options,
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -12461,7 +12460,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(600)
                 .withDescription("Breath detection min distance"),
             e.enum("self_learning", ea.STATE_SET, ["start", "stop"]).withDescription("Self learning mode"),
-            e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset"),
+            e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset (behavior depends on firmware)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -12470,16 +12469,15 @@ export const definitions: DefinitionWithExtend[] = [
                     "presence",
                     {
                         from: (v: Buffer | number) => {
-                            // DP101 is an inverted boolean: [0]=presence detected, [1]=no presence
+                            // DP101 is inverted: [0]=presence detected, [1]=no presence
                             if (Buffer.isBuffer(v)) return v[0] === 0;
                             return v === 0;
                         },
                     },
                 ],
                 [12, "illuminance", tuya.valueConverter.raw],
-                // DP102 dis_current is not pushed spontaneously at runtime.
-                // A periodic dataQuery (every 5s via onEvent) is required to keep it updated.
-                [102, "dis_current", tuya.valueConverter.raw],
+                // DP102 requires periodic dataQuery to maintain reporting (see disCurrentPoll)
+                [102, "dis_current", {from: (v: Buffer | number) => Buffer.isBuffer(v) ? v.readUInt32BE(0) : v}],
                 [103, "presence_delay", tuya.valueConverter.raw],
                 [105, "movesensitivity", tuya.valueConverter.raw],
                 [107, "breathsensitivity", tuya.valueConverter.raw],
@@ -12492,7 +12490,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
         fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
         model: "TS0045",
         vendor: "Tuya",
