@@ -6326,6 +6326,50 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_xixlazkg"]),
+        model: "TS0601_thermostat_fancoil",
+        vendor: "Tuya",
+        description: "Fan coil unit (FCU) thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.child_lock(),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 10, 35, 1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["heat", "cool", "dry", "fan_only", "emergency_heating", "auto"], ea.STATE_SET)
+                .withFanMode(["low", "medium", "high", "auto"], ea.STATE_SET)
+                .withPreset(["off", "on"])
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET),
+            e.binary("battery_low", ea.STATE, true, false).withDescription("Indicates if the battery of this device is almost empty"),
+            e.numeric("error", ea.STATE).withCategory("diagnostic").withDescription("Device error code reported by the thermostat"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "preset", tuya.valueConverterBasic.lookup({off: false, on: true})],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        fan_only: tuya.enum(0),
+                        cool: tuya.enum(1),
+                        dry: tuya.enum(2),
+                        heat: tuya.enum(3),
+                        auto: tuya.enum(4),
+                        emergency_heating: tuya.enum(5),
+                    }),
+                ],
+                [16, "current_heating_setpoint", tuya.valueConverter.raw],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [28, "fan_mode", tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2), auto: tuya.enum(3)})],
+                [35, "battery_low", tuya.valueConverter.trueFalse0],
+                [40, "child_lock", tuya.valueConverter.lockUnlock],
+                [44, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
+                [45, "error", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_dzuqwsyg", "_TZE204_dzuqwsyg"]),
         model: "BAC-002-ALZB",
         vendor: "Tuya",
