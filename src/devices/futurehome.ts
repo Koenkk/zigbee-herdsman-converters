@@ -146,7 +146,7 @@ const futurehomeExtend = {
                         "8X: failure",
                     ])
                     .withDescription("Current EV charger state"),
-                exposes.binary("charging_on", ea.STATE, "ON", "OFF").withDescription("Indicates if the charger is actively delivering power"),
+                exposes.binary("charging_on", ea.STATE, "true", "false").withDescription("Indicates if the charger is actively delivering power"),
             ],
         };
     },
@@ -293,12 +293,15 @@ const futurehomeExtend = {
             ],
             // exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
             exposes: [
-                exposes
-                    .composite("charging_commands", "charging_commands", ea.SET)
-                    .withDescription("Execute charging control actions")
-                    .withFeature(exposes.enum("start", ea.SET, ["press"]).withDescription("Start charging session"))
-                    .withFeature(exposes.enum("stop", ea.SET, ["press"]).withDescription("Stop charging session"))
-                    .withFeature(exposes.enum("paused", ea.SET, ["press"]).withDescription("Pause charging session")),
+                exposes.enum("charging_start", ea.SET, ["start"]).withDescription("Press to start charging"),
+                exposes.enum("charging_stop", ea.SET, ["stop"]).withDescription("Press to stop charging"),
+                exposes.enum("charging_paused", ea.SET, ["pause"]).withDescription("Press to pause charging"),
+                // exposes
+                //     .composite("charging_commands", "charging_commands", ea.SET)
+                //     .withDescription("Execute charging control actions")
+                //     .withFeature(exposes.enum("start", ea.SET, ["press"]).withDescription("Start charging session"))
+                //     .withFeature(exposes.enum("stop", ea.SET, ["press"]).withDescription("Stop charging session"))
+                //     .withFeature(exposes.enum("paused", ea.SET, ["press"]).withDescription("Pause charging session")),
             ],
         };
     },
@@ -420,7 +423,6 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["UNLOCK", 0x00],
                 valueOn: ["LOCK", 0x02],
                 description: "Permanently lock cable when not charging.",
-                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             // 'closuresDoorLock':
