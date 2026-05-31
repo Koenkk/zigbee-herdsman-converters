@@ -12477,7 +12477,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [12, "illuminance", tuya.valueConverter.raw],
                 // DP102 requires periodic dataQuery to maintain reporting (see disCurrentPoll)
-                [102, "dis_current", {from: (v: Buffer | number) => Buffer.isBuffer(v) ? v.readUInt32BE(0) : v}],
+                [102, "dis_current", {from: (v: Buffer | number) => (Buffer.isBuffer(v) ? v.readUInt32BE(0) : v)}],
                 [103, "presence_delay", tuya.valueConverter.raw],
                 [105, "movesensitivity", tuya.valueConverter.raw],
                 [107, "breathsensitivity", tuya.valueConverter.raw],
@@ -12488,7 +12488,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [116, "self_learning", tuya.valueConverterBasic.lookup({start: tuya.enum(0), stop: tuya.enum(1)})],
                 [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
-    },
+        },
     },
     {
         zigbeeModel: ["TS0046"],
