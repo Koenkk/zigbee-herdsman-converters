@@ -293,9 +293,9 @@ const futurehomeExtend = {
             ],
             // exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
             exposes: [
-                exposes.enum("charging_start", ea.SET, ["start"]).withLabel("start_charging").withDescription("Press to start charging"),
-                exposes.enum("charging_stop", ea.SET, ["stop"]).withLabel("stop_charging").withDescription("Press to stop charging"),
-                exposes.enum("charging_paused", ea.SET, ["pause"]).withLabel("pause_charging").withDescription("Press to pause charging"),
+                exposes.enum("charging_start", ea.SET, ["start"]).withLabel("Start charging").withDescription("Press to start charging"),
+                exposes.enum("charging_stop", ea.SET, ["stop"]).withLabel("Stop charging").withDescription("Press to stop charging"),
+                exposes.enum("charging_paused", ea.SET, ["pause"]).withLabel("Pause charging").withDescription("Press to pause charging"),
                 // exposes
                 //     .composite("charging_commands", "charging_commands", ea.SET)
                 //     .withDescription("Execute charging control actions")
