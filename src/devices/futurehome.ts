@@ -205,7 +205,7 @@ const futurehomeExtend = {
             ],
             toZigbee: [
                 {
-                    key: ["charger_status"],
+                    key: ["charger_status", "charging_on"],
                     convertGet: async (entity, key, meta) => {
                         await entity.command("haApplianceControl", "signalState", {});
                     },
