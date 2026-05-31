@@ -2,7 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -260,28 +260,46 @@ const futurehomeExtend = {
         return extend;
     },
     charging: (): ModernExtend => {
+        const commandLookup: {[key: string]: number} = {
+            start: 0x01,
+            stop: 0x02,
+            pause: 0x03,
+        };
         return {
             isModernExtend: true,
             fromZigbee: [],
             toZigbee: [
                 {
-                    key: ["charging"],
+                    // key: ["charging"],
+                    key: ["charging_start", "charging_stop", "charging_paused"],
                     convertSet: async (entity, key, value, meta) => {
-                        const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
-                        await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
+                        const action = key.replace("charging_", ""); // "start", "stop", or "paused"
+                        const normalizedAction = action === "paused" ? "pause" : action;
+                        const commandId = commandLookup[normalizedAction];
+                        // const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
+                        // await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
+                        await entity.command("haApplianceControl", "executionOfCommand", {commandId: commandId});
                         try {
                             await entity.command("haApplianceControl", "signalState", {});
                         } catch {
                             // do nothing
                         }
-                        return {state: {charging: value}};
+                        return; // {state: {charging: value}};
                     },
                     convertGet: async (entity, key, meta) => {
                         await entity.command("haApplianceControl", "signalState", {});
                     },
                 } satisfies Tz.Converter,
             ],
-            exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
+            // exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
+            exposes: [
+                exposes
+                    .composite("charging_commands", "charging_commands", ea.SET)
+                    .withDescription("Execute charging control actions")
+                    .withFeature(exposes.enum("start", ea.SET, ["press"]).withDescription("Start charging session"))
+                    .withFeature(exposes.enum("stop", ea.SET, ["press"]).withDescription("Stop charging session"))
+                    .withFeature(exposes.enum("paused", ea.SET, ["press"]).withDescription("Pause charging session")),
+            ],
         };
     },
 };
