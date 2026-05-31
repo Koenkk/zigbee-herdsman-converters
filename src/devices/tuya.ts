@@ -26159,14 +26159,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.occupancy(),
             e.battery(),
-
-            exposes
-                .numeric("illuminance", ea.STATE)
-                .withUnit("lux")
-                .withValueMin(0)
-                .withValueMax(10000)
-                .withValueStep(1)
-                .withDescription("Raw pressure value"),
+            e.illuminance(),
             exposes.enum("sensitivity", ea.ALL, ["low", "middle", "high"]).withDescription("Sensitivity"),
             exposes
                 .numeric("interval_time", ea.ALL)
