@@ -12421,7 +12421,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "24GHz mmWave human presence sensor",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: async (event: KeyValueAny) => {
+        onEvent: async (event) => {
             for (const handler of disCurrentPoll.onEvent) {
                 await handler(event);
             }
@@ -12490,7 +12490,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
+    {   fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
         model: "TS0045",
         vendor: "Tuya",
         description: "Wireless switch with 5 buttons",
@@ -12989,7 +12989,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bmdsp6bs"]),
+        fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
         model: "Y1_IN",
         vendor: "Tuya",
         description: "Smart human presence sensor 24G",
