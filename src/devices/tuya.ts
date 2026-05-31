@@ -12490,7 +12490,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {   fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
+       fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
         model: "TS0045",
         vendor: "Tuya",
         description: "Wireless switch with 5 buttons",
