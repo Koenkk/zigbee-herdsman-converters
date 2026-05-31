@@ -12489,6 +12489,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
     },
+    },
     {
         zigbeeModel: ["TS0046"],
         model: "TS0046",
