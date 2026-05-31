@@ -32,7 +32,7 @@ const localValueConverters = {
 };
 
 const futurehomeExtend = {
-    chargerStatus: (): ModernExtend => {
+    chargerStatus1: (): ModernExtend => {
         return {
             isModernExtend: true,
             fromZigbee: [
@@ -113,6 +113,12 @@ const futurehomeExtend = {
                     }
                 },
             ],
+            options: [
+                e
+                    .numeric("charger_status_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
+            ],
             onEvent: m.poll({
                 key: "charger_status_poll",
                 optionKey: "charger_status_poll_interval",
@@ -143,6 +149,115 @@ const futurehomeExtend = {
                 exposes.binary("charging_on", ea.STATE, "ON", "OFF").withDescription("Indicates if the charger is actively delivering power"),
             ],
         };
+    },
+    chargerStatus: (): ModernExtend => {
+        const extend: ModernExtend = {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "haApplianceControl",
+                    type: ["commandSignalStateNotification", "commandSignalStateRsp"],
+                    convert(model, msg, publish, options, meta) {
+                        const status = msg?.data?.applianceStatus;
+                        if (status === undefined || status === null) return;
+                        let chargerStatus:
+                            | "plugged_out"
+                            | "1X: Off"
+                            | "4: plugged_in"
+                            | "2: plugged_in_charging"
+                            | "3: plugged_in_paused"
+                            | "5X: running"
+                            | "8X: failure" = "plugged_out";
+                        let chargingOn = false;
+
+                        switch (status) {
+                            case 0x01: // Off
+                                chargerStatus = "1X: Off";
+                                chargingOn = false;
+                                break;
+                            case 0x02: // StandBy → charging
+                                chargerStatus = "2: plugged_in_charging";
+                                chargingOn = true;
+                                break;
+                            case 0x03: // Programmed (paused by user)
+                                chargerStatus = "3: plugged_in_paused";
+                                chargingOn = false;
+                                break;
+                            case 0x04: // ProgrammedWaitingToStart
+                                chargerStatus = "4: plugged_in";
+                                chargingOn = false;
+                                break;
+                            case 0x05: // Running
+                                chargerStatus = "5X: running";
+                                chargingOn = false;
+                                break;
+                            case 0x08: // Failure
+                                chargerStatus = "8X: failure";
+                                chargingOn = false;
+                                break;
+                            default:
+                                chargerStatus = "plugged_out";
+                                chargingOn = false;
+                        }
+                        return {charger_status: chargerStatus, charging_on: chargingOn};
+                    },
+                } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
+            ],
+            toZigbee: [
+                {
+                    key: ["charger_status"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
+                    },
+                } satisfies Tz.Converter,
+            ],
+            configure: [
+                async (device, coordinatorEndpoint, logger) => {
+                    for (const endpoint of device.endpoints) {
+                        if (endpoint.supportsInputCluster("haApplianceControl")) {
+                            await endpoint.bind("haApplianceControl", coordinatorEndpoint);
+                            try {
+                                await endpoint.command("haApplianceControl", "signalState", {});
+                            } catch {
+                                // do nothing
+                            }
+                        }
+                    }
+                },
+            ],
+            exposes: [
+                exposes
+                    .enum("charger_status", ea.STATE_GET, [
+                        "plugged_out",
+                        "1X: Off",
+                        "2: plugged_in_charging",
+                        "3: plugged_in_paused",
+                        "4: plugged_in",
+                        "5X: running",
+                        "8X: failure",
+                    ])
+                    .withDescription("Current EV charger state"),
+                exposes.binary("charging_on", ea.STATE, "ON", "OFF").withDescription("Indicates if the charger is actively delivering power"),
+            ],
+        };
+        const pollExtend = m.poll({
+            key: "charger_status_poll",
+            optionKey: "charger_status_poll_interval",
+            option: e
+                .numeric("charger_status_poll_interval", ea.SET)
+                .withValueMin(-1)
+                .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                const endpoint = device.endpoints.find((e) => e.supportsInputCluster("haApplianceControl"));
+                if (endpoint) {
+                    await endpoint.command("haApplianceControl", "signalState", {});
+                }
+            },
+        });
+        extend.onEvent = pollExtend.onEvent;
+        extend.options = pollExtend.options;
+        return extend;
     },
     charging: (): ModernExtend => {
         return {
