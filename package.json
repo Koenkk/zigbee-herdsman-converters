@@ -65,7 +65,7 @@
         "ts-morph": "^28.0.0",
         "tsc-watch": "^7.2.0",
         "typescript": "^6.0.3",
-        "vitest": "^3.1.1"
+        "vitest": "^4.1.0"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
