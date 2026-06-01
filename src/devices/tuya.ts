@@ -15698,6 +15698,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // incomplete / incorrect: https://github.com/Koenkk/zigbee-herdsman-converters/pull/12355
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ugekduaj", "_TZE200_ugekduaj"]),
         model: "SDM01",
         vendor: "Tuya",
