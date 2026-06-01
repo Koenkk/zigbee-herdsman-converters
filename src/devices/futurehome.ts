@@ -57,32 +57,26 @@ const futurehomeExtend = {
                                 chargerStatus = "1X: Off";
                                 chargingOn = false;
                                 break;
-
                             case 0x02: // StandBy → charging
                                 chargerStatus = "2: plugged_in_charging";
                                 chargingOn = true;
                                 break;
-
                             case 0x03: // Programmed (paused by user)
                                 chargerStatus = "3: plugged_in_paused";
                                 chargingOn = false;
                                 break;
-
                             case 0x04: // ProgrammedWaitingToStart
                                 chargerStatus = "4: plugged_in";
                                 chargingOn = false;
                                 break;
-
                             case 0x05: // Running
                                 chargerStatus = "5X: running";
                                 chargingOn = false;
                                 break;
-
                             case 0x08: // Failure
                                 chargerStatus = "8X: failure";
                                 chargingOn = false;
                                 break;
-
                             default:
                                 chargerStatus = "plugged_out";
                                 chargingOn = false;
@@ -246,6 +240,7 @@ const futurehomeExtend = {
             option: e
                 .numeric("charger_status_poll_interval", ea.SET)
                 .withValueMin(-1)
+                .withUnit("s")
                 .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
             defaultIntervalSeconds: 60,
             poll: async (device) => {
@@ -271,10 +266,9 @@ const futurehomeExtend = {
             toZigbee: [
                 {
                     // key: ["charging"],
-                    key: ["charging_start", "charging_stop", "charging_paused"],
+                    key: ["charging_start", "charging_stop", "charging_pause"],
                     convertSet: async (entity, key, value, meta) => {
-                        const action = key.replace("charging_", ""); // "start", "stop", or "paused"
-                        const normalizedAction = action === "paused" ? "pause" : action;
+                        const normalizedAction = key.replace("charging_", ""); // "start", "stop", or "pause"
                         const commandId = commandLookup[normalizedAction];
                         // const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
                         // await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
@@ -295,13 +289,7 @@ const futurehomeExtend = {
             exposes: [
                 exposes.enum("charging_start", ea.SET, ["start"]).withLabel("Start charging").withDescription("Press to start charging"),
                 exposes.enum("charging_stop", ea.SET, ["stop"]).withLabel("Stop charging").withDescription("Press to stop charging"),
-                exposes.enum("charging_paused", ea.SET, ["pause"]).withLabel("Pause charging").withDescription("Press to pause charging"),
-                // exposes
-                //     .composite("charging_commands", "charging_commands", ea.SET)
-                //     .withDescription("Execute charging control actions")
-                //     .withFeature(exposes.enum("start", ea.SET, ["press"]).withDescription("Start charging session"))
-                //     .withFeature(exposes.enum("stop", ea.SET, ["press"]).withDescription("Stop charging session"))
-                //     .withFeature(exposes.enum("paused", ea.SET, ["press"]).withDescription("Pause charging session")),
+                exposes.enum("charging_pause", ea.SET, ["pause"]).withLabel("Pause charging").withDescription("Press to pause charging"),
             ],
         };
     },
@@ -397,8 +385,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Futurehome",
         description: "Futurehome Charge (EV Charger)",
         extend: [
-            // m.lock({"pinCodeCount":50}),
-            // m.electricityMeter(),
             m.deviceAddCustomCluster("haApplianceControl", {
                 name: "haApplianceControl",
                 ID: Zcl.Clusters.haApplianceControl.ID,
@@ -449,9 +435,9 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 6,
                 valueMax: 32,
                 valueStep: 1,
-                // reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
-
             m.numeric({
                 name: "charging_current_limit",
                 cluster: "genAnalogOutput",
@@ -465,7 +451,6 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
-            // genAnalogOutput': {"presentValue":8,"maxPresentValue":32,"outOfService":0,"statusFlags":0}
             m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "auto_charge",
                 cluster: "haApplianceControl",
