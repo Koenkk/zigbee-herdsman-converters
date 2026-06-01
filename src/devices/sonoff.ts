@@ -1639,7 +1639,7 @@ const sonoffExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (!(msg.data instanceof Buffer)) return;
                     const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
-                    if (!parsedRawCommand || parsedRawCommand.commandId !== 0x13) return;
+                    if (parsedRawCommand?.commandId !== 0x13) return;
 
                     const payload = parsedRawCommand.payload;
                     logger.info(`TRV-ZBT received scheduleGroup payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
@@ -1831,7 +1831,7 @@ const sonoffExtend = {
                 convert: (model, msg) => {
                     if (!(msg.data instanceof Buffer)) return;
                     const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
-                    if (!parsedRawCommand || parsedRawCommand.commandId !== 0x10) return;
+                    if (parsedRawCommand?.commandId !== 0x10) return;
                     const payload = parsedRawCommand.payload;
                     if (payload.length < 2 || payload[0] !== 0x03) return;
                     return {bluetooth_pairing_status: payload[1] === 0x00 ? "success" : "fail"};
@@ -2003,7 +2003,7 @@ const sonoffExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (!(msg.data instanceof Buffer)) return;
                     const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
-                    if (!parsedRawCommand || parsedRawCommand.commandId !== 0x0e) return;
+                    if (parsedRawCommand?.commandId !== 0x0e) return;
                     const payload = parsedRawCommand.payload;
                     logger.info(`TRV-ZBT received temperature control history payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
                     if (payload.length < 2) return;
