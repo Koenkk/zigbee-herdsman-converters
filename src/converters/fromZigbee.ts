@@ -2179,29 +2179,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
-    cluster: "ssIasAce",
-    type: ["commandArm"],
-    convert: (model, msg, publish, options, meta) => {
-        const action = msg.data.armmode;
-        const lookup: KeyValueAny = {3: "single", 0: "double", 2: "long"};
-
-        // Workaround to ignore duplicated (false) presses that
-        // are 100ms apart, since the button often generates
-        // multiple duplicated messages for a single click event.
-        if (!globalStore.hasValue(msg.endpoint, "since")) {
-            globalStore.putValue(msg.endpoint, "since", 0);
-        }
-
-        const now = Date.now();
-        const since = globalStore.getValue(msg.endpoint, "since");
-
-        if (now - since > 100 && lookup[action]) {
-            globalStore.putValue(msg.endpoint, "since", now);
-            return {action: lookup[action]};
-        }
-    },
-};
 export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
