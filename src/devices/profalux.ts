@@ -119,7 +119,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 2};
         },
-        whiteLabel: [{model: "MOT-C2Z10", vendor: "Profalux", fingerprint: [{modelID: "MOT-C2Z10"}]}],
+        whiteLabel: [{model: "MOT-C2Z10", vendor: "Profalux", fingerprint: [{modelID: "MOT-C2Z10\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"}]}],
     },
     {
         // Identify older covers based on their fingerprint. These do not
