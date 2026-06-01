@@ -1450,9 +1450,9 @@ export const definitions: DefinitionWithExtend[] = [
                 modelID: "2PM",
                 endpoints: [
                     {ID: 1, profileID: 260, deviceID: 514, inputClusters: [0, 3, 4, 5, 258], outputClusters: [25]},
+                    {ID: 2, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
                     {ID: 3, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
-                    {ID: 4, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
-                    {ID: 5, inputClusters: [], outputClusters: [3, 4, 6, 8, 258]},
+                    {ID: 4, inputClusters: [], outputClusters: [3, 4, 6, 8, 258]},
                     {ID: 239, profileID: 49153, deviceID: 8193, inputClusters: [64513, 64514], outputClusters: []},
                     {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
                 ],
@@ -1470,14 +1470,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 3, sw2: 4}}),
+            m.deviceEndpoints({endpoints: {sw1: 2, sw2: 3}}),
             m.windowCovering({controls: ["lift", "tilt"]}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
-            for (const epID of [3, 4]) {
+            for (const epID of [2, 3]) {
                 const ep = device.getEndpoint(epID);
                 if (ep) {
                     await ep.bind("genOnOff", coordinatorEndpoint);
