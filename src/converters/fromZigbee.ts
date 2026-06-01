@@ -2217,14 +2217,6 @@ export const ptvo_multistate_action: Fz.Converter<"genMultistateInput", undefine
         return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
-export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msPressureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"] as string) / 1000.0;
-        return {pressure};
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const U02I007C01_contact: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
