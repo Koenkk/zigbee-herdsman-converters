@@ -2179,18 +2179,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            restore_reports: (zoneStatus & (1 << 5)) > 0,
-        };
-    },
-};
 export const itcmdr_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
     cluster: "genMultistateInput",
     type: ["readResponse", "attributeReport"],
