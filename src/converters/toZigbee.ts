@@ -2762,30 +2762,6 @@ export const ignore_rate: Tz.Converter = {
 };
 // #endregion
 
-export const light_onoff_restorable_brightness: Tz.Converter = {
-    /**
-     * Some devices reset brightness to 100% when turned on, even if previous brightness was different
-     * This uses the stored state of the device to restore to the previous brightness level when turning on
-     */
-    key: ["state", "brightness", "brightness_percent"],
-    options: [exposes.options.transition()],
-    convertSet: async (entity, key, value, meta) => {
-        const deviceState = meta.state || {};
-        const message = meta.message;
-        const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
-        const hasBrightness = message.brightness != null || message.brightness_percent != null;
-
-        // Add brightness if command is 'on' and we can restore previous value
-        if (state === "on" && !hasBrightness && utils.isNumber(deviceState.brightness) && deviceState.brightness > 0) {
-            message.brightness = deviceState.brightness;
-        }
-
-        return await light_onoff_brightness.convertSet(entity, key, value, meta);
-    },
-    convertGet: async (entity, key, meta) => {
-        return await light_onoff_brightness.convertGet(entity, key, meta);
-    },
-};
 export const ptvo_switch_light_brightness: Tz.Converter = {
     key: ["brightness", "brightness_percent", "transition"],
     options: [exposes.options.transition()],
