@@ -121,6 +121,14 @@ interface SonoffSnzb02b {
     commandResponses: never;
 }
 
+interface SonoffSnzb03pr2 {
+    attributes: {
+        illuminationCompensationOffset: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SonoffTrvzb {
     attributes: {
         childLock: number;
@@ -8955,5 +8963,67 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["faultCode"], defaultResponseOptions);
         },
+    },
+    {
+        zigbeeModel: ["SNZB-03PR2"],
+        model: "SNZB-03PR2",
+        vendor: "SONOFF",
+        description: "Zigbee PIR sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    illuminationCompensationOffset: {
+                        name: "illuminationCompensationOffset",
+                        ID: 0x2018,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.occupancy({reporting: false}),
+            m.illuminance({reporting: false}),
+            m.battery({
+                percentage: true,
+                voltage: false,
+            }),
+            m.numeric({
+                name: "pir_occupied_to_unoccupied_delay",
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0x0010, type: Zcl.DataType.UINT16},
+                description: "Detection Duration",
+                valueMin: 5,
+                valueMax: 60,
+                unit: "s",
+                access: "ALL",
+                entityCategory: "config",
+                label: "Detection Duration",
+                fzConvert: (model, msg) => {
+                    const data = msg.data as Record<string, unknown>;
+                    // This device is not fully spec-compliant and may report this value via raw attribute keys.
+                    const candidates = [data.pirOToUDelay, data["16"], data["15360"]];
+                    const value = candidates.find((candidate) => typeof candidate === "number");
+                    if (typeof value === "number") {
+                        return {pir_occupied_to_unoccupied_delay: value};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb03pr2>({
+                name: "illumination_compensation_offset",
+                cluster: "customClusterEwelink",
+                attribute: "illuminationCompensationOffset",
+                description: "Light intensity calibration offset",
+                label: "Illumination calibration",
+                valueMin: -1000,
+                valueMax: 1000,
+                unit: "lx",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
     },
 ];
