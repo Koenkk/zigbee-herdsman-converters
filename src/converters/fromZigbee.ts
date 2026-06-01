@@ -2217,15 +2217,6 @@ export const ptvo_multistate_action: Fz.Converter<"genMultistateInput", undefine
         return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
-export const konke_action: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const value = msg.data.onOff;
-        const lookup: KeyValueAny = {128: "single", 129: "double", 130: "hold"};
-        return lookup[value] ? {action: lookup[value]} : null;
-    },
-};
 export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
