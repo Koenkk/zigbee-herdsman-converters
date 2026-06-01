@@ -324,12 +324,12 @@ const sonoffTrvzbtLocalTemperatureCalibrationRange = {min: -10, max: 10, step: 0
 const sonoffTrvzbtTemporaryModeLookup = {boost: 0, timer: 1} as const;
 const sonoffTrvzbtTemporaryModeTemperatureScale = 100;
 const sonoffTrvzbtFaultCodeLookup = {
-    0: "Temperature sensor issue detected",
-    1: "Valve adjustment issue detected",
-    2: "Battery too low, please replace the batteries",
-    3: "Battery too low for firmware upgrade",
-    4: "Battery status abnormal",
-    5: "External temperature sensor connection issue",
+    0: "temperature_sensor_issue_detected",
+    1: "valve_adjustment_issue_detected",
+    2: "battery_too_low_please_replace_the_batteries",
+    3: "battery_too_low_for_firmware_upgrade",
+    4: "battery_status_abnormal",
+    5: "external_temperature_sensor_connection_issue",
 } as const;
 const sonoffTrvzbtKnownFaultCodeMask = Object.keys(sonoffTrvzbtFaultCodeLookup).reduce((mask, bit) => mask | (1 << Number(bit)), 0);
 const sonoffTrvzbtTemperatureControlHistoryValueOffset = 9;
@@ -351,7 +351,7 @@ type SonoffTrvzbtTemperatureControlHistoryRequest = {
 
 type SonoffTrvzbtTemperatureControlHistoryDataPoint = {
     value: number;
-    stratTime: string;
+    startTime: string;
     endTime: string;
 };
 
@@ -434,13 +434,21 @@ const buildSonoffTrvzbtTemperatureControlHistoryData = (
         const intervalEndSec = getSonoffTrvzbtTemperatureControlHistoryIntervalEnd(type, intervalStartSec, request.displayOffsetSeconds);
         records.push({
             value,
-            stratTime: formatUtcSecondsToIsoWithOffset(intervalStartSec, request.displayOffsetSeconds),
+            startTime: formatUtcSecondsToIsoWithOffset(intervalStartSec, request.displayOffsetSeconds),
             endTime: formatUtcSecondsToIsoWithOffset(intervalEndSec, request.displayOffsetSeconds),
         });
         intervalStartSec = intervalEndSec;
     }
 
     return records;
+};
+
+const formatSonoffTrvzbtTemperatureControlHistoryOutputData = (records: SonoffTrvzbtTemperatureControlHistoryDataPoint[]) => {
+    return records.map((record) => ({
+        value: record.value,
+        start_time: record.startTime,
+        end_time: record.endTime,
+    }));
 };
 
 const buildSonoffTrvzbtTemperatureControlHistoryResult = (
@@ -458,8 +466,12 @@ const buildSonoffTrvzbtTemperatureControlHistoryResult = (
     return {
         type: request.type,
         time_range: request.timeRange,
-        temperatureData: buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x00] ?? [], request),
-        targetTemperatureData: buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x02] ?? [], request),
+        temperature_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x00] ?? [], request),
+        ),
+        target_temperature_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x02] ?? [], request),
+        ),
     };
 };
 
@@ -6410,7 +6422,6 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.trvzbtTemporaryMode(),
             m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
                 name: "low_battery_valve_state",
-                label: "Low battery_valve_state",
                 lookup: {close: 0, open_30: 30},
                 cluster: "customSonoffTrvzbt",
                 attribute: "lowBatteryValveState",
