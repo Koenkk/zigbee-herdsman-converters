@@ -11,7 +11,7 @@ import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
 import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
-import {determineEndpoint, exposeEndpoints, hasAlreadyProcessedMessage, isObject, numberWithinRange} from "./utils";
+import {determineEndpoint, exposeEndpoints, hasAlreadyProcessedMessage, isObject, numberWithinRange, toNumber} from "./utils";
 
 const NS = "zhc:philips";
 const ea = exposes.access;
@@ -329,6 +329,7 @@ const philipsModernExtend = {
             convertSet: async (entity, key, value, meta) => {
                 // Resolve control mode: explicit option wins; otherwise default to standard converters.
                 const nativeControl = (meta.options as KeyValueAny).hue_native_control === true;
+                const {options} = meta;
 
                 // Check if device supports the manuSpecificPhilips2 cluster.
                 // Wrapped in try-catch because supportsInputCluster may throw for
@@ -458,6 +459,9 @@ const philipsModernExtend = {
                 // Bifrost spec: 0 = instant, practical range ~2..8, >0x100 = very slow
                 if (message.transition != null) {
                     data.fadeSpeed = Math.round(Number(message.transition) * 10);
+                } else if (options.transition != null && options.transition !== "") {
+                    const transition = toNumber(options.transition, "transition");
+                    data.fadeSpeed = Math.round(Number(transition) * 10);
                 }
 
                 // Effect speed: 0.0 = slowest, 1.0 = fastest (maps to 0..255 byte)

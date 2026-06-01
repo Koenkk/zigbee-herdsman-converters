@@ -24,6 +24,7 @@ const acova = {
                         result.hvac_action = "off";
                     }
                 }
+                result.local_temperature = null;
                 return result;
             },
         } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
