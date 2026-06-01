@@ -85,6 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
             "MOT-C1Z10F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C1Z20F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C1Z30F\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+            "MOT-C2Z10\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
             "MOT-C2Z10",
         ],
         model: "MOT-C1ZxxC/F",
