@@ -324,6 +324,36 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    snzb_09p_alert: {
+        cluster: "customClusterEwelink",
+        type: ["commandAlertCommand", "raw"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: Buffer | undefined;
+            if (msg.type === "raw") {
+                if (!(msg.data instanceof Buffer) || msg.data.length < 5 || msg.data[2] !== 0x0f) {
+                    return;
+                }
+
+                data = msg.data.subarray(3);
+            } else {
+                if (!("data" in msg.data)) {
+                    return;
+                }
+
+                data = Buffer.isBuffer(msg.data.data) ? msg.data.data : Buffer.from(msg.data.data);
+            }
+
+            if (!data || data.length < 2 || data[0] !== 4) {
+                return;
+            }
+
+            const alarmType = ({0: "none", 1: "manual", 2: "scene"} as const)[data[1] as 0 | 1 | 2];
+            if (alarmType == null) {
+                return;
+            }
+            return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
+        },
+    } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
 };
 
 const tzLocal = {
@@ -337,6 +367,55 @@ const tzLocal = {
                 localMeta.message = {...localMeta.message, on_time: localMeta.message.on_time / 10};
             }
             return await tz.on_off.convertSet(entity, key, value, localMeta);
+        },
+    } satisfies Tz.Converter,
+    snzb_09p_alert: {
+        key: ["start_manual_alarm", "cancel_alarm", "start_scene_alarm", "siren_on"],
+        convertSet: async (entity, key, value, meta) => {
+            const state = meta.state || {};
+            const device = meta.device;
+            if (!device) return;
+            const endpoint = device.getEndpoint(1);
+            if (!endpoint) return;
+
+            let payload: Buffer;
+            switch (key) {
+                case "cancel_alarm":
+                    payload = Buffer.from([1]);
+                    break;
+                case "siren_on": {
+                    if (value === "OFF" || value === false) {
+                        payload = Buffer.from([1]);
+                        break;
+                    }
+
+                    const voice = state.alarm_sound_enable === "ON" || state.alarm_sound_enable === true ? 0x01 : 0x00;
+                    const light = state.alarm_light_enable === "ON" || state.alarm_light_enable === true ? 0x01 : 0x00;
+                    const alertSoundRaw = meta.message?.alarm_sound_type ?? state.alarm_sound_type ?? 0;
+                    const alertSoundParsed =
+                        typeof alertSoundRaw === "string" ? Number.parseInt(alertSoundRaw.replace(/^sound\s+/i, ""), 10) : Number(alertSoundRaw);
+                    const alertSound = Number.isFinite(alertSoundParsed) ? Math.min(9, Math.max(0, alertSoundParsed)) : 0;
+                    const volMap = {low: 0, medium: 1, high: 2, highest: 3} as const;
+                    const volumeLevel = String(state.alarm_volume_level ?? "high").toLowerCase();
+                    const volume = volMap[volumeLevel as keyof typeof volMap] ?? 2;
+                    const duration = Math.min(900, Math.max(1, Number(state.alarm_duration ?? 10)));
+                    payload = Buffer.from([0x02, 0x00, voice, light, alertSound, volume, duration & 0xff, (duration >> 8) & 0xff, 0x00]);
+                    break;
+                }
+                default:
+                    throw new Error(`Unsupported SNZB-09P alert command key '${key}'`);
+            }
+
+            await endpoint.command<"customClusterEwelink", "alertCommand", SonoffSnzb09p>(
+                "customClusterEwelink",
+                "alertCommand",
+                {data: payload},
+                {disableDefaultResponse: true},
+            );
+            if (key === "siren_on") {
+                return {state: {siren_on: value === "ON" || value === true ? "ON" : "OFF"}};
+            }
+            return {};
         },
     } satisfies Tz.Converter,
 };
@@ -7829,91 +7908,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
-        fromZigbee: [
-            {
-                cluster: "customClusterEwelink",
-                type: ["commandAlertCommand", "raw"],
-                convert: (model, msg, publish, options, meta) => {
-                    let data: Buffer | undefined;
-                    if (msg.type === "raw") {
-                        if (!(msg.data instanceof Buffer) || msg.data.length < 5 || msg.data[2] !== 0x0f) {
-                            return;
-                        }
-
-                        data = msg.data.subarray(3);
-                    } else {
-                        if (!("data" in msg.data)) {
-                            return;
-                        }
-
-                        data = Buffer.isBuffer(msg.data.data) ? msg.data.data : Buffer.from(msg.data.data);
-                    }
-
-                    if (!data || data.length < 2 || data[0] !== 4) {
-                        return;
-                    }
-
-                    const alarmType = ({0: "none", 1: "manual", 2: "scene"} as const)[data[1] as 0 | 1 | 2];
-                    if (alarmType == null) {
-                        return;
-                    }
-                    return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
-                },
-            } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
-        ],
-        toZigbee: [
-            {
-                key: ["start_manual_alarm", "cancel_alarm", "start_scene_alarm", "siren_on"],
-                convertSet: async (entity, key, value, meta) => {
-                    const state = meta.state || {};
-                    const device = meta.device;
-                    if (!device) return;
-                    const endpoint = device.getEndpoint(1);
-                    if (!endpoint) return;
-
-                    let payload: Buffer;
-                    switch (key) {
-                        case "cancel_alarm":
-                            payload = Buffer.from([1]);
-                            break;
-                        case "siren_on": {
-                            if (value === "OFF" || value === false) {
-                                payload = Buffer.from([1]);
-                                break;
-                            }
-
-                            const voice = state.alarm_sound_enable === "ON" || state.alarm_sound_enable === true ? 0x01 : 0x00;
-                            const light = state.alarm_light_enable === "ON" || state.alarm_light_enable === true ? 0x01 : 0x00;
-                            const alertSoundRaw = meta.message?.alarm_sound_type ?? state.alarm_sound_type ?? 0;
-                            const alertSoundParsed =
-                                typeof alertSoundRaw === "string"
-                                    ? Number.parseInt(alertSoundRaw.replace(/^sound\s+/i, ""), 10)
-                                    : Number(alertSoundRaw);
-                            const alertSound = Number.isFinite(alertSoundParsed) ? Math.min(9, Math.max(0, alertSoundParsed)) : 0;
-                            const volMap = {low: 0, medium: 1, high: 2, highest: 3} as const;
-                            const volumeLevel = String(state.alarm_volume_level ?? "high").toLowerCase();
-                            const volume = volMap[volumeLevel as keyof typeof volMap] ?? 2;
-                            const duration = Math.min(900, Math.max(1, Number(state.alarm_duration ?? 10)));
-                            payload = Buffer.from([0x02, 0x00, voice, light, alertSound, volume, duration & 0xff, (duration >> 8) & 0xff, 0x00]);
-                            break;
-                        }
-                        default:
-                            throw new Error(`Unsupported SNZB-09P alert command key '${key}'`);
-                    }
-
-                    await endpoint.command<"customClusterEwelink", "alertCommand", SonoffSnzb09p>(
-                        "customClusterEwelink",
-                        "alertCommand",
-                        {data: payload},
-                        {disableDefaultResponse: true},
-                    );
-                    if (key === "siren_on") {
-                        return {state: {siren_on: value === "ON" || value === true ? "ON" : "OFF"}};
-                    }
-                    return {};
-                },
-            },
-        ],
+        fromZigbee: [fzLocal.snzb_09p_alert],
+        toZigbee: [tzLocal.snzb_09p_alert],
         exposes: [
             e
                 .binary("siren_on", ea.SET, "ON", "OFF")
