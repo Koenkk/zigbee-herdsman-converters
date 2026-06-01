@@ -1788,7 +1788,7 @@ export const valueConverter = {
     thermostatHolidayStartStopUnixTS: {
         // converts 8-byte big-endian 2 times Unix timestamps array to "YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM" string
         from: (v: number[]) => {
-            if (!v || v.length !== 8) return "";
+            if (v?.length !== 8) return "";
 
             // Convert first 4 bytes → start Unix timestamp
             const startUnixTS = (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
