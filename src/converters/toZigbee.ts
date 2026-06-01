@@ -2726,17 +2726,6 @@ export const TS0003_curtain_switch: Tz.Converter = {
         await entity.read("genOnOff", ["onOff"]);
     },
 };
-export const sihas_set_people: Tz.Converter = {
-    key: ["people"],
-    convertSet: async (entity, key, value, meta) => {
-        const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
-        await endpoint.write("genAnalogInput", {presentValue: value as number});
-    },
-    convertGet: async (entity, key, meta) => {
-        const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
-        await endpoint.read("genAnalogInput", ["presentValue"]);
-    },
-};
 // #endregion
 
 // #region Ignore converters
