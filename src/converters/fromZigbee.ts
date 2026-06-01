@@ -2199,17 +2199,6 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
 //         };
 //     },
 // };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const W2_module_carbon_monoxide: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            carbon_monoxide: (zoneStatus & (1 << 8)) > 8,
-        };
-    },
-};
 export const command_status_change_notification_action: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
