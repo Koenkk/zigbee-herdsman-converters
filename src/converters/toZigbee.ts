@@ -2726,18 +2726,6 @@ export const TS0003_curtain_switch: Tz.Converter = {
         await entity.read("genOnOff", ["onOff"]);
     },
 };
-export const dawondns_only_off: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lowerValue = value.toLowerCase();
-        utils.validateValue(lowerValue, ["off"]);
-        await entity.command("genOnOff", lowerValue as "off", {}, utils.getOptions(meta.mapped, entity));
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genOnOff", ["onOff"]);
-    },
-};
 export const sihas_set_people: Tz.Converter = {
     key: ["people"],
     convertSet: async (entity, key, value, meta) => {
