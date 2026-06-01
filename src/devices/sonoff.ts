@@ -1,4 +1,4 @@
-import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
+﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -118,6 +118,21 @@ interface SonoffSnzb02b {
         humidityCalibration: number;
     };
     commands: never;
+    commandResponses: never;
+}
+interface SonoffSnzb09p {
+    attributes: {
+        powerSupplyMode: number;
+        alarmSoundEnable: number;
+        alarmLightEnable: number;
+        alarmSoundType: number;
+        alarmVolumeLevel: number;
+        alarmDuration: number;
+        spilt: number;
+    };
+    commands: {
+        alertCommand: {data: Buffer};
+    };
     commandResponses: never;
 }
 
@@ -698,6 +713,36 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    snzb_09p_alert: {
+        cluster: "customClusterEwelink",
+        type: ["commandAlertCommand", "raw"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: Buffer | undefined;
+            if (msg.type === "raw") {
+                if (!(msg.data instanceof Buffer) || msg.data.length < 5 || msg.data[2] !== 0x0f) {
+                    return;
+                }
+
+                data = msg.data.subarray(3);
+            } else {
+                if (!("data" in msg.data)) {
+                    return;
+                }
+
+                data = Buffer.isBuffer(msg.data.data) ? msg.data.data : Buffer.from(msg.data.data);
+            }
+
+            if (!data || data.length < 2 || data[0] !== 4) {
+                return;
+            }
+
+            const alarmType = ({0: "none", 1: "manual", 2: "scene"} as const)[data[1] as 0 | 1 | 2];
+            if (alarmType == null) {
+                return;
+            }
+            return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
+        },
+    } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
 };
 
 const tzLocal = {
@@ -711,6 +756,55 @@ const tzLocal = {
                 localMeta.message = {...localMeta.message, on_time: localMeta.message.on_time / 10};
             }
             return await tz.on_off.convertSet(entity, key, value, localMeta);
+        },
+    } satisfies Tz.Converter,
+    snzb_09p_alert: {
+        key: ["start_manual_alarm", "cancel_alarm", "start_scene_alarm", "siren_on"],
+        convertSet: async (entity, key, value, meta) => {
+            const state = meta.state || {};
+            const device = meta.device;
+            if (!device) return;
+            const endpoint = device.getEndpoint(1);
+            if (!endpoint) return;
+
+            let payload: Buffer;
+            switch (key) {
+                case "cancel_alarm":
+                    payload = Buffer.from([1]);
+                    break;
+                case "siren_on": {
+                    if (value === "OFF" || value === false) {
+                        payload = Buffer.from([1]);
+                        break;
+                    }
+
+                    const voice = state.alarm_sound_enable === "ON" || state.alarm_sound_enable === true ? 0x01 : 0x00;
+                    const light = state.alarm_light_enable === "ON" || state.alarm_light_enable === true ? 0x01 : 0x00;
+                    const alertSoundRaw = meta.message?.alarm_sound_type ?? state.alarm_sound_type ?? 0;
+                    const alertSoundParsed =
+                        typeof alertSoundRaw === "string" ? Number.parseInt(alertSoundRaw.replace(/^sound\s+/i, ""), 10) : Number(alertSoundRaw);
+                    const alertSound = Number.isFinite(alertSoundParsed) ? Math.min(9, Math.max(0, alertSoundParsed)) : 0;
+                    const volMap = {low: 0, medium: 1, high: 2, highest: 3} as const;
+                    const volumeLevel = String(state.alarm_volume_level ?? "high").toLowerCase();
+                    const volume = volMap[volumeLevel as keyof typeof volMap] ?? 2;
+                    const duration = Math.min(900, Math.max(1, Number(state.alarm_duration ?? 10)));
+                    payload = Buffer.from([0x02, 0x00, voice, light, alertSound, volume, duration & 0xff, (duration >> 8) & 0xff, 0x00]);
+                    break;
+                }
+                default:
+                    throw new Error(`Unsupported SNZB-09P alert command key '${key}'`);
+            }
+
+            await endpoint.command<"customClusterEwelink", "alertCommand", SonoffSnzb09p>(
+                "customClusterEwelink",
+                "alertCommand",
+                {data: payload},
+                {disableDefaultResponse: true},
+            );
+            if (key === "siren_on") {
+                return {state: {siren_on: value === "ON" || value === true ? "ON" : "OFF"}};
+            }
+            return {};
         },
     } satisfies Tz.Converter,
 };
@@ -8962,6 +9056,123 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["faultCode"], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ["SNZB-09P"],
+        model: "SNZB-09P",
+        vendor: "SONOFF",
+        description: "Siren",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    powerSupplyMode: {name: "powerSupplyMode", ID: 0x0024, type: Zcl.DataType.ENUM8},
+                    alarmSoundEnable: {name: "alarmSoundEnable", ID: 0x2026, type: Zcl.DataType.BOOLEAN, write: true},
+                    alarmLightEnable: {name: "alarmLightEnable", ID: 0x2022, type: Zcl.DataType.BOOLEAN, write: true},
+                    alarmSoundType: {name: "alarmSoundType", ID: 0x2023, type: Zcl.DataType.ENUM8, write: true},
+                    alarmVolumeLevel: {name: "alarmVolumeLevel", ID: 0x2024, type: Zcl.DataType.ENUM8, write: true},
+                    alarmDuration: {name: "alarmDuration", ID: 0x2025, type: Zcl.DataType.UINT16, write: true},
+                    spilt: {name: "spilt", ID: 0x2000, type: Zcl.DataType.UINT8, write: true},
+                },
+                commands: {
+                    alertCommand: {name: "alertCommand", ID: 0x0f, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                name: "power_supply_mode",
+                lookup: {battery: 0x00, external: 0x01},
+                cluster: "customClusterEwelink",
+                attribute: "powerSupplyMode",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                description: "Current power source of the device.",
+            }),
+            m.battery(),
+            m.binary<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_sound_enable",
+                cluster: "customClusterEwelink",
+                attribute: "alarmSoundEnable",
+                entityCategory: "config",
+                zigbeeCommandOptions: manufacturerOptions,
+                description: "Enable or disable the alarm sound.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_light_enable",
+                cluster: "customClusterEwelink",
+                attribute: "alarmLightEnable",
+                entityCategory: "config",
+                zigbeeCommandOptions: manufacturerOptions,
+                description: "Enable or disable the alarm light.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary<"customClusterEwelink", SonoffSnzb09p>({
+                name: "tamper",
+                cluster: "customClusterEwelink",
+                attribute: "spilt",
+                entityCategory: "diagnostic",
+                access: "STATE_GET",
+                zigbeeCommandOptions: manufacturerOptions,
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_sound_type",
+                lookup: {
+                    sound_0: 0x00,
+                    sound_1: 0x01,
+                    sound_2: 0x02,
+                    sound_3: 0x03,
+                    sound_4: 0x04,
+                    sound_5: 0x05,
+                    sound_6: 0x06,
+                    sound_7: 0x07,
+                    sound_8: 0x08,
+                    sound_9: 0x09,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "alarmSoundType",
+                entityCategory: "config",
+                description: "Select the alarm sound preset.",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_volume_level",
+                lookup: {low: 0x00, medium: 0x01, high: 0x02, highest: 0x03},
+                cluster: "customClusterEwelink",
+                attribute: "alarmVolumeLevel",
+                entityCategory: "config",
+                description: "Set the alarm sound volume level.",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_duration",
+                cluster: "customClusterEwelink",
+                attribute: "alarmDuration",
+                entityCategory: "config",
+                description: "Alarm duration in seconds.",
+                valueMin: 1,
+                valueMax: 900,
+                unit: "s",
+            }),
+        ],
+        ota: true,
+        fromZigbee: [fzLocal.snzb_09p_alert],
+        toZigbee: [tzLocal.snzb_09p_alert],
+        exposes: [
+            e
+                .binary("siren_on", ea.SET, "ON", "OFF")
+                .withLabel("Siren on")
+                .withDescription("using the configured sound, light, volume, and duration."),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["customClusterEwelink"]);
+            await endpoint.read<"customClusterEwelink", SonoffSnzb09p>("customClusterEwelink", ["spilt"], manufacturerOptions);
         },
     },
     {
