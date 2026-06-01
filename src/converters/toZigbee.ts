@@ -2250,49 +2250,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZMCSW032D_cover_position: Tz.Converter = {
-    key: ["position", "tilt"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        if (meta.options.time_close != null && meta.options.time_open != null) {
-            const sleepSeconds = async (s: number) => {
-                return await new Promise((resolve) => setTimeout(resolve, s * 1000));
-            };
-
-            const oldPosition = meta.state.position;
-            if (value === 100) {
-                await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-            } else if (value === 0) {
-                await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
-            } else {
-                if (utils.isNumber(oldPosition) && oldPosition > value) {
-                    const delta = oldPosition - value;
-                    utils.assertNumber(meta.options.time_open);
-                    const mutiplicateur = meta.options.time_open / 100;
-                    const timeBeforeStop = delta * mutiplicateur;
-                    await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
-                    await sleepSeconds(timeBeforeStop);
-                    await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
-                } else if (utils.isNumber(oldPosition) && oldPosition < value) {
-                    const delta = value - oldPosition;
-                    utils.assertNumber(meta.options.time_close);
-                    const mutiplicateur = meta.options.time_close / 100;
-                    const timeBeforeStop = delta * mutiplicateur;
-                    await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-                    await sleepSeconds(timeBeforeStop);
-                    await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
-                }
-            }
-
-            return {state: {position: value}};
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        const isPosition = key === "position";
-        await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
-    },
-};
 export const ptvo_switch_trigger: Tz.Converter = {
     key: ["trigger", "interval"],
     convertSet: async (entity, key, value, meta) => {

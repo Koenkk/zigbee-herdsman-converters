@@ -19,8 +19,6 @@ import {
 
 const NS = "zhc:fz";
 const defaultSimulatedBrightness = 255;
-const e = exposes.presets;
-const ea = exposes.access;
 
 // #region Generic/recommended converters
 export const fan: Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]> = {
@@ -2316,86 +2314,6 @@ export const SAGE206612_state: Fz.Converter<"genOnOff", undefined, ["commandOn",
         if (timeout > 0) {
             list.push(timer);
         }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    options: [
-        exposes.options.invert_cover(),
-        e.numeric("time_close", ea.SET).withDescription("Set the full closing time of the roller shutter (e.g. set it to 20) (value is in s)."),
-        e.numeric("time_open", ea.SET).withDescription("Set the full opening time of the roller shutter (e.g. set it to 21) (value is in s)."),
-    ],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const timeCoverSetMiddle = 60;
-
-        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
-        // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-        if (options.time_close != null && options.time_open != null) {
-            if (!globalStore.hasValue(msg.endpoint, "position")) {
-                globalStore.putValue(msg.endpoint, "position", {lastPreviousAction: -1, CurrentPosition: -1, since: false});
-            }
-
-            const entry = globalStore.getValue(msg.endpoint, "position");
-            // ignore if first action is middle and ignore action middle if previous action is middle
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
-                if ((entry.CurrentPosition === -1 && entry.lastPreviousAction === -1) || entry.lastPreviousAction === 50) {
-                    logger.warning("ZMCSW032D ignore action", NS);
-                    return;
-                }
-            }
-            let currentPosition = entry.CurrentPosition;
-            const lastPreviousAction = entry.lastPreviousAction;
-            const deltaTimeSec = Math.floor((Date.now() - entry.since) / 1000); // convert to sec
-
-            entry.since = Date.now();
-            entry.lastPreviousAction = msg.data.currentPositionLiftPercentage;
-
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
-                if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                    if (lastPreviousAction === 100) {
-                        // Open
-                        currentPosition = currentPosition === -1 ? 0 : currentPosition;
-                        currentPosition = currentPosition + (deltaTimeSec * 100) / Number(options.time_open);
-                    } else if (lastPreviousAction === 0) {
-                        // Close
-                        currentPosition = currentPosition === -1 ? 100 : currentPosition;
-                        currentPosition = currentPosition - (deltaTimeSec * 100) / Number(options.time_close);
-                    }
-                    currentPosition = currentPosition > 100 ? 100 : currentPosition;
-                    currentPosition = currentPosition < 0 ? 0 : currentPosition;
-                }
-            }
-            entry.CurrentPosition = currentPosition;
-
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
-                // position cast float to int
-                result.position = currentPosition | 0;
-            } else {
-                if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                    // position cast float to int
-                    result.position = currentPosition | 0;
-                } else {
-                    entry.CurrentPosition = lastPreviousAction;
-                    result.position = lastPreviousAction;
-                }
-            }
-            result.position = options.invert_cover ? 100 - result.position : result.position;
-        } else {
-            // Previous solution without time_close and time_open
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
-                const liftPercentage = msg.data.currentPositionLiftPercentage;
-                result.position = liftPercentage;
-                result.position = options.invert_cover ? 100 - result.position : result.position;
-            }
-        }
-        // Add the state
-        if ("position" in result) {
-            result.state = result.position === 0 ? "CLOSE" : "OPEN";
-        }
-        return result;
     },
 };
 export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
