@@ -51,6 +51,71 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+export const fzLocal = {
+    orvibo_raw_1: {
+        cluster: 23,
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            // 25,0,8,3,0,0 - click btn 1
+            // 25,0,8,3,0,2 - hold btn 1
+            // 25,0,8,3,0,3 - release btn 1
+            // 25,0,8,11,0,0 - click btn 2
+            // 25,0,8,11,0,2 - hold btn 2
+            // 25,0,8,11,0,3 - release btn 2
+            // 25,0,8,7,0,0 - click btn 3
+            // 25,0,8,7,0,2 - hold btn 3
+            // 25,0,8,7,0,3 - release btn 3
+            // 25,0,8,15,0,0 - click btn 4
+            // 25,0,8,15,0,2 - hold btn 4
+            // 25,0,8,15,0,3 - release btn 4
+            // TODO: do not know how to get to use 5,6,7,8 buttons
+            const buttonLookup: KeyValueAny = {
+                3: "button_1",
+                11: "button_2",
+                7: "button_3",
+                15: "button_4",
+            };
+
+            const actionLookup: KeyValueAny = {
+                0: "click",
+                2: "hold",
+                3: "release",
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                return {action: `${button}_${action}`};
+            }
+        },
+    } satisfies Fz.Converter<23, undefined, "raw">,
+    orvibo_raw_2: {
+        cluster: 23,
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup: KeyValueAny = {
+                1: "button_1",
+                2: "button_2",
+                3: "button_3",
+                4: "button_4",
+                5: "button_5",
+                6: "button_6",
+                7: "button_7",
+            };
+
+            const actionLookup: KeyValueAny = {
+                0: "click",
+                2: "hold",
+                3: "release",
+            };
+            const button = buttonLookup[msg.data[3]];
+            const action = actionLookup[msg.data[5]];
+            if (button) {
+                return {action: `${button}_${action}`};
+            }
+        },
+    } satisfies Fz.Converter<23, undefined, "raw">,
+};
+
 const distinct = <T>(input: T[], toKey: (input: T) => string): T[] => {
     const seen = new Set<string>();
     return input.filter((item) => {
@@ -361,7 +426,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CR11S8UZ",
         vendor: "ORVIBO",
         description: "Smart sticker switch",
-        fromZigbee: [fz.orvibo_raw_1],
+        fromZigbee: [fzLocal.orvibo_raw_1],
         exposes: [
             e.action([
                 "button_1_click",
@@ -676,7 +741,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "T40S6Z",
         vendor: "ORVIBO",
         description: "MixSwitch 6 gangs",
-        fromZigbee: [fz.orvibo_raw_2],
+        fromZigbee: [fzLocal.orvibo_raw_2],
         toZigbee: [],
         exposes: [e.action(["button_1_click", "button_2_click", "button_3_click", "button_4_click", "button_5_click", "button_6_click"])],
     },

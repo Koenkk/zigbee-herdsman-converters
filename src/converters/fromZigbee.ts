@@ -2076,68 +2076,6 @@ export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined,
         return payload;
     },
 };
-export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
-    cluster: 23,
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // 25,0,8,3,0,0 - click btn 1
-        // 25,0,8,3,0,2 - hold btn 1
-        // 25,0,8,3,0,3 - release btn 1
-        // 25,0,8,11,0,0 - click btn 2
-        // 25,0,8,11,0,2 - hold btn 2
-        // 25,0,8,11,0,3 - release btn 2
-        // 25,0,8,7,0,0 - click btn 3
-        // 25,0,8,7,0,2 - hold btn 3
-        // 25,0,8,7,0,3 - release btn 3
-        // 25,0,8,15,0,0 - click btn 4
-        // 25,0,8,15,0,2 - hold btn 4
-        // 25,0,8,15,0,3 - release btn 4
-        // TODO: do not know how to get to use 5,6,7,8 buttons
-        const buttonLookup: KeyValueAny = {
-            3: "button_1",
-            11: "button_2",
-            7: "button_3",
-            15: "button_4",
-        };
-
-        const actionLookup: KeyValueAny = {
-            0: "click",
-            2: "hold",
-            3: "release",
-        };
-        const button = buttonLookup[msg.data[3]];
-        const action = actionLookup[msg.data[5]];
-        if (button) {
-            return {action: `${button}_${action}`};
-        }
-    },
-};
-export const orvibo_raw_2: Fz.Converter<23, undefined, "raw"> = {
-    cluster: 23,
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {
-            1: "button_1",
-            2: "button_2",
-            3: "button_3",
-            4: "button_4",
-            5: "button_5",
-            6: "button_6",
-            7: "button_7",
-        };
-
-        const actionLookup: KeyValueAny = {
-            0: "click",
-            2: "hold",
-            3: "release",
-        };
-        const button = buttonLookup[msg.data[3]];
-        const action = actionLookup[msg.data[5]];
-        if (button) {
-            return {action: `${button}_${action}`};
-        }
-    },
-};
 export const tint_scene: Fz.Converter<"genBasic", undefined, "write"> = {
     cluster: "genBasic",
     type: "write",
