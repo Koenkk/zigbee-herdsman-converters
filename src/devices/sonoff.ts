@@ -4708,7 +4708,7 @@ const sonoffExtend = {
                     }
 
                     const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
-                    if (!parsedRawCommand || parsedRawCommand.commandId !== 0x02) {
+                    if (parsedRawCommand?.commandId !== 0x02) {
                         return;
                     }
 

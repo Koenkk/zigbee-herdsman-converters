@@ -7585,7 +7585,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.cover_position().setAccess("position", ea.STATE_SET),
                 e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
             ];
-            if (!device || device.manufacturerName !== "_TZE28C1000000_alh14edn") {
+            if (device?.manufacturerName !== "_TZE28C1000000_alh14edn") {
                 exps.push(
                     e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor Fault"),
                     e
