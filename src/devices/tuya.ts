@@ -7585,7 +7585,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.cover_position().setAccess("position", ea.STATE_SET),
                 e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
             ];
-            if (!device || device.manufacturerName !== "_TZE28C1000000_alh14edn") {
+            if (device?.manufacturerName !== "_TZE28C1000000_alh14edn") {
                 exps.push(
                     e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor Fault"),
                     e
@@ -12411,7 +12411,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-ZHPS01-24G",
         vendor: "Tuya",
         description: "24GHz mmWave human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            m.poll({
+                key: "dis_current",
+                optionKey: "measurement_poll_interval",
+                defaultIntervalSeconds: 60,
+                option: exposes.options.measurement_poll_interval(),
+                poll: async (device: Zh.Device) => {
+                    await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+                },
+            }),
+        ],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -12443,13 +12454,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(600)
                 .withDescription("Breath detection min distance"),
-            e.text("notice", ea.STATE).withDescription("Notice"),
-            e.text("move_noise", ea.STATE).withDescription("Move noise (raw)"),
-            e.text("move_threshold", ea.STATE).withDescription("Move threshold (raw)"),
-            e.text("breath_noise", ea.STATE).withDescription("Breath noise (raw)"),
-            e.text("breath_threshold", ea.STATE).withDescription("Breath threshold (raw)"),
             e.enum("self_learning", ea.STATE_SET, ["start", "stop"]).withDescription("Self learning mode"),
-            e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset"),
+            e.binary("restore_factory_setting", ea.STATE_SET, true, false).withDescription("Factory reset (behavior depends on firmware)"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -12458,13 +12464,15 @@ export const definitions: DefinitionWithExtend[] = [
                     "presence",
                     {
                         from: (v: Buffer | number) => {
-                            if (Buffer.isBuffer(v)) return v[0] !== 0;
-                            return v !== 0;
+                            // DP101 is inverted: [0]=presence detected, [1]=no presence
+                            if (Buffer.isBuffer(v)) return v[0] === 0;
+                            return v === 0;
                         },
                     },
                 ],
                 [12, "illuminance", tuya.valueConverter.raw],
-                [102, "dis_current", tuya.valueConverter.raw],
+                // DP102 requires periodic dataQuery to maintain reporting (see disCurrentPoll)
+                [102, "dis_current", {from: (v: Buffer | number) => (Buffer.isBuffer(v) ? v.readUInt32BE(0) : v)}],
                 [103, "presence_delay", tuya.valueConverter.raw],
                 [105, "movesensitivity", tuya.valueConverter.raw],
                 [107, "breathsensitivity", tuya.valueConverter.raw],
@@ -12472,11 +12480,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [110, "movedistance_min", tuya.valueConverter.raw],
                 [111, "breathdistance_max", tuya.valueConverter.raw],
                 [112, "breathdistance_min", tuya.valueConverter.raw],
-                [113, "notice", tuya.valueConverterBasic.lookup({"01": tuya.enum(1)})],
-                [118, "move_noise", tuya.valueConverter.raw],
-                [119, "move_threshold", tuya.valueConverter.raw],
-                [120, "breath_noise", tuya.valueConverter.raw],
-                [121, "breath_threshold", tuya.valueConverter.raw],
                 [116, "self_learning", tuya.valueConverterBasic.lookup({start: tuya.enum(0), stop: tuya.enum(1)})],
                 [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
@@ -15698,12 +15701,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ugekduaj", "_TZE200_ugekduaj", "_TZE204_loejka0i", "_TZE284_loejka0i"]),
+        // incomplete / incorrect: https://github.com/Koenkk/zigbee-herdsman-converters/pull/12355
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ugekduaj", "_TZE200_ugekduaj"]),
         model: "SDM01",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        whiteLabel: [tuya.whitelabel("Nous", "D4Z", "Smart energy monitor for 3P+N system", ["_TZE204_loejka0i", "_TZE284_loejka0i"])],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
