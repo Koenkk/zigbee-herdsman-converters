@@ -2264,30 +2264,6 @@ export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> =
         }
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SAGE206612_state: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]> = {
-    cluster: "genOnOff",
-    type: ["commandOn", "commandOff"],
-    convert: (model, msg, publish, options, meta) => {
-        const timeout = 28;
-
-        if (!globalStore.hasValue(msg.endpoint, "action")) {
-            globalStore.putValue(msg.endpoint, "action", []);
-        }
-
-        const lookup: KeyValueAny = {commandOn: "bell1", commandOff: "bell2"};
-        const timer = setTimeout(() => globalStore.getValue(msg.endpoint, "action").pop(), timeout * 1000);
-
-        const list = globalStore.getValue(msg.endpoint, "action");
-        if (list.length === 0 || list.length > 4) {
-            list.push(timer);
-            return {action: lookup[msg.type]};
-        }
-        if (timeout > 0) {
-            list.push(timer);
-        }
-    },
-};
 export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
