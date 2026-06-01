@@ -1713,15 +1713,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
 };
-const disCurrentPoll = m.poll({
-    key: "dis_current",
-    optionKey: "measurement_poll_interval",
-    defaultIntervalSeconds: 60,
-    option: exposes.options.measurement_poll_interval(),
-    poll: async (device: Zh.Device) => {
-        await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
-    },
-});
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zofmmt9s"]),
@@ -12419,15 +12411,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZY-ZHPS01-24G",
         vendor: "Tuya",
         description: "24GHz mmWave human presence sensor",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: async (event) => {
-            for (const handler of disCurrentPoll.onEvent) {
-                await handler(event);
-            }
-        },
-        configure: tuya.configureMagicPacket,
-        options: disCurrentPoll.options,
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            m.poll({
+                key: "dis_current",
+                optionKey: "measurement_poll_interval",
+                defaultIntervalSeconds: 60,
+                option: exposes.options.measurement_poll_interval(),
+                poll: async (device: Zh.Device) => {
+                    await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
+                },
+            }),
+        ],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -12489,6 +12484,36 @@ export const definitions: DefinitionWithExtend[] = [
                 [117, "restore_factory_setting", tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
+        model: "TS0045",
+        vendor: "Tuya",
+        description: "Wireless switch with 5 buttons",
+        extend: [tuyaBase()],
+        fromZigbee: [tuya.fz.on_off_action, fz.battery],
+        exposes: [
+            e.battery(),
+            e.action([
+                "1_single",
+                "1_double",
+                "1_hold",
+                "2_single",
+                "2_double",
+                "2_hold",
+                "3_single",
+                "3_double",
+                "3_hold",
+                "4_single",
+                "4_double",
+                "4_hold",
+                "5_single",
+                "5_double",
+                "5_hold",
+            ]),
+        ],
+        toZigbee: [],
+        configure: tuya.configureMagicPacket,
     },
     {
         zigbeeModel: ["TS0046"],
@@ -12960,7 +12985,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0045", ["_TZ3000_qfhhb5y4"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bmdsp6bs"]),
         model: "Y1_IN",
         vendor: "Tuya",
         description: "Smart human presence sensor 24G",
