@@ -1,5 +1,16 @@
 # Changelog
 
+## [26.61.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.61.1...v26.61.2) (2026-06-02)
+
+
+### Bug Fixes
+
+* Efekta: correction of measurement units ([#12365](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12365)) ([07d5fc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/07d5fc07c2abc684f02c3fc99984e11ac15daf77))
+* Heiman HS1RM-EF: add private cluster ([#12362](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12362)) ([024660c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/024660ced216b6e28ebe70c34a0d2e5ca65aebcb))
+* Move various device specific converters from fromZigbee.ts and toZigbee.ts ([#12360](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12360)) ([941e5fc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/941e5fc97ded647c0983eb4f7ea5fd666ef9a182))
+* Third Reality: rename `3rCO2SensorCluster` to `3rAirQualitySensorCluster` ([#12363](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12363)) ([e8e0b63](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8e0b632fc72e79b4e1fc76de254ebd6acde4a9f))
+* Tuya _TZE284_waa352qv: fix state datapoint ([#12361](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12361)) ([94abc03](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94abc03fdfebf305c84f5f3a83d611b281b9f842))
+
 ## [26.61.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.61.0...v26.61.1) (2026-06-01)
 
 
