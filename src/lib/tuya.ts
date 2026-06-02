@@ -203,13 +203,14 @@ export interface InchingMetaState {
 
 export interface AlarmSet1Input {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    leakage_current_alarm?: number;
+    leakage_current_alarm?: string;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     leakage_current_threshold?: number;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    device_temperature_alarm?: number;
+    device_temperature_alarm?: string;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     device_temperature_threshold?: number;
+    [key: string]: string | number | undefined;
 }
 
 export interface AlarmSet1MetaState extends Tz.Meta {
@@ -220,19 +221,64 @@ export interface AlarmSet1MetaState extends Tz.Meta {
     };
 }
 
+export interface AlarmSet1BInput {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rs485_baud_rate_enabled?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rs485_baud_rate?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rs485_address_enabled?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rs485_address?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rs485_data_format_enabled?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    rs485_data_format?: string | number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    high_power_alarm?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    high_power_threshold?: number;
+    [key: string]: string | number | undefined;
+}
+
+export interface AlarmSet1BMetaState extends Tz.Meta {
+    state: {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        alarm_set_1?: AlarmSet1BInput;
+        [key: string]: unknown;
+    };
+}
+
 export interface AlarmSet2Input {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    over_current_alarm?: number;
+    over_current_alarm?: string;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     over_current_threshold?: number;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    over_voltage_alarm?: number;
+    unbalanced_load_alarm?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    unbalanced_load_threshold?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    over_voltage_alarm?: string;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     over_voltage_threshold?: number;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    under_voltage_alarm?: number;
+    under_voltage_alarm?: string;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     under_voltage_threshold?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    phase_loss_alarm?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    negative_active_power_alarm?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    data_reporting_frequency?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    data_reporting_interval?: number;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    device_locating_control?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    device_locating_threshold?: number;
+    [key: string]: string | number | undefined;
 }
 
 export interface AlarmSet2MetaState extends Tz.Meta {
@@ -245,9 +291,10 @@ export interface AlarmSet2MetaState extends Tz.Meta {
 
 export interface AlarmSet3Input {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    lost_flow_alarm?: number;
+    lost_flow_alarm?: string;
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     lost_flow_threshold?: number;
+    [key: string]: string | number | undefined;
 }
 
 export interface AlarmSet3MetaState {
@@ -273,7 +320,7 @@ export const circuitBreakerFaultList = [
     "under_voltage",
     "miss_phase",
     "outage",
-    "magnetism",
+    "magnetism", // or negative_power
     "credit",
     "no_balance",
 ];
@@ -909,6 +956,7 @@ const tuyaExposes = {
             .withCategory("config"),
     energyBalanceReset: () =>
         e.enum("energy_balance_reset", ea.STATE_SET, ["RESET"]).withDescription("Set the energy balance to zero").withCategory("config"),
+    energyReset: () => e.enum("energy_reset", ea.STATE_SET, ["RESET"]).withDescription("Set the energy measurements to zero").withCategory("config"),
     leakageCurrentAndTemperatureAlarm: () =>
         e
             .composite("alarm_set_1", "alarm_set_1", ea.STATE_SET)
@@ -940,6 +988,31 @@ const tuyaExposes = {
                     .withValueMax(85)
                     .withValueStep(1)
                     .withDescription("Temperature limit (Default 80°C)"),
+            )
+            .withCategory("config"),
+    rs485ConfigAndHighPowerAlarm: () =>
+        e
+            .composite("alarm_set_1", "alarm_set_1", ea.STATE_SET)
+            .withDescription("Configuration for RS485 wired communication (if supported by device) and high power alarm")
+            .withFeature(e.binary("rs485_baud_rate_enabled", ea.STATE_SET, "ON", "OFF").withLabel("RS485 baud rate"))
+            .withFeature(e.enum("rs485_baud_rate", ea.STATE_SET, [2400, 4800, 9600, 19200, 38400]).withLabel("RS485 baud rate"))
+            .withFeature(e.binary("rs485_address_enabled", ea.STATE_SET, "ON", "OFF").withLabel("RS485 address"))
+            .withFeature(e.numeric("rs485_address", ea.STATE_SET).withValueMin(1).withValueMax(100).withValueStep(1).withLabel("RS485 address"))
+            .withFeature(e.binary("rs485_data_format_enabled", ea.STATE_SET, "ON", "OFF").withLabel("RS485 data format"))
+            .withFeature(e.enum("rs485_data_format", ea.STATE_SET, ["N81", "E81", "O81", "N82"]).withLabel("RS485 data format"))
+            .withFeature(
+                e
+                    .binary("high_power_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Trigger alarm when power draw exceeds the limit (Default OFF)"),
+            )
+            .withFeature(
+                e
+                    .numeric("high_power_threshold", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(65535)
+                    .withValueStep(1)
+                    .withUnit("kW")
+                    .withDescription("Power limit (Default 25 kW)"),
             )
             .withCategory("config"),
     currentAndVoltageAlarm: () =>
@@ -987,6 +1060,85 @@ const tuyaExposes = {
                     .withValueMax(210)
                     .withValueStep(1)
                     .withDescription("Voltage lower limit (Default 175V)"),
+            )
+            .withCategory("config"),
+    alarmSet2: () =>
+        e
+            .composite("alarm_set_2", "alarm_set_2", ea.STATE_SET)
+            .withDescription("Configuration for alarms and reporting frequency")
+            .withFeature(
+                e
+                    .binary("over_current_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Trigger alarm when current is higher than the limit (Default OFF)"),
+            )
+            .withFeature(
+                e
+                    .numeric("over_current_threshold", ea.STATE_SET)
+                    .withUnit("A")
+                    .withValueMin(0)
+                    .withValueMax(65535)
+                    .withValueStep(1)
+                    .withDescription("Current upper limit (Default 100A)"),
+            )
+            .withFeature(
+                e
+                    .binary("over_voltage_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Trigger alarm when the voltage is above the limit (Default ON)"),
+            )
+            .withFeature(
+                e
+                    .numeric("over_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withValueMin(0)
+                    .withValueMax(65535)
+                    .withValueStep(1)
+                    .withDescription("Voltage upper limit (Default 253V)"),
+            )
+            .withFeature(
+                e
+                    .binary("under_voltage_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Trigger alarm when the voltage is below the limit (Default OFF)"),
+            )
+            .withFeature(
+                e
+                    .numeric("under_voltage_threshold", ea.STATE_SET)
+                    .withUnit("V")
+                    .withValueMin(0)
+                    .withValueMax(65535)
+                    .withValueStep(1)
+                    .withDescription("Voltage lower limit (Default 180V)"),
+            )
+            .withFeature(
+                e
+                    .binary("unbalanced_load_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Trigger alarm when power factor is below the limit (Default 15%)"),
+            )
+            .withFeature(
+                e
+                    .numeric("unbalanced_load_threshold", ea.STATE_SET)
+                    .withUnit("%")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withValueStep(1)
+                    .withDescription("Power factor lower limit (Default 15%)"),
+            )
+            .withFeature(
+                e.binary("phase_loss_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Trigger alarm when one phase is unavailable (Default OFF)"),
+            )
+            .withFeature(
+                e
+                    .binary("negative_active_power_alarm", ea.STATE_SET, "ON", "OFF")
+                    .withDescription("Trigger alarm when the active power is negative (Default ON)"),
+            )
+            .withFeature(e.binary("custom_data_reporting_interval", ea.STATE_SET, "ON", "OFF"))
+            .withFeature(
+                e
+                    .numeric("data_reporting_interval", ea.STATE_SET)
+                    .withUnit("s")
+                    .withValueMin(5)
+                    .withValueMax(600)
+                    .withValueStep(0.5)
+                    .withDescription("How often the device should report measurements (Default 5s)"),
             )
             .withCategory("config"),
     overCurrentThresholdTime: () =>
@@ -1103,6 +1255,122 @@ export const whitelabel = (vendor: string, model: string, description: string, m
     });
     return {vendor, model, description, fingerprint};
 };
+
+function parseThresholds(buffer: Buffer, definitions: Record<number, {enabled: string; value?: string}>): Record<string, string | number> {
+    const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
+    const result: Record<string, string | number> = {};
+
+    for (let i = 0; i < buffer.length; i += 4) {
+        const id = buffer[i];
+        const definition = definitions[id];
+
+        if (!definition) {
+            continue;
+        }
+
+        result[definition.enabled] = onOffLookup[buffer[i + 1]];
+        if (definition.value) result[definition.value] = buffer.readUInt16BE(i + 2);
+    }
+
+    return result;
+}
+
+function encodeThresholds(
+    values: Record<string, string | number>,
+    currentState: Record<string, string | number>,
+    definitions: Record<number, {enabled: string; value?: string}>,
+): number[] {
+    const onOffLookup = {OFF: 0, ON: 1};
+    const result: number[] = [];
+
+    for (const [id, definition] of Object.entries(definitions)) {
+        const enabled = values[definition.enabled] ?? currentState[definition.enabled];
+        const value = !definition.value ? 0 : (values[definition.value] ?? currentState[definition.value]);
+
+        if (enabled === undefined || value === undefined) {
+            continue;
+        }
+
+        const buf = Buffer.alloc(4);
+        buf.writeUInt8(Number(id), 0);
+        buf.writeUInt8(utils.getFromLookup(enabled, onOffLookup), 1);
+        buf.writeUInt16BE(Number(value), 2);
+
+        result.push(...buf);
+    }
+
+    return result;
+}
+
+const alarmSet1ThresholdDefinitions = {
+    4: {
+        enabled: "leakage_current_alarm",
+        value: "leakage_current_threshold",
+    },
+    5: {
+        enabled: "device_temperature_alarm",
+        value: "device_temperature_threshold",
+    },
+} as const;
+
+const alarmSet1BThresholdDefinitions = {
+    3: {
+        enabled: "rs485_baud_rate_enabled",
+        value: "rs485_baud_rate",
+    },
+    4: {
+        enabled: "rs485_address_enabled",
+        value: "rs485_address",
+    },
+    5: {
+        enabled: "rs485_data_format_enabled",
+        value: "rs485_data_format",
+    },
+    7: {
+        enabled: "high_power_alarm",
+        value: "high_power_threshold",
+    },
+} as const;
+
+const alarmSet2ThresholdDefinitions = {
+    1: {
+        enabled: "over_current_alarm",
+        value: "over_current_threshold",
+    },
+    2: {
+        enabled: "unbalanced_load_alarm",
+        value: "unbalanced_load_threshold",
+    },
+    3: {
+        enabled: "over_voltage_alarm",
+        value: "over_voltage_threshold",
+    },
+    4: {
+        enabled: "under_voltage_alarm",
+        value: "under_voltage_threshold",
+    },
+    5: {
+        enabled: "phase_loss_alarm",
+    },
+    7: {
+        enabled: "negative_active_power_alarm",
+    },
+    8: {
+        enabled: "custom_data_reporting_interval",
+        value: "data_reporting_interval",
+    },
+    9: {
+        enabled: "device_locating",
+        value: "device_locating_threshold",
+    },
+} as const;
+
+const alarmSet3ThresholdDefinitions = {
+    3: {
+        enabled: "lost_flow_alarm",
+        value: "lost_flow_threshold",
+    },
+} as const;
 
 class Base {
     value: number;
@@ -1571,139 +1839,78 @@ export const valueConverter = {
         },
     },
     threshold_4: {
-        // alarm_set_1
-        from: (v: Buffer) => {
-            const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
+        from: (v: Buffer) => parseThresholds(v, alarmSet1ThresholdDefinitions),
 
-            let lca: string;
-            let lct: number;
-            let dta: string;
-            let dtt: number;
-
-            for (let i = 0; i < v.length; i += 4) {
-                if (v[i] === 4) {
-                    lca = onOffLookup[v[i + 1]];
-                    lct = v.readUInt16BE(i + 2);
-                }
-                if (v[i] === 5) {
-                    dta = onOffLookup[v[i + 1]];
-                    dtt = v.readUInt16BE(i + 2);
-                }
-            }
-
-            return {
-                leakage_current_alarm: lca,
-                leakage_current_threshold: lct,
-                device_temperature_alarm: dta,
-                device_temperature_threshold: dtt,
-            };
-        },
-        to: (v: AlarmSet1Input, meta: AlarmSet1MetaState) => {
-            const currentState = meta.state.alarm_set_1 || {
-                leakage_current_alarm: "ON",
-                leakage_current_threshold: 50,
-                device_temperature_alarm: "ON",
-                device_temperature_threshold: 80,
-            };
-
-            const onOffLookup = {OFF: 0, ON: 1};
-            const buf = Buffer.alloc(8);
-            buf.writeUInt8(4, 0);
-            buf.writeUInt8(utils.getFromLookup(v.leakage_current_alarm || currentState.leakage_current_alarm, onOffLookup), 1);
-            buf.writeUInt16BE(v.leakage_current_threshold || currentState.leakage_current_threshold, 2);
-            buf.writeUInt8(5, 4);
-            buf.writeUInt8(utils.getFromLookup(v.device_temperature_alarm || currentState.device_temperature_alarm, onOffLookup), 5);
-            buf.writeUInt16BE(v.device_temperature_threshold || currentState.device_temperature_threshold, 6);
-            return Array.from(buf);
-        },
+        to: (v: AlarmSet1Input, meta: AlarmSet1MetaState) => encodeThresholds(v, meta.state.alarm_set_1 || {}, alarmSet1ThresholdDefinitions),
     },
     threshold_5: {
-        // alarm_set_2
         from: (v: Buffer) => {
-            const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
-
-            let oca: string;
-            let oct: number;
-            let ova: string;
-            let ovt: number;
-            let uva: string;
-            let uvt: number;
-
-            for (let i = 0; i < v.length; i += 4) {
-                if (v[i] === 1) {
-                    oca = onOffLookup[v[i + 1]];
-                    oct = v.readUInt16BE(i + 2) / 10;
-                }
-                if (v[i] === 3) {
-                    ova = onOffLookup[v[i + 1]];
-                    ovt = v.readUInt16BE(i + 2);
-                }
-                if (v[i] === 4) {
-                    uva = onOffLookup[v[i + 1]];
-                    uvt = v.readUInt16BE(i + 2);
-                }
+            const result = parseThresholds(v, alarmSet2ThresholdDefinitions);
+            if (result["over_current_threshold"]) {
+                result["over_current_threshold"] = Number(result["over_current_threshold"]) / 10;
             }
-
-            return {
-                over_current_alarm: oca,
-                over_current_threshold: oct,
-                over_voltage_alarm: ova,
-                over_voltage_threshold: ovt,
-                under_voltage_alarm: uva,
-                under_voltage_threshold: uvt,
-            };
+            return result;
         },
         to: (v: AlarmSet2Input, meta: AlarmSet2MetaState) => {
-            const currentState = meta.state.alarm_set_2 || {
-                over_current_alarm: "ON",
-                over_current_threshold: 63,
-                over_voltage_alarm: "ON",
-                over_voltage_threshold: 275,
-                under_voltage_alarm: "ON",
-                under_voltage_threshold: 175,
-            };
-
-            const onOffLookup = {OFF: 0, ON: 1};
-            const buf = Buffer.alloc(12);
-            buf.writeUInt8(1, 0);
-            buf.writeUInt8(utils.getFromLookup(v.over_current_alarm || currentState.over_current_alarm, onOffLookup), 1);
-            buf.writeUInt16BE((v.over_current_threshold || currentState.over_current_threshold) * 10, 2);
-            buf.writeUInt8(3, 4);
-            buf.writeUInt8(utils.getFromLookup(v.over_voltage_alarm || currentState.over_voltage_alarm, onOffLookup), 5);
-            buf.writeUInt16BE(v.over_voltage_threshold || currentState.over_voltage_threshold, 6);
-            buf.writeUInt8(4, 8);
-            buf.writeUInt8(utils.getFromLookup(v.under_voltage_alarm || currentState.under_voltage_alarm, onOffLookup), 9);
-            buf.writeUInt16BE(v.under_voltage_threshold || currentState.under_voltage_threshold, 10);
-            return Array.from(buf);
+            const vEncoded = {...v};
+            if (v["over_current_threshold"]) {
+                vEncoded["over_current_threshold"] = Number(v["over_current_threshold"] * 10);
+            }
+            return encodeThresholds(vEncoded, meta.state.alarm_set_2 || {}, alarmSet2ThresholdDefinitions);
         },
     },
     threshold_6: {
-        // alarm_set_3
         from: (v: Buffer) => {
-            const onOffLookup: Record<number, "OFF" | "ON"> = {0: "OFF", 1: "ON"};
-
-            let lfa: string;
-            let lft: number;
-
-            if (v[0] === 3) {
-                lfa = onOffLookup[v[1]];
-                lft = v.readUInt16BE(2) / 10;
+            const result = parseThresholds(v, alarmSet3ThresholdDefinitions);
+            if (result["lost_flow_threshold"]) {
+                result["lost_flow_threshold"] = Number(result["lost_flow_threshold"]) / 10;
             }
-
-            return {lost_flow_alarm: lfa, lost_flow_threshold: lft};
+            return result;
         },
         to: (v: AlarmSet3Input, meta: AlarmSet3MetaState) => {
-            const currentState = meta.state.alarm_set_3 || {
-                lost_flow_alarm: "ON",
-                lost_flow_threshold: 63, // unknown what this is and what was default
-            };
-
-            const onOffLookup = {OFF: 0, ON: 1};
-            const buf = Buffer.alloc(4);
-            buf.writeUInt8(3, 0);
-            buf.writeUInt8(utils.getFromLookup(v.lost_flow_alarm || currentState.lost_flow_alarm, onOffLookup), 1);
-            buf.writeUInt16BE((v.lost_flow_threshold || currentState.lost_flow_threshold) * 10, 2);
-            return Array.from(buf);
+            const vEncoded = {...v};
+            if (v["lost_flow_threshold"]) {
+                vEncoded["lost_flow_threshold"] = Number(v["lost_flow_threshold"] * 10);
+            }
+            return encodeThresholds(vEncoded, meta.state.alarm_set_3 || {}, alarmSet3ThresholdDefinitions);
+        },
+    },
+    threshold_7: {
+        from: (v: Buffer) => {
+            const result = parseThresholds(v, alarmSet1BThresholdDefinitions);
+            if (result["rs485_baud_rate"]) {
+                result["rs485_baud_rate"] = 1200 * 2 ** Number(result["rs485_baud_rate"]);
+            }
+            if (result["rs485_data_format"]) {
+                result["rs485_data_format"] = utils.getFromLookup(result["rs485_data_format"], {81: "N81", 82: "E81", 83: "O81", 84: "N82"});
+            }
+            return result;
+        },
+        to: (v: AlarmSet1BInput, meta: AlarmSet1BMetaState) => {
+            const vEncoded = {...v};
+            if (v["rs485_baud_rate"]) {
+                vEncoded["rs485_baud_rate"] = Math.log2(Number(v["rs485_baud_rate"]) / 1200);
+            }
+            if (v["rs485_data_format"]) {
+                vEncoded["rs485_data_format"] = utils.getFromLookup(v["rs485_data_format"], {N81: 81, E81: 82, O81: 83, N82: 84});
+            }
+            return encodeThresholds(vEncoded, meta.state.alarm_set_1 || {}, alarmSet1BThresholdDefinitions);
+        },
+    },
+    threshold_8: {
+        from: (v: Buffer) => {
+            const result = parseThresholds(v, alarmSet2ThresholdDefinitions);
+            if (result["data_reporting_interval"]) {
+                result["data_reporting_interval"] = Number(result["data_reporting_interval"]) / 2;
+            }
+            return result;
+        },
+        to: (v: AlarmSet2Input, meta: AlarmSet2MetaState) => {
+            const vEncoded = {...v};
+            if (v["data_reporting_interval"]) {
+                vEncoded["data_reporting_interval"] = Number(v["data_reporting_interval"] * 2);
+            }
+            return encodeThresholds(vEncoded, meta.state.alarm_set_2 || {}, alarmSet2ThresholdDefinitions);
         },
     },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
@@ -1788,7 +1995,7 @@ export const valueConverter = {
     thermostatHolidayStartStopUnixTS: {
         // converts 8-byte big-endian 2 times Unix timestamps array to "YYYY/MM/DD HH:MM | YYYY/MM/DD HH:MM" string
         from: (v: number[]) => {
-            if (!v || v.length !== 8) return "";
+            if (v?.length !== 8) return "";
 
             // Convert first 4 bytes → start Unix timestamp
             const startUnixTS = (v[0] << 24) | (v[1] << 16) | (v[2] << 8) | v[3];
@@ -2613,9 +2820,23 @@ export const valueConverter = {
             return faults;
         },
     },
-    energyBalanceReset: {
+    circuitBreakerFaults1: {
+        from: (value: number) => {
+            // value is a bitmap where each bit represents a fault flag
+            const faults: string[] = [];
+            for (let i = 0; i < circuitBreakerFaultList.length; i++) {
+                const bit = 1 << i;
+                if ((value & bit) === bit) {
+                    if (circuitBreakerFaultList[i] === "magnetism") faults.push("negative_power");
+                    else faults.push(circuitBreakerFaultList[i]);
+                }
+            }
+            return faults;
+        },
+    },
+    reset: {
         to: (v: string) => {
-            return v === "RESET";
+            if (v === "RESET") return false;
         },
         from: (v: boolean) => {
             return "idle";

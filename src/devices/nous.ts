@@ -254,6 +254,86 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_loejka0i", "_TZE284_loejka0i"]),
+        model: "D4Z",
+        vendor: "Nous",
+        description: "Smart energy monitor for 3P+N system",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [
+            te.circuitBreakerFaults(),
+
+            e.power().withDescription("Total active power"),
+            e.power_factor().withUnit("%").withDescription("Total power factor"),
+
+            e.ac_frequency(),
+
+            e.energy().withDescription("Total consumed energy"),
+            e.produced_energy().withDescription("Total produced energy"),
+            te.energyReset(),
+
+            te.powerWithPhase("a"),
+            te.powerWithPhase("b"),
+            te.powerWithPhase("c"),
+
+            te.powerFactorWithPhase("a"),
+            te.powerFactorWithPhase("b"),
+            te.powerFactorWithPhase("c"),
+
+            te.currentWithPhase("a"),
+            te.currentWithPhase("b"),
+            te.currentWithPhase("c"),
+
+            te.voltageWithPhase("a"),
+            te.voltageWithPhase("b"),
+            te.voltageWithPhase("c"),
+
+            te.energyWithPhase("a"),
+            te.energyWithPhase("b"),
+            te.energyWithPhase("c"),
+
+            te.energyProducedWithPhase("a"),
+            te.energyProducedWithPhase("b"),
+            te.energyProducedWithPhase("c"),
+
+            te.rs485ConfigAndHighPowerAlarm(),
+            te.alarmSet2(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tvc.divideBy100],
+                [2, "produced_energy", tvc.divideBy100],
+                [6, null, tvc.raw], // phase a - duplicate measurements
+                [7, null, tvc.raw], // phase b - duplicate measurements
+                [8, null, tvc.raw], // phase c - duplicate measurements
+                [9, "faults", tvc.circuitBreakerFaults1],
+                [15, "power_factor", tvc.raw],
+                [16, "energy_reset", tvc.reset],
+                [17, "alarm_set_1", tvc.threshold_7],
+                [18, "alarm_set_2", tvc.threshold_8],
+                [101, "ac_frequency", tvc.divideBy100],
+                [102, "voltage_a", tvc.divideBy10],
+                [103, "current_a", tvc.divideBy1000],
+                [104, "power_a", tvc.raw],
+                [105, "voltage_b", tvc.divideBy10],
+                [106, "current_b", tvc.divideBy1000],
+                [107, "power_b", tvc.raw],
+                [108, "voltage_c", tvc.divideBy10],
+                [109, "current_c", tvc.divideBy1000],
+                [110, "power_c", tvc.raw],
+                [111, "power", tvc.raw],
+                [112, "energy_a", tvc.divideBy100],
+                [113, "energy_produced_a", tvc.divideBy100],
+                [114, "energy_b", tvc.divideBy100],
+                [115, "energy_produced_b", tvc.divideBy100],
+                [116, "energy_c", tvc.divideBy100],
+                [117, "energy_produced_c", tvc.divideBy100],
+                [118, "power_factor_a", tvc.raw],
+                [119, "power_factor_b", tvc.raw],
+                [120, "power_factor_c", tvc.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_t9ffmdin"]),
         model: "D5Z",
         vendor: "Nous",
@@ -308,10 +388,10 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tvc.divideBy100], // total_forward_energy
-                [6, null, tvc.phaseVariant4],
+                [6, null, tvc.phaseVariant4], // phase_a
                 [9, "faults", tvc.circuitBreakerFaults],
                 [11, "prepayment", tvc.onOff], // switch_prepayment
-                [12, "energy_balance_reset", tvc.energyBalanceReset], // clear_energy
+                [12, "energy_balance_reset", tvc.reset], // clear_energy
                 [13, "energy_balance", tvc.divideBy100], // balance_energy
                 [14, "energy_balance_add", tvc.energyBalanceAdd], // charge_energy
                 [15, "leakage_current", tvc.raw],
