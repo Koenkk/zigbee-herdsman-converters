@@ -15020,10 +15020,19 @@ export const definitions: DefinitionWithExtend[] = [
                 [
                     1,
                     "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
+                    tuya.valueConverterBasic.lookup((_, device) => {
+                        if (device.manufacturerName === "_TZE284_waa352qv") {
+                            return {
+                                STOP: tuya.enum(0),
+                                CLOSE: tuya.enum(1),
+                                OPEN: tuya.enum(2),
+                            };
+                        }
+                        return {
+                            OPEN: tuya.enum(0),
+                            STOP: tuya.enum(1),
+                            CLOSE: tuya.enum(2),
+                        };
                     }),
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
