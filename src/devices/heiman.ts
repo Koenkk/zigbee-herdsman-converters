@@ -2561,6 +2561,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart relay module - 2 gang with neutral wire",
         exposes: [],
         extend: [
+            heimanExtend.heimanClusterSpecial(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             m.deviceTemperature(),
@@ -2604,7 +2605,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial", "haDiagnostic"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "heimanClusterSpecial"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint1.read("genOnOffSwitchCfg", ["switchActions"]);
