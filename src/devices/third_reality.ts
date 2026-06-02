@@ -93,9 +93,9 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
-interface ThirdCO2Sensor {
+interface ThirdAirQualitySensor {
     attributes: {
-        volatileOrganicCompounds: number;
+        vocIndex: number;
     };
     commands: never;
     commandResponses: never;
@@ -387,14 +387,14 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.co2(),
-            m.deviceAddCustomCluster("3rCO2SensorCluster", {
-                name: "3rCO2SensorCluster",
+            m.deviceAddCustomCluster("3rAirQualitySensorCluster", {
+                name: "3rAirQualitySensorCluster",
                 ID: 0x042e,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    volatileOrganicCompounds: {
-                        name: "volatileOrganicCompounds",
-                        ID: 0x0000,
+                    vocIndex: {
+                        name: "vocIndex",
+                        ID: 0x0100,
                         type: Zcl.DataType.UINT32,
                         max: 0xffffffff,
                     },
@@ -402,11 +402,11 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3rCO2SensorCluster", ThirdCO2Sensor>({
+            m.numeric<"3rAirQualitySensorCluster", ThirdAirQualitySensor>({
                 name: "voc_index",
-                cluster: "3rCO2SensorCluster",
-                attribute: "volatileOrganicCompounds",
-                unit: "aqi",
+                cluster: "3rAirQualitySensorCluster",
+                attribute: "vocIndex",
+                unit: "VOC Index points",
                 description: "Measured VOC Index",
                 access: "STATE_GET",
             }),
@@ -1157,7 +1157,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "genBasic",
                 ID: Zcl.Clusters.genBasic.ID,
                 attributes: {
-                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, max: 0x64},
+                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, manufacturerCode: 0x1407, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
