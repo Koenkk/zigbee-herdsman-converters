@@ -19,8 +19,6 @@ import {
 
 const NS = "zhc:fz";
 const defaultSimulatedBrightness = 255;
-const e = exposes.presets;
-const ea = exposes.access;
 
 // #region Generic/recommended converters
 export const fan: Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]> = {
@@ -2078,68 +2076,6 @@ export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined,
         return payload;
     },
 };
-export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
-    cluster: 23,
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // 25,0,8,3,0,0 - click btn 1
-        // 25,0,8,3,0,2 - hold btn 1
-        // 25,0,8,3,0,3 - release btn 1
-        // 25,0,8,11,0,0 - click btn 2
-        // 25,0,8,11,0,2 - hold btn 2
-        // 25,0,8,11,0,3 - release btn 2
-        // 25,0,8,7,0,0 - click btn 3
-        // 25,0,8,7,0,2 - hold btn 3
-        // 25,0,8,7,0,3 - release btn 3
-        // 25,0,8,15,0,0 - click btn 4
-        // 25,0,8,15,0,2 - hold btn 4
-        // 25,0,8,15,0,3 - release btn 4
-        // TODO: do not know how to get to use 5,6,7,8 buttons
-        const buttonLookup: KeyValueAny = {
-            3: "button_1",
-            11: "button_2",
-            7: "button_3",
-            15: "button_4",
-        };
-
-        const actionLookup: KeyValueAny = {
-            0: "click",
-            2: "hold",
-            3: "release",
-        };
-        const button = buttonLookup[msg.data[3]];
-        const action = actionLookup[msg.data[5]];
-        if (button) {
-            return {action: `${button}_${action}`};
-        }
-    },
-};
-export const orvibo_raw_2: Fz.Converter<23, undefined, "raw"> = {
-    cluster: 23,
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {
-            1: "button_1",
-            2: "button_2",
-            3: "button_3",
-            4: "button_4",
-            5: "button_5",
-            6: "button_6",
-            7: "button_7",
-        };
-
-        const actionLookup: KeyValueAny = {
-            0: "click",
-            2: "hold",
-            3: "release",
-        };
-        const button = buttonLookup[msg.data[3]];
-        const action = actionLookup[msg.data[5]];
-        if (button) {
-            return {action: `${button}_${action}`};
-        }
-    },
-};
 export const tint_scene: Fz.Converter<"genBasic", undefined, "write"> = {
     cluster: "genBasic",
     type: "write",
@@ -2201,17 +2137,6 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
 //         };
 //     },
 // };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const W2_module_carbon_monoxide: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            carbon_monoxide: (zoneStatus & (1 << 8)) > 8,
-        };
-    },
-};
 export const command_status_change_notification_action: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2228,23 +2153,6 @@ export const ptvo_multistate_action: Fz.Converter<"genMultistateInput", undefine
         const value = msg.data.presentValue;
         const action = actionLookup[value];
         return {action: postfixWithEndpointName(action, msg, model, meta)};
-    },
-};
-export const konke_action: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const value = msg.data.onOff;
-        const lookup: KeyValueAny = {128: "single", 129: "double", 130: "hold"};
-        return lookup[value] ? {action: lookup[value]} : null;
-    },
-};
-export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msPressureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"] as string) / 1000.0;
-        return {pressure};
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -2268,145 +2176,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         if (msg.endpoint.ID !== 2) return;
         return {
             water_leak: (zoneStatus & 1) > 0,
-        };
-    },
-};
-export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
-    cluster: "ssIasAce",
-    type: ["commandArm"],
-    convert: (model, msg, publish, options, meta) => {
-        const action = msg.data.armmode;
-        const lookup: KeyValueAny = {3: "single", 0: "double", 2: "long"};
-
-        // Workaround to ignore duplicated (false) presses that
-        // are 100ms apart, since the button often generates
-        // multiple duplicated messages for a single click event.
-        if (!globalStore.hasValue(msg.endpoint, "since")) {
-            globalStore.putValue(msg.endpoint, "since", 0);
-        }
-
-        const now = Date.now();
-        const since = globalStore.getValue(msg.endpoint, "since");
-
-        if (now - since > 100 && lookup[action]) {
-            globalStore.putValue(msg.endpoint, "since", now);
-            return {action: lookup[action]};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SAGE206612_state: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]> = {
-    cluster: "genOnOff",
-    type: ["commandOn", "commandOff"],
-    convert: (model, msg, publish, options, meta) => {
-        const timeout = 28;
-
-        if (!globalStore.hasValue(msg.endpoint, "action")) {
-            globalStore.putValue(msg.endpoint, "action", []);
-        }
-
-        const lookup: KeyValueAny = {commandOn: "bell1", commandOff: "bell2"};
-        const timer = setTimeout(() => globalStore.getValue(msg.endpoint, "action").pop(), timeout * 1000);
-
-        const list = globalStore.getValue(msg.endpoint, "action");
-        if (list.length === 0 || list.length > 4) {
-            list.push(timer);
-            return {action: lookup[msg.type]};
-        }
-        if (timeout > 0) {
-            list.push(timer);
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    options: [
-        exposes.options.invert_cover(),
-        e.numeric("time_close", ea.SET).withDescription("Set the full closing time of the roller shutter (e.g. set it to 20) (value is in s)."),
-        e.numeric("time_open", ea.SET).withDescription("Set the full opening time of the roller shutter (e.g. set it to 21) (value is in s)."),
-    ],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const timeCoverSetMiddle = 60;
-
-        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
-        // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-        if (options.time_close != null && options.time_open != null) {
-            if (!globalStore.hasValue(msg.endpoint, "position")) {
-                globalStore.putValue(msg.endpoint, "position", {lastPreviousAction: -1, CurrentPosition: -1, since: false});
-            }
-
-            const entry = globalStore.getValue(msg.endpoint, "position");
-            // ignore if first action is middle and ignore action middle if previous action is middle
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
-                if ((entry.CurrentPosition === -1 && entry.lastPreviousAction === -1) || entry.lastPreviousAction === 50) {
-                    logger.warning("ZMCSW032D ignore action", NS);
-                    return;
-                }
-            }
-            let currentPosition = entry.CurrentPosition;
-            const lastPreviousAction = entry.lastPreviousAction;
-            const deltaTimeSec = Math.floor((Date.now() - entry.since) / 1000); // convert to sec
-
-            entry.since = Date.now();
-            entry.lastPreviousAction = msg.data.currentPositionLiftPercentage;
-
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
-                if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                    if (lastPreviousAction === 100) {
-                        // Open
-                        currentPosition = currentPosition === -1 ? 0 : currentPosition;
-                        currentPosition = currentPosition + (deltaTimeSec * 100) / Number(options.time_open);
-                    } else if (lastPreviousAction === 0) {
-                        // Close
-                        currentPosition = currentPosition === -1 ? 100 : currentPosition;
-                        currentPosition = currentPosition - (deltaTimeSec * 100) / Number(options.time_close);
-                    }
-                    currentPosition = currentPosition > 100 ? 100 : currentPosition;
-                    currentPosition = currentPosition < 0 ? 0 : currentPosition;
-                }
-            }
-            entry.CurrentPosition = currentPosition;
-
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
-                // position cast float to int
-                result.position = currentPosition | 0;
-            } else {
-                if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                    // position cast float to int
-                    result.position = currentPosition | 0;
-                } else {
-                    entry.CurrentPosition = lastPreviousAction;
-                    result.position = lastPreviousAction;
-                }
-            }
-            result.position = options.invert_cover ? 100 - result.position : result.position;
-        } else {
-            // Previous solution without time_close and time_open
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
-                const liftPercentage = msg.data.currentPositionLiftPercentage;
-                result.position = liftPercentage;
-                result.position = options.invert_cover ? 100 - result.position : result.position;
-            }
-        }
-        // Add the state
-        if ("position" in result) {
-            result.state = result.position === 0 ? "CLOSE" : "OPEN";
-        }
-        return result;
-    },
-};
-export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            restore_reports: (zoneStatus & (1 << 5)) > 0,
         };
     },
 };
