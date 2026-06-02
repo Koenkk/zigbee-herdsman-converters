@@ -499,7 +499,9 @@ export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">>
         name: "device_temperature",
         cluster: "genDeviceTempCfg",
         attribute: "currentTemperature",
-        reporting: {min: "5_MINUTES", max: "1_HOUR", change: 1},
+        // Attribute does not support reporting according to the spec
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12199
+        reporting: false, // {min: "5_MINUTES", max: "1_HOUR", change: 1},
         description: "Temperature of the device",
         unit: "°C",
         access: "STATE_GET",
@@ -724,7 +726,8 @@ export function iasArmCommandDefaultResponse(): ModernExtend {
     return {fromZigbee: [converter], isModernExtend: true};
 }
 
-export function iasGetPanelStatusResponse(): ModernExtend {
+export function iasGetPanelStatusResponse(options?: {audiblenotif?: number}): ModernExtend {
+    const defaultAudibleNotif = options?.audiblenotif ?? 0;
     const converter: Fz.Converter<"ssIasAce", undefined, ["commandGetPanelStatus"]> = {
         cluster: "ssIasAce",
         type: ["commandGetPanelStatus"],
@@ -735,7 +738,7 @@ export function iasGetPanelStatusResponse(): ModernExtend {
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
                     secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
-                    audiblenotif: 0x00,
+                    audiblenotif: globalStore.getValue(msg.endpoint, "audibleNotif", defaultAudibleNotif),
                     alarmstatus: 0x00,
                 };
                 assertNumber(msg.meta.zclTransactionSequenceNumber);

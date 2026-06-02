@@ -183,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["LCX028"],
+        zigbeeModel: ["LCX028", "LCX025"],
         model: "929004581901",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (14 meter with 20 bulbs)",
@@ -1182,6 +1182,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ["929003052701"],
+        model: "929003052701",
+        vendor: "Philips",
+        description: "Hue Flourish white and color ambiance ceiling light with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["4090431P9"],
         model: "4090431P9",
         vendor: "Philips",
@@ -1411,7 +1418,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290022169",
         vendor: "Philips",
         description: "Hue white ambiance E27 with Bluetooth",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["LTA004"],
@@ -2803,8 +2810,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003017102",
         vendor: "Philips",
         description: "Hue wall switch module",
-        extend: [philips.m.addManuSpecificPhilipsCluster()],
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, philips.fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
+        extend: [philips.m.addManuSpecificPhilipsCluster(), philips.m.addPhilipsGenBasicCluster()],
+        fromZigbee: [
+            fz.battery,
+            philips.fz.hue_wall_switch_device_mode,
+            philips.fz.hue_wall_switch,
+            fz.command_toggle,
+            fz.command_move,
+            fz.command_stop,
+        ],
         exposes: [
             e.battery(),
             e.action([
@@ -2823,7 +2837,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.enum("device_mode", ea.ALL, ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"]),
         ],
-        toZigbee: [tz.hue_wall_switch_device_mode],
+        toZigbee: [philips.tz.hue_wall_switch_device_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "manuSpecificPhilips"]);
@@ -2958,7 +2972,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290012607",
         vendor: "Philips",
         description: "Hue motion sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -2967,7 +2988,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -2981,7 +3002,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -2990,7 +3013,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290019758",
         vendor: "Philips",
         description: "Hue motion outdoor sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -2999,7 +3029,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -3013,7 +3043,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -3071,7 +3103,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290030675",
         vendor: "Philips",
         description: "Hue motion sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -3080,7 +3119,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3091,7 +3130,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -3100,7 +3141,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290030674",
         vendor: "Philips",
         description: "Hue motion outdoor sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -3109,7 +3157,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3120,7 +3168,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -3765,7 +3815,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8718696743133",
         vendor: "Philips",
         description: "Hue tap",
-        fromZigbee: [fz.hue_tap],
+        fromZigbee: [philips.fz.hue_tap],
         toZigbee: [],
         exposes: [e.action(["press_1", "press_2", "press_3", "press_4", "press_1_and_2", "release_1_and_2", "press_3_and_4", "release_3_and_4"])],
     },

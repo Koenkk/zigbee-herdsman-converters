@@ -18,8 +18,13 @@ export interface NamronHvacThermostat {
         windowOpenCheck2: number;
         hysterersis: number;
         windowOpen: number;
+        adaptiveFunction: number;
         alarmAirTempOverValue: number;
         awayModeSet: number;
+        pidKp: number;
+        pidKd: number;
+        pidKi: number;
+        controlMethod: number;
         windowOpenCheck: boolean;
         antiFrost: boolean;
         windowState: boolean;
@@ -815,6 +820,13 @@ export const namronExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                     write: true,
                 },
+                adaptiveFunction: {
+                    name: "adaptiveFunction",
+                    ID: 0x100c,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
                 alarmAirTempOverValue: {
                     name: "alarmAirTempOverValue",
                     ID: 0x2001,
@@ -825,6 +837,34 @@ export const namronExtend = {
                 awayModeSet: {
                     name: "awayModeSet",
                     ID: 0x2002,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                pidKp: {
+                    name: "pidKp",
+                    ID: 0x2006,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                pidKd: {
+                    name: "pidKd",
+                    ID: 0x2007,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                pidKi: {
+                    name: "pidKi",
+                    ID: 0x2008,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
+                    write: true,
+                },
+                controlMethod: {
+                    name: "controlMethod",
+                    ID: 0x2009,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                     write: true,

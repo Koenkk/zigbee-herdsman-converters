@@ -5,6 +5,7 @@ import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -151,47 +152,59 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot", //fingerbot
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         whiteLabel: [
             tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"]),
             tuya.whitelabel("Nous", "C2", "Button/switch pusher", ["_TZE284_pislt0wa"]),
         ],
         exposes: [
-            e.switch(),
-            e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
+            te.switch(),
             e
-                .numeric("click_sustain_time", ea.STATE_SET)
+                .enum("switch_states", ea.STATE_SET, ["SWITCH"])
+                .withDescription("Changes the displayed state to the opposite state")
+                .withCategory("config"),
+            e
+                .enum("mode", ea.STATE_SET, ["button", "switch"])
+                .withDescription("Work mode of the finger robot. Button: press and release, Switch: press")
+                .withCategory("config"),
+            e
+                .numeric("button_hold_duration", ea.STATE_SET)
                 .withValueMin(0.3)
                 .withValueMax(10)
                 .withValueStep(0.1)
-                .withDescription("keep times for click")
-                .withUnit("s"),
+                .withDescription("Sets the press duration for button mode")
+                .withUnit("s")
+                .withCategory("config"),
             e
-                .numeric("arm_down_percent", ea.STATE_SET)
+                .enum("auto_adjustment", ea.STATE_SET, ["START"])
+                .withDescription("Auto select the end position. Slowly lower the arm until it fully presses the button, and save the result")
+                .withCategory("config"),
+            e
+                .numeric("arm_start_position", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(30)
                 .withValueStep(1)
-                .withDescription("the position for arm moving down"),
+                .withDescription("Sets arm position when idle")
+                .withCategory("config"),
             e
-                .numeric("arm_up_percent", ea.STATE_SET)
+                .numeric("arm_end_position", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(30)
                 .withValueStep(1)
-                .withDescription("the position for arm moving up"),
-            e.binary("auto_adjustment", ea.STATE_SET, "ON", "OFF").withDescription("auto adjustment the arm position"),
-            e.binary("set_switch_state", ea.STATE_SET, "ON", "OFF").withDescription("set the switch display status"),
+                .withDescription("Sets arm position when fully pressed")
+                .withCategory("config"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [2, "mode", tuya.valueConverterBasic.lookup({click: tuya.enum(0), long_press: tuya.enum(1)})],
-                [3, "click_sustain_time", tuya.valueConverter.divideBy10], // springback_time
-                [5, "arm_down_percent", tuya.valueConverter.raw], // initial_percent
-                [6, "arm_up_percent", tuya.valueConverter.raw], // end_percent
-                [101, "auto_adjustment", tuya.valueConverter.onOff], // auto
-                [102, "set_switch_state", tuya.valueConverter.onOff], // switching_display_status
+                [1, "state", tuya.valueConverter.onOffFingerbot],
+                [2, "mode", tuya.valueConverterBasic.lookup({button: tuya.enum(0), switch: tuya.enum(1)})],
+                [3, "button_hold_duration", tuya.valueConverter.divideBy10], // springback_time
+                [5, "arm_end_position", tuya.valueConverter.raw], // initial_percent
+                [6, "arm_start_position", tuya.valueConverter.raw], // end_percent
                 [8, "battery", tuya.valueConverter.raw],
+                [101, "auto_adjustment", tuya.valueConverter.autoAdjustment], // auto
+                [102, "switch_states", tuya.valueConverter.switchStates], // switching_display_status
             ],
         },
     },

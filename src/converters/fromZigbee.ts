@@ -3,7 +3,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
-import type {Fz, KeyValue, KeyValueAny, KeyValueNumberString} from "../lib/types";
+import type {Fz, KeyValue, KeyValueAny} from "../lib/types";
 import * as utils from "../lib/utils";
 import {
     addActionGroup,
@@ -1982,41 +1982,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const tuya_doorbell_button: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const lookup: KeyValueAny = {1: "pressed"};
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            action: lookup[zoneStatus & 1],
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-        };
-    },
-};
-export const ts0216_siren: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasWd",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.maxDuration !== undefined) result.duration = msg.data.maxDuration;
-        if (msg.data["2"] !== undefined) {
-            result.volume = mapNumberRange(msg.data["2"] as number, 100, 10, 0, 100);
-        }
-
-        if (["_TYZB01_sbpc1zrb"].includes(meta.device.manufacturerName) && typeof msg.data["2"] === "number") {
-            const volData = msg.data["2"];
-            result.volume = volData === 0 ? 0 : mapNumberRange(volData, 100, 33, 1, 100);
-        }
-
-        if (msg.data["61440"] !== undefined) {
-            result.alarm = msg.data["61440"] !== 0;
-        }
-        return result;
-    },
-};
 export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genMultistateValue",
     type: ["attributeReport", "readResponse"],
@@ -2274,19 +2239,6 @@ export const konke_action: Fz.Converter<"genOnOff", undefined, ["attributeReport
         return lookup[value] ? {action: lookup[value]} : null;
     },
 };
-export const qlwz_letv8key_switch: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genMultistateInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {4: "up", 2: "down", 5: "left", 3: "right", 8: "center", 1: "back", 7: "play", 6: "voice"};
-        const actionLookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "tripple"};
-        const button = buttonLookup[msg.endpoint.ID];
-        const action = actionLookup[msg.data.presentValue] || msg.data.presentValue;
-        if (button) {
-            return {action: `${action}_${button}`};
-        }
-    },
-};
 export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msPressureMeasurement",
     type: ["attributeReport", "readResponse"],
@@ -2317,30 +2269,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         return {
             water_leak: (zoneStatus & 1) > 0,
         };
-    },
-};
-export const scenes_recall_scene_65024: Fz.Converter<65024, undefined, ["raw"]> = {
-    cluster: 65024,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
-    },
-};
-export const adeo_button_65024: Fz.Converter<65024, undefined, ["raw"]> = {
-    cluster: 65024,
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const clickMapping: KeyValueNumberString = {1: "single", 2: "double", 3: "hold"};
-        return {action: `${clickMapping[msg.data[6]]}`};
-    },
-};
-export const color_stop_raw: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload = {action: postfixWithEndpointName("color_stop", msg, model, meta)};
-        addActionGroup(payload, msg, model);
-        return payload;
     },
 };
 export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
@@ -2470,181 +2398,6 @@ export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", un
         return result;
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const STS_PRS_251_presence: Fz.Converter<"genBinaryInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryInput",
-    type: ["attributeReport", "readResponse"],
-    options: [exposes.options.presence_timeout()],
-    convert: (model, msg, publish, options, meta) => {
-        const useOptionsTimeout = options?.presence_timeout != null;
-        const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
-
-        // Stop existing timer because motion is detected and set a new one.
-        clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
-        globalStore.putValue(msg.endpoint, "timer", timer);
-
-        return {presence: true};
-    },
-};
-export const javis_lock_report: Fz.Converter<"genBasic", undefined, "attributeReport"> = {
-    cluster: "genBasic",
-    type: "attributeReport",
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {
-            0: "pairing",
-            1: "keypad",
-            2: "rfid_card_unlock",
-            3: "touch_unlock",
-        };
-        const utf8FromStr = (s: string) => {
-            const a = [];
-            for (let i = 0, enc = encodeURIComponent(s); i < enc.length; ) {
-                if (enc[i] === "%") {
-                    a.push(Number.parseInt(enc.substr(i + 1, 2), 16));
-                    i += 3;
-                } else {
-                    a.push(enc.charCodeAt(i++));
-                }
-            }
-            return a;
-        };
-
-        const data = utf8FromStr(msg.data["16896"] as string);
-
-        clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-        const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000);
-        globalStore.putValue(msg.endpoint, "timer", timer);
-
-        return {
-            action: "unlock",
-            action_user: data[3],
-            action_source: data[5],
-            action_source_name: lookup[data[5]],
-        };
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_led: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        return {led: msg.data.onOff === 1};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const CC2530ROUTER_meta: Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBinaryValue",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const data = msg.data;
-        return {
-            description: data.description,
-            type: data.inactiveText,
-            rssi: data.presentValue,
-        };
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_contact: Fz.Converter<"ssIasZone", undefined, ["raw"]> = {
-    cluster: "ssIasZone",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {contact: msg.data[7] === 0};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const KAMI_occupancy: Fz.Converter<"msOccupancySensing", undefined, ["raw"]> = {
-    cluster: "msOccupancySensing",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data[7] === 1) {
-            return {action: "motion"};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const DNCKAT_S00X_buttons: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const action = msg.data.onOff === 1 ? "release" : "hold";
-        return {action: postfixWithEndpointName(action, msg, model, meta)};
-    },
-};
-export const hue_motion_sensitivity: Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msOccupancySensing",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data["48"] !== undefined) {
-            const lookup: KeyValueAny = ["low", "medium", "high", "very_high", "max"];
-            return {motion_sensitivity: lookup[msg.data["48"] as number]};
-        }
-    },
-};
-export const hue_motion_led_indication: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBasic",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data["51"] !== undefined) {
-            return {led_indication: msg.data["51"] === 1};
-        }
-    },
-};
-export const hue_wall_switch_device_mode: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genBasic",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data["52"] !== undefined) {
-            const values = ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"];
-            return {device_mode: values[msg.data["52"] as number]};
-        }
-    },
-};
-const HUE_TAP_LOOKUP: Record<number, string> = {
-    34: "press_1",
-    16: "press_2",
-    17: "press_3",
-    18: "press_4",
-    // Actions below are never generated by a Hue Tap but by a PMT 215Z
-    // https://github.com/Koenkk/zigbee2mqtt/issues/18088
-    98: "press_3_and_4",
-    99: "release_3_and_4",
-    100: "press_1_and_2",
-    101: "release_1_and_2",
-};
-export const hue_tap: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        if (HUE_TAP_LOOKUP[commandID] === undefined) {
-            logger.error(`Hue Tap: missing command '${commandID}'`, NS);
-        } else {
-            return {action: HUE_TAP_LOOKUP[commandID]};
-        }
-    },
-};
-export const tuya_relay_din_led_indicator: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const property = 0x8001;
-
-        if (msg.data[property] !== undefined) {
-            const dict: KeyValueNumberString = {0: "off", 1: "on_off", 2: "off_on"};
-            const value = msg.data[property] as number;
-
-            if (dict[value] !== undefined) {
-                return {[postfixWithEndpointName("indicator_mode", msg, model, meta)]: dict[value]};
-            }
-        }
-    },
-};
 export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
@@ -2702,47 +2455,6 @@ export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["co
         return {action: `scene_${scenes[msg.data.level]}`};
     },
 };
-export const sihas_people_cnt: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genAnalogInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {"0": "idle", "1": "in", "2": "out"};
-        const value = precisionRound(msg.data.presentValue, 1);
-        const people = precisionRound(msg.data.presentValue, 0);
-        let result = null;
-        if (value <= 80) {
-            result = {people: people, status: lookup[(value * 10) % 10]};
-            return result;
-        }
-    },
-};
-export const sihas_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
-    cluster: "genOnOff",
-    type: ["commandOn", "commandOff", "commandToggle"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {commandToggle: "long", commandOn: "double", commandOff: "single"};
-        let buttonMapping: KeyValueAny = null;
-        if (model.model === "SBM300ZB2") {
-            buttonMapping = {1: "1", 2: "2"};
-        } else if (model.model === "SBM300ZB3") {
-            buttonMapping = {1: "1", 2: "2", 3: "3"};
-        } else if (model.model === "SBM300ZB4") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        } else if (model.model === "SBM300ZC2") {
-            buttonMapping = {1: "1", 2: "2"};
-        } else if (model.model === "SBM300ZC3") {
-            buttonMapping = {1: "1", 2: "2", 3: "3"};
-        } else if (model.model === "SBM300ZC4") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        } else if (model.model === "MSM-300ZB") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        } else if (model.model === "SQM300ZC4") {
-            buttonMapping = {1: "1", 2: "2", 3: "3", 4: "4"};
-        }
-        const button = buttonMapping ? `${buttonMapping[msg.endpoint.ID]}_` : "";
-        return {action: `${button}${lookup[msg.type]}`};
-    },
-};
 const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
     33: "press_on",
     32: "press_off",
@@ -2789,20 +2501,6 @@ export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["com
         } else {
             return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
         }
-    },
-};
-export const command_stop_move_raw: Fz.Converter<"lightingColorCtrl", undefined, "raw"> = {
-    cluster: "lightingColorCtrl",
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // commandStopMove without params
-        if (msg.data[2] !== 71) return;
-        if (hasAlreadyProcessedMessage(msg, model)) return;
-        const movestop = "stop";
-        const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
-        const payload = {action};
-        addActionGroup(payload, msg, model);
-        return payload;
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -3062,72 +2760,5 @@ export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined,
     convert: (model, msg, publish, options, meta) => {
         const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
         return occupancy_with_timeout.convert(model, newMsg, publish, options, meta);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZM35HQ_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasZone",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        let result: KeyValueAny = {};
-        const data = msg.data;
-        if (data && data.zoneStatus !== undefined) {
-            const result1 = ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
-            result = {...result1};
-        }
-        if (data && data.currentZoneSensitivityLevel !== undefined) {
-            const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
-            result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
-        }
-        if (data && data["61441"] !== undefined) {
-            const keeptimelookup: Record<number, number> = {0: 30, 1: 60, 2: 120};
-            result.keep_time = keeptimelookup[data["61441"] as number];
-        }
-        return result;
-    },
-};
-export const TS110E: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValue = {};
-        if (msg.data["64515"] !== undefined) {
-            result.min_brightness = utils.mapNumberRange(msg.data["64515"] as number, 0, 1000, 1, 255);
-        }
-        if (msg.data["64516"] !== undefined) {
-            result.max_brightness = utils.mapNumberRange(msg.data["64516"] as number, 0, 1000, 1, 255);
-        }
-        if (msg.data["61440"] !== undefined) {
-            const propertyName = utils.postfixWithEndpointName("brightness", msg, model, meta);
-            result[propertyName] = utils.mapNumberRange(msg.data["61440"] as number, 0, 1000, 0, 255);
-        }
-        return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_light_type: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValue = {};
-        if (msg.data["64514"] !== undefined) {
-            const lookup: Record<number, string> = {0: "led", 1: "incandescent", 2: "halogen"};
-            result.light_type = lookup[msg.data["64514"] as number];
-        }
-        return result;
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS110E_switch_type: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genLevelCtrl",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValue = {};
-        if (msg.data["64514"] !== undefined) {
-            const lookup: Record<number, string> = {0: "momentary", 1: "toggle", 2: "state"};
-            const propertyName = utils.postfixWithEndpointName("switch_type", msg, model, meta);
-            result[propertyName] = lookup[msg.data["64514"] as number];
-        }
-        return result;
     },
 };
