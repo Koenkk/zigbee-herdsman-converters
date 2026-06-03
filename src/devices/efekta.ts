@@ -2971,7 +2971,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3114,7 +3114,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3389,7 +3389,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",

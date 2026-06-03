@@ -2250,49 +2250,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZMCSW032D_cover_position: Tz.Converter = {
-    key: ["position", "tilt"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertNumber(value, key);
-        if (meta.options.time_close != null && meta.options.time_open != null) {
-            const sleepSeconds = async (s: number) => {
-                return await new Promise((resolve) => setTimeout(resolve, s * 1000));
-            };
-
-            const oldPosition = meta.state.position;
-            if (value === 100) {
-                await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-            } else if (value === 0) {
-                await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
-            } else {
-                if (utils.isNumber(oldPosition) && oldPosition > value) {
-                    const delta = oldPosition - value;
-                    utils.assertNumber(meta.options.time_open);
-                    const mutiplicateur = meta.options.time_open / 100;
-                    const timeBeforeStop = delta * mutiplicateur;
-                    await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
-                    await sleepSeconds(timeBeforeStop);
-                    await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
-                } else if (utils.isNumber(oldPosition) && oldPosition < value) {
-                    const delta = value - oldPosition;
-                    utils.assertNumber(meta.options.time_close);
-                    const mutiplicateur = meta.options.time_close / 100;
-                    const timeBeforeStop = delta * mutiplicateur;
-                    await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-                    await sleepSeconds(timeBeforeStop);
-                    await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
-                }
-            }
-
-            return {state: {position: value}};
-        }
-    },
-    convertGet: async (entity, key, meta) => {
-        const isPosition = key === "position";
-        await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
-    },
-};
 export const ptvo_switch_trigger: Tz.Converter = {
     key: ["trigger", "interval"],
     convertSet: async (entity, key, value, meta) => {
@@ -2769,29 +2726,6 @@ export const TS0003_curtain_switch: Tz.Converter = {
         await entity.read("genOnOff", ["onOff"]);
     },
 };
-export const dawondns_only_off: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        const lowerValue = value.toLowerCase();
-        utils.validateValue(lowerValue, ["off"]);
-        await entity.command("genOnOff", lowerValue as "off", {}, utils.getOptions(meta.mapped, entity));
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genOnOff", ["onOff"]);
-    },
-};
-export const sihas_set_people: Tz.Converter = {
-    key: ["people"],
-    convertSet: async (entity, key, value, meta) => {
-        const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
-        await endpoint.write("genAnalogInput", {presentValue: value as number});
-    },
-    convertGet: async (entity, key, meta) => {
-        const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
-        await endpoint.read("genAnalogInput", ["presentValue"]);
-    },
-};
 // #endregion
 
 // #region Ignore converters
@@ -2805,30 +2739,6 @@ export const ignore_rate: Tz.Converter = {
 };
 // #endregion
 
-export const light_onoff_restorable_brightness: Tz.Converter = {
-    /**
-     * Some devices reset brightness to 100% when turned on, even if previous brightness was different
-     * This uses the stored state of the device to restore to the previous brightness level when turning on
-     */
-    key: ["state", "brightness", "brightness_percent"],
-    options: [exposes.options.transition()],
-    convertSet: async (entity, key, value, meta) => {
-        const deviceState = meta.state || {};
-        const message = meta.message;
-        const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
-        const hasBrightness = message.brightness != null || message.brightness_percent != null;
-
-        // Add brightness if command is 'on' and we can restore previous value
-        if (state === "on" && !hasBrightness && utils.isNumber(deviceState.brightness) && deviceState.brightness > 0) {
-            message.brightness = deviceState.brightness;
-        }
-
-        return await light_onoff_brightness.convertSet(entity, key, value, meta);
-    },
-    convertGet: async (entity, key, meta) => {
-        return await light_onoff_brightness.convertGet(entity, key, meta);
-    },
-};
 export const ptvo_switch_light_brightness: Tz.Converter = {
     key: ["brightness", "brightness_percent", "transition"],
     options: [exposes.options.transition()],
