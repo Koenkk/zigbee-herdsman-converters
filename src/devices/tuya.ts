@@ -4307,10 +4307,20 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.temperatureUnit(),
             e.battery(),
             tuya.exposes.batteryState(),
-       ],
+        ],
         meta: {
             tuyaDatapoints: [
-                [2,"brightness_level",tuya.valueConverterBasic.lookup({lower: tuya.enum(0),low: tuya.enum(1),normal: tuya.enum(2),high: tuya.enum(3),higher: tuya.enum(4), }),],
+                [
+                    2,
+                    "brightness_level",
+                    tuya.valueConverterBasic.lookup({
+                        lower: tuya.enum(0),
+                        low: tuya.enum(1),
+                        normal: tuya.enum(2),
+                        high: tuya.enum(3),
+                        higher: tuya.enum(4),
+                    }),
+                ],
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
@@ -4324,7 +4334,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"]),
             tuya.whitelabel("GIEX", "GX06", "Soil Moisture Sensor", ["_TZE284_3urschql"]),
-        ],    
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_noixx2uz"]),
