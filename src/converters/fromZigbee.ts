@@ -2049,35 +2049,6 @@ export const command_status_change_notification_action: Fz.Converter<"ssIasZone"
         return {action: lookup[msg.data.zonestatus]};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msTemperatureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const temperature = msg.data.measuredValue / 100.0;
-
-        // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-        // SNZB-02 reports stranges values sometimes
-        if (temperature > -33 && temperature < 100) {
-            const property = postfixWithEndpointName("temperature", msg, model, meta);
-            return {[property]: temperature};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SNZB02_humidity: Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msRelativeHumidity",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const humidity = msg.data.measuredValue / 100.0;
-
-        // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-        // SNZB-02 reports stranges values sometimes
-        if (humidity >= 0 && humidity <= 99.75) {
-            return {humidity};
-        }
-    },
-};
 // #endregion
 
 // #region Ignore converters (these message dont need parsing).
