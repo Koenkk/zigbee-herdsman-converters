@@ -198,6 +198,7 @@ import {definitions as lux} from "./lux";
 import {definitions as lytko} from "./lytko";
 import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
+import {definitions as manhot} from "./manhot";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
@@ -374,7 +375,6 @@ import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
 import {definitions as zipato} from "./zipato";
 import {definitions as zunzunbee} from "./zunzunbee";
-import {definitions as manhot} from "./manhot";
 
 const definitions: DefinitionWithExtend[] = [
     ...acova,
