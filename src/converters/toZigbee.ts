@@ -2622,23 +2622,6 @@ export const scene_rename: Tz.Converter = {
         logger.info("Successfully renamed scene", NS);
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS0003_curtain_switch: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        utils.assertEndpoint(entity);
-        const lookup = {close: 1, stop: 2, open: 1};
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(lookup));
-        const endpointID = utils.getFromLookup(value, lookup);
-        const endpoint = entity.getDevice().getEndpoint(endpointID);
-        await endpoint.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genOnOff", ["onOff"]);
-    },
-};
 // #endregion
 
 // #region Ignore converters
