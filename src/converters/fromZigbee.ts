@@ -2371,16 +2371,6 @@ export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "
         return payload;
     },
 };
-export const command_on_presence: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
-    cluster: "genOnOff",
-    type: "commandOn",
-    convert: (model, msg, publish, options, meta) => {
-        const newMsg = {...msg, type: "commandCheckin" as const, data: {}};
-        const payload1 = checkin_presence.convert(model, newMsg, publish, options, meta);
-        const payload2 = command_on.convert(model, msg, publish, options, meta);
-        return {...payload1, ...payload2};
-    },
-};
 export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined, "commandGetPanelStatus"> = {
     cluster: "ssIasAce",
     type: "commandGetPanelStatus",
