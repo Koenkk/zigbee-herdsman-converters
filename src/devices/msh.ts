@@ -1,5 +1,5 @@
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
+import * as ptvo from "../devices/custom_devices_diy";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Tz} from "../lib/types";
@@ -29,8 +29,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "msh.AirQMon",
         vendor: "MySmartHouse",
         description: "MSH Air quality sensor",
-        fromZigbee: [fz.ptvo_switch_uart, fz.co2, fz.ptvo_switch_analog_input, fz.temperature],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_uart, tzLocal.ptvo_senseair_calibration],
+        fromZigbee: [ptvo.fzLocal.ptvo_switch_uart, fz.co2, ptvo.fzLocal.ptvo_switch_analog_input, fz.temperature],
+        toZigbee: [ptvo.tzLocal.ptvo_switch_trigger, ptvo.tzLocal.ptvo_switch_uart, tzLocal.ptvo_senseair_calibration],
         exposes: [
             e.text("action", ea.STATE_SET).withDescription("button clicks or data from/to UART"),
             e.enum("calibrate", ea.STATE_SET, ["ZERO", "SPAN"]).withEndpoint("l2").withDescription("Calibration"),
