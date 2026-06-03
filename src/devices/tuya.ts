@@ -4291,15 +4291,19 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_ap9owrsa",
             "_TZE284_33bwcga2",
             "_TZE284_wckqztdq",
+            "_TZE284_3urschql",
             "_TZE284_tgrzpqf4",
         ]),
         model: "TS0601_soil_3",
         vendor: "Tuya",
         description: "Soil sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
+        exposes: [e.temperature(), e.soil_moisture()...(device?.manufacturerName === "_TZE284_3urschql"
+        ? [e.enum("brightness_level", ea.STATE, ["lower", "low", "normal", "high", "higher"]).withDescription("Brightness level")]
+        : []), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
             tuyaDatapoints: [
+                [2,"brightness_level",tuya.valueConverterBasic.lookup({lower: tuya.enum(0),low: tuya.enum(1),normal: tuya.enum(2),high: tuya.enum(3),higher: tuya.enum(4), }),],
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
@@ -4310,42 +4314,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [15, "battery", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"])],
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3urschql"]),
-        model: "GX06",
-        vendor: "GIEX",
-        description: "Soil moisture sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.temperature(),
-            e.soil_moisture(),
-            e.enum("brightness_level", ea.STATE, ["lower", "low", "normal", "high", "higher"]).withDescription("Brightness level"),
-            tuya.exposes.temperatureUnit(),
-            e.battery(),
-            tuya.exposes.batteryState(),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [
-                    2,
-                    "brightness_level",
-                    tuya.valueConverterBasic.lookup({
-                        lower: tuya.enum(0),
-                        low: tuya.enum(1),
-                        normal: tuya.enum(2),
-                        high: tuya.enum(3),
-                        higher: tuya.enum(4),
-                    }),
-                ],
-                [3, "soil_moisture", tuya.valueConverter.raw],
-                [5, "temperature", tuya.valueConverter.divideBy10],
-                [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [14, "battery_state", tuya.valueConverter.batteryState],
-                [15, "battery", tuya.valueConverter.raw],
-            ],
-        },
+        whiteLabel: [
+            tuya.whitelabel("GIEX", "GX04", "Soil Moisture Sensor", ["_TZE284_nhgdf6qr"]),
+            tuya.whitelabel("GIEX", "GX06", "Soil Moisture Sensor", ["_TZE284_3urschql"]),
+        ],    
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_noixx2uz"]),
