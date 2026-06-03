@@ -2083,33 +2083,6 @@ export const itcmdr_clicks: Fz.Converter<"genMultistateInput", undefined, ["read
         return {action};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZB003X_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasZone",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const data = msg.data;
-        const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
-        const keeptimelookup: Record<number, number> = {0: 0, 1: 30, 2: 60, 3: 120, 4: 240, 5: 480};
-        if (data && data.currentZoneSensitivityLevel !== undefined) {
-            const value = data.currentZoneSensitivityLevel;
-            return {sensitivity: senslookup[value]};
-        }
-        if (data && data["61441"] !== undefined) {
-            const value = data["61441"] as number;
-            return {keep_time: keeptimelookup[value]};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZB003X_occupancy: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
-    },
-};
 export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
     cluster: "genLevelCtrl",
     type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
