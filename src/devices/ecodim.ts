@@ -240,7 +240,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["eco-dim06-zigbee"],
         model: "ECO-DIM.06-ZGB",
-        vendor: "EcoDim BV",
+        vendor: "EcoDim",
         description: "Plug in dimmer Zigbee, Phase cut-off(Trailing Edge R,C)",
         ota: true,
         extend: [m.light({configureReporting: true})],
