@@ -2,7 +2,7 @@ const _fz = require("zigbee-herdsman-converters/converters/fromZigbee");
 const _tz = require("zigbee-herdsman-converters/converters/toZigbee");
 const exposes = require("zigbee-herdsman-converters/lib/exposes");
 const tuya = require("zigbee-herdsman-converters/lib/tuya");
-import type {DefinitionWithExtend,MetaTuyaDataPointsSingle,Tz,Fz,Expose} from "../lib/types";
+import type {DefinitionWithExtend,MetaTuyaDataPointsSingle,Expose} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
