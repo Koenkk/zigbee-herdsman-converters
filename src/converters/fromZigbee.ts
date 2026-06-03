@@ -2083,14 +2083,6 @@ export const itcmdr_clicks: Fz.Converter<"genMultistateInput", undefined, ["read
         return {action};
     },
 };
-export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
-    cluster: "genLevelCtrl",
-    type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
-    convert: (model, msg, publish, options, meta) => {
-        const scenes: KeyValueAny = {2: "1", 52: "2", 102: "3", 153: "4", 194: "5", 254: "6"};
-        return {action: `scene_${scenes[msg.data.level]}`};
-    },
-};
 const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
     33: "press_on",
     32: "press_off",
