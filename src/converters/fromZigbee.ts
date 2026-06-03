@@ -2073,16 +2073,6 @@ export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "comman
         };
     },
 };
-export const itcmdr_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genMultistateInput",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
-        const clicks = msg.data.presentValue;
-        const action = lookup[clicks] ? lookup[clicks] : "many";
-        return {action};
-    },
-};
 const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
     33: "press_on",
     32: "press_off",
