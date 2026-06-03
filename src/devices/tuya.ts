@@ -4298,7 +4298,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Soil sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.temperature(), e.soil_moisture()...(device?.manufacturerName === "_TZE284_3urschql"
+        exposes: (device) =>[e.temperature(), e.soil_moisture),...(device?.manufacturerName === "_TZE284_3urschql"
         ? [e.enum("brightness_level", ea.STATE, ["lower", "low", "normal", "high", "higher"]).withDescription("Brightness level")]
         : []), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
