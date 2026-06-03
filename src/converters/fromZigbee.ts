@@ -2031,16 +2031,6 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
         return {action: lookup[msg.type]};
     },
 };
-// export const _8840100H_water_leak_alarm: Fz.Converter = {
-//     cluster: "haApplianceEventsAlerts",
-//     type: "commandAlertsNotification",
-//     convert: (model, msg, publish, options, meta) => {
-//         const alertStatus = msg.data.aalert;
-//         return {
-//             water_leak: (alertStatus & (1 << 12)) > 0,
-//         };
-//     },
-// };
 export const command_status_change_notification_action: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
