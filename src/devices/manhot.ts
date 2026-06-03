@@ -1,8 +1,7 @@
-import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
-import * as exposes from "../lib/exposes";
-import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const tz = require('zigbee-herdsman-converters/converters/toZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
+const tuya = require('zigbee-herdsman-converters/lib/tuya');
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -35,7 +34,7 @@ const commonTuyaDatapoints = [
     [105, 'child_lock', tuya.valueConverter.onOff],
 ];
 
-export const definitions: DefinitionWithExtend[] = [
+const definition = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr"]),
         model: "BL82-TYZ1",
@@ -433,3 +432,5 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
 ];
+
+module.exports = definition;
