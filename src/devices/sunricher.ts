@@ -1,6 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as wally from "../devices/wally";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
@@ -76,7 +77,7 @@ const SRZGP2801K45C_LOOKUP: Record<number, string> = {
     64: "rgb_release",
 };
 
-const fzLocal = {
+export const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -2415,7 +2416,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9010A",
         vendor: "Sunricher",
         description: "Door windows sensor",
-        fromZigbee: [fz.U02I007C01_contact, fz.battery],
+        fromZigbee: [wally.fzLocal.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
     },

@@ -2049,30 +2049,6 @@ export const command_status_change_notification_action: Fz.Converter<"ssIasZone"
         return {action: lookup[msg.data.zonestatus]};
     },
 };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const U02I007C01_contact: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        if (msg.endpoint.ID !== 1) return;
-        return {
-            contact: !((zoneStatus & 1) > 0),
-        };
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        if (msg.endpoint.ID !== 2) return;
-        return {
-            water_leak: (zoneStatus & 1) > 0,
-        };
-    },
-};
 const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
     33: "press_on",
     32: "press_off",
