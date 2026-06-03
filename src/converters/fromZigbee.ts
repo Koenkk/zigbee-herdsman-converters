@@ -2049,54 +2049,6 @@ export const command_status_change_notification_action: Fz.Converter<"ssIasZone"
         return {action: lookup[msg.data.zonestatus]};
     },
 };
-const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
-    33: "press_on",
-    32: "press_off",
-    52: "release",
-    53: "hold_on",
-    54: "hold_off",
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        if (SUNRICHER_SWITCH2801K2_LOOKUP[commandID] === undefined) {
-            logger.error(`Sunricher: missing command '${commandID}'`, NS);
-        } else {
-            return {action: SUNRICHER_SWITCH2801K2_LOOKUP[commandID]};
-        }
-    },
-};
-const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
-    33: "press_on",
-    32: "press_off",
-    55: "press_high",
-    56: "press_low",
-    53: "hold_high",
-    54: "hold_low",
-    52: "release",
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        if (SUNRICHER_SWITCH2801K4_LOOKUP[commandID] === undefined) {
-            logger.error(`Sunricher: missing command '${commandID}'`, NS);
-        } else {
-            return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
-        }
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "msTemperatureMeasurement",

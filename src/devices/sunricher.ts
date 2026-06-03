@@ -77,7 +77,25 @@ const SRZGP2801K45C_LOOKUP: Record<number, string> = {
     64: "rgb_release",
 };
 
-export const fzLocal = {
+const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    52: "release",
+    53: "hold_on",
+    54: "hold_off",
+};
+
+const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "release",
+};
+
+const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -114,6 +132,38 @@ export const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"genBasic", undefined, "write">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    sunricher_switch2801K2: {
+        cluster: "greenPower",
+        type: ["commandNotification", "commandCommissioningNotification"],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            if (SUNRICHER_SWITCH2801K2_LOOKUP[commandID] === undefined) {
+                logger.error(`Sunricher: missing command '${commandID}'`, NS);
+            } else {
+                return {action: SUNRICHER_SWITCH2801K2_LOOKUP[commandID]};
+            }
+        },
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    sunricher_switch2801K4: {
+        cluster: "greenPower",
+        type: ["commandNotification", "commandCommissioningNotification"],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            if (SUNRICHER_SWITCH2801K4_LOOKUP[commandID] === undefined) {
+                logger.error(`Sunricher: missing command '${commandID}'`, NS);
+            } else {
+                return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
+            }
+        },
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };
 
 const tzLocal = {
@@ -2024,7 +2074,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZGP2801K2-DIM",
         vendor: "Sunricher",
         description: "Pushbutton transmitter module",
-        fromZigbee: [fz.sunricher_switch2801K2],
+        fromZigbee: [fzLocal.sunricher_switch2801K2],
         toZigbee: [],
         exposes: [e.action(["press_on", "press_off", "hold_on", "hold_off", "release"])],
     },
@@ -2041,7 +2091,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZGP2801K4-DIM",
         vendor: "Sunricher",
         description: "Pushbutton transmitter module",
-        fromZigbee: [fz.sunricher_switch2801K4],
+        fromZigbee: [fzLocal.sunricher_switch2801K4],
         toZigbee: [],
         exposes: [e.action(["press_on", "press_off", "press_high", "press_low", "hold_high", "hold_low", "release"])],
     },
