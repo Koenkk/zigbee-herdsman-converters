@@ -23791,7 +23791,13 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZS-304Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_k7p2q5d9", "_TZE284_65gzcss7", "_TZE284_0ints6wl", "_TZE284_yzr43ayq", "_TZE2841000000_0ints6wl"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_k7p2q5d9",
+            "_TZE284_65gzcss7",
+            "_TZE284_0ints6wl",
+            "_TZE284_yzr43ayq",
+            "_TZE2841000000_0ints6wl",
+        ]),
         model: "ZS-300Z",
         vendor: "Arteco",
         description: "Soil moisture sensor",
