@@ -1,22 +1,30 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
 function mullerLichtLight(args: m.LightArgs) {
     const result = m.light(args);
-    result.toZigbee.push(tz.tint_scene);
+    result.toZigbee.push(tzLocal.tint_scene);
     return result;
 }
+export const tzLocal = {
+    tint_scene: {
+        key: ["tint_scene"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("genBasic", {16389: {value, type: 0x20}}, {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC});
+        },
+    } satisfies Tz.Converter,
+};
 
-const fzLocal = {
+export const fzLocal = {
     tint404011_move_to_color_temp: {
         cluster: "lightingColorCtrl",
         type: "commandMoveToColorTemp",
@@ -51,6 +59,15 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColorTemp">,
+    tint_scene: {
+        cluster: "genBasic",
+        type: "write",
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: `scene_${msg.data["16389"]}`};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, "write">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -158,7 +175,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "404062",
         vendor: "Müller Licht",
         description: "Kea RGB+CCT",
-        toZigbee: [tz.tint_scene],
+        toZigbee: [tzLocal.tint_scene],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -174,7 +191,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step,
             fzLocal.tint404011_move_to_color_temp,
             fz.command_move_to_color,
-            fz.tint_scene,
+            fzLocal.tint_scene,
             fz.command_stop,
             fz.command_move,
         ],
@@ -246,7 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move_to_color_temp,
             fz.command_move_to_color,
-            fz.tint_scene,
+            fzLocal.tint_scene,
         ],
         exposes: [
             e.action([

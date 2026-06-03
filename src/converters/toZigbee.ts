@@ -12,12 +12,6 @@ import * as utils from "../lib/utils";
 import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
-const manufacturerOptions = {
-    lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
-    ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
-    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
-    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
-};
 
 export const on_off: Tz.Converter = {
     key: ["state", "on_time", "off_wait_time"],
@@ -2250,12 +2244,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const tint_scene: Tz.Converter = {
-    key: ["tint_scene"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TYZB01_on_off: Tz.Converter = {
     key: ["state", "time_in_seconds"],

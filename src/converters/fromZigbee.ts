@@ -1980,15 +1980,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const tint_scene: Fz.Converter<"genBasic", undefined, "write"> = {
-    cluster: "genBasic",
-    type: "write",
-    convert: (model, msg, publish, options, meta) => {
-        const payload = {action: `scene_${msg.data["16389"]}`};
-        addActionGroup(payload, msg, model);
-        return payload;
-    },
-};
 export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff", "commandToggle"],
