@@ -3,8 +3,10 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
@@ -13,6 +15,43 @@ function mullerLichtLight(args: m.LightArgs) {
     result.toZigbee.push(tz.tint_scene);
     return result;
 }
+
+const fzLocal = {
+    tint404011_move_to_color_temp: {
+        cluster: "lightingColorCtrl",
+        type: "commandMoveToColorTemp",
+        convert: (model, msg, publish, options, meta) => {
+            // The remote has an internal state so store the last action in order to
+            // determine the direction of the color temperature change.
+            if (!globalStore.hasValue(msg.endpoint, "last_color_temp")) {
+                globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
+            }
+
+            const lastTemp = globalStore.getValue(msg.endpoint, "last_color_temp");
+            globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
+            let direction = "down";
+            if (lastTemp > msg.data.colortemp) {
+                direction = "up";
+            } else if (lastTemp < msg.data.colortemp) {
+                direction = "down";
+            } else if (msg.data.colortemp === 370 || msg.data.colortemp === 555) {
+                // The remote goes up to 370 in steps and emits 555 on down button hold.
+                direction = "down";
+            } else if (msg.data.colortemp === 153) {
+                direction = "up";
+            }
+
+            const payload = {
+                action: utils.postfixWithEndpointName("color_temperature_move", msg, model, meta),
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+                action_color_temperature_direction: direction,
+            };
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColorTemp">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -133,7 +172,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_off,
             fz.command_toggle,
             fz.command_step,
-            fz.tint404011_move_to_color_temp,
+            fzLocal.tint404011_move_to_color_temp,
             fz.command_move_to_color,
             fz.tint_scene,
             fz.command_stop,
