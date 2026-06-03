@@ -64,7 +64,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const fzLocal = {
+export const fzLocal = {
     tirouter: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -286,6 +286,112 @@ const fzLocal = {
             return {action: postfixWithEndpointName(action, msg, model, meta)};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_uart: {
+        cluster: "genMultistateValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
+            if (Array.isArray(data)) {
+                let bHex = false;
+                let code: number;
+                let index: number;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index] as number;
+                    if (code < 32 || code > 127) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString();
+                } else {
+                    data = [...data];
+                }
+            }
+            return {action: data};
+        },
+    } satisfies Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_analog_input: {
+        cluster: "genAnalogInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            const endpoint = msg.endpoint;
+            payload[name] = utils.precisionRound(msg.data.presentValue, 3);
+            const cluster = "genLevelCtrl";
+            if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
+                payload[`brightness_${name}`] = msg.data.presentValue;
+            } else if (msg.data.description !== undefined) {
+                const data1 = msg.data.description;
+                if (data1) {
+                    const data2 = data1.split(",");
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload[`device_${name}`] = devid;
+                    }
+
+                    const valRaw = msg.data.presentValue;
+                    if (unit) {
+                        let val = utils.precisionRound(valRaw, 1);
+
+                        const nameLookup: KeyValueAny = {
+                            C: "temperature",
+                            "%": "humidity",
+                            m: "altitude",
+                            Pa: "pressure",
+                            ppm: "quality",
+                            psize: "particle_size",
+                            V: "voltage",
+                            A: "current",
+                            Wh: "energy",
+                            W: "power",
+                            Hz: "frequency",
+                            pf: "power_factor",
+                            lx: "illuminance",
+                        };
+
+                        let nameAlt = "";
+                        if (unit === "A" || unit === "pf") {
+                            if (valRaw < 1) {
+                                val = utils.precisionRound(valRaw, 3);
+                            }
+                        }
+                        if (unit.startsWith("mcpm") || unit.startsWith("ncpm")) {
+                            const num = unit.substr(4, 1);
+                            nameAlt = num === "A" ? `${unit.substr(0, 4)}10` : unit;
+                            val = utils.precisionRound(valRaw, 2);
+                        } else {
+                            nameAlt = nameLookup[unit];
+                        }
+                        if (nameAlt === undefined) {
+                            const valueIndex = Number.parseInt(unit, 10);
+                            if (!Number.isNaN(valueIndex)) {
+                                nameAlt = `val${unit}`;
+                            }
+                        }
+
+                        if (nameAlt !== undefined) {
+                            payload[`${nameAlt}_${name}`] = val;
+                        }
+                    }
+                }
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_multistate_action: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
+            const value = msg.data.presentValue;
+            const action = actionLookup[value];
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -484,9 +590,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.on_off,
-            fz.ptvo_multistate_action,
-            fz.ptvo_switch_uart,
-            fz.ptvo_switch_analog_input,
+            fzLocal.ptvo_multistate_action,
+            fzLocal.ptvo_switch_uart,
+            fzLocal.ptvo_switch_analog_input,
             fz.brightness,
             fz.temperature,
             fzLocal.humidity2,
@@ -1176,7 +1282,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ptvo_counter_2ch",
         vendor: "Custom devices (DiY)",
         description: "2 channel counter",
-        fromZigbee: [fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
+        fromZigbee: [fz.battery, fzLocal.ptvo_switch_analog_input, fz.on_off],
         toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
         exposes: [
             e.battery(),

@@ -1980,102 +1980,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genMultistateValue",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
-        if (Array.isArray(data)) {
-            let bHex = false;
-            let code: number;
-            let index: number;
-            for (index = 0; index < data.length; index += 1) {
-                code = data[index] as number;
-                if (code < 32 || code > 127) {
-                    bHex = true;
-                    break;
-                }
-            }
-            if (!bHex) {
-                data = data.toString();
-            } else {
-                data = [...data];
-            }
-        }
-        return {action: data};
-    },
-};
-export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genAnalogInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        const channel = msg.endpoint.ID;
-        const name = `l${channel}`;
-        const endpoint = msg.endpoint;
-        payload[name] = precisionRound(msg.data.presentValue, 3);
-        const cluster = "genLevelCtrl";
-        if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
-            payload[`brightness_${name}`] = msg.data.presentValue;
-        } else if (msg.data.description !== undefined) {
-            const data1 = msg.data.description;
-            if (data1) {
-                const data2 = data1.split(",");
-                const devid = data2[1];
-                const unit = data2[0];
-                if (devid) {
-                    payload[`device_${name}`] = devid;
-                }
-
-                const valRaw = msg.data.presentValue;
-                if (unit) {
-                    let val = precisionRound(valRaw, 1);
-
-                    const nameLookup: KeyValueAny = {
-                        C: "temperature",
-                        "%": "humidity",
-                        m: "altitude",
-                        Pa: "pressure",
-                        ppm: "quality",
-                        psize: "particle_size",
-                        V: "voltage",
-                        A: "current",
-                        Wh: "energy",
-                        W: "power",
-                        Hz: "frequency",
-                        pf: "power_factor",
-                        lx: "illuminance",
-                    };
-
-                    let nameAlt = "";
-                    if (unit === "A" || unit === "pf") {
-                        if (valRaw < 1) {
-                            val = precisionRound(valRaw, 3);
-                        }
-                    }
-                    if (unit.startsWith("mcpm") || unit.startsWith("ncpm")) {
-                        const num = unit.substr(4, 1);
-                        nameAlt = num === "A" ? `${unit.substr(0, 4)}10` : unit;
-                        val = precisionRound(valRaw, 2);
-                    } else {
-                        nameAlt = nameLookup[unit];
-                    }
-                    if (nameAlt === undefined) {
-                        const valueIndex = Number.parseInt(unit, 10);
-                        if (!Number.isNaN(valueIndex)) {
-                            nameAlt = `val${unit}`;
-                        }
-                    }
-
-                    if (nameAlt !== undefined) {
-                        payload[`${nameAlt}_${name}`] = val;
-                    }
-                }
-            }
-        }
-        return payload;
-    },
-};
 export const tint_scene: Fz.Converter<"genBasic", undefined, "write"> = {
     cluster: "genBasic",
     type: "write",
@@ -2143,16 +2047,6 @@ export const command_status_change_notification_action: Fz.Converter<"ssIasZone"
     convert: (model, msg, publish, options, meta) => {
         const lookup: KeyValueAny = {0: "off", 1: "single", 2: "double", 3: "hold"};
         return {action: lookup[msg.data.zonestatus]};
-    },
-};
-export const ptvo_multistate_action: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genMultistateInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
-        const value = msg.data.presentValue;
-        const action = actionLookup[value];
-        return {action: postfixWithEndpointName(action, msg, model, meta)};
     },
 };
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
