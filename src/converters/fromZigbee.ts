@@ -2150,53 +2150,6 @@ export const SNZB02_humidity: Fz.Converter<"msRelativeHumidity", undefined, ["at
         }
     },
 };
-export const awox_colors: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const buffer = msg.data;
-        const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
-        let color = null;
-        if (commonForColors && [255, 254].includes(buffer[4])) {
-            color = "red";
-        } else if (commonForColors && [42, 41].includes(buffer[4])) {
-            color = "yellow";
-        } else if (commonForColors && [85, 84].includes(buffer[4])) {
-            color = "green";
-        } else if (commonForColors && [170, 169].includes(buffer[4])) {
-            color = "blue";
-        }
-
-        if (color != null) {
-            return {action: color, action_group: msg.groupID};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const awox_refreshColored: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveHue"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["commandMoveHue"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.movemode === 1 && msg.data.rate === 12) {
-            return {action: "refresh_colored", action_group: msg.groupID};
-        }
-    },
-};
-export const awox_refresh: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
-    cluster: "genLevelCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const buffer = msg.data;
-        const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
-        const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
-        if (isRefresh) {
-            return {action: "refresh", action_group: msg.groupID};
-        }
-        if (isRefreshLong) {
-            return {action: "refresh_long", action_group: msg.groupID};
-        }
-    },
-};
 // #endregion
 
 // #region Ignore converters (these message dont need parsing).
