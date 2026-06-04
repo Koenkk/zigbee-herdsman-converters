@@ -3,9 +3,22 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
+
+const fzLocal = {
+    command_on_presence: {
+        cluster: "genOnOff",
+        type: "commandOn",
+        convert: (model, msg, publish, options, meta) => {
+            const newMsg = {...msg, type: "commandCheckin" as const, data: {}};
+            const payload1 = fz.checkin_presence.convert(model, newMsg, publish, options, meta);
+            const payload2 = fz.command_on.convert(model, msg, publish, options, meta);
+            return {...payload1, ...payload2};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, "commandOn">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -83,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3450-L",
         vendor: "Iris",
         description: "Smart fob",
-        fromZigbee: [fz.command_on_presence, fz.command_off, fz.battery, fz.checkin_presence],
+        fromZigbee: [fzLocal.command_on_presence, fz.command_off, fz.battery, fz.checkin_presence],
         toZigbee: [],
         exposes: [e.action(["on_1", "off_1", "on_2", "off_2", "on_3", "off_3", "on_4", "off_4"]), e.battery(), e.presence()],
         meta: {battery: {voltageToPercentage: "3V_2100"}, multiEndpoint: true},

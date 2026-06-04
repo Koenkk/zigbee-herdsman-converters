@@ -3905,6 +3905,34 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandActiveStatusReport"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZB003X_attr: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
+            const keeptimelookup: Record<number, number> = {0: 0, 1: 30, 2: 60, 3: 120, 4: 240, 5: 480};
+            if (data && data.currentZoneSensitivityLevel !== undefined) {
+                const value = data.currentZoneSensitivityLevel;
+                return {sensitivity: senslookup[value]};
+            }
+            if (data && data["61441"] !== undefined) {
+                const value = data["61441"] as number;
+                return {keep_time: keeptimelookup[value]};
+            }
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZB003X_occupancy: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+
     tuya_thermostat_weekly_schedule_2: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],

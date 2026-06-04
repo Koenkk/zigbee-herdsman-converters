@@ -1,5 +1,20 @@
 # Changelog
 
+## [26.62.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.61.2...v26.62.0) (2026-06-03)
+
+
+### Features
+
+* **add:** ECO-DIM.06-ZGB ([#12369](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12369)) ([d968553](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9685539e6f92441ab1be446cbeff7ae131e35ec))
+
+
+### Bug Fixes
+
+* Add Tuya _TZE2841000000_0ints6wl and _TZE2841000000_hdml1aav ([#12368](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12368)) ([5579dd9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5579dd9f2aeb524ac9b273a013bc1dc2658f7d75))
+* Develco SPLZB-132: set powerOnBehaviour to false ([#12367](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12367)) ([29e3349](https://github.com/Koenkk/zigbee-herdsman-converters/commit/29e334912b5dd69f5d821b6fb69b14266f03f09b))
+* GIEX GX06: add soil sensor brightness level ([#12346](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12346)) ([2e7ba78](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2e7ba783f65c870359e02e175dc16446d6eaf27b))
+* Move various device specific converters from fromZigbee.ts and toZigbee.ts  ([#12372](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12372)) ([df8dc33](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df8dc3319e54cbef8bcd6cae985ff9045a3a9a06))
+
 ## [26.61.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.61.1...v26.61.2) (2026-06-02)
 
 
