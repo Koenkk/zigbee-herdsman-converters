@@ -1,6 +1,6 @@
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import type { DefinitionWithExtend } from "../lib/types";
+import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -11,7 +11,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BL82-TYZ1",
         vendor: "Manhot",
         description: "Cover motor LPD",
-        extend: [tuya.modernExtend.tuyaBase({ dp: true, respondToMcuVersionResponse: true })],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
         exposes: [
             e.battery(),
             e.cover_position().setAccess("position", ea.STATE_SET),
@@ -60,9 +60,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("displayoff_delay", ea.STATE_SET).withValueMin(10).withValueMax(180).withUnit("s").withDescription("Screen off delay"),
             e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Power-on state"),
             e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator light state"),
-            e.enum("on_color", ea.STATE_SET, ["red", "orange", "green", "cyan", "blue", "purple", "magenta", "cold_white", "warm_yellow"]).withDescription("Light-on color"),
-            e.enum("off_color", ea.STATE_SET, ["red", "orange", "green", "cyan", "blue", "purple", "magenta", "cold_white", "warm_yellow"]).withDescription("Light-off color"),
-
+            e
+                .enum("on_color", ea.STATE_SET, ["red", "orange", "green", "cyan", "blue", "purple", "magenta", "cold_white", "warm_yellow"])
+                .withDescription("Light-on color"),
+            e
+                .enum("off_color", ea.STATE_SET, ["red", "orange", "green", "cyan", "blue", "purple", "magenta", "cold_white", "warm_yellow"])
+                .withDescription("Light-off color"),
 
             e.text("sw1_name", ea.STATE_SET).withDescription("Set switch 1 name"),
         ],
@@ -72,32 +75,40 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state_l1", tuya.valueConverter.onOff],
                 [7, "countdown_1", tuya.valueConverter.raw],
 
-                [14, "relay_status", tuya.valueConverterBasic.lookup({ "off": tuya.enum(0), "on": tuya.enum(1), "memory": tuya.enum(2) })],
-                [15, "light_mode", tuya.valueConverterBasic.lookup({ "none": tuya.enum(0), "relay": tuya.enum(1), "pos": tuya.enum(2) })],
+                [14, "relay_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), memory: tuya.enum(2)})],
+                [15, "light_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
                 [16, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "backlight_lightness", tuya.valueConverter.raw],
-                [102, "on_color", tuya.valueConverterBasic.lookup({
-                    "red": tuya.enum(0),
-                    "orange": tuya.enum(1),
-                    "green": tuya.enum(2),
-                    "cyan": tuya.enum(3),
-                    "blue": tuya.enum(4),
-                    "purple": tuya.enum(5),
-                    "magenta": tuya.enum(6),
-                    "cold_white": tuya.enum(7),
-                    "warm_yellow": tuya.enum(8)
-                })],
-                [103, "off_color", tuya.valueConverterBasic.lookup({
-                    "red": tuya.enum(0),
-                    "orange": tuya.enum(1),
-                    "green": tuya.enum(2),
-                    "cyan": tuya.enum(3),
-                    "blue": tuya.enum(4),
-                    "purple": tuya.enum(5),
-                    "magenta": tuya.enum(6),
-                    "cold_white": tuya.enum(7),
-                    "warm_yellow": tuya.enum(8)
-                })],
+                [
+                    102,
+                    "on_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        orange: tuya.enum(1),
+                        green: tuya.enum(2),
+                        cyan: tuya.enum(3),
+                        blue: tuya.enum(4),
+                        purple: tuya.enum(5),
+                        magenta: tuya.enum(6),
+                        cold_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
+                [
+                    103,
+                    "off_color",
+                    tuya.valueConverterBasic.lookup({
+                        red: tuya.enum(0),
+                        orange: tuya.enum(1),
+                        green: tuya.enum(2),
+                        cyan: tuya.enum(3),
+                        blue: tuya.enum(4),
+                        purple: tuya.enum(5),
+                        magenta: tuya.enum(6),
+                        cold_white: tuya.enum(7),
+                        warm_yellow: tuya.enum(8),
+                    }),
+                ],
                 [104, "displayoff_delay", tuya.valueConverter.raw],
                 [105, "child_lock", tuya.valueConverter.onOff],
 
