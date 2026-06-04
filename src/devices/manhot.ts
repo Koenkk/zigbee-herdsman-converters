@@ -1,5 +1,3 @@
-import * as _fz from "../converters/fromZigbee";
-import * as _tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
 import type { DefinitionWithExtend } from "../lib/types";
