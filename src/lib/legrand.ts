@@ -516,6 +516,34 @@ export const fzLegrand = {
             return payload;
         },
     } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+    cover_moving_state: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.tuyaMovingState === undefined) return;
+
+            const targetPos = 100 - msg.data.tuyaMovingState;
+            const reportedLift = (msg.data as KeyValueAny).currentPositionLiftPercentage;
+
+            // If both target and current position are available in the same frame,
+            // we can determine whether the cover is still moving or has stopped.
+            if (reportedLift !== undefined) {
+                const currentPos = 100 - reportedLift;
+                if (Math.abs(targetPos - currentPos) <= 1) {
+                    return {action: "stopped"};
+                }
+
+                return {action: targetPos > currentPos ? "moving_opening" : "moving_closing"};
+            }
+
+            const currentPos = Number(meta.state?.position);
+            if (!Number.isNaN(currentPos)) {
+                return {action: targetPos > currentPos ? "moving_opening" : "moving_closing"};
+            }
+
+            return {action: "moving"};
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     identify: {
         cluster: "genIdentify",
         type: ["attributeReport", "readResponse"],

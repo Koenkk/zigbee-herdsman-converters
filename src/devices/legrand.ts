@@ -238,7 +238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "K4027C/L4027C/N4027C/NT4027C",
                 vendor: "BTicino",
                 description: "Shutter SW with level control",
-                fingerprint: [{hardwareVersion: 9}, {hardwareVersion: 13}],
+                fingerprint: [{hardwareVersion: 6}, {hardwareVersion: 9}, {hardwareVersion: 13}],
             },
         ],
         ota: true,
@@ -247,12 +247,19 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
+        fromZigbee: [
+            fz.cover_position_tilt,
+            fz.identify,
+            fzLegrand.cluster_fc01,
+            fzLegrand.calibration_mode(true),
+            fzLegrand.command_cover,
+            fzLegrand.cover_moving_state,
+        ],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
-                e.action(["identify", "open", "close", "stop", "moving", "stopped"]),
+                e.action(["identify", "open", "close", "stop", "moving", "moving_opening", "moving_closing", "stopped"]),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
@@ -261,7 +268,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "closuresWindowCovering", "genIdentify"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering", "genIdentify"]);
             let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
