@@ -22524,7 +22524,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-204ZV"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq", "_TZE200_y8jijhba"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
         description: "Millimeter wave motion detection",
@@ -23921,6 +23921,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "CK-BL702-MWS-01(7016)", manufacturerName: "ZG-204ZE"},
             {modelID: "TS0601", manufacturerName: "_TZE200_cq8lu23i"},
             {modelID: "TS0601", manufacturerName: "_TZE200_4pm4pekt"},
+            {modelID: "TS0601", manufacturerName: "_TZE200_y8jijhba"},
         ],
         model: "ZG-204ZE",
         vendor: "HOBEIAN",
