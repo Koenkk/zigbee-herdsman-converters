@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
 import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -302,6 +303,44 @@ export const tzLegrand = {
             return {state: {auto_mode: value}};
         },
     } satisfies Tz.Converter,
+    cover_state_with_moving: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await tz.cover_state.convertSet(entity, key, value, meta);
+            const cmd = (value as string).toLowerCase();
+            if (cmd === "open") {
+                return {...result, state: {...(result?.state || {}), state: "opening", action: "opening", moving: true}};
+            } else if (cmd === "close") {
+                return {...result, state: {...(result?.state || {}), state: "closing", action: "closing", moving: true}};
+            } else if (cmd === "stop") {
+                const pos = meta.state?.position as number | undefined;
+                const stoppedState = pos !== undefined && pos <= 0 ? "CLOSE" : "OPEN";
+                return {...result, state: {...(result?.state || {}), state: stoppedState, action: "stopped", moving: false}};
+            }
+            return result;
+        },
+        convertGet: async (entity, key, meta) => {
+            await tz.cover_state.convertGet!(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
+    cover_position_with_moving: {
+        key: ["position", "tilt"],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            const currentPos = meta.state?.position as number | undefined;
+            if (key === "position" && currentPos !== undefined) {
+                const numValue = value as number;
+                const action = numValue > currentPos ? "opening" : numValue < currentPos ? "closing" : "stopped";
+                const moving = action !== "stopped";
+                const state = action === "opening" ? "opening" : action === "closing" ? "closing" : numValue > 0 ? "OPEN" : "CLOSE";
+                return {...result, state: {...(result?.state || {}), state, action, moving}};
+            }
+            return {...result, state: {...(result?.state || {}), state: "opening", action: "moving", moving: true}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await tz.cover_position_tilt.convertGet!(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
         return {
             key: ["calibration_mode"],
@@ -530,18 +569,24 @@ export const fzLegrand = {
             if (reportedLift !== undefined) {
                 const currentPos = 100 - reportedLift;
                 if (Math.abs(targetPos - currentPos) <= 1) {
-                    return {action: "stopped"};
+                    const state = currentPos > 0 ? "OPEN" : "CLOSE";
+                    return {state, action: "stopped", moving: false};
                 }
-
-                return {action: targetPos > currentPos ? "moving_opening" : "moving_closing"};
+                const direction = targetPos > currentPos ? "opening" : "closing";
+                return {state: direction, action: direction, moving: true};
             }
 
             const currentPos = Number(meta.state?.position);
             if (!Number.isNaN(currentPos)) {
-                return {action: targetPos > currentPos ? "moving_opening" : "moving_closing"};
+                if (Math.abs(targetPos - currentPos) <= 1) {
+                    const state = currentPos > 0 ? "OPEN" : "CLOSE";
+                    return {state, action: "stopped", moving: false};
+                }
+                const direction = targetPos > currentPos ? "opening" : "closing";
+                return {state: direction, action: direction, moving: true};
             }
 
-            return {action: "moving"};
+            return {state: "opening", action: "moving", moving: true};
         },
     } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     identify: {
