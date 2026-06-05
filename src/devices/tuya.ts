@@ -5412,6 +5412,57 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0301", ["_TZE200_eatmkx5j"]),
+        model: "TS0301_dual_rail_2",
+        vendor: "Tuya",
+        description: "Top-down bottom-up single control shade",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        exposes: [
+            e.cover_position().withEndpoint("bottom").withDescription("Bottom rail"),
+            e.cover_position().withEndpoint("top").withDescription("Top rail"),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // Bottom rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
+                //               DP2 is set position and DP3 is current position
+                //                   50-100 control the Bottom shade, with 50 being fully closed, and 100 being fully open.
+                //                   50 is a special case though, as the actual 50 value is used by the top shade for fully open
+                //                      so we override that to 0 which is both top and bottom closed.
+                //                   51 results in the window being slightly open so we have to use the above logic.
+                [1, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
+                [2, "position_bottom", 
+                    {
+                        to: (v) => { const result = v == 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result; },
+                        from: (v) => { const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100); return result; },
+                    }
+                ],
+                [3, "position_bottom",
+                    {
+                        to: (v) => { const result = v == 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result;},
+                        from: (v) => { const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100); return result; },
+                    }
+                ],
+                // Top rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
+                //            DP2 is set position and DP3 is current position
+                //                0-50 control the Bottom shade, with 0 being fully closed, and 50 being fully open.
+                //            DP3 does not update when controlling the top shade via DP2, I suspect this is because the
+                //                returned information is consumed by the bottom shade DP3.
+
+                [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
+                [2, "position_top", tuya.valueConverterBasic.scale(0,100,0,50)],
+                [3, "position_top",
+                    {
+                        to: (v) => { const result = utils.mapNumberRange(v, 0, 100, 0, 50); return result; },
+                        from: (v) => { const result = v > 50 ? 0 : utils.mapNumberRange(v, 0, 50, 0, 100); return result; },
+                    }
+                ],
+                // Battery
+                [103, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_aqnazj70",
             "_TZE200_di3tfv5b",
