@@ -761,7 +761,6 @@ const tzLocal = {
     snzb_09p_alert: {
         key: ["start_manual_alarm", "cancel_alarm", "start_scene_alarm", "siren_on"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.state || {};
             const device = meta.device;
             if (!device) return;
             const endpoint = device.getEndpoint(1);
@@ -773,22 +772,7 @@ const tzLocal = {
                     payload = Buffer.from([1]);
                     break;
                 case "siren_on": {
-                    if (value === "OFF" || value === false) {
-                        payload = Buffer.from([1]);
-                        break;
-                    }
-
-                    const voice = state.alarm_sound_enable === "ON" || state.alarm_sound_enable === true ? 0x01 : 0x00;
-                    const light = state.alarm_light_enable === "ON" || state.alarm_light_enable === true ? 0x01 : 0x00;
-                    const alertSoundRaw = meta.message?.alarm_sound_type ?? state.alarm_sound_type ?? 0;
-                    const alertSoundParsed =
-                        typeof alertSoundRaw === "string" ? Number.parseInt(alertSoundRaw.replace(/^sound\s+/i, ""), 10) : Number(alertSoundRaw);
-                    const alertSound = Number.isFinite(alertSoundParsed) ? Math.min(9, Math.max(0, alertSoundParsed)) : 0;
-                    const volMap = {low: 0, medium: 1, high: 2, highest: 3} as const;
-                    const volumeLevel = String(state.alarm_volume_level ?? "high").toLowerCase();
-                    const volume = volMap[volumeLevel as keyof typeof volMap] ?? 2;
-                    const duration = Math.min(900, Math.max(1, Number(state.alarm_duration ?? 10)));
-                    payload = Buffer.from([0x02, 0x00, voice, light, alertSound, volume, duration & 0xff, (duration >> 8) & 0xff, 0x00]);
+                    payload = Buffer.from([0]);
                     break;
                 }
                 default:
