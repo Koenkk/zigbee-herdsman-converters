@@ -6108,7 +6108,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.battery({
-                percentageReporting: true,
+                percentageReportingConfig: {min: 3600, max: 7200, change: 2},
+                voltage: true,
                 voltageReporting: true,
                 voltageReportingConfig: false,
             }),
