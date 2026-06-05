@@ -5861,6 +5861,17 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x014f], {manufacturerCode: manufacturerCode}); // Read current PIR interval
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+
+            // Configure reporting so presence (0x0142) and PIR detection (0x014d) update autonomously.
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.configureReporting<"manuSpecificLumi", ManuSpecificLumi>(
+                "manuSpecificLumi",
+                [
+                    {attribute: {ID: 0x0142, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+                    {attribute: {ID: 0x014d, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+                ],
+                {manufacturerCode: manufacturerCode},
+            );
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
