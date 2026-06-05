@@ -306,18 +306,18 @@ export const tzLegrand = {
     cover_state_with_moving: {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
-            const result = await tz.cover_state.convertSet(entity, key, value, meta);
+            // cover_state.convertSet returns void; call it for the side-effect only
+            await tz.cover_state.convertSet!(entity, key, value, meta);
             const cmd = (value as string).toLowerCase();
             if (cmd === "open") {
-                return {...result, state: {...(result?.state || {}), state: "opening", action: "opening", moving: true}};
+                return {state: {state: "opening", action: "opening", moving: true}};
             } else if (cmd === "close") {
-                return {...result, state: {...(result?.state || {}), state: "closing", action: "closing", moving: true}};
+                return {state: {state: "closing", action: "closing", moving: true}};
             } else if (cmd === "stop") {
                 const pos = meta.state?.position as number | undefined;
                 const stoppedState = pos !== undefined && pos <= 0 ? "CLOSE" : "OPEN";
-                return {...result, state: {...(result?.state || {}), state: stoppedState, action: "stopped", moving: false}};
+                return {state: {state: stoppedState, action: "stopped", moving: false}};
             }
-            return result;
         },
         convertGet: async (entity, key, meta) => {
             await tz.cover_state.convertGet!(entity, key, meta);
@@ -326,16 +326,18 @@ export const tzLegrand = {
     cover_position_with_moving: {
         key: ["position", "tilt"],
         convertSet: async (entity, key, value, meta) => {
-            const result = await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            const result = await tz.cover_position_tilt.convertSet!(entity, key, value, meta);
+            // cover_position_tilt returns {state?: KeyValue} | void; cast to access .state safely
+            const prevState = (result as KeyValueAny)?.state ?? {};
             const currentPos = meta.state?.position as number | undefined;
             if (key === "position" && currentPos !== undefined) {
                 const numValue = value as number;
                 const action = numValue > currentPos ? "opening" : numValue < currentPos ? "closing" : "stopped";
                 const moving = action !== "stopped";
                 const state = action === "opening" ? "opening" : action === "closing" ? "closing" : numValue > 0 ? "OPEN" : "CLOSE";
-                return {...result, state: {...(result?.state || {}), state, action, moving}};
+                return {state: {...prevState, state, action, moving}};
             }
-            return {...result, state: {...(result?.state || {}), state: "opening", action: "moving", moving: true}};
+            return {state: {...prevState, state: "opening", action: "moving", moving: true}};
         },
         convertGet: async (entity, key, meta) => {
             await tz.cover_position_tilt.convertGet!(entity, key, meta);
