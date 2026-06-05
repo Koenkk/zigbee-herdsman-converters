@@ -311,16 +311,15 @@ export const tzLegrand = {
             const cmd = (value as string).toLowerCase();
             if (cmd === "open") {
                 return {state: {state: "opening", action: "opening", moving: true}};
-            } else if (cmd === "close") {
+            }
+            if (cmd === "close") {
                 return {state: {state: "closing", action: "closing", moving: true}};
-            } else if (cmd === "stop") {
+            }
+            if (cmd === "stop") {
                 const pos = meta.state?.position as number | undefined;
                 const stoppedState = pos !== undefined && pos <= 0 ? "CLOSE" : "OPEN";
                 return {state: {state: stoppedState, action: "stopped", moving: false}};
             }
-        },
-        convertGet: async (entity, key, meta) => {
-            await tz.cover_state.convertGet!(entity, key, meta);
         },
     } satisfies Tz.Converter,
     cover_position_with_moving: {
