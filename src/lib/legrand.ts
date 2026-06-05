@@ -307,7 +307,7 @@ export const tzLegrand = {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
             // cover_state.convertSet returns void; call it for the side-effect only
-            await tz.cover_state.convertSet!(entity, key, value, meta);
+            await tz.cover_state.convertSet?.(entity, key, value, meta);
             const cmd = (value as string).toLowerCase();
             if (cmd === "open") {
                 return {state: {state: "opening", action: "opening", moving: true}};
@@ -325,7 +325,7 @@ export const tzLegrand = {
     cover_position_with_moving: {
         key: ["position", "tilt"],
         convertSet: async (entity, key, value, meta) => {
-            const result = await tz.cover_position_tilt.convertSet!(entity, key, value, meta);
+            const result = await tz.cover_position_tilt.convertSet?.(entity, key, value, meta);
             // cover_position_tilt returns {state?: KeyValue} | void; cast to access .state safely
             const prevState = (result as KeyValueAny)?.state ?? {};
             const currentPos = meta.state?.position as number | undefined;
@@ -339,7 +339,7 @@ export const tzLegrand = {
             return {state: {...prevState, state: "opening", action: "moving", moving: true}};
         },
         convertGet: async (entity, key, meta) => {
-            await tz.cover_position_tilt.convertGet!(entity, key, meta);
+            await tz.cover_position_tilt.convertGet?.(entity, key, meta);
         },
     } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
