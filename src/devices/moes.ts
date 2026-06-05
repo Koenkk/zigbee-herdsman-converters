@@ -1553,8 +1553,8 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                         to: (v, meta) => {
                             return tuya.valueConverter.coverPosition.to(v, meta);
-                        }
-                    }
+                        },
+                    },
                 ],
                 [
                     3,
