@@ -11,6 +11,8 @@ import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import type {Endpoint} from 'zigbee-herdsman/dist/controller/model';
+import type {Group} from 'zigbee-herdsman/dist/controller/model';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -585,7 +587,7 @@ const edgeOnOffReverseLookup: KeyValue = {0: "OFF", 1: "ON"};
 const edgeScreenOnTimeLookup: KeyValue = {0: "always_on", 1: "10s", 2: "60s", 3: "30s"};
 const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "60s": 2, "30s": 3};
 
-async function safeReadEdge(endpoint: Fz.Endpoint, cluster: string, attrs: string[] | number[]): Promise<void> {
+async function safeReadEdge(endpoint: Endpoint, cluster: string, attrs: string[] | number[]): Promise<void> {
     try {
         await endpoint.read(cluster, attrs);
     } catch (_) {}
@@ -605,7 +607,7 @@ const fzEdge = {
             if (msg.data["dateCode"] !== undefined) result["firmware_date"] = msg.data["dateCode"];
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
 
     thermostat_base: {
         cluster: "hvacThermostat",
@@ -641,7 +643,7 @@ const fzEdge = {
             if (d["tempDisplayMode"] !== undefined) result["temperature_display_mode"] = d["tempDisplayMode"] === 0 ? "celsius" : "fahrenheit";
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
 
     namron_private: {
         cluster: "hvacThermostat",
@@ -728,7 +730,7 @@ const fzEdge = {
             );
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
 
     keypad_lockout: {
         cluster: "hvacUserInterfaceCfg",
@@ -737,7 +739,7 @@ const fzEdge = {
             if (msg.data["keypadLockout"] !== undefined) return {keypad_lockout: msg.data["keypadLockout"] === 0 ? "unlock" : "lock"};
             return {};
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
 
     metering: {
         cluster: "seMetering",
@@ -751,7 +753,7 @@ const fzEdge = {
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
 
     electrical: {
         cluster: "haElectricalMeasurement",
@@ -764,7 +766,7 @@ const fzEdge = {
             if (msg.data["rmsCurrent"] !== undefined) result["current"] = ((msg.data["rmsCurrent"] as number) * cMul) / cDiv;
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
 };
 
 const tzEdge = {
@@ -2641,7 +2643,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         // Periodic time sync regardless of heating status.
         // Syncs time at most once per hour so vacation mode always has correct clock.
-        onEvent: async (type, data, device) => {
+        onEvent: async (type, data, device, _settings, _state) => {
             if (type === "message") {
                 const now = Date.now();
                 const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
