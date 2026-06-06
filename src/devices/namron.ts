@@ -209,7 +209,7 @@ function parseNamronBytes(msg: Fz.Message<"namronPrivateE004", NamronPrivateE004
     if (m.data && typeof m.data === "object") {
         const obj = m.data as Record<string, number>;
         const keys = Object.keys(obj)
-            .filter((k) => !Number.Number.Number.isNaN(Number(k)))
+            .filter((k) => !Number.isNaN(Number(k)))
             .sort((a, b) => Number(a) - Number(b));
         return keys.map((k) => obj[k]);
     }
