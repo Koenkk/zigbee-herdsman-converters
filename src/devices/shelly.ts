@@ -3,7 +3,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionExposesFunction, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
@@ -28,6 +28,33 @@ interface ShellyRPC {
     commandResponses: never;
 }
 
+interface ShellyWS90Wind {
+    attributes: {
+        windSpeed: number;
+        windDirection: number;
+        gustSpeed: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWS90UV {
+    attributes: {
+        uvIndex: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWS90Rain {
+    attributes: {
+        rainStatus: number;
+        precipitation: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ShellyTRVManualMode {
     attributes: {
         manualMode: number;
@@ -36,6 +63,16 @@ interface ShellyTRVManualMode {
     commands: {
         calibrate: Record<string, never>;
     };
+    commandResponses: never;
+}
+
+interface ShellyLightLevel {
+    attributes: {
+        lightLevel: number;
+        darkThreshold: number;
+        brightThreshold: number;
+    };
+    commands: never;
     commandResponses: never;
 }
 
@@ -141,10 +178,10 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const timeDeltaMs = now - history.time;
     const precipDelta = precipitation - history.value;
 
-    meta.precipHistory = {value: precipitation, time: now};
-
-    if (timeDeltaMs < 30000) return null;
+    if (timeDeltaMs < 60000) return null;
     if (precipDelta < 0) return 0;
+
+    meta.precipHistory = {value: precipitation, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = precipDelta / timeDeltaHours;
@@ -169,9 +206,9 @@ function calculatePressureTrend(meta: WS90Meta, pressure: number | undefined): n
     const timeDeltaMs = now - history.time;
     const pressureDelta = pressure - history.value;
 
-    meta.pressureHistory = {value: pressure, time: now};
+    if (timeDeltaMs < 1800000) return null;
 
-    if (timeDeltaMs < 300000) return null;
+    meta.pressureHistory = {value: pressure, time: now};
 
     const timeDeltaHours = timeDeltaMs / (1000 * 60 * 60);
     const rate = pressureDelta / timeDeltaHours;
@@ -266,6 +303,8 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
         if (trend !== null) {
             result.pressure_trend = trend;
             state.pressure_trend = trend;
+        } else if (typeof state.pressure_trend === "number") {
+            result.pressure_trend = state.pressure_trend;
         }
     }
 
@@ -287,9 +326,10 @@ const shellyModernExtend = {
         // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
         // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
         return m.deviceAddCustomCluster("haElectricalMeasurement", {
+            name: "haElectricalMeasurement",
             ID: HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID,
             attributes: {
-                powerFactor: {ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
+                powerFactor: {name: "powerFactor", ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
             },
             commands: {},
             commandsResponse: {},
@@ -298,31 +338,33 @@ const shellyModernExtend = {
     shellyCustomClusters(): ModernExtend[] {
         return [
             m.deviceAddCustomCluster("shellyRPCCluster", {
+                name: "shellyRPCCluster",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    data: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
-                    txCtl: {ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                    rxCtl: {ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    data: {name: "data", ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    txCtl: {name: "txCtl", ID: 0x0001, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    rxCtl: {name: "rxCtl", ID: 0x0002, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
             m.deviceAddCustomCluster("shellyWiFiSetupCluster", {
+                name: "shellyWiFiSetupCluster",
                 ID: 0xfc02,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    status: {ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
-                    ip: {ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
-                    actionCode: {ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    dhcp: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
-                    enabled: {ID: 0x0004, type: Zcl.DataType.BOOLEAN, write: true},
-                    ssid: {ID: 0x0005, type: Zcl.DataType.CHAR_STR, write: true},
-                    password: {ID: 0x0006, type: Zcl.DataType.CHAR_STR, write: true},
-                    staticIp: {ID: 0x0007, type: Zcl.DataType.CHAR_STR, write: true},
-                    netMask: {ID: 0x0008, type: Zcl.DataType.CHAR_STR, write: true},
-                    gateway: {ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
-                    nameServer: {ID: 0x000a, type: Zcl.DataType.CHAR_STR, write: true},
+                    status: {name: "status", ID: 0x0000, type: Zcl.DataType.CHAR_STR, write: true},
+                    ip: {name: "ip", ID: 0x0001, type: Zcl.DataType.CHAR_STR, write: true},
+                    actionCode: {name: "actionCode", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    dhcp: {name: "dhcp", ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+                    enabled: {name: "enabled", ID: 0x0004, type: Zcl.DataType.BOOLEAN, write: true},
+                    ssid: {name: "ssid", ID: 0x0005, type: Zcl.DataType.CHAR_STR, write: true},
+                    password: {name: "password", ID: 0x0006, type: Zcl.DataType.CHAR_STR, write: true},
+                    staticIp: {name: "staticIp", ID: 0x0007, type: Zcl.DataType.CHAR_STR, write: true},
+                    netMask: {name: "netMask", ID: 0x0008, type: Zcl.DataType.CHAR_STR, write: true},
+                    gateway: {name: "gateway", ID: 0x0009, type: Zcl.DataType.CHAR_STR, write: true},
+                    nameServer: {name: "nameServer", ID: 0x000a, type: Zcl.DataType.CHAR_STR, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -335,6 +377,9 @@ const shellyModernExtend = {
 
         const featureDev = features.includes("Dev");
         const featurePowerstripUI = features.includes("PowerstripUI");
+        const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
+        const featureTwoPMInputMode = features.includes("2PMInputMode");
+        const featureOnePMInputMode = features.includes("1PMInputMode");
 
         // Generic helper functions
         const validateTime = (value: string) => {
@@ -407,7 +452,7 @@ const shellyModernExtend = {
             return e.binary(`switch_${id}`, ea.STATE_SET, "momentary", "detached").withLabel(`Endpoint: ${id + 1}`);
         };
 
-        const exposes: Expose[] = [];
+        const exposes: (Expose | DefinitionExposesFunction)[] = [];
         const exposesDev: Expose[] = [
             e
                 .text("rpc_tx", ea.STATE_SET)
@@ -466,7 +511,20 @@ const shellyModernExtend = {
                         state.rpc_rxctl = msg.data.rxCtl;
                         state.rpc_data = "";
                     }
-                    if (msg.data.data !== undefined) state.rpc_data = meta.state.rpc_data + msg.data.data;
+                    if (msg.data.data !== undefined) {
+                        const accumulated = ((meta.state.rpc_data as string) ?? "") + msg.data.data;
+                        state.rpc_data = accumulated;
+                        const expectedLen = meta.state.rpc_rxctl as number;
+                        if (expectedLen > 0 && accumulated.length >= expectedLen) {
+                            try {
+                                const response = JSON.parse(accumulated);
+                                if (response.result?.in_mode !== undefined) {
+                                    const epName = (response.result.id as number) === 0 ? "sw1" : "sw2";
+                                    state[`switch_mode_${epName}`] = response.result.in_mode;
+                                }
+                            } catch {}
+                        }
+                    }
 
                     return state;
                 },
@@ -474,6 +532,7 @@ const shellyModernExtend = {
         ];
 
         const toZigbee: Tz.Converter[] = [];
+        const configure: Configure[] = [];
         const toZigbeeDev: Tz.Converter[] = [
             {
                 key: ["rpc_rxctl", "rpc_data"],
@@ -608,7 +667,103 @@ const shellyModernExtend = {
             exposes.push(...exposesPowerstripUI);
             toZigbee.push(...toZigbeePowerstripUI);
         }
-        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+        if (featurePowerstripPowerOnBehavior) {
+            const powerOnBehaviorValues = ["off", "on", "previous", "match_input"];
+            for (const channel of [1, 2, 3, 4]) {
+                exposes.push(
+                    e
+                        .enum("power_on_behavior", ea.STATE_SET, powerOnBehaviorValues)
+                        .withDescription("Behavior of the socket after a power outage. 'previous' restores the last known state.")
+                        .withCategory("config")
+                        .withEndpoint(String(channel)),
+                );
+            }
+            toZigbee.push({
+                key: ["power_on_behavior"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value, key);
+                    utils.assertString(meta.endpoint_name, "endpoint_name");
+                    utils.assertEndpoint(entity);
+                    const switchId = Number(meta.endpoint_name) - 1;
+                    // shellyRPCCluster lives on a dedicated endpoint (239), but this expose is per-channel.
+                    // determineEndpoint() would return the per-channel endpoint when endpoint_name is set,
+                    // so we explicitly resolve the RPC endpoint via the device.
+                    const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                    if (!ep) throw new Error(`Shelly RPC endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                    const shellyValue = value === "previous" ? "restore_last" : value;
+                    await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {initial_state: shellyValue}});
+                    return {state: {power_on_behavior: value}};
+                },
+            });
+        }
+        if (featureTwoPMInputMode) {
+            const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
+                return [
+                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw1"),
+                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw2"),
+                ];
+            });
+            toZigbee.push({
+                key: ["switch_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {in_mode: value}});
+                    return {state: {switch_mode: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "Switch.GetConfig", {id: switchId});
+                    await rpcReceive(ep, "rpc_rxctl");
+                },
+            });
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    for (const id of [0, 1]) {
+                        await rpcSend(ep, "Switch.GetConfig", {id});
+                        await rpcReceive(ep, "rpc_rxctl");
+                    }
+                } catch (e) {
+                    logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
+                }
+            });
+        }
+        if (featureOnePMInputMode) {
+            const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
+                return [e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw1")];
+            });
+            toZigbee.push({
+                key: ["switch_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
+                    return {state: {switch_mode: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    await rpcSend(ep, "Switch.GetConfig", {id: 0});
+                    await rpcReceive(ep, "rpc_rxctl");
+                },
+            });
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    await rpcSend(ep, "Switch.GetConfig", {id: 0});
+                    await rpcReceive(ep, "rpc_rxctl");
+                } catch (e) {
+                    logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
+                }
+            });
+        }
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     },
     shellyWiFiSetup(): ModernExtend {
         // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -762,6 +917,7 @@ const shellyModernExtend = {
     },
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
+            // Calculated values only
             e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
             e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
             e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
@@ -781,7 +937,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const temperature = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {temperature});
-                        return {temperature, ...calculated};
+                        return calculated; // Only calculated values; m.temperature() handles base temperature
                     }
                 },
             },
@@ -792,7 +948,7 @@ const shellyModernExtend = {
                     if (msg.data.measuredValue !== undefined) {
                         const humidity = msg.data.measuredValue / 100;
                         const calculated = updateWS90CalculatedValues(msg.device, {humidity});
-                        return {humidity, ...calculated};
+                        return calculated; // Only calculated values; m.humidity() handles base humidity
                     }
                 },
             },
@@ -801,9 +957,9 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.measuredValue !== undefined) {
-                        const pressure = msg.data.measuredValue;
+                        const pressure = msg.data.measuredValue / 10;
                         const calculated = updateWS90CalculatedValues(msg.device, {pressure});
-                        return {pressure, ...calculated};
+                        return calculated; // Only calculated values; m.pressure() handles base pressure
                     }
                 },
             },
@@ -815,7 +971,7 @@ const shellyModernExtend = {
                         const measuredValue = msg.data.measuredValue;
                         const illuminance = measuredValue > 0 ? Math.round(10 ** ((measuredValue - 1) / 10000)) : 0;
                         const calculated = updateWS90CalculatedValues(msg.device, {illuminance});
-                        return {illuminance, ...calculated};
+                        return calculated; // Only calculated values; m.illuminance() handles base illuminance
                     }
                 },
             },
@@ -824,8 +980,10 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    if (data.uv_index !== undefined) {
-                        return {uv_index: (data.uv_index as number) / 10};
+                    if (data.uvIndex !== undefined) {
+                        const uv_index = (data.uvIndex as number) / 10;
+                        const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
+                        return calculated;
                     }
                 },
             },
@@ -834,12 +992,12 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: KeyValue = {};
-                    if (data.wind_speed !== undefined) payload.wind_speed = (data.wind_speed as number) / 10;
-                    if (data.wind_direction !== undefined) payload.wind_direction = (data.wind_direction as number) / 10;
-                    if (data.gust_speed !== undefined) payload.gust_speed = (data.gust_speed as number) / 10;
-                    const calculated = updateWS90CalculatedValues(msg.device, payload as {[key: string]: number});
-                    return {...payload, ...calculated};
+                    const payload: {[key: string]: number} = {};
+                    if (data.windSpeed !== undefined) payload.wind_speed = (data.windSpeed as number) / 10;
+                    if (data.windDirection !== undefined) payload.wind_direction = (data.windDirection as number) / 10;
+                    if (data.gustSpeed !== undefined) payload.gust_speed = (data.gustSpeed as number) / 10;
+                    const calculated = updateWS90CalculatedValues(msg.device, payload);
+                    return calculated;
                 },
             },
             {
@@ -847,28 +1005,89 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: KeyValue = {};
-                    if (data.rain_status !== undefined) payload.rain_status = Boolean(data.rain_status);
+                    const payload: {[key: string]: number | boolean} = {};
+                    if (data.rainStatus !== undefined) payload.rain_status = Boolean(data.rainStatus);
                     if (data.precipitation !== undefined) {
                         payload.precipitation = (data.precipitation as number) / 10;
-                        const ws90Meta = getWS90Meta(msg.device);
-                        const rainRate = calculateRainRate(ws90Meta, payload.precipitation as number);
-                        if (rainRate !== null) payload.rain_rate = rainRate;
-                        msg.device.save();
                     }
-                    const calculated = updateWS90CalculatedValues(msg.device, payload as {[key: string]: number | boolean});
-                    return {...payload, ...calculated};
+
+                    // Calculate rain_rate (it's a calculated value, not a base sensor value)
+                    const ws90Meta = getWS90Meta(msg.device);
+                    const rainRate = calculateRainRate(ws90Meta, payload.precipitation as number | undefined);
+                    const rain_rate = rainRate !== null ? rainRate : 0;
+
+                    // Update state with precipitation and rain_rate
+                    const stateUpdate = {...payload, rain_rate};
+                    const calculated = updateWS90CalculatedValues(msg.device, stateUpdate);
+
+                    // Include rain_rate in calculated values
+                    calculated.rain_rate = rain_rate;
+
+                    msg.device.save();
+                    return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
         ];
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
+    shellyLightLevel(args?: {reporting?: false | m.ReportingConfigWithoutAttribute}): ModernExtend[] {
+        const reporting = args?.reporting ?? {min: "1_MINUTE", max: 900, change: 0};
+        return [
+            m.deviceAddCustomCluster("shellyLightLevel", {
+                name: "shellyLightLevel",
+                ID: 0xfc21,
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+                attributes: {
+                    lightLevel: {name: "lightLevel", ID: 0x0000, type: Zcl.DataType.UINT8},
+                    darkThreshold: {name: "darkThreshold", ID: 0x0001, type: Zcl.DataType.UINT24, write: true},
+                    brightThreshold: {name: "brightThreshold", ID: 0x0002, type: Zcl.DataType.UINT24, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.enumLookup<"shellyLightLevel", ShellyLightLevel>({
+                name: "light_level",
+                cluster: "shellyLightLevel",
+                attribute: "lightLevel",
+                lookup: {dark: 0, twilight: 1, bright: 2},
+                description: "Coarse light level",
+                reporting,
+                access: "STATE_GET",
+            }),
+            m.numeric<"shellyLightLevel", ShellyLightLevel>({
+                name: "dark_threshold",
+                cluster: "shellyLightLevel",
+                attribute: "darkThreshold",
+                valueMin: 0,
+                valueMax: 65535,
+                reporting: false,
+                description: "Lux threshold below which light level is dark",
+                unit: "lx",
+                access: "ALL",
+            }),
+            m.numeric<"shellyLightLevel", ShellyLightLevel>({
+                name: "bright_threshold",
+                cluster: "shellyLightLevel",
+                attribute: "brightThreshold",
+                valueMin: 0,
+                valueMax: 65535,
+                reporting: false,
+                description: "Lux threshold above which light level is bright",
+                unit: "lx",
+                access: "ALL",
+            }),
+        ];
+    },
 };
 
 // =============================================================================
 // Local From Zigbee Converters
 // =============================================================================
+
+const handlePosition = e
+    .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
+    .withDescription("Handle position: closed, tilted (partly open), or open");
 
 const fzLocal = {
     one_button_events: {
@@ -880,19 +1099,32 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandToggle"]>,
 
+    one_button_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
     four_buttons_single_events: {
         cluster: "genOnOff",
-        type: ["commandOn", "commandOff"],
+        type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
                 "2_commandOn": "3_single",
                 "2_commandOff": "4_single",
+                "1_commandToggle": "1_single",
+                "2_commandToggle": "2_single",
+                "3_commandToggle": "3_single",
+                "4_commandToggle": "4_single",
             });
             return {action: event};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
     four_buttons_hold_events: {
         cluster: "genLevelCtrl",
@@ -907,6 +1139,145 @@ const fzLocal = {
             return {action: event};
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep"]>,
+
+    four_buttons_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "1_1": "1_double",
+                "2_1": "2_double",
+                "3_1": "3_double",
+                "4_1": "4_double",
+
+                "1_2": "1_triple",
+                "2_2": "2_triple",
+                "3_2": "3_triple",
+                "4_2": "4_triple",
+
+                "1_11": "1_single_long",
+                "2_11": "2_single_long",
+                "3_11": "3_single_long",
+                "4_11": "4_single_long",
+
+                "1_12": "1_double_long",
+                "2_12": "2_double_long",
+                "3_12": "3_double_long",
+                "4_12": "4_double_long",
+
+                "1_13": "1_triple_long",
+                "2_13": "2_triple_long",
+                "3_13": "3_triple_long",
+                "4_13": "4_triple_long",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    two_switch_inputs_events: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
+                "3_commandOn": "input_1_on",
+                "3_commandOff": "input_1_off",
+                "3_commandToggle": "input_1_toggle",
+                "4_commandOn": "input_2_on",
+                "4_commandOff": "input_2_off",
+                "4_commandToggle": "input_2_toggle",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
+
+    two_switch_inputs_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "3_5": "input_1_toggle",
+                "4_5": "input_2_toggle",
+                "3_11": "input_1_hold",
+                "4_11": "input_2_hold",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    one_switch_input_events: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff", "commandToggle"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID !== 2) return {};
+            const event = utils.getFromLookup(msg.type, {
+                commandOn: "input_1_on",
+                commandOff: "input_1_off",
+                commandToggle: "input_1_toggle",
+            });
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
+
+    one_switch_input_scene_events: {
+        cluster: "genScenes",
+        type: ["commandRecall"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID !== 2) return {};
+            const event = utils.getFromLookup(`${msg.data.sceneid}`, {"5": "input_1_toggle", "11": "input_1_hold"});
+            return {action: event};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
+
+    switch_input_type: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            const epName = utils.getFromLookup(msg.endpoint.ID, {2: "sw1", 3: "sw1", 4: "sw2"});
+            if (!epName) return {};
+            return {[`switch_type_${epName}`]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+
+    blu_door_window: {
+        cluster: "ssIasZone",
+        type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = "zonestatus" in msg.data ? msg.data.zonestatus : msg.data.zoneStatus;
+            if (zoneStatus === undefined) return;
+            const alarm1 = (zoneStatus & 1) > 0;
+            const alarm2 = (zoneStatus & (1 << 1)) > 0;
+            // Zone type 0x0016 (door/window handle) per ZigBee spec Table 8-7:
+            //   alarm1=0, alarm2=0 -> closed
+            //   alarm1=1, alarm2=0 -> tilted (partly open)
+            //   alarm1=1, alarm2=1 -> open
+            let position: string;
+            if (!alarm1 && !alarm2) position = "closed";
+            else if (alarm1 && !alarm2) position = "tilted";
+            else position = "open";
+            return {
+                contact: position === "closed",
+                handle_position: position,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
+};
+
+const tzLocal = {
+    switch_input_type: {
+        key: ["switch_type"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {toggle: 0, momentary: 1} as const;
+            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
+            await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
+            return {state: {switch_type: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
+            await ep.read("genOnOffSwitchCfg", ["switchType"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 // =============================================================================
@@ -919,40 +1290,116 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4SW-001X8EU",
         vendor: "Shelly",
         description: "1 Mini Gen 4",
-        extend: [m.onOff({powerOnBehavior: false}), ...shellyModernExtend.shellyCustomClusters(), shellyModernExtend.shellyWiFiSetup()],
+        ota: true,
+        fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+        ],
+        extend: [
+            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            m.onOff({powerOnBehavior: false}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(2);
+            if (ep) {
+                await ep.bind("genOnOff", coordinatorEndpoint);
+                await ep.bind("genScenes", coordinatorEndpoint);
+                await ep.read("genOnOffSwitchCfg", ["switchType"]);
+            }
+        },
     },
     {
         fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
         model: "S4SW-001X16EU",
         vendor: "Shelly",
         description: "1 Gen 4",
-        extend: [m.onOff({powerOnBehavior: false}), ...shellyModernExtend.shellyCustomClusters(), shellyModernExtend.shellyWiFiSetup()],
+        ota: true,
+        fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+        ],
+        extend: [
+            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            m.onOff({powerOnBehavior: false}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(2);
+            if (ep) {
+                await ep.bind("genOnOff", coordinatorEndpoint);
+                await ep.bind("genScenes", coordinatorEndpoint);
+                await ep.read("genOnOffSwitchCfg", ["switchType"]);
+            }
+        },
     },
     {
         zigbeeModel: ["Mini1PM", "1PM Mini"],
         model: "S4SW-001P8EU",
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
+        ota: true,
+        fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+        ],
         extend: [
+            m.deviceEndpoints({endpoints: {sw1: 2}}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(2);
+            if (ep) {
+                await ep.bind("genOnOff", coordinatorEndpoint);
+                await ep.bind("genScenes", coordinatorEndpoint);
+                await ep.read("genOnOffSwitchCfg", ["switchType"]);
+            }
+        },
     },
     {
         zigbeeModel: ["1PM"],
         model: "S4SW-001P16EU",
         vendor: "Shelly",
         description: "1PM Gen 4",
+        ota: true,
+        fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+        ],
         extend: [
+            m.deviceEndpoints({endpoints: {sw1: 2}}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(2);
+            if (ep) {
+                await ep.bind("genOnOff", coordinatorEndpoint);
+                await ep.bind("genScenes", coordinatorEndpoint);
+                await ep.read("genOnOffSwitchCfg", ["switchType"]);
+            }
+        },
     },
     {
         zigbeeModel: ["EM Mini"],
@@ -961,6 +1408,25 @@ export const definitions: DefinitionWithExtend[] = [
         description: "EM Mini Gen4",
         extend: [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "EM", manufacturerName: "Shelly"}],
+        model: "S4EM-002CXCEU",
+        vendor: "Shelly",
+        description: "EM Gen4",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["1"]}),
+            m.electricityMeter({
+                endpointNames: ["2", "3"],
+                producedEnergy: true,
+                acFrequency: true,
+            }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
@@ -978,11 +1444,48 @@ export const definitions: DefinitionWithExtend[] = [
                     {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
                 ],
             },
+            {
+                type: "Router",
+                manufacturerName: "Shelly",
+                modelID: "2PM",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 514, inputClusters: [0, 3, 4, 5, 258], outputClusters: [25]},
+                    {ID: 2, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 3, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 4, inputClusters: [], outputClusters: [3, 4, 6, 8, 258]},
+                    {ID: 239, profileID: 49153, deviceID: 8193, inputClusters: [64513, 64514], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
         ],
         model: "S4SW-002P16EU-COVER",
         vendor: "Shelly",
         description: "2PM Gen4 (Cover mode)",
-        extend: [m.windowCovering({controls: ["lift", "tilt"]}), ...shellyModernExtend.shellyCustomClusters(), shellyModernExtend.shellyWiFiSetup()],
+        ota: true,
+        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+        ],
+        extend: [
+            m.deviceEndpoints({endpoints: {sw1: 2, sw2: 3}}),
+            m.windowCovering({controls: ["lift", "tilt"]}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [2, 3]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
     },
     {
         fingerprint: [
@@ -997,18 +1500,51 @@ export const definitions: DefinitionWithExtend[] = [
                     {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
                 ],
             },
+            {
+                type: "Router",
+                manufacturerName: "Shelly",
+                modelID: "2PM",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusters: [0, 3, 4, 5, 6, 2820, 1794], outputClusters: [25]},
+                    {ID: 2, profileID: 260, deviceID: 266, inputClusters: [4, 5, 6, 2820, 1794], outputClusters: []},
+                    {ID: 3, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 4, inputClusters: [7], outputClusters: [3, 4, 5, 6]},
+                    {ID: 5, inputClusters: [], outputClusters: [3, 4, 6, 8, 258]},
+                    {ID: 239, profileID: 49153, deviceID: 8193, inputClusters: [64513, 64514], outputClusters: []},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusters: [], outputClusters: [33]},
+                ],
+            },
         ],
         model: "S4SW-002P16EU-SWITCH",
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
+        ota: true,
+        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.switch_input_type],
+        exposes: [
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+        ],
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, sw1: 3, sw2: 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [3, 4]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
     },
     {
         fingerprint: [{modelID: "Plug US", manufacturerName: "Shelly"}],
@@ -1028,13 +1564,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4PL-00416EU",
         vendor: "Shelly",
         description: "Power strip 4 Gen4",
+        version: "0.0.1",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4"]}),
-            m.electricityMeter({endpointNames: ["1", "2", "3", "4"]}),
+            m.electricityMeter({
+                endpointNames: ["1", "2", "3", "4"],
+                // Reduce reporting to prevent crashes
+                // https://github.com/Koenkk/zigbee2mqtt/issues/31183
+                acFrequency: {change: 125},
+                current: {change: 60},
+                voltage: {change: 625},
+                power: {change: 6},
+                energy: {change: 125000},
+            }),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["PowerstripUI"]),
+            shellyModernExtend.shellyRPCSetup(["PowerstripUI", "PowerstripPowerOnBehavior"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
@@ -1044,8 +1590,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Flood Gen 4",
         extend: [
-            m.battery(),
-            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery({percentageReportingConfig: false}),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -1057,39 +1603,121 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Weather station",
         extend: [
             m.battery(),
-            m.deviceAddCustomCluster("shellyWS90UV", {
-                ID: 0xfc02,
-                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
-                attributes: {uv_index: {ID: 0x0000, type: Zcl.DataType.UINT8}},
-                commands: {},
-                commandsResponse: {},
-            }),
+            m.illuminance(),
+            m.temperature(),
+            m.pressure(),
+            m.humidity(),
             m.deviceAddCustomCluster("shellyWS90Wind", {
+                name: "shellyWS90Wind",
                 ID: 0xfc01,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    wind_speed: {ID: 0x0000, type: Zcl.DataType.UINT16},
-                    wind_direction: {ID: 0x0004, type: Zcl.DataType.UINT16},
-                    gust_speed: {ID: 0x0007, type: Zcl.DataType.UINT16},
+                    windSpeed: {name: "windSpeed", ID: 0x0000, type: Zcl.DataType.UINT16},
+                    windDirection: {name: "windDirection", ID: 0x0004, type: Zcl.DataType.UINT16},
+                    gustSpeed: {name: "gustSpeed", ID: 0x0007, type: Zcl.DataType.UINT16},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
+                name: "wind_speed",
+                cluster: "shellyWS90Wind",
+                attribute: "windSpeed",
+                valueMin: 0,
+                valueMax: 140,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Wind speed in m/s",
+                scale: 10,
+                unit: "m/s",
+                access: "STATE_GET",
+            }),
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
+                name: "wind_direction",
+                cluster: "shellyWS90Wind",
+                attribute: "windDirection",
+                valueMin: 0,
+                valueMax: 360,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Wind direction in degrees",
+                scale: 10,
+                unit: "°",
+                access: "STATE_GET",
+            }),
+            m.numeric<"shellyWS90Wind", ShellyWS90Wind>({
+                name: "gust_speed",
+                cluster: "shellyWS90Wind",
+                attribute: "gustSpeed",
+                valueMin: 0,
+                valueMax: 140,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Gust speed in m/s",
+                scale: 10,
+                unit: "m/s",
+                access: "STATE_GET",
+            }),
+            m.deviceAddCustomCluster("shellyWS90UV", {
+                name: "shellyWS90UV",
+                ID: 0xfc02,
+                manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+                attributes: {
+                    uvIndex: {name: "uvIndex", ID: 0x0000, type: Zcl.DataType.UINT8},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"shellyWS90UV", ShellyWS90UV>({
+                name: "uv_index",
+                cluster: "shellyWS90UV",
+                attribute: "uvIndex",
+                valueMin: 0,
+                valueMax: 11,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "UV index",
+                scale: 10,
+                access: "STATE_GET",
+            }),
             m.deviceAddCustomCluster("shellyWS90Rain", {
+                name: "shellyWS90Rain",
                 ID: 0xfc03,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    rain_status: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                    precipitation: {ID: 0x0001, type: Zcl.DataType.UINT24},
+                    rainStatus: {name: "rainStatus", ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                    precipitation: {name: "precipitation", ID: 0x0001, type: Zcl.DataType.UINT24},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
+            m.binary<"shellyWS90Rain", ShellyWS90Rain>({
+                name: "rain_status",
+                cluster: "shellyWS90Rain",
+                attribute: "rainStatus",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Rain status",
+                access: "STATE_GET",
+            }),
+            m.numeric<"shellyWS90Rain", ShellyWS90Rain>({
+                name: "precipitation",
+                cluster: "shellyWS90Rain",
+                attribute: "precipitation",
+                valueMin: 0,
+                valueMax: 100000,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                description: "Precipitation",
+                unit: "mm",
+                scale: 10,
+                access: "STATE_GET",
+            }),
+            // Calculated values (added by PR #11437)
             shellyModernExtend.ws90CalculatedValues(),
         ],
     },
     {
-        fingerprint: [{modelID: "Dimmer", manufacturerName: "Shelly"}],
+        fingerprint: [
+            {modelID: "Dimmer", manufacturerName: "Shelly"},
+            {modelID: "Dimmer US", manufacturerName: "Shelly"},
+        ],
         model: "S4DM-0A101WWL",
         vendor: "Shelly",
         description: "Dimmer Gen4",
@@ -1113,7 +1741,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBHT-103C",
         vendor: "Shelly",
         description: "BLU H&T display Zigbee",
-        extend: [m.battery(), m.temperature(), m.humidity()],
+        extend: [m.battery(), m.temperature(), m.humidity(), ...shellyModernExtend.shellyLightLevel()],
     },
     {
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
@@ -1138,28 +1766,68 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBBT-102C",
         vendor: "Shelly",
         description: "BLU Button Tough 1 ZB",
-        fromZigbee: [fzLocal.one_button_events],
-        exposes: [e.action(["single", "double", "triple"])],
+        fromZigbee: [fzLocal.one_button_events, fzLocal.one_button_scene_events],
+        exposes: [e.action(["single", "double", "triple", "single_long", "double_long", "triple_long"])],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}), m.identify()],
+        version: "0.0.2",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+                await endpoint.bind("genScenes", coordinatorEndpoint);
+            }
+        },
     },
     {
-        fingerprint: [{modelID: "BLU RC Button 4 ZB", manufacturerName: "Shelly"}],
+        zigbeeModel: ["BLU RC Button 4 ZB", "BLU Wall Switch 4 ZB", "BLU Wall Switch 4 ZB DK"],
         model: "SBBT-104CUS",
         vendor: "Shelly",
         description: "BLU RC Button 4 ZB",
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
+        whiteLabel: [
+            {vendor: "Shelly", model: "SBBT-004CEU", fingerprint: [{modelID: "BLU Wall Switch 4 ZB"}], description: "BLU Wall Switch 4 ZB"},
+            {vendor: "Shelly", model: "SBBT-104CEU", fingerprint: [{modelID: "BLU Wall Switch 4 ZB DK"}], description: "BLU Wall Switch 4 ZB DK"},
+        ],
+        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events, fzLocal.four_buttons_scene_events],
+        exposes: [
+            e.action([
+                "1_single",
+                "2_single",
+                "3_single",
+                "4_single",
+                "1_double",
+                "2_double",
+                "3_double",
+                "4_double",
+                "1_triple",
+                "2_triple",
+                "3_triple",
+                "4_triple",
+                "1_single_long",
+                "2_single_long",
+                "3_single_long",
+                "4_single_long",
+                "1_double_long",
+                "2_double_long",
+                "3_double_long",
+                "4_double_long",
+                "1_triple_long",
+                "2_triple_long",
+                "3_triple_long",
+                "4_triple_long",
+                "1_hold",
+                "2_hold",
+                "3_hold",
+                "4_hold",
+            ]),
+        ],
         extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
-    },
-    {
-        zigbeeModel: ["BLU Wall Switch 4 ZB"],
-        model: "SBBT-004CEU",
-        vendor: "Shelly",
-        description: "BLU Wall Switch 4 ZB",
-        whiteLabel: [{vendor: "Shelly", model: "SBBT-104CEU", description: "BLU Wall Switch 4 ZB DK"}],
-        fromZigbee: [fzLocal.four_buttons_single_events, fzLocal.four_buttons_hold_events],
-        exposes: [e.action(["1_single", "2_single", "3_single", "4_single", "1_hold", "2_hold", "3_hold", "4_hold"])],
-        extend: [m.battery(), m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4}}), m.identify()],
+        version: "0.0.2",
+        configure: async (device, coordinatorEndpoint, definition) => {
+            for (const endpoint of device.endpoints) {
+                await endpoint.bind("genOnOff", coordinatorEndpoint);
+                await endpoint.bind("genLevelCtrl", coordinatorEndpoint);
+                await endpoint.bind("genScenes", coordinatorEndpoint);
+            }
+        },
     },
     {
         zigbeeModel: ["BLU TRV"],
@@ -1216,14 +1884,15 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
             }),
             m.deviceAddCustomCluster("shellyTRVManualMode", {
+                name: "shellyTRVManualMode",
                 ID: 0xfc24,
                 manufacturerCode: Zcl.ManufacturerCode.SHELLY,
                 attributes: {
-                    manualMode: {ID: 0x0000, type: Zcl.DataType.UINT8},
-                    position: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                    manualMode: {name: "manualMode", ID: 0x0000, type: Zcl.DataType.UINT8},
+                    position: {name: "position", ID: 0x0001, type: Zcl.DataType.UINT8},
                 },
                 commands: {
-                    calibrate: {ID: 0x0000, parameters: []},
+                    calibrate: {name: "calibrate", ID: 0x0000, parameters: []},
                 },
                 commandsResponse: {},
             }),
@@ -1249,5 +1918,72 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+    },
+    {
+        fingerprint: [{modelID: "Presence", manufacturerName: "Shelly"}],
+        model: "S4SN-0U61X",
+        vendor: "Shelly",
+        description: "Presence Gen4 Zigbee",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
+            m.occupancy({reporting: false, endpointNames: ["1"]}),
+            m.occupancy({reporting: false, endpointNames: ["2"]}),
+            m.occupancy({reporting: false, endpointNames: ["3"]}),
+            m.occupancy({reporting: false, endpointNames: ["4"]}),
+            m.occupancy({reporting: false, endpointNames: ["5"]}),
+            m.occupancy({reporting: false, endpointNames: ["6"]}),
+            m.occupancy({reporting: false, endpointNames: ["7"]}),
+            m.occupancy({reporting: false, endpointNames: ["8"]}),
+            m.occupancy({reporting: false, endpointNames: ["9"]}),
+            m.occupancy({reporting: false, endpointNames: ["10"]}),
+            ...shellyModernExtend.shellyLightLevel(),
+            m.identify(),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-103C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU Motion ZB", manufacturerName: "Shelly"}],
+        model: "SBMO-103Z",
+        vendor: "Shelly",
+        description: "BLU Motion ZB",
+        extend: [
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.battery(),
+            ...shellyModernExtend.shellyLightLevel(),
+            m.enumLookup({
+                name: "motion_sensitivity",
+                cluster: "ssIasZone",
+                attribute: "currentZoneSensitivityLevel",
+                lookup: {low: 1, medium: 2, high: 3},
+                description: "Motion sensor sensitivity",
+                access: "ALL",
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["currentZoneSensitivityLevel"]);
+            }
+        },
     },
 ];

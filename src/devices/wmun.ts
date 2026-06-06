@@ -1,4 +1,5 @@
 import * as m from "../lib/modernExtend";
+import * as tuya from "../lib/tuya";
 import * as zosung from "../lib/zosung";
 
 const ez = zosung.presetsZosung;
@@ -9,12 +10,12 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: "TS1201", manufacturerName: "_TZ3290_u9xac5rv"}],
+        fingerprint: tuya.fingerprint("TS1201", ["_TZ3290_u9xac5rv", "_TZ3290_lidgqyzu"]),
         model: "ZS05",
         vendor: "WMUN",
         description: "Universal smart IR remote control on batteries",
         exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
-        extend: [m.battery()],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster(), m.battery()],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,

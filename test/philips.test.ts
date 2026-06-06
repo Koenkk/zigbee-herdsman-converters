@@ -4,10 +4,10 @@ import {decodeGradientColors, encodeGradientColors} from "../src/lib/philips";
 describe("lib/philips", () => {
     describe("decodeGradientColors", () => {
         test.each([
-            ["4b0101b2875a25411350000000b3474def153e2ad42e98232c7483292800", true, ["#0c32ff", "#1137ff", "#2538ff", "#7951ff", "#ff77f8"]],
-            ["4b0101b2875a25411350000000b3474def153e2ad42e98232c7483292800", false, ["#ff77f8", "#7951ff", "#2538ff", "#1137ff", "#0c32ff"]],
-            ["4b010164fb74346b1350000000f3297fda7d55da7d55f3297fda7d552800", true, ["#ff0517", "#ffa52c", "#ff0517", "#ff0517", "#ffa52c"]],
-            ["4b010127a0526f5410400000000727640e9f5d0727640e9f5d2000", true, ["#ff0500", "#ffffff", "#ff0500", "#ffffff"]],
+            ["4b0101b2875a25411350000000b3474def153e2ad42e98232c7483292800", true, ["#0d31ff", "#1135ff", "#2536ff", "#784dff", "#ff72fb"]],
+            ["4b0101b2875a25411350000000b3474def153e2ad42e98232c7483292800", false, ["#ff72fb", "#784dff", "#2536ff", "#1135ff", "#0d31ff"]],
+            ["4b010164fb74346b1350000000f3297fda7d55da7d55f3297fda7d552800", true, ["#ff0318", "#ff9f30", "#ff0318", "#ff0318", "#ff9f30"]],
+            ["4b010127a0526f5410400000000727640e9f5d0727640e9f5d2000", true, ["#ff0301", "#fbf3ff", "#ff0301", "#fbf3ff"]],
         ])("colors(%s) should be %s", (input, optsReverse, expected) => {
             const ret = decodeGradientColors(input, {reverse: optsReverse});
             expect(ret.colors).toStrictEqual(expected);
@@ -96,16 +96,16 @@ describe("lib/philips", () => {
 
     describe("encodeGradientColors", () => {
         test.each([
-            [["#0c32ff", "#1137ff", "#2538ff", "#7951ff", "#ff77f8"], {reverse: true}, "500104001350000000b2474df0353e29e42e98332c7043292800"],
-            [["#0c32ff", "#1137ff", "#2538ff", "#7951ff", "#ff77f8"], {reverse: false}, "50010400135000000070432998332c29e42ef0353eb2474d2800"],
-            [["#ff0517", "#ffa52c", "#ff0517", "#ff0517", "#ffa52c"], {reverse: true}, "500104001350000000f3297fd56d55d56d55f3297fd56d552800"],
+            [["#0c32ff", "#1137ff", "#2538ff", "#7951ff", "#ff77f8"], {reverse: true}, "500104001350000000b2a74ef0553f29b42f98f32c70032a2800"],
+            [["#0c32ff", "#1137ff", "#2538ff", "#7951ff", "#ff77f8"], {reverse: false}, "50010400135000000070032a98f32c29b42ff0553fb2a74e2800"],
+            [["#ff0517", "#ffa52c", "#ff0517", "#ff0517", "#ffa52c"], {reverse: true}, "500104001350000000f37981d5ed56d5ed56f37981d5ed562800"],
             [
                 ["#ff0517", "#ffa52c", "#ff0517", "#ff0517", "#ffa52c"],
                 {reverse: true, offset: 2},
-                "500104001350000000f3297fd56d55d56d55f3297fd56d552810",
+                "500104001350000000f37981d5ed56d5ed56f37981d5ed562810",
             ],
-            [["#ffffff"], {reverse: true}, "5001040007100000000727640800"],
-            [["#ffffff"], {reverse: false}, "5001040007100000000727640800"],
+            [["#ffffff"], {reverse: true}, "50010400071000000007e7650800"],
+            [["#ffffff"], {reverse: false}, "50010400071000000007e7650800"],
         ])("colors(%s) opts(%s) should be %s", (colors, opts, expected) => {
             const ret = encodeGradientColors(colors, opts);
             expect(ret).toStrictEqual(expected);

@@ -6,7 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, Publish, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Publish, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -20,7 +20,22 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: "on"};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, "commandTuyaAction">,
+    } satisfies Fz.Converter<"genOnOff", tuya.TuyaGenOnOff, "commandTuyaAction">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    HG06668_doorbell_button: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const lookup: KeyValueAny = {1: "pressed"};
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                action: lookup[zoneStatus & 1],
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
 
 const valueConverterLocal = {
@@ -219,7 +234,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06337",
         vendor: "Lidl",
         description: "Silvercrest smart plug (EU, CH, FR, BS, DK)",
-        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -233,6 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Silvercrest smart plug with power monitoring (EU, FR)",
         ota: true,
         extend: [
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({electricalMeasurements: true, powerOutageMemory: true, indicatorMode: true, childLock: true}),
             tuya.modernExtend.electricityMeasurementPoll({
                 electricalMeasurement: false,
@@ -259,12 +275,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG08164",
         vendor: "Lidl",
         description: "Silvercrest smart button",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_stop, fz.battery, tuya.fz.on_off_action],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.read("genOnOff", ["tuyaOperationMode"]);
+            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {
@@ -282,7 +299,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06668",
         vendor: "Lidl",
         description: "Silvercrest smart wireless door bell button",
-        fromZigbee: [fz.battery, fz.tuya_doorbell_button],
+        fromZigbee: [fz.battery, fzLocal.HG06668_doorbell_button],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -313,6 +330,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FB20-002",
         vendor: "Lidl",
         description: "Livarno Lux switch and dimming light remote control",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         exposes: [
             e.action(["on", "off", "brightness_stop", "brightness_step_up", "brightness_step_down", "brightness_move_up", "brightness_move_down"]),
         ],
@@ -324,6 +342,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FB21-001",
         vendor: "Lidl",
         description: "Livarno Lux switch and dimming light remote control",
+        extend: [tuya.clusters.addTuyaGenOnOffCluster()],
         exposes: [
             e.action([
                 "on",
@@ -336,7 +355,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "switch_scene",
             ]),
         ],
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, fz.tuya_switch_scene],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_step, fz.command_move, fz.command_stop, tuya.fz.switch_scene],
         toZigbee: [],
     },
     {
@@ -351,7 +370,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06338",
         vendor: "Lidl",
         description: "Silvercrest 3 gang switch, with 4 USB (EU, FR, CZ, BS)",
-        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"]})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"]})],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -515,7 +534,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06620",
         vendor: "Lidl",
         description: "Silvercrest garden spike with 2 sockets",
-        extend: [tuya.modernExtend.tuyaOnOff()],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -527,7 +546,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06619",
         vendor: "Lidl",
         description: "Silvercrest outdoor plug",
-        extend: [tuya.modernExtend.tuyaOnOff()],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);

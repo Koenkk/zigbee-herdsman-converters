@@ -1,20 +1,19 @@
-import {describe, expect, test} from "vitest";
-import type {Models as ZHModels} from "zigbee-herdsman";
+import {describe, expect, test, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, generateExternalDefinitionSource} from "../src";
 import * as fz from "../src/converters/fromZigbee";
 import {repInterval} from "../src/lib/constants";
-import type {Definition} from "../src/lib/types";
+import * as philips from "../src/lib/philips";
 import {type AssertDefinitionArgs, assertDefinition, mockDevice, reportingItem} from "./utils";
 
 const assertGeneratedDefinition = async (args: AssertDefinitionArgs & {externalDefinitionSource?: string}) => {
-    const getDefinition = async (device: ZHModels.Device): Promise<Definition> => findByDevice(device, true);
-    const definition = await getDefinition(args.device);
+    const definition = await findByDevice(args.device, true);
     expect(definition.model).toEqual(args.device.modelID);
     if (args.externalDefinitionSource) {
         expect((await generateExternalDefinitionSource(args.device)).trim()).toEqual(args.externalDefinitionSource.trim());
     }
-    return await assertDefinition({findByDeviceFn: getDefinition, ...args});
+    // prevent unnecessary duplicate call to `findByDevice` by passing already retrieved definition
+    return await assertDefinition({findByDeviceFn: () => Promise.resolve(definition), ...args});
 };
 
 describe("GenerateDefinition", () => {
@@ -25,9 +24,10 @@ describe("GenerateDefinition", () => {
             fromZigbee: [],
             toZigbee: [],
             exposes: [],
-            bind: [],
-            read: [],
-            configureReporting: [],
+            bind: {},
+            read: {},
+            write: {},
+            configureReporting: {},
         });
     });
 
@@ -40,6 +40,7 @@ describe("GenerateDefinition", () => {
             exposes: ["temperature"],
             bind: {1: ["msTemperatureMeasurement"]},
             read: {1: [["msTemperatureMeasurement", ["measuredValue"]]]},
+            write: {},
             configureReporting: {
                 1: [["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]]],
             },
@@ -55,6 +56,7 @@ describe("GenerateDefinition", () => {
             exposes: ["pressure"],
             bind: {1: ["msPressureMeasurement"]},
             read: {1: [["msPressureMeasurement", ["measuredValue"]]]},
+            write: {},
             configureReporting: {
                 1: [["msPressureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 50)]]],
             },
@@ -70,6 +72,7 @@ describe("GenerateDefinition", () => {
             exposes: ["humidity"],
             bind: {1: ["msRelativeHumidity"]},
             read: {1: [["msRelativeHumidity", ["measuredValue"]]]},
+            write: {},
             configureReporting: {
                 1: [["msRelativeHumidity", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]]],
             },
@@ -94,6 +97,7 @@ describe("GenerateDefinition", () => {
                     ["genOnOff", ["onOff"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]],
@@ -132,6 +136,7 @@ export default {
                     ["genOnOff", ["onOff"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 2: [
                     ["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]],
@@ -174,6 +179,7 @@ export default {
                 ],
                 2: [["msTemperatureMeasurement", ["measuredValue"]]],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["msTemperatureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 100)]],
@@ -198,15 +204,17 @@ export default {
     test("input(genOnOff, lightingColorCtrl)", async () => {
         const attributes = {
             lightingColorCtrl: {
-                colorCapabilities: 254,
-                colorTempPhysicalMin: 100,
-                colorTempPhysicalMax: 500,
+                attributes: {
+                    colorCapabilities: 254,
+                    colorTempPhysicalMin: 100,
+                    colorTempPhysicalMax: 500,
+                },
             },
         };
 
         await assertGeneratedDefinition({
             device: mockDevice({modelID: "combo", endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}]}),
-            meta: {},
+            meta: {supportsEnhancedHue: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
@@ -247,6 +255,7 @@ export default {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
+            write: {},
             configureReporting: {},
             externalDefinitionSource: `
 import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
@@ -265,15 +274,17 @@ export default {
     test("light with color and color temperature", async () => {
         const attributes = {
             lightingColorCtrl: {
-                colorCapabilities: 254,
-                colorTempPhysicalMin: 100,
-                colorTempPhysicalMax: 500,
+                attributes: {
+                    colorCapabilities: 254,
+                    colorTempPhysicalMin: 100,
+                    colorTempPhysicalMax: 500,
+                },
             },
         };
 
         await assertGeneratedDefinition({
             device: mockDevice({modelID: "combo", endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}]}),
-            meta: {},
+            meta: {supportsEnhancedHue: true},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",
@@ -314,6 +325,7 @@ export default {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
+            write: {},
             configureReporting: {},
             externalDefinitionSource: `
 import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
@@ -332,9 +344,11 @@ export default {
     test("Philips light with color and color temperature", async () => {
         const attributes = {
             lightingColorCtrl: {
-                colorCapabilities: 254,
-                colorTempPhysicalMin: 100,
-                colorTempPhysicalMax: 500,
+                attributes: {
+                    colorCapabilities: 254,
+                    colorTempPhysicalMin: 100,
+                    colorTempPhysicalMax: 500,
+                },
             },
         };
 
@@ -344,24 +358,33 @@ export default {
                 manufacturerID: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
                 endpoints: [{inputClusters: ["genOnOff", "lightingColorCtrl"], outputClusters: [], attributes}],
             }),
-            meta: {supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            meta: {supportsEnhancedHue: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior, philips.manuSpecificPhilips2Fz],
             toZigbee: [
                 "state",
                 "brightness",
                 "brightness_percent",
+                "color",
+                "color_temp",
+                "color_temp_percent",
+                "transition",
+                "effect_speed",
+                "gradient_scale",
+                "gradient_offset",
+                "gradient_style",
+                "effect_color",
+                "hue_power_on_behavior",
+                "hue_power_on_brightness",
+                "hue_power_on_color_temperature",
+                "hue_power_on_color",
                 "on_time",
                 "off_wait_time",
-                "transition",
                 "level_config",
                 "rate",
                 "brightness_move",
                 "brightness_move_onoff",
                 "brightness_step",
                 "brightness_step_onoff",
-                "color",
-                "color_temp",
-                "color_temp_percent",
                 "color_mode",
                 "color_options",
                 "colortemp_move",
@@ -373,13 +396,15 @@ export default {
                 "hue_step",
                 "saturation_step",
                 "power_on_behavior",
-                "hue_power_on_behavior",
-                "hue_power_on_brightness",
-                "hue_power_on_color_temperature",
-                "hue_power_on_color",
                 "effect",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)", "power_on_behavior"],
+            exposes: [
+                "effect",
+                "effect_color",
+                "effect_speed",
+                "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
+                "power_on_behavior",
+            ],
             bind: {},
             read: {
                 1: [
@@ -387,6 +412,7 @@ export default {
                     ["lightingColorCtrl", ["colorTempPhysicalMin", "colorTempPhysicalMax"]],
                 ],
             },
+            write: {},
             configureReporting: [],
             externalDefinitionSource: `
 import * as philips from 'zigbee-herdsman-converters/lib/philips';
@@ -405,16 +431,20 @@ export default {
     test("Electricity meter", async () => {
         const attributes = {
             haElectricalMeasurement: {
-                acPowerDivisor: 1000,
-                acPowerMultiplier: 1,
-                acCurrentDivisor: 1000,
-                acCurrentMultiplier: 1,
-                acVoltageDivisor: 1000,
-                acVoltageMultiplier: 1,
+                attributes: {
+                    acPowerDivisor: 1000,
+                    acPowerMultiplier: 1,
+                    acCurrentDivisor: 1000,
+                    acCurrentMultiplier: 1,
+                    acVoltageDivisor: 1000,
+                    acVoltageMultiplier: 1,
+                },
             },
             seMetering: {
-                divisor: 1000,
-                multiplier: 1,
+                attributes: {
+                    divisor: 1000,
+                    multiplier: 1,
+                },
             },
         };
 
@@ -450,6 +480,7 @@ export default {
                     ["seMetering", ["currentSummDelivered"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 1: [
                     ["genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]],
@@ -481,13 +512,15 @@ export default {
     test("Electricity DC meter", async () => {
         const attributes = {
             haElectricalMeasurement: {
-                measurementType: 1 << 6,
-                dcPowerDivisor: 10000,
-                dcPowerMultiplier: 1,
-                dcCurrentDivisor: 1000,
-                dcCurrentMultiplier: 1,
-                dcVoltageDivisor: 100,
-                dcVoltageMultiplier: 1,
+                attributes: {
+                    measurementType: 1 << 6,
+                    dcPowerDivisor: 10000,
+                    dcPowerMultiplier: 1,
+                    dcCurrentDivisor: 1000,
+                    dcCurrentMultiplier: 1,
+                    dcVoltageDivisor: 100,
+                    dcVoltageMultiplier: 1,
+                },
             },
         };
 
@@ -509,6 +542,7 @@ export default {
                     ["haElectricalMeasurement", ["dcPower", "dcVoltage", "dcCurrent"]],
                 ],
             },
+            write: {},
             configureReporting: {
                 2: [
                     [
@@ -532,6 +566,121 @@ export default {
     extend: [m.electricityMeter({"cluster":"electrical","electricalMeasurementType":"dc","endpointNames":["2"]})],
 };
             `,
+        });
+    });
+
+    test("input(genBinaryInput), output(genBinaryOutput, genAnalogOutput)", async () => {
+        const attr10 = {
+            genBinaryInput: {
+                attributes: {
+                    description: "my_binary_name",
+                },
+            },
+            genAnalogOutput: {
+                attributes: {
+                    description: "my_output_name",
+                    applicationType: 0,
+                    engineeringUnits: 62,
+                    minPresentValue: 0.0,
+                    maxPresentValue: 30.0,
+                    resolution: 0.1,
+                    presentValue: 15.0,
+                },
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "temp",
+                endpoints: [
+                    {
+                        ID: 10,
+                        inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"],
+                        outputClusters: [],
+                        attributes: attr10,
+                        read: vi.fn(async () => Promise.reject(new Error("use-fallback"))),
+                    },
+                ],
+            }),
+            meta: undefined,
+            fromZigbee: [
+                expect.objectContaining({cluster: "genBinaryInput"}),
+                expect.objectContaining({cluster: "genBinaryOutput"}),
+                expect.objectContaining({cluster: "genAnalogOutput"}),
+            ],
+            toZigbee: ["my_binary_name", "binary_output_10", "my_output_name"],
+            exposes: ["binary_output_10", "my_binary_name", "my_output_name"],
+            bind: {10: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"]},
+            read: {
+                10: [
+                    ["genBinaryOutput", ["description"], {sendPolicy: "immediate", disableRecovery: true}],
+                    ["genBinaryInput", ["presentValue"]],
+                    ["genBinaryOutput", ["presentValue"]],
+                    ["genAnalogOutput", ["presentValue"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                10: [
+                    ["genBinaryInput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genBinaryOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                ],
+            },
+        });
+    });
+
+    test("input(genAnalogInput), x2 endpoints", async () => {
+        const attr10 = {
+            genAnalogInput: {
+                attributes: {
+                    description: "my_custom_name",
+                    applicationType: 0,
+                    engineeringUnits: 62,
+                    minPresentValue: 0.0,
+                    maxPresentValue: 30.0,
+                    resolution: 0.1,
+                    presentValue: 15.0,
+                },
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "temp",
+                endpoints: [
+                    {ID: 10, inputClusters: ["genAnalogInput"], outputClusters: [], attributes: attr10},
+                    {
+                        ID: 11,
+                        inputClusters: ["genAnalogInput"],
+                        outputClusters: [],
+                        read: vi.fn(async () => Promise.reject(new Error("use-fallback"))),
+                    },
+                ],
+            }),
+            meta: {multiEndpoint: true},
+            fromZigbee: [expect.objectContaining({cluster: "genAnalogInput"}), expect.objectContaining({cluster: "genAnalogInput"})],
+            toZigbee: ["my_custom_name", "analog_input"],
+            exposes: ["analog_input_11", "my_custom_name_10"],
+            bind: {10: ["genAnalogInput"], 11: ["genAnalogInput"]},
+            read: {
+                10: [["genAnalogInput", ["presentValue"]]],
+                11: [
+                    ["genAnalogInput", ["description"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["applicationType"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["engineeringUnits"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["minPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["maxPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["resolution"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["presentValue"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                10: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
+                11: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
+            },
+            endpoints: {"10": 10, "11": 11},
         });
     });
 });

@@ -5,9 +5,63 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
+import type {
+    Configure,
+    Definition,
+    DefinitionExposesFunction,
+    DefinitionWithExtend,
+    DummyDevice,
+    Expose,
+    Fz,
+    KeyValue,
+    KeyValueAny,
+    ModernExtend,
+    Zh,
+} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+
+function conditionalPressure(): ModernExtend {
+    const base = m.pressure();
+
+    // Check whether any endpoint on the device has the msPressureMeasurement input cluster
+    function deviceHasPressureCluster(device: Zh.Device | DummyDevice): boolean {
+        if (utils.isDummyDevice(device)) return true; // docs generation: show it
+        return device.endpoints?.some((ep: Zh.Endpoint) => ep.supportsInputCluster("msPressureMeasurement"));
+    }
+
+    const exposeFn: DefinitionExposesFunction = (device: Zh.Device | DummyDevice, options: KeyValue): Expose[] => {
+        if (deviceHasPressureCluster(device)) {
+            // Resolve the original exposes from m.pressure()
+            const result: Expose[] = [];
+            for (const item of base.exposes ?? []) {
+                if (typeof item === "function") {
+                    result.push(...item(device, options));
+                } else {
+                    result.push(item);
+                }
+            }
+            return result;
+        }
+        return [];
+    };
+
+    return {
+        ...base,
+        // Replace static exposes with a dynamic function that checks the cluster
+        exposes: [exposeFn],
+        // Wrap each configure so it only runs when the cluster is present
+        configure: (base.configure ?? []).map((configureFn): Configure => {
+            return async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => {
+                if (deviceHasPressureCluster(device)) {
+                    await configureFn(device, coordinatorEndpoint, definition);
+                }
+            };
+        }),
+        isModernExtend: true,
+    };
+}
 
 interface ThirdAcceleration {
     attributes: {
@@ -15,6 +69,16 @@ interface ThirdAcceleration {
         xAxis: number;
         yAxis: number;
         zAxis: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdSoilSensor {
+    attributes: {
+        celsiusDegreeCalibration: number;
+        humidityCalibration: number;
+        fahrenheitDegreeCalibration: number;
     };
     commands: never;
     commandResponses: never;
@@ -30,9 +94,33 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
-interface ThirdRadarSpecialCluster {
+interface ThirdAirQualitySensor {
     attributes: {
-        volatileCrganiccCompounds: number;
+        vocIndex: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface Third60gRadarSensor {
+    attributes: {
+        totalVolatileOrganicCompounds: number;
+        presenceSensorDetectDistanceLevel: number;
+        tvocSensorCalibration: number;
+        tvocAlertThreshold: number;
+        tvocAlertEnable: number;
+        motionDetectSensitivityLevel: number;
+        presenceDetectSensitivityLevel: number;
+        presenceHoldTimeLevel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdWateringKit {
+    attributes: {
+        wateringTimes: number;
+        intervalDay: number;
     };
     commands: never;
     commandResponses: never;
@@ -50,6 +138,14 @@ interface ThirdBlindGen2 {
     commandResponses: never;
 }
 
+interface ThirdColorLight {
+    attributes: {
+        allowBind: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdWaterSensor {
     attributes: {
         sirenOnOff: number;
@@ -61,9 +157,11 @@ interface ThirdWaterSensor {
 
 interface ThirdPlug {
     attributes: {
+        ledBrightness: number;
         resetTotalEnergy: number;
         countdownToTurnOff: number;
         countdownToTurnOn: number;
+        redLedBrightness: number;
     };
     commands: never;
     commandResponses: never;
@@ -71,6 +169,7 @@ interface ThirdPlug {
 
 interface ThirdPlugGen3 {
     attributes: {
+        ledBrightness: number;
         meteringOnlyMode: number;
         powerRiseThreshold: number;
         powerDropThreshold: number;
@@ -82,16 +181,16 @@ interface ThirdPlugGen3 {
     commandResponses: never;
 }
 
-interface ThirdAirPressureSensor {
+interface Third24gRadar {
     attributes: {
-        sendCommandUpThreshold: number;
-        sendCommandDownThreshold: number;
+        sensorSensitive: number;
+        sensorCalibration: number;
     };
     commands: never;
     commandResponses: never;
 }
 
-const fzLocal = {
+export const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
         type: ["attributeReport", "readResponse"],
@@ -111,6 +210,16 @@ const fzLocal = {
             return {occupancy: (zoneStatus & 1) > 0};
         },
     } satisfies Fz.Converter<"r3Specialcluster", ThirdMotionSensor, "attributeReport">,
+    itcmdr_clicks: {
+        cluster: "genMultistateInput",
+        type: ["readResponse", "attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
+            const clicks = msg.data.presentValue;
+            const action = lookup[clicks] ? lookup[clicks] : "many";
+            return {action};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -131,11 +240,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("3rSwitchGen3SpecialCluster", {
+                name: "3rSwitchGen3SpecialCluster",
                 ID: 0xff02,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    onToOffDelay: {name: "onToOffDelay", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {name: "offToOnDelay", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -182,15 +292,17 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceAddCustomCluster("3rWaterSensorcluster", {
+                name: "3rWaterSensorcluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    sirenOnOff: {ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    sirenMinutes: {ID: 0x0011, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    sirenOnOff: {name: "sirenOnOff", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    sirenMinutes: {name: "sirenMinutes", ID: 0x0011, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
+            m.onOff({powerOnBehavior: false}),
             m.iasZoneAlarm({
                 zoneType: "water_leak",
                 zoneAttributes: ["alarm_1", "battery_low"],
@@ -243,10 +355,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("3rMotionSpecialCluster", {
+                name: "3rMotionSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -264,13 +377,49 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.battery({voltage: true, percentageReporting: false}),
             m.deviceAddCustomCluster("3rRadarSpecialCluster", {
+                name: "3rRadarSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    coolDownTime: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RAQ1096Z"],
+        model: "3RAQ1096Z",
+        vendor: "Third Reality",
+        description: "Smart air quality sensor",
+        ota: true,
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.co2(),
+            m.deviceAddCustomCluster("3rAirQualitySensorCluster", {
+                name: "3rAirQualitySensorCluster",
+                ID: 0x042e,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    vocIndex: {
+                        name: "vocIndex",
+                        ID: 0x0100,
+                        type: Zcl.DataType.UINT32,
+                        max: 0xffffffff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rAirQualitySensorCluster", ThirdAirQualitySensor>({
+                name: "voc_index",
+                cluster: "3rAirQualitySensorCluster",
+                attribute: "vocIndex",
+                unit: "VOC Index points",
+                description: "Measured VOC Index",
+                access: "STATE_GET",
             }),
         ],
     },
@@ -284,24 +433,125 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             m.illuminance(),
             m.deviceAddCustomCluster("3r60gRadarSpecialCluster", {
+                name: "3r60gRadarSpecialCluster",
                 ID: 0x042e,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    volatileCrganiccCompounds: {ID: 0x0000, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    totalVolatileOrganicCompounds: {
+                        name: "totalVolatileOrganicCompounds",
+                        ID: 0x0000,
+                        type: Zcl.DataType.UINT32,
+                        max: 0xffffffff,
+                    },
+                    presenceSensorDetectDistanceLevel: {
+                        name: "presenceSensorDetectDistanceLevel",
+                        ID: 0xf002,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        min: 1,
+                        max: 6,
+                    },
+                    tvocSensorCalibration: {name: "tvocSensorCalibration", ID: 0xf001, type: Zcl.DataType.UINT8, write: true, min: 1, max: 1},
+                    tvocAlertThreshold: {name: "tvocAlertThreshold", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, min: 3000, max: 50000},
+                    motionDetectSensitivityLevel: {
+                        name: "motionDetectSensitivityLevel",
+                        ID: 0xf004,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        min: 0,
+                        max: 20,
+                    },
+                    presenceDetectSensitivityLevel: {
+                        name: "presenceDetectSensitivityLevel",
+                        ID: 0xf005,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        min: 0,
+                        max: 20,
+                    },
+                    presenceHoldTimeLevel: {name: "presenceHoldTimeLevel", ID: 0xf006, type: Zcl.DataType.UINT8, write: true, min: 1, max: 4},
+                    tvocAlertEnable: {name: "tvocAlertEnable", ID: 0xf007, type: Zcl.DataType.UINT8, write: true, min: 0, max: 1},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3r60gRadarSpecialCluster", ThirdRadarSpecialCluster>({
-                name: "volatile_organic_compounds",
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "total_volatile_organic_compounds",
                 cluster: "3r60gRadarSpecialCluster",
-                attribute: "volatileCrganiccCompounds",
+                attribute: "totalVolatileOrganicCompounds",
                 unit: "ppb",
-                description: "Measured VOC value",
+                description: "Measured TVOC value",
                 access: "STATE_GET",
+            }),
+            m.enumLookup<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "tvoc_sensor_calibration",
+                lookup: {Reset: 1},
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "tvocSensorCalibration",
+                description: "TVOC sensor calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_sensor_sensitivity",
+                valueMin: 1,
+                valueMax: 6,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceSensorDetectDistanceLevel",
+                description: "Presence sensor detect distance level",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "tvoc_alert_threshold",
+                valueMin: 3000,
+                valueMax: 50000,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "tvocAlertThreshold",
+                unit: "ppb",
+                description: "TVOC alert threshold",
+                access: "ALL",
+            }),
+            m.binary<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "tvoc_alert_enable",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "tvocAlertEnable",
+                description: "TVOC alert enable",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "motion_detect_sensitivity_level",
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "motionDetectSensitivityLevel",
+                unit: "level",
+                description: "Set motion detect sensitivity level",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_detect_sensitivity_level",
+                valueMin: 0,
+                valueMax: 20,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceDetectSensitivityLevel",
+                unit: "level",
+                description: "Set Presence detect sensitivity level",
+                access: "ALL",
+            }),
+            m.numeric<"3r60gRadarSpecialCluster", Third60gRadarSensor>({
+                name: "presence_hold_time_level",
+                valueMin: 1,
+                valueMax: 4,
+                cluster: "3r60gRadarSpecialCluster",
+                attribute: "presenceHoldTimeLevel",
+                unit: "level",
+                description: "Set Presence hold time level",
+                access: "ALL",
             }),
             m.light({
                 color: {modes: ["xy"], enhancedHue: true},
+                colorTemp: {range: [154, 500]},
             }),
         ],
     },
@@ -322,10 +572,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("3rDoorSpecialCluster", {
+                name: "3rDoorSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    delayOpenAttrId: {name: "delayOpenAttrId", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -342,11 +593,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.forcePowerSource({powerSource: "Battery"}),
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.deviceAddCustomCluster("3rGarageDoorSpecialCluster", {
+                name: "3rGarageDoorSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    delayOpenAttrId: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    zclCabrationAttrId: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    delayOpenAttrId: {name: "delayOpenAttrId", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    zclCabrationAttrId: {name: "zclCabrationAttrId", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -362,12 +614,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff(),
             m.deviceAddCustomCluster("3rPlugGen1SpecialCluster", {
+                name: "3rPlugGen1SpecialCluster",
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    onToOffDelay: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    offToOnDelay: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    onToOffDelay: {name: "onToOffDelay", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    offToOnDelay: {name: "offToOnDelay", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -397,11 +650,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.cover_position(), e.battery()],
         extend: [
             m.deviceAddCustomCluster("3rRollerShadeSpecialCluster", {
+                name: "3rRollerShadeSpecialCluster",
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infraredOff: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    infraredOff: {name: "infraredOff", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -423,19 +677,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSB02015Z",
         vendor: "Third Reality",
         description: "Third Reality Blind Gen2",
+        ota: true,
         extend: [
             m.battery(),
             m.windowCovering({controls: ["lift"]}),
             m.commandsWindowCovering({commands: ["open", "close", "stop"]}),
             m.deviceAddCustomCluster("3rSmartBlindGen2SpecialCluster", {
+                name: "3rSmartBlindGen2SpecialCluster",
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    infraredEnable: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    compensationSpeed: {ID: 0x0001, type: Zcl.DataType.INT8, write: true, min: -128},
-                    limitPosition: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    totalCycleTimes: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    lastRemainingBatteryPercentage: {ID: 0x0004, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    infraredEnable: {name: "infraredEnable", ID: 0x0000, type: 0x20, write: true, min: 0, max: 1},
+                    compensationSpeed: {name: "compensationSpeed", ID: 0x0001, type: 0x28, write: true, min: -100, max: 100},
+                    limitPosition: {name: "limitPosition", ID: 0x0002, type: 0x21, write: true, min: 50, max: 4100},
+                    totalCycleTimes: {name: "totalCycleTimes", ID: 0x0003, type: 0x21, write: true, min: 200, max: 334},
+                    lastRemainingBatteryPercentage: {name: "lastRemainingBatteryPercentage", ID: 0x0004, type: 0x20, write: true, min: 0, max: 100},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -460,7 +716,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rSmartBlindGen2SpecialCluster", ThirdBlindGen2>({
                 name: "preset_bottom_position",
                 valueMin: 50,
-                valueMax: 3800,
+                valueMax: 4100,
                 cluster: "3rSmartBlindGen2SpecialCluster",
                 attribute: "limitPosition",
                 description: "Preset the bottom limit position of the blind",
@@ -493,17 +749,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSB22BZ",
         vendor: "Third Reality",
         description: "Smart button",
-        fromZigbee: [fz.itcmdr_clicks],
+        fromZigbee: [fzLocal.itcmdr_clicks],
         ota: true,
         exposes: [e.action(["single", "double", "hold", "release"])],
         extend: [
             m.battery(),
             m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rButtonSpecialCluster", {
+                name: "3rButtonSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    cancelDoubleClick: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    cancelDoubleClick: {name: "cancelDoubleClick", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -524,6 +781,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "presentValue",
                 actionLookup: {release: 255, single: 1, double: 2, hold: 0},
             }),
+            m.identify(),
             m.battery(),
         ],
     },
@@ -538,15 +796,86 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.forcePowerSource({powerSource: "Battery"}),
             m.deviceAddCustomCluster("3rSpecialCluster", {
+                name: "3rSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {
+                        name: "fahrenheitDegreeCalibration",
+                        ID: 0x0033,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RTHS0324Z"],
+        model: "3RTHS0324Z",
+        vendor: "Third Reality",
+        description: "Temperature and Humidity Sensor Lite Gen2",
+        extend: [
+            m.deviceAddCustomCluster("3rSpecialCluster", {
+                name: "3rSpecialCluster",
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {
+                        name: "fahrenheitDegreeCalibration",
+                        ID: 0x0033,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery(),
+            m.temperature(),
+            m.humidity(),
+            m.commandsOnOff(),
+            m.numeric<"3rSpecialCluster", ThirdSoilSensor>({
+                name: "celsius_degree_calibration",
+                unit: "°C",
+                valueMin: -200,
+                valueMax: 200,
+                scale: 100,
+                cluster: "3rSpecialCluster",
+                attribute: "celsiusDegreeCalibration",
+                description: "Celsius degree calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3rSpecialCluster", ThirdSoilSensor>({
+                name: "humidity_calibration",
+                unit: "%",
+                valueMin: -100,
+                valueMax: 100,
+                scale: 100,
+                cluster: "3rSpecialCluster",
+                attribute: "humidityCalibration",
+                description: "Humidity calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3rSpecialCluster", ThirdSoilSensor>({
+                name: "fahrenheit_degree_calibration",
+                unit: "°F",
+                valueMin: -200,
+                valueMax: 200,
+                scale: 100,
+                cluster: "3rSpecialCluster",
+                attribute: "fahrenheitDegreeCalibration",
+                description: "Fahrenheit degree calibration",
+                access: "ALL",
             }),
         ],
         ota: true,
@@ -561,12 +890,19 @@ export const definitions: DefinitionWithExtend[] = [
             m.soilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
+                name: "3rSoilSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {
+                        name: "fahrenheitDegreeCalibration",
+                        ID: 0x0033,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -579,7 +915,62 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSM0347Z",
         vendor: "Third Reality",
         description: "Smart Soil Moisture Sensor Gen2",
-        extend: [m.temperature(), m.humidity(), m.soilMoisture(), m.battery()],
+        extend: [
+            m.battery(),
+            m.temperature(),
+            m.soilMoisture(),
+            m.deviceAddCustomCluster("3rSoilGen2SpecialCluster", {
+                name: "3rSoilGen2SpecialCluster",
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {
+                        name: "fahrenheitDegreeCalibration",
+                        ID: 0x0033,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rSoilGen2SpecialCluster", ThirdSoilSensor>({
+                name: "celsius_degree_calibration",
+                unit: "°C",
+                valueMin: -200,
+                valueMax: 200,
+                scale: 100,
+                cluster: "3rSoilGen2SpecialCluster",
+                attribute: "celsiusDegreeCalibration",
+                description: "Celsius degree calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3rSoilGen2SpecialCluster", ThirdSoilSensor>({
+                name: "humidity_calibration",
+                unit: "%",
+                valueMin: -100,
+                valueMax: 100,
+                scale: 100,
+                cluster: "3rSoilGen2SpecialCluster",
+                attribute: "humidityCalibration",
+                description: "Humidity calibration",
+                access: "ALL",
+            }),
+            m.numeric<"3rSoilGen2SpecialCluster", ThirdSoilSensor>({
+                name: "fahrenheit_degree_calibration",
+                unit: "°F",
+                valueMin: -200,
+                valueMax: 200,
+                scale: 100,
+                cluster: "3rSoilGen2SpecialCluster",
+                attribute: "fahrenheitDegreeCalibration",
+                description: "Fahrenheit degree calibration",
+                access: "ALL",
+            }),
+        ],
         ota: true,
     },
     {
@@ -592,12 +983,19 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.battery(),
             m.deviceAddCustomCluster("3rSpecialCluster", {
+                name: "3rSpecialCluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    celsiusDegreeCalibration: {ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    fahrenheitDegreeCalibration: {ID: 0x0033, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    celsiusDegreeCalibration: {name: "celsiusDegreeCalibration", ID: 0x0031, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x0032, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    fahrenheitDegreeCalibration: {
+                        name: "fahrenheitDegreeCalibration",
+                        ID: 0x0033,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -613,15 +1011,41 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: true}),
             m.onOff({powerOnBehavior: false}),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                zoneAttributes: ["alarm_1"],
+                description: "Water shortage warning",
+            }),
             m.deviceAddCustomCluster("3rWateringSpecialCluster", {
+                name: "3rWateringSpecialCluster",
                 ID: 0xfff2,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    wateringTimes: {ID: 0x0000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    intervalDay: {ID: 0x0001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    wateringTimes: {name: "wateringTimes", ID: 0x0000, type: Zcl.DataType.UINT16, write: true, min: 1, max: 1800},
+                    intervalDay: {name: "intervalDay", ID: 0x0001, type: Zcl.DataType.UINT8, write: true, min: 0, max: 30},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rWateringSpecialCluster", ThirdWateringKit>({
+                name: "watering_times",
+                cluster: "3rWateringSpecialCluster",
+                attribute: "wateringTimes",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+                description: "watering times",
+                access: "ALL",
+            }),
+            m.numeric<"3rWateringSpecialCluster", ThirdWateringKit>({
+                name: "interval_day",
+                cluster: "3rWateringSpecialCluster",
+                attribute: "intervalDay",
+                valueMin: 0,
+                valueMax: 30,
+                unit: "Day",
+                description: "interval day",
+                access: "ALL",
             }),
         ],
         ota: true,
@@ -657,16 +1081,28 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("3rPlugGen2SpecialCluster", {
+                name: "3rPlugGen2SpecialCluster",
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    resetTotalEnergy: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    countdownToTurnOff: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    countdownToTurnOn: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    resetTotalEnergy: {name: "resetTotalEnergy", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rPlugGen2SpecialCluster", ThirdPlug>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rPlugGen2SpecialCluster",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugGen2SpecialCluster", ThirdPlug>({
                 name: "reset_total_energy",
@@ -713,19 +1149,39 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff(),
             m.electricityMeter({acFrequency: true, powerFactor: true}),
             m.deviceAddCustomCluster("3rPlugGen3Specialcluster", {
+                name: "3rPlugGen3Specialcluster",
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    resetTotalEnergy: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    countdownToTurnOff: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    countdownToTurnOn: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    powerRiseThreshold: {ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    powerDropThreshold: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    meteringOnlyMode: {ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    resetTotalEnergy: {name: "resetTotalEnergy", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    powerRiseThreshold: {name: "powerRiseThreshold", ID: 0x0040, type: Zcl.DataType.UINT16, write: true, min: 0x01, max: 0xc80},
+                    powerDropThreshold: {name: "powerDropThreshold", ID: 0x0041, type: Zcl.DataType.UINT16, write: true, min: 0x01, max: 0xc80},
+                    meteringOnlyMode: {name: "meteringOnlyMode", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
+                ID: Zcl.Clusters.genBasic.ID,
+                attributes: {
+                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, manufacturerCode: 0x1407, write: true, max: 0x64},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"genBasic", ThirdPlugGen3>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "genBasic",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "reset_total_energy",
@@ -767,8 +1223,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "power_rise_threshold",
                 unit: "w",
-                valueMin: 0,
-                valueMax: 65535,
+                valueMin: 1,
+                valueMax: 3200,
                 cluster: "3rPlugGen3Specialcluster",
                 attribute: "powerRiseThreshold",
                 description: "Reports sudden power changes. Power rise and fall alerts can be enabled separately. Threshold adjustable.",
@@ -777,8 +1233,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"3rPlugGen3Specialcluster", ThirdPlugGen3>({
                 name: "power_drop_threshold",
                 unit: "w",
-                valueMin: 0,
-                valueMax: 65535,
+                valueMin: 1,
+                valueMax: 3200,
                 cluster: "3rPlugGen3Specialcluster",
                 attribute: "powerDropThreshold",
                 description: "Reports sudden power changes. Power rise and drop alerts can be enabled separately. Threshold adjustable.",
@@ -801,12 +1257,22 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({endpointNames: ["2"], description: "On/off state of the switch right/top"}),
             m.electricityMeter({acFrequency: true, powerFactor: true, endpointNames: ["2"], energy: {divisor: 1000, multiplier: 1}}),
             m.deviceAddCustomCluster("3rDualPlugSpecialcluster", {
+                name: "3rDualPlugSpecialcluster",
                 ID: 0xff03,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    resetTotalEnergy: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    countdownToTurnOff: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    countdownToTurnOn: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    resetTotalEnergy: {name: "resetTotalEnergy", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genBasic", {
+                name: "genBasic",
+                ID: 0x0000,
+                attributes: {
+                    redLedBrightness: {name: "redLedBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, min: 0, max: 100},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -873,6 +1339,16 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(OFF-ON)",
                 access: "ALL",
             }),
+            m.numeric<"genBasic", ThirdPlug>({
+                name: "red_led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "genBasic",
+                attribute: "redLedBrightness",
+                description: "Set red led brightness",
+                access: "ALL",
+            }),
         ],
     },
     {
@@ -892,13 +1368,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("3rVirationSpecialcluster", {
+                name: "3rVirationSpecialcluster",
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    xAxis: {ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    yAxis: {ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    zAxis: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -914,12 +1391,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({color: true}),
             m.deviceAddCustomCluster("r3Specialcluster", {
+                name: "r3Specialcluster",
                 ID: 0xfc00,
                 manufacturerCode: 0x130d,
                 attributes: {
-                    coldDownTime: {ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    localRoutinTime: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    luxThreshold: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    coldDownTime: {name: "coldDownTime", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    localRoutinTime: {name: "localRoutinTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    luxThreshold: {name: "luxThreshold", ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -931,22 +1409,34 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z", "3RCB02070Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
-        whiteLabel: [{vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]}],
+        whiteLabel: [
+            {vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]},
+            {vendor: "Third Reality", model: "3RCB1095Z", description: "Smart Color Bulb ZL2", fingerprint: [{modelID: "3RCB1095Z"}]},
+        ],
         ota: true,
         extend: [
             m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
-            m.deviceAddCustomCluster("3rColorSpecialCluster", {
+            m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
+                name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0x01},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.enumLookup<"3rColorLightSpecialCluster", ThirdColorLight>({
+                name: "start_bind",
+                lookup: {StartBind: 1},
+                cluster: "3rColorLightSpecialCluster",
+                attribute: "allowBind",
+                description: "Start bind the light to the controller",
+                access: "ALL",
             }),
         ],
     },
@@ -981,16 +1471,28 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.deviceAddCustomCluster("3rPlugE2Specialcluster", {
+                name: "3rPlugE2Specialcluster",
                 ID: 0xff03,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    resetTotalEnergy: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    countdownToTurnOff: {ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    countdownToTurnOn: {ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    allowBind: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    resetTotalEnergy: {name: "resetTotalEnergy", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    allowBind: {name: "allowBind", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    ledBrightness: {name: "ledBrightness", ID: 0x0010, type: Zcl.DataType.UINT8, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rPlugE2Specialcluster", ThirdPlug>({
+                name: "led_brightness",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                cluster: "3rPlugE2Specialcluster",
+                attribute: "ledBrightness",
+                description: "Set the brightness of LED",
+                access: "ALL",
             }),
             m.enumLookup<"3rPlugE2Specialcluster", ThirdPlug>({
                 name: "reset_total_energy",
@@ -1026,39 +1528,55 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
         vendor: "Third Reality",
-        description: "Smart air pressure sensor",
+        description: "Smart Filter Sensor",
         extend: [
             m.battery(),
-            m.pressure({attribute: {ID: 0xff01, type: Zcl.DataType.UINT32}, name: "pressure", unit: "Pa", scale: 1}),
-            m.commandsOnOff(),
-            m.deviceAddCustomCluster("3rAirsensorSpecialCluster", {
+            m.numeric({
+                name: "dirty_level",
+                unit: "%",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                description: "Measure dirty level",
+                access: "STATE_GET",
+            }),
+            conditionalPressure(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3RPS01083Z"],
+        model: "3RPS01083Z",
+        vendor: "Third Reality",
+        description: "Smart presence sensor R2",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}),
+            m.deviceAddCustomCluster("3r24gRadarcluster", {
+                name: "3r24gRadarcluster",
                 ID: 0xff01,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    sendCommandUpThreshold: {ID: 0x0040, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    sendCommandDownThreshold: {ID: 0x0041, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    sensorSensitive: {name: "sensorSensitive", ID: 0x0060, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    sensorCalibration: {name: "sensorCalibration", ID: 0x0003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "pressure_raised_threshold",
-                unit: "Pa",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rAirsensorSpecialCluster",
-                attribute: "sendCommandUpThreshold",
-                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+            m.enumLookup<"3r24gRadarcluster", Third24gRadar>({
+                name: "sensor_calibration",
+                lookup: {Press: 1},
+                cluster: "3r24gRadarcluster",
+                attribute: "sensorCalibration",
+                description: "sensor calibration",
                 access: "ALL",
             }),
-            m.numeric<"3rAirsensorSpecialCluster", ThirdAirPressureSensor>({
-                name: "pressure_falls_threshold",
-                unit: "Pa",
-                valueMin: 0,
-                valueMax: 65535,
-                cluster: "3rAirsensorSpecialCluster",
-                attribute: "sendCommandDownThreshold",
-                description: "Reports sudden air-pressure changes. Pressure rise and fall alerts can be enabled separately. Threshold adjustable.",
+            m.numeric<"3r24gRadarcluster", Third24gRadar>({
+                name: "sensor_sensitivity",
+                valueMin: 1,
+                valueMax: 5,
+                cluster: "3r24gRadarcluster",
+                attribute: "sensorSensitive",
+                description: "sensor sensitive",
                 access: "ALL",
             }),
         ],

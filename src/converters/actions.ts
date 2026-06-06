@@ -42,11 +42,13 @@ export interface MqttRawPayload {
 
 const ClusterHueTouchlink: CustomClusters = {
     manuSpecificPhilipsPairing: {
+        name: "manuSpecificPhilipsPairing",
         ID: 0x1000,
         manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
         attributes: {},
         commands: {
             hueResetRequest: {
+                name: "hueResetRequest",
                 ID: 0,
                 parameters: [
                     {name: "extendedPanId", type: Zcl.DataType.IEEE_ADDR},

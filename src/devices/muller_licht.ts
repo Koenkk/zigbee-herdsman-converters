@@ -28,6 +28,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Müller Licht",
         description: "Tint LED white+color",
         extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: true})],
+        whiteLabel: [
+            {vendor: "Müller Licht", model: "404026", description: "Tint Outdoor LED-Strip white+color, 5m (IP44)"},
+            {vendor: "Müller Licht", model: "404075", description: "Tint Lichterkette Stella white+color, 12 bulbs (IP44)"},
+        ],
     },
     {
         zigbeeModel: ["Retro Bulb Gold XXL white+ambiance"],
@@ -322,5 +326,19 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Müller Licht",
         description: "tint desk lamp, white+color",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["Power Socket"],
+        model: "404078",
+        vendor: "MLI",
+        description: "tint Smart Socket Tower Outdoor",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["tint Retro Bulb white+ambiance"],
+        model: "404114",
+        vendor: "MLI",
+        description: "Tint LED Bulb, E27, 806 lumen, CCT, clear",
+        extend: [m.light({colorTemp: {range: [153, 555]}})],
     },
 ];

@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import {parse as semverParse} from "semver";
 import {beforeAll, describe, it} from "vitest";
 import baseDefinitions from "../src/devices/index";
 import {type Definition, type Expose, prepareDefinition} from "../src/index";
@@ -78,6 +79,14 @@ describe("Check definitions", () => {
                     throw new Error(`${definition.model} - ${property} (${expose.name}), supports get: ${!!(toZigbee?.convertGet)}`);
                 }
             }
+        }
+    });
+
+    it("Definition version", () => {
+        for (const definition of definitions) {
+            const version = semverParse(definition.version);
+            assert(version != null, `'${definition.model}' has invalid version '${definition.version}'`);
+            assert(version.minor === 0 && version.major === 0, `'${definition.model}' has version '${definition.version}', should start with 0.0.`);
         }
     });
 
@@ -219,6 +228,8 @@ describe("Check definitions", () => {
             "Slacky-DIY|THERM_SLACKY_DIY_R0B",
             "Slacky-DIY|THERM_SLACKY_DIY_R0C",
             "Slacky-DIY|THERM_SLACKY_DIY_R0C",
+            "Slacky-DIY|THERM_SLACKY_DIY_R0D",
+            "Slacky-DIY|THERM_SLACKY_DIY_R0D",
             "Tuya|SPM02",
             "Ubisys|H1",
             "Ubisys|H1",
