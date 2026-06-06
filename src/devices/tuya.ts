@@ -5431,17 +5431,33 @@ export const definitions: DefinitionWithExtend[] = [
                 //                      so we override that to 0 which is both top and bottom closed.
                 //                   51 results in the window being slightly open so we have to use the above logic.
                 [1, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
-                [2, "position_bottom", 
+                [
+                    2,
+                    "position_bottom",
                     {
-                        to: (v) => { const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result; },
-                        from: (v) => { const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100); return result; },
-                    }
+                        to: (v) => {
+                            const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100);
+                            return result;
+                        },
+                        from: (v) => {
+                            const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100);
+                            return result;
+                        },
+                    },
                 ],
-                [3, "position_bottom",
+                [
+                    3,
+                    "position_bottom",
                     {
-                        to: (v) => { const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result;},
-                        from: (v) => { const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100); return result; },
-                    }
+                        to: (v) => {
+                            const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100);
+                            return result;
+                        },
+                        from: (v) => {
+                            const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100);
+                            return result;
+                        },
+                    },
                 ],
                 // Top rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
                 //            DP2 is set position and DP3 is current position
@@ -5450,12 +5466,20 @@ export const definitions: DefinitionWithExtend[] = [
                 //                returned information is consumed by the bottom shade DP3.
 
                 [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
-                [2, "position_top", tuya.valueConverterBasic.scale(0,100,0,50)],
-                [3, "position_top",
+                [2, "position_top", tuya.valueConverterBasic.scale(0, 100, 0, 50)],
+                [
+                    3,
+                    "position_top",
                     {
-                        to: (v) => { const result = utils.mapNumberRange(v, 0, 100, 0, 50); return result; },
-                        from: (v) => { const result = v > 50 ? 0 : utils.mapNumberRange(v, 0, 50, 0, 100); return result; },
-                    }
+                        to: (v) => {
+                            const result = utils.mapNumberRange(v, 0, 100, 0, 50);
+                            return result;
+                        },
+                        from: (v) => {
+                            const result = v > 50 ? 0 : utils.mapNumberRange(v, 0, 50, 0, 100);
+                            return result;
+                        },
+                    },
                 ],
                 // Battery
                 [103, "battery", tuya.valueConverter.raw],
