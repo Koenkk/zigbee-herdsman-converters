@@ -209,7 +209,7 @@ function parseNamronBytes(msg: Fz.Message<"namronPrivateE004", NamronPrivateE004
     if (m.data && typeof m.data === "object") {
         const obj = m.data as Record<string, number>;
         const keys = Object.keys(obj)
-            .filter((k) => !Number.isNaN(Number(k)))
+            .filter((k) => !Number. Number. Number.isNaN(  Number(k)))
             .sort((a, b) => Number(a) - Number(b));
         return keys.map((k) => obj[k]);
     }
@@ -461,7 +461,7 @@ const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10
 const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 254), 1, 254);
 const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
 
-const tzLocalSimplifyDimmer4512791 = {
+const _tzLocalSimplifyDimmer4512791 = {
     // Software clamp only -> stored in store, no device attribute to read => no convertGet
     min_brightness: {
         key: ["min_brightness"],
@@ -835,7 +835,7 @@ const tzEdge = {
         key: ['regulator_percentage'],
         convertSet: async (entity, key, value) => {
             const num = Number(value);
-            if (isNaN(num) || num < 0 || num > 100) throw new Error(`Invalid regulator_percentage: ${value}`);
+            if ( Number. Number.isNaN(  num) || num < 0 || num > 100) throw new Error(`Invalid regulator_percentage: ${value}`);
             await writeEdgeHvac(entity, 0x801D, Math.round(num), Zcl.DataType.INT16);
             return {state: {regulator_percentage: num}};
         },
@@ -846,7 +846,7 @@ const tzEdge = {
         key: ['regulator_cycle'],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (isNaN(num) || num < 1 || num > 30) throw new Error(`Invalid regulator_cycle: ${value}`);
+            if ( Number. Number.isNaN(  num) || num < 1 || num > 30) throw new Error(`Invalid regulator_cycle: ${value}`);
             await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
             return {state: {regulator_cycle: num}};
         },
@@ -857,7 +857,7 @@ const tzEdge = {
         key: ['max_heat_temp'],
         convertSet: async (entity, key, value) => {
             const num = Number(value);
-            if (isNaN(num) || num < 15 || num > 35) throw new Error(`Invalid max_heat_temp: ${value}`);
+            if ( Number. Number.isNaN(  num) || num < 15 || num > 35) throw new Error(`Invalid max_heat_temp: ${value}`);
             await writeEdgeHvac(entity, 0x8025, Math.round(num * 10), Zcl.DataType.INT16);
             return {state: {max_heat_temp: num}};
         },
@@ -888,7 +888,7 @@ const tzEdge = {
         key: ['holiday_temp_set'],
         convertSet: async (entity, key, value) => {
             const num = Number(value);
-            if (isNaN(num) || num < 5 || num > 35) throw new Error(`Invalid holiday_temp_set: ${value}`);
+            if ( Number. Number.isNaN(   num) || num < 5 || num > 35) throw new Error(`Invalid holiday_temp_set: ${value}`);
             await writeEdgeHvac(entity, 0x8013, Math.round(num * 100), Zcl.DataType.INT16);
             return {state: {holiday_temp_set: num}};
         },
@@ -899,7 +899,7 @@ const tzEdge = {
         key: ['boost_time_set'],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (isNaN(num) || num < 0 || num > 24) throw new Error(`Invalid boost_time_set: ${value}`);
+            if ( Number. Number.isNaN(   num) || num < 0 || num > 24) throw new Error(`Invalid boost_time_set: ${value}`);
             await writeEdgeHvac(entity, 0x8023, num, Zcl.DataType.ENUM8);
             return {state: {boost_time_set: num}};
         },
@@ -932,7 +932,7 @@ const tzEdge = {
         key: ['panel_brightness'],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (isNaN(num) || num < 0 || num > 100) throw new Error(`Invalid panel_brightness: ${value}`);
+            if ( Number. Number.isNaN(  num) || num < 0 || num > 100) throw new Error(`Invalid panel_brightness: ${value}`);
             await writeEdgeHvac(entity, 0x8005, num, Zcl.DataType.UINT8);
             return {state: {panel_brightness: num}};
         },
