@@ -8825,6 +8825,119 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_m5r5nlxc"]),
+        model: "THAH202001",
+        vendor: "THALEOS",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        exposes: [
+            e.battery(),
+            e.battery_low(),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                // DP2 is a single enum encoding both the system mode and the active preset.
+                .withPreset(["manual", "eco", "away", "holiday"])
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
+            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Enable open window detection").withCategory("config"),
+            e.binary("window_open", ea.STATE, "OPEN", "CLOSE").withDescription("Open window detected (heating paused)").withCategory("diagnostic"),
+            e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Anti-freeze protection").withCategory("config"),
+            e
+                .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Anti-scale protection: periodically opens the valve fully to prevent it seizing up")
+                .withCategory("config"),
+            e.eco_temperature().withValueMin(5).withValueMax(30).withValueStep(0.5).withCategory("config"),
+            e
+                .numeric("away_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(0.5)
+                .withDescription("Temperature used in away preset")
+                .withCategory("config"),
+            e.holiday_temperature().withValueMin(5).withValueMax(30).withValueStep(0.5).withCategory("config"),
+            e.numeric("operating_time", ea.STATE).withUnit("h").withDescription("Total operating time").withCategory("diagnostic"),
+            e
+                .numeric("scale_protection_remaining_time", ea.STATE)
+                .withUnit("h")
+                .withDescription("Time remaining before the next anti-scale cycle")
+                .withCategory("diagnostic"),
+            e.numeric("error", ea.STATE).withDescription("Device error code").withCategory("diagnostic"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // DP2 combines system_mode and preset. The first entry (key null) handles reads;
+                // the "preset"/"system_mode" entries handle writes (matched by key name).
+                [
+                    2,
+                    null,
+                    {
+                        from: (v: number) => {
+                            const lookup: {[key: number]: KeyValue} = {
+                                0: {system_mode: "heat", preset: "manual"},
+                                1: {system_mode: "heat", preset: "eco"},
+                                2: {system_mode: "heat", preset: "away"},
+                                3: {system_mode: "heat", preset: "holiday"},
+                                4: {system_mode: "off"},
+                            };
+                            return lookup[v] ?? {system_mode: "heat", preset: "manual"};
+                        },
+                    },
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        eco: tuya.enum(1),
+                        away: tuya.enum(2),
+                        holiday: tuya.enum(3),
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        off: tuya.enum(4),
+                    }),
+                ],
+                [
+                    3,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        idle: tuya.enum(1),
+                    }),
+                ],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [14, "window_detection", tuya.valueConverter.onOff],
+                [
+                    15,
+                    "window_open",
+                    tuya.valueConverterBasic.lookup({
+                        OPEN: tuya.enum(0),
+                        CLOSE: tuya.enum(1),
+                    }),
+                ],
+                [21, "holiday_temperature", tuya.valueConverter.divideBy10],
+                [24, "eco_temperature", tuya.valueConverter.divideBy10],
+                [25, "away_temperature", tuya.valueConverter.divideBy10],
+                [35, null, tuya.valueConverter.errorOrBatteryLow],
+                [36, "frost_protection", tuya.valueConverter.onOff],
+                [39, "scale_protection", tuya.valueConverter.onOff],
+                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [101, "operating_time", tuya.valueConverter.divideBy10],
+                [102, "scale_protection_remaining_time", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_p3dbf6qs" /* model: 'ME167_1', vendor: 'AVATTO' */,
             "_TZE200_hvaxb2tc" /* model: 'TRV06_1b', vendor: 'AVATTO' */,
