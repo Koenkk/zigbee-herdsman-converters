@@ -603,11 +603,11 @@ const fzEdge = {
             if (msg.data["dateCode"] !== undefined) result["firmware_date"] = msg.data["dateCode"];
             return result;
         },
-    } satisfies Fz.Converter<'hvacThermostat', undefined, ['attributeReport', 'readResponse']>,
+    } satisfies Fz.Converter<'genBasic', undefined, ['attributeReport', 'readResponse']>,
 
     thermostat_base: {
         cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"] as Fz.MessageType[],
+        type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             const d = msg.data;
@@ -643,7 +643,7 @@ const fzEdge = {
 
     namron_private: {
         cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"] as Fz.MessageType[],
+        type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta): KeyValue => {
             const result: KeyValue = {};
             for (const [key, value] of Object.entries(msg.data)) {
@@ -730,7 +730,7 @@ const fzEdge = {
 
     keypad_lockout: {
         cluster: "hvacUserInterfaceCfg",
-        type: ["attributeReport", "readResponse"] as Fz.MessageType[],
+        type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg): KeyValue => {
             if (msg.data["keypadLockout"] !== undefined) return {keypad_lockout: msg.data["keypadLockout"] === 0 ? "unlock" : "lock"};
             return {};
@@ -739,7 +739,7 @@ const fzEdge = {
 
     metering: {
         cluster: "seMetering",
-        type: ["attributeReport", "readResponse"] as Fz.MessageType[],
+        type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             if (msg.data["currentSummDelivered"] !== undefined) {
@@ -753,7 +753,7 @@ const fzEdge = {
 
     electrical: {
         cluster: "haElectricalMeasurement",
-        type: ["attributeReport", "readResponse"] as Fz.MessageType[],
+        type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             const cMul = (msg.data["acCurrentMultiplier"] as number) ?? 1;
