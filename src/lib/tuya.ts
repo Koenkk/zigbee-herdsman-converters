@@ -642,6 +642,10 @@ const tuyaExposes = {
             .withDescription("Alarm time")
             .withCategory("config"),
     alarmMode: () => e.enum("alarm_mode", ea.STATE_SET, ["arm", "silent", "disarm"]).withDescription("Alarm work mode").withCategory("config"),
+    alarmStatus: () => e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("Indicates when vibration is detected"),
+    dismissAlarm: () => e.enum("dismiss_alarm", ea.STATE_SET, ["DISMISS"]).withDescription("Stop the buzzer for the current alarm"),
+    sensitivity: () =>
+        e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity level of the sensor").withCategory("config"),
     lightType: () => e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of light attached to the device"),
     lightBrightnessWithMinMax: () =>
         e
@@ -714,7 +718,8 @@ const tuyaExposes = {
         e.enum("self_test_result", ea.STATE, ["checking", "success", "failure", "others"]).withDescription("Result of the self-test"),
     fault: () => e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether a fault was detected").withCategory("diagnostic"),
     faultAlarm: () => e.binary("fault_alarm", ea.STATE, true, false).withDescription("Indicates whether a fault was detected"),
-    silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"),
+    silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"), // current alarm or all alarms?
+    silentMode: () => e.binary("silent_mode", ea.STATE_SET, "ON", "OFF").withDescription("Mute the buzzer for all alarms").withCategory("config"),
     frostProtection: (extraNote = "") =>
         e
             .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
@@ -1494,6 +1499,16 @@ export const valueConverter = {
     raw: valueConverterBasic.raw(),
     fault: {from: (v: Bitmap) => !!v},
     alarmMode: valueConverterBasic.lookup({arm: new Enum(0), silent: new Enum(1), disarm: new Enum(2)}),
+    alarmStatus: valueConverterBasic.lookup({normal: new Enum(0), alarm: new Enum(1)}),
+    sensitivity: valueConverterBasic.lookup({low: new Enum(0), middle: new Enum(1), high: new Enum(2)}),
+    dismiss: {
+        to: (v: string) => {
+            if (v === "DISMISS") return new Enum(0);
+        },
+        from: () => {
+            return "idle";
+        },
+    },
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
