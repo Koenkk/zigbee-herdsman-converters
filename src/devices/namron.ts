@@ -581,10 +581,10 @@ function deriveEdgeThermostatMode(frost: string, vacationMode: string, sensorMod
     return "manual";
 }
 
-const edgeSensorModeLookup: KeyValue = {0: "air", 1: "floor", 2: "both", 3: "air2", 4: "both2", 5: "floor_percent", 6: "percent"};
+const edgeSensorModeLookup: KeyValue = {"0": "air", "1": "floor", "2": "both", "3": "air2", "4": "both2", "5": "floor_percent", "6": "percent"};
 const edgeOnOffLookup: KeyValue = {OFF: 0, ON: 1};
-const edgeOnOffReverseLookup: KeyValue = {0: "OFF", 1: "ON"};
-const edgeScreenOnTimeLookup: KeyValue = {0: "always_on", 1: "10s", 2: "60s", 3: "30s"};
+const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
+const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "60s", "3": "30s"};
 const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "60s": 2, "30s": 3};
 
 async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | number)[]): Promise<void> {
