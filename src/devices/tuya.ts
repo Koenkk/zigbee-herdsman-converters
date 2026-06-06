@@ -5433,13 +5433,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
                 [2, "position_bottom", 
                     {
-                        to: (v) => { const result = v == 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result; },
+                        to: (v) => { const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result; },
                         from: (v) => { const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100); return result; },
                     }
                 ],
                 [3, "position_bottom",
                     {
-                        to: (v) => { const result = v == 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result;},
+                        to: (v) => { const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100); return result;},
                         from: (v) => { const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100); return result; },
                     }
                 ],
