@@ -44,7 +44,7 @@ const acova = {
                 await entity.read("hvacThermostat", ["systemMode"]);
             },
         } satisfies Tz.Converter,
-    },    
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
