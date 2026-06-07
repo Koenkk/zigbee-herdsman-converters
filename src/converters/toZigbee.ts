@@ -1695,20 +1695,6 @@ export const thermostat_system_mode: Tz.Converter = {
         await entity.read("hvacThermostat", ["systemMode"]);
     },
 };
-export const acova_thermostat_system_mode: Tz.Converter = {
-    key: ["system_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        let systemMode = utils.getKey(constants.acovaThermostatSystemModes, value, undefined, Number);
-        if (systemMode === undefined) {
-            systemMode = utils.getKey(legacy.thermostatSystemModes, value, value as number, Number);
-        }
-        await entity.write("hvacThermostat", {systemMode});
-        return {state: {system_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["systemMode"]);
-    },
-};
 export const thermostat_control_sequence_of_operation: Tz.Converter = {
     key: ["control_sequence_of_operation"],
     convertSet: async (entity, key, value, meta) => {
