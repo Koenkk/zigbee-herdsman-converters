@@ -547,10 +547,8 @@ const _tzLocalSimplifyDimmer4512791 = {
 // -----------------------------------------------------------------------------
 // End Simplify Dimmer (4512791)
 // -----------------------------------------------------------------------------
-
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
-
-// ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
+}
 
 const ZIGBEE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
 
@@ -971,7 +969,6 @@ const tzEdge = {
     } satisfies Tz.Converter,
 };
 // ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
-
 // ─── Device definition (replaces the old 4512783/4512784 block in namron.ts) ─
     {
         zigbeeModel: ["4566702", "4566703", "4512783", "4512784"],
