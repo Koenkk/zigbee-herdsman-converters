@@ -1145,8 +1145,8 @@ export const definitions: DefinitionWithExtend[] = [
                         /* ignore */
                     }
                 }
-            }
         },
+
         exposes: [
             e
                 .climate()
