@@ -1057,24 +1057,25 @@ export const definitions: DefinitionWithExtend[] = [
 
         // Periodic time sync regardless of heating status.
         // Syncs time at most once per hour so vacation mode always has correct clock.
-onEvent: ((event) => {
-    if (event.type === "message") {
-        const now = Date.now();
-        const device = event.data.device;
-        const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
-        if (now - lastSync > 60 * 60 * 1000) {
-            const endpoint = device.getEndpoint(1);
-            if (endpoint) {
-                const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
-                endpoint.write("hvacThermostat", {0x800b: {value: ts, type: Zcl.DataType.UINT32}})
-                    .then(() => endpoint.write("hvacThermostat", {0x800a: {value: 0, type: Zcl.DataType.BOOLEAN}}))
-                    .then(() => { device.meta["lastTimeSync"] = now; device.save(); })
-                    .catch(() => { /* ignore */ });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onEvent: (async (event: any) => {
+            if (event.type === "message") {
+                const now = Date.now();
+                const device = event.data.device;
+                const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
+                if (now - lastSync > 60 * 60 * 1000) {
+                    try {
+                        const endpoint = device.getEndpoint(1);
+                        const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
+                        await endpoint.write("hvacThermostat", {0x800b: {value: ts, type: Zcl.DataType.UINT32}});
+                        await endpoint.write("hvacThermostat", {0x800a: {value: 0,  type: Zcl.DataType.BOOLEAN}});
+                        device.meta["lastTimeSync"] = now;
+                        device.save();
+                    } catch (_) { /* ignore */ }
+                }
             }
-        }
-    }
-}) satisfies OnEvent.Handler,
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any,
         exposes: [
             e.climate()
                 .withLocalTemperature()
@@ -2783,25 +2784,25 @@ onEvent: ((event) => {
 
         // Periodic time sync regardless of heating status.
         // Syncs time at most once per hour so vacation mode always has correct clock.
-        onEvent: ((event) => {
-    if (event.type === "message") {
-        const now = Date.now();
-        const device = event.data.device;
-        const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
-        if (now - lastSync > 60 * 60 * 1000) {
-            const endpoint = device.getEndpoint(1);
-            if (endpoint) {
-                const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
-                endpoint.write("hvacThermostat", {0x800b: {value: ts, type: Zcl.DataType.UINT32}})
-                    .then(() => endpoint.write("hvacThermostat", {0x800a: {value: 0, type: Zcl.DataType.BOOLEAN}}))
-                    .then(() => { device.meta["lastTimeSync"] = now; device.save(); })
-                    .catch(() => { /* ignore */ });
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onEvent: (async (event: any) => {
+            if (event.type === "message") {
+                const now = Date.now();
+                const device = event.data.device;
+                const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
+                if (now - lastSync > 60 * 60 * 1000) {
+                    try {
+                        const endpoint = device.getEndpoint(1);
+                        const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
+                        await endpoint.write("hvacThermostat", {0x800b: {value: ts, type: Zcl.DataType.UINT32}});
+                        await endpoint.write("hvacThermostat", {0x800a: {value: 0,  type: Zcl.DataType.BOOLEAN}});
+                        device.meta["lastTimeSync"] = now;
+                        device.save();
+                    } catch (_) { /* ignore */ }
+                }
             }
-        }
-    }
-}) satisfies OnEvent.Handler,
-        },
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }) as any,
         exposes: [
             e
                 .climate()
