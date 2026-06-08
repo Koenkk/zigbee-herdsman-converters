@@ -743,7 +743,7 @@ const fzEdge = {
 const tzEdge = {
     thermostat_mode: {
         key: ["thermostat_mode", "thermostat_mode_extra"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
+        convertSet: async (entity, key, value, meta) => {
             const state: KeyValue = {};
             const wasRegulator = (meta.state as KeyValue)?.["sensor_mode"] === "percent";
             switch (value) {
@@ -804,7 +804,7 @@ const tzEdge = {
             state["thermostat_mode_extra"] = value;
             return {state};
         },
-        convertGet: async (entity: Tz.Entity) => {
+        convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8001, 0x8004, 0x801f, 0x8023]);
             await entity.read("hvacThermostat", ["programingOperMode"]);
         },
@@ -825,12 +825,12 @@ const tzEdge = {
 
     keypad_lockout: {
         key: ["keypad_lockout"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown, meta: Tz.Meta) => {
+        convertSet: async (entity, key, value, meta) => {
             const mapped = value === "lock" ? "lock1" : "unlock";
             await tz.thermostat_keypad_lockout.convertSet(entity, key, mapped, meta);
             return {state: {keypad_lockout: value}};
         },
-        convertGet: async (entity: Tz.Entity, key: string, meta: Tz.Meta) =>
+        convertGet: async (entity, key, meta) =>
             tz.thermostat_keypad_lockout.convertGet(entity, key, meta),
     } satisfies Tz.Converter,
 
@@ -842,7 +842,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x801d, Math.round(num), Zcl.DataType.INT16);
             return {state: {regulator_percentage: num}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x801d]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x801d]); },
     } satisfies Tz.Converter,
 
     regulator_cycle: {
@@ -853,7 +853,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
             return {state: {regulator_cycle: num}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8007]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8007]); },
     } satisfies Tz.Converter,
 
     max_heat_temp: {
@@ -864,7 +864,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8025, Math.round(num * 10), Zcl.DataType.INT16);
             return {state: {max_heat_temp: num}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8025]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8025]); },
     } satisfies Tz.Converter,
 
     vacation_start: {
@@ -874,7 +874,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8020, raw, Zcl.DataType.UINT32);
             return {state: {vacation_start: value}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8020]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8020]); },
     } satisfies Tz.Converter,
 
     vacation_end: {
@@ -884,7 +884,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8021, raw, Zcl.DataType.UINT32);
             return {state: {vacation_end: value}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8021]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8021]); },
     } satisfies Tz.Converter,
 
     holiday_temp_set: {
@@ -895,7 +895,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8013, Math.round(num * 100), Zcl.DataType.INT16);
             return {state: {holiday_temp_set: num}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8013]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8013]); },
     } satisfies Tz.Converter,
 
     boost_time_set: {
@@ -906,7 +906,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8023, num, Zcl.DataType.ENUM8);
             return {state: {boost_time_set: num}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8023, 0x8024]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8023, 0x8024]); },
     } satisfies Tz.Converter,
 
     window_open_check: {
@@ -917,7 +917,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8000, raw as number, Zcl.DataType.BOOLEAN);
             return {state: {window_open_check: value}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8000]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8000]); },
     } satisfies Tz.Converter,
 
     screen_on_time: {
@@ -928,7 +928,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8029, raw as number, Zcl.DataType.ENUM8);
             return {state: {screen_on_time: value}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8029]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8029]); },
     } satisfies Tz.Converter,
 
     panel_brightness: {
@@ -939,7 +939,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8005, num, Zcl.DataType.UINT8);
             return {state: {panel_brightness: num}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8005]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8005]); },
     } satisfies Tz.Converter,
 
     auto_time: {
@@ -950,7 +950,7 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x8022, raw as number, Zcl.DataType.BOOLEAN);
             return {state: {auto_time: value}};
         },
-        convertGet: async (entity: Tz.Entity) => { await entity.read("hvacThermostat", [0x8022]); },
+        convertGet: async (entity) => { await entity.read("hvacThermostat", [0x8022]); },
     } satisfies Tz.Converter,
 
     sync_time: {
