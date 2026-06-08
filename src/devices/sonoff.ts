@@ -6095,6 +6095,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-04PR2",
         vendor: "SONOFF",
         description: "Contact sensor",
+        version: "0.0.1",
         extend: [
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.binary({
