@@ -1130,16 +1130,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         // Periodic time sync regardless of heating status.
         // Syncs time at most once per hour so vacation mode always has correct clock.
-        onEvent: (async (event: {
-            type: string;
-            data: {
-                device: {
-                    getEndpoint: (id: number) => {write: (c: string, p: Record<number, {value: number; type: number}>) => Promise<void>};
-                    meta: Record<string, unknown>;
-                    save: () => void;
-                };
-            };
-        }) => {
+onEvent: async (event) => {
             if (event.type === "message") {
                 const now = Date.now();
                 const device = event.data.device;
@@ -1148,16 +1139,14 @@ export const definitions: DefinitionWithExtend[] = [
                     try {
                         const endpoint = device.getEndpoint(1);
                         const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
-                        await endpoint.write("hvacThermostat", {32779: {value: ts, type: Zcl.DataType.UINT32}});
-                        await endpoint.write("hvacThermostat", {32778: {value: 0, type: Zcl.DataType.BOOLEAN}});
+                        await endpoint.write("hvacThermostat", {0x800b: {value: ts, type: Zcl.DataType.UINT32}});
+                        await endpoint.write("hvacThermostat", {0x800a: {value: 0,  type: Zcl.DataType.BOOLEAN}});
                         device.meta["lastTimeSync"] = now;
                         device.save();
-                    } catch (_) {
-                        /* ignore */
-                    }
+                    } catch (_) { /* ignore */ }
                 }
             }
-        }) as Tz.Converter["convertSet"],
+        },
         exposes: [
             e
                 .climate()
