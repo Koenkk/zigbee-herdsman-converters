@@ -11,8 +11,6 @@ import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import type {Endpoint} from 'zigbee-herdsman/dist/controller/model';
-import type {Group} from 'zigbee-herdsman/dist/controller/model';
 
 const ea = exposes.access;
 const e = exposes.presets;
@@ -964,8 +962,8 @@ const tzEdge = {
             await entity.read("hvacThermostat", [0x800a, 0x800b]);
             return {state: {sync_time: "sync"}};
         },
-    } satisfies Tz.Converter,
-};
+export const definitions: DefinitionWithExtend[] = [
+    
 // ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
 // ─── Device definition (replaces the old 4512783/4512784 block in namron.ts) ─
     {
@@ -1140,10 +1138,8 @@ const tzEdge = {
         ],
     },
 
-} satisfies Tz.Converter,
-};
-// ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) END ──────────
 export const definitions: DefinitionWithExtend[] = [
+// ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) END ──────────
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
