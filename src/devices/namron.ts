@@ -1139,7 +1139,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
 export const definitions: DefinitionWithExtend[] = [
-// ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) END ──────────
+// ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) END ────────
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
