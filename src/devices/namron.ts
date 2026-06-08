@@ -1138,7 +1138,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("power",   ea.STATE).withUnit("W").withLabel("Power"),
         ],
     },
-// ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) END ────────
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
