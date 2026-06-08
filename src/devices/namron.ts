@@ -643,7 +643,7 @@ const fzEdge = {
                 else           result["programming_operation_mode"] = "setpoint";
             }
             if (d["tempDisplayMode"] !== undefined)
-                result["temperature_display_mode"] = d["tempDisplayMode"] === 0 ? "celsius" : "fahrenheit";
+                result["temperature_display_mode"] = (d["tempDisplayMode"] as number) === 0 ? "celsius" : "fahrenheit";
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
