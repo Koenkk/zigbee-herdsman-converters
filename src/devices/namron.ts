@@ -613,7 +613,7 @@ const fzEdge = {
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
-            const d = msg.data;
+            const d = msg.data as Record<string, unknown>;
             if (d["localTemp"] !== undefined)
                 result["local_temperature"] = (d["localTemp"] as number) / 100;
             if (d["occupiedHeatingSetpoint"] !== undefined)
@@ -631,7 +631,7 @@ const fzEdge = {
             if (d["runningState"] !== undefined) {
                 const map: KeyValue = {"0": "idle", "1": "heat", "2": "cool"};
                 result["running_state"] = map[String(d["runningState"] as number)] ?? String(d["runningState"]);
-                if (d["runningState"] === 0) result["power"] = 0;
+                if ((d["runningState"] as number) === 0) result["power"] = 0;
             }
             if (d["pIHeatingDemand"] !== undefined)
                 result["pi_heating_demand"] = d["pIHeatingDemand"];
@@ -647,7 +647,6 @@ const fzEdge = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-
     namron_private: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
