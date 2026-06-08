@@ -1202,7 +1202,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("power", ea.STATE).withUnit("W").withLabel("Power"),
         ],
     },
-export const definitions: DefinitionWithExtend[] = [    
+ 
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
