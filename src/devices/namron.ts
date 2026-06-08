@@ -600,7 +600,7 @@ const fzEdge = {
     basic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Fz.Model, msg: Fz.Message): KeyValue => {
+        convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             if (msg.data["swBuildId"] !== undefined) result["firmware_version"] = msg.data["swBuildId"];
             if (msg.data["dateCode"]  !== undefined) result["firmware_date"]    = msg.data["dateCode"];
@@ -611,7 +611,7 @@ const fzEdge = {
     thermostat_base: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Fz.Model, msg: Fz.Message): KeyValue => {
+        convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             const d = msg.data;
             if (d["localTemp"] !== undefined)
@@ -651,7 +651,7 @@ const fzEdge = {
     namron_private: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Fz.Model, msg: Fz.Message, publish: Fz.Publish, options: KeyValue, meta: Fz.Meta): KeyValue => {
+        convert: (model, msg, publish, options, meta): KeyValue => {
             const result: KeyValue = {};
             for (const [key, value] of Object.entries(msg.data)) {
                 switch (Number(key)) {
@@ -703,7 +703,7 @@ const fzEdge = {
     keypad_lockout: {
         cluster: "hvacUserInterfaceCfg",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Fz.Model, msg: Fz.Message): KeyValue => {
+        convert: (model, msg): KeyValue => {
             if (msg.data["keypadLockout"] !== undefined)
                 return {keypad_lockout: msg.data["keypadLockout"] === 0 ? "unlock" : "lock"};
             return {};
@@ -713,7 +713,7 @@ const fzEdge = {
     metering: {
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Fz.Model, msg: Fz.Message): KeyValue => {
+        convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             if (msg.data["currentSummDelivered"] !== undefined) {
                 const div = (msg.data["divisor"] as number) ?? 100;
