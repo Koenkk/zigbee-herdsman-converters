@@ -585,7 +585,9 @@ const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "60s": 2,
 
 // biome-ignore lint/suspicious/noExplicitAny: endpoint type is complex generic
 async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | number)[]): Promise<void> {
-    try { await endpoint.read(cluster, attrs); } catch (_) {}
+    try {
+        await endpoint.read(cluster, attrs);
+    } catch (_) {}
 }
 // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
 async function writeEdgeHvac(entity: any, attr: number, value: number, type: number): Promise<void> {
