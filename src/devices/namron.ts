@@ -727,7 +727,7 @@ const fzEdge = {
     electrical: {
         cluster: "haElectricalMeasurement",
         type: ["attributeReport", "readResponse"] as const,
-        convert: (model: Fz.Model, msg: Fz.Message): KeyValue => {
+        convert: (model, msg): KeyValue => {
             const result: KeyValue = {};
             const cMul = (msg.data["acCurrentMultiplier"] as number) ?? 1;
             const cDiv = (msg.data["acCurrentDivisor"]   as number) ?? 1;
@@ -812,7 +812,7 @@ const tzEdge = {
 
     frost: {
         key: ["frost"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             if (value === "ON") {
                 await entity.write("hvacThermostat", {0x801f: {value: 0, type: 0x10}});
                 await entity.write("hvacThermostat", {0x8001: {value: 1, type: 0x10}});
@@ -836,7 +836,7 @@ const tzEdge = {
 
     regulator_percentage: {
         key: ["regulator_percentage"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const num = Number(value);
             if (Number.isNaN(num) || num < 0 || num > 100) throw new Error(`Invalid regulator_percentage: ${value}`);
             await writeEdgeHvac(entity, 0x801d, Math.round(num), Zcl.DataType.INT16);
@@ -847,7 +847,7 @@ const tzEdge = {
 
     regulator_cycle: {
         key: ["regulator_cycle"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
             if (Number.isNaN(num) || num < 1 || num > 30) throw new Error(`Invalid regulator_cycle: ${value}`);
             await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
@@ -858,7 +858,7 @@ const tzEdge = {
 
     max_heat_temp: {
         key: ["max_heat_temp"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const num = Number(value);
             if (Number.isNaN(num) || num < 15 || num > 35) throw new Error(`Invalid max_heat_temp: ${value}`);
             await writeEdgeHvac(entity, 0x8025, Math.round(num * 10), Zcl.DataType.INT16);
@@ -869,7 +869,7 @@ const tzEdge = {
 
     vacation_start: {
         key: ["vacation_start"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const raw = dateToYymmdd(value as string);
             await writeEdgeHvac(entity, 0x8020, raw, Zcl.DataType.UINT32);
             return {state: {vacation_start: value}};
@@ -879,7 +879,7 @@ const tzEdge = {
 
     vacation_end: {
         key: ["vacation_end"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const raw = dateToYymmdd(value as string);
             await writeEdgeHvac(entity, 0x8021, raw, Zcl.DataType.UINT32);
             return {state: {vacation_end: value}};
@@ -889,7 +889,7 @@ const tzEdge = {
 
     holiday_temp_set: {
         key: ["holiday_temp_set"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const num = Number(value);
             if (Number.isNaN(num) || num < 5 || num > 35) throw new Error(`Invalid holiday_temp_set: ${value}`);
             await writeEdgeHvac(entity, 0x8013, Math.round(num * 100), Zcl.DataType.INT16);
@@ -900,7 +900,7 @@ const tzEdge = {
 
     boost_time_set: {
         key: ["boost_time_set"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
             if (Number.isNaN(num) || num < 0 || num > 24) throw new Error(`Invalid boost_time_set: ${value}`);
             await writeEdgeHvac(entity, 0x8023, num, Zcl.DataType.ENUM8);
@@ -911,7 +911,7 @@ const tzEdge = {
 
     window_open_check: {
         key: ["window_open_check"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const raw = edgeOnOffLookup[value as string];
             if (raw === undefined) throw new Error(`Invalid window_open_check: ${value}`);
             await writeEdgeHvac(entity, 0x8000, raw as number, Zcl.DataType.BOOLEAN);
@@ -922,7 +922,7 @@ const tzEdge = {
 
     screen_on_time: {
         key: ["screen_on_time"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const raw = edgeScreenOnTimeValueLookup[value as string];
             if (raw === undefined) throw new Error(`Invalid screen_on_time: ${value}`);
             await writeEdgeHvac(entity, 0x8029, raw as number, Zcl.DataType.ENUM8);
@@ -933,7 +933,7 @@ const tzEdge = {
 
     panel_brightness: {
         key: ["panel_brightness"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
             if (Number.isNaN(num) || num < 0 || num > 100) throw new Error(`Invalid panel_brightness: ${value}`);
             await writeEdgeHvac(entity, 0x8005, num, Zcl.DataType.UINT8);
@@ -944,7 +944,7 @@ const tzEdge = {
 
     auto_time: {
         key: ["auto_time"],
-        convertSet: async (entity: Tz.Entity, key: string, value: unknown) => {
+        convertSet: async (entity, key, value) => {
             const raw = edgeOnOffLookup[value as string];
             if (raw === undefined) throw new Error(`Invalid auto_time: ${value}`);
             await writeEdgeHvac(entity, 0x8022, raw as number, Zcl.DataType.BOOLEAN);
@@ -955,7 +955,7 @@ const tzEdge = {
 
     sync_time: {
         key: ["sync_time"],
-        convertSet: async (entity: Tz.Entity) => {
+        convertSet: async (entity) => {
             const ts = Math.round(Date.now() / 1000) - ZIGBEE_EPOCH_OFFSET;
             await writeEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
             await writeEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
