@@ -1129,7 +1129,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Periodic time sync regardless of heating status.
         // Syncs time at most once per hour so vacation mode always has correct clock.
         onEvent: async (event) => {
-            if (event.type === "message") {
+            if (event.type === "stop") return;
                 const now = Date.now();
                 const device = event.data.device;
                 const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
