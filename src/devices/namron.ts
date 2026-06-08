@@ -583,7 +583,7 @@ const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
 const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "60s", "3": "30s"};
 const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "60s": 2, "30s": 3};
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 async function safeReadEdge(
     endpoint: {read: (cluster: string, attrs: (string | number)[]) => Promise<void>},
     cluster: string,
@@ -594,7 +594,6 @@ async function safeReadEdge(
     } catch (_) {}
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function writeEdgeHvac(
     entity: {write: (cluster: string, payload: Record<number, {value: number; type: number}>) => Promise<void>},
     attr: number,
