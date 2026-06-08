@@ -971,7 +971,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4566702",
         vendor: "Namron",
         description: "Zigbee Edge Thermostat",
-        whitelistDontBlockList: true,
         ota: true,
         extend: [m.humidity()],
 
