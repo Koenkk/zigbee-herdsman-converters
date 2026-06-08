@@ -1130,21 +1130,21 @@ export const definitions: DefinitionWithExtend[] = [
         // Syncs time at most once per hour so vacation mode always has correct clock.
         onEvent: async (event) => {
             if (event.type === "stop") return;
-                const now = Date.now();
-                const device = event.data.device;
-                const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
-                if (now - lastSync > 60 * 60 * 1000) {
-                    try {
-                        const endpoint = device.getEndpoint(1);
-                        const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
-                        await endpoint.write("hvacThermostat", {32779: {value: ts, type: Zcl.DataType.UINT32}});
-                        await endpoint.write("hvacThermostat", {32778: {value: 0, type: Zcl.DataType.BOOLEAN}});
-                        device.meta["lastTimeSync"] = now;
-                        device.save();
-                    } catch (_) {
-                        /* ignore */
-                    }
+            const now = Date.now();
+            const device = event.data.device;
+            const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
+            if (now - lastSync > 60 * 60 * 1000) {
+                try {
+                    const endpoint = device.getEndpoint(1);
+                    const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
+                    await endpoint.write("hvacThermostat", {32779: {value: ts, type: Zcl.DataType.UINT32}});
+                    await endpoint.write("hvacThermostat", {32778: {value: 0, type: Zcl.DataType.BOOLEAN}});
+                    device.meta["lastTimeSync"] = now;
+                    device.save();
+                } catch (_) {
+                    /* ignore */
                 }
+            }
         },
 
         exposes: [
@@ -1202,7 +1202,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("power", ea.STATE).withUnit("W").withLabel("Power"),
         ],
     },
- 
+
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
