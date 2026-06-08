@@ -590,7 +590,7 @@ async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | num
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function writeEdgeHvac(entity: any, attr: number, value: number, type: number): Promise<void> {
     await entity.write("hvacThermostat", {[attr]: {value, type}});
-}}
+}
 
 const fzEdge = {
     basic: {
