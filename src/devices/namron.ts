@@ -1147,9 +1147,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             }
         },
-    },
-      
-    exposes: [
+        exposes: [
             e
                 .climate()
                 .withLocalTemperature()
