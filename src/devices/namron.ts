@@ -9,7 +9,7 @@ import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import * as store from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz, OnEvent} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const ea = exposes.access;
@@ -587,12 +587,12 @@ const edgeScreenOnTimeLookup: KeyValue    = {"0": "always_on", "1": "10s", "2": 
 const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "60s": 2, "30s": 3};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | number)[]): Promise<void> {
+async function safeReadEdge(endpoint: {read: (cluster: string, attrs: (string | number)[]) => Promise<void>}, cluster: string, attrs: (string | number)[]): Promise<void> {
     try { await endpoint.read(cluster, attrs); } catch (_) {}
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function writeEdgeHvac(entity: any, attr: number, value: number, type: number): Promise<void> {
+async function writeEdgeHvac(entity: {write: (cluster: string, payload: Record<number, {value: number; type: number}>) => Promise<void>}, attr: number, value: number, type: number): Promise<void> {
     await entity.write("hvacThermostat", {[attr]: {value, type}});
 }
 
@@ -1056,8 +1056,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         // Periodic time sync regardless of heating status.
         // Syncs time at most once per hour so vacation mode always has correct clock.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onEvent: (async (event: any) => {
+onEvent: (async (event: {type: string; data: {device: {getEndpoint: (id: number) => {write: (c: string, p: Record<number, {value: number; type: number}>) => Promise<void>}; meta: Record<string, unknown>; save: () => void}}}) => {
             if (event.type === "message") {
                 const now = Date.now();
                 const device = event.data.device;
@@ -1073,8 +1072,7 @@ export const definitions: DefinitionWithExtend[] = [
                     } catch (_) { /* ignore */ }
                 }
             }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as any,
+        }) as Tz.Converter["convertSet"],
         exposes: [
             e.climate()
                 .withLocalTemperature()
