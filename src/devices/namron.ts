@@ -960,12 +960,13 @@ const tzEdge = {
             await writeEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
             await writeEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
             await entity.read("hvacThermostat", [0x800a, 0x800b]);
-            return {state: {sync_time: "sync"}};
+           return {state: {sync_time: "sync"}};
         },
-export const definitions: DefinitionWithExtend[] = [
-    
+    } satisfies Tz.Converter,
+};
 // ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
-// ─── Device definition (replaces the old 4512783/4512784 block in namron.ts) ─
+
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4566702", "4566703", "4512783", "4512784"],
         model: "4566702",
@@ -1137,8 +1138,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("power",   ea.STATE).withUnit("W").withLabel("Power"),
         ],
     },
-
-export const definitions: DefinitionWithExtend[] = [
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) END ────────
     {
         zigbeeModel: ["3308431"],
