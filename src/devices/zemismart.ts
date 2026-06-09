@@ -130,6 +130,29 @@ const tzLocal = {
             await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0726_switch_mode: {
+        key: ["switch_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write(0xe001, {
+                53280: {
+                    value: utils.getFromLookup(value, {switch: 0, scene: 1}),
+                    type: 0x30,
+                },
+            });
+            return {state: {switch_mode: value}};
+        },
+    } satisfies Tz.Converter,
+    indicator_mode_none_relay_pos: {
+        key: ["indicator_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const ep = meta.device.getEndpoint(1);
+            await ep.write("genOnOff", {
+                0x8001: {value: utils.getFromLookup(value, {none: 0, relay: 1, pos: 2}), type: 0x30},
+            });
+            return {state: {indicator_mode: value as string}};
+        },
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
@@ -1172,6 +1195,50 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [13, "battery", tuya.valueConverter.raw],
             ],
+        },
+    },
+{
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ovbvmhiq"]),
+        model: "KES-606US-LH1",
+        vendor: "Zemismart",
+        description: "Smart light switch - 1 gang with neutral wire and scene mode (US). NOTE: scene mode requires one-time initialization via Tuya Smart Life app before pairing to Z2M. Steps: 1) pair to Smart Life, 2) set key to scene mode in Smart Life device settings, 3) remove from Smart Life, 4) reset and re-pair to Z2M.",
+        extend: [tuya.modernExtend.tuyaBase()],
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tzLocal.indicator_mode_none_relay_pos],
+        exposes: [
+            e.switch(),
+            e.power_on_behavior(),
+            e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]),
+            tuya.exposes.indicatorModeNoneRelayPos(),
+            e.action(["scene_1"]),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_icoxotza"]),
+        model: "KES-606US-L2",
+        vendor: "Zemismart",
+        description: "Smart light switch - 2 gang with neutral wire and scene mode (US). NOTE: scene mode requires one-time initialization via Tuya Smart Life app before pairing to Z2M. Steps: 1) pair to Smart Life, 2) set key to scene mode in Smart Life device settings, 3) remove from Smart Life, 4) reset and re-pair to Z2M.",
+        extend: [tuya.modernExtend.tuyaBase()],
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tzLocal.indicator_mode_none_relay_pos],
+        exposes: [
+            ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
+            ...[1, 2].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+            ...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
+            tuya.exposes.indicatorModeNoneRelayPos(),
+            e.action(["scene_1", "scene_2"]),
+        ],
+        endpoint: (device) => ({l1: 1, l2: 2}),
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
         },
     },
 ];
