@@ -5853,6 +5853,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_presence, lumi.toZigbee.lumi_motion_sensitivity],
         exposes: [e.power_outage_count(), e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity.")],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
