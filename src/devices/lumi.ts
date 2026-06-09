@@ -1897,6 +1897,12 @@ export const definitions: DefinitionWithExtend[] = [
                         '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.',
                 ),
             e
+                .text("configured_regions", ea.STATE)
+                .withDescription(
+                    "Region definitions written through Zigbee2MQTT. " +
+                        "This is a Zigbee2MQTT-side cache and may not include regions configured by another gateway.",
+                ),
+            e
                 .composite("region_upsert", "region_upsert", ea.SET)
                 .withDescription(
                     "Definition of a new region to be added (or replace existing one). " +
