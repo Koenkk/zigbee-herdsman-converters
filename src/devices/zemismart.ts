@@ -1,3 +1,4 @@
+import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
@@ -163,7 +164,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             return {action: `scene_${msg.endpoint.ID}`};
         },
-    } satisfies Fz.Converter<"genOnOff", undefined, ["commandTuyaAction"]>,
+    } satisfies Fz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         cluster: "closuresWindowCovering",
