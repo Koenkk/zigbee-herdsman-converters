@@ -1,4 +1,5 @@
 import * as fz from "../converters/fromZigbee";
+import * as mullerLicht from "../devices/muller_licht";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
@@ -276,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move,
             fz.command_color_loop_set,
             fz.command_enhanced_move_to_hue_and_saturation,
-            fz.tint_scene,
+            mullerLicht.fzLocal.tint_scene,
         ],
         toZigbee: [],
         exposes: [

@@ -1,4 +1,5 @@
 import * as fz from "../converters/fromZigbee";
+import * as awox from "../devices/awox";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
@@ -32,7 +33,7 @@ const fzLocal = {
         type: ["raw"] as const,
         // Wraps awox_colors to suppress the spurious 'on' event that follows color button presses.
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.awox_colors.convert(model, msg, publish, options, meta);
+            const result = awox.fzLocal.awox_colors.convert(model, msg, publish, options, meta);
             if (result && !(result instanceof Promise)) {
                 globalStore.putValue(msg.endpoint, "last_non_on_action", Date.now());
             }
@@ -63,7 +64,7 @@ const fzLocal = {
         type: ["commandMoveHue"] as const,
         // Wraps awox_refreshColored to suppress the spurious 'on' event that follows.
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.awox_refreshColored.convert(model, msg, publish, options, meta);
+            const result = awox.fzLocal.awox_refreshColored.convert(model, msg, publish, options, meta);
             if (result && !(result instanceof Promise)) {
                 globalStore.putValue(msg.endpoint, "last_non_on_action", Date.now());
             }
