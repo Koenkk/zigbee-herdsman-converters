@@ -148,7 +148,7 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const ep = meta.device.getEndpoint(1);
             await ep.write("genOnOff", {
-                0x8001: {value: utils.getFromLookup(value, {none: 0, relay: 1, pos: 2}), type: 0x30},
+                32769: {value: utils.getFromLookup(value, {none: 0, relay: 1, pos: 2}), type: 0x30},
             });
             return {state: {indicator_mode: value as string}};
         },
@@ -1209,7 +1209,8 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ovbvmhiq"]),
         model: "KES-606US-LH1",
         vendor: "Zemismart",
-        description: "Smart light switch - 1 gang with neutral wire and scene mode (US). NOTE: scene mode requires one-time initialization via Tuya Smart Life app before pairing to Z2M. Steps: 1) pair to Smart Life, 2) set key to scene mode in Smart Life device settings, 3) remove from Smart Life, 4) reset and re-pair to Z2M.",
+        description:
+            "Smart light switch - 1 gang with neutral wire and scene mode (US). NOTE: scene mode requires one-time initialization via Tuya Smart Life app before pairing to Z2M. Steps: 1) pair to Smart Life, 2) set key to scene mode in Smart Life device settings, 3) remove from Smart Life, 4) reset and re-pair to Z2M.",
         extend: [tuya.modernExtend.tuyaBase()],
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tzLocal.indicator_mode_none_relay_pos],
@@ -1229,7 +1230,8 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_icoxotza"]),
         model: "KES-606US-L2",
         vendor: "Zemismart",
-        description: "Smart light switch - 2 gang with neutral wire and scene mode (US). NOTE: scene mode requires one-time initialization via Tuya Smart Life app before pairing to Z2M. Steps: 1) pair to Smart Life, 2) set key to scene mode in Smart Life device settings, 3) remove from Smart Life, 4) reset and re-pair to Z2M.",
+        description:
+            "Smart light switch - 2 gang with neutral wire and scene mode (US). NOTE: scene mode requires one-time initialization via Tuya Smart Life app before pairing to Z2M. Steps: 1) pair to Smart Life, 2) set key to scene mode in Smart Life device settings, 3) remove from Smart Life, 4) reset and re-pair to Z2M.",
         extend: [tuya.modernExtend.tuyaBase()],
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tzLocal.indicator_mode_none_relay_pos],
