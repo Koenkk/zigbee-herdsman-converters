@@ -1946,7 +1946,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: () => ({}),
     },
     {
-        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj"]),
+        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks"]),
         model: "ZT-B-EU3",
         vendor: "Moes",
         description: "Scene remote with 3 keys",
