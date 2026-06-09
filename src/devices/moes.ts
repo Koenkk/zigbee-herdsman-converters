@@ -1376,22 +1376,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        exposes: [
-            tuya.exposes.errorStatus(),
-            tuya.exposes.switch(),
-            tuya.exposes.batteryState(),
-            tuya.exposes.countdown().withValueMin(0).withValueMax(255).withUnit("minutes").withDescription("Max on time in minutes"),
-        ],
-        meta: {
-            tuyaSendCommand: "sendData",
-            tuyaDatapoints: [
-                [26, "error_status", tuya.valueConverter.raw],
-                [101, "state", tuya.valueConverter.onOff],
-                [111, "countdown", tuya.valueConverter.raw],
-                [115, "battery_state", tuya.valueConverter.batteryState],
-            ],
-        },
+        extend: [m.battery(), m.onOff({powerOnBehavior: false, configureReporting: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hhiodade"]),
