@@ -1538,7 +1538,24 @@ export const definitions: DefinitionWithExtend[] = [
                         CLOSE: tuya.enum(2),
                     }),
                 ],
-                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    2,
+                    "position",
+                    {
+                        // Workaround: Fix overflow / underdlow in position readings when limits are reached for some seconds:
+                        // - When the curtain is fully opened it coninues with 101, 102, ...
+                        // - When the curtain is fully closed it coninues with 255, 254, ...
+                        from: (v) => {
+                            if (v > 100) {
+                                return v > 150 ? 0 : 100;
+                            }
+                            return v;
+                        },
+                        to: (v, meta) => {
+                            return tuya.valueConverter.coverPosition.to(v, meta);
+                        },
+                    },
+                ],
                 [
                     3,
                     "calibration",
