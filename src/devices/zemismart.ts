@@ -157,6 +157,14 @@ const tzLocal = {
 
 const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0726_action: {
+        cluster: "genOnOff",
+        type: ["commandTuyaAction"],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.endpoint.ID}`};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandTuyaAction"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
@@ -1197,7 +1205,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-{
+    {
         fingerprint: tuya.fingerprint("TS0726", ["_TZ3000_ovbvmhiq"]),
         model: "KES-606US-LH1",
         vendor: "Zemismart",
