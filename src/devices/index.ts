@@ -198,6 +198,7 @@ import {definitions as lux} from "./lux";
 import {definitions as lytko} from "./lytko";
 import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
+import {definitions as manhot} from "./manhot";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
@@ -751,6 +752,7 @@ const definitions: DefinitionWithExtend[] = [
     ...qa,
     ...engo,
     ...vsmart,
+    ...manhot,
 ];
 
 export default definitions;
