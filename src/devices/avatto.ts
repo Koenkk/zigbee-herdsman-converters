@@ -770,7 +770,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "temperature_variation", tuya.valueConverter.divideBy10],
                 [108, "sensor_temperature_limit", tuya.valueConverter.raw],
                 [109, 'weekly_schedule', {
-                    to: (v: any, meta: Tz.Meta) => {
+                    to: (v: Record<string, number>, meta: Tz.Meta) => {
                         const buffer = Buffer.alloc(32);
                         for (let i = 1; i <= 6; i++) {
                             const offset = (i - 1) * 4;
