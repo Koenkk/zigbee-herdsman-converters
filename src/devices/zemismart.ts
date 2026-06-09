@@ -157,14 +157,14 @@ const tzLocal = {
 };
 
 const fzLocal = {
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
-        cluster: "genOnOff",
-        type: ["commandTuyaAction"],
-        convert: (model, msg, publish, options, meta) => {
-            return {action: `scene_${msg.endpoint.ID}`};
+        cluster: "genOnOff" as const,
+        type: ["commandTuyaAction"] as const,
+        convert: (model: unknown, msg: {endpoint: {ID: number}}, publish: unknown, options: unknown, meta: unknown) => {
+            return {action: `scene_${(msg as {endpoint: {ID: number}}).endpoint.ID}`};
         },
-    } satisfies Fz.Converter,
+    },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         cluster: "closuresWindowCovering",
