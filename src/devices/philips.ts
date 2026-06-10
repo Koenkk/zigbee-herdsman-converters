@@ -4863,7 +4863,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004308401",
         vendor: "Signify Netherlands B.V.",
         description: "Hue White and Color Ambiance Lucca Outdoor wall light",
-        extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["5042148P9"],
