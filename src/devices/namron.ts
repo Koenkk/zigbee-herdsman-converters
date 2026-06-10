@@ -954,7 +954,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [m.humidity()],
 
-        fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.namron_private, fz.keypadLockout, fz.metering, fz.electrical_measurement],
+        fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.namron_private, fz.hvac_user_interface, fz.metering, fz.electrical_measurement],
 
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
