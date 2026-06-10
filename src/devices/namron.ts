@@ -605,43 +605,7 @@ const fzEdge = {
             return result;
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
-
-    thermostat_base: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"] as const,
-        convert: (model, msg): KeyValue => {
-            const result: KeyValue = {};
-            const d = msg.data as Record<string, unknown>;
-            if (d["localTemp"] !== undefined) result["local_temperature"] = (d["localTemp"] as number) / 100;
-            if (d["occupiedHeatingSetpoint"] !== undefined) result["occupied_heating_setpoint"] = (d["occupiedHeatingSetpoint"] as number) / 100;
-            if (d["localTemperatureCalibration"] !== undefined)
-                result["local_temperature_calibration"] = (d["localTemperatureCalibration"] as number) / 10;
-            if (d["systemMode"] !== undefined) {
-                const map: KeyValue = {"0": "off", "1": "auto", "3": "cool", "4": "heat"};
-                result["system_mode"] = map[String(d["systemMode"] as number)] ?? String(d["systemMode"]);
-            }
-            if (d["runningMode"] !== undefined) {
-                const map: KeyValue = {"0": "off", "3": "cool", "4": "heat"};
-                result["running_mode"] = map[String(d["runningMode"] as number)] ?? String(d["runningMode"]);
-            }
-            if (d["runningState"] !== undefined) {
-                const map: KeyValue = {"0": "idle", "1": "heat", "2": "cool"};
-                result["running_state"] = map[String(d["runningState"] as number)] ?? String(d["runningState"]);
-                if ((d["runningState"] as number) === 0) result["power"] = 0;
-            }
-            if (d["pIHeatingDemand"] !== undefined) result["pi_heating_demand"] = d["pIHeatingDemand"];
-            if (d["programingOperMode"] !== undefined) {
-                const bit0 = (d["programingOperMode"] as number) & 1;
-                const bit1 = ((d["programingOperMode"] as number) >> 1) & 1;
-                if (bit1) result["programming_operation_mode"] = "eco";
-                else if (bit0) result["programming_operation_mode"] = "schedule";
-                else result["programming_operation_mode"] = "setpoint";
-            }
-            if (d["tempDisplayMode"] !== undefined)
-                result["temperature_display_mode"] = (d["tempDisplayMode"] as number) === 0 ? "celsius" : "fahrenheit";
-            return result;
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+   
     namron_private: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
@@ -728,42 +692,7 @@ const fzEdge = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-
-    keypad_lockout: {
-        cluster: "hvacUserInterfaceCfg",
-        type: ["attributeReport", "readResponse"] as const,
-        convert: (model, msg): KeyValue => {
-            if (msg.data["keypadLockout"] !== undefined) return {keypad_lockout: msg.data["keypadLockout"] === 0 ? "unlock" : "lock"};
-            return {};
-        },
-    } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
-
-    metering: {
-        cluster: "seMetering",
-        type: ["attributeReport", "readResponse"] as const,
-        convert: (model, msg): KeyValue => {
-            const result: KeyValue = {};
-            if (msg.data["currentSummDelivered"] !== undefined) {
-                const div = (msg.data["divisor"] as number) ?? 100;
-                const mul = (msg.data["multiplier"] as number) ?? 1;
-                result["energy"] = ((msg.data["currentSummDelivered"] as number) * mul) / div;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
-
-    electrical: {
-        cluster: "haElectricalMeasurement",
-        type: ["attributeReport", "readResponse"] as const,
-        convert: (model, msg): KeyValue => {
-            const result: KeyValue = {};
-            const cMul = (msg.data["acCurrentMultiplier"] as number) ?? 1;
-            const cDiv = (msg.data["acCurrentDivisor"] as number) ?? 1;
-            if (msg.data["activePower"] !== undefined && (msg.data["activePower"] as number) > 0) result["power"] = msg.data["activePower"];
-            if (msg.data["rmsCurrent"] !== undefined) result["current"] = ((msg.data["rmsCurrent"] as number) * cMul) / cDiv;
-            return result;
-        },
-    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+   
 };
 
 const tzEdge = {
@@ -1026,7 +955,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [m.humidity()],
 
-        fromZigbee: [fzEdge.basic, fzEdge.thermostat_base, fzEdge.namron_private, fzEdge.keypad_lockout, fzEdge.metering, fzEdge.electrical],
+        fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.namron_private, fz.keypad_lockout, fz.metering, fz.electrical],
 
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
