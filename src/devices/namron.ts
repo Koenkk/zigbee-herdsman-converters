@@ -605,7 +605,7 @@ const fzEdge = {
             return result;
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
-   
+
     namron_private: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
@@ -692,7 +692,6 @@ const fzEdge = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-   
 };
 
 const tzEdge = {
