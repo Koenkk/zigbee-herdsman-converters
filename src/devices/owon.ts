@@ -924,7 +924,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
-        zigbeeModel: ["AC201"],
+        zigbeeModel: ["AC201", "AC201P_019E"],
         model: "AC201",
         vendor: "OWON",
         description: "HVAC controller/IR blaster",
@@ -960,7 +960,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["AC221"],
+        zigbeeModel: ["AC221", "AC221_019E"],
         model: "AC221",
         vendor: "OWON",
         description: "AC controller / IR blaster",
@@ -1001,7 +1001,7 @@ export const definitions: DefinitionWithExtend[] = [
 
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ["genBasic", "genIdentify", "genTime", "hvacThermostat", "hvacFanCtrl"];
+            const binds = ["hvacThermostat", "hvacFanCtrl"];
 
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
 
@@ -1264,7 +1264,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
-        zigbeeModel: ["DWS312"],
+        zigbeeModel: ["DWS312", "DWS332-E"],
         model: "DWS312",
         vendor: "OWON",
         description: "Door/window sensor",
