@@ -480,6 +480,7 @@ const schneiderElectricExtend = {
             attribute: "wiserControlMode",
             description: "Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.",
             entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         });
         extend.configure.push(
             m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
