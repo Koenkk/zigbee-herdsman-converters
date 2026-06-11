@@ -214,6 +214,46 @@ const pushokExtend = {
             isModernExtend: true,
         };
     },
+    pulseCounter: (): ModernExtend => {
+        const exposes = [
+            presets.numeric("pulse_frequency", access.STATE_GET).withUnit("Hz").withDescription("Pulse frequency (counter mode)"),
+            presets.numeric("pulse_count", access.STATE_GET).withDescription("Total pulse count (counter mode)"),
+        ];
+        const fromZigbee = [
+            {
+                cluster: "genAnalogOutput",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    if (msg.data.presentValue !== undefined) {
+                        result.pulse_frequency = msg.data.presentValue;
+                    }
+                    if (msg.data.applicationType !== undefined) {
+                        result.pulse_count = msg.data.applicationType;
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"genAnalogOutput", undefined, ["attributeReport", "readResponse"]>,
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["pulse_frequency", "pulse_count"],
+                convertGet: async (entity, key, meta) => {
+                    if (key === "pulse_frequency") {
+                        await entity.read("genAnalogOutput", ["presentValue"]);
+                    } else if (key === "pulse_count") {
+                        await entity.read("genAnalogOutput", ["applicationType"]);
+                    }
+                },
+            },
+        ];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -305,6 +345,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({reporting: null}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            pushokExtend.pulseCounter(),
+            m.enumLookup({
+                name: "operating_mode",
+                lookup: {contact: 1, counter: 2},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Operating mode: contact sensor or pulse counter",
+                access: "ALL",
+                reporting: null,
+            }),
         ],
         ota: true,
     },
@@ -428,7 +479,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "voltage_type",
-                lookup: {AC: 0, DC: 1},
+                lookup: {AC: 0, DC: 1, DC_COUNTER: 2},
                 cluster: "genMultistateOutput",
                 attribute: "presentValue",
                 zigbeeCommandOptions: {},
@@ -438,6 +489,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify({isSleepy: true}),
             m.battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: false}),
+            pushokExtend.pulseCounter(),
         ],
         ota: true,
     },
@@ -460,6 +512,17 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: null}),
             m.humidity({reporting: null, access: "STATE"}),
             m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            pushokExtend.pulseCounter(),
+            m.enumLookup({
+                name: "operating_mode",
+                lookup: {contact: 1, counter: 2},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Operating mode: contact sensor or pulse counter",
+                access: "ALL",
+                reporting: null,
+            }),
         ],
         ota: true,
     },
@@ -640,6 +703,58 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: null,
             }),
             pushokExtend.pok020Thermostat(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["POK021"],
+        model: "POK021",
+        vendor: "PushOk Hardware",
+        description: "Gas pulse meter",
+        extend: [m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}), pushokExtend.pulseCounter()],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["POK019"],
+        model: "POK019",
+        vendor: "PushOk Hardware",
+        description: "Battery powered window handle",
+        extend: [
+            m.windowCovering({controls: ["lift"], coverInverted: false, stateSource: "lift", configureReporting: false, coverMode: false}),
+            m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1"],
+                alarmTimeout: false,
+                description: "Indicates whether the window is closed (= true) or opened (= false)",
+            }),
+            m.enumLookup({
+                name: "window_opening_mode",
+                lookup: {
+                    two_position: 0,
+                    three_position: 1,
+                    four_position: 2,
+                    reversed_two_position: 3,
+                    reversed_three_position: 4,
+                    reversed_four_position: 5,
+                },
+                cluster: "genMultistateOutput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Window opening mode depending on supported handle positions and installation orientation",
+                access: "ALL",
+                reporting: null,
+            }),
+            m.enumLookup({
+                name: "status",
+                lookup: {off: 0, on: 1, moving: 2, stuck: 3, middle: 4, micro_ventilation: 5, tilted: 6},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Actual window status",
+                access: "STATE_GET",
+                reporting: null,
+            }),
         ],
         ota: true,
     },

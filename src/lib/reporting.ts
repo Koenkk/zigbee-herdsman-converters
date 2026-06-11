@@ -192,6 +192,10 @@ export const thermostatOccupancy = async (endpoint: Zh.Endpoint, overrides?: Rep
     const p = payload<"hvacThermostat">("occupancy", 0, repInterval.HOUR, 0, overrides);
     await endpoint.configureReporting("hvacThermostat", p);
 };
+export const thermostatSetpointChangeSource = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
+    const p = payload<"hvacThermostat">("setpointChangeSource", 10, repInterval.HOUR, null, overrides);
+    await endpoint.configureReporting("hvacThermostat", p);
+};
 export const thermostatTemperatureSetpointHold = async (endpoint: Zh.Endpoint, overrides?: Reporting.Override) => {
     const p = payload<"hvacThermostat">("tempSetpointHold", 0, repInterval.HOUR, 0, overrides);
     await endpoint.configureReporting("hvacThermostat", p);

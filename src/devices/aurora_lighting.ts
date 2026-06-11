@@ -106,7 +106,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AU-A1ZBSCRGBCX",
         vendor: "Aurora Lighting",
         description: "RGBW LED strip controller",
-        extend: [m.light({colorTemp: {range: [166, 400]}, color: true})],
+        extend: [m.light({colorTemp: {range: [166, 400]}, color: {modes: ["hs"]}})],
     },
     {
         zigbeeModel: ["TWGU10Bulb50AU"],
@@ -217,6 +217,21 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.binary("backlight_led", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable the blue backlight LED")],
         toZigbee: [tzLocal.aOneBacklight],
         extend: [m.light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["WallDimmerSlave"],
+        model: "AU-A1ZB2WDM-Slave",
+        vendor: "Aurora",
+        description: "AOne Rotary Slave Dimmer",
+        extend: [
+            m.deviceEndpoints({endpoints: {default: 2, backlight: 3}}),
+            m.commandsOnOff({endpointNames: ["default"]}),
+            m.commandsLevelCtrl({endpointNames: ["default"]}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["backlight"]}),
+        ],
+        meta: {
+            multiEndpoint: true,
+        },
     },
     {
         zigbeeModel: ["DoubleSocket50AU"],

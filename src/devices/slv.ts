@@ -32,4 +32,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "VALETO LED E27 RGBW",
         extend: [m.light({colorTemp: {range: [153, 555]}, color: true})],
     },
+    {
+        zigbeeModel: ["1005314"],
+        model: "1005314",
+        vendor: "SLV",
+        description: "QPAR111 GU10 tunable smart",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
 ];

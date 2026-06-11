@@ -1,18 +1,74 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
 function mullerLichtLight(args: m.LightArgs) {
     const result = m.light(args);
-    result.toZigbee.push(tz.tint_scene);
+    result.toZigbee.push(tzLocal.tint_scene);
     return result;
 }
+export const tzLocal = {
+    tint_scene: {
+        key: ["tint_scene"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("genBasic", {16389: {value, type: 0x20}}, {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC});
+        },
+    } satisfies Tz.Converter,
+};
+
+export const fzLocal = {
+    tint404011_move_to_color_temp: {
+        cluster: "lightingColorCtrl",
+        type: "commandMoveToColorTemp",
+        convert: (model, msg, publish, options, meta) => {
+            // The remote has an internal state so store the last action in order to
+            // determine the direction of the color temperature change.
+            if (!globalStore.hasValue(msg.endpoint, "last_color_temp")) {
+                globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
+            }
+
+            const lastTemp = globalStore.getValue(msg.endpoint, "last_color_temp");
+            globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
+            let direction = "down";
+            if (lastTemp > msg.data.colortemp) {
+                direction = "up";
+            } else if (lastTemp < msg.data.colortemp) {
+                direction = "down";
+            } else if (msg.data.colortemp === 370 || msg.data.colortemp === 555) {
+                // The remote goes up to 370 in steps and emits 555 on down button hold.
+                direction = "down";
+            } else if (msg.data.colortemp === 153) {
+                direction = "up";
+            }
+
+            const payload = {
+                action: utils.postfixWithEndpointName("color_temperature_move", msg, model, meta),
+                action_color_temperature: msg.data.colortemp,
+                action_transition_time: msg.data.transtime,
+                action_color_temperature_direction: direction,
+            };
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColorTemp">,
+    tint_scene: {
+        cluster: "genBasic",
+        type: "write",
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: `scene_${msg.data["16389"]}`};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, "write">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -28,6 +84,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Müller Licht",
         description: "Tint LED white+color",
         extend: [mullerLichtLight({colorTemp: {range: [153, 556]}, color: true})],
+        whiteLabel: [
+            {vendor: "Müller Licht", model: "404026", description: "Tint Outdoor LED-Strip white+color, 5m (IP44)"},
+            {vendor: "Müller Licht", model: "404075", description: "Tint Lichterkette Stella white+color, 12 bulbs (IP44)"},
+        ],
     },
     {
         zigbeeModel: ["Retro Bulb Gold XXL white+ambiance"],
@@ -115,7 +175,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "404062",
         vendor: "Müller Licht",
         description: "Kea RGB+CCT",
-        toZigbee: [tz.tint_scene],
+        toZigbee: [tzLocal.tint_scene],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -129,9 +189,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_off,
             fz.command_toggle,
             fz.command_step,
-            fz.tint404011_move_to_color_temp,
+            fzLocal.tint404011_move_to_color_temp,
             fz.command_move_to_color,
-            fz.tint_scene,
+            fzLocal.tint_scene,
             fz.command_stop,
             fz.command_move,
         ],
@@ -203,7 +263,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_stop,
             fz.command_move_to_color_temp,
             fz.command_move_to_color,
-            fz.tint_scene,
+            fzLocal.tint_scene,
         ],
         exposes: [
             e.action([
@@ -307,5 +367,34 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Müller Licht",
         description: "tint Flores Gen2 garden light",
         extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"]}, effect: false, powerOnBehavior: false})],
+    },
+    {
+        fingerprint: [{manufacturerName: "MLI", modelID: "Desk lamp"}],
+        model: "4041xx",
+        whiteLabel: [
+            {model: "404115", vendor: "Müller Licht", description: "tint Nolia desk lamp (black)"},
+            {model: "404116", vendor: "Müller Licht", description: "tint Nolia desk lamp (white)"},
+            {model: "404117", vendor: "Müller Licht", description: "tint Nolia desk lamp (anthracite)"},
+            {model: "404135", vendor: "Müller Licht", description: "tint Dalia desk lamp (black)"},
+            {model: "404136", vendor: "Müller Licht", description: "tint Dalia desk lamp (white)"},
+            {model: "404137", vendor: "Müller Licht", description: "tint Dalia desk lamp (anthracite)"},
+        ],
+        vendor: "Müller Licht",
+        description: "tint desk lamp, white+color",
+        extend: [mullerLichtLight({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["Power Socket"],
+        model: "404078",
+        vendor: "MLI",
+        description: "tint Smart Socket Tower Outdoor",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
+    {
+        zigbeeModel: ["tint Retro Bulb white+ambiance"],
+        model: "404114",
+        vendor: "MLI",
+        description: "Tint LED Bulb, E27, 806 lumen, CCT, clear",
+        extend: [m.light({colorTemp: {range: [153, 555]}})],
     },
 ];

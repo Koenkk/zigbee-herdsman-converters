@@ -1,4 +1,5 @@
 import * as fz from "../converters/fromZigbee";
+import * as mullerLicht from "../devices/muller_licht";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
@@ -243,14 +244,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "500.45",
         vendor: "Paulmann",
         description: "SmartHome Zigbee Pendulum Light Aptare",
-        extend: [m.light({color: {applyRedFix: true}})],
+        extend: [m.light()],
     },
     {
         zigbeeModel: ["500.48"],
         model: "500.48",
         vendor: "Paulmann",
         description: "SmartHome Zigbee YourLED dim/switch controller max. 60 W",
-        extend: [m.light({color: {applyRedFix: true}})],
+        extend: [m.light()],
     },
     {
         fingerprint: [{manufacturerName: "Paulmann Licht GmbH", modelID: "Dimmable"}],
@@ -276,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move,
             fz.command_color_loop_set,
             fz.command_enhanced_move_to_hue_and_saturation,
-            fz.tint_scene,
+            mullerLicht.fzLocal.tint_scene,
         ],
         toZigbee: [],
         exposes: [
@@ -382,5 +383,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Azalena Smart Home Zigbee LED Light with motion detection (HF)",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
         whiteLabel: [{vendor: "Paulmann", model: "984.43", fingerprint: [{modelID: "98443"}]}],
+    },
+    {
+        zigbeeModel: ["CCT light bulb", "CCT_light_bulb"],
+        model: "50394",
+        vendor: "Paulmann",
+        description: "LED Filament Bulb tuneable white",
+        extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
 ];

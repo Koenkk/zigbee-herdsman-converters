@@ -14,21 +14,23 @@ const tzLocal = {
             switch (key) {
                 case "motion_detection_distance": {
                     utils.assertNumber(value, "motion_detection_distance");
-                    await entity.write("manuSpecificTuya2", {57355: {value, type: 0x21}});
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {57355: {value, type: 0x21}});
                     break;
                 }
                 case "motion_detection_sensitivity": {
                     utils.assertNumber(value, "motion_detection_sensitivity");
-                    await entity.write("manuSpecificTuya2", {57348: {value, type: 0x20}});
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {57348: {value, type: 0x20}});
                     break;
                 }
                 case "static_detection_sensitivity": {
                     utils.assertNumber(value, "static_detection_sensitivity");
-                    await entity.write("manuSpecificTuya2", {57349: {value, type: 0x20}});
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {57349: {value, type: 0x20}});
                     break;
                 }
                 case "led_indicator": {
-                    await entity.write("manuSpecificTuya2", {57353: {value: value ? 0x01 : 0x00, type: 0x10}});
+                    await entity.write<"manuSpecificTuya2", tuya.ManuSpecificTuya2>("manuSpecificTuya2", {
+                        57353: {value: value ? 0x01 : 0x00, type: 0x10},
+                    });
                     break;
                 }
             }
@@ -72,15 +74,16 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"manuSpecificTuya2", undefined, ["attributeReport"]>,
+    } satisfies Fz.Converter<"manuSpecificTuya2", tuya.ManuSpecificTuya2, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0225", ["_TZ3218_awarhusb", "_TZ3218_t9ynfz4x"]),
+        fingerprint: tuya.fingerprint("TS0225", ["_TZ3218_awarhusb", "_TZ3218_t9ynfz4x", "_TZ3218_ewrxirng"]),
         model: "ES1ZZ(TY)",
         vendor: "Linptech",
         description: "mmWave Presence sensor",
+        whiteLabel: [tuya.whitelabel("Momax", "SL12S", "mmWave Presence sensor", ["_TZ3218_ewrxirng"])],
         fromZigbee: [fz.ias_occupancy_alarm_1, fzLocal.TS0225, fzLocal.TS0225_illuminance],
         toZigbee: [tzLocal.TS0225],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],

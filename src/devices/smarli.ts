@@ -9,14 +9,14 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["S-ZB-PDM1-R251"],
         model: "S-ZB-PDM1-R251",
         vendor: "smarli.",
-        description: "Phase dimmer gen 1",
+        description: "phase dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["S-ZB-1RE1-R251"],
         model: "S-ZB-1RE1-R251",
         vendor: "smarli.",
-        description: "Zigbee 2ch smart relay",
+        description: "relay",
         extend: [
             m.identify(),
             m.commandsScenes({endpointNames: ["1", "2"]}),
@@ -29,14 +29,13 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["S-ZB-COV1-R251"],
         model: "S-ZB-COV1-R251",
         vendor: "smarli.",
-        description: "Zigbee curtain control module",
+        description: "cover",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.deviceEndpoints({endpoints: {"3": 3}}),
             m.windowCovering({
                 controls: ["lift", "tilt"],
                 coverInverted: true,
                 configureReporting: true,
-                endpointNames: ["1"],
             }),
             m.electricityMeter({endpointNames: ["3"]}),
             m.enumLookup({

@@ -5,6 +5,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -78,6 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Atlantic Group",
         description: "Interface Naviclim for Takao air conditioners",
         fromZigbee: [fz.thermostat, fz.fan],
+        extend: [philips.m.addManuSpecificPhilips2Cluster()],
         toZigbee: [
             tzLocal.ac_louver_position,
             tzLocal.preset,

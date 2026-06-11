@@ -4,6 +4,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -27,6 +28,18 @@ const tzLocal = {
         key: ["card"],
         convertGet: async (entity, key, meta) => {
             await entity.read("ssIasZone", ["zoneState"]);
+        },
+    } satisfies Tz.Converter,
+    dawondns_only_off: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            const lowerValue = value.toLowerCase();
+            utils.validateValue(lowerValue, ["off"]);
+            await entity.command("genOnOff", lowerValue as "off", {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onOff"]);
         },
     } satisfies Tz.Converter,
 };
@@ -205,7 +218,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Dawon DNS",
         description: "IOT remote control smart gas lock",
         fromZigbee: [fz.on_off, fz.battery],
-        toZigbee: [tz.dawondns_only_off], // Only support 'Off' command
+        toZigbee: [tzLocal.dawondns_only_off], // Only support 'Off' command
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genPowerCfg"]);

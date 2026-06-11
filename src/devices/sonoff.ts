@@ -1,4 +1,4 @@
-import {Zcl} from "zigbee-herdsman";
+﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -7,8 +7,23 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import {
+    deviceLocal2000ToUTCSeconds,
+    formatUtcSecondsToIsoWithOffset,
+    getRuntimeLocalOffsetSeconds,
+    parseIsoWithOffsetToUtcSeconds,
+    parseSWVZFRawZclCommand,
+    readUInt32LE,
+    shiftUtcSecondsByOffsetMonths,
+    signedInt32MilliToValue,
+    toBigEndianUInt32,
+    toUInt32LEBytes,
+    utcToDeviceLocal2000Seconds,
+    YEAR_2000_IN_UTC,
+    zclArrayValueToBytes,
+} from "../lib/sonoff";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -19,8 +34,27 @@ const manufacturerOptions = {
     disableDefaultResponse: false,
 };
 const defaultResponseOptions = {disableDefaultResponse: false};
+const disableDefaultResponseOptions = {disableDefaultResponse: true};
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface SonoffBasicZB1GSP {
+    attributes: {
+        scenePowerReportValue: number;
+        acCurrentMaxOverloadEnable: number;
+        acCurrentMaxOverload: number;
+        acVoltageMaxOverloadEnable: number;
+        acVoltageMaxOverload: number;
+        acPowerMaxOverload: number;
+        acPowerMaxOverloadEnable: number;
+        totalEnergyConsumption: number;
+    };
+    commands: {
+        clearHistory: {deviceType: number; deviceLength: number; eventType: number};
+        readRecord: {data: number[]};
+    };
+    commandResponses: never;
+}
 
 interface SonoffSnzb02d {
     attributes: {
@@ -78,6 +112,38 @@ interface SonoffSnzb02dr2 {
     commandResponses: never;
 }
 
+interface SonoffSnzb02b {
+    attributes: {
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+interface SonoffSnzb09p {
+    attributes: {
+        powerSupplyMode: number;
+        alarmSoundEnable: number;
+        alarmLightEnable: number;
+        alarmSoundType: number;
+        alarmVolumeLevel: number;
+        alarmDuration: number;
+        spilt: number;
+    };
+    commands: {
+        alertCommand: {data: Buffer};
+    };
+    commandResponses: never;
+}
+
+interface SonoffSnzb03pr2 {
+    attributes: {
+        illuminationCompensationOffset: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SonoffTrvzb {
     attributes: {
         childLock: number;
@@ -98,8 +164,44 @@ interface SonoffTrvzb {
         temporaryMode: number;
         temporaryModeTime: number;
         temporaryModeTemp: number;
+        smartTempControl: number;
     };
     commands: never;
+    commandResponses: never;
+}
+
+interface SonoffTrvzbt {
+    attributes: {
+        childLock: number;
+        faultCode: number;
+        openWindow: number;
+        frostProtectionTemperature: number;
+        idleSteps: number;
+        closingSteps: number;
+        valveOpeningLimitVoltage: number;
+        valveClosingLimitVoltage: number;
+        valveMotorRunningVoltage: number;
+        valveOpeningDegree: number;
+        valveClosingDegree: number;
+        externalTemperatureInput: number;
+        temperatureSensorSelect: number;
+        screenDirection: number;
+        temperatureTriggerOfValveOpening: number;
+        temperatureControlMode: number;
+        temporaryMode: number;
+        temporaryModeTime: number;
+        temporaryModeTemp: number;
+        lowBatteryValveState: number;
+        weeklyScheduleActiveNum: number;
+        hvacMessageNotification: number[];
+        heatPercentageHour: number;
+    };
+    commands: {
+        scheduleName: {data: number[]};
+        readTemperatureControlHistory: {data: number[]};
+        bluetoothPairing: {data: number[]};
+        scheduleGroup: {data: number[]};
+    };
     commandResponses: never;
 }
 
@@ -110,6 +212,470 @@ interface SonoffSnzb01m {
     commands: never;
     commandResponses: never;
 }
+
+interface SonoffSnzb06p24 {
+    attributes: {
+        occupancyZoneEnable: number;
+        illuminationCompensationOffset: number;
+        radarSensitivitySetting: number;
+    };
+    commands: {
+        spatialLearning: {data: number[]};
+    };
+    commandResponses: never;
+}
+
+interface SonoffSnzb02m {
+    attributes: {
+        hotThreshold: number;
+        coldThreshold: number;
+        dryThreshold: number;
+        dampThreshold: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+        pressureCalibration: number;
+        temperatureUnit: string;
+        pressureUnit: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+// **************************** SWV-ZN/ZF related ↓ ****************************
+interface SonoffSwvzn {
+    attributes: {
+        childLock: number;
+        realTimeIrrigationDuration: number;
+        realTimeIrrigationVolume: number;
+        valveAbnormalState: number;
+        rainDelayEndDatetime: number;
+        hourIrrigationVolume: number;
+        hourIrrigationDuration: number;
+        manualDefaultSettings: number[];
+        seasonalWateringAdjustment: number[];
+        irrigationScheduleStatus: number[];
+        valveAlarmSettings: number[];
+    };
+    commands: {
+        readRecord: {data: number[]};
+        irrigationPlanSettings?: {data: number[]};
+        irrigationPlanRemove?: {data: number[]};
+        rainDelay?: {data: number[]};
+    };
+    commandResponses: {
+        irrigationPlanReport?: {data: number[]};
+        irrigationPlanRemovedReport?: {data: number[]};
+    };
+}
+
+// SWV-ZN/ZF history response type
+type SonoffSwvHistoryRecord = {
+    channel?: string;
+    duration: number | null;
+    volume?: number | null;
+    start: string | Date;
+    end: string | Date;
+};
+// SWV-ZN/ZF history request cache
+const swvzfReqCache: Record<
+    string,
+    Record<
+        number,
+        {
+            startDevice: number;
+            endDevice: number;
+            startUTC: number;
+            endUTC: number;
+            offsetSeconds: number;
+            updatedAt: number;
+        }
+    >
+> = {};
+// SWV-ZN/ZF 30-day history multi-package merge
+const swvzfRespCache: Record<
+    string,
+    {
+        packets: Record<number, SonoffSwvHistoryRecord[]>;
+        updatedAt: number;
+    }
+> = {};
+// SWV-ZN/ZF multi-package merge cache expiration time
+const swvzfCacheExpireTime = 5 * 1000; // 5s
+
+// Build a fromZigbee converter for attributes reported as big-endian 32-bit integers.
+const bigEndianNumericFzConvert = (name: string, attributeKey: string): Fz.Converter<string>["convert"] => {
+    return (model, msg, publish, options, meta) => {
+        if (!(attributeKey in msg.data)) {
+            return;
+        }
+
+        const rawValue = (msg.data as unknown as KeyValue)[attributeKey];
+        utils.assertNumber(rawValue);
+        return {
+            [name]: toBigEndianUInt32(rawValue),
+        };
+    };
+};
+
+// Endpoint-specific composite exposes keep child feature property names unchanged; only the outer object property gets the endpoint suffix.
+const exposeCompositeEndpoints = <T extends Expose>(expose: T, endpointNames?: string[]): T[] => {
+    if (!endpointNames) return [expose];
+
+    return endpointNames.map((endpointName) => {
+        const endpointExpose = expose.clone() as T;
+        endpointExpose.endpoint = endpointName;
+        if (endpointExpose.property) {
+            endpointExpose.property = `${endpointExpose.property}_${endpointName}`;
+        }
+        return endpointExpose;
+    });
+};
+// **************************** SWV-ZN/ZF related ↑ ****************************
+
+const sonoffTrvzbtScheduleDays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+type SonoffTrvzbtScheduleDayName = (typeof sonoffTrvzbtScheduleDays)[number];
+type SonoffTrvzbtScheduleTransition = {transitionTime: number; heatSetpoint: number};
+const sonoffTrvzbtTargetTemperatureRange = {min: 5, max: 30, step: 0.5};
+const sonoffTrvzbtFrostProtectionTemperatureRange = {min: 5, max: 15, step: 0.5};
+const sonoffTrvzbtLocalTemperatureCalibrationRange = {min: -10, max: 10, step: 0.2};
+const sonoffTrvzbtTemporaryModeLookup = {boost: 0, timer: 1} as const;
+const sonoffTrvzbtTemporaryModeTemperatureScale = 100;
+const sonoffTrvzbtFaultCodeLookup = {
+    0: "temperature_sensor_issue_detected",
+    1: "valve_adjustment_issue_detected",
+    2: "battery_too_low_please_replace_the_batteries",
+    3: "battery_too_low_for_firmware_upgrade",
+    4: "battery_status_abnormal",
+    5: "external_temperature_sensor_connection_issue",
+} as const;
+const sonoffTrvzbtKnownFaultCodeMask = Object.keys(sonoffTrvzbtFaultCodeLookup).reduce((mask, bit) => mask | (1 << Number(bit)), 0);
+const sonoffTrvzbtTemperatureControlHistoryValueOffset = 9;
+const sonoffTrvzbtTemperatureControlHistoryCacheTimeoutMs = 30 * 1000;
+
+type SonoffTrvzbtTemperatureControlHistoryType = "day" | "month" | "half_year";
+
+type SonoffTrvzbtTemperatureControlHistoryRequest = {
+    type: SonoffTrvzbtTemperatureControlHistoryType;
+    startDevice: number;
+    endDevice: number;
+    startUTC: number;
+    endUTC: number;
+    displayOffsetSeconds: number;
+    offsetSeconds: number;
+    timeRange: {start: string; end: string};
+    updatedAt: number;
+};
+
+type SonoffTrvzbtTemperatureControlHistoryDataPoint = {
+    value: number;
+    startTime: string;
+    endTime: string;
+};
+
+type SonoffTrvzbtTemperatureControlHistoryState = {
+    total: number;
+    packets: Record<
+        number,
+        {
+            current: number;
+            dataType: number;
+            values: number[];
+        }
+    >;
+    updatedAt: number;
+};
+
+const sonoffTrvzbtScheduleActiveNumCache = new Map<string, number>();
+const sonoffTrvzbtTemperatureControlHistoryReqCache: Record<string, Record<number, SonoffTrvzbtTemperatureControlHistoryRequest>> = {};
+const sonoffTrvzbtTemperatureControlHistoryRespCache: Record<string, SonoffTrvzbtTemperatureControlHistoryState> = {};
+
+const getValidSonoffTrvzbtScheduleActiveNum = (value: unknown): number | undefined => {
+    const activeNum = Number(value);
+
+    if (!Number.isInteger(activeNum) || activeNum < 0 || activeNum > 0xff) return;
+
+    return activeNum;
+};
+
+const getSonoffTrvzbtDeviceCacheKey = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): string | undefined => {
+    if (device?.ieeeAddr) return device.ieeeAddr;
+
+    return endpoint?.getDevice?.()?.ieeeAddr;
+};
+
+const getSonoffTrvzbtTemperatureControlHistoryCacheKey = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): string | undefined => {
+    return getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+};
+
+const getSonoffTrvzbtTemperatureControlHistoryRespCacheKey = (cacheKey: string, subCmd: number): string => {
+    return `${cacheKey}:${subCmd}`;
+};
+
+const clearSonoffTrvzbtTemperatureControlHistoryCache = (cacheKey: string, subCmd: number): void => {
+    delete sonoffTrvzbtTemperatureControlHistoryRespCache[getSonoffTrvzbtTemperatureControlHistoryRespCacheKey(cacheKey, subCmd)];
+    if (sonoffTrvzbtTemperatureControlHistoryReqCache[cacheKey]) {
+        delete sonoffTrvzbtTemperatureControlHistoryReqCache[cacheKey][subCmd];
+    }
+};
+
+const getSonoffTrvzbtTemperatureControlHistoryDisplayOffsetSeconds = (value: string): number | undefined => {
+    if (value.endsWith("Z")) return 0;
+
+    const matches = value.match(/([+-])(\d{2}):(\d{2})$/);
+    if (!matches) return;
+
+    const sign = matches[1] === "-" ? -1 : 1;
+    return sign * (Number.parseInt(matches[2], 10) * 3600 + Number.parseInt(matches[3], 10) * 60);
+};
+
+const getSonoffTrvzbtTemperatureControlHistoryIntervalEnd = (
+    type: SonoffTrvzbtTemperatureControlHistoryType,
+    startSec: number,
+    offsetSeconds: number,
+): number => {
+    if (type === "day") return startSec + 3600;
+    if (type === "month") return startSec + 86400;
+
+    return shiftUtcSecondsByOffsetMonths(startSec, 1, offsetSeconds);
+};
+
+const buildSonoffTrvzbtTemperatureControlHistoryData = (
+    type: SonoffTrvzbtTemperatureControlHistoryType,
+    values: number[],
+    request: SonoffTrvzbtTemperatureControlHistoryRequest,
+): SonoffTrvzbtTemperatureControlHistoryDataPoint[] => {
+    const records: SonoffTrvzbtTemperatureControlHistoryDataPoint[] = [];
+    let intervalStartSec = request.startUTC;
+
+    for (const value of values) {
+        const intervalEndSec = getSonoffTrvzbtTemperatureControlHistoryIntervalEnd(type, intervalStartSec, request.displayOffsetSeconds);
+        records.push({
+            value,
+            startTime: formatUtcSecondsToIsoWithOffset(intervalStartSec, request.displayOffsetSeconds),
+            endTime: formatUtcSecondsToIsoWithOffset(intervalEndSec, request.displayOffsetSeconds),
+        });
+        intervalStartSec = intervalEndSec;
+    }
+
+    return records;
+};
+
+const formatSonoffTrvzbtTemperatureControlHistoryOutputData = (records: SonoffTrvzbtTemperatureControlHistoryDataPoint[]) => {
+    return records.map((record) => ({
+        value: record.value,
+        start_time: record.startTime,
+        end_time: record.endTime,
+    }));
+};
+
+const buildSonoffTrvzbtTemperatureControlHistoryResult = (
+    request: SonoffTrvzbtTemperatureControlHistoryRequest,
+    state: SonoffTrvzbtTemperatureControlHistoryState,
+) => {
+    const packets = Object.values(state.packets).sort((a, b) => a.current - b.current);
+    const valuesByDataType: Record<number, number[]> = {};
+
+    for (const historyPacket of packets) {
+        valuesByDataType[historyPacket.dataType] ??= [];
+        valuesByDataType[historyPacket.dataType].push(...historyPacket.values);
+    }
+
+    return {
+        type: request.type,
+        time_range: request.timeRange,
+        temperature_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x00] ?? [], request),
+        ),
+        target_temperature_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTrvzbtTemperatureControlHistoryData(request.type, valuesByDataType[0x02] ?? [], request),
+        ),
+    };
+};
+
+const isSonoffTrvzbtTemperatureControlHistoryComplete = (state: SonoffTrvzbtTemperatureControlHistoryState): boolean => {
+    return (
+        Object.keys(state.packets).length === state.total &&
+        Array.from({length: state.total}, (_, index) => state.packets[index] !== undefined).every(Boolean)
+    );
+};
+
+const formatSonoffTrvzbtFaultCode = (value: unknown): string => {
+    logger.info(`TRV-ZBT formatSonoffTrvzbtFaultCode input: value=${value} (type=${typeof value})`, NS);
+    const faultCode = Number(value);
+    if (!Number.isInteger(faultCode) || faultCode < 0 || faultCode > 0xffffffff) {
+        logger.info(`TRV-ZBT formatSonoffTrvzbtFaultCode result: "unknown" (invalid input)`, NS);
+        return "unknown";
+    }
+
+    const rawValue = faultCode >>> 0;
+    const descriptions: string[] = Object.entries(sonoffTrvzbtFaultCodeLookup)
+        .filter(([bit]) => (rawValue & (1 << Number(bit))) !== 0)
+        .map(([, description]) => description);
+
+    logger.info(
+        `TRV-ZBT formatSonoffTrvzbtFaultCode: rawValue=${rawValue} (0x${rawValue.toString(16).padStart(8, "0")}), matchedBits=${JSON.stringify(descriptions)}`,
+        NS,
+    );
+
+    if (descriptions.length === 0) {
+        const result = rawValue === 0 ? "none" : "unknown";
+        logger.info(`TRV-ZBT formatSonoffTrvzbtFaultCode result: "${result}" (no known bits matched)`, NS);
+        return result;
+    }
+
+    if ((rawValue & ~sonoffTrvzbtKnownFaultCodeMask) !== 0) {
+        descriptions.push("unknown");
+    }
+
+    const result = descriptions.join(", ");
+    logger.info(`TRV-ZBT formatSonoffTrvzbtFaultCode result: "${result}"`, NS);
+    return result;
+};
+
+const cacheSonoffTrvzbtScheduleActiveNum = (activeNum: number, endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): void => {
+    const cacheKey = getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+    if (cacheKey) {
+        sonoffTrvzbtScheduleActiveNumCache.set(cacheKey, activeNum);
+    }
+};
+
+const getCachedSonoffTrvzbtScheduleActiveNum = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): number | undefined => {
+    const cacheKey = getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+
+    return cacheKey ? sonoffTrvzbtScheduleActiveNumCache.get(cacheKey) : undefined;
+};
+
+const readSonoffTrvzbtScheduleActiveNum = async (entity: Zh.Endpoint | Zh.Group, device: Zh.Device | undefined, reason: string): Promise<number> => {
+    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+
+    if (endpoint) {
+        try {
+            const readResult = await endpoint.read<"customSonoffTrvzbt", SonoffTrvzbt>("customSonoffTrvzbt", ["weeklyScheduleActiveNum"]);
+            const activeNum = getValidSonoffTrvzbtScheduleActiveNum(readResult.weeklyScheduleActiveNum);
+            if (activeNum !== undefined) {
+                cacheSonoffTrvzbtScheduleActiveNum(activeNum, endpoint, device);
+                logger.info(`TRV-ZBT ${reason}: active schedule group=${activeNum}`, NS);
+                return activeNum;
+            }
+
+            logger.warning(`TRV-ZBT ${reason}: invalid active schedule group=${readResult.weeklyScheduleActiveNum}`, NS);
+        } catch (error) {
+            logger.warning(`TRV-ZBT ${reason}: read active schedule group failed, ${error}`, NS);
+        }
+    }
+
+    return getCachedSonoffTrvzbtScheduleActiveNum(endpoint, device) ?? 0;
+};
+
+const formatSonoffTrvzbtPayload = (payload: Iterable<number>): string => {
+    return `[${Array.from(payload)
+        .map((byte) => `0x${byte.toString(16).padStart(2, "0")}`)
+        .join(", ")}]`;
+};
+
+const shouldMirrorSonoffTrvzbtActiveSchedule = (
+    activeNum: number,
+    meta: Fz.Meta,
+    endpoint?: Zh.Endpoint | null,
+    device?: Zh.Device | null,
+): boolean => {
+    return activeNum === (getCachedSonoffTrvzbtScheduleActiveNum(endpoint, device ?? meta.device) ?? 0);
+};
+
+const parseSonoffTrvzbtScheduleString = (scheduleValue: string, dayName: string) => {
+    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(?:\.\d{1,2})?)$/;
+    const rawTransitions = scheduleValue.trim().split(/\s+/).sort();
+
+    if (rawTransitions.length > 6) {
+        throw new Error(`Invalid schedule for ${dayName}: days must have no more than 6 transitions`);
+    }
+
+    const transitions: SonoffTrvzbtScheduleTransition[] = [];
+    for (const transition of rawTransitions) {
+        const matches = transition.match(transitionRegex);
+        if (!matches) {
+            throw new Error(
+                `Invalid schedule for ${dayName}: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+            );
+        }
+
+        const hour = Number.parseInt(matches[1], 10);
+        const mins = Number.parseInt(matches[2], 10);
+        const temp = Number.parseFloat(matches[3]);
+        if (temp < sonoffTrvzbtTargetTemperatureRange.min || temp > sonoffTrvzbtTargetTemperatureRange.max) {
+            throw new Error(
+                `Invalid schedule for ${dayName}: temperature value must be between ${sonoffTrvzbtTargetTemperatureRange.min}-${sonoffTrvzbtTargetTemperatureRange.max} (inclusive), found: ${temp}`,
+            );
+        }
+
+        transitions.push({
+            transitionTime: hour * 60 + mins,
+            heatSetpoint: Math.round(temp * 100),
+        });
+    }
+
+    if (transitions[0].transitionTime !== 0) {
+        throw new Error(`Invalid schedule for ${dayName}: the first transition of each day should start at 00:00`);
+    }
+
+    return {numoftrans: rawTransitions.length, transitions};
+};
+
+const isValidSonoffTrvzbtScheduleTransition = ({transitionTime, heatSetpoint}: SonoffTrvzbtScheduleTransition): boolean => {
+    const temperature = heatSetpoint / 100;
+
+    return (
+        Number.isInteger(transitionTime) &&
+        transitionTime >= 0 &&
+        transitionTime < 24 * 60 &&
+        temperature >= sonoffTrvzbtTargetTemperatureRange.min &&
+        temperature <= sonoffTrvzbtTargetTemperatureRange.max
+    );
+};
+
+const formatSonoffTrvzbtScheduleTransitions = (transitions: SonoffTrvzbtScheduleTransition[]): string => {
+    return [...transitions]
+        .filter(isValidSonoffTrvzbtScheduleTransition)
+        .sort((a, b) => a.transitionTime - b.transitionTime || a.heatSetpoint - b.heatSetpoint)
+        .map((transition) => {
+            const hours = Math.floor(transition.transitionTime / 60);
+            const minutes = transition.transitionTime % 60;
+            return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}/${transition.heatSetpoint / 100}`;
+        })
+        .join(" ");
+};
+
+const getSonoffTrvzbtDayBit = (dayName: string): number => {
+    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayName, null);
+    if (dayKey === null) {
+        throw new Error(`Invalid schedule: invalid day name, found: ${dayName}`);
+    }
+    return Number(dayKey);
+};
+
+const getSonoffTrvzbtScheduleDayNames = (dayofweek: number): SonoffTrvzbtScheduleDayName[] => {
+    return sonoffTrvzbtScheduleDays.filter((day) => (dayofweek & (1 << getSonoffTrvzbtDayBit(day))) !== 0);
+};
+
+const buildSonoffTrvzbtSchedulePayload = (activeNum: number, dayofweek: number, transitions: SonoffTrvzbtScheduleTransition[]): number[] => {
+    const payload = [0x01, 0x01, activeNum, transitions.length, dayofweek, 0x01];
+    for (const transition of transitions) {
+        payload.push(transition.transitionTime & 0xff, (transition.transitionTime >> 8) & 0xff);
+        payload.push(transition.heatSetpoint & 0xff, (transition.heatSetpoint >> 8) & 0xff);
+    }
+    return payload;
+};
+
+const sendSonoffTrvzbtScheduleReadCommand = async (entity: Zh.Endpoint | Zh.Group, activeNum: number, reason: string): Promise<void> => {
+    const payload = [0x01, 0x00, activeNum];
+    logger.info(`TRV-ZBT ${reason} scheduleGroup activeNum=${activeNum} payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
+    await entity.command<"customSonoffTrvzbt", "scheduleGroup", SonoffTrvzbt>(
+        "customSonoffTrvzbt",
+        "scheduleGroup",
+        {data: payload},
+        disableDefaultResponseOptions,
+    );
+};
 
 const fzLocal = {
     key_action_event: {
@@ -147,6 +713,51 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    snzb_09p_alert: {
+        cluster: "customClusterEwelink",
+        type: ["commandAlertCommand", "raw"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: Buffer | undefined;
+            if (msg.type === "raw") {
+                if (!(msg.data instanceof Buffer) || msg.data.length < 5 || msg.data[2] !== 0x0f) {
+                    return;
+                }
+
+                data = msg.data.subarray(3);
+            } else {
+                if (!("data" in msg.data)) {
+                    return;
+                }
+
+                data = Buffer.isBuffer(msg.data.data) ? msg.data.data : Buffer.from(msg.data.data);
+            }
+
+            if (!data || data.length < 2 || data[0] !== 4) {
+                return;
+            }
+
+            const alarmType = ({0: "none", 1: "manual", 2: "scene"} as const)[data[1] as 0 | 1 | 2];
+            if (alarmType == null) {
+                return;
+            }
+            return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
+        },
+    } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    SNZB02_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = msg.data.measuredValue / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/13640
+            // SNZB-02 reports stranges values sometimes
+            if (temperature > -33 && temperature < 100) {
+                const property = utils.postfixWithEndpointName("temperature", msg, model, meta);
+                return {[property]: temperature};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -160,6 +771,55 @@ const tzLocal = {
                 localMeta.message = {...localMeta.message, on_time: localMeta.message.on_time / 10};
             }
             return await tz.on_off.convertSet(entity, key, value, localMeta);
+        },
+    } satisfies Tz.Converter,
+    snzb_09p_alert: {
+        key: ["start_manual_alarm", "cancel_alarm", "start_scene_alarm", "siren_on"],
+        convertSet: async (entity, key, value, meta) => {
+            const state = meta.state || {};
+            const device = meta.device;
+            if (!device) return;
+            const endpoint = device.getEndpoint(1);
+            if (!endpoint) return;
+
+            let payload: Buffer;
+            switch (key) {
+                case "cancel_alarm":
+                    payload = Buffer.from([1]);
+                    break;
+                case "siren_on": {
+                    if (value === "OFF" || value === false) {
+                        payload = Buffer.from([1]);
+                        break;
+                    }
+
+                    const voice = state.alarm_sound_enable === "ON" || state.alarm_sound_enable === true ? 0x01 : 0x00;
+                    const light = state.alarm_light_enable === "ON" || state.alarm_light_enable === true ? 0x01 : 0x00;
+                    const alertSoundRaw = meta.message?.alarm_sound_type ?? state.alarm_sound_type ?? 0;
+                    const alertSoundParsed =
+                        typeof alertSoundRaw === "string" ? Number.parseInt(alertSoundRaw.replace(/^sound\s+/i, ""), 10) : Number(alertSoundRaw);
+                    const alertSound = Number.isFinite(alertSoundParsed) ? Math.min(9, Math.max(0, alertSoundParsed)) : 0;
+                    const volMap = {low: 0, medium: 1, high: 2, highest: 3} as const;
+                    const volumeLevel = String(state.alarm_volume_level ?? "high").toLowerCase();
+                    const volume = volMap[volumeLevel as keyof typeof volMap] ?? 2;
+                    const duration = Math.min(900, Math.max(1, Number(state.alarm_duration ?? 10)));
+                    payload = Buffer.from([0x02, 0x00, voice, light, alertSound, volume, duration & 0xff, (duration >> 8) & 0xff, 0x00]);
+                    break;
+                }
+                default:
+                    throw new Error(`Unsupported SNZB-09P alert command key '${key}'`);
+            }
+
+            await endpoint.command<"customClusterEwelink", "alertCommand", SonoffSnzb09p>(
+                "customClusterEwelink",
+                "alertCommand",
+                {data: payload},
+                {disableDefaultResponse: true},
+            );
+            if (key === "siren_on") {
+                return {state: {siren_on: value === "ON" || value === true ? "ON" : "OFF"}};
+            }
+            return {};
         },
     } satisfies Tz.Converter,
 };
@@ -184,6 +844,8 @@ export interface SonoffEwelink {
         detachRelayMode: number;
         deviceWorkMode: number;
         detachRelayMode2: number;
+        detachRelayActionEvent: number;
+        motorTravelCalibrationAction: number;
         lackWaterCloseValveTimeout: number;
         motorTravelCalibrationStatus: number;
         motorRunStatus: number;
@@ -199,25 +861,58 @@ export interface SonoffEwelink {
         calibrationStatus: number;
         calibrationProgress: number;
         minBrightnessThreshold: number;
+        maxBrightnessThreshold: number;
         transitionTime: number;
+        levelForCalibration: number;
         dimmingLightRate: number;
+        programmableStepperSequence: number[];
+        acCurrentMaxOverloadEnable: number;
+        acCurrentMaxOverload: number;
+        acVoltageMaxOverloadEnable: number;
+        acVoltageMaxOverload: number;
+        acPowerMaxOverloadEnable: number;
+        acPowerMaxOverload: number;
+        scenePowerReportValue: number;
+        localFastSceneConfiguration: number[];
+        acCurrentOutputPowerValue: number;
+        outputEnergyToday: number;
+        outputEnergyMonth: number;
+        dailyElectricityCost: number;
+        monthlyElectricityCost: number;
+        dailyRunTime: number;
+        totalRunTime: number;
+        totalEnergyConsumption: number;
+        totalOutputEnergyConsumption: number;
+        currentElectricalPriceList: number[];
+        nextElectricalPriceList: number[];
+        sceneValueReport: number[];
+        electricalMessageNotification: number[];
+        energyRecordStatus: number[];
     };
     commands: {
         protocolData: {data: number[]};
+        sceneReportListSet: {data: number[]};
+        wakeupDevice: {data: number[]};
+        readElectricityRecords: {data: number[]};
+        buttonTypeEvent: {data: number[]};
     };
-    commandResponses: never;
+    commandResponses: {
+        readRecordResp: {data: number[]};
+    };
 }
 
 const sonoffExtend = {
-    addCustomClusterEwelink: () =>
-        m.deviceAddCustomCluster("customClusterEwelink", {
+    addCustomClusterEwelink: () => {
+        return m.deviceAddCustomCluster("customClusterEwelink", {
+            name: "customClusterEwelink",
             ID: 0xfc11,
             attributes: {
-                networkLed: {ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
-                backLight: {ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
-                faultCode: {ID: 0x0010, type: Zcl.DataType.INT32, write: true, min: -2147483648},
-                radioPower: {ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768},
+                networkLed: {name: "networkLed", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                backLight: {name: "backLight", ID: 0x0002, type: Zcl.DataType.BOOLEAN, write: true},
+                faultCode: {name: "faultCode", ID: 0x0010, type: Zcl.DataType.INT32, write: true, min: -2147483648},
+                radioPower: {name: "radioPower", ID: 0x0012, type: Zcl.DataType.INT16, write: true, min: -32768},
                 radioPowerWithManuCode: {
+                    name: "radioPowerWithManuCode",
                     ID: 0x0012,
                     type: Zcl.DataType.INT16,
                     manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
@@ -225,34 +920,404 @@ const sonoffExtend = {
                     write: true,
                     min: -32768,
                 },
-                delayedPowerOnState: {ID: 0x0014, type: Zcl.DataType.BOOLEAN, write: true},
-                delayedPowerOnTime: {ID: 0x0015, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                externalTriggerMode: {ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                detachRelayMode: {ID: 0x0017, type: Zcl.DataType.BOOLEAN, write: true},
-                deviceWorkMode: {ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                detachRelayMode2: {ID: 0x0019, type: Zcl.DataType.BITMAP8, write: true},
-                lackWaterCloseValveTimeout: {ID: 0x5011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                motorTravelCalibrationStatus: {ID: 0x5012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                motorRunStatus: {ID: 0x5013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                acCurrentCurrentValue: {ID: 0x7004, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                acCurrentVoltageValue: {ID: 0x7005, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                acCurrentPowerValue: {ID: 0x7006, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                outlet_control_protect: {ID: 0x7007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                energyToday: {ID: 0x7009, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                energyMonth: {ID: 0x700a, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                energyYesterday: {ID: 0x700b, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                setCalibrationAction: {ID: 0x001d, type: Zcl.DataType.CHAR_STR, write: true},
-                calibrationStatus: {ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                calibrationProgress: {ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                minBrightnessThreshold: {ID: 0x4001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                dimmingLightRate: {ID: 0x4003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                transitionTime: {ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                delayedPowerOnState: {name: "delayedPowerOnState", ID: 0x0014, type: Zcl.DataType.BOOLEAN, write: true},
+                delayedPowerOnTime: {name: "delayedPowerOnTime", ID: 0x0015, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                externalTriggerMode: {name: "externalTriggerMode", ID: 0x0016, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                detachRelayMode: {name: "detachRelayMode", ID: 0x0017, type: Zcl.DataType.BOOLEAN, write: true},
+                deviceWorkMode: {name: "deviceWorkMode", ID: 0x0018, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                detachRelayMode2: {name: "detachRelayMode2", ID: 0x0019, type: Zcl.DataType.BITMAP8, write: true},
+                motorTravelCalibrationAction: {name: "motorTravelCalibrationAction", ID: 0x5001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                lackWaterCloseValveTimeout: {name: "lackWaterCloseValveTimeout", ID: 0x5011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                motorTravelCalibrationStatus: {name: "motorTravelCalibrationStatus", ID: 0x5012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                motorRunStatus: {name: "motorRunStatus", ID: 0x5013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                acCurrentCurrentValue: {name: "acCurrentCurrentValue", ID: 0x7004, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                acCurrentVoltageValue: {name: "acCurrentVoltageValue", ID: 0x7005, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                acCurrentPowerValue: {name: "acCurrentPowerValue", ID: 0x7006, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                outlet_control_protect: {name: "outlet_control_protect", ID: 0x7007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                energyToday: {name: "energyToday", ID: 0x7009, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                energyMonth: {name: "energyMonth", ID: 0x700a, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                energyYesterday: {name: "energyYesterday", ID: 0x700b, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                setCalibrationAction: {name: "setCalibrationAction", ID: 0x001d, type: Zcl.DataType.CHAR_STR, write: true},
+                calibrationStatus: {name: "calibrationStatus", ID: 0x001e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                calibrationProgress: {name: "calibrationProgress", ID: 0x0020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                minBrightnessThreshold: {name: "minBrightnessThreshold", ID: 0x4001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                maxBrightnessThreshold: {name: "maxBrightnessThreshold", ID: 0x4002, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                dimmingLightRate: {name: "dimmingLightRate", ID: 0x4003, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                transitionTime: {name: "transitionTime", ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                levelForCalibration: {name: "levelForCalibration", ID: 0x4006, type: Zcl.DataType.UINT8},
+                programmableStepperSequence: {name: "programmableStepperSequence", ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
             },
             commands: {
-                protocolData: {ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
             },
             commandsResponse: {},
-        }),
+        });
+    },
+    occupancyZoneEnable(deviceZoneCount: number, zoneStep: number, mergeFirstTwoZone = false): ModernExtend {
+        const exposedZoneCount = mergeFirstTwoZone ? deviceZoneCount - 1 : deviceZoneCount;
+
+        // Generate interval distance description
+        const getZoneRange = (zoneIndex: number): string => {
+            if (mergeFirstTwoZone) {
+                if (zoneIndex === 0) {
+                    return `0m-${zoneStep * 2}m`;
+                }
+                const start = zoneStep * 2 + (zoneIndex - 1) * zoneStep;
+                const end = start + zoneStep;
+                return `${start}m-${end}m`;
+            }
+            const start = zoneIndex * zoneStep;
+            const end = start + zoneStep;
+            return `${start}m-${end}m`;
+        };
+
+        const exposes = Array.from({length: exposedZoneCount}, (_, i) =>
+            e
+                .binary(`enable_occupancy_zone_${i + 1}`, ea.ALL, true, false)
+                .withLabel(`Zone ${i + 1} (${getZoneRange(i)})`)
+                .withCategory("config"),
+        );
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: Array.from({length: exposedZoneCount}, (_, i) => `enable_occupancy_zone_${i + 1}`),
+                convertSet: async (entity, key, value, meta) => {
+                    const zone = Number.parseInt(key.split("_").at(-1) ?? "0", 10);
+
+                    // Rebuild bitmap from current states
+                    let bitmap = 0;
+                    for (let z = 1; z <= exposedZoneCount; z++) {
+                        if (meta.state[`enable_occupancy_zone_${z}`]) {
+                            if (mergeFirstTwoZone && z === 1) {
+                                bitmap |= 0b11; // bit0 + bit1
+                            } else {
+                                const bitIndex = mergeFirstTwoZone ? z : z - 1;
+                                bitmap |= 1 << bitIndex;
+                            }
+                        }
+                    }
+
+                    // Apply current change to bitmap
+                    if (mergeFirstTwoZone && zone === 1) {
+                        if (value) {
+                            bitmap |= 0b11;
+                        } else {
+                            bitmap &= ~0b11;
+                        }
+                    } else {
+                        const bitIndex = mergeFirstTwoZone ? zone : zone - 1;
+                        if (value) {
+                            bitmap |= 1 << bitIndex;
+                        } else {
+                            bitmap &= ~(1 << bitIndex);
+                        }
+                    }
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x2016]: {
+                                value: bitmap,
+                                type: Zcl.DataType.BITMAP16,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSnzb06p24, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!msg.data.occupancyZoneEnable) {
+                        return;
+                    }
+                    const bitmap = msg.data.occupancyZoneEnable;
+                    const result: KeyValue = {};
+                    if (mergeFirstTwoZone) {
+                        // zone 1
+                        result["enable_occupancy_zone_1"] = (bitmap & 0b11) !== 0;
+                        // zone 2~N
+                        for (let i = 2; i <= deviceZoneCount; i++) {
+                            result[`enable_occupancy_zone_${i}`] = (bitmap & (1 << i)) !== 0;
+                        }
+                    } else {
+                        for (let i = 0; i < deviceZoneCount; i++) {
+                            result[`enable_occupancy_zone_${i + 1}`] = (bitmap & (1 << i)) !== 0;
+                        }
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    spatialLearning(): ModernExtend {
+        const commandName = "spatialLearning";
+
+        const exposes = [
+            e.enum("spatial_learning", ea.SET, ["start_learning"]).withDescription("Start space learning calibration").withCategory("config"),
+            e.enum("spatial_learning_state", ea.STATE, ["Clear", "Learning", "Failed"]).withDescription("Current state of space learning"),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["spatial_learning"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === "start_learning") {
+                        const payloadValue: number[] = [];
+                        payloadValue[0] = 0x00; // Sub cmd = 0
+
+                        // sequence (uint64_t) - timestamp
+                        const seqBuffer = Buffer.alloc(8);
+                        seqBuffer.writeBigUInt64LE(BigInt(Date.now()));
+
+                        for (let i = 0; i < seqBuffer.length; i++) {
+                            payloadValue[1 + i] = seqBuffer[i];
+                        }
+                        const payload = {data: payloadValue} as SonoffSnzb06p24["commands"][typeof commandName];
+
+                        await entity.command<string, typeof commandName, SonoffSnzb06p24>(
+                            "customClusterEwelink",
+                            commandName,
+                            payload,
+                            defaultResponseOptions,
+                        );
+                    }
+
+                    return {
+                        state: {
+                            spatial_learning_state: "Learning",
+                        },
+                    };
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSnzb06p24, ["raw"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    const buffer = Buffer.from(msg.data);
+
+                    const cmd = buffer[2];
+                    if (![0x04].includes(cmd)) return;
+
+                    logger.warning(`spatialLearning: received msg=${JSON.stringify(msg)}`, NS);
+
+                    const subCmd = buffer[3];
+
+                    // Respond to start learning
+                    if (subCmd === 0x01) {
+                        if (buffer.length < 20) {
+                            logger.warning(`spatialLearning: subCmd=0x01 invalid payload len=${buffer.length}`, NS);
+                            return;
+                        }
+
+                        const sequence = buffer.readBigUInt64LE(4);
+                        const expectEndTime = buffer.readBigUInt64LE(12);
+
+                        logger.info(
+                            `spatialLearning: start response seq=${sequence.toString()} expect_end_time=${expectEndTime.toString()} === ${expectEndTime.toLocaleString()}`,
+                            NS,
+                        );
+
+                        return {
+                            spatial_learning_state: "Learning",
+                        };
+                    }
+
+                    // Result of learning
+                    if (subCmd === 0x02) {
+                        if (buffer.length < 14) {
+                            logger.warning(`spatialLearning: subCmd=0x02 invalid payload len=${buffer.length}`, NS);
+                            return;
+                        }
+
+                        const sequence = buffer.readBigUInt64LE(4);
+                        const state = buffer[12];
+                        const reason = buffer[13];
+
+                        logger.info(`spatialLearning: result seq=${sequence.toString()} state=${state} reason=${reason}`, NS);
+
+                        if (state === 0x00 && reason === 0x00) {
+                            return {spatial_learning_state: "Clear"};
+                        }
+
+                        return {spatial_learning_state: "Failed"};
+                    }
+
+                    logger.warning(`spatialLearning: unknown subCmd=0x${subCmd.toString(16).padStart(2, "0")}`, NS);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    programmableStepperSequence(sequences: string[]): ModernExtend {
+        const stepComposite = (n: number) => {
+            return e
+                .composite(`step_${n}`, `step_${n}`, ea.ALL)
+                .withFeature(e.binary("enable_step", ea.ALL, true, false).withDescription("Enable/disable this step."))
+                .withFeature(e.binary("relay_outlet_1", ea.ALL, true, false).withDescription("Outlet 1 relay state."))
+                .withFeature(e.binary("relay_outlet_2", ea.ALL, true, false).withDescription("Outlet 2 relay state."));
+        };
+
+        const exposes = sequences.map((seq) => {
+            return e
+                .composite(`programmable_stepper_seq${seq}`, `programmable_stepper_seq${seq}`, ea.ALL)
+                .withDescription(`Configure programmable stepper sequence ${seq}.`)
+                .withFeature(e.binary("enable_stepper", ea.ALL, true, false).withDescription("Enable/disable the stepper sequence."))
+                .withFeature(
+                    e
+                        .numeric("switch_outlet", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(2)
+                        .withValueStep(1)
+                        .withDescription("The outlet channel of the external trigger switch bound to this sequence."),
+                )
+                .withFeature(e.binary("enable_double_press", ea.ALL, true, false).withDescription("Enable/disable double press to switch steps."))
+                .withFeature(
+                    e
+                        .numeric("double_press_interval", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(32767)
+                        .withValueStep(1)
+                        .withUnit("ms")
+                        .withDescription("Set the double press interval for step switching."),
+                )
+                .withFeature(stepComposite(1))
+                .withFeature(stepComposite(2))
+                .withFeature(stepComposite(3))
+                .withFeature(stepComposite(4));
+        });
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [...sequences.map((seq) => `programmable_stepper_seq${seq}`)],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+
+                    const array: Uint8Array = new Uint8Array(11);
+
+                    // ZCL Array
+                    array[0] = 0x01;
+                    array[1] = 9;
+                    array[2] = 1;
+
+                    // Sequence configs
+                    const seqStr = key.replace("programmable_stepper_seq", "");
+                    const seqIndex = Number.parseInt(seqStr as string, 10) - 1;
+
+                    array[3] = (value.enable_stepper ? 0x80 : 0x00) | (seqIndex & 0x7f);
+                    array[4] = (value.switch_outlet - 1) & 0xff;
+                    array[5] = (value.enable_double_press ? 0x80 : 0x00) | ((value.double_press_interval >> 8) & 0x7f);
+                    array[6] = value.double_press_interval & 0xff;
+
+                    // Steps
+                    for (let i = 0; i < 4; i++) {
+                        const step = value[`step_${i + 1}`] ?? {};
+                        array[7 + i] = (step.enable_step ? 0x80 : 0x00) | (step.relay_outlet_1 ? 0x01 : 0x00) | (step.relay_outlet_2 ? 0x02 : 0x00);
+                    }
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x0022]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["attributeReport"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (!msg.data?.programmableStepperSequence) {
+                        return;
+                    }
+
+                    const array = new Uint8Array(msg.data.programmableStepperSequence);
+                    if (array[0] !== 0x01) {
+                        return;
+                    }
+
+                    const seqCount = array[2];
+                    const seqDataOffset = 3;
+                    const result: KeyValueAny = {};
+
+                    for (let i = 0; i < seqCount; i++) {
+                        const offset = seqDataOffset + i * 8;
+
+                        // Steps
+                        const steps: KeyValueAny = {};
+                        for (let j = 0; j < 4; j++) {
+                            const currentBuffer = array[offset + 4 + j];
+                            steps[`step_${j + 1}`] = {
+                                enable_step: !!(currentBuffer & 0x80),
+                                relay_outlet_1: !!(currentBuffer & 0x01),
+                                relay_outlet_2: !!(currentBuffer & 0x02),
+                            };
+                        }
+
+                        // Sequence configs
+                        const seqNum = (array[offset] & 0x7f) + 1;
+                        result[`programmable_stepper_seq${seqNum}`] = {
+                            enable_stepper: !!(array[offset] & 0x80),
+                            switch_outlet: array[offset + 1] + 1,
+                            enable_double_press: !!(array[offset + 2] & 0x80),
+                            double_press_interval: ((array[offset + 2] & 0x7f) << 8) | array[offset + 3],
+                            ...steps,
+                        };
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     inchingControlSet: (args: ExternalInchingAgs = {}, maxTime = 3599.5): ModernExtend => {
         const {endpointNames = undefined} = args;
         const clusterName = "customClusterEwelink";
@@ -353,6 +1418,7 @@ const sonoffExtend = {
             "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.";
 
         const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+        type DayName = (typeof days)[number];
 
         const exposes = days.map((day) => e.text(`weekly_schedule_${day}`, ea.STATE_SET).withCategory("config").withDescription(scheduleDescription));
 
@@ -386,71 +1452,142 @@ const sonoffExtend = {
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
         ];
 
+        // Helper function to parse and validate a schedule string
+        const parseScheduleString = (scheduleValue: string, dayName: string) => {
+            // Transition format: HH:mm/temperature
+            const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
+
+            const rawTransitions = scheduleValue.split(" ").sort();
+
+            if (rawTransitions.length > 6) {
+                throw new Error(`Invalid schedule for ${dayName}: days must have no more than 6 transitions`);
+            }
+
+            const transitions = [];
+
+            for (const transition of rawTransitions) {
+                const matches = transition.match(transitionRegex);
+
+                if (!matches) {
+                    throw new Error(
+                        `Invalid schedule for ${dayName}: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
+                    );
+                }
+
+                const hour = Number.parseInt(matches[1], 10);
+                const mins = Number.parseInt(matches[2], 10);
+                const temp = Number.parseFloat(matches[3]);
+
+                if (temp < 4 || temp > 35) {
+                    throw new Error(`Invalid schedule for ${dayName}: temperature value must be between 4-35 (inclusive), found: ${temp}`);
+                }
+
+                transitions.push({
+                    transitionTime: hour * 60 + mins,
+                    heatSetpoint: Math.round(temp * 100),
+                });
+            }
+
+            if (transitions[0].transitionTime !== 0) {
+                throw new Error(`Invalid schedule for ${dayName}: the first transition of each day should start at 00:00`);
+            }
+
+            return {
+                numoftrans: rawTransitions.length,
+                transitions,
+            };
+        };
+
+        // Helper function to get day bit from day name
+        const getDayBit = (dayName: string): number => {
+            const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayName, null);
+            if (dayKey === null) {
+                throw new Error(`Invalid schedule: invalid day name, found: ${dayName}`);
+            }
+            return Number(dayKey);
+        };
+
+        // Helper function to send setWeeklySchedule command
+        const sendScheduleCommand = async (
+            entity: Parameters<Tz.Converter["convertSet"]>[0],
+            dayofweek: number,
+            numoftrans: number,
+            transitions: Array<{transitionTime: number; heatSetpoint: number}>,
+            meta: Parameters<Tz.Converter["convertSet"]>[3],
+        ) => {
+            await entity.command(
+                "hvacThermostat",
+                "setWeeklySchedule",
+                {
+                    dayofweek,
+                    numoftrans,
+                    mode: 1 << 0, // heat
+                    transitions,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+        };
+
         const toZigbee: Tz.Converter[] = [
+            // Single/multi day converter with batching support
             {
                 key: days.map((day) => `weekly_schedule_${day}`),
                 convertSet: async (entity, key, value, meta) => {
-                    // Transition format: HH:mm/temperature
-                    const transitionRegex = /^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.5)?)$/;
-
                     utils.assertString(value, key);
 
-                    // Extract day name from key (e.g., "weekly_schedule_monday" -> "monday")
-                    const dayOfWeekName = key.replace("weekly_schedule_", "");
-                    const dayKey = utils.getKey(constants.thermostatDayOfWeek, dayOfWeekName, null);
+                    // Extract all weekly_schedule keys from the message (if message exists)
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleKeys = message
+                        ? Object.keys(message).filter(
+                              (k) => k.startsWith("weekly_schedule_") && days.includes(k.replace("weekly_schedule_", "") as DayName),
+                          )
+                        : [];
 
-                    if (dayKey === null) {
-                        throw new Error(`Invalid schedule: invalid day name, found: ${dayOfWeekName}`);
+                    // For single-key messages or when message is not available, process normally (original behavior)
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "");
+                        const dayBit = getDayBit(dayName);
+                        const parsed = parseScheduleString(value, dayName);
+
+                        await sendScheduleCommand(entity, 1 << dayBit, parsed.numoftrans, parsed.transitions, meta);
+
+                        return {state: {[key]: value}};
                     }
 
-                    const dayOfWeekBit = Number(dayKey);
+                    // Process all schedule keys from the message with batching
+                    // Group days by their schedule string to optimize Zigbee commands
+                    const scheduleGroups = new Map<string, string[]>();
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "");
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
 
-                    const rawTransitions = value.split(" ").sort();
-
-                    if (rawTransitions.length > 6) {
-                        throw new Error("Invalid schedule: days must have no more than 6 transitions");
+                        const existing = scheduleGroups.get(schedule);
+                        if (existing) {
+                            existing.push(dayName);
+                        } else {
+                            scheduleGroups.set(schedule, [dayName]);
+                        }
                     }
 
-                    const transitions = [];
+                    const stateUpdates: Record<string, string> = {};
 
-                    for (const transition of rawTransitions) {
-                        const matches = transition.match(transitionRegex);
+                    // Send one command per unique schedule, combining days with identical schedules
+                    for (const [schedule, daysWithSchedule] of scheduleGroups) {
+                        // Parse and validate the schedule (only need to do once per unique schedule)
+                        const parsed = parseScheduleString(schedule, daysWithSchedule.join(", "));
 
-                        if (!matches) {
-                            throw new Error(
-                                `Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`,
-                            );
+                        // Build dayofweek bitmask for all days with this schedule
+                        let dayofweek = 0;
+                        for (const dayName of daysWithSchedule) {
+                            dayofweek |= 1 << getDayBit(dayName);
+                            stateUpdates[`weekly_schedule_${dayName}`] = schedule;
                         }
 
-                        const hour = Number.parseInt(matches[1], 10);
-                        const mins = Number.parseInt(matches[2], 10);
-                        const temp = Number.parseFloat(matches[3]);
-
-                        if (temp < 4 || temp > 35) {
-                            throw new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temp}`);
-                        }
-
-                        transitions.push({
-                            transitionTime: hour * 60 + mins,
-                            heatSetpoint: Math.round(temp * 100),
-                        });
+                        await sendScheduleCommand(entity, dayofweek, parsed.numoftrans, parsed.transitions, meta);
                     }
 
-                    if (transitions[0].transitionTime !== 0) {
-                        throw new Error("Invalid schedule: the first transition of each day should start at 00:00");
-                    }
-
-                    await entity.command(
-                        "hvacThermostat",
-                        "setWeeklySchedule",
-                        {
-                            dayofweek: 1 << Number(dayOfWeekBit),
-                            numoftrans: rawTransitions.length,
-                            mode: 1 << 0, // heat
-                            transitions,
-                        },
-                        utils.getOptions(meta.mapped, entity),
-                    );
+                    return {state: stateUpdates};
                 },
             },
         ];
@@ -461,6 +1598,573 @@ const sonoffExtend = {
             toZigbee,
             isModernExtend: true,
         };
+    },
+    trvzbtWeeklySchedule: (): ModernExtend => {
+        const clusterName = "customSonoffTrvzbt";
+        const commandName = "scheduleGroup";
+        const scheduleDescription =
+            'The preset heating schedule to use when the system mode is set to "auto" (indicated with ⏲ on the TRV). ' +
+            "Up to 12 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature', each " +
+            "separated by a space. The first transition for each day must start at 00:00 and the valid temperature range is 5-30°C " +
+            "(in 0.5°C steps). The temperature will be set at the time of the first transition until the time of the next transition, " +
+            "e.g. '04:00/20 10:00/25' will result in the temperature being set to 20°C at 04:00 until 10:00, when it will change to 25°C.";
+
+        const exposes = sonoffTrvzbtScheduleDays.map((day) =>
+            e.text(`weekly_schedule_${day}`, ea.ALL).withCategory("config").withDescription(scheduleDescription),
+        );
+
+        const sendScheduleCommand = async (
+            entity: Parameters<Tz.Converter["convertSet"]>[0],
+            activeNum: number,
+            dayofweek: number,
+            transitions: SonoffTrvzbtScheduleTransition[],
+        ) => {
+            const payload = buildSonoffTrvzbtSchedulePayload(activeNum, dayofweek, transitions);
+            logger.info(
+                `TRV-ZBT send scheduleGroup activeNum=${activeNum} dayofweek=0x${dayofweek.toString(16).padStart(2, "0")} transitions=${JSON.stringify(transitions)} payload=${formatSonoffTrvzbtPayload(payload)}`,
+                NS,
+            );
+            await entity.command<typeof clusterName, typeof commandName, SonoffTrvzbt>(
+                clusterName,
+                commandName,
+                {data: payload},
+                disableDefaultResponseOptions,
+            );
+        };
+
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.weeklyScheduleActiveNum === undefined) return;
+                    const activeNum = getValidSonoffTrvzbtScheduleActiveNum(msg.data.weeklyScheduleActiveNum);
+                    if (activeNum === undefined) {
+                        logger.warning(`TRV-ZBT received invalid weeklyScheduleActiveNum=${msg.data.weeklyScheduleActiveNum}`, NS);
+                        return;
+                    }
+
+                    cacheSonoffTrvzbtScheduleActiveNum(activeNum, msg.endpoint, msg.device);
+                    logger.info(`TRV-ZBT received weeklyScheduleActiveNum=${activeNum}`, NS);
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>,
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x13) return;
+
+                    const payload = parsedRawCommand.payload;
+                    logger.info(`TRV-ZBT received scheduleGroup payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
+                    if (payload.length < 4 || payload[0] !== 0x01) return;
+                    const readOrWrite = payload[1];
+                    const activeNum = payload[2];
+
+                    if (readOrWrite === 0x01) {
+                        const status = payload[3];
+                        const statusText = status === 0x00 ? "success" : "fail";
+                        logger.info(
+                            `TRV-ZBT parsed scheduleGroup write response activeNum=${activeNum} status=${statusText} rawStatus=0x${status.toString(16).padStart(2, "0")}`,
+                            NS,
+                        );
+                        if (shouldMirrorSonoffTrvzbtActiveSchedule(activeNum, meta, msg.endpoint, msg.device)) {
+                            return {weekly_schedule_status: statusText};
+                        }
+                        return;
+                    }
+
+                    if (readOrWrite !== 0x00 || payload.length < 6) return;
+                    const numoftrans = payload[3];
+                    const dayofweek = payload[4];
+                    const mode = payload[5];
+                    const hasHeatSetpoint = (mode & 0x01) !== 0;
+                    const hasCoolSetpoint = (mode & 0x02) !== 0;
+                    let offset = 6;
+                    const transitions: SonoffTrvzbtScheduleTransition[] = [];
+
+                    for (let i = 0; i < numoftrans; i++) {
+                        if (offset + 2 > payload.length) return;
+                        const transitionTime = payload.readUInt16LE(offset);
+                        offset += 2;
+
+                        let heatSetpoint = 0;
+                        if (hasHeatSetpoint) {
+                            if (offset + 2 > payload.length) return;
+                            heatSetpoint = payload.readInt16LE(offset);
+                            offset += 2;
+                        }
+                        if (hasCoolSetpoint) {
+                            if (offset + 2 > payload.length) return;
+                            offset += 2;
+                        }
+
+                        transitions.push({transitionTime, heatSetpoint});
+                    }
+
+                    const schedule = formatSonoffTrvzbtScheduleTransitions(transitions);
+                    logger.info(
+                        `TRV-ZBT parsed scheduleGroup read response activeNum=${activeNum} dayofweek=0x${dayofweek.toString(16).padStart(2, "0")} mode=0x${mode.toString(16).padStart(2, "0")} transitions=${JSON.stringify(transitions)} schedule=${schedule}`,
+                        NS,
+                    );
+                    if (!shouldMirrorSonoffTrvzbtActiveSchedule(activeNum, meta, msg.endpoint, msg.device)) return;
+                    const result: KeyValueAny = {};
+                    for (const day of getSonoffTrvzbtScheduleDayNames(dayofweek)) {
+                        result[`weekly_schedule_${day}`] = schedule;
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffTrvzbt, ["raw"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: sonoffTrvzbtScheduleDays.map((day) => `weekly_schedule_${day}`),
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value, key);
+                    const activeNum = await readSonoffTrvzbtScheduleActiveNum(entity, meta.device, "write scheduleGroup");
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleKeys = message
+                        ? Object.keys(message).filter(
+                              (k) =>
+                                  k.startsWith("weekly_schedule_") &&
+                                  sonoffTrvzbtScheduleDays.includes(k.replace("weekly_schedule_", "") as SonoffTrvzbtScheduleDayName),
+                          )
+                        : [];
+
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "") as SonoffTrvzbtScheduleDayName;
+                        const parsed = parseSonoffTrvzbtScheduleString(value, dayName);
+                        await sendScheduleCommand(entity, activeNum, 1 << getSonoffTrvzbtDayBit(dayName), parsed.transitions);
+                        return {state: {[key]: value}};
+                    }
+
+                    const scheduleGroups = new Map<string, SonoffTrvzbtScheduleDayName[]>();
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "") as SonoffTrvzbtScheduleDayName;
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
+                        scheduleGroups.set(schedule, [...(scheduleGroups.get(schedule) ?? []), dayName]);
+                    }
+
+                    const stateUpdates: Record<string, string> = {};
+                    for (const [schedule, daysWithSchedule] of scheduleGroups) {
+                        const parsed = parseSonoffTrvzbtScheduleString(schedule, daysWithSchedule.join(", "));
+                        let dayofweek = 0;
+                        for (const dayName of daysWithSchedule) {
+                            dayofweek |= 1 << getSonoffTrvzbtDayBit(dayName);
+                            stateUpdates[`weekly_schedule_${dayName}`] = schedule;
+                        }
+                        await sendScheduleCommand(entity, activeNum, dayofweek, parsed.transitions);
+                    }
+
+                    return {state: stateUpdates};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const activeNum = await readSonoffTrvzbtScheduleActiveNum(entity, meta.device, "read scheduleGroup");
+                    await sendSonoffTrvzbtScheduleReadCommand(entity, activeNum, "send read");
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    trvzbtReadScheduleOnConfigure: (): ModernExtend => {
+        const configure: Configure[] = [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                if (!endpoint) return;
+
+                const activeScheduleGroupId = await readSonoffTrvzbtScheduleActiveNum(endpoint, device, "configure");
+                await sendSonoffTrvzbtScheduleReadCommand(endpoint, activeScheduleGroupId, "configure read");
+            },
+        ];
+
+        return {configure, isModernExtend: true};
+    },
+    trvzbtFaultCode: (): ModernExtend => {
+        const clusterName = "customSonoffTrvzbt";
+        const key = "fault_code";
+        const exposes = [
+            e.text(key, ea.STATE_GET).withCategory("diagnostic").withDescription("Device fault code decoded from the TRV-ZBT fault bitmask."),
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.faultCode === undefined) return;
+                    return {[key]: formatSonoffTrvzbtFaultCode(msg.data.faultCode)};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [key],
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTrvzbt>(clusterName, ["faultCode"]);
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    trvzbtHvacNotification: (): ModernExtend => {
+        const clusterName = "customSonoffTrvzbt";
+        const exposes = [
+            e.binary("open_window_detected", ea.STATE, true, false).withDescription("Indicates whether open window detection was triggered."),
+        ];
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.hvacMessageNotification === undefined) return;
+                    const data = Buffer.from(Array.from(msg.data.hvacMessageNotification));
+                    if (data.length < 3 || data[0] !== 0x00 || data[1] < 1) return;
+                    return {open_window_detected: data[2] === 0x01};
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee: [], isModernExtend: true};
+    },
+    trvzbtBluetoothPairing: (): ModernExtend => {
+        const clusterName = "customSonoffTrvzbt";
+        const commandName = "bluetoothPairing";
+        const exposes = [
+            e.enum("bluetooth_pairing", ea.SET, ["start", "stop"]).withDescription("Start or stop TRV-ZBT Bluetooth pairing mode."),
+            e.enum("bluetooth_pairing_status", ea.STATE, ["success", "fail"]).withDescription("Result of the Bluetooth pairing command."),
+        ];
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x10) return;
+                    const payload = parsedRawCommand.payload;
+                    if (payload.length < 2 || payload[0] !== 0x03) return;
+                    return {bluetooth_pairing_status: payload[1] === 0x00 ? "success" : "fail"};
+                },
+            },
+        ];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["bluetooth_pairing"],
+                convertSet: async (entity, key, value) => {
+                    utils.assertString(value, key);
+                    const eventType = value === "start" ? 0x01 : value === "stop" ? 0x02 : undefined;
+                    if (eventType === undefined) {
+                        throw new Error(`Invalid ${key}: expected start or stop`);
+                    }
+                    await entity.command<typeof clusterName, typeof commandName, SonoffTrvzbt>(
+                        clusterName,
+                        commandName,
+                        {data: [0x03, 0x01, eventType]},
+                        disableDefaultResponseOptions,
+                    );
+                    return {state: {[key]: value}};
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    trvzbtTemporaryMode: (): ModernExtend => {
+        const clusterName = "customSonoffTrvzbt";
+        const key = "temporary_mode";
+        const exposes = [
+            e
+                .composite(key, key, ea.ALL)
+                .withCategory("config")
+                .withDescription("Temporary temperature mode settings.")
+                .withFeature(e.enum("mode", ea.ALL, Object.keys(sonoffTrvzbtTemporaryModeLookup)).withDescription("Temporary mode."))
+                .withFeature(
+                    e
+                        .numeric("duration", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(1440)
+                        .withValueStep(1)
+                        .withUnit("minutes")
+                        .withDescription(
+                            "Boost Mode: Sets maximum TRV temperature for up to 180 minutes.Timer Mode: Customizes temperature and duration, up to 24 hours.",
+                        ),
+                )
+                .withFeature(
+                    e
+                        .numeric("target_temperature", ea.ALL)
+                        .withValueMin(sonoffTrvzbtTargetTemperatureRange.min)
+                        .withValueMax(sonoffTrvzbtTargetTemperatureRange.max)
+                        .withValueStep(sonoffTrvzbtTargetTemperatureRange.step)
+                        .withUnit("°C")
+                        .withDescription("Target temperature used in timer mode."),
+                ),
+        ];
+
+        const validateRange = (value: number, name: string, min: number, max: number): void => {
+            if (value < min || value > max) {
+                throw new Error(`Invalid ${name}: expected value between ${min}-${max} (inclusive), got ${value}`);
+            }
+        };
+        const isValidTargetTemperature = (value: unknown): value is number => {
+            return typeof value === "number" && value >= sonoffTrvzbtTargetTemperatureRange.min && value <= sonoffTrvzbtTargetTemperatureRange.max;
+        };
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (
+                        msg.data.temporaryMode === undefined &&
+                        msg.data.temporaryModeTime === undefined &&
+                        msg.data.temporaryModeTemp === undefined
+                    ) {
+                        return;
+                    }
+
+                    const temporaryMode: KeyValueAny = utils.isObject(meta.state.temporary_mode) ? {...meta.state.temporary_mode} : {};
+                    if (!isValidTargetTemperature(temporaryMode.target_temperature)) {
+                        delete temporaryMode.target_temperature;
+                    }
+                    if (msg.data.temporaryMode !== undefined) {
+                        temporaryMode.mode = utils.getFromLookupByValue(msg.data.temporaryMode, sonoffTrvzbtTemporaryModeLookup);
+                    }
+                    if (msg.data.temporaryModeTime !== undefined) {
+                        utils.assertNumber(msg.data.temporaryModeTime);
+                        temporaryMode.duration = msg.data.temporaryModeTime / 60;
+                    }
+                    if (msg.data.temporaryModeTemp !== undefined) {
+                        utils.assertNumber(msg.data.temporaryModeTemp);
+                        const targetTemperature = msg.data.temporaryModeTemp / sonoffTrvzbtTemporaryModeTemperatureScale;
+                        if (isValidTargetTemperature(targetTemperature)) {
+                            temporaryMode.target_temperature = targetTemperature;
+                        } else {
+                            delete temporaryMode.target_temperature;
+                        }
+                    }
+
+                    return {[key]: temporaryMode};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [key],
+                convertSet: async (entity, key, value) => {
+                    utils.assertObject(value, key);
+                    utils.assertString(value.mode, `${key}.mode`);
+                    const mode = value.mode as keyof typeof sonoffTrvzbtTemporaryModeLookup;
+                    const temporaryMode = sonoffTrvzbtTemporaryModeLookup[mode];
+                    if (temporaryMode === undefined) {
+                        throw new Error(`Invalid ${key}.mode: expected boost or timer`);
+                    }
+
+                    utils.assertNumber(value.duration, `${key}.duration`);
+                    validateRange(value.duration, `${key}.duration`, 0, 1440);
+                    utils.assertNumber(value.target_temperature, `${key}.target_temperature`);
+                    validateRange(
+                        value.target_temperature,
+                        `${key}.target_temperature`,
+                        sonoffTrvzbtTargetTemperatureRange.min,
+                        sonoffTrvzbtTargetTemperatureRange.max,
+                    );
+
+                    const temporaryModeTime = Math.round(value.duration * 60);
+                    const temporaryModeTemp = Math.round(value.target_temperature * sonoffTrvzbtTemporaryModeTemperatureScale);
+                    await entity.write<typeof clusterName, SonoffTrvzbt>(clusterName, {temporaryModeTime}, undefined);
+                    await entity.write<typeof clusterName, SonoffTrvzbt>(clusterName, {temporaryModeTemp}, undefined);
+                    await entity.write<typeof clusterName, SonoffTrvzbt>(clusterName, {temporaryMode}, undefined);
+
+                    return {state: {[key]: {mode, duration: value.duration, target_temperature: value.target_temperature}}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTrvzbt>(clusterName, ["temporaryMode", "temporaryModeTime", "temporaryModeTemp"]);
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    trvzbtTemperatureControlHistory: (): ModernExtend => {
+        const clusterName = "customSonoffTrvzbt";
+        const commandName = "readTemperatureControlHistory";
+        const typeLookup = {day: 0x00, month: 0x01, half_year: 0x02} as const;
+        const typeBySubCommand = {0: "day", 1: "month", 2: "half_year"} as const;
+        const exposes = [
+            e
+                .composite("read_temperature_control_history", "read_temperature_control_history", ea.STATE_SET)
+                .withDescription("Read TRV-ZBT temperature control history.")
+                .withFeature(e.enum("type", ea.SET, Object.keys(typeLookup)))
+                .withFeature(
+                    e
+                        .composite("time_range", "time_range", ea.SET)
+                        .withFeature(e.text("start", ea.SET).withDescription("Start time in ISO format with timezone."))
+                        .withFeature(e.text("end", ea.SET).withDescription("End time in ISO format with timezone.")),
+                ),
+            e.text("temperature_control_history", ea.STATE).withDescription("Last decoded TRV-ZBT temperature control history response."),
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTrvzbt, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x0e) return;
+                    const payload = parsedRawCommand.payload;
+                    logger.info(`TRV-ZBT received temperature control history payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
+                    if (payload.length < 2) return;
+
+                    const subCmd = payload[0];
+                    const type = typeBySubCommand[subCmd as keyof typeof typeBySubCommand];
+                    if (!type) return;
+                    const status = payload[1];
+                    const cacheKey = getSonoffTrvzbtTemperatureControlHistoryCacheKey(msg.endpoint, msg.device ?? meta?.device);
+                    const respCacheKey = cacheKey ? getSonoffTrvzbtTemperatureControlHistoryRespCacheKey(cacheKey, subCmd) : undefined;
+
+                    if (status !== 0x00) {
+                        if (cacheKey) {
+                            clearSonoffTrvzbtTemperatureControlHistoryCache(cacheKey, subCmd);
+                        }
+                        logger.error(`TRV-ZBT read temperature control history failed status=${status} subCmd=${subCmd}`, NS);
+                        return;
+                    }
+                    if (payload.length < sonoffTrvzbtTemperatureControlHistoryValueOffset) return;
+                    if (!cacheKey || !respCacheKey) {
+                        logger.error(
+                            `TRV-ZBT missing temperature control history request context for subCmd=${subCmd}; it may have timed out, please try again`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const now = Date.now();
+                    const request = sonoffTrvzbtTemperatureControlHistoryReqCache[cacheKey]?.[subCmd];
+                    if (request && now - request.updatedAt > sonoffTrvzbtTemperatureControlHistoryCacheTimeoutMs) {
+                        clearSonoffTrvzbtTemperatureControlHistoryCache(cacheKey, subCmd);
+                    }
+                    const currentRequest = sonoffTrvzbtTemperatureControlHistoryReqCache[cacheKey]?.[subCmd];
+                    if (!currentRequest) {
+                        logger.error(
+                            `TRV-ZBT missing temperature control history request context for subCmd=${subCmd}; it may have timed out, please try again`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const total = payload.readUInt16LE(2);
+                    const current = payload.readUInt16LE(4);
+                    const dataType = payload[6];
+                    if (total === 0 || current >= total) {
+                        logger.error(`TRV-ZBT invalid temperature control history total=${total} current=${current} subCmd=${subCmd}`, NS);
+                        return;
+                    }
+                    currentRequest.updatedAt = now;
+
+                    const values: number[] = [];
+                    for (let offset = sonoffTrvzbtTemperatureControlHistoryValueOffset; offset + 1 < payload.length; offset += 2) {
+                        const raw = payload.readInt16LE(offset);
+                        values.push(dataType === 0x01 ? raw : raw / 100);
+                    }
+
+                    let state = sonoffTrvzbtTemperatureControlHistoryRespCache[respCacheKey];
+                    if (!state || state.total !== total || now - state.updatedAt > sonoffTrvzbtTemperatureControlHistoryCacheTimeoutMs) {
+                        state = {total, packets: {}, updatedAt: now};
+                        sonoffTrvzbtTemperatureControlHistoryRespCache[respCacheKey] = state;
+                    }
+                    state.packets[current] = {current, dataType, values};
+                    state.updatedAt = now;
+
+                    if (!isSonoffTrvzbtTemperatureControlHistoryComplete(state)) {
+                        return;
+                    }
+
+                    const result = buildSonoffTrvzbtTemperatureControlHistoryResult(currentRequest, state);
+                    clearSonoffTrvzbtTemperatureControlHistoryCache(cacheKey, subCmd);
+                    logger.info(`TRV-ZBT parsed temperature control history ${JSON.stringify(result)}`, NS);
+                    return {temperature_control_history: result};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["read_temperature_control_history"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const type = String(value.type) as keyof typeof typeLookup;
+                    const subCmd = typeLookup[type];
+                    if (subCmd === undefined) {
+                        throw new Error(`Invalid ${key}.type: expected day, month or half_year`);
+                    }
+                    const timeRange = utils.isObject(value.time_range) ? value.time_range : undefined;
+                    const timeStart = utils.isString(timeRange?.start) ? timeRange.start : undefined;
+                    const timeEnd = utils.isString(timeRange?.end) ? timeRange.end : undefined;
+                    if (!timeStart || !timeEnd) {
+                        throw new Error(`Invalid ${key}: time_range.start and time_range.end are required ISO datetimes with timezone`);
+                    }
+
+                    const startUtcSec = parseIsoWithOffsetToUtcSeconds(timeStart);
+                    const endUtcSec = parseIsoWithOffsetToUtcSeconds(timeEnd);
+                    if (startUtcSec === undefined || endUtcSec === undefined) {
+                        throw new Error(`Invalid ${key}: expected ISO 8601 datetimes with timezone offset`);
+                    }
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const startDeviceSec = utcToDeviceLocal2000Seconds(startUtcSec, offsetSeconds);
+                    const endDeviceSec = utcToDeviceLocal2000Seconds(endUtcSec, offsetSeconds);
+                    if (startDeviceSec < 0 || startDeviceSec > 0xffffffff || endDeviceSec < 0 || endDeviceSec > 0xffffffff) {
+                        throw new Error(`Invalid ${key}: converted device time is out of range`);
+                    }
+                    if (endDeviceSec < startDeviceSec) {
+                        throw new Error(`Invalid ${key}: time_range.end earlier than time_range.start`);
+                    }
+                    const displayOffsetSeconds = getSonoffTrvzbtTemperatureControlHistoryDisplayOffsetSeconds(timeStart) ?? offsetSeconds;
+
+                    const payload = Buffer.alloc(11);
+                    payload[0] = subCmd;
+                    payload.writeUInt32LE(startDeviceSec, 1);
+                    payload.writeUInt32LE(endDeviceSec, 5);
+                    payload.writeUInt16LE(0xffff, 9);
+                    const cacheKey = getSonoffTrvzbtTemperatureControlHistoryCacheKey(entity as Zh.Endpoint, meta?.device);
+                    if (cacheKey) {
+                        sonoffTrvzbtTemperatureControlHistoryReqCache[cacheKey] ??= {};
+                        sonoffTrvzbtTemperatureControlHistoryReqCache[cacheKey][subCmd] = {
+                            type,
+                            startDevice: startDeviceSec,
+                            endDevice: endDeviceSec,
+                            startUTC: startUtcSec,
+                            endUTC: endUtcSec,
+                            displayOffsetSeconds,
+                            offsetSeconds,
+                            timeRange: {start: timeStart, end: timeEnd},
+                            updatedAt: Date.now(),
+                        };
+                        delete sonoffTrvzbtTemperatureControlHistoryRespCache[getSonoffTrvzbtTemperatureControlHistoryRespCacheKey(cacheKey, subCmd)];
+                    }
+                    logger.info(
+                        `TRV-ZBT send temperature control history read type=${type} timeStart=${timeStart} timeEnd=${timeEnd} deviceStart=${startDeviceSec} deviceEnd=${endDeviceSec} payload=${formatSonoffTrvzbtPayload(payload)}`,
+                        NS,
+                    );
+                    await entity.command<typeof clusterName, typeof commandName, SonoffTrvzbt>(
+                        clusterName,
+                        commandName,
+                        {data: Array.from(payload)},
+                        disableDefaultResponseOptions,
+                    );
+                    return {state: {[key]: {type, time_range: {start: timeStart, end: timeEnd}}}};
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
     cyclicTimedIrrigation: (): ModernExtend => {
         const exposes = e
@@ -868,6 +2572,92 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    buildOverloadProtectionPayload: (value: KeyValueAny, powerMaxLimit: number, currentMaxLimit: number): Uint8Array => {
+        let maxCurrent = 1000 * Number(value.max_current ?? 0);
+        const minCurrent = 1000 * Number(value.min_current ?? 0);
+        const maxVoltage = 1000 * Number(value.max_voltage ?? 0);
+        const minVoltage = 1000 * Number(value.min_voltage ?? 0);
+        let maxPower = 1000 * Number(value.max_power ?? 0);
+        const minPower = 1000 * Number(value.min_power ?? 0);
+        const enableMinCurrent = value.enable_min_current;
+        const enableMaxVoltage = value.enable_max_voltage;
+        const enableMinVoltage = value.enable_min_voltage;
+        const enableMinPower = value.enable_min_power;
+        const payloadValue: Uint8Array = new Uint8Array(30);
+        let index = 0;
+
+        payloadValue[index++] = 0;
+        payloadValue[index++] = 0x04;
+        payloadValue[index++] = 27;
+        payloadValue[index++] = 1;
+        payloadValue[index++] = 0;
+        payloadValue[index++] = 1;
+
+        if (maxCurrent === 0) {
+            maxCurrent = currentMaxLimit * 1000;
+        }
+        payloadValue[index++] = maxCurrent & 0xff;
+        payloadValue[index++] = (maxCurrent >> 8) & 0xff;
+        payloadValue[index++] = (maxCurrent >> 16) & 0xff;
+        payloadValue[index++] = (maxCurrent >> 24) & 0xff;
+
+        if (enableMinCurrent === "ENABLE") {
+            payloadValue[3] |= 2;
+            payloadValue[index++] = minCurrent & 0xff;
+            payloadValue[index++] = (minCurrent >> 8) & 0xff;
+            payloadValue[index++] = (minCurrent >> 16) & 0xff;
+            payloadValue[index++] = (minCurrent >> 24) & 0xff;
+        }
+
+        if (enableMaxVoltage === "ENABLE") {
+            payloadValue[4] |= 1;
+            payloadValue[index++] = maxVoltage & 0xff;
+            payloadValue[index++] = (maxVoltage >> 8) & 0xff;
+            payloadValue[index++] = (maxVoltage >> 16) & 0xff;
+            payloadValue[index++] = (maxVoltage >> 24) & 0xff;
+        }
+
+        if (enableMinVoltage === "ENABLE") {
+            payloadValue[4] |= 2;
+            payloadValue[index++] = minVoltage & 0xff;
+            payloadValue[index++] = (minVoltage >> 8) & 0xff;
+            payloadValue[index++] = (minVoltage >> 16) & 0xff;
+            payloadValue[index++] = (minVoltage >> 24) & 0xff;
+        }
+
+        if (maxPower === 0) {
+            maxPower = powerMaxLimit * 1000;
+        }
+        payloadValue[index++] = maxPower & 0xff;
+        payloadValue[index++] = (maxPower >> 8) & 0xff;
+        payloadValue[index++] = (maxPower >> 16) & 0xff;
+        payloadValue[index++] = (maxPower >> 24) & 0xff;
+
+        if (enableMinPower === "ENABLE") {
+            payloadValue[5] |= 2;
+            payloadValue[index++] = minPower & 0xff;
+            payloadValue[index++] = (minPower >> 8) & 0xff;
+            payloadValue[index++] = (minPower >> 16) & 0xff;
+            payloadValue[index++] = (minPower >> 24) & 0xff;
+        }
+
+        payloadValue[0] = index - 1;
+        payloadValue[2] = payloadValue[0] - 2;
+
+        if (payloadValue[3] === 3 && minCurrent >= maxCurrent) {
+            throw new Error("Invalid input: maximum current must be greater than the minimum current ");
+        }
+
+        if (payloadValue[4] === 3 && minVoltage >= maxVoltage) {
+            throw new Error("Invalid input: maximum voltage must be greater than the minimum voltage ");
+        }
+
+        if (payloadValue[5] === 3 && minPower >= maxPower) {
+            throw new Error("Invalid input: maximum power must be greater than the minimum power ");
+        }
+
+        return payloadValue.slice(0, index);
+    },
     overloadProtection: (powerMaxLimit: number, currentMaxLimit: number): ModernExtend => {
         const exposes = e
             .composite("overload_protection", "overload_protection", ea.ALL)
@@ -951,102 +2741,92 @@ const sonoffExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const attributeKey = 0x7003; // attr
                     if (attributeKey in msg.data) {
-                        //     "enable_max_voltage": "ENABLE",
-                        //     "enable_min_current": "ENABLE",
-                        //     "enable_min_power": "ENABLE",
-                        //     "enable_min_voltage": "ENABLE",
-                        //     "max_current": 23,
-                        //     "max_power": 23,
-                        //     "max_voltage": 23,
-                        //     "min_current": 23,
-                        //     "min_power": 23,
-                        //     "min_voltage": 23
-                        //   }: value:
-
-                        logger.debug("attr_value is:", JSON.stringify(msg.data[attributeKey]));
-                        const buffer = Buffer.from(msg.data[attributeKey], "binary");
-
-                        const hexString = buffer.toString("hex").toUpperCase();
-                        console.log(`Hex: ${hexString}`);
-
-                        let index = 0;
-                        let enableMaxVoltageBuffer = "DISABLE";
+                        const rawData = msg.meta.rawData;
+                        const dataStartIndex = 7;
+                        let enableMaxCurrentBuffer = "DISABLE";
                         let enableMinCurrentBuffer = "DISABLE";
-                        let enableMinPowerBuffer = "DISABLE";
+                        let enableMaxVoltageBuffer = "DISABLE";
                         let enableMinVoltageBuffer = "DISABLE";
+                        let enableMinPowerBuffer = "DISABLE";
+                        let enableMaxPowerBuffer = "DISABLE";
+                        let maxCurrent = 0;
+                        let minCurrent = 0;
+                        let maxVoltage = 0;
+                        let minVoltage = 0;
+                        let maxActPower = 0;
+                        let minActPower = 0;
+                        const cfg_set_flag = rawData.readUInt8(1 + dataStartIndex);
+                        let currentSetFlag = 0;
+                        let voltageSetFlag = 0;
+                        let actPowerSetFlag = 0;
+                        let index = 3;
 
-                        if (buffer[index++] === 3) {
+                        if (cfg_set_flag === 1) {
+                            currentSetFlag = rawData.readUInt8(index + dataStartIndex);
+                            index += 1;
+                        } else if (cfg_set_flag === 2) {
+                            voltageSetFlag = rawData.readUInt8(index + dataStartIndex);
+                            index += 1;
+                        } else if (cfg_set_flag === 3) {
+                            actPowerSetFlag = rawData.readUInt8(index + dataStartIndex);
+                            index += 1;
+                        } else if (cfg_set_flag === 4) {
+                            currentSetFlag = rawData.readUInt8(index + dataStartIndex);
+                            voltageSetFlag = rawData.readUInt8(index + 1 + dataStartIndex);
+                            actPowerSetFlag = rawData.readUInt8(index + 2 + dataStartIndex);
+                            index += 3;
+                        }
+
+                        if (currentSetFlag === 1) {
+                            enableMaxCurrentBuffer = "ENABLE";
+                        } else if (currentSetFlag === 2) {
+                            enableMinCurrentBuffer = "ENABLE";
+                        } else if (currentSetFlag === 3) {
+                            enableMaxCurrentBuffer = "ENABLE";
                             enableMinCurrentBuffer = "ENABLE";
                         }
 
-                        const voltage_set_flag = buffer[index++];
-                        if (voltage_set_flag & 0x01) {
+                        if (voltageSetFlag === 1) {
                             enableMaxVoltageBuffer = "ENABLE";
-                        }
-                        if (voltage_set_flag & 0x02) {
+                        } else if (voltageSetFlag === 2) {
+                            enableMinVoltageBuffer = "ENABLE";
+                        } else if (voltageSetFlag === 3) {
+                            enableMaxVoltageBuffer = "ENABLE";
                             enableMinVoltageBuffer = "ENABLE";
                         }
-                        if (buffer[index++] === 3) {
+
+                        if (actPowerSetFlag === 1) {
+                            enableMaxPowerBuffer = "ENABLE";
+                        } else if (actPowerSetFlag === 2) {
+                            enableMinPowerBuffer = "ENABLE";
+                        } else if (actPowerSetFlag === 3) {
+                            enableMaxPowerBuffer = "ENABLE";
                             enableMinPowerBuffer = "ENABLE";
                         }
 
-                        let minCurrentBuffer = 0;
-                        let maxVoltageBuffer = 0;
-                        let minVoltageBuffer = 0;
-                        let maxPowerBuffer = 0;
-                        let minPowerBuffer = 0;
-
-                        let maxCurrentBuffer: number = buffer[index++];
-                        maxCurrentBuffer |= buffer[index++] << 8;
-                        maxCurrentBuffer |= buffer[index++] << 16;
-                        maxCurrentBuffer |= buffer[index++] << 24;
-
-                        maxCurrentBuffer /= 1000;
-
+                        if (enableMaxCurrentBuffer === "ENABLE") {
+                            maxCurrent = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                            index += 4;
+                        }
                         if (enableMinCurrentBuffer === "ENABLE") {
-                            minCurrentBuffer = buffer[index++];
-                            minCurrentBuffer |= buffer[index++] << 8;
-                            minCurrentBuffer |= buffer[index++] << 16;
-                            minCurrentBuffer |= buffer[index++] << 24;
-
-                            minCurrentBuffer /= 1000;
+                            minCurrent = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                            index += 4;
                         }
-
                         if (enableMaxVoltageBuffer === "ENABLE") {
-                            for (let i = 0; i < 4; i++) {
-                                logger.debug("max voltage is:", JSON.stringify(buffer[index + i]));
-                            }
-                            logger.debug("index is", JSON.stringify(index));
-                            maxVoltageBuffer = buffer[index++];
-                            maxVoltageBuffer |= buffer[index++] << 8;
-                            maxVoltageBuffer |= buffer[index++] << 16;
-                            maxVoltageBuffer |= buffer[index++] << 24;
-
-                            maxVoltageBuffer /= 1000;
+                            maxVoltage = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                            index += 4;
                         }
-
                         if (enableMinVoltageBuffer === "ENABLE") {
-                            minVoltageBuffer = buffer[index++];
-                            minVoltageBuffer |= buffer[index++] << 8;
-                            minVoltageBuffer |= buffer[index++] << 16;
-                            minVoltageBuffer |= buffer[index++] << 24;
-
-                            minVoltageBuffer /= 1000;
+                            minVoltage = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                            index += 4;
                         }
-                        maxPowerBuffer = buffer[index++];
-                        maxPowerBuffer |= buffer[index++] << 8;
-                        maxPowerBuffer |= buffer[index++] << 16;
-                        maxPowerBuffer |= buffer[index++] << 24;
-
-                        maxPowerBuffer /= 1000;
-
+                        if (enableMaxPowerBuffer === "ENABLE") {
+                            maxActPower = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                            index += 4;
+                        }
                         if (enableMinPowerBuffer === "ENABLE") {
-                            minPowerBuffer = buffer[index++];
-                            minPowerBuffer |= buffer[index++] << 8;
-                            minPowerBuffer |= buffer[index++] << 16;
-                            minPowerBuffer |= buffer[index++] << 24;
-
-                            minPowerBuffer /= 1000;
+                            minActPower = rawData.readUint32LE(index + dataStartIndex) / 1000;
+                            index += 4;
                         }
 
                         return {
@@ -1054,13 +2834,13 @@ const sonoffExtend = {
                                 enable_max_voltage: enableMaxVoltageBuffer,
                                 enable_min_current: enableMinCurrentBuffer,
                                 enable_min_power: enableMinPowerBuffer,
-                                enable_min_voltage: enableMinPowerBuffer,
-                                max_current: maxCurrentBuffer,
-                                max_power: maxPowerBuffer,
-                                max_voltage: maxVoltageBuffer,
-                                min_current: minCurrentBuffer,
-                                min_power: minPowerBuffer,
-                                min_voltage: minVoltageBuffer,
+                                enable_min_voltage: enableMinVoltageBuffer,
+                                max_current: maxCurrent,
+                                max_power: maxActPower,
+                                max_voltage: maxVoltage,
+                                min_current: minCurrent,
+                                min_power: minActPower,
+                                min_voltage: minVoltage,
                             },
                         };
                     }
@@ -1071,101 +2851,11 @@ const sonoffExtend = {
             {
                 key: ["overload_protection"],
                 convertSet: async (entity, key, value, meta) => {
-                    logger.debug("value:", JSON.stringify(value, null, 2)); // 将 value 转换为格式化的 JSON 字符串
-
-                    const maxC = 1000 * value["max_current" as keyof typeof value];
-                    const minC = 1000 * value["min_current" as keyof typeof value];
-                    const maxV = 1000 * value["max_voltage" as keyof typeof value];
-                    const minV = 1000 * value["min_voltage" as keyof typeof value];
-                    const maxP = 1000 * value["max_power" as keyof typeof value];
-                    const minP = 1000 * value["min_power" as keyof typeof value];
-
-                    const enMinC = value["enable_min_current" as keyof typeof value];
-                    const enMaxV = value["enable_max_voltage" as keyof typeof value];
-                    const enMinV = value["enable_min_voltage" as keyof typeof value];
-                    const enMinP = value["enable_min_power" as keyof typeof value];
-
-                    const params = {maxC, minC, maxV, minV, maxP, minP, enMinC, enMaxV, enMinV, enMinP};
-                    logger.debug("value:", JSON.stringify(params));
-
-                    const payloadValue = [];
-                    let index = 0;
-                    payloadValue[index++] = 0;
-                    payloadValue[index++] = 0x04;
-                    payloadValue[index++] = 27;
-                    payloadValue[index++] = 1;
-                    payloadValue[index++] = 0;
-                    payloadValue[index++] = 1;
-
-                    payloadValue[index++] = maxC & 0xff;
-                    payloadValue[index++] = (maxC >> 8) & 0xff;
-                    payloadValue[index++] = (maxC >> 16) & 0xff;
-                    payloadValue[index++] = (maxC >> 24) & 0xff;
-
-                    if (enMinC === "ENABLE") {
-                        payloadValue[3] |= 2;
-
-                        payloadValue[index++] = minC & 0xff;
-                        payloadValue[index++] = (minC >> 8) & 0xff;
-                        payloadValue[index++] = (minC >> 16) & 0xff;
-                        payloadValue[index++] = (minC >> 24) & 0xff;
-                    }
-
-                    if (enMaxV === "ENABLE") {
-                        payloadValue[4] |= 1;
-
-                        payloadValue[index++] = maxV & 0xff;
-                        payloadValue[index++] = (maxV >> 8) & 0xff;
-                        payloadValue[index++] = (maxV >> 16) & 0xff;
-                        payloadValue[index++] = (maxV >> 24) & 0xff;
-                    }
-
-                    if (enMinV === "ENABLE") {
-                        payloadValue[4] |= 2;
-
-                        payloadValue[index++] = minV & 0xff;
-                        payloadValue[index++] = (minV >> 8) & 0xff;
-                        payloadValue[index++] = (minV >> 16) & 0xff;
-                        payloadValue[index++] = (minV >> 24) & 0xff;
-                    }
-
-                    payloadValue[index++] = maxP & 0xff;
-                    payloadValue[index++] = (maxP >> 8) & 0xff;
-                    payloadValue[index++] = (maxP >> 16) & 0xff;
-                    payloadValue[index++] = (maxP >> 24) & 0xff;
-
-                    if (enMinP === "ENABLE") {
-                        payloadValue[5] |= 2;
-
-                        payloadValue[index++] = minP & 0xff;
-                        payloadValue[index++] = (minP >> 8) & 0xff;
-                        payloadValue[index++] = (minP >> 16) & 0xff;
-                        payloadValue[index++] = (minP >> 24) & 0xff;
-                    }
-
-                    payloadValue[0] = index - 1;
-                    payloadValue[2] = payloadValue[0] - 2;
-
-                    if (payloadValue[3] === 3) {
-                        if (minC >= maxC) {
-                            throw new Error("Invalid input: maximum current must be greater than the minimum current ");
-                        }
-                    }
-
-                    if (payloadValue[4] === 3) {
-                        if (minV >= maxV) {
-                            throw new Error("Invalid input: maximum voltage must be greater than the minimum voltage ");
-                        }
-                    }
-
-                    if (payloadValue[5] === 3) {
-                        if (minP >= maxP) {
-                            throw new Error("Invalid input: maximum power must be greater than the minimum power ");
-                        }
-                    }
-
-                    const payload = {[0x7003]: {value: payloadValue, type: 0x42}};
-                    await entity.write("customClusterEwelink", payload, defaultResponseOptions);
+                    const payloadValue = sonoffExtend.buildOverloadProtectionPayload(value, powerMaxLimit, currentMaxLimit);
+                    // Write the private overload-protection payload so the device stores concrete thresholds instead of leaving them unset.
+                    await entity.write("customClusterEwelink", {[0x7003]: {value: payloadValue, type: 0x42}}, defaultResponseOptions);
+                    // Read back the private attribute immediately.
+                    await entity.read("customClusterEwelink", [0x7003], defaultResponseOptions);
                     return {state: {[key]: value}};
                 },
                 convertGet: async (entity, key, meta) => {
@@ -1178,6 +2868,2429 @@ const sonoffExtend = {
             exposes: [exposes],
             toZigbee,
             fromZigbee,
+            isModernExtend: true,
+        };
+    },
+    swvznGenTimeCompatResponse: (): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            (event) => {
+                if (event.type === "start" && !event.data.device.customReadResponse) {
+                    event.data.device.customReadResponse = (frame, endpoint) => {
+                        if (!frame.isCluster("genTime")) {
+                            return false;
+                        }
+
+                        const {time, timeZone, localTime, dstShift} = getTimeClusterAttributes();
+
+                        // XXX: we're replying to specific attributes, which could be incorrect (not based on the request attrIds)
+                        endpoint
+                            .readResponse("genTime", frame.header.transactionSequenceNumber, {
+                                time,
+                                timeZone,
+                                localTime,
+                                dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
+                                dstEnd: 0,
+                                dstShift,
+                            })
+                            .catch((e) => {
+                                logger.warning(`SWV custom time response failed: ${e}`, NS);
+                            });
+
+                        return true;
+                    };
+                }
+            },
+        ];
+
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
+    rainDelayEndDatetime: (): ModernExtend => {
+        const exposes = [e.text("rain_delay_end_datetime", ea.STATE).withDescription("User triggered delay end time.")];
+
+        const toZigbee: Tz.Converter[] = [];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.rainDelayEndDatetime === undefined || msg.data.rainDelayEndDatetime === null) return;
+
+                    const value = msg.data.rainDelayEndDatetime;
+                    utils.assertNumber(value);
+
+                    // When the set end time is reached, the device will report 0
+                    if (value === 0) {
+                        return {rain_delay_end_datetime: ""};
+                    }
+
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(value + YEAR_2000_IN_UTC);
+                    const utcSeconds = deviceLocal2000ToUTCSeconds(value, offsetSeconds);
+                    return {
+                        rain_delay_end_datetime: formatUtcSecondsToIsoWithOffset(utcSeconds, offsetSeconds),
+                    };
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    valveAbnormalState: (dualChannel = false): ModernExtend => {
+        const maxMask = dualChannel ? 0b111111 : 0b1111;
+        const getValveAbnormalStates = (value: number): string[] => {
+            const states: string[] = [];
+            if ((value & 0b000001) !== 0) states.push(dualChannel ? "water_shortage_channel_1" : "water_shortage");
+            if ((value & 0b000010) !== 0) states.push("water_leakage");
+            if ((value & 0b001000) !== 0) states.push(dualChannel ? "fail_safe_channel_1" : "fail_safe");
+            if (dualChannel && (value & 0b010000) !== 0) states.push("water_shortage_channel_2");
+            if (dualChannel && (value & 0b100000) !== 0) states.push("fail_safe_channel_2");
+            return states;
+        };
+
+        // Generate all combinations from the defined state bits
+        const allCombinations: string[] = ["normal"];
+        for (let i = 0b0001; i <= maxMask; i++) {
+            const state = getValveAbnormalStates(i).join(",");
+            if (state && !allCombinations.includes(state)) {
+                allCombinations.push(state);
+            }
+        }
+
+        const exposes = [e.enum("valve_abnormal_state", ea.STATE, allCombinations).withDescription("Valve abnormal state")];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.valveAbnormalState === undefined) return;
+
+                    const value = msg.data.valveAbnormalState;
+                    utils.assertNumber(value);
+
+                    if (value === 0b0000) {
+                        return {valve_abnormal_state: "normal"};
+                    }
+
+                    const states = getValveAbnormalStates(value);
+
+                    if (states.length === 0) return;
+
+                    return {
+                        valve_abnormal_state: states.join(","),
+                    };
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee: [],
+            isModernExtend: true,
+        };
+    },
+    manualDefaultSettings: (hasFlowMeter: boolean): ModernExtend => {
+        const exposes = e
+            .composite("manual_default_settings", "manual_default_settings", ea.ALL)
+            .withDescription("Single irrigation settings")
+            .withFeature(
+                e.numeric("irrigation_duration", ea.ALL).withValueMin(1).withValueMax(719).withUnit("min").withDescription("Irrigation duration"),
+            );
+        if (hasFlowMeter) {
+            exposes
+                .withFeature(e.enum("irrigation_mode", ea.ALL, ["duration", "capacity"]).withDescription("Irrigation mode: duration or capacity"))
+                .withFeature(e.enum("irrigation_amount_unit", ea.ALL, ["US gallon", "liter"]).withDescription("Capacity unit"))
+                .withFeature(e.numeric("irrigation_amount", ea.ALL).withValueMin(0).withValueMax(10000).withDescription("Irrigation volume"))
+                .withFeature(
+                    e.numeric("fail_safe", ea.ALL).withValueMin(0).withValueMax(719).withUnit("min").withDescription("Safety protection timeout"),
+                );
+        }
+
+        const modeMap: {[key: string]: number} = {
+            duration: 0,
+            capacity: 1,
+        };
+        const modeMapReverse: {[key: number]: string} = {
+            0: "duration",
+            1: "capacity",
+        };
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!msg.data.manualDefaultSettings) return;
+
+                    const array = new Uint8Array(msg.data.manualDefaultSettings);
+                    if (array.length < 12) {
+                        logger.error(`manualDefaultSettings invalid length=${array.length}, expected>=12`, NS);
+                        return;
+                    }
+                    const mode = array[0];
+                    const totalDuration = (array[1] << 8) | array[2];
+                    const irrigationDuration = (array[3] << 8) | array[4];
+                    const capacityUnit = array[7];
+                    const irrigationVolume = (array[8] << 8) | array[9];
+                    const safetyTimeoutLimit = (array[10] << 8) | array[11];
+
+                    const manualDefaultSettings: KeyValue = {
+                        irrigation_duration: irrigationDuration || totalDuration,
+                    };
+
+                    if (hasFlowMeter) {
+                        manualDefaultSettings.irrigation_mode = modeMapReverse[mode] ?? "duration";
+                        manualDefaultSettings.irrigation_amount_unit = capacityUnit === 0 ? "US gallon" : "liter";
+                        manualDefaultSettings.irrigation_amount = irrigationVolume;
+                        manualDefaultSettings.fail_safe = safetyTimeoutLimit;
+                    }
+
+                    return {
+                        manual_default_settings: manualDefaultSettings,
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["manual_default_settings"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+
+                    if (hasFlowMeter && (typeof value.irrigation_mode !== "string" || modeMap[value.irrigation_mode] === undefined)) {
+                        logger.error("manual_default_settings invalid irrigation_mode, expected one of: duration, capacity.", NS);
+                        return;
+                    }
+                    if (hasFlowMeter && value.irrigation_amount_unit !== "US gallon" && value.irrigation_amount_unit !== "liter") {
+                        logger.error("manual_default_settings invalid irrigation_amount_unit, expected one of: US gallon, liter.", NS);
+                        return;
+                    }
+
+                    const parseRequiredInt = (fieldName: string): number | undefined => {
+                        const parsed = Number(value[fieldName]);
+                        if (!Number.isInteger(parsed)) {
+                            logger.error(`manual_default_settings invalid ${fieldName}, expected integer.`, NS);
+                            return;
+                        }
+                        return parsed;
+                    };
+
+                    const irrigationDuration = parseRequiredInt("irrigation_duration");
+                    const irrigationInterval = 10;
+                    const irrigationVolume = hasFlowMeter ? parseRequiredInt("irrigation_amount") : 10;
+                    const safetyTimeoutLimit = hasFlowMeter ? parseRequiredInt("fail_safe") : 10;
+                    if (irrigationDuration === undefined || irrigationVolume === undefined || safetyTimeoutLimit === undefined) {
+                        return;
+                    }
+
+                    const mode = hasFlowMeter ? modeMap[value.irrigation_mode] : modeMap.duration;
+                    const capacityUnit = hasFlowMeter ? (value.irrigation_amount_unit === "US gallon" ? 0 : 1) : 1;
+
+                    const array = new Uint8Array(12);
+                    array[0] = mode;
+                    array[1] = (irrigationDuration >> 8) & 0xff;
+                    array[2] = irrigationDuration & 0xff;
+                    array[3] = (irrigationDuration >> 8) & 0xff;
+                    array[4] = irrigationDuration & 0xff;
+                    array[5] = (irrigationInterval >> 8) & 0xff;
+                    array[6] = irrigationInterval & 0xff;
+                    array[7] = capacityUnit;
+                    array[8] = (irrigationVolume >> 8) & 0xff;
+                    array[9] = irrigationVolume & 0xff;
+                    array[10] = (safetyTimeoutLimit >> 8) & 0xff;
+                    array[11] = safetyTimeoutLimit & 0xff;
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x501d]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["manualDefaultSettings"]);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    seasonalWateringAdjustment: (): ModernExtend => {
+        const months = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+
+        let exposesComposite = e
+            .composite("seasonal_watering_adjustment", "seasonal_watering_adjustment", ea.ALL)
+            .withDescription("Monthly watering adjustment multiplier (1.0 = 100%, 2.0 = 200%)");
+
+        for (const month of months) {
+            exposesComposite = exposesComposite.withFeature(
+                e.numeric(month, ea.ALL).withValueMin(0.1).withValueMax(2).withValueStep(0.1).withDescription(`Adjustment multiplier for ${month}`),
+            );
+        }
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!msg.data.seasonalWateringAdjustment) return;
+
+                    const array = new Uint8Array(msg.data.seasonalWateringAdjustment);
+                    if (array.length < 12) {
+                        logger.error(`seasonalWateringAdjustment invalid length=${array.length}, expected>=12`, NS);
+                        return;
+                    }
+                    const result: {[key: string]: number} = {};
+
+                    for (let i = 0; i < 12; i++) {
+                        result[months[i]] = array[i] / 10;
+                    }
+
+                    return {
+                        seasonal_watering_adjustment: result,
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["seasonal_watering_adjustment"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+
+                    const array = new Uint8Array(12);
+                    for (let i = 0; i < 12; i++) {
+                        const rawMonthValue = Number(value[months[i]]);
+                        const monthValue = Number.isFinite(rawMonthValue) ? rawMonthValue : 1;
+                        const boundedMonthValue = Math.min(2, Math.max(0.1, monthValue));
+                        array[i] = Math.round(boundedMonthValue * 10);
+                    }
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x501e]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: value,
+                        },
+                    };
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["seasonalWateringAdjustment"]);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposesComposite],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    irrigationScheduleStatus: (hasFlowMeter: boolean, endpointNames?: string[]): ModernExtend => {
+        const baseExposes = e
+            .composite("irrigation_schedule_status", "irrigation_schedule_status", ea.STATE_GET)
+            .withDescription("Irrigation schedule execution status")
+            .withFeature(e.enum("schedule_status", ea.STATE, ["start", "end", "running", "standby"]).withDescription("Schedule status"))
+            .withFeature(e.numeric("schedule_index", ea.STATE).withDescription("Schedule index"))
+            .withFeature(e.enum("schedule_type", ea.STATE, ["automatic", "manual"]).withDescription("Schedule type"))
+            .withFeature(
+                e
+                    .enum(
+                        "irrigation_mode",
+                        ea.STATE,
+                        hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                    )
+                    .withDescription("Irrigation mode"),
+            )
+            .withFeature(e.text("start_time", ea.STATE).withDescription("Schedule start time"))
+            .withFeature(e.text("expected_end_time", ea.STATE).withDescription("Expected end time"))
+            .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time"));
+        if (hasFlowMeter) {
+            baseExposes
+                .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]).withDescription("Irrigation amount unit"))
+                .withFeature(e.numeric("expected_irrigation_amount", ea.STATE).withDescription("Expected irrigation amount"))
+                .withFeature(e.numeric("actual_irrigation_amount", ea.STATE).withDescription("Actual irrigation amount"));
+        }
+        const exposes = exposeCompositeEndpoints(baseExposes, endpointNames);
+
+        const scheduleStatusMap = {
+            start: 0x00,
+            end: 0x01,
+            running: 0x02,
+            standby: 0x03,
+        };
+
+        const scheduleStatusMapReverse: {[key: number]: string} = {
+            [0x00]: "start",
+            [0x01]: "end",
+            [0x02]: "running",
+            [0x03]: "standby",
+        };
+
+        const modeMap: {[key: number]: string} = {
+            [0x00]: "duration",
+            [0x01]: "capacity",
+            [0x02]: "duration_with_interval",
+        };
+
+        const scheduleTypeMap: {[key: number]: string} = {
+            [0x00]: "automatic",
+            [0x01]: "manual",
+        };
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!msg.data.irrigationScheduleStatus) return;
+
+                    if (endpointNames) {
+                        const endpointName = utils.getKey(model.endpoint?.(meta.device) ?? {}, msg.endpoint.ID);
+                        if (!endpointName || !endpointNames.includes(endpointName)) return;
+                    }
+
+                    const property = utils.postfixWithEndpointName("irrigation_schedule_status", msg, model, meta);
+
+                    const array = new Uint8Array(msg.data.irrigationScheduleStatus);
+                    const scheduleStatus = array[0];
+                    const scheduleIndex = array[1];
+                    const isStartOrStandby = scheduleStatus === scheduleStatusMap.start || scheduleStatus === scheduleStatusMap.standby;
+                    const scheduleType = scheduleTypeMap[array[2]];
+                    const scheduleMode = array[3];
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const toIsoString = (deviceSeconds: number): string => {
+                        const utcSeconds = deviceLocal2000ToUTCSeconds(deviceSeconds, offsetSeconds);
+                        return formatUtcSecondsToIsoWithOffset(utcSeconds, offsetSeconds);
+                    };
+
+                    // Start or Standby: 15 bytes
+                    if (isStartOrStandby) {
+                        const minLength = 15;
+                        if (array.length < minLength) {
+                            logger.error(`irrigationScheduleStatus invalid length=${array.length}, expected>=${minLength} for start/standby`, NS);
+                            return;
+                        }
+
+                        const expectedStartTime = (array[4] << 24) | (array[5] << 16) | (array[6] << 8) | array[7];
+                        const expectedEndTime = (array[8] << 24) | (array[9] << 16) | (array[10] << 8) | array[11];
+                        const volumeUnit = array[12];
+                        const expectedVolume = (array[13] << 8) | array[14];
+
+                        return {
+                            [property]: {
+                                schedule_status: scheduleStatusMapReverse[scheduleStatus],
+                                schedule_index: scheduleIndex,
+                                ...(scheduleType ? {schedule_type: scheduleType} : {}),
+                                irrigation_mode: hasFlowMeter
+                                    ? (modeMap[scheduleMode] ?? "duration")
+                                    : modeMap[scheduleMode] === "duration_with_interval"
+                                      ? "duration_with_interval"
+                                      : "duration",
+                                start_time: toIsoString(expectedStartTime),
+                                expected_end_time: toIsoString(expectedEndTime),
+                                actual_end_time: null,
+                                ...(hasFlowMeter
+                                    ? {
+                                          irrigation_amount_unit: volumeUnit === 0 ? "US gallon" : "liter",
+                                          expected_irrigation_amount: expectedVolume,
+                                          actual_irrigation_amount: null,
+                                      }
+                                    : {}),
+                            },
+                        };
+                    }
+
+                    // End or Running: 21 bytes
+                    if (scheduleStatus === scheduleStatusMap.end || scheduleStatus === scheduleStatusMap.running) {
+                        const minLength = 21;
+                        if (array.length < minLength) {
+                            logger.error(`irrigationScheduleStatus invalid length=${array.length}, expected>=${minLength} for end/running`, NS);
+                            return;
+                        }
+
+                        const expectedStartTime = (array[4] << 24) | (array[5] << 16) | (array[6] << 8) | array[7];
+                        const expectedEndTime = (array[8] << 24) | (array[9] << 16) | (array[10] << 8) | array[11];
+                        const actualEndTime = (array[12] << 24) | (array[13] << 16) | (array[14] << 8) | array[15];
+                        const volumeUnit = array[16];
+                        const expectedVolume = (array[17] << 8) | array[18];
+                        const actualVolume = (array[19] << 8) | array[20];
+
+                        return {
+                            [property]: {
+                                schedule_status: scheduleStatusMapReverse[scheduleStatus] ?? "end",
+                                schedule_index: scheduleIndex,
+                                ...(scheduleType ? {schedule_type: scheduleType} : {}),
+                                irrigation_mode: hasFlowMeter
+                                    ? (modeMap[scheduleMode] ?? "duration")
+                                    : modeMap[scheduleMode] === "duration_with_interval"
+                                      ? "duration_with_interval"
+                                      : "duration",
+                                start_time: toIsoString(expectedStartTime),
+                                expected_end_time: toIsoString(expectedEndTime),
+                                actual_end_time: toIsoString(actualEndTime),
+                                ...(hasFlowMeter
+                                    ? {
+                                          irrigation_amount_unit: volumeUnit === 0 ? "US gallon" : "liter",
+                                          expected_irrigation_amount: expectedVolume,
+                                          actual_irrigation_amount: actualVolume,
+                                      }
+                                    : {}),
+                            },
+                        };
+                    }
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["irrigation_schedule_status"],
+                endpoints: endpointNames,
+                convertGet: async (entity, key, meta) => {
+                    await utils
+                        .determineEndpoint(entity, meta, "customClusterEwelink")
+                        .read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["irrigationScheduleStatus"]);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    valveAlarmSettings: (): ModernExtend => {
+        const exposes = e
+            .composite("valve_alarm_settings", "valve_alarm_settings", ea.ALL)
+            .withDescription("Valve alarm settings")
+            .withFeature(e.binary("enable_alarm_water_shortage", ea.ALL, true, false).withDescription("Water shortage alarm"))
+            .withFeature(e.binary("enable_alarm_water_leak", ea.ALL, true, false).withDescription("Water leak alarm"))
+            .withFeature(e.binary("enable_water_shortage_auto_close", ea.ALL, true, false).withDescription("Auto close valve on water shortage"))
+            .withFeature(
+                e
+                    .numeric("alarm_water_shortage_duration", ea.ALL)
+                    .withValueMin(1)
+                    .withValueMax(10)
+                    .withUnit("min")
+                    .withDescription("Water shortage trigger alarm duration"),
+            )
+            .withFeature(
+                e
+                    .numeric("alarm_water_leak_duration", ea.ALL)
+                    .withValueMin(1)
+                    .withValueMax(3)
+                    .withUnit("min")
+                    .withDescription("Water leak trigger alarm duration"),
+            );
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!msg.data.valveAlarmSettings) return;
+
+                    const array = new Uint8Array(msg.data.valveAlarmSettings);
+                    if (array.length < 4) {
+                        logger.error(`valveAlarmSettings invalid length=${array.length}, expected>=4`, NS);
+                        return;
+                    }
+                    const enableBits = array[0];
+
+                    return {
+                        valve_alarm_settings: {
+                            enable_alarm_water_shortage: !!(enableBits & 0b00001),
+                            enable_alarm_water_leak: !!(enableBits & 0b00010),
+                            enable_water_shortage_auto_close: !!(enableBits & 0b01000),
+                            alarm_water_shortage_duration: array[1],
+                            alarm_water_leak_duration: array[2],
+                        },
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["valve_alarm_settings"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const state = {
+                        enable_alarm_water_shortage: !!value.enable_alarm_water_shortage,
+                        enable_alarm_water_leak: !!value.enable_alarm_water_leak,
+                        enable_water_shortage_auto_close: !!value.enable_water_shortage_auto_close,
+                        alarm_water_shortage_duration: Number(value.alarm_water_shortage_duration) || 0,
+                        alarm_water_leak_duration: Number(value.alarm_water_leak_duration) || 0,
+                    };
+
+                    let enableBits = 0;
+                    if (state.enable_alarm_water_shortage) enableBits |= 0b00001;
+                    if (state.enable_alarm_water_leak) enableBits |= 0b00010;
+                    if (state.enable_water_shortage_auto_close) enableBits |= 0b01000;
+
+                    const array = new Uint8Array(4);
+                    array[0] = enableBits;
+                    array[1] = state.alarm_water_shortage_duration;
+                    array[2] = state.alarm_water_leak_duration;
+                    array[3] = 0;
+
+                    await entity.write(
+                        "customClusterEwelink",
+                        {
+                            [0x5020]: {
+                                value: {
+                                    elementType: 0x20,
+                                    elements: array,
+                                },
+                                type: 0x48,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    return {
+                        state: {
+                            [key]: state,
+                        },
+                    };
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["valveAlarmSettings"]);
+                },
+            },
+        ];
+
+        return {
+            exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    readSWVZFRecord: (hasFlowMeter: boolean, dualChannel = false): ModernExtend => {
+        const channelCount = dualChannel ? 2 : 1;
+        const clusterName = "customClusterEwelink";
+        const commandName = "readRecord";
+        const exposes = [
+            e.text("24_hours_records", ea.STATE),
+            e.text("30_days_records", ea.STATE),
+            e.text("180_days_records", ea.STATE),
+            e
+                .composite("read_swvzf_records", "read_swvzf_records", ea.STATE_SET)
+                .withDescription(
+                    hasFlowMeter
+                        ? "Read irrigation water volume and duration in the past 24 hours, 30 days, and 6 months."
+                        : "Read irrigation duration in the past 24 hours, 30 days, and 6 months.",
+                )
+                .withFeature(e.enum("type", ea.SET, ["24_hours", "30_days", "6_months"]).withDescription("Reading type"))
+                .withFeature(e.text("time_start", ea.SET).withDescription("Start time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"))
+                .withFeature(e.text("time_end", ea.SET).withDescription("End time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"))
+                .withLabel("Read irrigation history"),
+        ];
+
+        const normalizeUtcEpochSeconds = (input: unknown, label: string): number | undefined => {
+            if (typeof input !== "string") {
+                logger.error(`read_swvzf_records invalid ${label}: expected ISO 8601 string.`, NS);
+                return;
+            }
+            const seconds = parseIsoWithOffsetToUtcSeconds(input);
+            if (seconds === undefined) {
+                logger.error(`read_swvzf_records invalid ${label}: expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).`, NS);
+                return;
+            }
+            return seconds;
+        };
+
+        const parseHistoryRecords = (
+            mode: "24_hours" | "30_days" | "6_months",
+            recordData: number[],
+            args: {startSec: number; dayOffset?: number; offsetSeconds: number},
+        ): SonoffSwvHistoryRecord[] => {
+            const records: SonoffSwvHistoryRecord[] = [];
+            const recordByteLength = mode === "24_hours" ? 3 : 5;
+            const intervalByteLength = recordByteLength * channelCount;
+            const count = Math.floor(recordData.length / intervalByteLength);
+            const startSec = args.startSec;
+            const dayOffset = args.dayOffset ?? 0;
+            const createHistoryRecord = (duration: number, start: string, end: string, volume: number, channel?: string): SonoffSwvHistoryRecord => {
+                const record: SonoffSwvHistoryRecord = {duration, start, end};
+                if (channel) {
+                    record.channel = channel;
+                }
+                if (hasFlowMeter) {
+                    record.volume = volume;
+                }
+                return record;
+            };
+
+            if (mode === "24_hours") {
+                let startMs = startSec * 1000;
+                for (let i = 0; i < count; i++) {
+                    const endMs = startMs + 3600 * 1000;
+                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startMs / 1000), args.offsetSeconds);
+                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endMs / 1000), args.offsetSeconds);
+
+                    if (channelCount === 1) {
+                        const index = i * 3;
+                        const duration = recordData[index];
+                        const volume = (recordData[index + 1] << 8) + recordData[index + 2];
+                        records.push(createHistoryRecord(duration, start, end, volume));
+                    } else if (channelCount === 2) {
+                        const channel1Index = i * intervalByteLength;
+                        const channel1Duration = recordData[channel1Index];
+                        const channel1Volume = (recordData[channel1Index + 1] << 8) + recordData[channel1Index + 2];
+                        records.push(createHistoryRecord(channel1Duration, start, end, channel1Volume, "1"));
+
+                        const channel2Index = channel1Index + recordByteLength;
+                        const channel2Duration = recordData[channel2Index];
+                        const channel2Volume = (recordData[channel2Index + 1] << 8) + recordData[channel2Index + 2];
+                        records.push(createHistoryRecord(channel2Duration, start, end, channel2Volume, "2"));
+                    }
+
+                    startMs = endMs;
+                }
+                return records;
+            }
+
+            if (mode === "30_days") {
+                let startMs = (startSec + dayOffset * 86400) * 1000;
+                for (let i = 0; i < count; i++) {
+                    const endMs = startMs + 86400 * 1000;
+                    const start = formatUtcSecondsToIsoWithOffset(Math.floor(startMs / 1000), args.offsetSeconds);
+                    const end = formatUtcSecondsToIsoWithOffset(Math.floor(endMs / 1000), args.offsetSeconds);
+
+                    if (channelCount === 1) {
+                        const index = i * 5;
+                        const duration = (recordData[index] << 8) + recordData[index + 1];
+                        const volume = (recordData[index + 2] << 16) + (recordData[index + 3] << 8) + recordData[index + 4];
+                        records.push(createHistoryRecord(duration, start, end, volume));
+                    } else if (channelCount === 2) {
+                        const channel1Index = i * intervalByteLength;
+                        const channel1Duration = (recordData[channel1Index] << 8) + recordData[channel1Index + 1];
+                        const channel1Volume =
+                            (recordData[channel1Index + 2] << 16) + (recordData[channel1Index + 3] << 8) + recordData[channel1Index + 4];
+                        records.push(createHistoryRecord(channel1Duration, start, end, channel1Volume, "1"));
+
+                        const channel2Index = channel1Index + recordByteLength;
+                        const channel2Duration = (recordData[channel2Index] << 8) + recordData[channel2Index + 1];
+                        const channel2Volume =
+                            (recordData[channel2Index + 2] << 16) + (recordData[channel2Index + 3] << 8) + recordData[channel2Index + 4];
+                        records.push(createHistoryRecord(channel2Duration, start, end, channel2Volume, "2"));
+                    }
+
+                    startMs = endMs;
+                }
+                return records;
+            }
+
+            if (mode === "6_months") {
+                let intervalStartSec = startSec;
+                for (let i = 0; i < count; i++) {
+                    const intervalEndSec = shiftUtcSecondsByOffsetMonths(intervalStartSec, 1, args.offsetSeconds);
+                    const start = formatUtcSecondsToIsoWithOffset(intervalStartSec, args.offsetSeconds);
+                    const end = formatUtcSecondsToIsoWithOffset(intervalEndSec, args.offsetSeconds);
+
+                    if (channelCount === 1) {
+                        const index = i * 5;
+                        const duration = (recordData[index] << 8) + recordData[index + 1];
+                        const volume = (recordData[index + 2] << 16) + (recordData[index + 3] << 8) + recordData[index + 4];
+                        records.push(createHistoryRecord(duration, start, end, volume));
+                    } else if (channelCount === 2) {
+                        const channel1Index = i * intervalByteLength;
+                        const channel1Duration = (recordData[channel1Index] << 8) + recordData[channel1Index + 1];
+                        const channel1Volume =
+                            (recordData[channel1Index + 2] << 16) + (recordData[channel1Index + 3] << 8) + recordData[channel1Index + 4];
+                        records.push(createHistoryRecord(channel1Duration, start, end, channel1Volume, "1"));
+
+                        const channel2Index = channel1Index + recordByteLength;
+                        const channel2Duration = (recordData[channel2Index] << 8) + recordData[channel2Index + 1];
+                        const channel2Volume =
+                            (recordData[channel2Index + 2] << 16) + (recordData[channel2Index + 3] << 8) + recordData[channel2Index + 4];
+                        records.push(createHistoryRecord(channel2Duration, start, end, channel2Volume, "2"));
+                    }
+
+                    intervalStartSec = intervalEndSec;
+                }
+                return records;
+            }
+
+            return records;
+        };
+
+        const cacheMultiPacketRecords = (
+            ieeeAddr: string,
+            recordIndex: number,
+            records: SonoffSwvHistoryRecord[],
+            expectedPacketCount: number,
+            stateKey: "24_hours_records" | "30_days_records",
+            subCmd: number,
+            now: number,
+        ): KeyValueAny | undefined => {
+            const oldCache = swvzfRespCache[ieeeAddr];
+            const isCacheExpire = !oldCache || now - oldCache.updatedAt > swvzfCacheExpireTime;
+            const newCache = isCacheExpire ? {packets: {}, updatedAt: now} : oldCache;
+            newCache.packets[recordIndex] = records;
+            newCache.updatedAt = now;
+            swvzfRespCache[ieeeAddr] = newCache;
+
+            const hasAll = Array.from({length: expectedPacketCount}).every((_, index) => newCache.packets[index] !== undefined);
+            if (!hasAll) return;
+
+            const combined = Array.from({length: expectedPacketCount}, (_, index) => newCache.packets[index] ?? []).flat();
+            delete swvzfRespCache[ieeeAddr];
+            if (swvzfReqCache[ieeeAddr]) {
+                delete swvzfReqCache[ieeeAddr][subCmd];
+            }
+
+            return {[stateKey]: combined};
+        };
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["read_swvzf_records"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const type = value?.type;
+                    if (!["24_hours", "30_days", "6_months"].includes(type)) {
+                        logger.error(`read_swvzf_records invalid type: ${type}`, NS);
+                        return;
+                    }
+                    if (value?.time_start === undefined || value?.time_end === undefined) {
+                        logger.error("read_swvzf_records requires time_start and time_end", NS);
+                        return;
+                    }
+
+                    const startUtcSec = normalizeUtcEpochSeconds(value.time_start, "time_start");
+                    const endUtcSec = normalizeUtcEpochSeconds(value.time_end, "time_end");
+                    if (startUtcSec === undefined || endUtcSec === undefined) {
+                        return;
+                    }
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const startDeviceSec = utcToDeviceLocal2000Seconds(startUtcSec, offsetSeconds);
+                    const endDeviceSec = utcToDeviceLocal2000Seconds(endUtcSec, offsetSeconds);
+                    if (startDeviceSec < 0 || startDeviceSec > 0xffffffff || endDeviceSec < 0 || endDeviceSec > 0xffffffff) {
+                        logger.error("read_swvzf_records time range out of supported 2000-local uint32 range", NS);
+                        return;
+                    }
+                    if (endDeviceSec < startDeviceSec) {
+                        logger.error("read_swvzf_records time_end earlier than time_start", NS);
+                        return;
+                    }
+
+                    let subCmd = 0x00;
+                    if (type === "24_hours") subCmd = 0x00;
+                    if (type === "30_days") subCmd = 0x01;
+                    if (type === "6_months") subCmd = 0x02;
+
+                    const payloadBuffer = Buffer.alloc(9);
+                    payloadBuffer[0] = subCmd;
+                    payloadBuffer.writeUInt32BE(startDeviceSec, 1);
+                    payloadBuffer.writeUInt32BE(endDeviceSec, 5);
+                    const payloadValue = Array.from(payloadBuffer);
+
+                    const ieeeAddr = meta?.device?.ieeeAddr;
+                    if (ieeeAddr) {
+                        swvzfReqCache[ieeeAddr] = swvzfReqCache[ieeeAddr] ?? {};
+                        swvzfReqCache[ieeeAddr][subCmd] = {
+                            startDevice: startDeviceSec,
+                            endDevice: endDeviceSec,
+                            startUTC: startUtcSec,
+                            endUTC: endUtcSec,
+                            offsetSeconds,
+                            updatedAt: Date.now(),
+                        };
+
+                        if (subCmd === 0x01 || (subCmd === 0x00 && channelCount === 2)) {
+                            delete swvzfRespCache[ieeeAddr];
+                        }
+                    }
+
+                    await entity.command<"customClusterEwelink", "readRecord", SonoffSwvzn>(
+                        clusterName,
+                        commandName,
+                        {data: payloadValue},
+                        {disableDefaultResponse: true},
+                    );
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (!parsedRawCommand) return;
+                    if (parsedRawCommand.commandId !== 0x00) return;
+
+                    const body = parsedRawCommand.payload;
+                    if (body.length < 3) return;
+                    const subCmd = body[0];
+                    const status = body[1];
+                    const recordIndex = body[2];
+                    const payload = body.subarray(3);
+                    const ieeeAddr = meta?.device?.ieeeAddr;
+
+                    if (![0, 1, 2].includes(subCmd)) return;
+                    if (status > 0x03) return;
+                    if (status !== 0x00) {
+                        if (ieeeAddr && subCmd === 1) {
+                            delete swvzfRespCache[ieeeAddr];
+                        }
+
+                        let errorReason = "";
+                        if (status === 0x01) errorReason = "timestamp_invalid";
+                        else if (status === 0x02) errorReason = "watering_amount_invalid";
+                        else if (status === 0x03) errorReason = "irrigation_duration_invalid";
+                        logger.error(`readSWVZFRecord invalid status=${status}===${errorReason} subCmd=${subCmd} recordIndex=${recordIndex}`, NS);
+                        return;
+                    }
+
+                    const now = Date.now();
+                    if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
+                        const req = swvzfReqCache[ieeeAddr][subCmd];
+                        if (req && now - req.updatedAt > swvzfCacheExpireTime) {
+                            delete swvzfReqCache[ieeeAddr][subCmd];
+                        }
+                    }
+                    const request = ieeeAddr ? swvzfReqCache[ieeeAddr]?.[subCmd] : undefined;
+                    if (!request || typeof request.startUTC !== "number" || typeof request.endUTC !== "number") {
+                        logger.error(`readSWVZFRecord missing request context for subCmd=${subCmd}; it may have timed out, please try again`, NS);
+                        return;
+                    }
+                    const startSec = request.startUTC;
+
+                    // 24 hours
+                    if (subCmd === 0) {
+                        const expectedPacketCount = channelCount === 2 ? 2 : 1;
+                        const recordsPerPacket = channelCount === 2 ? 12 : 24;
+                        const intervalByteLength = channelCount * 3;
+                        if (recordIndex >= expectedPacketCount) return;
+
+                        const rawRecordData = Array.from(payload);
+                        const slicedRecordData = rawRecordData.slice(0, recordsPerPacket * intervalByteLength);
+                        const alignedLength = slicedRecordData.length - (slicedRecordData.length % intervalByteLength);
+                        const recordData = slicedRecordData.slice(0, alignedLength);
+                        if (recordData.length < intervalByteLength) return;
+
+                        const packetStartSec = channelCount === 2 ? startSec + recordIndex * recordsPerPacket * 3600 : startSec;
+                        const value = parseHistoryRecords("24_hours", recordData, {
+                            startSec: packetStartSec,
+                            offsetSeconds: request.offsetSeconds,
+                        });
+                        if (channelCount === 2) {
+                            if (!ieeeAddr) {
+                                return {"24_hours_records": value};
+                            }
+                            return cacheMultiPacketRecords(ieeeAddr, recordIndex, value, expectedPacketCount, "24_hours_records", subCmd, now);
+                        }
+
+                        if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
+                            delete swvzfReqCache[ieeeAddr][subCmd];
+                        }
+                        return {"24_hours_records": value};
+                    }
+
+                    // 6 months
+                    if (subCmd === 2) {
+                        if (recordIndex !== 0) return;
+
+                        const intervalByteLength = channelCount * 5;
+                        const rawRecordData = Array.from(payload);
+                        const slicedRecordData = rawRecordData.slice(0, 6 * intervalByteLength);
+                        const alignedLength = slicedRecordData.length - (slicedRecordData.length % intervalByteLength);
+                        const recordData = slicedRecordData.slice(0, alignedLength);
+                        if (recordData.length < intervalByteLength) return;
+
+                        const value = parseHistoryRecords("6_months", recordData, {
+                            startSec,
+                            offsetSeconds: request.offsetSeconds,
+                        });
+                        if (ieeeAddr && swvzfReqCache[ieeeAddr]) {
+                            delete swvzfReqCache[ieeeAddr][subCmd];
+                        }
+                        return {"180_days_records": value};
+                    }
+
+                    // 30 days
+                    if (subCmd === 1) {
+                        if (payload.length === 0) return;
+
+                        const dayCount = payload[0];
+
+                        if (channelCount === 1) {
+                            if (recordIndex > 2) return;
+
+                            let parsedDayCount = 0;
+                            let recordData: number[] = [];
+
+                            if (recordIndex === 0 || recordIndex === 1) {
+                                if (payload.length % 5 !== 0) {
+                                    logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=${recordIndex}`, NS);
+                                    return;
+                                }
+
+                                parsedDayCount = Math.floor(payload.length / 5);
+                                if (parsedDayCount !== 10) {
+                                    logger.info(`readSWVZFRecord invalid fixed dayCount=${parsedDayCount} recordIndex=${recordIndex}`, NS);
+                                    return;
+                                }
+
+                                recordData = Array.from(payload);
+                            } else {
+                                if ((payload.length - 1) % 5 !== 0) {
+                                    logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=2`, NS);
+                                    return;
+                                }
+
+                                parsedDayCount = dayCount;
+                                if (parsedDayCount < 8 || parsedDayCount > 11) {
+                                    logger.info(`readSWVZFRecord invalid dayCount=${parsedDayCount} recordIndex=2`, NS);
+                                    return;
+                                }
+
+                                const actualCount = Math.floor((payload.length - 1) / 5);
+                                if (actualCount !== parsedDayCount) {
+                                    logger.info(
+                                        `readSWVZFRecord dayCount mismatch dayCount=${parsedDayCount} actualCount=${actualCount} recordIndex=2`,
+                                        NS,
+                                    );
+                                    return;
+                                }
+
+                                recordData = Array.from(payload.subarray(1));
+                            }
+
+                            const dayOffset = recordIndex * 10;
+                            const records = parseHistoryRecords("30_days", recordData, {
+                                startSec,
+                                dayOffset,
+                                offsetSeconds: request.offsetSeconds,
+                            });
+
+                            if (!ieeeAddr) {
+                                return {"30_days_records": records};
+                            }
+
+                            return cacheMultiPacketRecords(ieeeAddr, recordIndex, records, 3, "30_days_records", subCmd, now);
+                        }
+
+                        if (channelCount === 2) {
+                            if (recordIndex > 4) return;
+
+                            const intervalByteLength = channelCount * 5;
+                            let parsedDayCount = 0;
+                            let recordData: number[] = [];
+
+                            if (recordIndex < 4) {
+                                const expectedLength = 7 * intervalByteLength;
+                                if (payload.length < expectedLength) {
+                                    logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=${recordIndex}`, NS);
+                                    return;
+                                }
+
+                                parsedDayCount = 7;
+                                recordData = Array.from(payload.subarray(0, expectedLength));
+                            } else {
+                                parsedDayCount = dayCount;
+                                if (parsedDayCount < 0 || parsedDayCount > 3) {
+                                    logger.info(`readSWVZFRecord invalid dayCount=${parsedDayCount} recordIndex=4`, NS);
+                                    return;
+                                }
+
+                                const expectedLength = 1 + parsedDayCount * intervalByteLength;
+                                if (payload.length < expectedLength) {
+                                    logger.info(`readSWVZFRecord invalid 30_days payloadLen=${payload.length} recordIndex=4`, NS);
+                                    return;
+                                }
+
+                                recordData = Array.from(payload.subarray(1, expectedLength));
+                            }
+
+                            const dayOffset = recordIndex * 7;
+                            const records =
+                                parsedDayCount === 0
+                                    ? []
+                                    : parseHistoryRecords("30_days", recordData, {
+                                          startSec,
+                                          dayOffset,
+                                          offsetSeconds: request.offsetSeconds,
+                                      });
+
+                            if (!ieeeAddr) {
+                                return {"30_days_records": records};
+                            }
+
+                            return cacheMultiPacketRecords(ieeeAddr, recordIndex, records, 5, "30_days_records", subCmd, now);
+                        }
+                    }
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    irrigationPlanSettingsAndReport: (hasFlowMeter: boolean, endpointNames?: string[]): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const commandId = {
+            irrigationPlanSettings: 0x06,
+            irrigationPlanReport: 0x09,
+        };
+
+        const loopTypeModeMapping: Record<number, "odd_days" | "even_days" | "day_interval" | "weekdays"> = {
+            0: "odd_days",
+            1: "even_days",
+            2: "day_interval",
+            3: "weekdays",
+        };
+        const loopTypeModeMappingReverse = {
+            odd_days: 0,
+            even_days: 1,
+            day_interval: 2,
+            weekdays: 3,
+        };
+        const irrigationModeMapping: Record<number, "duration" | "capacity" | "duration_with_interval"> = {
+            0: "duration",
+            1: "capacity",
+            2: "duration_with_interval",
+        };
+        const irrigationModeMappingReverse = {
+            duration: 0,
+            capacity: 1,
+            duration_with_interval: 2,
+        };
+        const irrigationAmountUnitMapping: Record<number, "US gallon" | "liter"> = {
+            0: "US gallon",
+            1: "liter",
+        };
+        const irrigationAmountUnitMappingReverse = {
+            "US gallon": 0,
+            liter: 1,
+        };
+        const loopTypeWeekDayBitMapping = {
+            sunday: 0b0000001,
+            monday: 0b0000010,
+            tuesday: 0b0000100,
+            wednesday: 0b0001000,
+            thursday: 0b0010000,
+            friday: 0b0100000,
+            saturday: 0b1000000,
+        } as const;
+
+        type LoopTypeWeekDay = keyof typeof loopTypeWeekDayBitMapping;
+        type LoopTypeWeekDays = {[K in LoopTypeWeekDay]: boolean};
+
+        const loopTypeWeekDayNames = Object.keys(loopTypeWeekDayBitMapping) as LoopTypeWeekDay[];
+        const decodeLoopTypeWeekDays = (mask: number): LoopTypeWeekDays => ({
+            sunday: (mask & loopTypeWeekDayBitMapping.sunday) > 0,
+            monday: (mask & loopTypeWeekDayBitMapping.monday) > 0,
+            tuesday: (mask & loopTypeWeekDayBitMapping.tuesday) > 0,
+            wednesday: (mask & loopTypeWeekDayBitMapping.wednesday) > 0,
+            thursday: (mask & loopTypeWeekDayBitMapping.thursday) > 0,
+            friday: (mask & loopTypeWeekDayBitMapping.friday) > 0,
+            saturday: (mask & loopTypeWeekDayBitMapping.saturday) > 0,
+        });
+
+        const irrigationPlanSettings = e
+            .composite("irrigation_plan_settings", "irrigation_plan_settings", ea.STATE_SET)
+            .withDescription("Set irrigation plan")
+            .withFeature(e.numeric("plan_index", ea.SET).withValueMin(0).withValueMax(5).withDescription("Plan index"))
+            .withFeature(e.binary("enable_state", ea.SET, true, false))
+            .withFeature(e.enum("loop_type_mode", ea.SET, ["odd_days", "even_days", "day_interval", "weekdays"]))
+            .withFeature(
+                e
+                    .numeric("loop_type_interval_days", ea.SET)
+                    .withValueMin(1)
+                    .withValueMax(30)
+                    .withDescription("Only effective when loop_type_mode is day_interval"),
+            )
+            .withFeature(
+                e
+                    .composite("loop_type_week_days", "loop_type_week_days", ea.SET)
+                    .withDescription("Only effective when loop_type_mode is weekdays")
+                    .withFeature(e.binary("sunday", ea.SET, true, false))
+                    .withFeature(e.binary("monday", ea.SET, true, false))
+                    .withFeature(e.binary("tuesday", ea.SET, true, false))
+                    .withFeature(e.binary("wednesday", ea.SET, true, false))
+                    .withFeature(e.binary("thursday", ea.SET, true, false))
+                    .withFeature(e.binary("friday", ea.SET, true, false))
+                    .withFeature(e.binary("saturday", ea.SET, true, false)),
+            )
+            .withFeature(e.text("enable_date", ea.SET).withDescription("Enable date in local YYYY-MM-DD format."))
+            .withFeature(e.text("start_time", ea.SET).withDescription("Start time in local HH:mm format (24-hour, zero-padded)."))
+            .withFeature(
+                e.enum(
+                    "irrigation_mode",
+                    ea.SET,
+                    hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                ),
+            )
+            .withFeature(e.numeric("irrigation_total_duration", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"))
+            .withFeature(e.numeric("irrigation_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"))
+            .withFeature(e.numeric("interval_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"));
+        if (hasFlowMeter) {
+            irrigationPlanSettings
+                .withFeature(e.enum("irrigation_amount_unit", ea.SET, ["US gallon", "liter"]))
+                .withFeature(e.numeric("irrigation_amount", ea.SET).withValueMin(1).withValueMax(10000))
+                .withFeature(e.numeric("fail_safe", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"));
+        }
+        irrigationPlanSettings.withFeature(
+            e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+        );
+
+        const irrigationPlanReport = e
+            .composite("irrigation_plan_report", "irrigation_plan_report", ea.STATE)
+            .withDescription("Irrigation plan report")
+            .withFeature(e.numeric("plan_index", ea.STATE))
+            .withFeature(e.binary("enable_state", ea.STATE, true, false))
+            .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
+            .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
+            .withFeature(
+                e
+                    .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
+                    .withDescription("Effective when loop_type_mode is weekdays")
+                    .withFeature(e.binary("sunday", ea.STATE, true, false))
+                    .withFeature(e.binary("monday", ea.STATE, true, false))
+                    .withFeature(e.binary("tuesday", ea.STATE, true, false))
+                    .withFeature(e.binary("wednesday", ea.STATE, true, false))
+                    .withFeature(e.binary("thursday", ea.STATE, true, false))
+                    .withFeature(e.binary("friday", ea.STATE, true, false))
+                    .withFeature(e.binary("saturday", ea.STATE, true, false)),
+            )
+            .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
+            .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
+            .withFeature(
+                e.enum(
+                    "irrigation_mode",
+                    ea.STATE,
+                    hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                ),
+            )
+            .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
+            .withFeature(e.numeric("irrigation_duration", ea.STATE))
+            .withFeature(e.numeric("interval_duration", ea.STATE));
+        if (hasFlowMeter) {
+            irrigationPlanReport
+                .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]))
+                .withFeature(e.numeric("irrigation_amount", ea.STATE))
+                .withFeature(e.numeric("fail_safe", ea.STATE));
+        }
+        irrigationPlanReport.withFeature(
+            e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+        );
+
+        const baseExposes = [irrigationPlanSettings, irrigationPlanReport];
+        const allExposes = baseExposes.flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (!parsedRawCommand) return;
+                    const cmdId = parsedRawCommand.commandId;
+                    const payload = parsedRawCommand.payload;
+
+                    if (endpointNames) {
+                        const endpointName = utils.getKey(model.endpoint?.(meta.device) ?? {}, msg.endpoint.ID);
+                        if (!endpointName || !endpointNames.includes(endpointName)) return;
+                    }
+
+                    if (cmdId === commandId.irrigationPlanSettings) {
+                        if (payload.length < 1) {
+                            logger.error("irrigationPlanSettingsReply invalid payload length", NS);
+                            return;
+                        }
+
+                        const status = payload.readUInt8(0);
+                        if (status !== 0) {
+                            logger.error(`irrigationPlanSettingsReply failed, status=${status}`, NS);
+                        }
+                        return;
+                    }
+
+                    if (cmdId === commandId.irrigationPlanReport) {
+                        if (payload.length < 28) return;
+                        const property = utils.postfixWithEndpointName("irrigation_plan_report", msg, model, meta);
+
+                        // Payload byte offset
+                        let offset = 0;
+
+                        // Plan index
+                        const planIndex = payload.readUInt8(offset);
+                        offset += 1;
+
+                        // Whether schedule is enabled
+                        const enableState = payload.readUInt8(offset);
+                        offset += 1;
+
+                        // Loop type
+                        const loopType = payload.readUInt16BE(offset);
+                        const loopTypeMode = (loopType >> 8) & 0xff; // Loop mode
+                        const loopTypeValue = loopType & 0xff; // Loop configuration
+                        offset += 2;
+
+                        // Enable date(day start): device 2000-local seconds -> Unix UTC seconds
+                        const enableDatetimeDevice = payload.readUInt32BE(offset);
+                        const offsetSeconds = getRuntimeLocalOffsetSeconds(enableDatetimeDevice + YEAR_2000_IN_UTC);
+                        const enableDatetimeUTC = deviceLocal2000ToUTCSeconds(enableDatetimeDevice, offsetSeconds);
+                        offset += 4;
+
+                        // Irrigation mode
+                        const irrigationMode = payload.readUInt8(offset);
+                        offset += 1;
+
+                        // Effective start time (seconds from 00:00)
+                        const startSeconds = payload.readUInt32BE(offset);
+                        const enableDateISO = formatUtcSecondsToIsoWithOffset(enableDatetimeUTC, offsetSeconds);
+                        const enableDate = enableDateISO.slice(0, 10);
+                        const startHours = Math.floor(startSeconds / 3600);
+                        const startMinutes = Math.floor((startSeconds % 3600) / 60);
+                        const startTime = `${String(startHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
+                        offset += 4;
+
+                        // Irrigation duration
+                        const irrigationTotalDuration = payload.readUInt16BE(offset);
+                        offset += 2;
+
+                        const irrigationDuration = payload.readUInt16BE(offset);
+                        offset += 2;
+
+                        // Interval duration
+                        const intervalDuration = payload.readUInt16BE(offset);
+                        offset += 2;
+
+                        // Irrigation amount unit
+                        const irrigationAmountUnit = payload.readUInt8(offset);
+                        offset += 1;
+
+                        // Irrigation amount
+                        const irrigationAmount = payload.readUInt16BE(offset);
+                        offset += 2;
+
+                        // Fail-safe timeout
+                        const failSafe = payload.readUInt16BE(offset);
+                        offset += 2;
+
+                        // Create datetime: Unix UTC seconds
+                        const createDatetimeDevice = payload.readUInt32BE(offset);
+                        const createDatetimeISO = formatUtcSecondsToIsoWithOffset(createDatetimeDevice, offsetSeconds);
+
+                        return {
+                            [property]: {
+                                plan_index: planIndex,
+                                enable_state: enableState === 1,
+                                loop_type_mode: loopTypeModeMapping[loopTypeMode],
+                                loop_type_interval_days: loopTypeMode === loopTypeModeMappingReverse.day_interval ? loopTypeValue : 0,
+                                loop_type_week_days:
+                                    loopTypeMode === loopTypeModeMappingReverse.weekdays
+                                        ? decodeLoopTypeWeekDays(loopTypeValue)
+                                        : decodeLoopTypeWeekDays(0),
+                                enable_date: enableDate,
+                                start_time: startTime,
+                                irrigation_mode: hasFlowMeter
+                                    ? (irrigationModeMapping[irrigationMode] ?? "duration")
+                                    : irrigationModeMapping[irrigationMode] === "duration_with_interval"
+                                      ? "duration_with_interval"
+                                      : "duration",
+                                irrigation_total_duration: irrigationTotalDuration,
+                                irrigation_duration: irrigationDuration,
+                                interval_duration: intervalDuration,
+                                ...(hasFlowMeter
+                                    ? {
+                                          irrigation_amount_unit: irrigationAmountUnitMapping[irrigationAmountUnit],
+                                          irrigation_amount: irrigationAmount,
+                                          fail_safe: failSafe,
+                                      }
+                                    : {}),
+                                create_datetime: createDatetimeISO,
+                            },
+                        };
+                    }
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["irrigation_plan_settings"],
+                endpoints: endpointNames,
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const parseIntWithDefault = (fieldName: string, defaultValue: number, min: number, max: number): number | undefined => {
+                        const raw = value[fieldName];
+                        const parsed = raw === undefined || raw === null ? defaultValue : Number(raw);
+                        if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+                            logger.error(`irrigation_plan_settings invalid ${fieldName}, expected integer in range [${min}, ${max}].`, NS);
+                            return;
+                        }
+                        return parsed;
+                    };
+
+                    const payloadValue: Uint8Array = new Uint8Array(28);
+                    let i = 0;
+
+                    // Plan index
+                    const planIndex = parseIntWithDefault("plan_index", 0, 0, 5);
+                    if (planIndex === undefined) {
+                        return;
+                    }
+                    payloadValue[i++] = planIndex & 0xff;
+                    // Whether schedule is enabled
+                    payloadValue[i++] = value.enable_state ? 0x01 : 0x00;
+
+                    // Loop type
+                    const loopTypeModeKey =
+                        typeof value.loop_type_mode === "string" && value.loop_type_mode in loopTypeModeMappingReverse
+                            ? (value.loop_type_mode as keyof typeof loopTypeModeMappingReverse)
+                            : "odd_days";
+                    const loopTypeMode = loopTypeModeMappingReverse[loopTypeModeKey];
+                    let loopTypeValueCode = 0;
+                    if (loopTypeMode === loopTypeModeMappingReverse.day_interval) {
+                        const loopTypeIntervalDays = parseIntWithDefault("loop_type_interval_days", 1, 1, 30);
+                        if (loopTypeIntervalDays === undefined) {
+                            return;
+                        }
+                        loopTypeValueCode = loopTypeIntervalDays;
+                    } else if (loopTypeMode === loopTypeModeMappingReverse.weekdays) {
+                        const weekDays = value.loop_type_week_days;
+                        if (utils.isObject(weekDays)) {
+                            for (const dayName of loopTypeWeekDayNames) {
+                                if (weekDays[dayName] === true) {
+                                    loopTypeValueCode |= loopTypeWeekDayBitMapping[dayName];
+                                }
+                            }
+                        }
+                    }
+                    const loopTypeWord = (loopTypeMode << 8) | loopTypeValueCode;
+                    payloadValue[i++] = (loopTypeWord >> 8) & 0xff;
+                    payloadValue[i++] = loopTypeWord & 0xff;
+
+                    // Enable date: start of local day -> device local-2000 seconds
+                    const enableDateValue = value.enable_date;
+                    if (!utils.isString(enableDateValue)) {
+                        logger.error("irrigation_plan_settings invalid enable_date, expected local date in YYYY-MM-DD format.", NS);
+                        return;
+                    }
+                    const enableDateMatch = enableDateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    if (!enableDateMatch) {
+                        logger.error("irrigation_plan_settings invalid enable_date, expected local date in YYYY-MM-DD format.", NS);
+                        return;
+                    }
+                    const enableYear = Number(enableDateMatch[1]);
+                    const enableMonth = Number(enableDateMatch[2]);
+                    const enableDay = Number(enableDateMatch[3]);
+                    const enableDateUtcMs = Date.UTC(enableYear, enableMonth - 1, enableDay, 0, 0, 0);
+                    const enableDateUtc = new Date(enableDateUtcMs);
+                    if (
+                        enableDateUtc.getUTCFullYear() !== enableYear ||
+                        enableDateUtc.getUTCMonth() !== enableMonth - 1 ||
+                        enableDateUtc.getUTCDate() !== enableDay
+                    ) {
+                        logger.error("irrigation_plan_settings invalid enable_date, expected local date in YYYY-MM-DD format.", NS);
+                        return;
+                    }
+                    const enableDatetime = Math.floor(enableDateUtcMs / 1000) - YEAR_2000_IN_UTC;
+                    if (enableDatetime < 0 || enableDatetime > 0xffffffff) {
+                        logger.error("irrigation_plan_settings invalid enable_date, converted 2000-local value out of uint32 range.", NS);
+                        return;
+                    }
+                    payloadValue[i++] = (enableDatetime >> 24) & 0xff;
+                    payloadValue[i++] = (enableDatetime >> 16) & 0xff;
+                    payloadValue[i++] = (enableDatetime >> 8) & 0xff;
+                    payloadValue[i++] = enableDatetime & 0xff;
+
+                    // Irrigation mode
+                    let irrigationModeCode = irrigationModeMappingReverse.duration;
+                    if (hasFlowMeter) {
+                        const irrigationModeKey =
+                            typeof value.irrigation_mode === "string"
+                                ? (value.irrigation_mode as keyof typeof irrigationModeMappingReverse)
+                                : "duration";
+                        irrigationModeCode = irrigationModeMappingReverse[irrigationModeKey] ?? irrigationModeMappingReverse.duration;
+                    } else {
+                        const irrigationModeKey = value.irrigation_mode === "duration_with_interval" ? "duration_with_interval" : "duration";
+                        irrigationModeCode = irrigationModeMappingReverse[irrigationModeKey];
+                    }
+                    payloadValue[i++] = irrigationModeCode & 0xff;
+
+                    // Start time offset from start of local day.
+                    const startTimeValue = value.start_time;
+                    if (!utils.isString(startTimeValue)) {
+                        logger.error("irrigation_plan_settings invalid start_time, expected HH:mm.", NS);
+                        return;
+                    }
+                    const startTimeMatch = startTimeValue.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+                    if (!startTimeMatch) {
+                        logger.error("irrigation_plan_settings invalid start_time, expected HH:mm.", NS);
+                        return;
+                    }
+                    const startSeconds = Number(startTimeMatch[1]) * 3600 + Number(startTimeMatch[2]) * 60;
+                    payloadValue[i++] = (startSeconds >> 24) & 0xff;
+                    payloadValue[i++] = (startSeconds >> 16) & 0xff;
+                    payloadValue[i++] = (startSeconds >> 8) & 0xff;
+                    payloadValue[i++] = startSeconds & 0xff;
+
+                    // Total irrigation duration
+                    const irrigationTotalDuration = parseIntWithDefault("irrigation_total_duration", 10, 0, 719);
+                    if (irrigationTotalDuration === undefined) {
+                        return;
+                    }
+                    payloadValue[i++] = (irrigationTotalDuration >> 8) & 0xff;
+                    payloadValue[i++] = irrigationTotalDuration & 0xff;
+
+                    // Irrigation duration
+                    const irrigationDuration = parseIntWithDefault("irrigation_duration", 2, 1, 60);
+                    if (irrigationDuration === undefined) {
+                        return;
+                    }
+                    payloadValue[i++] = (irrigationDuration >> 8) & 0xff;
+                    payloadValue[i++] = irrigationDuration & 0xff;
+
+                    // Interval duration
+                    const intervalDuration = parseIntWithDefault("interval_duration", 3, 1, 60);
+                    if (intervalDuration === undefined) {
+                        return;
+                    }
+                    payloadValue[i++] = (intervalDuration >> 8) & 0xff;
+                    payloadValue[i++] = intervalDuration & 0xff;
+
+                    // Irrigation amount unit
+                    const irrigationAmountUnitKey = hasFlowMeter
+                        ? typeof value.irrigation_amount_unit === "string"
+                            ? (value.irrigation_amount_unit as keyof typeof irrigationAmountUnitMappingReverse)
+                            : "US gallon"
+                        : "liter";
+                    const irrigationAmountUnitCode =
+                        irrigationAmountUnitMappingReverse[irrigationAmountUnitKey] ?? irrigationAmountUnitMappingReverse.liter;
+                    payloadValue[i++] = irrigationAmountUnitCode & 0xff;
+
+                    // Irrigation amount
+                    const irrigationAmountValue = hasFlowMeter ? parseIntWithDefault("irrigation_amount", 30, 1, 10000) : 10;
+                    if (irrigationAmountValue === undefined) {
+                        return;
+                    }
+                    const irrigationAmount = irrigationAmountValue;
+                    payloadValue[i++] = (irrigationAmount >> 8) & 0xff;
+                    payloadValue[i++] = irrigationAmount & 0xff;
+
+                    // Fail-safe timeout
+                    const failSafe = hasFlowMeter ? parseIntWithDefault("fail_safe", 10, 0, 719) : 10;
+                    if (failSafe === undefined) {
+                        return;
+                    }
+                    payloadValue[i++] = (failSafe >> 8) & 0xff;
+                    payloadValue[i++] = failSafe & 0xff;
+
+                    // Create datetime: Unix UTC seconds.
+                    if (!utils.isString(value.create_datetime)) {
+                        logger.error(
+                            "irrigation_plan_settings invalid create_datetime, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).",
+                            NS,
+                        );
+                        return;
+                    }
+                    const createDatetimeUTC = parseIsoWithOffsetToUtcSeconds(value.create_datetime);
+                    if (createDatetimeUTC === undefined) {
+                        logger.error(
+                            "irrigation_plan_settings invalid create_datetime, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).",
+                            NS,
+                        );
+                        return;
+                    }
+                    if (createDatetimeUTC < 0 || createDatetimeUTC > 0xffffffff) {
+                        logger.error("irrigation_plan_settings invalid create_datetime, converted unix out of uint32 range.", NS);
+                        return;
+                    }
+                    payloadValue[i++] = (createDatetimeUTC >> 24) & 0xff;
+                    payloadValue[i++] = (createDatetimeUTC >> 16) & 0xff;
+                    payloadValue[i++] = (createDatetimeUTC >> 8) & 0xff;
+                    payloadValue[i++] = createDatetimeUTC & 0xff;
+
+                    await utils
+                        .determineEndpoint(entity, meta, clusterName)
+                        .command<typeof clusterName, "irrigationPlanSettings", SonoffSwvzn>(
+                            clusterName,
+                            "irrigationPlanSettings",
+                            {data: Array.from(payloadValue)},
+                            defaultResponseOptions,
+                        );
+
+                    return {state: {[key]: value}};
+                },
+            },
+        ];
+
+        return {
+            exposes: allExposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    irrigationPlanRemove: (endpointNames?: string[]): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+
+        const baseExposes = [
+            e
+                .composite("irrigation_plan_remove", "irrigation_plan_remove", ea.SET)
+                .withDescription("Remove irrigation plan")
+                .withFeature(
+                    e.numeric("plan_index", ea.SET).withValueMin(0).withValueMax(5).withDescription("The index of the irrigation plan to remove"),
+                ),
+        ];
+        const exposes = baseExposes.flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["irrigation_plan_remove"],
+                endpoints: endpointNames,
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const planIndex = Number(value.plan_index);
+                    const data = Buffer.alloc(1);
+                    data.writeUInt8(planIndex & 0xff, 0);
+
+                    await utils
+                        .determineEndpoint(entity, meta, clusterName)
+                        .command<"customClusterEwelink", "irrigationPlanRemove", SonoffSwvzn>(
+                            clusterName,
+                            "irrigationPlanRemove",
+                            {data: Array.from(data)},
+                            {disableDefaultResponse: true},
+                        );
+
+                    const settingsProperty = meta.endpoint_name
+                        ? `irrigation_plan_settings_${planIndex}_${meta.endpoint_name}`
+                        : `irrigation_plan_settings_${planIndex}`;
+
+                    return {
+                        state: {
+                            [key]: {plan_index: planIndex},
+                            [settingsProperty]: null,
+                        },
+                    };
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    irrigationPlanRemovedReport: (endpointNames?: string[]): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const commandId = {
+            irrigationPlanRemovedReport: 0x0a,
+        };
+
+        const exposes = utils.exposeEndpoints(
+            e
+                .numeric("irrigation_plan_removed_report", ea.STATE)
+                .withDescription("Local irrigation plan removed report")
+                .withValueMin(0)
+                .withValueMax(5),
+            endpointNames,
+        );
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (!parsedRawCommand) return;
+                    if (parsedRawCommand.commandId !== commandId.irrigationPlanRemovedReport) return;
+
+                    if (endpointNames) {
+                        const endpointName = utils.getKey(model.endpoint?.(meta.device) ?? {}, msg.endpoint.ID);
+                        if (!endpointName || !endpointNames.includes(endpointName)) return;
+                    }
+
+                    const payload = parsedRawCommand.payload;
+                    if (payload.length < 1) {
+                        logger.error("irrigationPlanRemovedReport invalid payload length", NS);
+                        return;
+                    }
+
+                    const planIndex = payload.readUInt8(0);
+                    const reportProperty = utils.postfixWithEndpointName("irrigation_plan_removed_report", msg, model, meta);
+                    const settingsProperty = utils.postfixWithEndpointName(`irrigation_plan_settings_${planIndex}`, msg, model, meta);
+
+                    return {
+                        [reportProperty]: planIndex,
+                        [settingsProperty]: null,
+                    };
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee: [],
+            isModernExtend: true,
+        };
+    },
+    rainDelay: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+
+        const exposes = [
+            e
+                .text("rain_delay", ea.SET)
+                .withDescription('Schedule delay end time in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00), or "0" to disable'),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["rain_delay"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!utils.isString(value)) {
+                        logger.error("Invalid rain_delay, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).", NS);
+                        return;
+                    }
+
+                    let delayEndTimeDevice: number;
+                    let delayEndTimeUTC: number | undefined;
+                    let stateValue = value;
+                    if (value === "0") {
+                        delayEndTimeDevice = 0;
+                    } else {
+                        delayEndTimeUTC = parseIsoWithOffsetToUtcSeconds(value);
+                        if (delayEndTimeUTC === undefined) {
+                            logger.error("Invalid rain_delay, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).", NS);
+                            return;
+                        }
+
+                        const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                        delayEndTimeDevice = utcToDeviceLocal2000Seconds(delayEndTimeUTC, offsetSeconds);
+                        stateValue = formatUtcSecondsToIsoWithOffset(delayEndTimeUTC, offsetSeconds);
+                    }
+                    if (delayEndTimeDevice < 0 || delayEndTimeDevice > 0xffffffff) {
+                        logger.error("Invalid rain_delay, converted device 2000-local value out of uint32 range.", NS);
+                        return;
+                    }
+                    const data = [
+                        (delayEndTimeDevice >>> 24) & 0xff,
+                        (delayEndTimeDevice >>> 16) & 0xff,
+                        (delayEndTimeDevice >>> 8) & 0xff,
+                        delayEndTimeDevice & 0xff,
+                    ];
+                    await entity.command<"customClusterEwelink", "rainDelay", SonoffSwvzn>(
+                        clusterName,
+                        "rainDelay",
+                        {data},
+                        {disableDefaultResponse: true},
+                    );
+
+                    return {state: {[key]: stateValue}};
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee: [],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    clearConsumptionHistory: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const commandName = "clearHistory";
+        const clearPayload = {deviceType: 0x02, deviceLength: 0x01, eventType: 0x00} as const;
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["clear_history"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value, key);
+                    const normalizedValue = value.toLowerCase();
+                    if (normalizedValue !== "clear") {
+                        throw new Error(`Unsupported ${key} value: '${value}', expected 'clear'`);
+                    }
+
+                    // Most Sonoff private-cluster commands on this device work without a manufacturer-specific frame header.
+                    await entity.command<typeof clusterName, typeof commandName, SonoffBasicZB1GSP>(clusterName, commandName, clearPayload, {
+                        disableDefaultResponse: false,
+                    });
+
+                    // Clear local cache fields to avoid stale UI data after a successful clear command.
+                    return {state: {clear_history: normalizedValue, consumption_records: null, consumption_records_dst: null}};
+                },
+            },
+        ];
+
+        return {
+            exposes: [e.enum("clear_history", ea.SET, ["clear"]).withDescription("Clear historical electricity data.")],
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    readConsumptionRecord(clusterName: "customClusterEwelink", commandName: "readRecord"): ModernExtend {
+        const exposes = [
+            e.text("consumption_records", ea.STATE),
+            e.text("consumption_records_dst", ea.STATE),
+            e
+                .composite("read_consumption_records", "read_consumption_records", ea.SET)
+                .withDescription("Read power-consumption history records (24h / monthly days / halfyear months).")
+                .withFeature(
+                    e
+                        .enum("type", ea.SET, ["get24Hours", "get30Days", "get180Days"])
+                        .withDescription("Record type: get24Hours, get30Days or get180Days."),
+                )
+                .withFeature(
+                    e
+                        .numeric("index", ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(240)
+                        .withValueStep(1)
+                        .withDescription("Block index: 24h => 0/1/240(DST), 30d => 0/1, 180d => 0. For 24h/30d, index=0 auto-fetches block 0+1."),
+                )
+                .withFeature(
+                    e
+                        .numeric("offset", ea.SET)
+                        .withValueMin(0)
+                        .withValueMax(6)
+                        .withDescription("Offset: 24h => 0..6(days), 30d => 0..5(months), 180d => 0."),
+                ),
+        ];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["raw"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) {
+                        return;
+                    }
+
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x02) {
+                        return;
+                    }
+
+                    const body = parsedRawCommand.payload;
+                    if (body.length < 4) {
+                        return;
+                    }
+
+                    const status = body[0];
+                    const subCmd = body[1];
+                    const offset = body[2];
+                    const recordIndex = body[3];
+                    const recordData = Array.from(body.subarray(4));
+
+                    if (![0, 1, 2].includes(subCmd)) {
+                        return;
+                    }
+
+                    if (status !== 0x00) {
+                        logger.warning(
+                            `readConsumptionRecord failed with status=${status}, subCmd=${subCmd}, offset=${offset}, recordIndex=${recordIndex}`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    if (subCmd === 0 && recordIndex === 240) {
+                        const count = recordData[0] ?? 0;
+                        // biome-ignore lint/style/useNamingConvention: JSON payload key follows existing external format
+                        const records: Array<{day_offset: number; hour: number; usage: number}> = [];
+
+                        for (let i = 1; i + 5 < recordData.length; i += 6) {
+                            const dayOffset = recordData[i];
+                            const hour = recordData[i + 1];
+                            const usage =
+                                (recordData[i + 2] | (recordData[i + 3] << 8) | (recordData[i + 4] << 16) | (recordData[i + 5] << 24)) >>> 0;
+                            if (usage !== 0xffffffff) {
+                                records.push({day_offset: dayOffset, hour, usage});
+                            }
+                        }
+
+                        return {consumption_records_dst: JSON.stringify({type: "dst_repeat", offset, count, records})};
+                    }
+
+                    let value: {
+                        type: string;
+                        offset?: number;
+                        index?: number;
+                        records?: Array<{usage: number | null; start: string; end: string}>;
+                    };
+                    if (subCmd === 0) {
+                        if (![0, 1].includes(recordIndex)) {
+                            logger.warning(`readConsumptionRecord invalid 24h recordIndex=${recordIndex}`, NS);
+                            return;
+                        }
+
+                        const records: Array<{usage: number; start: string; end: string}> = [];
+                        const start = new Date();
+                        start.setHours(0, 0, 0, 0);
+                        start.setDate(start.getDate() - offset);
+                        if (recordIndex === 1) {
+                            start.setHours(start.getHours() + 18);
+                        }
+
+                        for (let i = 0; i + 3 < recordData.length; i += 4) {
+                            const usage = (recordData[i] | (recordData[i + 1] << 8) | (recordData[i + 2] << 16) | (recordData[i + 3] << 24)) >>> 0;
+                            const end = new Date(start.getTime() + 3600 * 1000);
+                            if (usage !== 0xffffffff) {
+                                records.push({usage, start: start.toISOString(), end: end.toISOString()});
+                            }
+                            start.setTime(end.getTime());
+                        }
+
+                        value = {type: "day_of_hour", offset, index: recordIndex, records};
+                    } else if (subCmd === 1) {
+                        if (![0, 1].includes(recordIndex)) {
+                            logger.warning(`readConsumptionRecord invalid 30d recordIndex=${recordIndex}`, NS);
+                            return;
+                        }
+
+                        const records: Array<{usage: number; start: string; end: string}> = [];
+                        const start = new Date();
+                        start.setDate(1);
+                        start.setHours(0, 0, 0, 0);
+                        start.setMonth(start.getMonth() - offset);
+                        if (recordIndex === 1) {
+                            start.setDate(start.getDate() + 18);
+                        }
+
+                        for (let i = 0; i + 3 < recordData.length; i += 4) {
+                            const usage = (recordData[i] | (recordData[i + 1] << 8) | (recordData[i + 2] << 16) | (recordData[i + 3] << 24)) >>> 0;
+                            const end = new Date(start.getTime());
+                            end.setDate(end.getDate() + 1);
+                            if (usage !== 0xffffffff) {
+                                records.push({usage, start: start.toISOString(), end: end.toISOString()});
+                            }
+                            start.setTime(end.getTime());
+                        }
+
+                        value = {type: "day_of_month", offset, index: recordIndex, records};
+                    } else {
+                        if (recordIndex !== 0) {
+                            logger.warning(`readConsumptionRecord invalid 180d recordIndex=${recordIndex}`, NS);
+                            return;
+                        }
+
+                        const records: Array<{usage: number | null; start: string; end: string}> = [];
+                        const total = Math.floor(recordData.length / 4);
+
+                        for (let i = 0; i < total; i++) {
+                            const dataIndex = i * 4;
+                            const usageRaw =
+                                (recordData[dataIndex] |
+                                    (recordData[dataIndex + 1] << 8) |
+                                    (recordData[dataIndex + 2] << 16) |
+                                    (recordData[dataIndex + 3] << 24)) >>>
+                                0;
+                            const usage = usageRaw === 0xffffffff ? null : usageRaw;
+
+                            const monthsBack = total - 1 - i;
+                            const start = new Date();
+                            start.setDate(1);
+                            start.setHours(0, 0, 0, 0);
+                            start.setMonth(start.getMonth() - monthsBack);
+
+                            const end = new Date(start.getTime());
+                            end.setMonth(end.getMonth() + 1);
+                            records.push({usage, start: start.toISOString(), end: end.toISOString()});
+                        }
+
+                        value = {type: "month_of_halfyear", records};
+                    }
+
+                    if ((value.type === "day_of_hour" || value.type === "day_of_month") && typeof meta.state?.consumption_records === "string") {
+                        try {
+                            const existing = JSON.parse(meta.state.consumption_records) as typeof value;
+                            if (existing.type === value.type && existing.offset === value.offset && Array.isArray(existing.records)) {
+                                const mergedByRange = new Map<string, NonNullable<typeof value.records>[number]>();
+                                for (const record of existing.records) {
+                                    mergedByRange.set(`${record.start}|${record.end}`, record);
+                                }
+                                for (const record of value.records ?? []) {
+                                    mergedByRange.set(`${record.start}|${record.end}`, record);
+                                }
+
+                                value.records = Array.from(mergedByRange.values()).sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
+                            }
+                        } catch {
+                            // Ignore invalid stored state and publish the current frame.
+                        }
+                    }
+
+                    return {consumption_records: JSON.stringify(value)};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["read_consumption_records"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const payload = value as KeyValueAny;
+                    const type = String(payload.type);
+                    const indexInput = Array.isArray(payload.index) ? payload.index[0] : payload.index;
+                    const index = Math.trunc(Number(indexInput ?? 0));
+                    const offset = Math.trunc(Number(payload.offset ?? 0));
+
+                    if (Number.isNaN(index) || Number.isNaN(offset)) {
+                        throw new Error(`read_consumption_records invalid params: ${JSON.stringify(value)}`);
+                    }
+                    if (!["get24Hours", "get30Days", "get180Days"].includes(type)) {
+                        throw new Error(`read_consumption_records unsupported type: ${type}`);
+                    }
+
+                    let subCmd = 0x00;
+                    if (type === "get24Hours") {
+                        subCmd = 0x00;
+                        if (offset < 0 || offset > 6) {
+                            throw new Error(`read_consumption_records offset out of range for get24Hours: ${offset} (expected 0..6)`);
+                        }
+                        if (![0, 1, 240].includes(index)) {
+                            throw new Error(`read_consumption_records index out of range for get24Hours: ${index} (expected 0, 1, 240)`);
+                        }
+                    } else if (type === "get30Days") {
+                        subCmd = 0x01;
+                        if (offset < 0 || offset > 5) {
+                            throw new Error(`read_consumption_records offset out of range for get30Days: ${offset} (expected 0..5)`);
+                        }
+                        if (![0, 1].includes(index)) {
+                            throw new Error(`read_consumption_records index out of range for get30Days: ${index} (expected 0, 1)`);
+                        }
+                    } else {
+                        subCmd = 0x02;
+                        if (offset !== 0) {
+                            throw new Error(`read_consumption_records offset for get180Days must be 0, got ${offset}`);
+                        }
+                        if (index !== 0) {
+                            throw new Error(`read_consumption_records index for get180Days must be 0, got ${index}`);
+                        }
+                    }
+
+                    let localTimestamp = Math.floor(Date.now() / 1000) + -new Date().getTimezoneOffset() * 60;
+                    const metaOptions = meta.options as KeyValueAny | undefined;
+                    if (typeof metaOptions?.getLocalTime === "function") {
+                        const localTime = metaOptions.getLocalTime() as KeyValueAny;
+                        if (typeof localTime?.timeStamp === "number" && typeof localTime?.offset === "number") {
+                            localTimestamp = Math.round(localTime.timeStamp / 1000) + localTime.offset * 60;
+                        }
+                    }
+
+                    const payloadValue: number[] = [subCmd, offset & 0xff, index & 0xff, 0x00, 0x00, 0x00, 0x00];
+                    const normalizedLocalTimestamp = Math.max(0, Math.floor(localTimestamp)) >>> 0;
+                    payloadValue[3] = normalizedLocalTimestamp & 0xff;
+                    payloadValue[4] = (normalizedLocalTimestamp >> 8) & 0xff;
+                    payloadValue[5] = (normalizedLocalTimestamp >> 16) & 0xff;
+                    payloadValue[6] = (normalizedLocalTimestamp >> 24) & 0xff;
+
+                    const sendReadRecord = async (recordIndex: number) => {
+                        payloadValue[2] = recordIndex & 0xff;
+                        await entity.command<typeof clusterName, typeof commandName, SonoffBasicZB1GSP>(
+                            clusterName,
+                            commandName,
+                            {data: payloadValue},
+                            {disableDefaultResponse: true},
+                        );
+                    };
+
+                    if (type === "get24Hours" && index === 0) {
+                        await sendReadRecord(0);
+                        await sendReadRecord(1);
+                        return {state: {[key]: {type, index: 0, offset, local_time: localTimestamp}}};
+                    }
+
+                    if (type === "get30Days" && index === 0) {
+                        await sendReadRecord(0);
+                        await sendReadRecord(1);
+                        return {state: {[key]: {type, index: 0, offset, local_time: localTimestamp}}};
+                    }
+
+                    await sendReadRecord(index);
+                    return {state: {[key]: {type, index, offset, local_time: localTimestamp}}};
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    faultCodeMiniZb1gsp: (args: {hasSwitch: boolean}): ModernExtend => {
+        const clusterName = "customClusterEwelink" as const;
+        const attributeName = "faultCode" as const;
+
+        const faultStates = [
+            {name: "device_overheated", bit: 0b001},
+            {name: "metering_communication_error", bit: 0b010},
+            {name: "overload_protection", bit: 0b100},
+        ].filter((fault) => args.hasSwitch || fault.name !== "device_overheated");
+
+        const exposes = faultStates.map((fault) => {
+            const expose = e.binary(fault.name, ea.STATE_GET, "Alarm Active", "Normal").withCategory("diagnostic");
+            return fault.name === "overload_protection" ? expose.withLabel("Electrical Status") : expose;
+        });
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.faultCode === undefined) return;
+
+                    const value = msg.data.faultCode;
+                    utils.assertNumber(value);
+
+                    const tlv = value >>> 0;
+                    const type = (tlv >>> 24) & 0xff;
+                    const length = (tlv >>> 16) & 0xff;
+                    if (type !== 0x07 || length !== 0x02) return;
+
+                    const faultValue = tlv & 0xffff;
+                    const result: KeyValue = {};
+                    for (const fault of faultStates) {
+                        result[fault.name] = (faultValue & fault.bit) !== 0 ? "Alarm Active" : "Normal";
+                    }
+                    return result;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: faultStates.map((fault) => fault.name),
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    detachRelayActionEvent: (): ModernExtend => {
+        const clusterName = "customClusterEwelink" as const;
+        const actionLookup: {[key: number]: string} = {
+            1: "single_click",
+            2: "double_click",
+            3: "long_press",
+            4: "switch_on",
+            5: "switch_off",
+        };
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (msg.data.detachRelayActionEvent === undefined) return;
+
+                    const action = actionLookup[msg.data.detachRelayActionEvent];
+                    if (action === undefined) return;
+
+                    return {action};
+                },
+            },
+        ];
+
+        return {
+            exposes: [e.action(Object.values(actionLookup))],
+            fromZigbee,
+            toZigbee: [],
+            isModernExtend: true,
+        };
+    },
+    localFastSceneConfiguration: (args: {hasSwitch?: boolean} = {}): ModernExtend => {
+        const clusterName = "customClusterEwelink" as const;
+        const attributeName = "localFastSceneConfiguration" as const;
+        const sceneProperty = "power_protector" as const;
+        const powerProtectorType = 0x02;
+        const hasSwitch = args.hasSwitch;
+        const ranges = {
+            maxCurrentProtect: {min: 0.1, max: 16},
+            maxPowerProtect: {min: 2, max: 3840},
+            voltageProtect: {min: 85, max: 277},
+        };
+
+        const powerProtectorExpose = e.composite(sceneProperty, sceneProperty, ea.STATE_SET);
+
+        if (hasSwitch) {
+            powerProtectorExpose
+                .withFeature(
+                    e
+                        .numeric("max_current_protect", ea.STATE_SET)
+                        .withUnit("A")
+                        .withValueMin(ranges.maxCurrentProtect.min)
+                        .withValueMax(ranges.maxCurrentProtect.max),
+                )
+                .withFeature(
+                    e
+                        .numeric("max_power_protect", ea.STATE_SET)
+                        .withUnit("W")
+                        .withValueMin(ranges.maxPowerProtect.min)
+                        .withValueMax(ranges.maxPowerProtect.max),
+                )
+                .withFeature(e.binary("max_voltage_protect_enabled", ea.STATE_SET, true, false))
+                .withFeature(
+                    e
+                        .numeric("max_voltage_protect", ea.STATE_SET)
+                        .withUnit("V")
+                        .withValueMin(ranges.voltageProtect.min)
+                        .withValueMax(ranges.voltageProtect.max),
+                )
+                .withFeature(e.binary("min_voltage_protect_enabled", ea.STATE_SET, true, false))
+                .withFeature(
+                    e
+                        .numeric("min_voltage_protect", ea.STATE_SET)
+                        .withUnit("V")
+                        .withValueMin(ranges.voltageProtect.min)
+                        .withValueMax(ranges.voltageProtect.max),
+                )
+                .withFeature(e.binary("external_switch_only_recovery", ea.STATE_SET, true, false))
+                .withFeature(e.binary("auto_recovery", ea.STATE_SET, true, false));
+        } else {
+            powerProtectorExpose
+                .withLabel("Electrical Monitoring")
+                .withFeature(
+                    e
+                        .numeric("max_current_protect", ea.STATE_SET)
+                        .withUnit("A")
+                        .withValueMin(ranges.maxCurrentProtect.min)
+                        .withValueMax(ranges.maxCurrentProtect.max)
+                        .withLabel("Overcurrent Monitoring"),
+                )
+                .withFeature(
+                    e
+                        .numeric("max_power_protect", ea.STATE_SET)
+                        .withUnit("W")
+                        .withValueMin(ranges.maxPowerProtect.min)
+                        .withValueMax(ranges.maxPowerProtect.max)
+                        .withLabel("Overpower Monitoring"),
+                )
+                .withFeature(e.binary("max_voltage_protect_enabled", ea.STATE_SET, true, false).withLabel("Overvoltage Monitoring"))
+                .withFeature(
+                    e
+                        .numeric("max_voltage_protect", ea.STATE_SET)
+                        .withUnit("V")
+                        .withValueMin(ranges.voltageProtect.min)
+                        .withValueMax(ranges.voltageProtect.max)
+                        .withLabel("Overvoltage Monitoring"),
+                )
+                .withFeature(e.binary("min_voltage_protect_enabled", ea.STATE_SET, true, false).withLabel("Undervoltage Monitoring"))
+                .withFeature(
+                    e
+                        .numeric("min_voltage_protect", ea.STATE_SET)
+                        .withUnit("V")
+                        .withValueMin(ranges.voltageProtect.min)
+                        .withValueMax(ranges.voltageProtect.max)
+                        .withLabel("Undervoltage Monitoring"),
+                );
+        }
+
+        const exposes = [powerProtectorExpose];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (!(attributeName in msg.data)) return;
+                    const bytes = zclArrayValueToBytes(msg.data.localFastSceneConfiguration);
+                    if (bytes === undefined) return;
+                    if (bytes.length < 3) return;
+
+                    const result: KeyValueAny = {};
+                    let index = 3;
+                    while (index + 1 < bytes.length) {
+                        const reportedSceneType = bytes[index];
+                        const length = bytes[index + 1];
+                        index += 2;
+                        const value = bytes.slice(index, index + length);
+                        index += length;
+
+                        if (reportedSceneType !== powerProtectorType) continue;
+
+                        if (value[0] !== 1) {
+                            logger.error(
+                                `Local fast scene ${sceneProperty} is reported as disabled. Ignoring disabled state and reporting scene data.`,
+                                NS,
+                            );
+                        }
+
+                        const maxVoltageProtect = readUInt32LE(value, 10);
+                        const minVoltageProtect = readUInt32LE(value, 14);
+                        const scene: KeyValueAny = {
+                            max_current_protect: readUInt32LE(value, 1) / 1000,
+                            max_power_protect: readUInt32LE(value, 5) / 1000,
+                            max_voltage_protect_enabled: !!(maxVoltageProtect & 0x80000000),
+                            max_voltage_protect: (maxVoltageProtect & 0x7fffffff) / 1000,
+                            min_voltage_protect_enabled: !!(minVoltageProtect & 0x80000000),
+                            min_voltage_protect: (minVoltageProtect & 0x7fffffff) / 1000,
+                        };
+
+                        if (hasSwitch) {
+                            scene.external_switch_only_recovery = value[9] === 1;
+                            scene.auto_recovery = value[18] === 1;
+                        }
+
+                        result[sceneProperty] = scene;
+                    }
+
+                    return result;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [sceneProperty],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    if (key !== sceneProperty) {
+                        throw new Error(`Unsupported local fast scene: ${key}`);
+                    }
+
+                    const scene = value as KeyValueAny;
+                    const getBoolean = (property: string): boolean => {
+                        const field = scene[property];
+                        if (!utils.isBoolean(field)) {
+                            throw new Error(`Invalid ${key}.${property}, expected boolean`);
+                        }
+                        return field;
+                    };
+                    const getCachedBoolean = (property: string): boolean => {
+                        const cachedScene = meta.state?.[sceneProperty] as KeyValueAny | undefined;
+                        const cachedField = cachedScene?.[property];
+
+                        return utils.isBoolean(cachedField) ? cachedField : false;
+                    };
+                    const getConfiguredBoolean = (property: string, supported: boolean): boolean =>
+                        supported ? getBoolean(property) : getCachedBoolean(property);
+                    const getNumber = (property: string): number => {
+                        const field = scene[property];
+                        if (!utils.isNumber(field) || !Number.isFinite(field)) {
+                            throw new Error(`Invalid ${key}.${property}, expected number`);
+                        }
+                        return field;
+                    };
+                    const assertRange = (property: string, value: number, min: number, max: number): void => {
+                        if (value < min || value > max) {
+                            throw new Error(`Invalid ${key}.${property}, expected value between ${min} and ${max}`);
+                        }
+                    };
+
+                    const sceneValue = [1];
+                    const maxCurrentProtect = getNumber("max_current_protect");
+                    const maxPowerProtect = getNumber("max_power_protect");
+                    const maxVoltageProtect = getNumber("max_voltage_protect");
+                    const minVoltageProtect = getNumber("min_voltage_protect");
+                    assertRange("max_current_protect", maxCurrentProtect, ranges.maxCurrentProtect.min, ranges.maxCurrentProtect.max);
+                    assertRange("max_power_protect", maxPowerProtect, ranges.maxPowerProtect.min, ranges.maxPowerProtect.max);
+                    assertRange("max_voltage_protect", maxVoltageProtect, ranges.voltageProtect.min, ranges.voltageProtect.max);
+                    assertRange("min_voltage_protect", minVoltageProtect, ranges.voltageProtect.min, ranges.voltageProtect.max);
+
+                    sceneValue.push(...toUInt32LEBytes(Math.round(maxCurrentProtect * 1000)));
+                    sceneValue.push(...toUInt32LEBytes(Math.round(maxPowerProtect * 1000)));
+                    sceneValue.push(getConfiguredBoolean("external_switch_only_recovery", hasSwitch) ? 1 : 0);
+
+                    const maxVoltage = Math.round(maxVoltageProtect * 1000) & 0x7fffffff;
+                    const minVoltage = Math.round(minVoltageProtect * 1000) & 0x7fffffff;
+                    sceneValue.push(...toUInt32LEBytes((getBoolean("max_voltage_protect_enabled") ? 0x80000000 : 0) | maxVoltage));
+                    sceneValue.push(...toUInt32LEBytes((getBoolean("min_voltage_protect_enabled") ? 0x80000000 : 0) | minVoltage));
+                    sceneValue.push(getConfiguredBoolean("auto_recovery", hasSwitch) ? 1 : 0, 1);
+
+                    const bytes = [0x00, 0x01, 0x01, powerProtectorType, sceneValue.length & 0xff, ...sceneValue];
+
+                    await entity.write(
+                        clusterName,
+                        {
+                            [0x7016]: {
+                                value: {elementType: Zcl.DataType.UINT8, elements: bytes},
+                                type: Zcl.DataType.ARRAY,
+                            },
+                        },
+                        utils.getOptions(meta.mapped, entity),
+                    );
+
+                    const state = {...scene};
+                    delete state.enabled;
+                    return {state: {[key]: state}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffEwelink>(clusterName, [attributeName], defaultResponseOptions);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
             isModernExtend: true,
         };
     },
@@ -1385,7 +5498,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         description: "Temperature and humidity sensor",
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        fromZigbee: [fz.SNZB02_temperature, fz.humidity, fz.battery],
+        fromZigbee: [fzLocal.SNZB02_temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             device.powerSource = "Battery";
@@ -1421,15 +5534,16 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02d", {
+                name: "customSonoffSnzb02d",
                 ID: 0xfc11,
                 attributes: {
-                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortTemperatureMax: {name: "comfortTemperatureMax", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortTemperatureMin: {name: "comfortTemperatureMin", ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortHumidityMin: {name: "comfortHumidityMin", ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    comfortHumidityMax: {name: "comfortHumidityMax", ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1532,10 +5646,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Waterproof (IP65) sensor with screen and probe temperature detection",
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
+                name: "customSonoffSnzb02ld",
                 ID: 0xfc11,
                 attributes: {
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1571,13 +5686,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02WD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) temperature and humidity sensor with screen",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02wd", {
+                name: "customSonoffSnzb02wd",
                 ID: 0xfc11,
                 attributes: {
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1628,15 +5745,16 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature and humidity sensor with display and relay control",
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02dr2", {
+                name: "customSonoffSnzb02dr2",
                 ID: 0xfc11,
                 attributes: {
-                    comfortTemperatureMax: {ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    comfortTemperatureMin: {ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    comfortHumidityMin: {ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    comfortHumidityMax: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperatureUnits: {ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortTemperatureMax: {name: "comfortTemperatureMax", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortTemperatureMin: {name: "comfortTemperatureMin", ID: 0x0004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    comfortHumidityMin: {name: "comfortHumidityMin", ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    comfortHumidityMax: {name: "comfortHumidityMax", ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1908,9 +6026,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.battery({percentage: true, percentageReporting: true}),
             m.deviceAddCustomCluster("customSonoffSnzb01m", {
+                name: "customSonoffSnzb01m",
                 ID: 0xfc12,
                 attributes: {
-                    keyActionEvent: {ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    keyActionEvent: {name: "keyActionEvent", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1926,10 +6045,11 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02p", {
+                name: "customSonoffSnzb02p",
                 ID: 0xfc11,
                 attributes: {
-                    temperatureCalibration: {ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    humidityCalibration: {ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1990,6 +6110,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-04PR2",
         vendor: "SONOFF",
         description: "Contact sensor",
+        version: "0.0.1",
         extend: [
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.binary({
@@ -2002,7 +6123,12 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: "STATE_GET",
             }),
-            ewelinkBattery(),
+            m.battery({
+                percentageReportingConfig: {min: 3600, max: 7200, change: 2},
+                voltage: true,
+                voltageReporting: true,
+                voltageReportingConfig: false,
+            }),
         ],
         ota: true,
     },
@@ -2053,7 +6179,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "occupancy_timeout",
                 cluster: 0x0406,
                 attribute: {ID: 0x0020, type: 0x21},
-                description: "Unoccupied to occupied delay",
+                description: "Occupied to unoccupied delay",
                 valueMin: 15,
                 valueMax: 65535,
             }),
@@ -2075,6 +6201,39 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["MG1_5RZ"],
+        model: "MG1_5RZ",
+        vendor: "SONOFF",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
     },
     {
         zigbeeModel: ["TRVZB"],
@@ -2100,26 +6259,29 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            m.customLocalTemperatureCalibrationRange({min: -12.7, max: 12.7}),
             m.deviceAddCustomCluster("customSonoffTrvzb", {
+                name: "customSonoffTrvzb",
                 ID: 0xfc11,
                 attributes: {
-                    childLock: {ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
-                    tamper: {ID: 0x2000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    illumination: {ID: 0x2001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    openWindow: {ID: 0x6000, type: Zcl.DataType.BOOLEAN, write: true},
-                    frostProtectionTemperature: {ID: 0x6002, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    idleSteps: {ID: 0x6003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    closingSteps: {ID: 0x6004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    valveOpeningLimitVoltage: {ID: 0x6005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    valveClosingLimitVoltage: {ID: 0x6006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    valveMotorRunningVoltage: {ID: 0x6007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    valveOpeningDegree: {ID: 0x600b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    valveClosingDegree: {ID: 0x600c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    tempAccuracy: {ID: 0x6011, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    temporaryMode: {ID: 0x6014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    temporaryModeTime: {ID: 0x6015, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
-                    temporaryModeTemp: {ID: 0x6016, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    tamper: {name: "tamper", ID: 0x2000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    illumination: {name: "illumination", ID: 0x2001, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    openWindow: {name: "openWindow", ID: 0x6000, type: Zcl.DataType.BOOLEAN, write: true},
+                    frostProtectionTemperature: {name: "frostProtectionTemperature", ID: 0x6002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    idleSteps: {name: "idleSteps", ID: 0x6003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    closingSteps: {name: "closingSteps", ID: 0x6004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveOpeningLimitVoltage: {name: "valveOpeningLimitVoltage", ID: 0x6005, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveClosingLimitVoltage: {name: "valveClosingLimitVoltage", ID: 0x6006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveMotorRunningVoltage: {name: "valveMotorRunningVoltage", ID: 0x6007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    valveOpeningDegree: {name: "valveOpeningDegree", ID: 0x600b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    valveClosingDegree: {name: "valveClosingDegree", ID: 0x600c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    tempAccuracy: {name: "tempAccuracy", ID: 0x6011, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temporaryMode: {name: "temporaryMode", ID: 0x6014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    temporaryModeTime: {name: "temporaryModeTime", ID: 0x6015, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    temporaryModeTemp: {name: "temporaryModeTemp", ID: 0x6016, type: Zcl.DataType.INT16, write: true, min: -32768},
                     externalTemperatureInput: {
+                        name: "externalTemperatureInput",
                         ID: 0x600d,
                         type: Zcl.DataType.INT16,
 
@@ -2127,12 +6289,14 @@ export const definitions: DefinitionWithExtend[] = [
                         min: -32768,
                     },
                     temperatureSensorSelect: {
+                        name: "temperatureSensorSelect",
                         ID: 0x600e,
                         type: Zcl.DataType.UINT8,
 
                         write: true,
                         max: 0xff,
                     },
+                    smartTempControl: {name: "smartTempControl", ID: 0x6017, type: Zcl.DataType.BITMAP8, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -2324,6 +6488,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.weeklySchedule(),
             m.customTimeResponse("1970_UTC"),
+            m.binary<"customSonoffTrvzb", SonoffTrvzb>({
+                name: "smart_temperature_control",
+                cluster: "customSonoffTrvzb",
+                attribute: "smartTempControl",
+                description:
+                    "Enable adaptive valve control using a PID algorithm. " +
+                    'When enabled, "Valve Opening Percentage" and "Temperature Accuracy" are unavailable.',
+                access: "ALL",
+                valueOn: [true, 0x02],
+                valueOff: [false, 0x00],
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2337,11 +6512,307 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["S60ZBTPF", "S60ZBTPG"],
+        zigbeeModel: ["TRV-ZBT"],
+        model: "TRV-ZBT",
+        vendor: "SONOFF",
+        description: "Zigbee thermostatic radiator valve",
+        exposes: [
+            e
+                .climate()
+                .withSetpoint(
+                    "occupied_heating_setpoint",
+                    sonoffTrvzbtTargetTemperatureRange.min,
+                    sonoffTrvzbtTargetTemperatureRange.max,
+                    sonoffTrvzbtTargetTemperatureRange.step,
+                )
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(
+                    sonoffTrvzbtLocalTemperatureCalibrationRange.min,
+                    sonoffTrvzbtLocalTemperatureCalibrationRange.max,
+                    sonoffTrvzbtLocalTemperatureCalibrationRange.step,
+                )
+                .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
+                .withRunningState(["idle", "heat"], ea.STATE_GET),
+            e.battery(),
+        ],
+        fromZigbee: [fz.thermostat, fz.battery],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        extend: [
+            m.customLocalTemperatureCalibrationRange({
+                min: sonoffTrvzbtLocalTemperatureCalibrationRange.min,
+                max: sonoffTrvzbtLocalTemperatureCalibrationRange.max,
+            }),
+            m.deviceAddCustomCluster("customSonoffTrvzbt", {
+                name: "customSonoffTrvzbt",
+                ID: 0xfc11,
+                attributes: {
+                    childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    faultCode: {name: "faultCode", ID: 0x0010, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    screenDirection: {name: "screenDirection", ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    openWindow: {name: "openWindow", ID: 0x6000, type: Zcl.DataType.BOOLEAN, write: true},
+                    frostProtectionTemperature: {name: "frostProtectionTemperature", ID: 0x6002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    idleSteps: {name: "idleSteps", ID: 0x6003, type: Zcl.DataType.UINT16, max: 0xffff},
+                    closingSteps: {name: "closingSteps", ID: 0x6004, type: Zcl.DataType.UINT16, max: 0xffff},
+                    valveOpeningLimitVoltage: {name: "valveOpeningLimitVoltage", ID: 0x6005, type: Zcl.DataType.UINT16, max: 0xffff},
+                    valveClosingLimitVoltage: {name: "valveClosingLimitVoltage", ID: 0x6006, type: Zcl.DataType.UINT16, max: 0xffff},
+                    valveMotorRunningVoltage: {name: "valveMotorRunningVoltage", ID: 0x6007, type: Zcl.DataType.UINT16, max: 0xffff},
+                    valveOpeningDegree: {name: "valveOpeningDegree", ID: 0x600b, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    valveClosingDegree: {name: "valveClosingDegree", ID: 0x600c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    externalTemperatureInput: {name: "externalTemperatureInput", ID: 0x600d, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temperatureSensorSelect: {name: "temperatureSensorSelect", ID: 0x600e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    temperatureTriggerOfValveOpening: {
+                        name: "temperatureTriggerOfValveOpening",
+                        ID: 0x6011,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
+                    temperatureControlMode: {name: "temperatureControlMode", ID: 0x6013, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                    temporaryMode: {name: "temporaryMode", ID: 0x6014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    temporaryModeTime: {name: "temporaryModeTime", ID: 0x6015, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    temporaryModeTemp: {name: "temporaryModeTemp", ID: 0x6016, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    lowBatteryValveState: {name: "lowBatteryValveState", ID: 0x601c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    weeklyScheduleActiveNum: {name: "weeklyScheduleActiveNum", ID: 0x601d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    hvacMessageNotification: {name: "hvacMessageNotification", ID: 0x6030, type: Zcl.DataType.ARRAY},
+                    heatPercentageHour: {name: "heatPercentageHour", ID: 0x6033, type: Zcl.DataType.UINT8, max: 0xff},
+                },
+                commands: {
+                    scheduleName: {name: "scheduleName", ID: 0x0b, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    readTemperatureControlHistory: {
+                        name: "readTemperatureControlHistory",
+                        ID: 0x0e,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    bluetoothPairing: {name: "bluetoothPairing", ID: 0x10, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    scheduleGroup: {name: "scheduleGroup", ID: 0x13, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            sonoffExtend.trvzbtFaultCode(),
+            m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "screen_direction",
+                lookup: {"0": 0, "90": 1, "180": 2, "270": 3},
+                cluster: "customSonoffTrvzbt",
+                attribute: "screenDirection",
+                entityCategory: "config",
+                description: "Screen direction in degrees",
+            }),
+            m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "child_lock",
+                cluster: "customSonoffTrvzbt",
+                attribute: "childLock",
+                entityCategory: "config",
+                description: "Enables/disables physical input on the device",
+                valueOn: ["LOCK", 0x01],
+                valueOff: ["UNLOCK", 0x00],
+            }),
+            m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "open_window",
+                cluster: "customSonoffTrvzbt",
+                attribute: "openWindow",
+                entityCategory: "config",
+                description: "Automatically turns off the radiator when local temperature drops by more than 1.5°C in 5 minutes.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "frost_protection_temperature",
+                cluster: "customSonoffTrvzbt",
+                attribute: "frostProtectionTemperature",
+                entityCategory: "config",
+                description: "Minimum temperature at which to automatically turn on the radiator to prevent freezing.",
+                valueMin: sonoffTrvzbtFrostProtectionTemperatureRange.min,
+                valueMax: sonoffTrvzbtFrostProtectionTemperatureRange.max,
+                valueStep: sonoffTrvzbtFrostProtectionTemperatureRange.step,
+                unit: "°C",
+                scale: 100,
+            }),
+            m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "temperature_sensor_select",
+                label: "Temperature sensor",
+                lookup: {internal: 0, external: 1, external_2: 2, external_3: 3},
+                cluster: "customSonoffTrvzbt",
+                attribute: "temperatureSensorSelect",
+                description:
+                    "Whether to use the value of the internal temperature sensor or an external temperature sensor for the perceived local temperature. Using an external sensor does not require local temperature calibration.",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "external_temperature_input",
+                label: "External temperature",
+                cluster: "customSonoffTrvzbt",
+                attribute: "externalTemperatureInput",
+                entityCategory: "config",
+                description:
+                    "The value of an external temperature sensor. Note: synchronisation of this value with the external temperature sensor needs to happen outside of Zigbee2MQTT.",
+                valueMin: 0.0,
+                valueMax: 99.9,
+                valueStep: 0.1,
+                unit: "°C",
+                scale: 100,
+                precision: 1,
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "idle_steps",
+                cluster: "customSonoffTrvzbt",
+                attribute: "idleSteps",
+                entityCategory: "diagnostic",
+                description: "Number of steps used for calibration (no-load steps)",
+                access: "STATE_GET",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "closing_steps",
+                cluster: "customSonoffTrvzbt",
+                attribute: "closingSteps",
+                entityCategory: "diagnostic",
+                description: "Number of steps it takes to close the valve",
+                access: "STATE_GET",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "valve_opening_limit_voltage",
+                cluster: "customSonoffTrvzbt",
+                attribute: "valveOpeningLimitVoltage",
+                entityCategory: "diagnostic",
+                description: "Valve opening limit voltage",
+                unit: "mV",
+                access: "STATE_GET",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "valve_closing_limit_voltage",
+                cluster: "customSonoffTrvzbt",
+                attribute: "valveClosingLimitVoltage",
+                entityCategory: "diagnostic",
+                description: "Valve closing limit voltage",
+                unit: "mV",
+                access: "STATE_GET",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "valve_motor_running_voltage",
+                cluster: "customSonoffTrvzbt",
+                attribute: "valveMotorRunningVoltage",
+                entityCategory: "diagnostic",
+                description: "Valve motor running voltage",
+                unit: "mV",
+                access: "STATE_GET",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "heating_valve_position",
+                cluster: "customSonoffTrvzbt",
+                attribute: "valveOpeningDegree",
+                entityCategory: "config",
+                description: "Valve opening percentage during heating.",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "idle_valve_position",
+                cluster: "customSonoffTrvzbt",
+                attribute: "valveClosingDegree",
+                entityCategory: "config",
+                description:
+                    "Valve opening percentage when not heating.Recommended: set the heating valve position higher than the idle valve position.",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+            }),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "temperature_accuracy",
+                cluster: "customSonoffTrvzbt",
+                attribute: "temperatureTriggerOfValveOpening",
+                entityCategory: "config",
+                description:
+                    "Temperature control accuracy. " +
+                    "The range is -0.2 ~ -1°C, with an interval of 0.2, and the default is -1. " +
+                    "If the temperature control accuracy is selected as -1°C (default value) and the target temperature is 26 degrees, " +
+                    "then TRV-ZBT will close the valve when the room temperature reaches 26 degrees and open the valve at 25 degrees. " +
+                    "If -0.4°C is chosen as the temperature control accuracy, then the valve will close when the room temperature reaches 26 degrees and open at 25.6 degrees. ",
+                valueMin: -1,
+                valueMax: -0.2,
+                valueStep: 0.2,
+                unit: "°C",
+                scale: 100,
+            }),
+            m.binary<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "smart_temperature_control",
+                cluster: "customSonoffTrvzbt",
+                attribute: "temperatureControlMode",
+                entityCategory: "config",
+                description:
+                    "Enable adaptive valve control using a PID algorithm. " +
+                    'When enabled, "Valve Opening Percentage" and "Temperature Accuracy" are unavailable.',
+                valueOn: ["ON", 0x02],
+                valueOff: ["OFF", 0x01],
+            }),
+            sonoffExtend.trvzbtTemporaryMode(),
+            m.enumLookup<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "low_battery_valve_state",
+                lookup: {close: 0, open_30: 30},
+                cluster: "customSonoffTrvzbt",
+                attribute: "lowBatteryValveState",
+                entityCategory: "config",
+                description: "Fixed valve opening percentage used when the battery is too low to operate.",
+            }),
+            sonoffExtend.trvzbtWeeklySchedule(),
+            sonoffExtend.trvzbtReadScheduleOnConfigure(),
+            sonoffExtend.trvzbtHvacNotification(),
+            m.numeric<"customSonoffTrvzbt", SonoffTrvzbt>({
+                name: "heat_percentage_hour",
+                cluster: "customSonoffTrvzbt",
+                attribute: "heatPercentageHour",
+                entityCategory: "diagnostic",
+                description: "Heating percentage over the last hour",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                access: "STATE_GET",
+            }),
+            sonoffExtend.trvzbtBluetoothPairing(),
+            sonoffExtend.trvzbtTemperatureControlHistory(),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
+            const customAttributes = [
+                0x0000, 0x0010, 0x0021, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600b, 0x600c, 0x600d, 0x600e, 0x6011, 0x6013,
+                0x6014, 0x6015, 0x6016, 0x601c, 0x601d, 0x6033,
+            ];
+            const readCustomAttributes = async (attributes: number[]) => {
+                try {
+                    await endpoint.read(0xfc11, attributes);
+                } catch (error) {
+                    if (attributes.length === 1) {
+                        logger.error(`TRV-ZBT failed to read private attribute 0x${attributes[0].toString(16)}: ${error}`, NS);
+                        return;
+                    }
+                    for (const attribute of attributes) {
+                        await readCustomAttributes([attribute]);
+                    }
+                }
+            };
+            for (let i = 0; i < customAttributes.length; i += 4) {
+                await readCustomAttributes(customAttributes.slice(i, i + 4));
+            }
+        },
+    },
+    {
+        zigbeeModel: ["S60ZBTPF"],
         model: "S60ZBTPF",
         vendor: "SONOFF",
         description: "Zigbee smart plug",
-        whiteLabel: [{vendor: "SONOFF", model: "S60ZBTPG", fingerprint: [{modelID: "S60ZBTPG"}]}],
         fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
         exposes: [e.energy()],
         extend: [
@@ -2351,6 +6822,15 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
             }),
             sonoffExtend.addCustomClusterEwelink(),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "network_indicator",
+                cluster: "customClusterEwelink",
+                attribute: "networkLed",
+                description: "Network indicator settings, turn off/on the blue online status network indicator.",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "current",
                 cluster: "customClusterEwelink",
@@ -2417,7 +6897,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
-                label: "Energy month",
+                label: "Energy this month",
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -2435,6 +6915,133 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 1],
             }),
             sonoffExtend.overloadProtection(4000, 17),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect"],
+                defaultResponseOptions,
+            );
+            await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
+                {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+                {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+                {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+            await endpoint.read("seMetering", ["multiplier", "divisor"]);
+            await reporting.currentSummDelivered(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["S60ZBTPG"],
+        model: "S60ZBTPG",
+        vendor: "SONOFF",
+        description: "Zigbee smart plug",
+        fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
+        exposes: [e.energy()],
+        extend: [
+            m.onOff({
+                powerOnBehavior: true,
+                skipDuplicateTransaction: true,
+                configureReporting: true,
+            }),
+            sonoffExtend.addCustomClusterEwelink(),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "network_indicator",
+                cluster: "customClusterEwelink",
+                attribute: "networkLed",
+                description: "Network indicator settings, turn off/on the blue online status network indicator.",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "current",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentCurrentValue",
+                description: "Current",
+                unit: "A",
+                access: "STATE_GET",
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28470#issuecomment-3369116710
+                reporting: {min: "10_SECONDS", max: "MAX", change: 2},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentCurrentValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        return {current: meta.state.state === "ON" ? msg.data.acCurrentCurrentValue / 1000 : 0};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "voltage",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentVoltageValue",
+                description: "Voltage",
+                unit: "V",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "power",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentPowerValue",
+                description: "Active power",
+                unit: "W",
+                access: "STATE_GET",
+                reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentPowerValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentPowerValue" in msg.data) {
+                        return {power: meta.state.state === "ON" ? msg.data.acCurrentPowerValue / 1000 : 0};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_yesterday",
+                label: "Energy yesterday",
+                cluster: "customClusterEwelink",
+                attribute: "energyYesterday",
+                description: "Electricity consumption for the yesterday",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_today",
+                label: "Energy today",
+                cluster: "customClusterEwelink",
+                attribute: "energyToday",
+                description: "Electricity consumption for the day",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_month",
+                label: "Energy this month",
+                cluster: "customClusterEwelink",
+                attribute: "energyMonth",
+                description: "Electricity consumption for the month",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            sonoffExtend.inchingControlSet(),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "outlet_control_protect",
+                cluster: "customClusterEwelink",
+                attribute: "outlet_control_protect",
+                description: "Outlet overload protection Settings",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            sonoffExtend.overloadProtection(3250, 14),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2490,6 +7097,53 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.cyclicTimedIrrigation(),
             sonoffExtend.cyclicQuantitativeIrrigation(),
+            m.numeric({
+                name: "real_time_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5006, type: Zcl.DataType.UINT32},
+                description: "Duration of the last/current irrigation session",
+                access: "STATE",
+                unit: "s",
+            }),
+            m.numeric({
+                name: "real_time_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5007, type: Zcl.DataType.UINT32},
+                description: "Volume of the last/current irrigation session",
+                access: "STATE",
+                unit: "L",
+            }),
+            m.numeric({
+                name: "irrigation_start_time",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500d, type: Zcl.DataType.UINT32},
+                description: "Start time of the last/current irrigation session (Unix timestamp)",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "irrigation_end_time",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500e, type: Zcl.DataType.UINT32},
+                description: "End time of the last irrigation session (Unix timestamp)",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "daily_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x500f, type: Zcl.DataType.UINT32},
+                description: "Total irrigation volume today",
+                access: "STATE",
+                unit: "L",
+            }),
+            m.binary({
+                name: "valve_work_state",
+                cluster: "customClusterEwelink",
+                attribute: {ID: 0x5010, type: Zcl.DataType.BOOLEAN},
+                description: "Current valve work state",
+                access: "STATE",
+                valueOn: ["working", 1],
+                valueOff: ["idle", 0],
+            }),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -2516,6 +7170,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable/disable Radio power turbo mode",
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
+                entityCategory: "config",
             }),
             sonoffExtend.inchingControlSet(),
         ],
@@ -2528,7 +7183,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZBMINIR2"],
+        whiteLabel: [{model: "MINI-ZBD", vendor: "SONOFF", fingerprint: [{modelID: "MINI-ZBD", manufacturerName: "SONOFF"}]}],
+        zigbeeModel: ["ZBMINIR2", "MINI-ZBD"],
         model: "ZBMINIR2",
         vendor: "SONOFF",
         description: "Zigbee smart switch",
@@ -2857,6 +7513,20 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.addCustomClusterEwelink(),
             m.windowCovering({controls: ["lift"], coverInverted: false}),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
+                name: "motor_travel_calibration_action",
+                lookup: {
+                    start_automatic: 2,
+                    start_manual: 3,
+                    clear: 4,
+                    manual_2_fully_opened: 7,
+                    manual_3_fully_closed: 8,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "motorTravelCalibrationAction",
+                description: "Calibrates the motor stroke, or clears the current one.",
+                access: "ALL",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_status",
                 lookup: {Uncalibrated: 0, Calibrated: 1},
                 cluster: "customClusterEwelink",
@@ -2949,6 +7619,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 2,
                 endpointNames: ["l1", "l2"],
             }),
+            sonoffExtend.programmableStepperSequence(["1", "2", "3", "4"]),
         ],
 
         configure: async (device, coordinatorEndpoint) => {
@@ -3113,13 +7784,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "set_calibration_action",
-                lookup: {start: [0x03, 0x01, 0x01, 0x01], stop: [0x03, 0x01, 0x01, 0x02], clear: [0x03, 0x01, 0x01, 0x03]},
+                lookup: {start: [0x03, 0x01, 0x01, 0x01], stop: [0x03, 0x01, 0x01, 0x02]},
                 cluster: "customClusterEwelink",
                 attribute: "setCalibrationAction",
                 description:
                     "After calibration, the light adjustment becomes smooth and consistent.. Takes about 2 minutes; device unavailable during calibration.",
-                access: "ALL",
+                access: "SET",
                 entityCategory: "config",
+                fzConvert: () => {},
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_status",
@@ -3150,14 +7822,42 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Lowest brightness level mapped to 1 % on the dimmer slider.",
                 entityCategory: "config",
                 valueMin: 1,
-                valueMax: 50,
+                valueMax: 99,
                 valueStep: 1,
                 unit: "%",
                 scale: 2.55,
                 precision: 0,
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
-                name: "transition_time",
+                name: "max_brightness_threshold",
+                access: "ALL",
+                cluster: "customClusterEwelink",
+                attribute: "maxBrightnessThreshold",
+                description: "highest brightness level mapped to 100 % on the dimmer slider.",
+                entityCategory: "config",
+                valueMin: 2,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 2.55,
+                precision: 0,
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "level_for_calibration",
+                access: "STATE_GET",
+                cluster: "customClusterEwelink",
+                attribute: "levelForCalibration",
+                description: "Brightness Calibration ensures your dimmer works within the optimal range for your specific bulb.",
+                entityCategory: "diagnostic",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 2.55,
+                precision: 0,
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "dimmer_transition_time",
                 access: "ALL",
                 cluster: "customClusterEwelink",
                 attribute: "transitionTime",
@@ -3184,9 +7884,1378 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
-                [0x0016, 0x001e, 0x4001, 0x4003],
+                [0x0016, 0x001e, 0x4001, 0x4002, 0x4003, 0x4006],
                 defaultResponseOptions,
             );
         },
+    },
+    {
+        zigbeeModel: ["SWV-ZFE", "SWV-ZFU"],
+        model: "SWV-ZFE",
+        vendor: "SONOFF",
+        whiteLabel: [{model: "SWV-ZFU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZFU"}]}],
+        description: "Zigbee smart water valve",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    realTimeIrrigationDuration: {name: "realTimeIrrigationDuration", ID: 0x5006, type: Zcl.DataType.UINT32},
+                    realTimeIrrigationVolume: {name: "realTimeIrrigationVolume", ID: 0x5007, type: Zcl.DataType.UINT32},
+                    valveAbnormalState: {name: "valveAbnormalState", ID: 0x500c, type: Zcl.DataType.UINT8},
+                    rainDelayEndDatetime: {name: "rainDelayEndDatetime", ID: 0x5014, type: Zcl.DataType.UINT32},
+                    hourIrrigationVolume: {name: "hourIrrigationVolume", ID: 0x501b, type: Zcl.DataType.UINT32},
+                    hourIrrigationDuration: {name: "hourIrrigationDuration", ID: 0x501c, type: Zcl.DataType.UINT32},
+                    manualDefaultSettings: {name: "manualDefaultSettings", ID: 0x501d, type: Zcl.DataType.ARRAY, write: true},
+                    seasonalWateringAdjustment: {name: "seasonalWateringAdjustment", ID: 0x501e, type: Zcl.DataType.ARRAY, write: true},
+                    irrigationScheduleStatus: {name: "irrigationScheduleStatus", ID: 0x501f, type: Zcl.DataType.ARRAY},
+                    valveAlarmSettings: {name: "valveAlarmSettings", ID: 0x5020, type: Zcl.DataType.ARRAY, write: true},
+                },
+                commands: {
+                    readRecord: {name: "readRecord", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    irrigationPlanSettings: {
+                        name: "irrigationPlanSettings",
+                        ID: 0x06,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    irrigationPlanRemove: {
+                        name: "irrigationPlanRemove",
+                        ID: 0x07,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    rainDelay: {name: "rainDelay", ID: 0x08, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {
+                    irrigationPlanReport: {
+                        name: "irrigationPlanReport",
+                        ID: 0x09,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+            }),
+            // official cluster
+            m.battery(),
+            m.onOff({
+                powerOnBehavior: false,
+                skipDuplicateTransaction: true,
+                configureReporting: false,
+            }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            sonoffExtend.swvznGenTimeCompatResponse(),
+
+            // private attributes & commands
+            m.binary<"customClusterEwelink", SonoffSwvzn>({
+                name: "child_lock",
+                cluster: "customClusterEwelink",
+                attribute: "childLock",
+                description: "Enables/disables physical input on the device",
+                valueOn: ["LOCK", 0x01],
+                valueOff: ["UNLOCK", 0x00],
+                entityCategory: "config",
+            }),
+            sonoffExtend.valveAbnormalState(),
+            sonoffExtend.manualDefaultSettings(true),
+            sonoffExtend.irrigationPlanSettingsAndReport(true),
+            sonoffExtend.irrigationPlanRemove(),
+            sonoffExtend.irrigationScheduleStatus(true),
+            sonoffExtend.rainDelay(),
+            sonoffExtend.rainDelayEndDatetime(),
+            sonoffExtend.seasonalWateringAdjustment(),
+            sonoffExtend.valveAlarmSettings(),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "real_time_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "realTimeIrrigationDuration",
+                description: "Real-time irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+                fzConvert: bigEndianNumericFzConvert("real_time_irrigation_duration", "realTimeIrrigationDuration"),
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "real_time_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: "realTimeIrrigationVolume",
+                description: "The amount of water irrigated in real time",
+                access: "STATE_GET",
+                unit: "L",
+                fzConvert: bigEndianNumericFzConvert("real_time_irrigation_volume", "realTimeIrrigationVolume"),
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "hour_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "hourIrrigationDuration",
+                description: "Hourly irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "hour_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: "hourIrrigationVolume",
+                description: "Hourly irrigation volume",
+                access: "STATE_GET",
+                unit: "L",
+            }),
+            sonoffExtend.readSWVZFRecord(true),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                try {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+                } catch (error) {
+                    logger.warning(`SWV-ZN genOnOff bind/reporting failed, continuing without reporting: ${error}`, NS);
+                }
+
+                await endpoint.read("genOnOff", ["onOff"]).catch((error) => {
+                    logger.warning(`SWV-ZN read genOnOff.onOff failed: ${error}`, NS);
+                });
+            }
+        },
+    },
+    {
+        zigbeeModel: ["SWV-ZF2"],
+        model: "SWV-ZF2",
+        vendor: "SONOFF",
+        description: "Zigbee dual-channel smart water valve",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    realTimeIrrigationDuration: {name: "realTimeIrrigationDuration", ID: 0x5006, type: Zcl.DataType.UINT32},
+                    realTimeIrrigationVolume: {name: "realTimeIrrigationVolume", ID: 0x5007, type: Zcl.DataType.UINT32},
+                    valveAbnormalState: {name: "valveAbnormalState", ID: 0x500c, type: Zcl.DataType.UINT8},
+                    rainDelayEndDatetime: {name: "rainDelayEndDatetime", ID: 0x5014, type: Zcl.DataType.UINT32},
+                    hourIrrigationVolume: {name: "hourIrrigationVolume", ID: 0x501b, type: Zcl.DataType.UINT32},
+                    hourIrrigationDuration: {name: "hourIrrigationDuration", ID: 0x501c, type: Zcl.DataType.UINT32},
+                    manualDefaultSettings: {name: "manualDefaultSettings", ID: 0x501d, type: Zcl.DataType.ARRAY, write: true},
+                    seasonalWateringAdjustment: {name: "seasonalWateringAdjustment", ID: 0x501e, type: Zcl.DataType.ARRAY, write: true},
+                    irrigationScheduleStatus: {name: "irrigationScheduleStatus", ID: 0x501f, type: Zcl.DataType.ARRAY},
+                    valveAlarmSettings: {name: "valveAlarmSettings", ID: 0x5020, type: Zcl.DataType.ARRAY, write: true},
+                },
+                commands: {
+                    readRecord: {name: "readRecord", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    irrigationPlanSettings: {
+                        name: "irrigationPlanSettings",
+                        ID: 0x06,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    irrigationPlanRemove: {
+                        name: "irrigationPlanRemove",
+                        ID: 0x07,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    rainDelay: {name: "rainDelay", ID: 0x08, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {
+                    irrigationPlanReport: {
+                        name: "irrigationPlanReport",
+                        ID: 0x09,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    irrigationPlanRemovedReport: {
+                        name: "irrigationPlanRemovedReport",
+                        ID: 0x0a,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+            }),
+
+            // official cluster
+            m.battery(),
+            m.onOff({
+                endpointNames: ["1", "2"],
+                powerOnBehavior: false,
+                skipDuplicateTransaction: true,
+                configureReporting: false,
+            }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            sonoffExtend.swvznGenTimeCompatResponse(),
+
+            // private attributes & commands
+            m.binary<"customClusterEwelink", SonoffSwvzn>({
+                name: "child_lock",
+                cluster: "customClusterEwelink",
+                attribute: "childLock",
+                description: "Enables/disables physical input on the device",
+                valueOn: ["LOCK", 0x01],
+                valueOff: ["UNLOCK", 0x00],
+                entityCategory: "config",
+            }),
+            sonoffExtend.valveAbnormalState(true),
+            sonoffExtend.manualDefaultSettings(true),
+            sonoffExtend.irrigationPlanSettingsAndReport(true, ["1", "2"]),
+            sonoffExtend.irrigationPlanRemove(["1", "2"]),
+            sonoffExtend.irrigationPlanRemovedReport(["1", "2"]),
+            sonoffExtend.irrigationScheduleStatus(true, ["1", "2"]),
+            sonoffExtend.rainDelay(),
+            sonoffExtend.rainDelayEndDatetime(),
+            sonoffExtend.seasonalWateringAdjustment(),
+            sonoffExtend.valveAlarmSettings(),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "real_time_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "realTimeIrrigationDuration",
+                description: "Real-time irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+                endpointNames: ["1", "2"],
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "real_time_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: "realTimeIrrigationVolume",
+                description: "The amount of water irrigated in real time",
+                access: "STATE_GET",
+                unit: "L",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "hour_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "hourIrrigationDuration",
+                description: "Hourly irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+                endpointNames: ["1", "2"],
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "hour_irrigation_volume",
+                cluster: "customClusterEwelink",
+                attribute: "hourIrrigationVolume",
+                description: "Hourly irrigation volume",
+                access: "STATE_GET",
+                unit: "L",
+            }),
+            sonoffExtend.readSWVZFRecord(true, true),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            for (const endpointId of [1, 2]) {
+                const endpoint = device.getEndpoint(endpointId);
+                if (!endpoint) {
+                    logger.warning(`SWV-ZF2 endpoint ${endpointId} not found`, NS);
+                    continue;
+                }
+
+                try {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+                } catch (error) {
+                    logger.warning(`SWV-ZF2 genOnOff bind/reporting failed on endpoint ${endpointId}, continuing without reporting: ${error}`, NS);
+                }
+
+                await endpoint.read("genOnOff", ["onOff"]).catch((error) => {
+                    logger.warning(`SWV-ZF2 read genOnOff.onOff failed on endpoint ${endpointId}: ${error}`, NS);
+                });
+            }
+
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("customClusterEwelink", [0x500c]).catch((error) => {
+                    logger.warning(`SWV-ZF2 read customClusterEwelink(valveAbnormalState) failed: ${error}`, NS);
+                });
+            }
+        },
+    },
+    {
+        zigbeeModel: ["SWV-ZNE", "SWV-ZNU"],
+        model: "SWV-ZNE",
+        vendor: "SONOFF",
+        whiteLabel: [{model: "SWV-ZNU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZNU"}]}],
+        description: "Zigbee smart water valve",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    realTimeIrrigationDuration: {name: "realTimeIrrigationDuration", ID: 0x5006, type: Zcl.DataType.UINT32},
+                    rainDelayEndDatetime: {name: "rainDelayEndDatetime", ID: 0x5014, type: Zcl.DataType.UINT32},
+                    hourIrrigationDuration: {name: "hourIrrigationDuration", ID: 0x501c, type: Zcl.DataType.UINT32},
+                    manualDefaultSettings: {name: "manualDefaultSettings", ID: 0x501d, type: Zcl.DataType.ARRAY, write: true},
+                    seasonalWateringAdjustment: {name: "seasonalWateringAdjustment", ID: 0x501e, type: Zcl.DataType.ARRAY, write: true},
+                    irrigationScheduleStatus: {name: "irrigationScheduleStatus", ID: 0x501f, type: Zcl.DataType.ARRAY},
+                },
+                commands: {
+                    readRecord: {name: "readRecord", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    irrigationPlanSettings: {
+                        name: "irrigationPlanSettings",
+                        ID: 0x06,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    irrigationPlanRemove: {
+                        name: "irrigationPlanRemove",
+                        ID: 0x07,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    rainDelay: {name: "rainDelay", ID: 0x08, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {
+                    irrigationPlanReport: {
+                        name: "irrigationPlanReport",
+                        ID: 0x09,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+            }),
+            // official cluster
+            m.battery(),
+            m.onOff({
+                powerOnBehavior: false,
+                skipDuplicateTransaction: true,
+                configureReporting: false,
+            }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            sonoffExtend.swvznGenTimeCompatResponse(),
+
+            // private attributes & commands
+            m.binary<"customClusterEwelink", SonoffSwvzn>({
+                name: "child_lock",
+                cluster: "customClusterEwelink",
+                attribute: "childLock",
+                description: "Enables/disables physical input on the device",
+                valueOn: ["LOCK", 0x01],
+                valueOff: ["UNLOCK", 0x00],
+                entityCategory: "config",
+            }),
+            sonoffExtend.manualDefaultSettings(false),
+            sonoffExtend.irrigationPlanSettingsAndReport(false),
+            sonoffExtend.irrigationPlanRemove(),
+            sonoffExtend.irrigationScheduleStatus(false),
+            sonoffExtend.rainDelay(),
+            sonoffExtend.rainDelayEndDatetime(),
+            sonoffExtend.seasonalWateringAdjustment(),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "real_time_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "realTimeIrrigationDuration",
+                description: "Real-time irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+                fzConvert: bigEndianNumericFzConvert("real_time_irrigation_duration", "realTimeIrrigationDuration"),
+            }),
+            m.numeric<"customClusterEwelink", SonoffSwvzn>({
+                name: "hour_irrigation_duration",
+                cluster: "customClusterEwelink",
+                attribute: "hourIrrigationDuration",
+                description: "Hourly irrigation duration",
+                access: "STATE_GET",
+                unit: "min",
+            }),
+            sonoffExtend.readSWVZFRecord(false),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                try {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+                } catch (error) {
+                    logger.warning(`SWV-ZN genOnOff bind/reporting failed, continuing without reporting: ${error}`, NS);
+                }
+
+                await endpoint.read("genOnOff", ["onOff"]).catch((error) => {
+                    logger.warning(`SWV-ZN read genOnOff.onOff failed: ${error}`, NS);
+                });
+            }
+        },
+    },
+    {
+        zigbeeModel: ["SNZB-02B"],
+        model: "SNZB-02B",
+        vendor: "SONOFF",
+        description: "Temperature and humidity sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            // official cluster
+            m.battery(),
+            m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
+            m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+
+            // attributes
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "temperature_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureCalibration",
+                entityCategory: "config",
+                description:
+                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02b>({
+                name: "humidity_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "humidityCalibration",
+                entityCategory: "config",
+                description:
+                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["SNZB-02M"],
+        model: "SNZB-02M",
+        vendor: "SONOFF",
+        description: "Temperature and humidity sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                    pressureCalibration: {name: "pressureCalibration", ID: 0x2007, type: Zcl.DataType.INT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            // official cluster
+            m.battery(),
+            m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
+            m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            // attributes
+            m.numeric<"msPressureMeasurement">({
+                name: "pressure",
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0004, type: Zcl.DataType.INT32},
+                access: "STATE_GET",
+                description: "Atmospheric pressure in hPa reported via manufacturer attribute 0x0004 (manuCode 0x1286).",
+                unit: "hPa",
+                scale: 100,
+                precision: 2,
+                zigbeeCommandOptions: {manufacturerCode: 0x1286},
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02m>({
+                name: "temperature_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureCalibration",
+                entityCategory: "config",
+                description:
+                    "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -20,
+                valueMax: 60,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02m>({
+                name: "humidity_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "humidityCalibration",
+                entityCategory: "config",
+                description:
+                    "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 5,
+                valueMax: 95,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02m>({
+                name: "pressure_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "pressureCalibration",
+                entityCategory: "config",
+                description:
+                    "Pressure compensation offset applied directly to pressure reading in hPa (positive adds, negative subtracts). Range: -400 to 400 hPa. " +
+                    "Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -400,
+                valueMax: 400,
+                valueStep: 0.1,
+                scale: 100,
+                unit: "hPa",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["BASIC-ZB1GSP"],
+        model: "BASIC-ZB1GSP",
+        vendor: "SONOFF",
+        description: "Zigbee smart plug with power monitoring",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    networkLed: {name: "networkLed", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                    faultCode: {name: "faultCode", ID: 0x0010, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    limitsOfThresholdValue: {name: "limitsOfThresholdValue", ID: 0x7003, type: Zcl.DataType.CHAR_STR, write: true},
+                    acCurrentCurrentValue: {name: "acCurrentCurrentValue", ID: 0x7004, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    acCurrentVoltageValue: {name: "acCurrentVoltageValue", ID: 0x7005, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    acCurrentPowerValue: {name: "acCurrentPowerValue", ID: 0x7006, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    outlet_control_protect: {name: "outlet_control_protect", ID: 0x7007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    energyToday: {name: "energyToday", ID: 0x7009, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    energyMonth: {name: "energyMonth", ID: 0x700a, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    energyYesterday: {name: "energyYesterday", ID: 0x700b, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    acCurrentMaxOverloadEnable: {name: "acCurrentMaxOverloadEnable", ID: 0x700c, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    acCurrentMaxOverload: {name: "acCurrentMaxOverload", ID: 0x700d, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    acVoltageMaxOverloadEnable: {name: "acVoltageMaxOverloadEnable", ID: 0x700e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    acVoltageMaxOverload: {name: "acVoltageMaxOverload", ID: 0x700f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    acPowerMaxOverloadEnable: {name: "acPowerMaxOverloadEnable", ID: 0x7010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    acPowerMaxOverload: {name: "acPowerMaxOverload", ID: 0x7011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    totalEnergyConsumption: {name: "totalEnergyConsumption", ID: 0x701e, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                },
+                commands: {
+                    protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    clearHistory: {
+                        name: "clearHistory",
+                        ID: 0x0c,
+                        parameters: [
+                            {name: "deviceType", type: Zcl.DataType.UINT8},
+                            {name: "deviceLength", type: Zcl.DataType.UINT8},
+                            {name: "eventType", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                    readRecord: {name: "readRecord", ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            m.onOff({
+                powerOnBehavior: true,
+                skipDuplicateTransaction: true,
+                configureReporting: true,
+            }),
+            sonoffExtend.inchingControlSet(),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "network_indicator",
+                cluster: "customClusterEwelink",
+                attribute: "networkLed",
+                description: "Network indicator settings, turn off/on the blue online status network indicator.",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "power",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentPowerValue",
+                description: "Active power",
+                unit: "W",
+                access: "STATE_GET",
+                reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentPowerValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentPowerValue" in msg.data) {
+                        const power = meta.state?.state === "ON" ? msg.data.acCurrentPowerValue / 1000 : 0;
+                        return {power, ac_current_power_value: power};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "current",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentCurrentValue",
+                description: "Current",
+                unit: "A",
+                access: "STATE_GET",
+                // https://github.com/Koenkk/zigbee2mqtt/issues/28470#issuecomment-3369116710
+                reporting: {min: "10_SECONDS", max: "MAX", change: 2},
+                fzConvert: (model, msg, publish, options, meta) => {
+                    // Device keeps reporting a acCurrentCurrentValue after turning OFF.
+                    // Make sure power = 0 when turned OFF
+                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        const current = meta.state?.state === "ON" ? msg.data.acCurrentCurrentValue / 1000 : 0;
+                        return {current, ac_current_current_value: current};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "voltage",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentVoltageValue",
+                description: "Voltage",
+                unit: "V",
+                access: "STATE_GET",
+                scale: 1000,
+            }),
+            m.numeric<"seMetering">({
+                name: "total_energy_consumption",
+                cluster: "seMetering",
+                attribute: "currentSummDelivered",
+                description: "CurrentSummationDelivered",
+                unit: "kWh",
+                access: "STATE_GET",
+                fzConvert: (model, msg) => {
+                    if (msg.data.currentSummDelivered === undefined) {
+                        return;
+                    }
+                    const value = msg.data.currentSummDelivered;
+                    const numericValue = typeof value === "bigint" ? Number(value) : value;
+                    if (typeof numericValue !== "number" || numericValue === 0xffffffffffff || Number.isNaN(numericValue)) {
+                        return;
+                    }
+
+                    const multiplier = (msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number) || 1;
+                    const divisor = (msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number) || 1000;
+                    const factor = divisor ? multiplier / divisor : 1;
+                    return {total_energy_consumption: numericValue * factor};
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_today",
+                cluster: "customClusterEwelink",
+                attribute: "energyToday",
+                description: "Electricity consumption for the day",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_month",
+                cluster: "customClusterEwelink",
+                attribute: "energyMonth",
+                description: "Electricity consumption for the month",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_yesterday",
+                cluster: "customClusterEwelink",
+                attribute: "energyYesterday",
+                description: "Electricity consumption for the yesterday",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "total_energy",
+                label: "Total energy",
+                cluster: "customClusterEwelink",
+                attribute: "totalEnergyConsumption",
+                description: "Total energy used since the device started.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "outlet_control_protect",
+                cluster: "customClusterEwelink",
+                attribute: "outlet_control_protect",
+                description: "Outlet overload protection Settings",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "ac_current_max_overload_enable",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentMaxOverloadEnable",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "AC current overload protection enable",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "ac_current_max_overload",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentMaxOverload",
+                description: "AC current overload threshold",
+                unit: "A",
+                scale: 1000,
+                valueMin: 0.1,
+                valueMax: 32,
+                valueStep: 0.1,
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "ac_voltage_max_overload_enable",
+                cluster: "customClusterEwelink",
+                attribute: "acVoltageMaxOverloadEnable",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "AC voltage overload protection enable",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "ac_voltage_max_overload",
+                cluster: "customClusterEwelink",
+                attribute: "acVoltageMaxOverload",
+                description: "AC voltage overload threshold (runtime validated by detected supply band)",
+                unit: "V",
+                scale: 1000,
+                valueMin: 85,
+                valueMax: 277,
+                valueStep: 1,
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "ac_power_max_overload_enable",
+                cluster: "customClusterEwelink",
+                attribute: "acPowerMaxOverloadEnable",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "AC power overload protection enable",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"customClusterEwelink", SonoffBasicZB1GSP>({
+                name: "ac_power_max_overload",
+                cluster: "customClusterEwelink",
+                attribute: "acPowerMaxOverload",
+                description: "AC power overload threshold (runtime validated by detected supply band)",
+                unit: "W",
+                scale: 1000,
+                valueMin: 10,
+                valueMax: 7680,
+                valueStep: 1,
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            sonoffExtend.readConsumptionRecord("customClusterEwelink", "readRecord"),
+            sonoffExtend.clearConsumptionHistory(),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
+            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],
+                defaultResponseOptions,
+            );
+            await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
+                {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+                {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+                {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+                {attribute: "totalEnergyConsumption", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
+            ]);
+            await endpoint.read("seMetering", ["multiplier", "divisor"]);
+            await reporting.currentSummDelivered(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["SNZB-06P24"],
+        model: "SNZB-06P24",
+        vendor: "SONOFF",
+        description: "Zigbee occupancy sensor with illuminance",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    occupancyZoneEnable: {name: "occupancyZoneEnable", ID: 0x2016, type: Zcl.DataType.BITMAP16, write: true},
+                    illuminationCompensationOffset: {
+                        name: "illuminationCompensationOffset",
+                        ID: 0x2018,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -1000,
+                        max: 1000,
+                    },
+                    radarSensitivitySetting: {
+                        name: "radarSensitivitySetting",
+                        ID: 0x2021,
+                        type: Zcl.DataType.INT8,
+                        write: true,
+                        min: -6,
+                        max: 6,
+                    },
+                },
+                commands: {
+                    spatialLearning: {name: "spatialLearning", ID: 0x04, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            // official cluster
+            m.illuminance(),
+            m.occupancy(),
+            m.numeric({
+                name: "pir_o_to_u_delay",
+                label: "Occupancy timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                description: "Occupied to unoccupied delay",
+                valueMin: 15,
+                valueMax: 65535,
+                unit: "s",
+                entityCategory: "config",
+            }),
+
+            // private cluster
+            sonoffExtend.occupancyZoneEnable(8, 0.5, true),
+            m.numeric<"customClusterEwelink", SonoffSnzb06p24>({
+                name: "illuminance_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "illuminationCompensationOffset",
+                description: "Illuminance compensation offset",
+                valueMin: -1000,
+                valueMax: 1000,
+                unit: "lx",
+                entityCategory: "config",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb06p24>({
+                name: "radar_sensitivity",
+                cluster: "customClusterEwelink",
+                attribute: "radarSensitivitySetting",
+                description: "Radar sensitivity level",
+                valueMin: -6,
+                valueMax: 6,
+                valueStep: 1,
+                entityCategory: "config",
+                label: "Fine-tune Sensitivity",
+            }),
+            sonoffExtend.spatialLearning(),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ["genPowerCfg", "ssIasZone"];
+            if (endpoint) {
+                await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+                await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
+                await endpoint.read<"customClusterEwelink", SonoffSnzb06p24>("customClusterEwelink", ["occupancyZoneEnable"]).catch((error) => {
+                    logger.warning(`SNZB-06P24 configure: read occupancyZoneEnable failed, ${error}`, NS);
+                });
+            }
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZB1GSP"],
+        model: "MINI-ZB1GSP",
+        vendor: "SONOFF",
+        description: "Zigbee smart switch with power monitoring",
+        fromZigbee: [fzLocal.on_off_clear_electricity],
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    networkLed: {name: "networkLed", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                    faultCode: {name: "faultCode", ID: 0x0010, type: Zcl.DataType.UINT32},
+                    radioPower: {name: "radioPower", ID: 0x0012, type: Zcl.DataType.INT16, write: true},
+                    delayedPowerOnState: {name: "delayedPowerOnState", ID: 0x0014, type: Zcl.DataType.BOOLEAN, write: true},
+                    delayedPowerOnTime: {name: "delayedPowerOnTime", ID: 0x0015, type: Zcl.DataType.UINT16, write: true},
+                    externalTriggerMode: {name: "externalTriggerMode", ID: 0x0016, type: Zcl.DataType.UINT8, write: true},
+                    detachRelayMode2: {name: "detachRelayMode2", ID: 0x0019, type: Zcl.DataType.BITMAP8, write: true},
+                    detachRelayActionEvent: {name: "detachRelayActionEvent", ID: 0x0028, type: Zcl.DataType.UINT8},
+                    acCurrentCurrentValue: {name: "acCurrentCurrentValue", ID: 0x7004, type: Zcl.DataType.UINT32},
+                    acCurrentVoltageValue: {name: "acCurrentVoltageValue", ID: 0x7005, type: Zcl.DataType.UINT32},
+                    acCurrentPowerValue: {name: "acCurrentPowerValue", ID: 0x7006, type: Zcl.DataType.UINT32},
+                    energyToday: {name: "energyToday", ID: 0x7009, type: Zcl.DataType.UINT32},
+                    energyMonth: {name: "energyMonth", ID: 0x700a, type: Zcl.DataType.UINT32},
+                    energyYesterday: {name: "energyYesterday", ID: 0x700b, type: Zcl.DataType.UINT32},
+                    localFastSceneConfiguration: {name: "localFastSceneConfiguration", ID: 0x7016, type: Zcl.DataType.ARRAY, write: true},
+                    outputEnergyToday: {name: "outputEnergyToday", ID: 0x7018, type: Zcl.DataType.UINT32},
+                    outputEnergyMonth: {name: "outputEnergyMonth", ID: 0x7019, type: Zcl.DataType.UINT32},
+                    totalEnergyConsumption: {name: "totalEnergyConsumption", ID: 0x701e, type: Zcl.DataType.UINT32},
+                    totalOutputEnergyConsumption: {name: "totalOutputEnergyConsumption", ID: 0x701f, type: Zcl.DataType.UINT32},
+                },
+                commands: {
+                    protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            m.onOff({
+                powerOnBehavior: true,
+                skipDuplicateTransaction: true,
+                configureReporting: true,
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "network_indicator",
+                cluster: "customClusterEwelink",
+                attribute: "networkLed",
+                description: "Turn the blue network status indicator on or off.",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "turbo_mode",
+                cluster: "customClusterEwelink",
+                attribute: "radioPower",
+                description: "Boost Zigbee radio transmit power to improve range.",
+                entityCategory: "config",
+                valueOff: [false, 0x09],
+                valueOn: [true, 0x14],
+            }),
+            sonoffExtend.inchingControlSet({}, 86399.5),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_state",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnState",
+                description: "Restore the plug output after the configured power-on delay.",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "delayed_power_on_time",
+                cluster: "customClusterEwelink",
+                attribute: "delayedPowerOnTime",
+                description: "Delay before the plug output is restored after power returns.",
+                entityCategory: "config",
+                unit: "s",
+                scale: 2,
+                valueMin: 0.5,
+                valueMax: 3599.5,
+                valueStep: 0.5,
+            }),
+            sonoffExtend.externalSwitchTriggerMode(),
+            sonoffExtend.detachRelayModeControl(1),
+            sonoffExtend.detachRelayActionEvent(),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "power",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentPowerValue",
+                description: "Power used by the connected load.",
+                unit: "W",
+                access: "STATE_GET",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if ("acCurrentPowerValue" in msg.data) {
+                        return {power: signedInt32MilliToValue(msg.data.acCurrentPowerValue)};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "current",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentCurrentValue",
+                description: "Current drawn by the connected load.",
+                unit: "A",
+                access: "STATE_GET",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        return {current: msg.data.acCurrentCurrentValue / 1000};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "voltage",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentVoltageValue",
+                description: "Supply voltage measured by the plug.",
+                unit: "V",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_today",
+                cluster: "customClusterEwelink",
+                attribute: "energyToday",
+                description: "Energy used today by the connected load.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "output_energy_today",
+                label: "Export energy today",
+                cluster: "customClusterEwelink",
+                attribute: "outputEnergyToday",
+                description: "Energy fed back today through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_month",
+                label: "Energy this month",
+                cluster: "customClusterEwelink",
+                attribute: "energyMonth",
+                description: "Energy used this month by the connected load.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "output_energy_month",
+                label: "Export energy this month",
+                cluster: "customClusterEwelink",
+                attribute: "outputEnergyMonth",
+                description: "Energy fed back this month through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "total_energy",
+                cluster: "customClusterEwelink",
+                attribute: "totalEnergyConsumption",
+                description: "Total energy used by the connected load.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "total_output_energy",
+                label: "Total export energy",
+                cluster: "customClusterEwelink",
+                attribute: "totalOutputEnergyConsumption",
+                description: "Total energy fed back through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            sonoffExtend.faultCodeMiniZb1gsp({hasSwitch: true}),
+            sonoffExtend.localFastSceneConfiguration({hasSwitch: true}),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["faultCode"], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ["MINI-ZB1GP"],
+        model: "MINI-ZB1GP",
+        vendor: "SONOFF",
+        description: "Zigbee smart power monitoring sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    networkLed: {name: "networkLed", ID: 0x0001, type: Zcl.DataType.BOOLEAN, write: true},
+                    faultCode: {name: "faultCode", ID: 0x0010, type: Zcl.DataType.UINT32},
+                    radioPower: {name: "radioPower", ID: 0x0012, type: Zcl.DataType.INT16, write: true},
+                    acCurrentCurrentValue: {name: "acCurrentCurrentValue", ID: 0x7004, type: Zcl.DataType.UINT32},
+                    acCurrentVoltageValue: {name: "acCurrentVoltageValue", ID: 0x7005, type: Zcl.DataType.UINT32},
+                    acCurrentPowerValue: {name: "acCurrentPowerValue", ID: 0x7006, type: Zcl.DataType.UINT32},
+                    energyToday: {name: "energyToday", ID: 0x7009, type: Zcl.DataType.UINT32},
+                    energyMonth: {name: "energyMonth", ID: 0x700a, type: Zcl.DataType.UINT32},
+                    energyYesterday: {name: "energyYesterday", ID: 0x700b, type: Zcl.DataType.UINT32},
+                    outputEnergyToday: {name: "outputEnergyToday", ID: 0x7018, type: Zcl.DataType.UINT32},
+                    outputEnergyMonth: {name: "outputEnergyMonth", ID: 0x7019, type: Zcl.DataType.UINT32},
+                    totalEnergyConsumption: {name: "totalEnergyConsumption", ID: 0x701e, type: Zcl.DataType.UINT32},
+                    totalOutputEnergyConsumption: {name: "totalOutputEnergyConsumption", ID: 0x701f, type: Zcl.DataType.UINT32},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "network_indicator",
+                cluster: "customClusterEwelink",
+                attribute: "networkLed",
+                description: "Turn the blue network status indicator on or off.",
+                entityCategory: "config",
+                valueOff: [false, 0],
+                valueOn: [true, 1],
+            }),
+            m.binary<"customClusterEwelink", SonoffEwelink>({
+                name: "turbo_mode",
+                cluster: "customClusterEwelink",
+                attribute: "radioPower",
+                description: "Boost Zigbee radio transmit power to improve range.",
+                entityCategory: "config",
+                valueOff: [false, 0x09],
+                valueOn: [true, 0x14],
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "power",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentPowerValue",
+                description: "Power used by the connected load.",
+                unit: "W",
+                access: "STATE_GET",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if ("acCurrentPowerValue" in msg.data) {
+                        return {power: signedInt32MilliToValue(msg.data.acCurrentPowerValue)};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "current",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentCurrentValue",
+                description: "Current drawn by the connected load.",
+                unit: "A",
+                access: "STATE_GET",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    if ("acCurrentCurrentValue" in msg.data) {
+                        return {current: msg.data.acCurrentCurrentValue / 1000};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "voltage",
+                cluster: "customClusterEwelink",
+                attribute: "acCurrentVoltageValue",
+                description: "Supply voltage measured by the plug.",
+                unit: "V",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_today",
+                cluster: "customClusterEwelink",
+                attribute: "energyToday",
+                description: "Energy used today by the connected load.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "output_energy_today",
+                label: "Export energy today",
+                cluster: "customClusterEwelink",
+                attribute: "outputEnergyToday",
+                description: "Energy fed back today through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "energy_month",
+                label: "Energy this month",
+                cluster: "customClusterEwelink",
+                attribute: "energyMonth",
+                description: "Energy used this month by the connected load.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "output_energy_month",
+                label: "Export energy this month",
+                cluster: "customClusterEwelink",
+                attribute: "outputEnergyMonth",
+                description: "Energy fed back this month through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "total_energy",
+                label: "Total energy",
+                cluster: "customClusterEwelink",
+                attribute: "totalEnergyConsumption",
+                description: "Total energy used by the connected load.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "total_output_energy",
+                label: "Total export energy",
+                cluster: "customClusterEwelink",
+                attribute: "totalOutputEnergyConsumption",
+                description: "Total energy fed back through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            sonoffExtend.faultCodeMiniZb1gsp({hasSwitch: false}),
+            sonoffExtend.localFastSceneConfiguration({hasSwitch: false}),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["faultCode"], defaultResponseOptions);
+        },
+    },
+    {
+        zigbeeModel: ["SNZB-09P"],
+        model: "SNZB-09P",
+        vendor: "SONOFF",
+        description: "Siren",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    powerSupplyMode: {name: "powerSupplyMode", ID: 0x0024, type: Zcl.DataType.ENUM8},
+                    alarmSoundEnable: {name: "alarmSoundEnable", ID: 0x2026, type: Zcl.DataType.BOOLEAN, write: true},
+                    alarmLightEnable: {name: "alarmLightEnable", ID: 0x2022, type: Zcl.DataType.BOOLEAN, write: true},
+                    alarmSoundType: {name: "alarmSoundType", ID: 0x2023, type: Zcl.DataType.ENUM8, write: true},
+                    alarmVolumeLevel: {name: "alarmVolumeLevel", ID: 0x2024, type: Zcl.DataType.ENUM8, write: true},
+                    alarmDuration: {name: "alarmDuration", ID: 0x2025, type: Zcl.DataType.UINT16, write: true},
+                    spilt: {name: "spilt", ID: 0x2000, type: Zcl.DataType.UINT8, write: true},
+                },
+                commands: {
+                    alertCommand: {name: "alertCommand", ID: 0x0f, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                name: "power_supply_mode",
+                lookup: {battery: 0x00, external: 0x01},
+                cluster: "customClusterEwelink",
+                attribute: "powerSupplyMode",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                description: "Current power source of the device.",
+            }),
+            m.battery(),
+            m.binary<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_sound_enable",
+                cluster: "customClusterEwelink",
+                attribute: "alarmSoundEnable",
+                entityCategory: "config",
+                zigbeeCommandOptions: manufacturerOptions,
+                description: "Enable or disable the alarm sound.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_light_enable",
+                cluster: "customClusterEwelink",
+                attribute: "alarmLightEnable",
+                entityCategory: "config",
+                zigbeeCommandOptions: manufacturerOptions,
+                description: "Enable or disable the alarm light.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary<"customClusterEwelink", SonoffSnzb09p>({
+                name: "tamper",
+                cluster: "customClusterEwelink",
+                attribute: "spilt",
+                entityCategory: "diagnostic",
+                access: "STATE_GET",
+                zigbeeCommandOptions: manufacturerOptions,
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_sound_type",
+                lookup: {
+                    sound_0: 0x00,
+                    sound_1: 0x01,
+                    sound_2: 0x02,
+                    sound_3: 0x03,
+                    sound_4: 0x04,
+                    sound_5: 0x05,
+                    sound_6: 0x06,
+                    sound_7: 0x07,
+                    sound_8: 0x08,
+                    sound_9: 0x09,
+                },
+                cluster: "customClusterEwelink",
+                attribute: "alarmSoundType",
+                entityCategory: "config",
+                description: "Select the alarm sound preset.",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_volume_level",
+                lookup: {low: 0x00, medium: 0x01, high: 0x02, highest: 0x03},
+                cluster: "customClusterEwelink",
+                attribute: "alarmVolumeLevel",
+                entityCategory: "config",
+                description: "Set the alarm sound volume level.",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb09p>({
+                name: "alarm_duration",
+                cluster: "customClusterEwelink",
+                attribute: "alarmDuration",
+                entityCategory: "config",
+                description: "Alarm duration in seconds.",
+                valueMin: 1,
+                valueMax: 900,
+                unit: "s",
+            }),
+        ],
+        ota: true,
+        fromZigbee: [fzLocal.snzb_09p_alert],
+        toZigbee: [tzLocal.snzb_09p_alert],
+        exposes: [
+            e
+                .binary("siren_on", ea.SET, "ON", "OFF")
+                .withLabel("Siren on")
+                .withDescription("using the configured sound, light, volume, and duration."),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["customClusterEwelink"]);
+            await endpoint.read<"customClusterEwelink", SonoffSnzb09p>("customClusterEwelink", ["spilt"], manufacturerOptions);
+        },
+    },
+    {
+        zigbeeModel: ["SNZB-03PR2"],
+        model: "SNZB-03PR2",
+        vendor: "SONOFF",
+        description: "Zigbee PIR sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    illuminationCompensationOffset: {
+                        name: "illuminationCompensationOffset",
+                        ID: 0x2018,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.occupancy({reporting: false}),
+            m.illuminance({reporting: false}),
+            m.battery({
+                percentage: true,
+                voltage: false,
+            }),
+            m.numeric({
+                name: "pir_occupied_to_unoccupied_delay",
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0x0010, type: Zcl.DataType.UINT16},
+                description: "Detection Duration",
+                valueMin: 5,
+                valueMax: 60,
+                unit: "s",
+                access: "ALL",
+                entityCategory: "config",
+                label: "Detection Duration",
+                fzConvert: (model, msg) => {
+                    const data = msg.data as Record<string, unknown>;
+                    // This device is not fully spec-compliant and may report this value via raw attribute keys.
+                    const candidates = [data.pirOToUDelay, data["16"], data["15360"]];
+                    const value = candidates.find((candidate) => typeof candidate === "number");
+                    if (typeof value === "number") {
+                        return {pir_occupied_to_unoccupied_delay: value};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb03pr2>({
+                name: "illumination_compensation_offset",
+                cluster: "customClusterEwelink",
+                attribute: "illuminationCompensationOffset",
+                description: "Light intensity calibration offset",
+                label: "Illumination calibration",
+                valueMin: -1000,
+                valueMax: 1000,
+                unit: "lx",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+        ],
+        ota: true,
     },
 ];

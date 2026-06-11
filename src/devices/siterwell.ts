@@ -19,6 +19,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_2cs6g9i7",
             "_TZE200_04yfvweb",
             "_TZE200_lrznf59v",
+            "_TZE204_woww89ip",
         ]),
         model: "GS361A-H04",
         vendor: "Siterwell",

@@ -1,12 +1,30 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    LS21001_alert_behaviour: {
+        key: ["alert_behaviour"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {siren_led: 3, siren: 2, led: 1, nothing: 0};
+            await entity.write(
+                "genBasic",
+                {16394: {value: utils.getFromLookup(value, lookup), type: 32}},
+                {manufacturerCode: Zcl.ManufacturerCode.LEEDARSON_LIGHTING_CO_LTD, disableDefaultResponse: true},
+            );
+            return {state: {alert_behaviour: value}};
+        },
+    } satisfies Tz.Converter,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -199,7 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Linkind",
         description: "Water leak sensor",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-        toZigbee: [tz.LS21001_alert_behaviour],
+        toZigbee: [tzLocal.LS21001_alert_behaviour],
         exposes: [
             e.water_leak(),
             e.battery_low(),

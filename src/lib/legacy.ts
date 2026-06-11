@@ -2152,6 +2152,7 @@ const fromZigbee = {
                 case dataPoints.connecteState:
                     return {state: value ? "ON" : "OFF"};
                 case dataPoints.connecteMode:
+                    // biome-ignore lint/nursery/useExhaustiveSwitchCases: legacy
                     switch (value) {
                         case 0: // manual
                             return {system_mode: "heat", away_mode: "OFF"};
@@ -3097,10 +3098,19 @@ const fromZigbee = {
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             let result = null;
+            let fixedValue = null;
             switch (dp) {
                 case dataPoints.coverPosition: {
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11408
+                    if (value >= 100 && value <= 127) {
+                        fixedValue = 100;
+                    } else if (value > 127 || value < 0) {
+                        fixedValue = 0;
+                    } else {
+                        fixedValue = value;
+                    }
                     const invert = !isCoverInverted(meta.device.manufacturerName) ? !options.invert_cover : options.invert_cover;
-                    const position = invert ? 100 - value : value;
+                    const position = invert ? 100 - fixedValue : fixedValue;
                     result = {position: position};
                     break;
                 }
@@ -3895,6 +3905,34 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandActiveStatusReport"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZB003X_attr: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
+            const keeptimelookup: Record<number, number> = {0: 0, 1: 30, 2: 60, 3: 120, 4: 240, 5: 480};
+            if (data && data.currentZoneSensitivityLevel !== undefined) {
+                const value = data.currentZoneSensitivityLevel;
+                return {sensitivity: senslookup[value]};
+            }
+            if (data && data["61441"] !== undefined) {
+                const value = data["61441"] as number;
+                return {keep_time: keeptimelookup[value]};
+            }
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZB003X_occupancy: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+
     tuya_thermostat_weekly_schedule_2: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -3940,7 +3978,7 @@ const fromZigbee = {
                 return {
                     // Same as in hvacThermostat:getWeeklyScheduleRsp hvacThermostat:setWeeklySchedule cluster format
                     weekly_schedule: {
-                        days: [constants.thermostatDayOfWeek[dayOfWeek]],
+                        days: [utils.getFromLookup(dayOfWeek, constants.thermostatDayOfWeek)],
                         transitions: dataToTransitions(value, maxTransitions, dataOffset),
                     },
                 };
@@ -7036,19 +7074,19 @@ const thermostatSystemModes: {[s: number]: string} = {
 const toZigbee = {...toZigbee1, ...toZigbee2};
 
 export {
+    dataPoints,
     fromZigbee as fz,
     fromZigbee,
-    toZigbee as tz,
-    toZigbee,
+    giexWaterValve,
+    moesSwitch,
+    msLookups,
+    thermostatPresets,
     thermostatSystemModes,
-    tuyaHPSCheckingResult,
     thermostatSystemModes2,
     thermostatSystemModes3,
     thermostatSystemModes4,
-    thermostatPresets,
-    giexWaterValve,
-    msLookups,
+    toZigbee as tz,
+    toZigbee,
+    tuyaHPSCheckingResult,
     ZMLookups,
-    dataPoints,
-    moesSwitch,
 };

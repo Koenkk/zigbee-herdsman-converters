@@ -4,7 +4,8 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueNumberString, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -23,6 +24,30 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    scenes_recall_scene_65024: {
+        cluster: 65024,
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `scene_${msg.data[msg.data.length - 2] - 9}`};
+        },
+    } satisfies Fz.Converter<65024, undefined, ["raw"]>,
+    adeo_button_65024: {
+        cluster: 65024,
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const clickMapping: KeyValueNumberString = {1: "single", 2: "double", 3: "hold"};
+            return {action: `${clickMapping[msg.data[6]]}`};
+        },
+    } satisfies Fz.Converter<65024, undefined, ["raw"]>,
+    color_stop_raw: {
+        cluster: "lightingColorCtrl",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload = {action: utils.postfixWithEndpointName("color_stop", msg, model, meta)};
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -80,35 +105,35 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IA-CDZOTAAA007MA-MAN",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 7.2 to 60W LED RGBW",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-2"],
         model: "IG-CDZOTAAG014RA-MAN",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 14W to 100W LED RGBW v2",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-3"],
         model: "IP-CDZOTAAP005JA-MAN",
         vendor: "ADEO",
         description: "ENKI LEXMAN E14 LED RGBW",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-4"],
         model: "IM-CDZDGAAA0005KA_MAN",
         vendor: "ADEO",
         description: "ENKI LEXMAN RGBTW GU10 Bulb",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-5"],
         model: "IST-CDZFB2AS007NA-MZN-01",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["SIN-4-1-21_EQU"],
@@ -122,28 +147,28 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IST-CDZFB2AS007NA-MZN-02",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED Edison white filament 806 lumen",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-8"],
         model: "IG-CDZFB2G009RA-MZN-02",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED white filament 1055 lumen",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-9"],
         model: "IA-CDZFB2AA007NA-MZN-02",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-6"],
         model: "IG-CDZB2AG009RA-MZN-01",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 Led white bulb",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
 
     {
@@ -151,98 +176,98 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IC-CDZFB2AC004HA-MZN",
         vendor: "ADEO",
         description: "ENKI LEXMAN E14 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-11"],
         model: "IM-CDZDGAAG005KA-MZN",
         vendor: "ADEO",
         description: "ENKI LEXMAN GU-10 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-12"],
         model: "IA-CDZFB2AA007NA-MZN-01",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-13"],
         model: "IG-CDZFB2AG010RA-MNZ",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-14"],
         model: "IC-CDZFB2AC005HA-MZN",
         vendor: "ADEO",
         description: "ENKI LEXMAN E14 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-22"],
         model: "BD05C-FL-21-G-ENK",
         vendor: "ADEO",
         description: "ENKI LEXMAN RGBCCT lamp",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-27"],
         model: "84845506",
         vendor: "ADEO",
         description: "ENKI LEXMAN Gdansk",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-29"],
         model: "84845509",
         vendor: "ADEO",
         description: "ENKI LEXMAN Gdansk LED panel",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-28"],
         model: "PEZ1-042-1020-C1D1",
         vendor: "ADEO",
         description: "ENKI LEXMAN Gdansk",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-30"],
         model: "ZBEK-30",
         vendor: "Adeo",
         description: "ENKI LEXMAN Gdansk",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-31"],
         model: "84870054",
         vendor: "ADEO",
         description: "ENKI LEXMAN Extraflat 85",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-32"],
         model: "ZBEK-32",
         vendor: "ADEO",
         description: "ENKI Inspire Extraflat D12",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-33"],
         model: "ZBEK-33",
         vendor: "ADEO",
         description: "ENKI Inspire Extraflat 2400Lumens",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-34"],
         model: "84870058",
         vendor: "ADEO",
         description: "ENKI LEXMAN Extraflat 225 ",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["LDSENK01F"],
@@ -272,8 +297,8 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_step_color_temperature,
             fz.command_step_hue,
             fz.command_step_saturation,
-            fz.color_stop_raw,
-            fz.scenes_recall_scene_65024,
+            fzLocal.color_stop_raw,
+            fzLocal.scenes_recall_scene_65024,
         ],
         toZigbee: [],
         exposes: [
@@ -309,28 +334,28 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9CZA-A806ST-Q1A",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED RGBW",
-        extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["LXEK-3"],
         model: "9CZA-P470T-A1A",
         vendor: "ADEO",
         description: "ENKI LEXMAN E14 LED RGBW",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["LXEK-4"],
         model: "9CZA-M350ST-Q1A",
         vendor: "ADEO",
         description: "ENKI LEXMAN GU-10 LED RGBW",
-        extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["LXEK-2"],
         model: "9CZA-G1521-Q1A",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 14W to 100W LED RGBW",
-        extend: [m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [m.light({colorTemp: {range: undefined}, color: true, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["LDSENK07"],
@@ -353,7 +378,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9CZA-A806ST-Q1Z",
         vendor: "ADEO",
         description: "ENKI LEXMAN E27 LED white",
-        extend: [m.light({colorTemp: {range: [153, 370]}})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["LDSENK02F"],
@@ -442,7 +467,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "83633204",
         vendor: "ADEO",
         description: "1-key remote control",
-        fromZigbee: [fz.adeo_button_65024, fz.battery],
+        fromZigbee: [fzLocal.adeo_button_65024, fz.battery],
         exposes: [e.action(["single", "double", "hold"]), e.battery()],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -484,5 +509,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ADEO",
         description: "ENKI LEXMAN motor for roller shutler",
         extend: [m.windowCovering({controls: ["lift"]})],
+    },
+    {
+        zigbeeModel: ["ZBEK-37"],
+        model: "ZBEK-37",
+        vendor: "Adeo",
+        description: "ENKI LEXMAN Vizzini ENKI D40",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];

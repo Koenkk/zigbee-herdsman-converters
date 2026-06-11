@@ -13,7 +13,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPP04G",
         vendor: "Mercator Ikuü",
         description: "Quad power point",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]}),
+        ],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
@@ -74,13 +77,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0502B", ["_TZ3000_6dwfra5l"]),
-        model: "SMCL01-ZB",
-        vendor: "Mercator Ikuü",
-        description: "Ikon ceiling light",
-        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}})],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0505B", ["_TZ3000_xr5m6kfg"]),
         model: "SMD4109W-RGB-ZB",
         vendor: "Mercator Ikuü",
@@ -92,7 +88,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPP02G",
         vendor: "Mercator Ikuü",
         description: "Double power point",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]}),
+        ],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
@@ -120,7 +119,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPP02GIP",
         vendor: "Mercator Ikuü",
         description: "Double power point IP54",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]}),
+        ],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
@@ -148,7 +150,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SSW03G",
         vendor: "Mercator Ikuü",
         description: "Triple switch",
-        extend: [tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, endpoints: ["left", "center", "right"]})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({backlightModeLowMediumHigh: true, endpoints: ["left", "center", "right"]}),
+        ],
         endpoint: (device) => {
             return {left: 1, center: 2, right: 3};
         },
@@ -188,7 +193,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPPUSB02",
         vendor: "Mercator Ikuü",
         description: "Double power point with USB",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, electricalMeasurements: true, endpoints: ["left", "right"]}),
+        ],
         endpoint: (device) => {
             return {left: 1, right: 2};
         },
