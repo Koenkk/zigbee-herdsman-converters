@@ -2701,10 +2701,11 @@ export const valueConverter = {
     inverse: {to: (v: boolean) => !v, from: (v: boolean) => !v},
     onOffNotStrict: {from: (v: string) => (v ? "ON" : "OFF"), to: (v: string) => v === "ON"},
     errorOrBatteryLow: {
-        from: (v: number) => {
-            if (v === 0) return {battery_low: false};
-            if (v === 1) return {battery_low: true};
-            return {error: v};
+        from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            let batteryLow = false;
+            if (v === 1) batteryLow = true;
+            publish({error: v});
+            return batteryLow;
         },
     },
     // https://developer.tuya.com/en/docs/connect-subdevices-to-gateways/tuya-zigbee-multiple-switch-access-standard?id=K9ik6zvnqr09m
