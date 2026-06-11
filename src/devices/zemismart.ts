@@ -161,8 +161,8 @@ const fzLocal = {
     TS0726_action: {
         cluster: "genOnOff" as const,
         type: ["commandTuyaAction"] as const,
-        convert: (model: unknown, msg: {endpoint: {ID: number}}, publish: unknown, options: unknown, meta: unknown) => {
-            return {action: `scene_${(msg as {endpoint: {ID: number}}).endpoint.ID}`};
+        convert: (model: unknown, msg: {endpoint: {id: number}}, publish: unknown, options: unknown, meta: unknown) => {
+            return {action: `scene_${(msg as {endpoint: {id: number}}).endpoint.id}`};
         },
     },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
