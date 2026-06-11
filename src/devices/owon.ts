@@ -1264,7 +1264,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
-        zigbeeModel: ["DWS312","DWS332-E"],
+        zigbeeModel: ["DWS312", "DWS332-E"],
         model: "DWS312",
         vendor: "OWON",
         description: "Door/window sensor",
