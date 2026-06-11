@@ -4859,6 +4859,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929004308401"],
+        model: "929004308401",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Lucca Outdoor wall light",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["5042148P9"],
         model: "5042148P9",
         vendor: "Philips",
