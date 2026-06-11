@@ -157,7 +157,7 @@ const tzLocal = {
 };
 
 const fzLocal = {
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0726_action: {
         cluster: "genOnOff" as const,
         type: ["commandTuyaAction"] as const,
