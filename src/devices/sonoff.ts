@@ -743,6 +743,21 @@ const fzLocal = {
             return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
         },
     } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    SNZB02_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const temperature = msg.data.measuredValue / 100.0;
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/13640
+            // SNZB-02 reports stranges values sometimes
+            if (temperature > -33 && temperature < 100) {
+                const property = utils.postfixWithEndpointName("temperature", msg, model, meta);
+                return {[property]: temperature};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -5483,7 +5498,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         description: "Temperature and humidity sensor",
         exposes: [e.battery(), e.temperature(), e.humidity(), e.battery_voltage()],
-        fromZigbee: [fz.SNZB02_temperature, fz.humidity, fz.battery],
+        fromZigbee: [fzLocal.SNZB02_temperature, fz.humidity, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
             device.powerSource = "Battery";
@@ -6095,6 +6110,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-04PR2",
         vendor: "SONOFF",
         description: "Contact sensor",
+        version: "0.0.1",
         extend: [
             m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.binary({
@@ -6107,7 +6123,12 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
                 access: "STATE_GET",
             }),
-            ewelinkBattery(),
+            m.battery({
+                percentageReportingConfig: {min: 3600, max: 7200, change: 2},
+                voltage: true,
+                voltageReporting: true,
+                voltageReportingConfig: false,
+            }),
         ],
         ota: true,
     },

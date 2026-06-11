@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {PartialClusterOrRawAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import {COORDINATOR_ADDRESS} from "zigbee-herdsman/dist/zspec";
 import type {GpdManufAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -1476,7 +1477,7 @@ const fzLocal = {
                     "response",
                     {
                         options: 0b000,
-                        tempMaster: msg.data.gppNwkAddr,
+                        tempMaster: msg.data.gppNwkAddr ?? COORDINATOR_ADDRESS,
                         tempMasterTx: networkParameters.channel - 11,
                         srcID: msg.data.srcID,
                         gpdCmd: 0xfe,
@@ -1981,6 +1982,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Push button dimmer",
         extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.light({
                 effect: false,
                 powerOnBehavior: true,
@@ -1990,7 +1992,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.lightingBallast(),
             m.identify(),
             schneiderElectricExtend.dimmingMode(),
-            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode(),
         ],
         meta: {omitOptionalLevelParams: true},
