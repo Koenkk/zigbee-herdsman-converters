@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.64.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.63.0...v26.64.0) (2026-06-11)
+
+
+### Features
+
+* Add support for Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ([#12385](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12385)) ([d460337](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d460337220c8a3ffe0bcbdf6baf20bb0300bd992))
+* **add:** 929004308401 ([#12408](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12408)) ([db192de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/db192deac9d432c5df6c0797d591e602f62f5aec))
+* OWON: support more variants (AC201P_019E, AC221_019E, DWS332-E) ([#12411](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12411)) ([257c404](https://github.com/Koenkk/zigbee-herdsman-converters/commit/257c404cf9c2de8b35215a3d624ad6ba567267c9))
+* Schneider Electric CCT5010-0003: add switchActions and remove support for power on behaviour ([#12420](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12420)) ([b4c61bf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b4c61bf3e1c7ca1a756bda27dee55d040d937535))
+
+
+### Bug Fixes
+
+* Aqara DS-K02D/DS-K02E: fix ghost events https://github.com/Koenkk/zigbee2mqtt/issues/32059 ([03f52de](https://github.com/Koenkk/zigbee-herdsman-converters/commit/03f52de597022693fc7739a0798df048bffb06c0))
+* AVATTO TS0601_thermostat_14: fix battery low state ([#12415](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12415)) ([32c8f5c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/32c8f5ce90eb51d4016c5532e40fe1086d3afce2))
+* **detect:** Detect `_TZE284_qtnjuoae` as RTX ZVG1 https://github.com/Koenkk/zigbee2mqtt/discussions/27819 ([3c4717a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c4717a70fcaf9db2d219fda56bdb5eb1016de20))
+* Legrand 067755: fix description ([#12414](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12414)) ([43a227d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/43a227ddbf37e8a7eee89d50bf03de8a7a4d3f30))
+* Schneider Electric S320522W: fix configure failing ([#12413](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12413)) ([22c334e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/22c334e0acf0edbd0b43f6b4d875f37848127d4a))
+* Shelly S4SN-0071A: fix configure failing https://github.com/Koenkk/zigbee-herdsman-converters/issues/12266 ([efc5256](https://github.com/Koenkk/zigbee-herdsman-converters/commit/efc525666b85f048d9057a78b86abd082c233e33))
+
 ## [26.63.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.62.0...v26.63.0) (2026-06-09)
 
 
