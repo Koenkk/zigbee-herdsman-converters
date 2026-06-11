@@ -1593,7 +1593,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({percentageReportingConfig: false}),
             m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyWiFiSetup(),
         ],
     },
     {
