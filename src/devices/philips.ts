@@ -2842,7 +2842,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "manuSpecificPhilips"]);
             await reporting.batteryPercentageRemaining(endpoint);
-            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
+            const options = {manufacturerCode: Zcl.ManufacturerCode._NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write("genBasic", {52: {value: 0, type: 48}}, options);
         },
         ota: true,
@@ -4861,7 +4861,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["929004308401"],
         model: "929004308401",
-        vendor: "Signify Netherlands B.V.",
+        vendor: "Philips",
         description: "Hue White and Color Ambiance Lucca Outdoor wall light",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
