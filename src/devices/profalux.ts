@@ -192,9 +192,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // ZTP20C/ZTP22C: these seem to be bound to the cover and the action behaviour
-        // has not been verified, so only battery is exposed. The ZTP20F (above) does
-        // reach the coordinator and exposes up/down/stop actions.
+        // ZTP20C seems to be bound to the cover and the action behaviour
+        // has not been verified, so only battery is exposed.
+        // ZTP22C has been verified and doesn't expose up/down/stop actions.
+        // ZTP20F (above) does reach the coordinator and exposes up/down/stop actions.
         zigbeeModel: ["MAI-ZTP20C", "MAI-ZTP22C"],
         model: "MAI-ZTP20",
         vendor: "Profalux",
