@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "067755",
         vendor: "Legrand",
-        description: "Wireless and batteryless 4 scenes control",
+        description: "Wireless 4 scenes control",
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
         fromZigbee: [fz.identify, fz.battery, fzLocal.command_recall_by_groupid],
