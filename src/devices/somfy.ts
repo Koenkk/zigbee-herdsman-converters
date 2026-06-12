@@ -51,6 +51,20 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
+        zigbeeModel: ["Sonesse 28 WF Zebra"],
+        model: "Sonesse 28 WF Li-Ion Zebra",
+        vendor: "SOMFY",
+        description: "Somfy Zebra shades (external battery)",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
+    {
+        zigbeeModel: ["Sonesse 28 WF Li-Ion Zebra"],
+        model: "Sonesse 28 WF Li-Ion Zebra",
+        vendor: "SOMFY",
+        description: "Somfy Zebra shades (internal battery)",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
+    {
         zigbeeModel: ["Sonesse 30 DC 24V Roller"],
         model: "1241970",
         vendor: "SOMFY",
