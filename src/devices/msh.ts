@@ -2,6 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as ptvo from "../devices/custom_devices_diy";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
@@ -127,7 +128,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {multiEndpoint: true},
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "haElectricalMeasurement", "seMetering", "msTemperatureMeasurement"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
