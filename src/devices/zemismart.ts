@@ -130,11 +130,9 @@ const tzLocal = {
             await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
         },
     } satisfies Tz.Converter,
-   
 };
 
 const fzLocal = {
-
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         cluster: "closuresWindowCovering",
@@ -1175,5 +1173,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
-   
+    },
 ];
