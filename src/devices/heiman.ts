@@ -3272,6 +3272,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS1CA-E-PLUS",
         vendor: "Heiman",
         description: "Co detector",
+        version: "0.0.1",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
