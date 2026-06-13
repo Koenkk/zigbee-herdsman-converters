@@ -60,10 +60,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.lock(), e.pincode(), e.battery(), e.sound_volume()],
     },
     {
-        zigbeeModel: ['HT-SLM-3'],
-        model: 'HT-SLM-3',
-        vendor: 'Heimgard Technologies',
-        description: 'Heimgard Entry Lock',
+        zigbeeModel: ["HT-SLM-3"],
+        model: "HT-SLM-3",
+        vendor: "Heimgard Technologies",
+        description: "Heimgard Entry Lock",
         ota: true,
         meta: {pinCodeCount: 40},
         fromZigbee: [
@@ -75,21 +75,13 @@ export const definitions: DefinitionWithExtend[] = [
             fz.lock_user_status_response,
         ],
         toZigbee: [tz.identify, tz.lock, tz.lock_sound_volume, tz.pincode_lock, tz.lock_userstatus],
-        exposes: [
-            e.lock(),
-            e.battery(),
-            e.pincode(),
-            e.lock_action(),
-            e.lock_action_source_name(),
-            e.lock_action_user(),
-            e.sound_volume(),
-        ],
+        exposes: [e.lock(), e.battery(), e.pincode(), e.lock_action(), e.lock_action_source_name(), e.lock_action_user(), e.sound_volume()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['closuresDoorLock', 'genPowerCfg']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read('closuresDoorLock', ['lockState', 'soundVolume']);
+            await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
         },
     },
     {
