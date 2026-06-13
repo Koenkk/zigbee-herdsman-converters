@@ -10096,7 +10096,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_dlug3kbc"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_dlug3kbc", "_TZ3000_9tg32trw"]),
         model: "TS011F_3_gang",
         description: "3 gang wall ac outlet",
         vendor: "Tuya",
