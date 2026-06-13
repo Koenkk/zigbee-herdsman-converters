@@ -1,10 +1,19 @@
+import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface FuturehomeHaApplianceControl {
+    attributes: {
+        autoCharge: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const localValueConverters = {
     energyMonotonic: {
@@ -19,6 +28,270 @@ const localValueConverters = {
             meta.device.meta.energy = scaled;
             return scaled;
         },
+    },
+};
+
+const futurehomeExtend = {
+    chargerStatus1: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "haApplianceControl",
+                    type: ["commandSignalStateNotification", "commandSignalStateRsp"],
+                    convert(model, msg, publish, options, meta) {
+                        const status = msg?.data?.applianceStatus;
+                        if (status === undefined || status === null) return;
+                        let chargerStatus:
+                            | "plugged_out"
+                            | "1X: Off"
+                            | "4: plugged_in"
+                            | "2: plugged_in_charging"
+                            | "3: plugged_in_paused"
+                            | "5X: running"
+                            | "8X: failure" = "plugged_out";
+                        let chargingOn = false;
+
+                        switch (status) {
+                            case 0x01: // Off
+                                chargerStatus = "1X: Off";
+                                chargingOn = false;
+                                break;
+                            case 0x02: // StandBy → charging
+                                chargerStatus = "2: plugged_in_charging";
+                                chargingOn = true;
+                                break;
+                            case 0x03: // Programmed (paused by user)
+                                chargerStatus = "3: plugged_in_paused";
+                                chargingOn = false;
+                                break;
+                            case 0x04: // ProgrammedWaitingToStart
+                                chargerStatus = "4: plugged_in";
+                                chargingOn = false;
+                                break;
+                            case 0x05: // Running
+                                chargerStatus = "5X: running";
+                                chargingOn = false;
+                                break;
+                            case 0x08: // Failure
+                                chargerStatus = "8X: failure";
+                                chargingOn = false;
+                                break;
+                            default:
+                                chargerStatus = "plugged_out";
+                                chargingOn = false;
+                        }
+                        return {charger_status: chargerStatus, charging_on: chargingOn};
+                    },
+                } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
+            ],
+            toZigbee: [
+                {
+                    key: ["charger_status"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
+                    },
+                } satisfies Tz.Converter,
+            ],
+            configure: [
+                async (device, coordinatorEndpoint, logger) => {
+                    for (const endpoint of device.endpoints) {
+                        if (endpoint.supportsInputCluster("haApplianceControl")) {
+                            await endpoint.bind("haApplianceControl", coordinatorEndpoint);
+                            try {
+                                await endpoint.command("haApplianceControl", "signalState", {});
+                            } catch {
+                                // do nothing
+                            }
+                        }
+                    }
+                },
+            ],
+            options: [
+                e
+                    .numeric("charger_status_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
+            ],
+            onEvent: m.poll({
+                key: "charger_status_poll",
+                optionKey: "charger_status_poll_interval",
+                option: e
+                    .numeric("charger_status_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint = device.endpoints.find((e) => e.supportsInputCluster("haApplianceControl"));
+                    if (endpoint) {
+                        await endpoint.command("haApplianceControl", "signalState", {});
+                    }
+                },
+            }).onEvent,
+            exposes: [
+                exposes
+                    .enum("charger_status", ea.STATE_GET, [
+                        "plugged_out",
+                        "1X: Off",
+                        "2: plugged_in_charging",
+                        "3: plugged_in_paused",
+                        "4: plugged_in",
+                        "5X: running",
+                        "8X: failure",
+                    ])
+                    .withDescription("Current EV charger state"),
+                exposes.binary("charging_on", ea.STATE, "true", "false").withDescription("Indicates if the charger is actively delivering power"),
+            ],
+        };
+    },
+    chargerStatus: (): ModernExtend => {
+        const extend: ModernExtend = {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "haApplianceControl",
+                    type: ["commandSignalStateNotification", "commandSignalStateRsp"],
+                    convert(model, msg, publish, options, meta) {
+                        const status = msg?.data?.applianceStatus;
+                        if (status === undefined || status === null) return;
+                        let chargerStatus:
+                            | "plugged_out"
+                            | "1X: Off"
+                            | "4: plugged_in"
+                            | "2: plugged_in_charging"
+                            | "3: plugged_in_paused"
+                            | "5X: running"
+                            | "8X: failure" = "plugged_out";
+                        let chargingOn = false;
+
+                        switch (status) {
+                            case 0x01: // Off
+                                chargerStatus = "1X: Off";
+                                chargingOn = false;
+                                break;
+                            case 0x02: // StandBy → charging
+                                chargerStatus = "2: plugged_in_charging";
+                                chargingOn = true;
+                                break;
+                            case 0x03: // Programmed (paused by user)
+                                chargerStatus = "3: plugged_in_paused";
+                                chargingOn = false;
+                                break;
+                            case 0x04: // ProgrammedWaitingToStart
+                                chargerStatus = "4: plugged_in";
+                                chargingOn = false;
+                                break;
+                            case 0x05: // Running
+                                chargerStatus = "5X: running";
+                                chargingOn = false;
+                                break;
+                            case 0x08: // Failure
+                                chargerStatus = "8X: failure";
+                                chargingOn = false;
+                                break;
+                            default:
+                                chargerStatus = "plugged_out";
+                                chargingOn = false;
+                        }
+                        return {charger_status: chargerStatus, charging_on: chargingOn === true ? "ON" : "OFF"};
+                    },
+                } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
+            ],
+            toZigbee: [
+                {
+                    key: ["charger_status", "charging_on"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
+                    },
+                } satisfies Tz.Converter,
+            ],
+            configure: [
+                async (device, coordinatorEndpoint, logger) => {
+                    for (const endpoint of device.endpoints) {
+                        if (endpoint.supportsInputCluster("haApplianceControl")) {
+                            await endpoint.bind("haApplianceControl", coordinatorEndpoint);
+                            try {
+                                await endpoint.command("haApplianceControl", "signalState", {});
+                            } catch {
+                                // do nothing
+                            }
+                        }
+                    }
+                },
+            ],
+            exposes: [
+                exposes
+                    .enum("charger_status", ea.STATE_GET, [
+                        "plugged_out",
+                        "1X: Off",
+                        "2: plugged_in_charging",
+                        "3: plugged_in_paused",
+                        "4: plugged_in",
+                        "5X: running",
+                        "8X: failure",
+                    ])
+                    .withDescription("Current EV charger state"),
+                exposes.binary("charging_on", ea.STATE, "ON", "OFF").withDescription("Indicates if the charger is actively delivering power"),
+            ],
+        };
+        const pollExtend = m.poll({
+            key: "charger_status_poll",
+            optionKey: "charger_status_poll_interval",
+            option: e
+                .numeric("charger_status_poll_interval", ea.SET)
+                .withValueMin(-1)
+                .withUnit("s")
+                .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                const endpoint = device.endpoints.find((e) => e.supportsInputCluster("haApplianceControl"));
+                if (endpoint) {
+                    await endpoint.command("haApplianceControl", "signalState", {});
+                }
+            },
+        });
+        extend.onEvent = pollExtend.onEvent;
+        extend.options = pollExtend.options;
+        return extend;
+    },
+    charging: (): ModernExtend => {
+        const commandLookup: {[key: string]: number} = {
+            start: 0x01,
+            stop: 0x02,
+            pause: 0x03,
+        };
+        return {
+            isModernExtend: true,
+            fromZigbee: [],
+            toZigbee: [
+                {
+                    // key: ["charging"],
+                    key: ["charging_start", "charging_stop", "charging_pause"],
+                    convertSet: async (entity, key, value, meta) => {
+                        const normalizedAction = key.replace("charging_", ""); // "start", "stop", or "pause"
+                        const commandId = commandLookup[normalizedAction];
+                        // const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
+                        // await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
+                        await entity.command("haApplianceControl", "executionOfCommand", {commandId: commandId});
+                        try {
+                            await entity.command("haApplianceControl", "signalState", {});
+                        } catch {
+                            // do nothing
+                        }
+                        return; // {state: {charging: value}};
+                    },
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("haApplianceControl", "signalState", {});
+                    },
+                } satisfies Tz.Converter,
+            ],
+            // exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
+            exposes: [
+                exposes.enum("charging_start", ea.SET, ["start"]).withLabel("Start charging").withDescription("Press to start charging"),
+                exposes.enum("charging_stop", ea.SET, ["stop"]).withLabel("Stop charging").withDescription("Press to stop charging"),
+                exposes.enum("charging_pause", ea.SET, ["pause"]).withLabel("Pause charging").withDescription("Press to pause charging"),
+            ],
+        };
     },
 };
 
@@ -105,5 +378,102 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart puck",
         ota: true,
         extend: [m.light({configureReporting: true})],
+    },
+    {
+        zigbeeModel: ["Charge"],
+        model: "Charge",
+        vendor: "Futurehome",
+        description: "Futurehome Charge (EV Charger)",
+        extend: [
+            m.deviceAddCustomCluster("haApplianceControl", {
+                name: "haApplianceControl",
+                ID: Zcl.Clusters.haApplianceControl.ID,
+                attributes: {
+                    autoCharge: {
+                        name: "autoCharge",
+                        ID: 0xef0c,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            futurehomeExtend.chargerStatus(),
+            futurehomeExtend.charging(),
+            m.binary({
+                name: "cable_locked",
+                cluster: "closuresDoorLock",
+                attribute: "operatingMode",
+                valueOff: ["UNLOCK", 0x00],
+                valueOn: ["LOCK", 0x02],
+                description: "Permanently lock cable when not charging.",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            // 'closuresDoorLock':
+            // {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
+            // 'under lading  {"actuatorEnabled":177,"supportedOperatingModes":261,"operatingMode":0,"lockType":null,"lockState":1}
+
+            // genAnalogOutput':
+            // Under lading {"maxPresentValue":32,"outOfService":0,"presentValue":7,"statusFlags":0}
+
+            // 'genMultistateValue':
+            // {"numberOfStates":8,"outOfService":0,"presentValue":5}
+            // under lading '{"numberOfStates":8,"outOfService":0,"presentValue":5,"reliability":0,"statusFlags":0}
+
+            // 'genMultistateInput':
+            // {"numberOfStates":6,"outOfService":0,"presentValue":65}
+            // under lading  {"numberOfStates":6,"outOfService":0,"presentValue":67,"statusFlags":0}
+            m.numeric({
+                name: "setpoint_charging_current",
+                cluster: "genAnalogOutput",
+                attribute: "presentValue",
+                description: "Setpoint charging current",
+                unit: "A",
+                access: "ALL",
+                valueMin: 6,
+                valueMax: 32,
+                valueStep: 1,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric({
+                name: "charging_current_limit",
+                cluster: "genAnalogOutput",
+                attribute: "maxPresentValue",
+                description: "Maximum charging current.",
+                unit: "A",
+                access: "ALL",
+                valueMin: 6,
+                valueMax: 32,
+                valueStep: 1,
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "auto_charge",
+                cluster: "haApplianceControl",
+                attribute: "autoCharge",
+                description: "Automatically start charging when a car is connected.",
+                valueOff: ["OFF", 0],
+                valueOn: ["ON", 1],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haElectricalMeasurement", undefined>({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "totalActivePower",
+                description: "Power",
+                unit: "W",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+            }),
+            m.electricityMeter({
+                energy: {divisor: 1000, multiplier: 1},
+                power: false,
+                threePhase: true,
+            }),
+        ],
     },
 ];
