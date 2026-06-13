@@ -325,6 +325,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "COZB0001",
         vendor: "Eurotronic",
         description: "Comet Zigbee wireless heater thermostat",
+        extend: [eurotronicExtend.addEurotronicHvacThermostatCluster()],
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fzLocal.eurotronic_thermostat, fz.battery],
         toZigbee: [
