@@ -11228,14 +11228,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd", "_TZ3000_ovbvmhiq"]),
         model: "TS0726_1_gang",
         vendor: "Tuya",
         description: "1 gang switch with neutral wire",
         extend: [tuya.modernExtend.tuyaBase()],
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
-        exposes: [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])],
+        exposes: (device) => {
+            const exposes = [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])];
+            if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_ovbvmhiq") {
+                exposes.push(e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]));
+            }
+            return exposes;
+        },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -11253,10 +11259,11 @@ export const definitions: DefinitionWithExtend[] = [
             const exposes = [
                 ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
                 ...[1, 2].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+                ...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
+                e.action(["scene_1", "scene_2"]),
             ];
-            if (utils.isDummyDevice(device) || device.manufacturerName !== "_TZ3000_icoxotza") {
-                exposes.push(...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)));
-                exposes.push(e.action(["scene_1", "scene_2"]));
+            if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_icoxotza") {
+                exposes.push(e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]));
             }
             return exposes;
         },
