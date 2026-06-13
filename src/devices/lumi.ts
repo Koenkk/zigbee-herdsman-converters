@@ -3388,6 +3388,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
+        zigbeeModel: ["lumi.light.acn040"],
+        model: "SSWQD22LM",
+        vendor: "Aqara",
+        description: "Spotlight T2 Pro",
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, colorTempRange: [166, 370]})],
+    },
+    {
         zigbeeModel: ["lumi.switch.n0agl1"],
         model: "SSM-U01",
         vendor: "Aqara",
