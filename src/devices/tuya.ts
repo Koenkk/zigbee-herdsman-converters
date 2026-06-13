@@ -24,6 +24,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const te = tuya.exposes;
+const tvc = tuya.valueConverter;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -21082,74 +21083,47 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE204_7yyuo8sr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE284_mxujdmxo"]),
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        whiteLabel: [tuya.whitelabel("Tuya", "872WZ", "Water level sensor", ["_TZE204_7yyuo8sr"])],
-        exposes: [
+        whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
+        extend: [
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+        ],
+        version: "0.0.1",
+        exposes: (device, options) => [
+            te.liquidState(),
             te.liquidLevelPercent(),
             te.liquidDepth(),
-            te.liquidState(),
+            te.powerSupplyVoltage(),
+
             te.liquidMaximalPercent(),
             te.liquidMinimalPercent(),
-            te.liquidInstallationHeight(),
-            te.liquidDepthMax(),
+
+            ...(!device || ["_TZE284_kyyu8rbj"].includes(device.manufacturerName)
+                ? [te.liquidDepthMax(), te.liquidInstallationHeight()]
+                : [te.liquidDepthMax().withValueMax(10)]),
+            te.relaySwitch(),
+            te.pumpMode(),
+            te.autoPumpControl(),
+
+            te.version(),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "liquid_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(1),
-                        normal: tuya.enum(0),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [2, "liquid_depth", tuya.valueConverter.raw],
-                [7, "max_set", tuya.valueConverter.raw],
-                [8, "min_set", tuya.valueConverter.raw],
-                [19, "installation_height", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.raw],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mxujdmxo"]),
-        model: "ME202WZ",
-        vendor: "Tuya",
-        description: "Water level sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        exposes: [
-            te.liquidState(),
-            te.liquidDepth(),
-            e.numeric("power_level", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
-            te.liquidMaximalPercent(),
-            te.liquidMinimalPercent(),
-            te.liquidDepthMax(),
-            te.liquidLevelPercent(),
-            e.text("version", ea.STATE_GET).withDescription("Device version"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [
-                    1,
-                    "liquid_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(1),
-                        normal: tuya.enum(0),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [2, "liquid_depth", tuya.valueConverter.raw],
-                [5, "power_level", tuya.valueConverter.divideBy10],
-                [7, "max_set", tuya.valueConverter.raw],
-                [8, "min_set", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.raw],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [1, "liquid_state", tvc.level],
+                [2, "liquid_depth", tvc.divideBy100],
+                [5, "voltage", tvc.divideBy10], // power_level
+                [7, "max_set", tvc.raw],
+                [8, "min_set", tvc.raw],
+                [19, "installation_height", tvc.divideBy100],
+                [21, "liquid_depth_max", tvc.divideBy100],
+                [22, "liquid_level_percent", tvc.raw],
+                [24, "relay_switch", tvc.onOff],
+                [101, "pump_mode", tvc.pumpMode],
+                [102, "pump_control", tvc.pumpControl], // auto_pump_control
                 [103, "version", tuya.valueConverter.raw],
             ],
         },
@@ -21159,34 +21133,74 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
-        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        extend: [
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+        ],
         version: "0.0.1",
         exposes: [
+            te.liquidState(),
             te.liquidLevelPercent(),
             te.liquidDepth(),
-            te.liquidState(),
-            te.liquidMaximalPercent(),
+
             te.liquidMinimalPercent(),
-            te.liquidInstallationHeight(),
-            te.liquidDepthMax(),
+            te.liquidMaximalPercent(),
+            te.liquidDepthMax().withValueMax(2).withValueStep(0.001),
+            te.liquidInstallationHeight().withValueMax(3).withValueStep(0.001),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "liquid_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(1),
-                        normal: tuya.enum(0),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [2, "liquid_depth", tuya.valueConverter.raw],
-                [7, "max_set", tuya.valueConverter.raw],
-                [8, "min_set", tuya.valueConverter.raw],
-                [19, "installation_height", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.raw],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [1, "liquid_state", tvc.level],
+                [2, "liquid_depth", tvc.divideBy100],
+                [7, "max_set", tvc.raw],
+                [8, "min_set", tvc.raw],
+                [19, "installation_height", tvc.divideBy1000],
+                [21, "liquid_depth_max", tvc.divideBy1000],
+                [22, "liquid_level_percent", tvc.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7yyuo8sr"]),
+        model: "872WZ",
+        vendor: "Tuya",
+        description: "Water level sensor",
+        extend: [
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+        ],
+        version: "0.0.1",
+        exposes: [
+            te.liquidState(),
+            te.liquidLevelPercent(),
+            te.liquidDepth(),
+
+            te.liquidMaximalPercent(),
+            te.liquidMinimalPercent(),
+            te.liquidDepthMax().withValueMin(0),
+            te.liquidInstallationHeight().withValueMin(0),
+
+            te.silentMode(),
+            te.alarmDuration(),
+
+            // te.autoPumpControl() ?
+            // te.hydrate ?
+            // te.water drainage ?
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "liquid_state", tvc.level],
+                [2, "liquid_depth", tvc.divideBy100],
+                [7, "max_set", tvc.raw],
+                [8, "min_set", tvc.raw],
+                [9, "silent_mode", tvc.onOff],
+                [19, "installation_height", tvc.divideBy100],
+                [21, "liquid_depth_max", tvc.divideBy100],
+                [22, "liquid_level_percent", tvc.raw],
+                [27, "alarm_time", tvc.raw],
+                [101, "pump_control", tvc.pumpControl],
+                [102, "hydrate", tvc.raw],
+                [103, "water_drainage", tvc.raw],
             ],
         },
     },
