@@ -1,5 +1,27 @@
 # Changelog
 
+## [26.65.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.64.0...v26.65.0) (2026-06-13)
+
+
+### Features
+
+* **add:** 929004611301 ([#12423](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12423)) ([ab29ef5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab29ef5b429ce28080d87e9692a103758e403845))
+* **add:** SSWQD22LM ([#12406](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12406)) ([9c615ae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9c615aed7a577fdbd157acdafa645d830a695449))
+* Heiman: add reading temperature, humidity and co attributes during paring ([#12412](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12412)) ([55c1a04](https://github.com/Koenkk/zigbee-herdsman-converters/commit/55c1a043e8e644ef38a42caf0eb772c80aeba84d))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_9tg32trw` as Tuya TS011F_3_gang ([#12426](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12426)) ([f58c8cb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f58c8cbb9e46865038bedbc733c8e463feb9c359))
+* **detect:** Detect `_TZ3000_gsat0axs` as Tuya TS0001_power ([#12422](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12422)) ([3fafd6e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3fafd6e450a523d945703543862ffdc537c0e678))
+* **detect:** Detect `_TZ3000_ovbvmhiq` as Tuya TS0726_1_gang ([#12405](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12405)) ([b7e0856](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7e0856abe77c0b2c2fd91929a1163fed3808bd7))
+* Eurotronic COZB0001: add custom attributes to HVAC thermostat cluster ([#12430](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12430)) ([5abef4f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5abef4f86751a961711ba23cb0c2e717100b89cc))
+* Legrand ZLGP14/ZLGP15/ZLGP16: disable OTA support ([#12421](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12421)) ([9fd467b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9fd467bbf6d10d610c44eb466c3dbea6ea19726a))
+* Plugwise: enable write access for custom attributes ([#12429](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12429)) ([1d90e66](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d90e6699e07ffcdebc9d88b3bc9394b53c8a9b1))
+* Tuya TS0505B_2: color not controllable https://github.com/Koenkk/zigbee2mqtt/issues/31958 ([5577388](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5577388889446b4e29f39a06a606720ae25c88e7))
+* Tuya TS0601_dimmer_1_gang_1: suppress stale periodic state report ([#12431](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12431)) ([be475c6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be475c6f408257fe0302cf04ca0ed4ac2035c3a6))
+* Tuya water level sensors: expose features and fix units ([#12424](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12424)) ([4b7f0b0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4b7f0b07a8d0e1d8758b2fa1c5486153df0d0606))
+
 ## [26.64.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.63.0...v26.64.0) (2026-06-11)
 
 
