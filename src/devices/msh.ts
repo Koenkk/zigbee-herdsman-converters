@@ -61,7 +61,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "msh.ina226",
         vendor: "MySmartHouse",
         description: "MSH 9-26V, 5A DC Power Meter",
-        extend:[
+        extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.electricityMeter({
                 endpointNames: ["l2"],
@@ -85,7 +85,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "msh.ina226m",
         vendor: "MySmartHouse",
         description: "MSH 9-26V, 5A DC Power Meter, with CPU temperature support",
-        extend:[
+        extend: [
             m.deviceEndpoints({endpoints: {l2: 2, l4: 4, l5: 5}}),
             m.electricityMeter({
                 endpointNames: ["l2"],
@@ -115,7 +115,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "msh.pzem",
         vendor: "MySmartHouse",
         description: "MSH 100A AC DIN Power Meter",
-        extend:[
+        extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             m.electricityMeter({
                 endpointNames: ["l2"],
