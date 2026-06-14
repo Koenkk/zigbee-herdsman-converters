@@ -757,6 +757,7 @@ const heimanExtend = {
             1: "alarm_muted", // bit1
             2: "fault_muted", // bit2
             3: "low_battery_muted", // bit3
+            4: "endoflife_muted", // bit4
             5: "warning_muted", // bit5
         };
         const exposes = utils.exposeEndpoints(e.text("muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
