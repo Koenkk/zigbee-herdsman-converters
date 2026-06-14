@@ -2591,6 +2591,29 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            exposes: [e.action(["button_3_single", "button_4_single"])],
+            fromZigbee: [
+                {
+                    cluster: "genMultistateInput",
+                    type: ["attributeReport"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const endpoint = msg.endpoint.ID;
+                        const value = msg.data.presentValue;
+                        // Don't map any other actions/endpoint, create ghost events
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
+                        const buttonMap: {[key: number]: string} = {3: "button_3", 4: "button_4"};
+                        if (endpoint in buttonMap && value === 1) {
+                            return {action: `${buttonMap[endpoint]}_single`};
+                        }
+                        return null;
+                    },
+                } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport"]>,
+            ],
+        };
+    },
     lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi", ManuSpecificLumi>>) =>
         modernExtend.binary<"manuSpecificLumi", ManuSpecificLumi>({
             name: "calibrated",

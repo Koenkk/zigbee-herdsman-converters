@@ -590,7 +590,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZLGP14/ZLGP15/ZLGP16",
         vendor: "Legrand",
         description: "Wireless and batteryless scenario switch (home arrival/departure, 1-4 switches, daytime day/night)",
-        ota: true,
+        ota: false,
         fromZigbee: [fzLegrand.greenpower],
         toZigbee: [],
         exposes: [

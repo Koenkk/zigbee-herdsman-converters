@@ -1180,31 +1180,34 @@ const tuyaExposes = {
             .withDescription("Unknown (Default 0s)")
             .withCategory("config"),
     liquidLevelPercent: () => e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
-    liquidDepth: () => e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
+    liquidDepth: () => e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid depth"),
     liquidDepthMax: () =>
         e
             .numeric("liquid_depth_max", ea.STATE_SET)
-            .withUnit("mm")
-            .withDescription("Height from sensor to liquid level")
-            .withValueMin(10)
-            .withValueMax(4000)
-            .withValueStep(5),
+            .withUnit("m")
+            .withDescription("Distance from sensor to liquid surface")
+            .withValueMin(0.1)
+            .withValueMax(5)
+            .withValueStep(0.01)
+            .withCategory("config"),
     liquidInstallationHeight: () =>
         e
             .numeric("installation_height", ea.STATE_SET)
-            .withUnit("mm")
-            .withDescription("Height from sensor to tank bottom")
-            .withValueMin(10)
-            .withValueMax(4000)
-            .withValueStep(5),
+            .withUnit("m")
+            .withDescription("Distance from sensor to bottom of the tank")
+            .withValueMin(0.1)
+            .withValueMax(5)
+            .withValueStep(0.01)
+            .withCategory("config"),
     liquidMinimalPercent: () =>
         e
             .numeric("min_set", ea.STATE_SET)
             .withUnit("%")
-            .withDescription("Liquid minimal percentage")
+            .withDescription("Liquid minimum percentage")
             .withValueMin(0)
             .withValueMax(100)
-            .withValueStep(1),
+            .withValueStep(1)
+            .withCategory("config"),
     liquidMaximalPercent: () =>
         e
             .numeric("max_set", ea.STATE_SET)
@@ -1212,8 +1215,16 @@ const tuyaExposes = {
             .withDescription("Liquid maximum percentage")
             .withValueMin(0)
             .withValueMax(100)
-            .withValueStep(1),
+            .withValueStep(1)
+            .withCategory("config"),
     liquidState: () => e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
+    powerSupplyVoltage: () => e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withCategory("diagnostic"),
+    relaySwitch: () => e.binary("relay_switch", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+    pumpMode: () => e.enum("pump_mode", ea.STATE_SET, ["supply", "drainage"]).withCategory("config"),
+    autoPumpControl: () => e.enum("pump_control", ea.STATE_SET, ["auto", "manual"]).withCategory("config"),
+    version: () => e.text("version", ea.STATE).withCategory("diagnostic"),
+    alarmDuration: () =>
+        e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
@@ -1498,6 +1509,9 @@ export const valueConverter = {
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
     fault: {from: (v: Bitmap) => !!v},
+    level: valueConverterBasic.lookup({low: new Enum(1), normal: new Enum(0), high: new Enum(2)}),
+    pumpMode: valueConverterBasic.lookup({supply: true, drainage: false}),
+    pumpControl: valueConverterBasic.lookup({auto: true, manual: false}),
     alarmMode: valueConverterBasic.lookup({arm: new Enum(0), silent: new Enum(1), disarm: new Enum(2)}),
     alarmStatus: valueConverterBasic.lookup({normal: new Enum(0), alarm: new Enum(1)}),
     sensitivity: valueConverterBasic.lookup({low: new Enum(0), middle: new Enum(1), high: new Enum(2)}),

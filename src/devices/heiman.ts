@@ -3133,6 +3133,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3191,6 +3192,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3269,6 +3272,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS1CA-E-PLUS",
         vendor: "Heiman",
         description: "Co detector",
+        version: "0.0.1",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3276,6 +3280,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3284,9 +3290,6 @@ export const definitions: DefinitionWithExtend[] = [
                     "deviceMuteState",
                     "indicatorLightLevelControlOf1",
                     "interconnectable",
-                    "smokeConcentrationLevel",
-                    "smokeChamberContaminationLevel",
-                    "smokeConcentationUnit",
                     "temperatureOffset",
                     "sensorLifeState",
                     "sensorPrealarmState",
@@ -3398,6 +3401,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [

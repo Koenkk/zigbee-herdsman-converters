@@ -24,6 +24,7 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const te = tuya.exposes;
+const tvc = tuya.valueConverter;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -3761,16 +3762,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Lidl", "14149505L/14149506L_2", "Livarno Lux light bar RGB+CCT (black/white)", ["_TZ3210_iystcadi"]),
             tuya.whitelabel("Tuya", "TS0505B_2_2", "Zigbee GU10/E14 5W smart bulb", ["_TZ3210_it1u8ahz"]),
         ],
-        toZigbee: [tz.on_off, tzLocal.led_control, tuya.tz.do_not_disturb],
-        fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
-        exposes: [e.light_brightness_colortemp_colorhs([143, 500]).removeFeature("color_temp_startup"), tuya.exposes.doNotDisturb()],
-        meta: {
-            applyRedFix: true, // https://github.com/Koenkk/zigbee-herdsman-converters/issues/11467
-        },
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"], applyRedFix: true}})],
         configure: (device, coordinatorEndpoint) => {
-            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {
-                colorCapabilities: 29,
-            });
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
     },
     {
@@ -4666,14 +4660,22 @@ export const definitions: DefinitionWithExtend[] = [
         // physical-knob state changes (see #10272, #25203). For variants whose
         // firmware does not support standard reporting, the bind + configReport
         // requests are harmless no-ops.
-        version: "0.0.1",
+        //
+        // maximumReportInterval is set to 0 (change-only reporting, no periodic
+        // heartbeat). The library default of 3600s causes this firmware to send
+        // a stale hourly report --- genOnOff.onOff always 1 and a frozen
+        // genLevelCtrl.currentLevel regardless of actual state --- which
+        // overwrites the correct state in the consumer once an hour. The
+        // event-driven on-change reports remain accurate, so suppressing the
+        // periodic path is sufficient and lossless.
+        version: "0.0.2",
         fromZigbee: [fz.on_off, fz.brightness],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            await reporting.onOff(endpoint);
-            await reporting.brightness(endpoint);
+            await reporting.onOff(endpoint, {max: 0});
+            await reporting.brightness(endpoint, {max: 0});
         },
         exposes: (device, options) => {
             const exps: Expose[] = [
@@ -6703,6 +6705,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_x8mbwtsz",
             "_TZ3000_iktiy8ue",
             "_TZ3000_zojh9vz7",
+            "_TZ3000_gsat0axs",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -10094,7 +10097,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_dlug3kbc"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_dlug3kbc", "_TZ3000_9tg32trw"]),
         model: "TS011F_3_gang",
         description: "3 gang wall ac outlet",
         vendor: "Tuya",
@@ -11227,14 +11230,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd", "_TZ3000_ovbvmhiq"]),
         model: "TS0726_1_gang",
         vendor: "Tuya",
         description: "1 gang switch with neutral wire",
         extend: [tuya.modernExtend.tuyaBase()],
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
-        exposes: [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])],
+        exposes: (device) => {
+            const exposes = [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])];
+            if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_ovbvmhiq") {
+                exposes.push(e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]));
+            }
+            return exposes;
+        },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -11252,10 +11261,11 @@ export const definitions: DefinitionWithExtend[] = [
             const exposes = [
                 ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
                 ...[1, 2].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+                ...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
+                e.action(["scene_1", "scene_2"]),
             ];
-            if (utils.isDummyDevice(device) || device.manufacturerName !== "_TZ3000_icoxotza") {
-                exposes.push(...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)));
-                exposes.push(e.action(["scene_1", "scene_2"]));
+            if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_icoxotza") {
+                exposes.push(e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]));
             }
             return exposes;
         },
@@ -21074,74 +21084,47 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE204_7yyuo8sr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE284_mxujdmxo"]),
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        whiteLabel: [tuya.whitelabel("Tuya", "872WZ", "Water level sensor", ["_TZE204_7yyuo8sr"])],
-        exposes: [
+        whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
+        extend: [
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+        ],
+        version: "0.0.1",
+        exposes: (device, options) => [
+            te.liquidState(),
             te.liquidLevelPercent(),
             te.liquidDepth(),
-            te.liquidState(),
+            te.powerSupplyVoltage(),
+
             te.liquidMaximalPercent(),
             te.liquidMinimalPercent(),
-            te.liquidInstallationHeight(),
-            te.liquidDepthMax(),
+
+            ...(!device || ["_TZE284_kyyu8rbj"].includes(device.manufacturerName)
+                ? [te.liquidDepthMax(), te.liquidInstallationHeight()]
+                : [te.liquidDepthMax().withValueMax(10)]),
+            te.relaySwitch(),
+            te.pumpMode(),
+            te.autoPumpControl(),
+
+            te.version(),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "liquid_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(1),
-                        normal: tuya.enum(0),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [2, "liquid_depth", tuya.valueConverter.raw],
-                [7, "max_set", tuya.valueConverter.raw],
-                [8, "min_set", tuya.valueConverter.raw],
-                [19, "installation_height", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.raw],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_mxujdmxo"]),
-        model: "ME202WZ",
-        vendor: "Tuya",
-        description: "Water level sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        exposes: [
-            te.liquidState(),
-            te.liquidDepth(),
-            e.numeric("power_level", ea.STATE).withUnit("V").withDescription("Power supply voltage"),
-            te.liquidMaximalPercent(),
-            te.liquidMinimalPercent(),
-            te.liquidDepthMax(),
-            te.liquidLevelPercent(),
-            e.text("version", ea.STATE_GET).withDescription("Device version"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [
-                    1,
-                    "liquid_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(1),
-                        normal: tuya.enum(0),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [2, "liquid_depth", tuya.valueConverter.raw],
-                [5, "power_level", tuya.valueConverter.divideBy10],
-                [7, "max_set", tuya.valueConverter.raw],
-                [8, "min_set", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.raw],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [1, "liquid_state", tvc.level],
+                [2, "liquid_depth", tvc.divideBy100],
+                [5, "voltage", tvc.divideBy10], // power_level
+                [7, "max_set", tvc.raw],
+                [8, "min_set", tvc.raw],
+                [19, "installation_height", tvc.divideBy100],
+                [21, "liquid_depth_max", tvc.divideBy100],
+                [22, "liquid_level_percent", tvc.raw],
+                [24, "relay_switch", tvc.onOff],
+                [101, "pump_mode", tvc.pumpMode],
+                [102, "pump_control", tvc.pumpControl], // auto_pump_control
                 [103, "version", tuya.valueConverter.raw],
             ],
         },
@@ -21151,34 +21134,74 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TLC2206",
         vendor: "Tuya",
         description: "Water level sensor",
-        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        extend: [
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+        ],
         version: "0.0.1",
         exposes: [
+            te.liquidState(),
             te.liquidLevelPercent(),
             te.liquidDepth(),
-            te.liquidState(),
-            te.liquidMaximalPercent(),
+
             te.liquidMinimalPercent(),
-            te.liquidInstallationHeight(),
-            te.liquidDepthMax(),
+            te.liquidMaximalPercent(),
+            te.liquidDepthMax().withValueMax(2).withValueStep(0.001),
+            te.liquidInstallationHeight().withValueMax(3).withValueStep(0.001),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "liquid_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(1),
-                        normal: tuya.enum(0),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [2, "liquid_depth", tuya.valueConverter.raw],
-                [7, "max_set", tuya.valueConverter.raw],
-                [8, "min_set", tuya.valueConverter.raw],
-                [19, "installation_height", tuya.valueConverter.raw],
-                [21, "liquid_depth_max", tuya.valueConverter.raw],
-                [22, "liquid_level_percent", tuya.valueConverter.raw],
+                [1, "liquid_state", tvc.level],
+                [2, "liquid_depth", tvc.divideBy100],
+                [7, "max_set", tvc.raw],
+                [8, "min_set", tvc.raw],
+                [19, "installation_height", tvc.divideBy1000],
+                [21, "liquid_depth_max", tvc.divideBy1000],
+                [22, "liquid_level_percent", tvc.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7yyuo8sr"]),
+        model: "872WZ",
+        vendor: "Tuya",
+        description: "Water level sensor",
+        extend: [
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+        ],
+        version: "0.0.1",
+        exposes: [
+            te.liquidState(),
+            te.liquidLevelPercent(),
+            te.liquidDepth(),
+
+            te.liquidMaximalPercent(),
+            te.liquidMinimalPercent(),
+            te.liquidDepthMax().withValueMin(0),
+            te.liquidInstallationHeight().withValueMin(0),
+
+            te.silentMode(),
+            te.alarmDuration(),
+
+            // te.autoPumpControl() ?
+            // te.hydrate ?
+            // te.water drainage ?
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "liquid_state", tvc.level],
+                [2, "liquid_depth", tvc.divideBy100],
+                [7, "max_set", tvc.raw],
+                [8, "min_set", tvc.raw],
+                [9, "silent_mode", tvc.onOff],
+                [19, "installation_height", tvc.divideBy100],
+                [21, "liquid_depth_max", tvc.divideBy100],
+                [22, "liquid_level_percent", tvc.raw],
+                [27, "alarm_time", tvc.raw],
+                [101, "pump_control", tvc.pumpControl],
+                [102, "hydrate", tvc.raw],
+                [103, "water_drainage", tvc.raw],
             ],
         },
     },
