@@ -66,6 +66,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 endpointNames: ["l2"],
                 electricalMeasurementType: "dc",
+                voltage: {divisor: 100},
+                current: {divisor: 1000},
+                power: {divisor: 1},
                 energy: false,
             }),
             m.numeric({
@@ -77,6 +80,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Uptime",
                 description: "Uptime (seconds)",
                 unit: "s",
+                reporting: {"min": "1_MINUTE", "max": "1_HOUR", "change": 1},
             }),
         ],
     },
@@ -90,6 +94,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 endpointNames: ["l2"],
                 electricalMeasurementType: "dc",
+                voltage: {divisor: 100},
+                current: {divisor: 1000},
+                power: {divisor: 1},
                 energy: false,
             }),
             m.temperature({
@@ -107,6 +114,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Uptime",
                 description: "Uptime (seconds)",
                 unit: "s",
+                reporting: {"min": "1_MINUTE", "max": "1_HOUR", "change": 1},
             }),
         ],
     },
@@ -120,7 +128,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({
                 endpointNames: ["l2"],
                 electricalMeasurementType: "ac",
-                energy: {divisor: 1000, multiplier: 1},
+                energy: {divisor: 1},
                 acFrequency: true,
                 powerFactor: true,
             }),
@@ -139,6 +147,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Uptime",
                 description: "Uptime (seconds)",
                 unit: "s",
+                reporting: {"min": "1_MINUTE", "max": "1_HOUR", "change": 1},
             }),
         ],
     },
