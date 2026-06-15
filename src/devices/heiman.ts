@@ -2606,8 +2606,15 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial", "haDiagnostic"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, [
+                "genOnOff",
+                "genDeviceTempCfg",
+                "genOnOffSwitchCfg",
+                "heimanClusterSpecial",
+                "haDiagnostic"
+            ]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial"]);
+            await endpoint1.read("genDeviceTempCfg", ["currentTemperature"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint1.read("genOnOffSwitchCfg", ["switchActions"]);
