@@ -17,7 +17,7 @@ const fzLocal = {
         cluster: 64512,
         type: ["raw"],
         convert: (model, msg) => {
-            if (!msg.data || msg.data.length !== 85) return undefined;
+            if (msg.data?.length !== 85) return undefined;
             const stateBit = msg.data[80] & 3;
             if (stateBit === 3) return {state: "LOCK", lock_state: "locked"};
             if (stateBit === 0) return {state: "UNLOCK", lock_state: "unlocked"};
