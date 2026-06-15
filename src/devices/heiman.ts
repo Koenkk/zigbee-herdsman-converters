@@ -2611,7 +2611,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "genDeviceTempCfg",
                 "genOnOffSwitchCfg",
                 "heimanClusterSpecial",
-                "haDiagnostic"
+                "haDiagnostic",
             ]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial"]);
             await endpoint1.read("genDeviceTempCfg", ["currentTemperature"]);
