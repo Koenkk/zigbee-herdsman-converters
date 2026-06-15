@@ -3437,6 +3437,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "smokeConcentationUnit",
                     "sensorLifeState",
                     "sensorPrealarmState",
+                    "sensorPreheatingState",
                     "rebootedCount",
                     "rejoinedCount",
                     "reportedPackages",
