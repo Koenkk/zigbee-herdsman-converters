@@ -2558,7 +2558,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["RelayModule-EF-3.0"],
-        model: "HS1RM-EF",
+        model: "HS1RM-E",
         vendor: "Heiman",
         description: "Smart relay module - 2 gang with neutral wire",
         exposes: [],
