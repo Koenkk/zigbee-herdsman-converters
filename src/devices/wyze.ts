@@ -7,14 +7,17 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 const e = exposes.presets;
 
 // The Wyze Lock v1 reports lock state via manufacturer-specific cluster 64512 (0xFC00)
-// raw frames rather than standard ZCL lock operation events. Byte 80 of these frames
-// encodes the current state: low two bits 0b11 = locked, 0b00 = unlocked.
+// raw frames rather than standard ZCL lock operation events.
+// Only len=85 frames reliably encode physical lock state at byte 80:
+//   low two bits 0b11 = locked, 0b00 = unlocked.
+// Heartbeat/rejoin frames (len=123) always have byte 80 = 0 regardless of actual state
+// and must be skipped to avoid corrupting HA state on Z2M restart.
 const fzLocal = {
     wyzeLockRaw: {
         cluster: 64512,
         type: ["raw"],
         convert: (model, msg) => {
-            if (!msg.data || msg.data.length <= 80) return undefined;
+            if (!msg.data || msg.data.length !== 85) return undefined;
             const stateBit = msg.data[80] & 3;
             if (stateBit === 3) return {state: "LOCK", lock_state: "locked"};
             if (stateBit === 0) return {state: "UNLOCK", lock_state: "unlocked"};
