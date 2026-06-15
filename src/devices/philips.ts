@@ -292,6 +292,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
+        zigbeeModel: ["929004308301"],
+        model: "929004308301",
+        vendor: "Philips",
+        description: "Hue Turaco outdoor wall light",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["LWA023"],
         model: "9290030516",
         vendor: "Philips",
@@ -4351,6 +4358,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004611301",
         vendor: "Philips",
         description: "Hue Xamento White and Color Ambiance GU10 (white)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929003812701_01", "929003812701_02", "929003812701_03"],
+        model: "929003812701",
+        vendor: "Philips",
+        description: "Hue Xamento White and Color Ambiance GU10 (Black)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {

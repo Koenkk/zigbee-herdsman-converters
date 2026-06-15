@@ -1,6 +1,6 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "26.65.0",
+    "version": "26.66.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -44,8 +44,8 @@
     "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
     "dependencies": {
         "iconv-lite": "^0.7.2",
-        "semver": "^7.8.2",
-        "zigbee-herdsman": "^10.3.0"
+        "semver": "^7.8.4",
+        "zigbee-herdsman": "^10.4.0"
     },
     "exports": {
         ".": "./dist/index.js",
@@ -55,8 +55,8 @@
         "./package.json": "./package.json"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.4.16",
-        "@types/node": "^24.13.1",
+        "@biomejs/biome": "^2.5.0",
+        "@types/node": "^24.13.2",
         "@types/semver": "^7.7.1",
         "@vitest/coverage-v8": "3.2.4",
         "fast-deep-equal": "^3.1.3",
