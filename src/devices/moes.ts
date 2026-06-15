@@ -1376,22 +1376,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        exposes: [
-            tuya.exposes.errorStatus(),
-            tuya.exposes.switch(),
-            tuya.exposes.batteryState(),
-            tuya.exposes.countdown().withValueMin(0).withValueMax(255).withUnit("minutes").withDescription("Max on time in minutes"),
-        ],
-        meta: {
-            tuyaSendCommand: "sendData",
-            tuyaDatapoints: [
-                [26, "error_status", tuya.valueConverter.raw],
-                [101, "state", tuya.valueConverter.onOff],
-                [111, "countdown", tuya.valueConverter.raw],
-                [115, "battery_state", tuya.valueConverter.batteryState],
-            ],
-        },
+        extend: [m.battery(), m.onOff({powerOnBehavior: false, configureReporting: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hhiodade"]),
@@ -1538,7 +1523,24 @@ export const definitions: DefinitionWithExtend[] = [
                         CLOSE: tuya.enum(2),
                     }),
                 ],
-                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    2,
+                    "position",
+                    {
+                        // Workaround: Fix overflow / underdlow in position readings when limits are reached for some seconds:
+                        // - When the curtain is fully opened it coninues with 101, 102, ...
+                        // - When the curtain is fully closed it coninues with 255, 254, ...
+                        from: (v) => {
+                            if (v > 100) {
+                                return v > 150 ? 0 : 100;
+                            }
+                            return v;
+                        },
+                        to: (v, meta) => {
+                            return tuya.valueConverter.coverPosition.to(v, meta);
+                        },
+                    },
+                ],
                 [
                     3,
                     "calibration",
@@ -1944,7 +1946,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: () => ({}),
     },
     {
-        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj"]),
+        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks"]),
         model: "ZT-B-EU3",
         vendor: "Moes",
         description: "Scene remote with 3 keys",

@@ -5,64 +5,112 @@ import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 
-// TODO: should split?
-const awox_color_ctrl: Fz.Converter<"lightingColorCtrl", undefined, ["raw", "commandEnhancedMoveHue", "commandStepColorTemp" /* TODO: unused? */]> = {
-    cluster: "lightingColorCtrl",
-    type: ["raw", "commandEnhancedMoveHue", "commandStepColorTemp" /* TODO: unused? */], // Limit types to messages we specifically handle
-    convert: (model, msg, publish, options, meta) => {
-        const payload = msg.data;
-        let action = null;
+export const fzLocal = {
+    // TODO: should split?
+    awox_color_ctrl: {
+        cluster: "lightingColorCtrl",
+        type: ["raw", "commandEnhancedMoveHue", "commandStepColorTemp" /* TODO: unused? */], // Limit types to messages we specifically handle
+        convert: (model, msg, publish, options, meta) => {
+            const payload = msg.data;
+            let action = null;
 
-        if (msg.type === "raw") {
-            const colorByte = payload[4];
-            switch (colorByte) {
-                case 0xd6:
-                    action = "color_blue";
-                    break;
-                case 0xd4:
-                    action = "color_green";
-                    break;
-                case 0xd2:
-                    action = "color_yellow";
-                    break;
-                case 0xd0:
-                    action = "color_red";
-                    break;
+            if (msg.type === "raw") {
+                const colorByte = payload[4];
+                switch (colorByte) {
+                    case 0xd6:
+                        action = "color_blue";
+                        break;
+                    case 0xd4:
+                        action = "color_green";
+                        break;
+                    case 0xd2:
+                        action = "color_yellow";
+                        break;
+                    case 0xd0:
+                        action = "color_red";
+                        break;
+                }
+            } else if (msg.type === "commandEnhancedMoveHue") {
+                action = "light_movement";
             }
-        } else if (msg.type === "commandEnhancedMoveHue") {
-            action = "light_movement";
-        }
 
-        if (action) {
-            return {action: action};
-        }
-    },
-};
-const awox_level_ctrl: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
-    cluster: "genLevelCtrl",
-    type: ["raw"], // Limit types to messages we specifically handle
-    convert: (model, msg, publish, options, meta) => {
-        const payload = msg.data;
-        let action = null;
+            if (action) {
+                return {action: action};
+            }
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["raw", "commandEnhancedMoveHue", "commandStepColorTemp" /* TODO: unused? */]>,
+    awox_level_ctrl: {
+        cluster: "genLevelCtrl",
+        type: ["raw"], // Limit types to messages we specifically handle
+        convert: (model, msg, publish, options, meta) => {
+            const payload = msg.data;
+            let action = null;
 
-        if (msg.type === "raw" && payload[1] === 0xdf) {
-            action = "refresh"; // Unique "Refresh" button
-        }
-        // DEVELOPER NOTE: Handling for genOnOff, genLevelCtrl (step/move), and genScenes is removed
-        // as it's already covered by standard fz converters.
+            if (msg.type === "raw" && payload[1] === 0xdf) {
+                action = "refresh"; // Unique "Refresh" button
+            }
+            // DEVELOPER NOTE: Handling for genOnOff, genLevelCtrl (step/move), and genScenes is removed
+            // as it's already covered by standard fz converters.
 
-        if (action) {
-            return {action: action};
-        }
-    },
-};
+            if (action) {
+                return {action: action};
+            }
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["raw"]>,
+    awox_scenes_raw: {
+        cluster: "genScenes",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            return {action: `recall_${msg.data[msg.data.length - 1]}`};
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["raw"]>,
+    awox_colors: {
+        cluster: "lightingColorCtrl",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const buffer = msg.data;
+            const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
+            let color = null;
+            if (commonForColors && [255, 254].includes(buffer[4])) {
+                color = "red";
+            } else if (commonForColors && [42, 41].includes(buffer[4])) {
+                color = "yellow";
+            } else if (commonForColors && [85, 84].includes(buffer[4])) {
+                color = "green";
+            } else if (commonForColors && [170, 169].includes(buffer[4])) {
+                color = "blue";
+            }
 
-const awox_scenes_raw: Fz.Converter<"genScenes", undefined, ["raw"]> = {
-    cluster: "genScenes",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        return {action: `recall_${msg.data[msg.data.length - 1]}`};
-    },
+            if (color != null) {
+                return {action: color, action_group: msg.groupID};
+            }
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["raw"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    awox_refreshColored: {
+        cluster: "lightingColorCtrl",
+        type: ["commandMoveHue"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.movemode === 1 && msg.data.rate === 12) {
+                return {action: "refresh_colored", action_group: msg.groupID};
+            }
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveHue"]>,
+    awox_refresh: {
+        cluster: "genLevelCtrl",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            const buffer = msg.data;
+            const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
+            const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
+            if (isRefresh) {
+                return {action: "refresh", action_group: msg.groupID};
+            }
+            if (isRefreshLong) {
+                return {action: "refresh_long", action_group: msg.groupID};
+            }
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["raw"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -123,20 +171,20 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.command_on,
             // @deprecated This converter provides generic color actions. Use `awox_remote_actions` for specific color buttons (blue, green, yellow, red).
-            fz.awox_colors,
+            fzLocal.awox_colors,
             // @deprecated This converter provides a generic refresh. Use `awox_remote_actions` for the dedicated 'refresh' action.
-            fz.awox_refresh,
+            fzLocal.awox_refresh,
             // @deprecated This converter provides a generic colored refresh. Use `awox_remote_actions` for specific color buttons.
-            fz.awox_refreshColored,
+            fzLocal.awox_refreshColored,
             fz.command_off,
             fz.command_step, // Now handled by fz.command_step
             fz.command_move, // Now handled by fz.command_move
             fz.command_stop,
             fz.command_recall, // Now handled by fz.command_recall
             fz.command_step_color_temperature, // Now handled by fz.command_step_color_temperature
-            awox_color_ctrl, // Always at the end to prioritize specific actions.
-            awox_level_ctrl,
-            awox_scenes_raw,
+            fzLocal.awox_color_ctrl, // Always at the end to prioritize specific actions.
+            fzLocal.awox_level_ctrl,
+            fzLocal.awox_scenes_raw,
         ],
         toZigbee: [],
         exposes: [
@@ -291,7 +339,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AwoX",
         description: "LED with adjustable color temp on main ring; extra RGB strip for full colors.",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}), m.commandsOnOff()],
-        whiteLabel: [{vendor: "EGLO", model: "900566"}],
+        whiteLabel: [
+            {vendor: "EGLO", model: "900566"},
+            {vendor: "EGLO", model: "901463"},
+        ],
     },
     {
         zigbeeModel: ["EGLO_ZM_TW"],
@@ -340,5 +391,23 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
         meta: {multiEndpoint: true},
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
+    },
+    {
+        fingerprint: [
+            {
+                type: "Router",
+                manufacturerName: "AwoX",
+                modelID: "TLSR82xx",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 257, inputClusters: [0, 3, 4, 5, 6, 8, 768, 4096, 64599, 10], outputClusters: [6]},
+                    {ID: 3, profileID: 4751, deviceID: 257, inputClusters: [65360, 65361], outputClusters: [65360, 65361]},
+                ],
+            },
+        ],
+        model: "110285",
+        vendor: "AwoX",
+        description: "Smart Home LED Light Bulb E27, ST64, dimmable",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "3": 3}}), m.light()],
+        whiteLabel: [{vendor: "EGLO", model: "110285"}],
     },
 ];

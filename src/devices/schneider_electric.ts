@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {PartialClusterOrRawAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import {COORDINATOR_ADDRESS} from "zigbee-herdsman/dist/zspec";
 import type {GpdManufAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -479,6 +480,7 @@ const schneiderElectricExtend = {
             attribute: "wiserControlMode",
             description: "Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.",
             entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         });
         extend.configure.push(
             m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
@@ -1476,7 +1478,7 @@ const fzLocal = {
                     "response",
                     {
                         options: 0b000,
-                        tempMaster: msg.data.gppNwkAddr,
+                        tempMaster: msg.data.gppNwkAddr ?? COORDINATOR_ADDRESS,
                         tempMasterTx: networkParameters.channel - 11,
                         srcID: msg.data.srcID,
                         gpdCmd: 0xfe,
@@ -1842,7 +1844,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer with neutral lead",
         ota: true,
-        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(), m.light({configureReporting: true, levelConfig: {}})],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            m.light({configureReporting: true, levelConfig: {}, powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 21, l2: 22}}),
+            switchActions("l1"),
+            switchActions("l2"),
+        ],
         fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -1981,6 +1990,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Push button dimmer",
         extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.light({
                 effect: false,
                 powerOnBehavior: true,
@@ -1990,7 +2000,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.lightingBallast(),
             m.identify(),
             schneiderElectricExtend.dimmingMode(),
-            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode(),
         ],
         meta: {omitOptionalLevelParams: true},
@@ -2846,16 +2855,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT595011",
         vendor: "Schneider Electric",
         description: "Wiser motion sensor",
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_occupancy_only_alarm_2],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["genPowerCfg"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.batteryPercentageRemaining(endpoint);
-        },
-        exposes: [e.battery(), e.occupancy()],
-        extend: [m.illuminance()],
+        version: "0.0.1",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_2", "battery_low"]}),
+            m.illuminance(),
+            m.enumLookup({
+                name: "sensitivity_level",
+                description: "Sensitivity level for the occupancy sensor",
+                attribute: "currentZoneSensitivityLevel",
+                cluster: "ssIasZone",
+                lookup: {low: 0x00, medium: 0x01, high: 0x02},
+                entityCategory: "config",
+            }),
+        ],
     },
     {
         zigbeeModel: ["CH/Socket/2"],

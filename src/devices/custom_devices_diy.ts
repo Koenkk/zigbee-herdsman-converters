@@ -18,7 +18,7 @@ const switchTypesList = {
     "multi-click": 0x02,
 };
 
-const tzLocal = {
+export const tzLocal = {
     tirouter: {
         key: ["transmit_power"],
         convertSet: async (entity, key, value, meta) => {
@@ -62,9 +62,130 @@ const tzLocal = {
             await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
         },
     } satisfies Tz.Converter,
+    ptvo_switch_trigger: {
+        key: ["trigger", "interval"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            utils.assertEndpoint(entity);
+            if (key === "trigger") {
+                await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
+            } else if (key === "interval") {
+                const cluster = "genOnOff";
+                if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                    await entity.configureReporting(cluster, [
+                        {
+                            attribute: "onOff",
+                            minimumReportInterval: value,
+                            maximumReportInterval: value,
+                            reportableChange: 0,
+                        },
+                    ]);
+                } else if (utils.hasEndpoints(meta.device, [1])) {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.configureReporting("genBasic", [
+                        {
+                            attribute: "zclVersion",
+                            minimumReportInterval: value,
+                            maximumReportInterval: value,
+                            reportableChange: 0,
+                        },
+                    ]);
+                }
+            }
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_uart: {
+        key: ["action"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value) {
+                return;
+            }
+            const payload = {14: {value, type: 0x42}};
+            for (const endpoint of meta.device.endpoints) {
+                const cluster = "genMultistateValue";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+            }
+            await entity.write("genMultistateValue", payload);
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_analog_input: {
+        key: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8", "l9", "l10", "l11", "l12", "l13", "l14", "l15", "l16"],
+        convertGet: async (entity, key, meta) => {
+            const epId = Number.parseInt(key.substr(1, 2), 10);
+            if (utils.hasEndpoints(meta.device, [epId])) {
+                const endpoint = meta.device.getEndpoint(epId);
+                await endpoint.read("genAnalogInput", ["presentValue", "description"]);
+            }
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const epId = Number.parseInt(key.substr(1, 2), 10);
+            if (utils.hasEndpoints(meta.device, [epId])) {
+                const endpoint = meta.device.getEndpoint(epId);
+                let cluster = "genLevelCtrl";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = Number(value);
+                    if (Number.isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {currentLevel: value2};
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+
+                cluster = "genAnalogInput";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = Number(value);
+                    if (Number.isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {presentValue: value2};
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_light_brightness: {
+        key: ["brightness", "brightness_percent", "transition"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "transition") {
+                return;
+            }
+            const cluster = "genLevelCtrl";
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                const message = meta.message;
+
+                let brightness: number;
+                if (message.brightness != null) {
+                    brightness = Number(message.brightness);
+                } else if (message.brightness_percent != null) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+
+                if (brightness !== undefined && brightness === 0) {
+                    message.state = "off";
+                    message.brightness = 1;
+                }
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            }
+            throw new Error("LevelControl not supported on this endpoint.");
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = "genLevelCtrl";
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+            }
+            throw new Error("LevelControl not supported on this endpoint.");
+        },
+    } satisfies Tz.Converter,
 };
 
-const fzLocal = {
+export const fzLocal = {
     tirouter: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
@@ -256,6 +377,142 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_led: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {led: msg.data.onOff === 1};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_meta: {
+        cluster: "genBinaryValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            return {
+                description: data.description,
+                type: data.inactiveText,
+                rssi: data.presentValue,
+            };
+        },
+    } satisfies Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    DNCKAT_S00X_buttons: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data.onOff === 1 ? "release" : "hold";
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_uart: {
+        cluster: "genMultistateValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
+            if (Array.isArray(data)) {
+                let bHex = false;
+                let code: number;
+                let index: number;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index] as number;
+                    if (code < 32 || code > 127) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString();
+                } else {
+                    data = [...data];
+                }
+            }
+            return {action: data};
+        },
+    } satisfies Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_analog_input: {
+        cluster: "genAnalogInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            const endpoint = msg.endpoint;
+            payload[name] = utils.precisionRound(msg.data.presentValue, 3);
+            const cluster = "genLevelCtrl";
+            if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
+                payload[`brightness_${name}`] = msg.data.presentValue;
+            } else if (msg.data.description !== undefined) {
+                const data1 = msg.data.description;
+                if (data1) {
+                    const data2 = data1.split(",");
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload[`device_${name}`] = devid;
+                    }
+
+                    const valRaw = msg.data.presentValue;
+                    if (unit) {
+                        let val = utils.precisionRound(valRaw, 1);
+
+                        const nameLookup: KeyValueAny = {
+                            C: "temperature",
+                            "%": "humidity",
+                            m: "altitude",
+                            Pa: "pressure",
+                            ppm: "quality",
+                            psize: "particle_size",
+                            V: "voltage",
+                            A: "current",
+                            Wh: "energy",
+                            W: "power",
+                            Hz: "frequency",
+                            pf: "power_factor",
+                            lx: "illuminance",
+                        };
+
+                        let nameAlt = "";
+                        if (unit === "A" || unit === "pf") {
+                            if (valRaw < 1) {
+                                val = utils.precisionRound(valRaw, 3);
+                            }
+                        }
+                        if (unit.startsWith("mcpm") || unit.startsWith("ncpm")) {
+                            const num = unit.substr(4, 1);
+                            nameAlt = num === "A" ? `${unit.substr(0, 4)}10` : unit;
+                            val = utils.precisionRound(valRaw, 2);
+                        } else {
+                            nameAlt = nameLookup[unit];
+                        }
+                        if (nameAlt === undefined) {
+                            const valueIndex = Number.parseInt(unit, 10);
+                            if (!Number.isNaN(valueIndex)) {
+                                nameAlt = `val${unit}`;
+                            }
+                        }
+
+                        if (nameAlt !== undefined) {
+                            payload[`${nameAlt}_${name}`] = val;
+                        }
+                    }
+                }
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_multistate_action: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
+            const value = msg.data.presentValue;
+            const action = actionLookup[value];
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -424,8 +681,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CC2530.ROUTER",
         vendor: "Custom devices (DiY)",
         description: "CC2530 router",
-        fromZigbee: [fz.CC2530ROUTER_led, fz.CC2530ROUTER_meta],
-        toZigbee: [tz.ptvo_switch_trigger],
+        fromZigbee: [fzLocal.CC2530ROUTER_led, fzLocal.CC2530ROUTER_meta],
+        toZigbee: [tzLocal.ptvo_switch_trigger],
         exposes: [e.binary("led", ea.STATE, true, false)],
     },
     {
@@ -454,9 +711,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.on_off,
-            fz.ptvo_multistate_action,
-            fz.ptvo_switch_uart,
-            fz.ptvo_switch_analog_input,
+            fzLocal.ptvo_multistate_action,
+            fzLocal.ptvo_switch_uart,
+            fzLocal.ptvo_switch_analog_input,
             fz.brightness,
             fz.temperature,
             fzLocal.humidity2,
@@ -468,10 +725,10 @@ export const definitions: DefinitionWithExtend[] = [
             fz.color_colortemp,
         ],
         toZigbee: [
-            tz.ptvo_switch_trigger,
-            tz.ptvo_switch_uart,
-            tz.ptvo_switch_analog_input,
-            tz.ptvo_switch_light_brightness,
+            tzLocal.ptvo_switch_trigger,
+            tzLocal.ptvo_switch_uart,
+            tzLocal.ptvo_switch_analog_input,
+            tzLocal.ptvo_switch_light_brightness,
             tzLocal.ptvo_on_off,
             tz.light_color,
         ],
@@ -769,7 +1026,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW002",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT double key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"]})],
         exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right"])],
     },
@@ -778,7 +1035,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW003",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT triple key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ["left", "center", "right"]})],
         exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right", "release_center", "hold_center"])],
     },
@@ -787,7 +1044,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DNCKATSW004",
         vendor: "Custom devices (DiY)",
         description: "DNCKAT quadruple key wired wall light switch",
-        fromZigbee: [fz.DNCKAT_S00X_buttons],
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
         extend: [
             m.deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
             m.onOff({endpointNames: ["bottom_left", "bottom_right", "top_left", "top_right"]}),
@@ -1146,8 +1403,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ptvo_counter_2ch",
         vendor: "Custom devices (DiY)",
         description: "2 channel counter",
-        fromZigbee: [fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
+        fromZigbee: [fz.battery, fzLocal.ptvo_switch_analog_input, fz.on_off],
+        toZigbee: [tzLocal.ptvo_switch_trigger, tzLocal.ptvo_switch_analog_input, tz.on_off],
         exposes: [
             e.battery(),
             e
@@ -1364,5 +1621,39 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             publishDuplicateTransaction: true,
         },
+    },
+    {
+        zigbeeModel: ["ZG-204ZL-z"],
+        model: "ZG-204ZL-z",
+        vendor: "Custom devices (DiY)",
+        description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery(),
+            m.occupancy(),
+            m.illuminance(),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR timeout in seconds",
+            }),
+        ],
     },
 ];

@@ -255,22 +255,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HLU2909K",
         vendor: "Datek",
         description: "APEX smart plug 16A",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
+        version: "0.0.1",
+        extend: [m.electricityMeter({cluster: "electrical", power: {min: 5, max: "1_HOUR", change: 1}}), m.onOff(), m.temperature()],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "msTemperatureMeasurement"]);
-            await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor"]);
-            await endpoint.read("haElectricalMeasurement", ["acCurrentMultiplier", "acCurrentDivisor"]);
-            await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
-            await reporting.onOff(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.temperature(endpoint);
-        },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(), e.power_on_behavior()],
     },
     {
         zigbeeModel: ["Meter Reader"],

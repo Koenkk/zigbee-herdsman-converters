@@ -237,4 +237,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee LED filament light dimmable E27, edison ST64, flame 2200K",
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 454]}})],
     },
+    {
+        zigbeeModel: ["eco-dim06-zigbee"],
+        model: "ECO-DIM.06-ZGB",
+        vendor: "EcoDim",
+        description: "Plug in dimmer Zigbee, Phase cut-off(Trailing Edge R,C)",
+        ota: true,
+        extend: [m.light({configureReporting: true})],
+    },
 ];
