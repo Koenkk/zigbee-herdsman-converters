@@ -292,6 +292,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
     },
     {
+        zigbeeModel: ["929004308301"],
+        model: "929004308301",
+        vendor: "Philips",
+        description: "Hue Turaco outdoor wall light",
+        extend: [philips.m.light()],
+    },
+    {
         zigbeeModel: ["LWA023"],
         model: "9290030516",
         vendor: "Philips",
