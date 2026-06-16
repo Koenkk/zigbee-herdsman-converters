@@ -247,7 +247,7 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.cover_moving_state],
+        fromZigbee: [fz.cover_position_tilt, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.cover_moving_state],
         toZigbee: [
             tzLegrand.cover_state_with_moving,
             tzLegrand.cover_position_with_moving,
@@ -268,7 +268,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering", "genIdentify"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
             let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
