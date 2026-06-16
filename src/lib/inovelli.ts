@@ -2801,7 +2801,10 @@ const fzLocal = {
             // notificationComplete is a transient event vs a stateful change
             // treat it similar to an action by publishing "" to clear it on the next tick
             clearTimeout(globalStore.getValue(msg.endpoint, "notification_complete_clear"));
-            const timer = setTimeout(() => publish({notificationComplete: ""}), 0);
+            const timer = setTimeout(() => {
+                publish({notificationComplete: ""});
+                globalStore.clearValue(msg.endpoint, "notification_complete_clear");
+            }, 0);
             globalStore.putValue(msg.endpoint, "notification_complete_clear", timer);
 
             return {notificationComplete: value};

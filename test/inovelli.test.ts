@@ -1723,10 +1723,10 @@ describe("Inovelli fromZigbee converters", () => {
             });
 
             it("schedules a follow-up notificationComplete:'' publish", async () => {
-                const converter = definition.fromZigbee.find(
-                    // biome-ignore lint/suspicious/noExplicitAny: test mock
-                    (c) => c.cluster === "manuSpecificInovelli" && (c.type as any).includes("commandLedEffectComplete"),
-                ) as Fz.Converter;
+                const converter = definition.fromZigbee.find((c) => {
+                    const typeMatch = Array.isArray(c.type) ? c.type.includes("commandLedEffectComplete") : c.type === "commandLedEffectComplete";
+                    return c.cluster === "manuSpecificInovelli" && typeMatch;
+                }) as Fz.Converter;
                 const published: KeyValue[] = [];
                 converter.convert(
                     definition,
