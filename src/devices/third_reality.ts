@@ -69,6 +69,9 @@ interface ThirdAcceleration {
         xAxis: number;
         yAxis: number;
         zAxis: number;
+        xAngle: number;
+        yAngle: number;
+        zAngle: number;
     };
     commands: never;
     commandResponses: never;
@@ -1356,29 +1359,60 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RVS01031Z",
         vendor: "Third Reality",
         description: "Zigbee vibration sensor",
-        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fzLocal.thirdreality_acceleration],
-        toZigbee: [],
         ota: true,
-        exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage(), e.x_axis(), e.y_axis(), e.z_axis()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            device.powerSource = "Battery";
-            device.save();
-        },
         extend: [
             m.deviceAddCustomCluster("3rVirationSpecialcluster", {
                 name: "3rVirationSpecialcluster",
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 7200},
+                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16},
+                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16},
+                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16},
+                    xAngle: {name: "xAngle", ID: 0x0005, type: Zcl.DataType.INT16},
+                    yAngle: {name: "yAngle", ID: 0x0006, type: Zcl.DataType.INT16},
+                    zAngle: {name: "zAngle", ID: 0x0007, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "generic",
+                zoneAttributes: ["alarm_1"],
+                description: "Being in vibration",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "cool_down_time",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 7200,
+                cluster: "3rVirationSpecialcluster",
+                attribute: "coolDownTime",
+                description: "coolDownTime",
+                access: "ALL",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "x_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "xAxis",
+                description: "X axis acceleration",
+                access: "STATE_GET",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "y_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "yAxis",
+                description: "Y axis acceleration",
+                access: "STATE_GET",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "z_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "zAxis",
+                description: "Z axis acceleration",
+                access: "STATE_GET",
             }),
         ],
     },

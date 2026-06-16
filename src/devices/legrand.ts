@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "067755",
         vendor: "Legrand",
-        description: "Wireless and batteryless 4 scenes control",
+        description: "Wireless 4 scenes control",
         ota: true,
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}, publishDuplicateTransaction: true},
         fromZigbee: [fz.identify, fz.battery, fzLocal.command_recall_by_groupid],
@@ -238,7 +238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "K4027C/L4027C/N4027C/NT4027C",
                 vendor: "BTicino",
                 description: "Shutter SW with level control",
-                fingerprint: [{hardwareVersion: 6}, {hardwareVersion: 9}, {hardwareVersion: 13}],
+                fingerprint: [{hardwareVersion: 9}, {hardwareVersion: 13}, {hardwareVersion: 16}],
             },
         ],
         ota: true,
@@ -247,19 +247,12 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fz.cover_position_tilt, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.cover_moving_state],
-        toZigbee: [
-            tzLegrand.cover_state_with_moving,
-            tzLegrand.cover_position_with_moving,
-            tzLegrand.identify,
-            tzLegrand.led_mode,
-            tzLegrand.calibration_mode(true),
-        ],
+        fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
+        toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
-                e.action(["opening", "closing", "stopped"]),
-                e.binary("moving", ea.STATE_GET, true, false).withDescription("Indicates if the cover is currently moving"),
+                e.action(["identify", "open", "close", "stop", "moving", "stopped"]),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
@@ -268,7 +261,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput", "closuresWindowCovering", "genIdentify"]);
             let p = reporting.payload<"closuresWindowCovering">("currentPositionLiftPercentage", 1, 120, 1);
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
@@ -597,7 +590,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZLGP14/ZLGP15/ZLGP16",
         vendor: "Legrand",
         description: "Wireless and batteryless scenario switch (home arrival/departure, 1-4 switches, daytime day/night)",
-        ota: true,
+        ota: false,
         fromZigbee: [fzLegrand.greenpower],
         toZigbee: [],
         exposes: [

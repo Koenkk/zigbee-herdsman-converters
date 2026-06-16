@@ -757,6 +757,8 @@ const heimanExtend = {
             1: "alarm_muted", // bit1
             2: "fault_muted", // bit2
             3: "low_battery_muted", // bit3
+            4: "endoflife_muted", // bit4
+            5: "warning_muted", // bit5
         };
         const exposes = utils.exposeEndpoints(e.text("muted", ea.STATE_GET).withDescription("Device mute status (normal or mute types)."));
         const fromZigbee = [
@@ -2556,7 +2558,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["RelayModule-EF-3.0"],
-        model: "HS1RM-EF",
+        model: "HS1RM-E",
         vendor: "Heiman",
         description: "Smart relay module - 2 gang with neutral wire",
         exposes: [],
@@ -2604,8 +2606,15 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial", "haDiagnostic"]);
+            await reporting.bind(endpoint1, coordinatorEndpoint, [
+                "genOnOff",
+                "genDeviceTempCfg",
+                "genOnOffSwitchCfg",
+                "heimanClusterSpecial",
+                "haDiagnostic",
+            ]);
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "genOnOffSwitchCfg", "heimanClusterSpecial"]);
+            await endpoint1.read("genDeviceTempCfg", ["currentTemperature"]);
             await endpoint1.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint2.read("genOnOff", ["onOff", "startUpOnOff"]);
             await endpoint1.read("genOnOffSwitchCfg", ["switchActions"]);
@@ -3133,6 +3142,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3191,6 +3201,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3205,6 +3217,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "temperatureOffset",
                     "sensorLifeState",
                     "sensorPrealarmState",
+                    "sensorPreheatingState",
                     "rebootedCount",
                     "rejoinedCount",
                     "reportedPackages",
@@ -3246,6 +3259,14 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorPrealarmState",
                 description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "preheating",
+                lookup: {normal: 0, preheating: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPreheatingState",
+                description: "It indicates if the sensor is under preheating status",
                 access: "STATE_GET",
             }),
             heimanExtend.heimanClusterSpecial(),
@@ -3269,6 +3290,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS1CA-E-PLUS",
         vendor: "Heiman",
         description: "Co detector",
+        version: "0.0.1",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3276,6 +3298,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3284,12 +3308,10 @@ export const definitions: DefinitionWithExtend[] = [
                     "deviceMuteState",
                     "indicatorLightLevelControlOf1",
                     "interconnectable",
-                    "smokeConcentrationLevel",
-                    "smokeChamberContaminationLevel",
-                    "smokeConcentationUnit",
                     "temperatureOffset",
                     "sensorLifeState",
                     "sensorPrealarmState",
+                    "sensorPreheatingState",
                     "rebootedCount",
                     "rejoinedCount",
                     "reportedPackages",
@@ -3331,6 +3353,14 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorPrealarmState",
                 description: "It indicates the level of alarm states",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "preheating",
+                lookup: {normal: 0, preheating: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorPreheatingState",
+                description: "It indicates if the sensor is under preheating status",
                 access: "STATE_GET",
             }),
             heimanExtend.heimanClusterSpecial(),
@@ -3398,6 +3428,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -3411,6 +3444,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "smokeConcentationUnit",
                     "sensorLifeState",
                     "sensorPrealarmState",
+                    "sensorPreheatingState",
                     "rebootedCount",
                     "rejoinedCount",
                     "reportedPackages",

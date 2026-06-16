@@ -1593,7 +1593,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({percentageReportingConfig: false}),
             m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyWiFiSetup(),
         ],
     },
     {
@@ -1724,6 +1723,23 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({configureReporting: true}),
             m.electricityMeter(),
+            shellyModernExtend.shellyPowerFactorInt16Fix(),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "Dimmer 0-1/10", manufacturerName: "Shelly"}],
+        model: "S4DM-0010WW",
+        vendor: "Shelly",
+        description: "Dimmer 0/1-10V PM Gen4",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
+            m.light(),
+            m.electricityMeter(),
+            m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
+            m.commandsWindowCovering({endpointNames: ["4"]}),
+            m.commandsLevelCtrl({endpointNames: ["4"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),

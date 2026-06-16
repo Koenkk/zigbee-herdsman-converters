@@ -12,12 +12,6 @@ import * as utils from "../lib/utils";
 import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
-const manufacturerOptions = {
-    lumi: {manufacturerCode: Zcl.ManufacturerCode.LUMI_UNITED_TECHOLOGY_LTD_SHENZHEN, disableDefaultResponse: true},
-    ikea: {manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN},
-    sinope: {manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES},
-    tint: {manufacturerCode: Zcl.ManufacturerCode.MUELLER_LICHT_INTERNATIONAL_INC},
-};
 
 export const on_off: Tz.Converter = {
     key: ["state", "on_time", "off_wait_time"],
@@ -1701,20 +1695,6 @@ export const thermostat_system_mode: Tz.Converter = {
         await entity.read("hvacThermostat", ["systemMode"]);
     },
 };
-export const acova_thermostat_system_mode: Tz.Converter = {
-    key: ["system_mode"],
-    convertSet: async (entity, key, value, meta) => {
-        let systemMode = utils.getKey(constants.acovaThermostatSystemModes, value, undefined, Number);
-        if (systemMode === undefined) {
-            systemMode = utils.getKey(legacy.thermostatSystemModes, value, value as number, Number);
-        }
-        await entity.write("hvacThermostat", {systemMode});
-        return {state: {system_mode: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("hvacThermostat", ["systemMode"]);
-    },
-};
 export const thermostat_control_sequence_of_operation: Tz.Converter = {
     key: ["control_sequence_of_operation"],
     convertSet: async (entity, key, value, meta) => {
@@ -2250,12 +2230,6 @@ export const humidity: Tz.Converter = {
 // #endregion
 
 // #region Non-generic converters
-export const tint_scene: Tz.Converter = {
-    key: ["tint_scene"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("genBasic", {16389: {value, type: 0x20}}, manufacturerOptions.tint);
-    },
-};
 // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
 export const TYZB01_on_off: Tz.Converter = {
     key: ["state", "time_in_seconds"],
@@ -2620,23 +2594,6 @@ export const scene_rename: Tz.Converter = {
             utils.saveSceneState(entity, sceneid, groupid, state, scenename);
         }
         logger.info("Successfully renamed scene", NS);
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const TS0003_curtain_switch: Tz.Converter = {
-    key: ["state"],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertString(value, key);
-        utils.assertEndpoint(entity);
-        const lookup = {close: 1, stop: 2, open: 1};
-        value = value.toLowerCase();
-        utils.validateValue(value, Object.keys(lookup));
-        const endpointID = utils.getFromLookup(value, lookup);
-        const endpoint = entity.getDevice().getEndpoint(endpointID);
-        await endpoint.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("genOnOff", ["onOff"]);
     },
 };
 // #endregion

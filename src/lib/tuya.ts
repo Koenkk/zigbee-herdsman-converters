@@ -42,6 +42,7 @@ export interface TuyaClosuresWindowCovering {
         tuyaCalibration: number;
         tuyaMotorReversal: number;
         moesCalibrationTime: number;
+        tuyaSwitchType: number;
     };
     commands: never;
     commandResponses: never;
@@ -642,6 +643,10 @@ const tuyaExposes = {
             .withDescription("Alarm time")
             .withCategory("config"),
     alarmMode: () => e.enum("alarm_mode", ea.STATE_SET, ["arm", "silent", "disarm"]).withDescription("Alarm work mode").withCategory("config"),
+    alarmStatus: () => e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("Indicates when vibration is detected"),
+    dismissAlarm: () => e.enum("dismiss_alarm", ea.STATE_SET, ["DISMISS"]).withDescription("Stop the buzzer for the current alarm"),
+    sensitivity: () =>
+        e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity level of the sensor").withCategory("config"),
     lightType: () => e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of light attached to the device"),
     lightBrightnessWithMinMax: () =>
         e
@@ -714,7 +719,8 @@ const tuyaExposes = {
         e.enum("self_test_result", ea.STATE, ["checking", "success", "failure", "others"]).withDescription("Result of the self-test"),
     fault: () => e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether a fault was detected").withCategory("diagnostic"),
     faultAlarm: () => e.binary("fault_alarm", ea.STATE, true, false).withDescription("Indicates whether a fault was detected"),
-    silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"),
+    silence: () => e.binary("silence", ea.STATE_SET, true, false).withDescription("Silence the alarm"), // current alarm or all alarms?
+    silentMode: () => e.binary("silent_mode", ea.STATE_SET, "ON", "OFF").withDescription("Mute the buzzer for all alarms").withCategory("config"),
     frostProtection: (extraNote = "") =>
         e
             .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
@@ -1175,31 +1181,34 @@ const tuyaExposes = {
             .withDescription("Unknown (Default 0s)")
             .withCategory("config"),
     liquidLevelPercent: () => e.numeric("liquid_level_percent", ea.STATE).withUnit("%").withDescription("Liquid level ratio"),
-    liquidDepth: () => e.numeric("liquid_depth", ea.STATE).withUnit("cm").withDescription("Liquid depth"),
+    liquidDepth: () => e.numeric("liquid_depth", ea.STATE).withUnit("m").withDescription("Liquid depth"),
     liquidDepthMax: () =>
         e
             .numeric("liquid_depth_max", ea.STATE_SET)
-            .withUnit("mm")
-            .withDescription("Height from sensor to liquid level")
-            .withValueMin(10)
-            .withValueMax(4000)
-            .withValueStep(5),
+            .withUnit("m")
+            .withDescription("Distance from sensor to liquid surface")
+            .withValueMin(0.1)
+            .withValueMax(5)
+            .withValueStep(0.01)
+            .withCategory("config"),
     liquidInstallationHeight: () =>
         e
             .numeric("installation_height", ea.STATE_SET)
-            .withUnit("mm")
-            .withDescription("Height from sensor to tank bottom")
-            .withValueMin(10)
-            .withValueMax(4000)
-            .withValueStep(5),
+            .withUnit("m")
+            .withDescription("Distance from sensor to bottom of the tank")
+            .withValueMin(0.1)
+            .withValueMax(5)
+            .withValueStep(0.01)
+            .withCategory("config"),
     liquidMinimalPercent: () =>
         e
             .numeric("min_set", ea.STATE_SET)
             .withUnit("%")
-            .withDescription("Liquid minimal percentage")
+            .withDescription("Liquid minimum percentage")
             .withValueMin(0)
             .withValueMax(100)
-            .withValueStep(1),
+            .withValueStep(1)
+            .withCategory("config"),
     liquidMaximalPercent: () =>
         e
             .numeric("max_set", ea.STATE_SET)
@@ -1207,8 +1216,16 @@ const tuyaExposes = {
             .withDescription("Liquid maximum percentage")
             .withValueMin(0)
             .withValueMax(100)
-            .withValueStep(1),
+            .withValueStep(1)
+            .withCategory("config"),
     liquidState: () => e.enum("liquid_state", ea.STATE, ["low", "normal", "high"]).withDescription("Liquid level status"),
+    powerSupplyVoltage: () => e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Power supply voltage").withCategory("diagnostic"),
+    relaySwitch: () => e.binary("relay_switch", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+    pumpMode: () => e.enum("pump_mode", ea.STATE_SET, ["supply", "drainage"]).withCategory("config"),
+    autoPumpControl: () => e.enum("pump_control", ea.STATE_SET, ["auto", "manual"]).withCategory("config"),
+    version: () => e.text("version", ea.STATE).withCategory("diagnostic"),
+    alarmDuration: () =>
+        e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
@@ -1493,7 +1510,20 @@ export const valueConverter = {
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
     raw: valueConverterBasic.raw(),
     fault: {from: (v: Bitmap) => !!v},
+    level: valueConverterBasic.lookup({low: new Enum(1), normal: new Enum(0), high: new Enum(2)}),
+    pumpMode: valueConverterBasic.lookup({supply: true, drainage: false}),
+    pumpControl: valueConverterBasic.lookup({auto: true, manual: false}),
     alarmMode: valueConverterBasic.lookup({arm: new Enum(0), silent: new Enum(1), disarm: new Enum(2)}),
+    alarmStatus: valueConverterBasic.lookup({normal: new Enum(0), alarm: new Enum(1)}),
+    sensitivity: valueConverterBasic.lookup({low: new Enum(0), middle: new Enum(1), high: new Enum(2)}),
+    dismiss: {
+        to: (v: string) => {
+            if (v === "DISMISS") return new Enum(0);
+        },
+        from: () => {
+            return "idle";
+        },
+    },
     localTemperatureCalibration: {
         from: (value: number) => (value > 4000 ? value - 4096 : value),
         to: (value: number) => (value < 0 ? 4096 + value : value),
@@ -2686,10 +2716,11 @@ export const valueConverter = {
     inverse: {to: (v: boolean) => !v, from: (v: boolean) => !v},
     onOffNotStrict: {from: (v: string) => (v ? "ON" : "OFF"), to: (v: string) => v === "ON"},
     errorOrBatteryLow: {
-        from: (v: number) => {
-            if (v === 0) return {battery_low: false};
-            if (v === 1) return {battery_low: true};
-            return {error: v};
+        from: (v: number, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+            let batteryLow = false;
+            if (v === 1) batteryLow = true;
+            publish({error: v});
+            return batteryLow;
         },
     },
     // https://developer.tuya.com/en/docs/connect-subdevices-to-gateways/tuya-zigbee-multiple-switch-access-standard?id=K9ik6zvnqr09m
@@ -5056,6 +5087,16 @@ const tuyaModernExtend = {
 
         return {exposes: [exp], fromZigbee: newFromZigbee, isModernExtend: true};
     },
+    tuyaCoverSwitchType: (args?: Partial<modernExtend.EnumLookupArgs<"closuresWindowCovering">>) =>
+        modernExtend.enumLookup<"closuresWindowCovering", TuyaClosuresWindowCovering>({
+            name: "switch_type",
+            lookup: {momentary: 0, toggle: 1},
+            cluster: "closuresWindowCovering",
+            attribute: "tuyaSwitchType",
+            description: "Type of the installed switch",
+            entityCategory: "config",
+            ...args,
+        }),
     tuyaSwitchMode: (args?: Partial<modernExtend.EnumLookupArgs<"manuSpecificTuya3">>) =>
         modernExtend.enumLookup<"manuSpecificTuya3", ManuSpecificTuya3>({
             name: "switch_mode",
@@ -5253,7 +5294,8 @@ const tuyaClusters = {
                 tuyaMovingState: {name: "tuyaMovingState", ID: 0xf000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaCalibration: {name: "tuyaCalibration", ID: 0xf001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaMotorReversal: {name: "tuyaMotorReversal", ID: 0xf002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.ENUM8, write: true, max: 0xffff},
+                tuyaSwitchType: {name: "tuyaSwitchType", ID: 0x8000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {},
             commandsResponse: {},
