@@ -221,6 +221,17 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.rain()],
     },
     {
+        zigbeeModel: ["CK-TLSR8656-SS5-02(7014)"],
+        model: "CK-TLSR8656-SS5-02(7014)",
+        vendor: "eWeLink",
+        description: "Temperature & humidity sensor",
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.battery(),
+        ],
+    },
+    {
         zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
         model: "SNZB-05",
         vendor: "eWeLink",
