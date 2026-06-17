@@ -4282,6 +4282,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE284_aao3yzhs",
             "_TZE284_nhgdf6qr",
+            "_TZE2841000000_nhgdf6qr",
             "_TZE284_ap9owrsa",
             "_TZE284_33bwcga2",
             "_TZE284_wckqztdq",
