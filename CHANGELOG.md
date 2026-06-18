@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.68.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.67.0...v26.68.0) (2026-06-18)
+
+
+### Features
+
+* **add:** _TZ3210_qlmnxmac ([#12451](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12451)) ([67656c7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67656c7c59a1a9cad063c41816052efa00259cc9))
+* **add:** 1241754 ([#12197](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12197)) ([4ce3746](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4ce3746044da74ae1cd71d78c83c3e7946df01e2))
+* Shelly gen4: add button mode scene actions (single/double/triple/hold) ([#12465](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12465)) ([a5f5eae](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a5f5eae9530af4e18b0fd7dc16e4f059ccc5f9ea))
+* SONOFF SNZB-02DR2: expose `temperature_sensor_select` and `external_temperature` ([#12463](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12463)) ([d3c1105](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d3c1105b6f5f264d5fdd37106345f770c5a121da))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_ky0fq4ho` as Tuya TS011F_din_smart_relay_polling ([#12468](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12468)) ([f82b50d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f82b50d46c150f33726ad3bf84608f5fc3a1cc66))
+* **detect:** Detect `_TZE284_xpq2rzhq` as Moes ZSS-QY-HP ([#12467](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12467)) ([e7b41bc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e7b41bc04c0dab5df7b2f2ded528ecb43d34a7f6))
+* Namron 4512791: Write min/max brightness and dimming speed to device ([#12464](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12464)) ([f9fb195](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9fb1950c8390bdbfe06f40b438696c9f0a1ed46))
+* Tongou TO-Q-SYS-JZT: expose `control_mode` ([#12466](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12466)) ([261197b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/261197b8caaa9c3be234b95b08f137e15053b25b))
+* Tuya _TZ3000_9ni6xxld: poll electrical measurements ([#12460](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12460)) ([9e765a2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9e765a2fcfdca09129900c2fdbe52c5a19527146))
+* Wyze: fix hourly false locked state ([#12462](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12462)) ([483d8c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/483d8c264fb843beb99ec14af4babef5ab093836))
+
 ## [26.67.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.66.0...v26.67.0) (2026-06-17)
 
 
