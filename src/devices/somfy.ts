@@ -16,11 +16,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["tilt"]}), m.battery()],
     },
     {
-        zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller"],
+        zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller", "Sonesse 28 WF Li-Ion Zebra"],
         model: "1241755",
         vendor: "SOMFY",
         description: "Sonesse 28 WF Li-Ion roller shades",
         extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
+    },
+    {
+        zigbeeModel: ["Sonesse 28 WF Zebra"],
+        model: "1241754",
+        vendor: "SOMFY",
+        description: "Sonesse 28 WF roller shades (external battery)",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
         zigbeeModel: ["Sonesse2 28 WF Roller"],
@@ -48,13 +55,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "1246037",
         vendor: "SOMFY",
         description: "Blinds",
-        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
-    },
-    {
-        zigbeeModel: ["Sonesse 28 WF Li-Ion Zebra", "Sonesse 28 WF Zebra"],
-        model: "Sonesse 28 WF Li-Ion Zebra",
-        vendor: "SOMFY",
-        description: "Somfy Zebra shades (battery operated, Li-Ion model uses an internal battery, while the other uses an external battery)",
         extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
