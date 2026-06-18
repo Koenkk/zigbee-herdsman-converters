@@ -396,6 +396,41 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
+                    a0: {
+                        name: "a0",
+                        ID: 0xef00,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
+                    a1: {
+                        name: "a1",
+                        ID: 0xef01,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
+                    a2: {
+                        name: "a2",
+                        ID: 0xef02,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
+                    aa: {
+                        name: "aa",
+                        ID: 0xef0a,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
+                    ab: {
+                        name: "ab",
+                        ID: 0xef0b,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
+                        write: true,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -411,20 +446,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Permanently lock cable when not charging.",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
-            // 'closuresDoorLock':
-            // {"lockState":2,"supportedOperatingModes":261,"actuatorEnabled":176}
-            // 'under lading  {"actuatorEnabled":177,"supportedOperatingModes":261,"operatingMode":0,"lockType":null,"lockState":1}
-
-            // genAnalogOutput':
-            // Under lading {"maxPresentValue":32,"outOfService":0,"presentValue":7,"statusFlags":0}
-
-            // 'genMultistateValue':
-            // {"numberOfStates":8,"outOfService":0,"presentValue":5}
-            // under lading '{"numberOfStates":8,"outOfService":0,"presentValue":5,"reliability":0,"statusFlags":0}
-
-            // 'genMultistateInput':
-            // {"numberOfStates":6,"outOfService":0,"presentValue":65}
-            // under lading  {"numberOfStates":6,"outOfService":0,"presentValue":67,"statusFlags":0}
             m.numeric({
                 name: "setpoint_charging_current",
                 cluster: "genAnalogOutput",
