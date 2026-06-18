@@ -389,20 +389,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "haApplianceControl",
                 ID: Zcl.Clusters.haApplianceControl.ID,
                 attributes: {
-                    autoCharge: {
-                        name: "autoCharge",
-                        ID: 0xef0c,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    // a0: {
-                    //     name: "a0",
                     //     ID: 0xef00,
-                    //     type: Zcl.DataType.UINT8,
-                    //     manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                    //     write: true,
-                    // },
                     a1: {
                         name: "a1",
                         ID: 0xef01,
@@ -417,19 +404,17 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
-                    a3: {
-                        name: "a3",
+                    previousAccumulatedEnergy: {
+                        name: "previousAccumulatedEnergy",
                         ID: 0xef03,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
                     },
-                    a4: {
-                        name: "a4",
+                    latestAccumulatedEnergy: {
+                        name: "latestAccumulatedEnergy",
                         ID: 0xef04,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
                     },
                     a5: {
                         name: "a5",
@@ -480,34 +465,16 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
-                    ac: {
-                        name: "ac",
+                    autoCharge: {
+                        name: "autoCharge",
                         ID: 0xef0c,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
-                    ad: {
-                        name: "ad",
-                        ID: 0xef0d,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    ae: {
-                        name: "ae",
-                        ID: 0xef0e,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    af: {
-                        name: "af",
-                        ID: 0xef0f,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
+                    // ID: 0xef0d,
+                    // ID: 0xef0e,
+                    // ID: 0xef0f,
                     a10: {
                         name: "a10",
                         ID: 0xef10,
