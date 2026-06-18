@@ -1195,6 +1195,14 @@ const fzLocal = {
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
+                "3_1": "input_1_single",
+                "4_1": "input_2_single",
+                "3_2": "input_1_double",
+                "4_2": "input_2_double",
+                "3_3": "input_1_triple",
+                "4_3": "input_2_triple",
+                "3_4": "input_1_hold",
+                "4_4": "input_2_hold",
                 "3_5": "input_1_toggle",
                 "4_5": "input_2_toggle",
                 "3_11": "input_1_hold",
@@ -1223,7 +1231,14 @@ const fzLocal = {
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
             if (msg.endpoint.ID !== 2) return {};
-            const event = utils.getFromLookup(`${msg.data.sceneid}`, {"5": "input_1_toggle", "11": "input_1_hold"});
+            const event = utils.getFromLookup(`${msg.data.sceneid}`, {
+                "1": "input_1_single",
+                "2": "input_1_double",
+                "3": "input_1_triple",
+                "4": "input_1_hold",
+                "5": "input_1_toggle",
+                "11": "input_1_hold",
+            });
             return {action: event};
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
@@ -1294,7 +1309,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
         ],
         extend: [
@@ -1322,7 +1337,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
         ],
         extend: [
@@ -1350,7 +1365,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
         ],
         extend: [
@@ -1380,7 +1395,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold"]),
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
         ],
         extend: [
@@ -1465,7 +1480,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_single", "input_2_double", "input_2_triple", "input_2_hold"]),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
         ],
@@ -1522,7 +1537,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_hold"]),
+            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold", "input_2_on", "input_2_off", "input_2_toggle", "input_2_single", "input_2_double", "input_2_triple", "input_2_hold"]),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
             e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
         ],
