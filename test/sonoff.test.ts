@@ -548,3 +548,60 @@ describe("Sonoff TRVZB", () => {
         });
     });
 });
+
+describe("Sonoff SNZB-02DR2", () => {
+    let device: Definition;
+    let endpoint: ZHModels.Endpoint;
+    let writeFn: Mock;
+    let meta: Tz.Meta;
+
+    beforeEach(async () => {
+        device = await findByDevice(mockDevice({modelID: "SNZB-02DR2", endpoints: [{ID: 1}]}));
+
+        writeFn = vi.fn();
+        endpoint = {write: writeFn} as unknown as ZHModels.Endpoint;
+        meta = {
+            state: {},
+            device: null,
+            message: null,
+            mapped: null,
+            options: null,
+            publish: null,
+            endpoint_name: null,
+        };
+    });
+
+    describe("toZigbee", () => {
+        it("enables the external display via temperature_sensor_select", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("temperature_sensor_select"));
+
+            await tzConverter.convertSet(endpoint, "temperature_sensor_select", "external", meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {temperatureSensorSelect: 1}, undefined);
+        });
+
+        it("disables the external display via temperature_sensor_select", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("temperature_sensor_select"));
+
+            await tzConverter.convertSet(endpoint, "temperature_sensor_select", "internal", meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {temperatureSensorSelect: 0}, undefined);
+        });
+
+        it("writes external temperature scaled x100 (signed)", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("external_temperature"));
+
+            await tzConverter.convertSet(endpoint, "external_temperature", -10.07, meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {externalTemperature: -1007}, undefined);
+        });
+
+        it("writes external humidity scaled x100", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("external_humidity"));
+
+            await tzConverter.convertSet(endpoint, "external_humidity", 88, meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {externalHumidity: 8800}, undefined);
+        });
+    });
+});

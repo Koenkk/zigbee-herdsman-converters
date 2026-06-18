@@ -107,6 +107,9 @@ interface SonoffSnzb02dr2 {
         temperatureUnits: number;
         temperatureCalibration: number;
         humidityCalibration: number;
+        temperatureSensorSelect: number;
+        externalTemperature: number;
+        externalHumidity: number;
     };
     commands: never;
     commandResponses: never;
@@ -5755,6 +5758,9 @@ export const definitions: DefinitionWithExtend[] = [
                     temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true, min: -32768},
                     humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temperatureSensorSelect: {name: "temperatureSensorSelect", ID: 0x600e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    externalTemperature: {name: "externalTemperature", ID: 0x600d, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    externalHumidity: {name: "externalHumidity", ID: 0x6018, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -5763,6 +5769,41 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            m.enumLookup<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "temperature_sensor_select",
+                lookup: {internal: 0, external: 1},
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "temperatureSensorSelect",
+                entityCategory: "config",
+                description:
+                    "Data source shown on the display. Set to 'external' to enable the external display and show the values written to external_temperature and external_humidity; set to 'internal' to show the built-in sensor again.",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "external_temperature",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "externalTemperature",
+                description:
+                    "Temperature value to display when temperature_sensor_select is set to 'external'. Push readings here from another sensor (e.g. via an automation).",
+                access: "STATE_SET",
+                valueMin: -50,
+                valueMax: 125,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                name: "external_humidity",
+                cluster: "customSonoffSnzb02dr2",
+                attribute: "externalHumidity",
+                description:
+                    "Relative humidity value to display when temperature_sensor_select is set to 'external'. Push readings here from another sensor. Requires device firmware 1.0.4 or later.",
+                access: "STATE_SET",
+                valueMin: 0,
+                valueMax: 100,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
             m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02dr2",
