@@ -459,7 +459,7 @@ const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10
 const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 254), 1, 254);
 const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
  
-const _tzLocalSimplifyDimmer4512791 = {
+const tzLocalSimplifyDimmer4512791 = {
     // Device supports off-spec writing to minLevel (0x0002).
     // Requires read-before-write pattern - device returns NOT_AUTHORIZED without prior read.
     min_brightness: {
@@ -2819,21 +2819,21 @@ export const definitions: DefinitionWithExtend[] = [
             type: ["attributeReport", "readResponse"],
             convert: (model: unknown, msg: {data: Record<string, number>}, publish: unknown, options: unknown, meta: unknown) => {
                 const result: Record<string, unknown> = {};
-                if (msg.data.hasOwnProperty("minLevel"))
+                if (Object.hasOwn(msg.data, "minLevel"))
                     result["min_brightness"] = sdLevelToPct(msg.data["minLevel"]);
-                if (msg.data.hasOwnProperty("maxLevel"))
+                if (Object.hasOwn(msg.data, "maxLevel"))
                     result["max_brightness"] = sdLevelToPct(msg.data["maxLevel"]);
-                if (msg.data.hasOwnProperty("defaultMoveRate"))
+                if (Object.hasOwn(msg.data, "defaultMoveRate"))
                     result["dimming_speed"] = msg.data["defaultMoveRate"];
                 return result;
             },
         },
     ],
     toZigbee: [
-        _tzLocalSimplifyDimmer4512791.min_brightness,
-        _tzLocalSimplifyDimmer4512791.max_brightness,
-        _tzLocalSimplifyDimmer4512791.dimming_speed,
-        _tzLocalSimplifyDimmer4512791.brightness_clamped,
+        tzLocalSimplifyDimmer4512791.min_brightness,
+        tzLocalSimplifyDimmer4512791.max_brightness,
+        tzLocalSimplifyDimmer4512791.dimming_speed,
+        tzLocalSimplifyDimmer4512791.brightness_clamped,
         tz.light_onoff_brightness,
         tz.level_config,
     ],
@@ -2845,7 +2845,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Read current values from device
         try {
             await endpoint.read("genLevelCtrl", ["minLevel", "maxLevel", "defaultMoveRate", "onLevel"]);
-        } catch (e) {
+        } catch (_e) {
             // Not all firmware versions support reading these
           }  
         },
