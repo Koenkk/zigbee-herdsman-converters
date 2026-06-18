@@ -12267,7 +12267,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_8bxrzyxz", "_TZ3000_ky0fq4ho", "_TZ3210_vbfp8eyv"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_8bxrzyxz", "_TZ3210_vbfp8eyv"]),
         model: "TS011F_din_smart_relay",
         description: "Din smart relay (with power monitoring)",
         vendor: "Tuya",
@@ -12304,7 +12304,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_qeuvnohg", "_TZ3000_6l1pjfqe", "_TZ3000_2iiimqs9", "_TZ3000_viqwamhn"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_qeuvnohg", "_TZ3000_6l1pjfqe", "_TZ3000_2iiimqs9", "_TZ3000_viqwamhn", "_TZ3000_ky0fq4ho"]),
         model: "TS011F_din_smart_relay_polling",
         description: "Din smart relay (with power monitoring via polling)",
         vendor: "Tuya",
