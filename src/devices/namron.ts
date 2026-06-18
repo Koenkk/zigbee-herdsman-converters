@@ -2847,7 +2847,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genLevelCtrl", ["minLevel", "maxLevel", "defaultMoveRate", "onLevel"]);
         } catch (e) {
             // Not all firmware versions support reading these
-        }
+        ],
     },
     {
         zigbeeModel: ["4512785"],
