@@ -2536,7 +2536,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_3gang_rkbxtclc",
         vendor: "Tuya",
         description: "Three gang smart switch with colored backlight modes",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}}),],
         exposes: [
             tuya.exposes.switch().withDescription("All switches"),
             tuya.exposes.switch().withEndpoint("l1"),
