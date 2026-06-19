@@ -197,9 +197,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lonsonho",
         version: "0.0.1",
         description: "Zigbee 3.0 LED-bulb, RGBW LED",
-        extend: [
-            m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false, configureReporting: true}),
-        ],
+        extend: [m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TYZB01_zsl6z0pw", "_TYZB01_uqkphoed"]),
