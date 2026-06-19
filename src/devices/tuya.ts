@@ -19737,6 +19737,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_mrffaamu",
             "_TZE284_tzreobvu",
             "_TZE284_9xstqowh",
+            "_TZE284_kv1nvirl"
         ]),
         model: "TOQCB2-80",
         vendor: "Tongou",
