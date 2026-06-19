@@ -265,13 +265,10 @@ const futurehomeExtend = {
             fromZigbee: [],
             toZigbee: [
                 {
-                    // key: ["charging"],
                     key: ["charging_start", "charging_stop", "charging_pause"],
                     convertSet: async (entity, key, value, meta) => {
                         const normalizedAction = key.replace("charging_", ""); // "start", "stop", or "pause"
                         const commandId = commandLookup[normalizedAction];
-                        // const lookup: KeyValueAny = {Start: "0x01", Stop: "0x02", Pause: "0x03"};
-                        // await entity.command("haApplianceControl", "executionOfCommand", {commandId: lookup[value as keyof typeof lookup]});
                         await entity.command("haApplianceControl", "executionOfCommand", {commandId: commandId});
                         try {
                             await entity.command("haApplianceControl", "signalState", {});
@@ -285,12 +282,30 @@ const futurehomeExtend = {
                     },
                 } satisfies Tz.Converter,
             ],
-            // exposes: [exposes.enum("charging", ea.STATE_SET, ["Start", "Pause", "Stop"]).withDescription("Start or pause charging.")],
             exposes: [
                 exposes.enum("charging_start", ea.SET, ["start"]).withLabel("Start charging").withDescription("Press to start charging"),
                 exposes.enum("charging_stop", ea.SET, ["stop"]).withLabel("Stop charging").withDescription("Press to stop charging"),
                 exposes.enum("charging_pause", ea.SET, ["pause"]).withLabel("Pause charging").withDescription("Press to pause charging"),
             ],
+        };
+    },
+    previousSessionEnergy: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "haApplianceControl",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const prev_session_energy = (msg.data.latestAccumulatedEnergy - msg.data.previousAccumulatedEnergy) / 1000;
+                        return {
+                            previous_session_energy: prev_session_energy,
+                        };
+                    },
+                },
+            ],
+            toZigbee: [],
+            exposes: [exposes.numeric("previous_session_energy", ea.STATE)],
         };
     },
 };
@@ -533,6 +548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
+            futurehomeExtend.previousSessionEnergy(),
             m.numeric<"haElectricalMeasurement", undefined>({
                 name: "power",
                 cluster: "haElectricalMeasurement",
