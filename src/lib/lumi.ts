@@ -4825,8 +4825,7 @@ function armW600WeeklyScheduleUploadTimeout(deviceOrEntity: string | Zh.Device |
 
         failW600WeeklyScheduleUpload(storeKey, "Timed out waiting for the device to finish the weekly schedule OTA transfer", publish);
     }, W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS);
-
-    timeout.unref?.();
+    timeout.unref();
     W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.set(storeKey, timeout);
 }
 
@@ -6265,6 +6264,7 @@ export const fromZigbee = {
                     // Aqara Opple does not generate a release event when pressed for more than 5 seconds
                     // After 5 seconds of not releasing we assume release.
                     const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
+                    timer.unref();
                     globalStore.putValue(msg.endpoint, "timer", timer);
                 }
                 return {action: `button_${button}_${action}`};
@@ -6628,6 +6628,7 @@ export const fromZigbee = {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
                     }, timeout * 1000);
+                    timer.unref();
 
                     globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
                 }
@@ -6802,6 +6803,7 @@ export const fromZigbee = {
                         const timer = setTimeout(() => {
                             publish({vibration: false});
                         }, timeout * 1000);
+                        timer.unref();
 
                         globalStore.putValue(msg.endpoint, "vibration_timer", timer);
                     }
@@ -6895,6 +6897,7 @@ export const fromZigbee = {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
                 }, timeout * 1000);
+                timer.unref();
 
                 globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
             }
@@ -7250,9 +7253,11 @@ export const fromZigbee = {
                     const holdTimer = setTimeout(() => {
                         globalStore.putValue(msg.endpoint, "hold", false);
                     }, options.hold_timeout_expire || 4000);
+                    holdTimer.unref();
                     globalStore.putValue(msg.endpoint, "hold_timer", holdTimer);
                     // After 4000 milliseconds of not receiving release we assume it will not happen.
                 }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+                timer.unref();
                 globalStore.putValue(msg.endpoint, "timer", timer);
             } else if (state === 1) {
                 if (globalStore.getValue(msg.endpoint, "hold")) {
@@ -9022,12 +9027,15 @@ export const toZigbee = {
                                 if (result2 && desiredStates.includes(result2[0x0421] as number)) {
                                     resolve();
                                 } else {
-                                    setTimeout(checkDesiredState, 500);
+                                    const timer = setTimeout(checkDesiredState, 500);
+                                    timer.unref();
                                 }
                             };
-                            setTimeout(checkDesiredState, 500);
+                            const timer = setTimeout(checkDesiredState, 500);
+                            timer.unref();
                         } else {
-                            setTimeout(checkState, 500);
+                            const timer = setTimeout(checkState, 500);
+                            timer.unref();
                         }
                     };
                     void checkState();

@@ -2475,7 +2475,8 @@ export const boschBsenExtend = {
                             // only known to Bosch. Therefore, we have to manually defer the turn-off by
                             // 4 seconds + 3 minutes to avoid any confusion.
                             const timeoutDelay = 184 * 1000;
-                            setTimeout(() => publish({occupancy: false}), timeoutDelay);
+                            const timer = setTimeout(() => publish({occupancy: false}), timeoutDelay);
+                            timer.unref();
                             meta.device.meta.occupancyLockTimeout = Date.now() + timeoutDelay;
                         }
                     }
@@ -2504,11 +2505,12 @@ export const boschBsenExtend = {
 
                 if (occupancyLockTimeout > currentTime) {
                     const timeoutDelay = occupancyLockTimeout - currentTime;
-                    setTimeout(() => {
+                    const timer = setTimeout(() => {
                         endpoint.read("ssIasZone", ["zoneStatus"]).catch((exception) => {
                             logger.warning(`Error during reading the zoneStatus on device '${event.data.device.ieeeAddr}': ${exception}`, NS);
                         });
                     }, timeoutDelay);
+                    timer.unref();
                 } else {
                     await endpoint.read("ssIasZone", ["zoneStatus"]);
                 }
@@ -3032,6 +3034,7 @@ export const boschSmokeAlarmExtend = {
                                 async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
                                 (timeoutInSeconds - 60) * 1000,
                             );
+                            alarmTimer.unref();
                             globalStore.putValue("boschSmokeAlarm", "alarmTimer", alarmTimer);
                         }
                     }

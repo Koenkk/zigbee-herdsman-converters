@@ -51,9 +51,10 @@ export const definitions: DefinitionWithExtend[] = [
                         from: (v: boolean, meta, options, publish) => {
                             if (!v) return false;
 
-                            setTimeout(() => {
+                            const timer = setTimeout(() => {
                                 publish({warming_up: false});
                             }, 120 * 1000);
+                            timer.unref();
                             return true;
                         },
                     },

@@ -682,6 +682,7 @@ export function poll(args: {
                                 setTimer();
                             }
                         }, seconds * 1000);
+                        timer.unref();
                         globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
                     };
                     setTimer();
@@ -1736,6 +1737,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
                     if (timeout !== 0) {
                         const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
+                        timer.unref();
                         globalStore.putValue(msg.endpoint, "timer", timer);
                     }
                 }
@@ -1795,6 +1797,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         if (addTimeout) {
                             // At least one zone active
                             const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000);
+                            timer.unref();
                             globalStore.putValue(msg.endpoint, "timeout", timer);
                         } else {
                             globalStore.clearValue(msg.endpoint, "timeout");

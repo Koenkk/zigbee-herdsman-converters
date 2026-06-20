@@ -36,6 +36,7 @@ const fzLocal = {
 
             clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
             const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000);
+            timer.unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
 
             return {

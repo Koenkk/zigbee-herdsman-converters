@@ -597,6 +597,7 @@ export const occupancy_with_timeout: Fz.Converter<"msOccupancySensing", undefine
             const timer = setTimeout(() => {
                 publish({occupancy: false});
             }, timeout * 1000);
+            timer.unref();
 
             globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
         }
@@ -1100,6 +1101,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
             const timer = setTimeout(() => {
                 publish({vibration: false});
             }, timeout * 1000);
+            timer.unref();
 
             globalStore.getValue(msg.endpoint, "timers").push(timer);
         }
@@ -1294,6 +1296,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
 
         if (timeout !== 0) {
             const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+            timer.unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
         }
 
@@ -1471,6 +1474,7 @@ export const command_move: Fz.Converter<"genLevelCtrl", undefined, ["commandMove
                     const deltaProperty = postfixWithEndpointName("action_brightness_delta", msg, model, meta);
                     publish({[property]: brightness, [deltaProperty]: delta});
                 }, intervalOpts);
+                timer.unref();
 
                 globalStore.putValue(msg.endpoint, "simulated_brightness_timer", timer);
             }
@@ -1912,6 +1916,7 @@ export const checkin_presence: Fz.Converter<"genPollCtrl", undefined, ["commandC
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
         const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+        timer.unref();
         globalStore.putValue(msg.endpoint, "timer", timer);
 
         return {presence: true};

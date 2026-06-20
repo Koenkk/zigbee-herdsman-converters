@@ -135,6 +135,7 @@ const fzLocal = {
                 }
                 globalStore.putValue(endpoint, "button_click_count", 0);
             }, timeout);
+            timer.unref();
             globalStore.putValue(endpoint, "timer", timer);
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,

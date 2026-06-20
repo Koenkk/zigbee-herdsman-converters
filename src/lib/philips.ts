@@ -585,13 +585,14 @@ const philipsModernExtend = {
                     // When an effect is active or being set, read state after a delay
                     // to sync brightness (effects modulate it internally).
                     if (data.effectType !== undefined) {
-                        setTimeout(async () => {
+                        const timer = setTimeout(async () => {
                             try {
                                 await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
                             } catch (_e) {
                                 // Best-effort sync
                             }
                         }, 1000);
+                        timer.unref();
                     }
 
                     // Merge syncColorState results into newState. syncColorState
@@ -1003,13 +1004,14 @@ const philipsTz = {
                 // Effects modulate brightness internally (e.g. candle dims to 30-60%).
                 // Read state after a short delay so the Fz converter picks up the
                 // actual brightness the device settled on.
-                setTimeout(async () => {
+                const timer = setTimeout(async () => {
                     try {
                         await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
                     } catch (_e) {
                         // Ignore read failures — best-effort sync
                     }
                 }, 1000);
+                timer.unref();
 
                 return {state};
             }
