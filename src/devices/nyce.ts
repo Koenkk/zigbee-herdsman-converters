@@ -21,6 +21,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.contact(), e.battery_low(), e.battery()],
     },
     {
+        zigbeeModel: ["3014"],
+        model: "NCZ-3014-HA",
+        vendor: "Nyce",
+        description: "Garage door tilt sensor",
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
         zigbeeModel: ["3011"],
         model: "NCZ-3011-HA",
         vendor: "Nyce",
