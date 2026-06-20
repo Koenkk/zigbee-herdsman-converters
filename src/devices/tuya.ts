@@ -11192,7 +11192,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior2: true,
                 backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
-                switchType: (m) => m === "_TZ3000_r9e2w7dn",
+                switchType: (m) => m === "_TZ3000_r9e2w7dn" || m === "_TZ3000_excgg5kb",
             }),
         ],
         whiteLabel: [
