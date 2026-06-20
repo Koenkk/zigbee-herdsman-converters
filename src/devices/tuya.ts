@@ -18972,7 +18972,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "timing_switch_off",
                 ])
                 .withDescription("Last event of the device"),
-            e.enum("control_mode", ea.STATE, ["local_lock", "local_mode", "remote_mode", "full_control"]).withDescription("Device control mode"),
+            e.enum("control_mode", ea.STATE_SET, ["local_lock", "local_mode", "remote_mode", "full_control"]).withDescription("Device control mode"),
             e.enum("over_current_setting", ea.STATE_SET, ["Ignore", "Alarm", "Trip"]).withDescription("Over current setting"),
             e
                 .numeric("over_current_threshold", ea.STATE_SET)
