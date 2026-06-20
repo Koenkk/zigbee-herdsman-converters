@@ -235,6 +235,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Electrical heating actuator",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), m.humidity(), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["IRB-4-1-00"],
@@ -404,6 +405,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Pilot wire heating module",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["SIN-4-FP-21"],
