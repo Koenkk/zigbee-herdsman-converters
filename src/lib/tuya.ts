@@ -3913,8 +3913,7 @@ const tuyaFz = {
                                     payload.power = 0;
                                 }
                                 publish(payload);
-                            }, time * 1000);
-                            timer.unref();
+                            }, time * 1000).unref();
                             globalStore.putValue(msg.endpoint, key, timer);
                             delete result[key];
                         }
@@ -4504,8 +4503,7 @@ const tuyaModernExtend = {
                                     if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
                                         setTimer();
                                     }
-                                }, queryIntervalSeconds * 1000);
-                                timer.unref();
+                                }, queryIntervalSeconds * 1000).unref();
                                 globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
                             };
                             setTimer();

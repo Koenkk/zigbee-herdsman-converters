@@ -2475,8 +2475,7 @@ export const boschBsenExtend = {
                             // only known to Bosch. Therefore, we have to manually defer the turn-off by
                             // 4 seconds + 3 minutes to avoid any confusion.
                             const timeoutDelay = 184 * 1000;
-                            const timer = setTimeout(() => publish({occupancy: false}), timeoutDelay);
-                            timer.unref();
+                            setTimeout(() => publish({occupancy: false}), timeoutDelay).unref();
                             meta.device.meta.occupancyLockTimeout = Date.now() + timeoutDelay;
                         }
                     }
@@ -2505,12 +2504,11 @@ export const boschBsenExtend = {
 
                 if (occupancyLockTimeout > currentTime) {
                     const timeoutDelay = occupancyLockTimeout - currentTime;
-                    const timer = setTimeout(() => {
+                    setTimeout(() => {
                         endpoint.read("ssIasZone", ["zoneStatus"]).catch((exception) => {
                             logger.warning(`Error during reading the zoneStatus on device '${event.data.device.ieeeAddr}': ${exception}`, NS);
                         });
-                    }, timeoutDelay);
-                    timer.unref();
+                    }, timeoutDelay).unref();
                 } else {
                     await endpoint.read("ssIasZone", ["zoneStatus"]);
                 }
@@ -3033,8 +3031,7 @@ export const boschSmokeAlarmExtend = {
                             const alarmTimer = setTimeout(
                                 async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
                                 (timeoutInSeconds - 60) * 1000,
-                            );
-                            alarmTimer.unref();
+                            ).unref();
                             globalStore.putValue("boschSmokeAlarm", "alarmTimer", alarmTimer);
                         }
                     }

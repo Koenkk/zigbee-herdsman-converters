@@ -2804,8 +2804,7 @@ const fzLocal = {
             const timer = setTimeout(() => {
                 publish({notificationComplete: ""});
                 globalStore.clearValue(msg.endpoint, "notification_complete_clear");
-            }, 0);
-            timer.unref();
+            }, 0).unref();
             globalStore.putValue(msg.endpoint, "notification_complete_clear", timer);
 
             return {notificationComplete: value};

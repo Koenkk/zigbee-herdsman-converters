@@ -1607,8 +1607,7 @@ const fromZigbee = {
                 case dataPoints.x5hFactoryReset: {
                     if (value) {
                         clearTimeout(globalStore.getValue(msg.endpoint, "factoryResetTimer"));
-                        const timer = setTimeout(() => publish({factory_reset: "OFF"}), 60 * 1000);
-                        timer.unref();
+                        const timer = setTimeout(() => publish({factory_reset: "OFF"}), 60 * 1000).unref();
                         globalStore.putValue(msg.endpoint, "factoryResetTimer", timer);
                         logger.info("The thermostat is resetting now. It will be available in 1 minute.", "zhc:legacy:fz:x5h_thermostat");
                     }
@@ -3556,8 +3555,7 @@ const fromZigbee = {
                             // for a few seconds
                             clearTimeout(globalStore.getValue(msg.endpoint, "running_timer"));
                             if (running) {
-                                const timer = setTimeout(() => publish({running: false}), 3 * 1000);
-                                timer.unref();
+                                const timer = setTimeout(() => publish({running: false}), 3 * 1000).unref();
                                 globalStore.putValue(msg.endpoint, "running_timer", timer);
                             }
 

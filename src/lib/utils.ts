@@ -349,9 +349,8 @@ export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
 }
 
 export async function sleep(ms: number) {
-    return await new Promise((resolve) => {
-        const timer = setTimeout(resolve, ms);
-        timer.unref();
+    return await new Promise<void>((resolve) => {
+        setTimeout(resolve, ms).unref();
     });
 }
 
@@ -543,8 +542,7 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
-                }, since * 1000);
-                timer.unref();
+                }, since * 1000).unref();
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {

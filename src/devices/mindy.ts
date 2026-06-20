@@ -66,8 +66,7 @@ const tzLocal = {
                     } catch {
                         /* Do nothing */
                     }
-                    const timer = setTimeout(() => retryRead(attempts - 1), 10000);
-                    timer.unref();
+                    setTimeout(() => retryRead(attempts - 1), 10000).unref();
                 }
             };
 

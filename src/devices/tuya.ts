@@ -916,15 +916,14 @@ const tzLocal = {
             // allowing user apps to turn it on again if needed.
             // This could probably be improved by actually turning it on again if necessary.
             if (transitionSeconds !== 0) {
-                const timer = setTimeout(
+                setTimeout(
                     () => {
                         tz.on_off.convertGet(entity, "state", meta).catch((error) => {
                             logger.warning(`Error getting state of TS0505B_1 after transition: ${error.message}`, NS);
                         });
                     },
                     transitionSeconds * 1000 + 100,
-                );
-                timer.unref();
+                ).unref();
             }
 
             return ret;
