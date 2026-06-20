@@ -6,6 +6,13 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["WISZB-121"],
+        model: "WISZB-121",
+        vendor: "Frient",
+        description: "Contact sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
         zigbeeModel: ["WISZB-131"],
         model: "WISZB-131",
         vendor: "Frient",
