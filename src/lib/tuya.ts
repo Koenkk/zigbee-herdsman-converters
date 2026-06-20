@@ -1947,7 +1947,7 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
-            if (v > 55) v -= 0x100000000;
+            if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
         to: (v: number) => {
