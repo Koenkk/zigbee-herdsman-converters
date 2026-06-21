@@ -1,5 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -33,6 +34,13 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ["3014"],
+        model: "NCZ-3014-HA",
+        vendor: "Nyce",
+        description: "Garage door tilt sensor",
+        extend: [m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery()],
     },
     {
         zigbeeModel: ["3043"],
