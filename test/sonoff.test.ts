@@ -605,3 +605,67 @@ describe("Sonoff SNZB-02DR2", () => {
         });
     });
 });
+
+describe("Sonoff SWV-ZFE", () => {
+    let device: Definition;
+    let endpoint: ZHModels.Endpoint;
+    let writeFn: Mock;
+    let meta: Tz.Meta;
+
+    beforeEach(async () => {
+        device = await findByDevice(mockDevice({modelID: "SWV-ZFE", endpoints: [{ID: 1}]}));
+
+        writeFn = vi.fn();
+        endpoint = {write: writeFn} as unknown as ZHModels.Endpoint;
+        meta = {
+            state: {
+                manual_default_settings: {
+                    irrigation_duration: 15,
+                    irrigation_mode: "capacity",
+                    irrigation_amount_unit: "liter",
+                    irrigation_amount: 42,
+                    fail_safe: 60,
+                },
+            },
+            device: null,
+            message: null,
+            mapped: null,
+            options: null,
+            publish: null,
+            endpoint_name: null,
+        };
+    });
+
+    describe("toZigbee", () => {
+        it("merges partial manual default settings with current state", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("manual_default_settings"));
+
+            const result = await tzConverter.convertSet(endpoint, "manual_default_settings", {irrigation_duration: 30}, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20509: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([1, 0, 30, 0, 30, 0, 10, 1, 0, 42, 0, 60]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    manual_default_settings: {
+                        irrigation_duration: 30,
+                        irrigation_mode: "capacity",
+                        irrigation_amount_unit: "liter",
+                        irrigation_amount: 42,
+                        fail_safe: 60,
+                    },
+                },
+            });
+        });
+    });
+});

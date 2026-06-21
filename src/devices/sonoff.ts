@@ -3069,18 +3069,21 @@ const sonoffExtend = {
                 key: ["manual_default_settings"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
+                    const stateValue = meta.state[key];
+                    const current = utils.isObject(stateValue) ? stateValue : {};
+                    const nextValue = {...current, ...value};
 
-                    if (hasFlowMeter && (typeof value.irrigation_mode !== "string" || modeMap[value.irrigation_mode] === undefined)) {
+                    if (hasFlowMeter && (typeof nextValue.irrigation_mode !== "string" || modeMap[nextValue.irrigation_mode] === undefined)) {
                         logger.error("manual_default_settings invalid irrigation_mode, expected one of: duration, capacity.", NS);
                         return;
                     }
-                    if (hasFlowMeter && value.irrigation_amount_unit !== "US gallon" && value.irrigation_amount_unit !== "liter") {
+                    if (hasFlowMeter && nextValue.irrigation_amount_unit !== "US gallon" && nextValue.irrigation_amount_unit !== "liter") {
                         logger.error("manual_default_settings invalid irrigation_amount_unit, expected one of: US gallon, liter.", NS);
                         return;
                     }
 
                     const parseRequiredInt = (fieldName: string): number | undefined => {
-                        const parsed = Number(value[fieldName]);
+                        const parsed = Number(nextValue[fieldName]);
                         if (!Number.isInteger(parsed)) {
                             logger.error(`manual_default_settings invalid ${fieldName}, expected integer.`, NS);
                             return;
@@ -3096,8 +3099,8 @@ const sonoffExtend = {
                         return;
                     }
 
-                    const mode = hasFlowMeter ? modeMap[value.irrigation_mode] : modeMap.duration;
-                    const capacityUnit = hasFlowMeter ? (value.irrigation_amount_unit === "US gallon" ? 0 : 1) : 1;
+                    const mode = hasFlowMeter ? modeMap[nextValue.irrigation_mode] : modeMap.duration;
+                    const capacityUnit = hasFlowMeter ? (nextValue.irrigation_amount_unit === "US gallon" ? 0 : 1) : 1;
 
                     const array = new Uint8Array(12);
                     array[0] = mode;
@@ -3129,7 +3132,7 @@ const sonoffExtend = {
 
                     return {
                         state: {
-                            [key]: value,
+                            [key]: nextValue,
                         },
                     };
                 },
