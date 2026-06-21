@@ -31,6 +31,8 @@ const develcoLedControlMap = {
 };
 
 const zhemi101Uint48Max = 0xffffffffffff;
+// UI hint only. The authoritative max depends on reported multiplier/divisor and is checked in convertSet.
+const zhemi101UnitSummationUiMax = Number.MAX_SAFE_INTEGER;
 const zhemi101UnitOfMeasure = {
     kWh: 0x00,
     cubicMeters: 0x01,
@@ -231,9 +233,16 @@ const zhemi101GetMeterConfigFromEntity = (entity: KeyValueAny, meta: Tz.Meta): K
 };
 
 const zhemi101Scale = (config: KeyValueAny): number => {
+    return zhemi101Scaling(config).scale;
+};
+
+const zhemi101Scaling = (config: KeyValueAny): {multiplier: number; divisor: number; scale: number} => {
     const multiplier = zhemi101ToNumber(config.multiplier);
     const divisor = zhemi101ToNumber(config.divisor);
-    return multiplier !== undefined && divisor !== undefined && multiplier !== 0 && divisor !== 0 ? multiplier / divisor : 1;
+    const effectiveMultiplier = multiplier ?? 1;
+    const effectiveDivisor = divisor ?? 1000;
+    const scale = effectiveMultiplier !== 0 && effectiveDivisor !== 0 ? effectiveMultiplier / effectiveDivisor : 1;
+    return {multiplier: effectiveMultiplier, divisor: effectiveDivisor, scale};
 };
 
 const zhemi101DecimalsFromDivisor = (divisor: unknown): number => {
@@ -264,6 +273,34 @@ const zhemi101NormalizeMeterValue = (rawValue: unknown, config: KeyValueAny, isD
     return utils.precisionRound(normalized, Math.min(9, sourceDecimals + extraDecimals));
 };
 
+const zhemi101FormatRational = (numerator: bigint, denominator: bigint): string => {
+    const integer = numerator / denominator;
+    const remainder = numerator % denominator;
+    if (remainder === 0n) return integer.toString();
+
+    let fraction = "";
+    let scaledRemainder = remainder;
+    for (let i = 0; i < 12 && scaledRemainder !== 0n; i++) {
+        scaledRemainder *= 10n;
+        fraction += (scaledRemainder / denominator).toString();
+        scaledRemainder %= denominator;
+    }
+
+    return `${integer.toString()}.${fraction.replace(/0+$/, "")}`;
+};
+
+const zhemi101FormatUnitSummationMax = (config: KeyValueAny, unitInfo: {factorToTarget: number}): string => {
+    const {multiplier, divisor, scale} = zhemi101Scaling(config);
+    if (unitInfo.factorToTarget === 1 && Number.isInteger(multiplier) && Number.isInteger(divisor) && multiplier > 0 && divisor > 0) {
+        return zhemi101FormatRational(BigInt(zhemi101Uint48Max) * BigInt(multiplier), BigInt(divisor));
+    }
+
+    return (zhemi101Uint48Max * scale * unitInfo.factorToTarget).toLocaleString("en-US", {
+        maximumFractionDigits: 12,
+        useGrouping: false,
+    });
+};
+
 const zhemi101DenormalizeUnitSummation = (value: unknown, config: KeyValueAny): number => {
     const normalizedValue = zhemi101ToNumber(value);
     if (normalizedValue === undefined || normalizedValue < 0) {
@@ -275,10 +312,19 @@ const zhemi101DenormalizeUnitSummation = (value: unknown, config: KeyValueAny): 
         throw new Error("Cannot set unit_summation because unit of measure is not known yet");
     }
 
+    const maxUnitSummation = zhemi101Uint48Max * zhemi101Scale(config) * unitInfo.factorToTarget;
+    if (normalizedValue > maxUnitSummation) {
+        throw new Error(
+            `unit_summation cannot exceed ${zhemi101FormatUnitSummationMax(config, unitInfo)} with the current multiplier ${zhemi101Scaling(config).multiplier} and divisor ${zhemi101Scaling(config).divisor}`,
+        );
+    }
+
     const rawValue = normalizedValue / unitInfo.factorToTarget / zhemi101Scale(config);
     const roundedRawValue = Math.round(rawValue);
     if (!Number.isFinite(rawValue) || roundedRawValue < 0 || roundedRawValue > zhemi101Uint48Max) {
-        throw new Error(`Calculated raw unit_summation ${roundedRawValue} is outside Uint48 range`);
+        throw new Error(
+            `unit_summation cannot exceed ${zhemi101FormatUnitSummationMax(config, unitInfo)} with the current multiplier ${zhemi101Scaling(config).multiplier} and divisor ${zhemi101Scaling(config).divisor}`,
+        );
     }
 
     return roundedRawValue;
@@ -1211,7 +1257,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("unit_summation", ea.SET)
                 .withDescription("Sets the meter summation in the normalized published unit: kWh for energy meters and m³ for gas/water meters.")
-                .withValueMin(0),
+                .withValueMin(0)
+                .withValueMax(zhemi101UnitSummationUiMax),
             e.binary("check_meter", ea.STATE, true, false).withDescription("Is true if communication problem with meter is experienced"),
         ],
     },
