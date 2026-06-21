@@ -398,7 +398,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AwoX",
         description: "Connect.Z GU10 tunable white",
         extend: [m.light({colorTemp: {range: [153, 370]}})],
-        whiteLabel: [{vendor: "EGLO", model: "110308"}],
     },
     {
         fingerprint: [
