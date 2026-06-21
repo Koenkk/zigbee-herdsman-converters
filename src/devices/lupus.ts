@@ -39,8 +39,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
-            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 10, multiplier: 1});
         },
     },
     {
