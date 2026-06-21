@@ -1194,7 +1194,7 @@ export const definitions: DefinitionWithExtend[] = [
                         throw error;
                     }
 
-                    await new Promise((resolve) => setTimeout(resolve, 2000 * retryCount));
+                    await utils.sleep(2000 * retryCount);
                 }
             }
         },

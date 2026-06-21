@@ -3905,19 +3905,16 @@ const tuyaFz = {
                                 (c) => c.cluster.name === "haElectricalMeasurement" && c.attribute.name === lookup[key],
                             );
                             const time = (configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2 + 1;
-                            globalStore.putValue(
-                                msg.endpoint,
-                                key,
-                                setTimeout(() => {
-                                    const payload = {[key]: value};
-                                    // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
-                                    // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-                                    if (key === "current") {
-                                        payload.power = 0;
-                                    }
-                                    publish(payload);
-                                }, time * 1000),
-                            );
+                            const timer = setTimeout(() => {
+                                const payload = {[key]: value};
+                                // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
+                                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+                                if (key === "current") {
+                                    payload.power = 0;
+                                }
+                                publish(payload);
+                            }, time * 1000).unref();
+                            globalStore.putValue(msg.endpoint, key, timer);
                             delete result[key];
                         }
                     }
@@ -4506,7 +4503,7 @@ const tuyaModernExtend = {
                                     if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
                                         setTimer();
                                     }
-                                }, queryIntervalSeconds * 1000);
+                                }, queryIntervalSeconds * 1000).unref();
                                 globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
                             };
                             setTimer();

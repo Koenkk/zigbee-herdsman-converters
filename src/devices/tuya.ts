@@ -522,7 +522,7 @@ const tzLocal = {
 
             // AE-720K requires ON twice (similar to pressing ON twice on device)
             await tuya.sendDataPointBool(entity, 1, true);
-            await new Promise((r) => setTimeout(r, 220));
+            await utils.sleep(220);
             await tuya.sendDataPointBool(entity, 1, true);
 
             return {state: {state: "ON"}};
@@ -923,7 +923,7 @@ const tzLocal = {
                         });
                     },
                     transitionSeconds * 1000 + 100,
-                );
+                ).unref();
             }
 
             return ret;
@@ -987,7 +987,9 @@ const tzLocal = {
 
             for (let slot = 1; slot <= 4; slot++) {
                 await bindSlotTS0601SmartSceneKnob(entity, slot, mode);
-                if (slot < 4) await new Promise((resolve) => setTimeout(resolve, 500));
+                if (slot < 4) {
+                    await utils.sleep(500);
+                }
             }
 
             // Scene mode doesn't use Group ID
@@ -1102,7 +1104,7 @@ const fzLocal = {
                     const be4 = (n: number) => [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff];
                     const payload = [...be4(utcTime), ...be4(localTime)];
                     await ep.command("manuSpecificTuya", "mcuSyncTime", {payloadSize: 8, payload}, {disableDefaultResponse: true});
-                    await new Promise((r) => setTimeout(r, 500));
+                    await utils.sleep(500);
                     try {
                         await tuya.sendDataPointBool(ep, 17, false);
                     } catch {
@@ -6566,7 +6568,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (v === "off") {
                                 if (meta.options.wake_before_power_transition === true) {
                                     await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-                                    await new Promise((r) => setTimeout(r, 120));
+                                    await utils.sleep(120);
                                 }
 
                                 await tuya.sendDataPointBool(ep, 1, false, "dataRequest", 1);
@@ -6576,7 +6578,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (meta.options.wake_before_power_transition === true) {
                                 if (meta.state.system_mode === "off") {
                                     await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-                                    await new Promise((r) => setTimeout(r, 120));
+                                    await utils.sleep(120);
                                 }
                             }
 
