@@ -610,13 +610,15 @@ describe("Sonoff SWV-ZFE", () => {
     let device: Definition;
     let endpoint: ZHModels.Endpoint;
     let writeFn: Mock;
+    let commandFn: Mock;
     let meta: Tz.Meta;
 
     beforeEach(async () => {
         device = await findByDevice(mockDevice({modelID: "SWV-ZFE", endpoints: [{ID: 1}]}));
 
         writeFn = vi.fn();
-        endpoint = {write: writeFn} as unknown as ZHModels.Endpoint;
+        commandFn = vi.fn();
+        endpoint = {write: writeFn, command: commandFn} as unknown as ZHModels.Endpoint;
         meta = {
             state: {
                 manual_default_settings: {
@@ -626,6 +628,52 @@ describe("Sonoff SWV-ZFE", () => {
                     irrigation_amount: 42,
                     fail_safe: 60,
                 },
+                seasonal_watering_adjustment: {
+                    january: 1.1,
+                    february: 1.2,
+                    march: 1.3,
+                    april: 1.4,
+                    may: 1.5,
+                    june: 1.6,
+                    july: 1.7,
+                    august: 1.8,
+                    september: 1.9,
+                    october: 2,
+                    november: 0.9,
+                    december: 0.8,
+                },
+                valve_alarm_settings: {
+                    enable_alarm_water_shortage: true,
+                    enable_alarm_water_leak: false,
+                    enable_water_shortage_auto_close: true,
+                    alarm_water_shortage_duration: 5,
+                    alarm_water_leak_duration: 1,
+                },
+                irrigation_plan_report: {
+                    plan_index: 2,
+                    enable_state: true,
+                    loop_type_mode: "weekdays",
+                    loop_type_interval_days: 1,
+                    loop_type_week_days: {
+                        sunday: true,
+                        monday: false,
+                        tuesday: true,
+                        wednesday: false,
+                        thursday: true,
+                        friday: false,
+                        saturday: false,
+                    },
+                    enable_date: "2026-06-21",
+                    start_time: "06:30",
+                    irrigation_mode: "capacity",
+                    irrigation_total_duration: 20,
+                    irrigation_duration: 4,
+                    interval_duration: 3,
+                    irrigation_amount_unit: "liter",
+                    irrigation_amount: 50,
+                    fail_safe: 30,
+                    create_datetime: "2026-06-21T04:30:00Z",
+                },
             },
             device: null,
             message: null,
@@ -634,6 +682,10 @@ describe("Sonoff SWV-ZFE", () => {
             publish: null,
             endpoint_name: null,
         };
+    });
+
+    it("marks the switch expose for Home Assistant valve discovery", () => {
+        expect(device.meta?.homeassistant?.switchType).toStrictEqual("valve");
     });
 
     describe("toZigbee", () => {
@@ -663,6 +715,150 @@ describe("Sonoff SWV-ZFE", () => {
                         irrigation_amount_unit: "liter",
                         irrigation_amount: 42,
                         fail_safe: 60,
+                    },
+                },
+            });
+        });
+
+        it("merges partial seasonal watering adjustment settings with current state", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("seasonal_watering_adjustment"));
+
+            const result = await tzConverter.convertSet(endpoint, "seasonal_watering_adjustment", {june: 0.7}, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20510: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([11, 12, 13, 14, 15, 7, 17, 18, 19, 20, 9, 8]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    seasonal_watering_adjustment: {
+                        january: 1.1,
+                        february: 1.2,
+                        march: 1.3,
+                        april: 1.4,
+                        may: 1.5,
+                        june: 0.7,
+                        july: 1.7,
+                        august: 1.8,
+                        september: 1.9,
+                        october: 2,
+                        november: 0.9,
+                        december: 0.8,
+                    },
+                },
+            });
+        });
+
+        it("merges partial valve alarm settings with current state", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("valve_alarm_settings"));
+
+            const result = await tzConverter.convertSet(endpoint, "valve_alarm_settings", {alarm_water_leak_duration: 3}, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20512: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([0b01001, 5, 3, 0]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    valve_alarm_settings: {
+                        enable_alarm_water_shortage: true,
+                        enable_alarm_water_leak: false,
+                        enable_water_shortage_auto_close: true,
+                        alarm_water_shortage_duration: 5,
+                        alarm_water_leak_duration: 3,
+                    },
+                },
+            });
+        });
+
+        it("merges partial irrigation plan settings with the last report", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_settings"));
+            const year2000InUtc = 946684800;
+            const enableDate = Date.UTC(2026, 5, 21, 0, 0, 0) / 1000 - year2000InUtc;
+            const createDatetime = Date.parse("2026-06-21T04:30:00Z") / 1000;
+            const expectedPayload = [
+                2,
+                1,
+                3,
+                0b00010101,
+                (enableDate >> 24) & 0xff,
+                (enableDate >> 16) & 0xff,
+                (enableDate >> 8) & 0xff,
+                enableDate & 0xff,
+                1,
+                0,
+                0,
+                91,
+                104,
+                0,
+                20,
+                0,
+                9,
+                0,
+                3,
+                1,
+                0,
+                50,
+                0,
+                30,
+                (createDatetime >> 24) & 0xff,
+                (createDatetime >> 16) & 0xff,
+                (createDatetime >> 8) & 0xff,
+                createDatetime & 0xff,
+            ];
+
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_settings", {irrigation_duration: 9}, meta);
+
+            expect(commandFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                "irrigationPlanSettings",
+                {data: expectedPayload},
+                {disableDefaultResponse: false},
+            );
+            expect(result).toEqual({
+                state: {
+                    irrigation_plan_settings: {
+                        plan_index: 2,
+                        enable_state: true,
+                        loop_type_mode: "weekdays",
+                        loop_type_interval_days: 1,
+                        loop_type_week_days: {
+                            sunday: true,
+                            monday: false,
+                            tuesday: true,
+                            wednesday: false,
+                            thursday: true,
+                            friday: false,
+                            saturday: false,
+                        },
+                        enable_date: "2026-06-21",
+                        start_time: "06:30",
+                        irrigation_mode: "capacity",
+                        irrigation_total_duration: 20,
+                        irrigation_duration: 9,
+                        interval_duration: 3,
+                        irrigation_amount_unit: "liter",
+                        irrigation_amount: 50,
+                        fail_safe: 30,
+                        create_datetime: "2026-06-21T04:30:00Z",
                     },
                 },
             });
