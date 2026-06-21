@@ -195,7 +195,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "ZB-RGBCW",
         vendor: "Lonsonho",
-        version: "0.0.1",
+        version: "0.0.2",
         description: "Zigbee 3.0 LED-bulb, RGBW LED",
         // Configure reporting for color fails
         // https://github.com/Koenkk/zigbee2mqtt/issues/32345
