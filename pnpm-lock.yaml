@@ -12,11 +12,11 @@ importers:
         specifier: ^0.7.2
         version: 0.7.2
       semver:
-        specifier: ^7.8.4
-        version: 7.8.4
+        specifier: ^7.8.5
+        version: 7.8.5
       zigbee-herdsman:
-        specifier: ^10.4.0
-        version: 10.4.0
+        specifier: ^10.4.1
+        version: 10.4.1
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.0
@@ -874,8 +874,8 @@ packages:
   safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
-  semver@7.8.4:
-    resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
+  semver@7.8.5:
+    resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -1088,8 +1088,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  zigbee-herdsman@10.4.0:
-    resolution: {integrity: sha512-LO0LV9Qibgv4GuEoDjwZa1No18owetv0iQ1vZZ06rbv+SOUsg8uILBTCv5+S7PKYUYF4krVJH32x2qXYu02r5Q==}
+  zigbee-herdsman@10.4.1:
+    resolution: {integrity: sha512-PL6W91YeVBpbD4uU+iIRpCRADeTADcLk4toBASxCP71XvUC4ZzYKr5zyTpADKVZ1DBJp4EumuMYOV2Ps3z3Vvg==}
 
   zigbee-on-host@0.2.4:
     resolution: {integrity: sha512-NIG6CWp+Yfn7PjqEIRvenHqpwT1U7rSkyimnFOUIFpnmxQOJKrmcwWDfn6WjbU/YIYYWSQPlj+g13icu1xwlyg==}
@@ -1687,7 +1687,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.4
+      semver: 7.8.5
 
   map-stream@0.1.0: {}
 
@@ -1798,7 +1798,7 @@ snapshots:
 
   safer-buffer@2.1.2: {}
 
-  semver@7.8.4: {}
+  semver@7.8.5: {}
 
   shebang-command@2.0.0:
     dependencies:
@@ -2000,7 +2000,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.1.2
 
-  zigbee-herdsman@10.4.0:
+  zigbee-herdsman@10.4.1:
     dependencies:
       '@date-fns/tz': 1.5.0
       '@serialport/bindings-cpp': 13.0.1

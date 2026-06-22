@@ -44,8 +44,8 @@
     "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
     "dependencies": {
         "iconv-lite": "^0.7.2",
-        "semver": "^7.8.4",
-        "zigbee-herdsman": "^10.4.0"
+        "semver": "^7.8.5",
+        "zigbee-herdsman": "^10.4.1"
     },
     "exports": {
         ".": "./dist/index.js",
