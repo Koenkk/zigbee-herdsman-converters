@@ -5087,6 +5087,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929004294901"],
+        model: "929004294901",
+        vendor: "Philips",
+        description: "Hue Essential lightstrip (5m)",
+        extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929004611002", "929004611102"],
         model: "929004611002",
         vendor: "Philips",
