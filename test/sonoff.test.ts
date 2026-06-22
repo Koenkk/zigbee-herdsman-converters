@@ -688,6 +688,23 @@ describe("Sonoff SWV-ZFE", () => {
         expect(device.meta?.homeassistant?.switchType).toStrictEqual("valve");
     });
 
+    it("exposes irrigation controls as Home Assistant friendly scalar entities", () => {
+        const exposeNames = device.exposes.map((expose) => expose.name);
+
+        expect(exposeNames).toContain("manual_irrigation_duration");
+        expect(exposeNames).toContain("seasonal_watering_adjustment_june");
+        expect(exposeNames).toContain("enable_alarm_water_shortage");
+        expect(exposeNames).toContain("irrigation_plan_duration");
+        expect(exposeNames).not.toContain("manual_default_settings");
+        expect(exposeNames).not.toContain("seasonal_watering_adjustment");
+        expect(exposeNames).not.toContain("valve_alarm_settings");
+        expect(exposeNames).not.toContain("irrigation_plan_settings");
+        expect(exposeNames).not.toContain("irrigation_plan_report");
+
+        expect(device.exposes.find((expose) => expose.name === "irrigation_plan_interval_days")).toMatchObject({value_min: 0});
+        expect(device.exposes.find((expose) => expose.name === "irrigation_plan_amount")).toMatchObject({value_min: 0});
+    });
+
     describe("toZigbee", () => {
         it("merges partial manual default settings with current state", async () => {
             const tzConverter = device.toZigbee.find((c) => c.key.includes("manual_default_settings"));
@@ -707,7 +724,7 @@ describe("Sonoff SWV-ZFE", () => {
                 },
                 {},
             );
-            expect(result).toEqual({
+            expect(result).toMatchObject({
                 state: {
                     manual_default_settings: {
                         irrigation_duration: 30,
@@ -716,6 +733,11 @@ describe("Sonoff SWV-ZFE", () => {
                         irrigation_amount: 42,
                         fail_safe: 60,
                     },
+                    manual_irrigation_duration: 30,
+                    manual_irrigation_mode: "capacity",
+                    manual_irrigation_amount_unit: "liter",
+                    manual_irrigation_amount: 42,
+                    manual_fail_safe: 60,
                 },
             });
         });
@@ -738,7 +760,7 @@ describe("Sonoff SWV-ZFE", () => {
                 },
                 {},
             );
-            expect(result).toEqual({
+            expect(result).toMatchObject({
                 state: {
                     seasonal_watering_adjustment: {
                         january: 1.1,
@@ -754,6 +776,9 @@ describe("Sonoff SWV-ZFE", () => {
                         november: 0.9,
                         december: 0.8,
                     },
+                    seasonal_watering_adjustment_january: 1.1,
+                    seasonal_watering_adjustment_june: 0.7,
+                    seasonal_watering_adjustment_december: 0.8,
                 },
             });
         });
@@ -776,7 +801,7 @@ describe("Sonoff SWV-ZFE", () => {
                 },
                 {},
             );
-            expect(result).toEqual({
+            expect(result).toMatchObject({
                 state: {
                     valve_alarm_settings: {
                         enable_alarm_water_shortage: true,
@@ -785,6 +810,11 @@ describe("Sonoff SWV-ZFE", () => {
                         alarm_water_shortage_duration: 5,
                         alarm_water_leak_duration: 3,
                     },
+                    enable_alarm_water_shortage: true,
+                    enable_alarm_water_leak: false,
+                    enable_water_shortage_auto_close: true,
+                    alarm_water_shortage_duration: 5,
+                    alarm_water_leak_duration: 3,
                 },
             });
         });
@@ -833,7 +863,7 @@ describe("Sonoff SWV-ZFE", () => {
                 {data: expectedPayload},
                 {disableDefaultResponse: false},
             );
-            expect(result).toEqual({
+            expect(result).toMatchObject({
                 state: {
                     irrigation_plan_settings: {
                         plan_index: 2,
@@ -860,6 +890,48 @@ describe("Sonoff SWV-ZFE", () => {
                         fail_safe: 30,
                         create_datetime: "2026-06-21T04:30:00Z",
                     },
+                    irrigation_plan_index: 2,
+                    irrigation_plan_enabled: true,
+                    irrigation_plan_loop_type: "weekdays",
+                    irrigation_plan_sunday: true,
+                    irrigation_plan_tuesday: true,
+                    irrigation_plan_duration: 9,
+                    irrigation_plan_amount_unit: "liter",
+                    irrigation_plan_amount: 50,
+                    irrigation_plan_fail_safe: 30,
+                },
+            });
+        });
+
+        it("allows scalar plan edits when inactive amount and interval fields are reported as zero", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_duration"));
+            meta.state.irrigation_plan_report = {
+                ...meta.state.irrigation_plan_report,
+                loop_type_mode: "weekdays",
+                loop_type_interval_days: 0,
+                irrigation_mode: "duration",
+                irrigation_amount: 0,
+                irrigation_amount_unit: "US gallon",
+            };
+
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_duration", 5, meta);
+
+            expect(commandFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                "irrigationPlanSettings",
+                {data: expect.arrayContaining([0, 5, 0, 3, 0, 0])},
+                {disableDefaultResponse: false},
+            );
+            expect(result).toMatchObject({
+                state: {
+                    irrigation_plan_settings: {
+                        loop_type_interval_days: 0,
+                        irrigation_duration: 5,
+                        irrigation_amount: 0,
+                    },
+                    irrigation_plan_interval_days: 0,
+                    irrigation_plan_duration: 5,
+                    irrigation_plan_amount: 0,
                 },
             });
         });
