@@ -15,7 +15,6 @@ import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
 import {definitions as atlantic} from "./atlantic";
 import {definitions as atsmart} from "./atsmart";
-import {definitions as aubess} from "./aubess";
 import {definitions as auroraLighting} from "./aurora_lighting";
 import {definitions as automaton} from "./automaton";
 import {definitions as avatto} from "./avatto";
@@ -56,6 +55,7 @@ import {definitions as currentProductsCorp} from "./current_products_corp";
 import {definitions as customDevicesDiy} from "./custom_devices_diy";
 import {definitions as cwd} from "./cwd";
 import {definitions as cyLighting} from "./cy_lighting";
+import {definitions as daewoo} from "./daewoo";
 import {definitions as danalock} from "./danalock";
 import {definitions as danfoss} from "./danfoss";
 import {definitions as databyte} from "./databyte";
@@ -87,6 +87,7 @@ import {definitions as enbrighten} from "./enbrighten";
 import {definitions as engo} from "./engo";
 import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
+import {definitions as ensystec} from "./ensystec";
 import {definitions as envilar} from "./envilar";
 import {definitions as espressif} from "./espressif";
 import {definitions as essentialb} from "./essentialb";
@@ -120,6 +121,7 @@ import {definitions as gumax} from "./gumax";
 import {definitions as halemeier} from "./halemeier";
 import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
+import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
@@ -196,9 +198,11 @@ import {definitions as lux} from "./lux";
 import {definitions as lytko} from "./lytko";
 import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
+import {definitions as manhot} from "./manhot";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
+import {definitions as megaman} from "./megaman";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
@@ -389,7 +393,6 @@ const definitions: DefinitionWithExtend[] = [
     ...anchor,
     ...atlantic,
     ...atsmart,
-    ...aubess,
     ...auroraLighting,
     ...automaton,
     ...avatto,
@@ -431,6 +434,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cwd,
     ...cyLighting,
     ...danalock,
+    ...daewoo,
     ...danfoss,
     ...databyte,
     ...datek,
@@ -460,6 +464,7 @@ const definitions: DefinitionWithExtend[] = [
     ...enbrighten,
     ...enkin,
     ...enocean,
+    ...ensystec,
     ...envilar,
     ...espressif,
     ...essentialb,
@@ -493,6 +498,7 @@ const definitions: DefinitionWithExtend[] = [
     ...halemeier,
     ...haloSmartLabs,
     ...hamptonBay,
+    ...handshakeFinland,
     ...heatit,
     ...heiman,
     ...heimgardTechnologies,
@@ -571,6 +577,7 @@ const definitions: DefinitionWithExtend[] = [
     ...matcallBv,
     ...mazda,
     ...meazon,
+    ...megaman,
     ...mercator,
     ...miboxer,
     ...micromatic,
@@ -745,6 +752,7 @@ const definitions: DefinitionWithExtend[] = [
     ...qa,
     ...engo,
     ...vsmart,
+    ...manhot,
 ];
 
 export default definitions;

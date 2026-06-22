@@ -3,32 +3,11 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend} from "../lib/types";
 import * as stelpro from "./stelpro";
 
 const e = exposes.presets;
 const ea = exposes.access;
-
-const fzLocal = {
-    power: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data["16392"] !== undefined) {
-                return {power: msg.data["16392"]};
-            }
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-    energy: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            if (msg.data["16393"] !== undefined) {
-                return {energy: Number.parseFloat(msg.data["16393"] as string) / 1000};
-            }
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -37,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Stello",
         description: "Hilo thermostat",
         extend: [stelpro.stelproExtend.addStelproHvacThermostatCluster()],
-        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.hvac_user_interface, fzLocal.power, fzLocal.energy],
+        fromZigbee: [stelpro.fzLocal.stelpro_thermostat, fz.hvac_user_interface, stelpro.fzLocal.power, stelpro.fzLocal.energy],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_occupancy,
@@ -46,8 +25,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_peak_demand_event_icon,
-            stelpro.tzLocal.stelpro_thermostat_outdoor_temperature,
+            stelpro.tzLocal.peak_demand_event_icon,
+            stelpro.tzLocal.thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -93,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Stello",
         description: "Hilo water heater controller",
         extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({cluster: "metering"})],
-        toZigbee: [tz.stelpro_peak_demand_event_icon],
+        toZigbee: [stelpro.tzLocal.peak_demand_event_icon],
         exposes: [
             e
                 .numeric("peak_demand_icon", ea.SET)

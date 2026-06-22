@@ -146,7 +146,7 @@ export const danfossAdaptionRunStatus: KeyValueNumberString = {
 };
 
 export const danfossAdaptionRunControl: KeyValueNumberString = {
-    0: "none",
+    0: "idle",
     1: "initiate_adaptation",
     2: "cancel_adaptation",
 };

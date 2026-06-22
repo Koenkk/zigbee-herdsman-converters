@@ -1,5 +1,7 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
@@ -24,9 +26,14 @@ interface CandeoRotaryRemoteControl {
 }
 
 const manufacturerSpecificSwitchTypeClusterCode = 0x1224;
+const manufacturerSpecificMinimumBrightnessClusterCode = 0x1224;
 const manufacturerSpecificRotaryRemoteControlClusterCode = 0xff03;
 const switchTypeAttribute = 0x8803;
 const switchTypeDataType = 0x20;
+const minimumBrightnessLevelAttribute = 0x7809;
+const minimumBrightnessLevelDataType = 0x20;
+const minimumBrightnessLevelRawOffset = 4;
+const minimumBrightnessLevelRawScale = 4.6615756;
 const switchTypeValueMap: {[key: number]: string} = {
     0: "momentary",
     1: "toggle",
@@ -127,7 +134,7 @@ const fzLocal = {
                     }
                 }
                 globalStore.putValue(endpoint, "button_click_count", 0);
-            }, timeout);
+            }, timeout).unref();
             globalStore.putValue(endpoint, "timer", timer);
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
@@ -140,6 +147,20 @@ const fzLocal = {
                 return {
                     external_switch_type: switchTypeValueMap[value] || "unknown",
                     external_switch_type_numeric: value,
+                };
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+    minimum_brightness_level: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (Object.hasOwn(msg.data, minimumBrightnessLevelAttribute)) {
+                const value = msg.data[minimumBrightnessLevelAttribute] as number;
+                const levelValue = Math.round((value - minimumBrightnessLevelRawOffset) / minimumBrightnessLevelRawScale);
+                return {
+                    minimum_brightness_level: levelValue,
                 };
             }
             return undefined;
@@ -291,6 +312,30 @@ const tzLocal = {
             await entity.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
         },
     } satisfies Tz.Converter,
+    minimum_brightness_level: {
+        key: ["minimum_brightness_level"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value);
+            let numericValue = Number(value);
+            if (Number.isNaN(numericValue)) return;
+            if (numericValue < 0) {
+                numericValue = 0;
+            }
+            if (numericValue > 50) {
+                numericValue = 50;
+            }
+            const minValue = minimumBrightnessLevelRawOffset + Math.round(numericValue * minimumBrightnessLevelRawScale);
+            await entity.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: minValue, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            return {state: {minimum_brightness_level: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -347,6 +392,7 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
             }),
             m.electricityMeter({
                 power: {min: 10, max: 600, change: 50},
@@ -355,9 +401,26 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type],
-        toZigbee: [tzLocal.switch_type],
-        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
@@ -374,6 +437,12 @@ export const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
         },
     },
     {
@@ -386,6 +455,7 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
             }),
             m.electricityMeter({
                 power: {min: 10, max: 600, change: 50},
@@ -394,9 +464,26 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {min: 10, max: 1800, change: 360000},
             }),
         ],
-        fromZigbee: [fzLocal.switch_type],
-        toZigbee: [tzLocal.switch_type],
-        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
@@ -413,6 +500,78 @@ export const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
+        },
+    },
+    {
+        fingerprint: [
+            {modelID: "C-ZB-DM204V2", manufacturerName: "Candeo"},
+            {modelID: "C-ZB-DM204v2", manufacturerName: "Candeo"},
+        ],
+        model: "C-ZB-DM204v2",
+        vendor: "Candeo",
+        description: "Zigbee micro smart dimmer",
+        extend: [
+            m.light({
+                configureReporting: true,
+                levelReportingConfig: {min: 1, max: 3600, change: 1},
+                levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
+            }),
+            m.electricityMeter({
+                power: {min: 10, max: 600, change: 50},
+                voltage: {min: 10, max: 600, change: 500},
+                current: {min: 10, max: 600, change: 500},
+                energy: {min: 10, max: 1800, change: 360000},
+            }),
+        ],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
+            await endpoint1.read("genOnOff", ["startUpOnOff"]);
+            await endpoint1.write("genLevelCtrl", {17: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["onLevel"]);
+            await endpoint1.write("genLevelCtrl", {16: {value: 0x0a, type: 0x21}});
+            await endpoint1.read("genLevelCtrl", ["onOffTransitionTime"]);
+            await endpoint1.write("genLevelCtrl", {16384: {value: 0xff, type: 0x20}});
+            await endpoint1.read("genLevelCtrl", ["startUpCurrentLevel"]);
+            await endpoint1.write(
+                "genBasic",
+                {[switchTypeAttribute]: {value: switchTypeValueLookup["momentary"], type: switchTypeDataType}},
+                {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
+            );
+            await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
         },
     },
     {
@@ -601,6 +760,38 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: "C-ZB-SM30-2G", manufacturerName: "Candeo"}],
+        model: "C-ZB-SM30-2G",
+        vendor: "Candeo",
+        description: "Smart 2 gang switch module",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {l1: 1, l2: 2, e3: 3},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
+            m.onOff({
+                powerOnBehavior: false,
+                endpointNames: ["l1", "l2"],
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10},
+                voltage: {min: 5, max: 600, change: 500},
+                current: {min: 5, max: 900, change: 10},
+                energy: {min: 5, max: 1800, change: 50},
+            }),
+        ],
+        exposes: [
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l1"),
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l2"),
+        ],
+        fromZigbee: [fz.power_on_behavior],
+        toZigbee: [tz.power_on_behavior],
+        configure: async (device, coordinatorEndpoint) => {
+            await m.setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "startUpOnOff", min: "MIN", max: "MAX", change: 1}], false);
+        },
+        meta: {},
+    },
+    {
         fingerprint: [{modelID: "C-RFZB-SM1"}],
         model: "C-RFZB-SM1",
         vendor: "Candeo",
@@ -620,11 +811,29 @@ export const definitions: DefinitionWithExtend[] = [
                 configureReporting: true,
                 levelReportingConfig: {min: 1, max: 3600, change: 1},
                 levelConfig: {features: ["on_off_transition_time", "on_level", "current_level_startup"]},
+                effect: false,
             }),
         ],
-        fromZigbee: [fzLocal.switch_type],
-        toZigbee: [tzLocal.switch_type],
-        exposes: [e.enum("external_switch_type", ea.ALL, ["momentary", "toggle"]).withLabel("External switch type")],
+        fromZigbee: [fzLocal.switch_type, fzLocal.minimum_brightness_level],
+        toZigbee: [tzLocal.switch_type, tzLocal.minimum_brightness_level],
+        exposes: [
+            e
+                .enum("external_switch_type", ea.ALL, ["momentary", "toggle"])
+                .withLabel("External switch type")
+                .withDescription(
+                    "Change the type of external switch connected to the device (momentary or toggle).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+            e
+                .numeric("minimum_brightness_level", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("%")
+                .withValueStep(1)
+                .withLabel("Minimum brightness level")
+                .withDescription(
+                    "Set the minimum brightness level for the device (0 - 50, 0 = do not use a minimum brightness level).  Power cycle the device after changing this setting to ensure it takes effect.",
+                ),
+        ],
         configure: async (device, coordinatorEndpoint, logger) => {
             const endpoint1 = device.getEndpoint(1);
             await endpoint1.write("genOnOff", {16387: {value: 0xff, type: 0x30}});
@@ -641,6 +850,12 @@ export const definitions: DefinitionWithExtend[] = [
                 {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode},
             );
             await endpoint1.read("genBasic", [switchTypeAttribute], {manufacturerCode: manufacturerSpecificSwitchTypeClusterCode});
+            await endpoint1.write(
+                "genBasic",
+                {[minimumBrightnessLevelAttribute]: {value: 4, type: minimumBrightnessLevelDataType}},
+                {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode},
+            );
+            await endpoint1.read("genBasic", [minimumBrightnessLevelAttribute], {manufacturerCode: manufacturerSpecificMinimumBrightnessClusterCode});
         },
     },
     {

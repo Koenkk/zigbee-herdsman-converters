@@ -303,7 +303,11 @@ const tzLocal = {
             number *= 1;
             const newValue = number * 100.0;
             const options = getOptions(meta.mapped, entity, manufacturerOptions);
-            await entity.write("msTemperatureMeasurement", {sprutTemperatureOffset: newValue}, options);
+            await entity.write<"msTemperatureMeasurement", SprutMsTemperatureMeasurement>(
+                "msTemperatureMeasurement",
+                {sprutTemperatureOffset: newValue},
+                options,
+            );
             return {state: {[key]: number}};
         },
     } satisfies Tz.Converter,

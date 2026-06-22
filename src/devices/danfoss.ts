@@ -491,7 +491,7 @@ const danfossExtend = {
         }),
     danfossThermostatOrientation: (args?: Partial<m.BinaryArgs<"hvacThermostat", DanfossHvacThermostat>>) =>
         m.binary<"hvacThermostat", DanfossHvacThermostat>({
-            name: "thermostat_vertical_orientation",
+            name: "thermostat_orientation",
             cluster: "hvacThermostat",
             attribute: "danfossThermostatOrientation",
             description: "Thermostat Orientation. This is important for the PID in how it assesses temperature.",
@@ -709,7 +709,9 @@ const danfossExtend = {
             exposes: [
                 e
                     .text("trigger_time", ea.ALL)
-                    .withDescription("Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable.")
+                    .withDescription(
+                        "Exercise trigger time. Format: 'HH:MM' (e.g., '14:30'). Send 'undefined' to disable. Note: during DST, the valve may exercise earlier than configured due to a firmware limitation (the TRV uses standard time instead of wall-clock time)",
+                    )
                     .withCategory("config"),
             ],
             fromZigbee: [
@@ -867,7 +869,7 @@ const danfossExtend = {
             attribute: "danfossAdaptionRunControl",
             description: "Adaptation run control: Initiate Adaptation Run or Cancel Adaptation Run",
             lookup: {
-                none: 0,
+                idle: 0,
                 initiate_adaptation: 1,
                 cancel_adaptation: 2,
             },
@@ -994,6 +996,24 @@ const danfossExtend = {
 };
 
 const tzLocal = {
+    devi_occupied_heating_setpoint: {
+        key: ["occupied_heating_setpoint"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+
+            // Work around the thermostat display clamp when crossing below 15C.
+            if (value < 15) {
+                await entity.write("hvacThermostat", {occupiedHeatingSetpoint: 1500});
+                await utils.sleep(3000);
+            }
+
+            await entity.write("hvacThermostat", {occupiedHeatingSetpoint: Math.round(value * 100)});
+            return {state: {occupied_heating_setpoint: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", ["occupiedHeatingSetpoint"]);
+        },
+    } satisfies Tz.Converter,
     danfoss_output_status: {
         key: ["output_status"],
         convertGet: async (entity, key, meta) => {
@@ -1145,6 +1165,38 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    devi_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (result.local_temperature !== undefined) {
+                result.floor_temperature = result.local_temperature;
+            }
+
+            const localTemperature =
+                result.local_temperature !== undefined ? result.local_temperature : (meta.state.local_temperature as number | undefined);
+            const heatingSetpoint =
+                result.occupied_heating_setpoint !== undefined
+                    ? result.occupied_heating_setpoint
+                    : (meta.state.occupied_heating_setpoint as number | undefined);
+            if (localTemperature !== undefined && heatingSetpoint !== undefined) {
+                result.running_state = localTemperature < heatingSetpoint ? "heat" : "idle";
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    devi_room_temperature: {
+        cluster: "msTemperatureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.measuredValue !== undefined) {
+                const value = msg.data.measuredValue as number | null;
+                return {room_temperature: value !== null && value !== -32768 ? precisionRound(value, 2) / 100 : null};
+            }
+        },
+    } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
     danfoss_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -1327,6 +1379,56 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["devi_f"],
+        model: "140F1170",
+        vendor: "DEVI",
+        description: "DEVIreg InControl floor heating thermostat",
+        ota: true,
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
+        fromZigbee: [fzLocal.devi_thermostat, fz.hvac_user_interface, fzLocal.devi_room_temperature],
+        toZigbee: [
+            tzLocal.devi_occupied_heating_setpoint,
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_system_mode,
+            tz.thermostat_min_heat_setpoint_limit,
+            tz.thermostat_max_heat_setpoint_limit,
+            tz.thermostat_keypad_lockout,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature()
+                .withSetpoint("occupied_heating_setpoint", 5, 30, 0.5)
+                .withSystemMode(["heat"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.1),
+            e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Floor temperature"),
+            e.numeric("room_temperature", ea.STATE).withUnit("°C").withDescription("Room temperature from optional external sensor"),
+            e.keypad_lockout(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "hvacUserInterfaceCfg", "msTemperatureMeasurement"]);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatKeypadLockMode(endpoint);
+            try {
+                await reporting.temperature(endpoint);
+            } catch {
+                // Optional external room sensor may not be connected.
+            }
+            await endpoint.read("hvacThermostat", [
+                "localTemp",
+                "occupiedHeatingSetpoint",
+                "systemMode",
+                "minHeatSetpointLimit",
+                "maxHeatSetpointLimit",
+            ]);
+            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
+        },
+    },
+    {
         zigbeeModel: ["eTRV0100", "eTRV0101", "eTRV0103", "TRV001", "TRV003", "eT093WRO", "eT093WRG"],
         model: "014G2461",
         vendor: "Danfoss",
@@ -1401,11 +1503,20 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("diagnostic"),
         ],
         fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
-        toZigbee: [tz.thermostat_clear_weekly_schedule, tzLocal.danfoss_system_status_code, tzLocal.danfoss_preheat_command],
+        toZigbee: [
+            tz.thermostat_weekly_schedule,
+            tz.thermostat_clear_weekly_schedule,
+            tzLocal.danfoss_system_status_code,
+            tzLocal.danfoss_preheat_command,
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["haDiagnostic"]);
+            } catch {
+                // Bind may fail if already bound (Danfoss rejects duplicate binds)
+            }
             await endpoint.configureReporting<"haDiagnostic", DanfossHaDiagnostic>(
                 "haDiagnostic",
                 [

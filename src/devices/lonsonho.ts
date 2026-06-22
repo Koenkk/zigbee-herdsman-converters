@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-C01",
         vendor: "Lonsonho",
         description: "Curtain/blind motor controller",
-        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.moes_cover_calibration, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         meta: {coverInverted: true},
@@ -58,7 +58,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS130F_dual",
         vendor: "Lonsonho",
         description: "Dual curtain/blind module",
-        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         whiteLabel: [tuya.whitelabel("Girier", "TS130F_GIRIER_DUAL", "Dual smart curtain switch", ["_TZ3000_j1xl73iw"])],
@@ -96,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "X701A",
         vendor: "Lonsonho",
         description: "1 gang switch with backlight",
-        extend: [tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({indicatorMode: true})],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -195,8 +195,16 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "ZB-RGBCW",
         vendor: "Lonsonho",
+        version: "0.0.2",
         description: "Zigbee 3.0 LED-bulb, RGBW LED",
+        // Configure reporting for color fails
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32345
         extend: [m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TYZB01_zsl6z0pw", "_TYZB01_uqkphoed"]),
@@ -228,7 +236,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QS-Zigbee-C03",
         vendor: "Lonsonho",
         description: "Curtain/blind motor controller",
-        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
         fromZigbee: [fz.cover_position_tilt, tuya.fz.cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         meta: {coverInverted: true},

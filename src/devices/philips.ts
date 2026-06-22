@@ -183,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["LCX028"],
+        zigbeeModel: ["LCX028", "LCX025", "LCX024"],
         model: "929004581901",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (14 meter with 20 bulbs)",
@@ -290,6 +290,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Phoenix ceiling light",
         extend: [philips.m.light({colorTemp: {range: [154, 455]}, color: true})],
+    },
+    {
+        zigbeeModel: ["929004308301"],
+        model: "929004308301",
+        vendor: "Philips",
+        description: "Hue Turaco outdoor wall light",
+        extend: [philips.m.light()],
     },
     {
         zigbeeModel: ["LWA023"],
@@ -1182,6 +1189,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
     },
     {
+        zigbeeModel: ["929003052701"],
+        model: "929003052701",
+        vendor: "Philips",
+        description: "Hue Flourish white and color ambiance ceiling light with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["4090431P9"],
         model: "4090431P9",
         vendor: "Philips",
@@ -1322,10 +1336,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light()],
     },
     {
-        zigbeeModel: ["LWB006", "LWB014", "LWB019"],
+        zigbeeModel: ["LWB006", "LWB010", "LWB014", "LWB019", "LWF001", "LWF002", "LWW001"],
         model: "9290011370",
         vendor: "Philips",
-        description: "Hue white A60 bulb E27/B22",
+        description: "Hue white A60 bulb",
+        whiteLabel: [
+            {model: "9290011370A"},
+            {model: "9290011370B"},
+            {model: "9290011371"},
+            {model: "9290011371A"},
+            {model: "9290011371B"},
+            {model: "8718696449691"},
+        ],
         extend: [philips.m.light()],
     },
     {
@@ -1403,7 +1425,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290022169",
         vendor: "Philips",
         description: "Hue white ambiance E27 with Bluetooth",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["LTA004"],
@@ -1467,13 +1489,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue Flourish white and color ambiance pendant light",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["LWB010"],
-        model: "8718696449691",
-        vendor: "Philips",
-        description: "Hue White A60 Single bulb E27/B22",
-        extend: [philips.m.light()],
     },
     {
         zigbeeModel: ["LWG001"],
@@ -1597,7 +1612,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LCA004"],
         model: "9290024896",
         vendor: "Philips",
-        description: "Hue white and color ambiance E27",
+        description: "Hue white and color ambiance E27 800lm",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
@@ -2160,7 +2175,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
-        zigbeeModel: ["929003099001", "929003099201", "929003099002"],
+        zigbeeModel: ["929003099001", "929003099201", "929003099002", "929003099202"],
         model: "929003099001",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle square panel light",
@@ -2291,13 +2306,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue white ambiance suspension Amaze with Bluetooth",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
-    },
-    {
-        zigbeeModel: ["LWF001", "LWF002", "LWW001"],
-        model: "9290011370B",
-        vendor: "Philips",
-        description: "Hue white A60 bulb E27",
-        extend: [philips.m.light()],
     },
     {
         zigbeeModel: ["LWB015"],
@@ -2588,6 +2596,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
+        zigbeeModel: ["929003809001_01", "929003809001_02", "929003809001_03", "929003809001_04"],
+        model: "929003809001",
+        vendor: "Philips",
+        description: "Hue White & Color ambience Centris V2 ceiling light (3 spots)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+    },
+    {
         zigbeeModel: ["5060830P7_01", "5060830P7_02", "5060830P7_03", "5060830P7_04"],
         model: "5060830P7",
         vendor: "Philips",
@@ -2802,8 +2817,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003017102",
         vendor: "Philips",
         description: "Hue wall switch module",
-        extend: [philips.m.addManuSpecificPhilipsCluster()],
-        fromZigbee: [fz.battery, fz.hue_wall_switch_device_mode, philips.fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
+        extend: [philips.m.addManuSpecificPhilipsCluster(), philips.m.addPhilipsGenBasicCluster()],
+        fromZigbee: [
+            fz.battery,
+            philips.fz.hue_wall_switch_device_mode,
+            philips.fz.hue_wall_switch,
+            fz.command_toggle,
+            fz.command_move,
+            fz.command_stop,
+        ],
         exposes: [
             e.battery(),
             e.action([
@@ -2822,7 +2844,7 @@ export const definitions: DefinitionWithExtend[] = [
             ]),
             e.enum("device_mode", ea.ALL, ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"]),
         ],
-        toZigbee: [tz.hue_wall_switch_device_mode],
+        toZigbee: [philips.tz.hue_wall_switch_device_mode],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "manuSpecificPhilips"]);
@@ -2830,6 +2852,7 @@ export const definitions: DefinitionWithExtend[] = [
             const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
             await endpoint.write("genBasic", {52: {value: 0, type: 48}}, options);
         },
+        ota: true,
     },
     {
         zigbeeModel: ["RWL020", "RWL021"],
@@ -2956,7 +2979,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290012607",
         vendor: "Philips",
         description: "Hue motion sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -2965,7 +2995,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -2979,7 +3009,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -2988,7 +3020,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290019758",
         vendor: "Philips",
         description: "Hue motion outdoor sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -2997,7 +3036,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -3011,7 +3050,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -3069,7 +3110,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290030675",
         vendor: "Philips",
         description: "Hue motion sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -3078,7 +3126,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3089,7 +3137,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -3098,7 +3148,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290030674",
         vendor: "Philips",
         description: "Hue motion outdoor sensor",
-        fromZigbee: [fz.battery, fz.occupancy, fz.temperature, fz.occupancy_timeout, fz.hue_motion_sensitivity, fz.hue_motion_led_indication],
+        fromZigbee: [
+            fz.battery,
+            fz.occupancy,
+            fz.temperature,
+            fz.occupancy_timeout,
+            philips.fz.hue_motion_sensitivity,
+            philips.fz.hue_motion_led_indication,
+        ],
         exposes: [
             e.temperature(),
             e.occupancy(),
@@ -3107,7 +3164,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3118,7 +3175,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             // read occupancy_timeout and motion_sensitivity
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("msOccupancySensing", [48], {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V});
+            await endpoint.read<"msOccupancySensing", philips.PhilipsMsOccupancySensing>("msOccupancySensing", ["motionSensitivity"], {
+                manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+            });
         },
         ota: true,
     },
@@ -3298,7 +3357,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
-        zigbeeModel: ["1746730V7"],
+        zigbeeModel: ["1746730V7", "1746730V7-HC3"],
         model: "1746730V7",
         vendor: "Philips",
         description: "Hue Lily outdoor spot light",
@@ -3763,7 +3822,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "8718696743133",
         vendor: "Philips",
         description: "Hue tap",
-        fromZigbee: [fz.hue_tap],
+        fromZigbee: [philips.fz.hue_tap],
         toZigbee: [],
         exposes: [e.action(["press_1", "press_2", "press_3", "press_4", "press_1_and_2", "release_1_and_2", "press_3_and_4", "release_3_and_4"])],
     },
@@ -4295,6 +4354,20 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, turnsOffAtBrightness1: true})],
     },
     {
+        zigbeeModel: ["929004611301_01", "929004611301_02", "929004611301_03"],
+        model: "929004611301",
+        vendor: "Philips",
+        description: "Hue Xamento White and Color Ambiance GU10 (white)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
+        zigbeeModel: ["929003812701_01", "929003812701_02", "929003812701_03"],
+        model: "929003812701",
+        vendor: "Philips",
+        description: "Hue Xamento White and Color Ambiance GU10 (Black)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["929003074701"],
         model: "929003074701",
         vendor: "Philips",
@@ -4807,6 +4880,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["929004308401"],
+        model: "929004308401",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance Lucca Outdoor wall light",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["5042148P9"],
         model: "5042148P9",
         vendor: "Philips",
@@ -5007,10 +5087,24 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 447]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ["929004611002"],
+        zigbeeModel: ["929004611002", "929004611102"],
         model: "929004611002",
         vendor: "Philips",
         description: "Hue Flux Outdoor strip light (6m)",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        whiteLabel: [
+            {
+                model: "929004611102",
+                vendor: "Philips",
+                description: "Hue Flux Outdoor strip light (10m)",
+                fingerprint: [{modelID: "929004611102"}],
+            },
+        ],
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
+            }),
+        ],
     },
 ];

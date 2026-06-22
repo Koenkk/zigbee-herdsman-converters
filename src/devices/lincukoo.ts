@@ -5,6 +5,8 @@ import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
+const tvc = tuya.valueConverter;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -151,47 +153,59 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot", //fingerbot
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         whiteLabel: [
             tuya.whitelabel("Sygonix", "SY-6811314", "Zigbee Smart button/switch Pusher", ["_TZE284_chcnj5st"]),
             tuya.whitelabel("Nous", "C2", "Button/switch pusher", ["_TZE284_pislt0wa"]),
         ],
         exposes: [
-            e.switch(),
-            e.enum("mode", ea.STATE_SET, ["click", "long_press"]).withDescription("work mode of the finger robot"),
+            te.switch(),
             e
-                .numeric("click_sustain_time", ea.STATE_SET)
+                .enum("switch_states", ea.STATE_SET, ["SWITCH"])
+                .withDescription("Changes the displayed state to the opposite state")
+                .withCategory("config"),
+            e
+                .enum("mode", ea.STATE_SET, ["button", "switch"])
+                .withDescription("Work mode of the finger robot. Button: press and release, Switch: press")
+                .withCategory("config"),
+            e
+                .numeric("button_hold_duration", ea.STATE_SET)
                 .withValueMin(0.3)
                 .withValueMax(10)
                 .withValueStep(0.1)
-                .withDescription("keep times for click")
-                .withUnit("s"),
+                .withDescription("Sets the press duration for button mode")
+                .withUnit("s")
+                .withCategory("config"),
             e
-                .numeric("arm_down_percent", ea.STATE_SET)
+                .enum("auto_adjustment", ea.STATE_SET, ["START"])
+                .withDescription("Auto select the end position. Slowly lower the arm until it fully presses the button, and save the result")
+                .withCategory("config"),
+            e
+                .numeric("arm_start_position", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(30)
                 .withValueStep(1)
-                .withDescription("the position for arm moving down"),
+                .withDescription("Sets arm position when idle")
+                .withCategory("config"),
             e
-                .numeric("arm_up_percent", ea.STATE_SET)
+                .numeric("arm_end_position", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(30)
                 .withValueStep(1)
-                .withDescription("the position for arm moving up"),
-            e.binary("auto_adjustment", ea.STATE_SET, "ON", "OFF").withDescription("auto adjustment the arm position"),
-            e.binary("set_switch_state", ea.STATE_SET, "ON", "OFF").withDescription("set the switch display status"),
+                .withDescription("Sets arm position when fully pressed")
+                .withCategory("config"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [2, "mode", tuya.valueConverterBasic.lookup({click: tuya.enum(0), long_press: tuya.enum(1)})],
-                [3, "click_sustain_time", tuya.valueConverter.divideBy10], // springback_time
-                [5, "arm_down_percent", tuya.valueConverter.raw], // initial_percent
-                [6, "arm_up_percent", tuya.valueConverter.raw], // end_percent
-                [101, "auto_adjustment", tuya.valueConverter.onOff], // auto
-                [102, "set_switch_state", tuya.valueConverter.onOff], // switching_display_status
+                [1, "state", tuya.valueConverter.onOffFingerbot],
+                [2, "mode", tuya.valueConverterBasic.lookup({button: tuya.enum(0), switch: tuya.enum(1)})],
+                [3, "button_hold_duration", tuya.valueConverter.divideBy10], // springback_time
+                [5, "arm_end_position", tuya.valueConverter.raw], // initial_percent
+                [6, "arm_start_position", tuya.valueConverter.raw], // end_percent
                 [8, "battery", tuya.valueConverter.raw],
+                [101, "auto_adjustment", tuya.valueConverter.autoAdjustment], // auto
+                [102, "switch_states", tuya.valueConverter.switchStates], // switching_display_status
             ],
         },
     },
@@ -390,45 +404,34 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_vibration_alarm_sensor",
         vendor: "Tuya",
         description: "Vibration alarm sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: (device) => {
-            const exps: Expose[] = [
-                e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("device alarm status"),
-                e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Sensitivity of the sensor"),
-            ];
+            const exps: Expose[] = [te.alarmStatus(), te.sensitivity()];
             if (["_TZE284_2qx7sivb"].includes(device.manufacturerName)) {
-                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
+                exps.push(te.batteryState());
             } else if (["_TZE284_aghfucwi"].includes(device.manufacturerName)) {
-                exps.push(
-                    e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"),
-                    e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"),
-                    e.battery(),
-                );
+                exps.push(te.dismissAlarm(), te.silentMode(), e.battery());
             } else {
-                exps.push(
-                    e.enum("disarm", ea.STATE_SET, ["normal"]).withDescription("Disarm the current alarm"),
-                    e.binary("silence_mode", ea.STATE_SET, "ON", "OFF").withDescription("enable/disable alarm"),
-                    e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"),
-                );
+                exps.push(te.dismissAlarm(), te.silentMode(), te.batteryState());
             }
             return exps;
         },
 
         meta: {
             tuyaDatapoints: [
-                [1, "alarm_status", tuya.valueConverterBasic.lookup({normal: 0, alarm: 1})], // shake_state
-                [3, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
-                [4, "battery", tuya.valueConverter.raw],
-                [101, "sensitivity", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
-                [102, "disarm", tuya.valueConverterBasic.lookup({normal: tuya.enum(0)})], // turn_off_the_current_alarm_sound
-                [103, "silence_mode", tuya.valueConverter.onOff], // mute_mode
+                [1, "alarm_status", tvc.alarmStatus], // shake_state
+                [3, "battery_state", tvc.batteryState],
+                [4, "battery", tvc.raw],
+                [101, "sensitivity", tvc.sensitivity],
+                [102, "dismiss_alarm", tvc.dismiss], // turn_off_the_current_alarm_sound, disarm
+                [103, "silent_mode", tvc.onOff], // mute_mode
             ],
         },
         whiteLabel: [
             tuya.whitelabel("Lincukoo", "V04-Z10T", "Vibration alarm sensor", ["_TZE284_aghfucwi"]),
             tuya.whitelabel("Lincukoo", "V06-Z10T", "Mini vibration sensor", ["_TZE284_2qx7sivb"]),
-            {vendor: "Lincukoo", model: "V04-Z20T"},
-            {vendor: "Nous", model: "E14"},
+            {vendor: "Lincukoo", model: "V04-Z20T"}, // _TZE284_8sejxcue
+            {vendor: "Nous", model: "E14"}, // _TZE284_7trh4ihp
         ],
     },
     {
