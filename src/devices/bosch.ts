@@ -788,7 +788,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.relayState(),
             boschThermostatExtend.operatingMode({enableReporting: true}),
-            boschThermostatExtend.rmThermostat(),
+            boschThermostatExtend.rmThermostat({weeklySchedule: true}),
             boschThermostatExtend.setpointChangeSource({enableReporting: true}),
             boschThermostatExtend.humidity(),
             boschThermostatExtend.heaterType(),
