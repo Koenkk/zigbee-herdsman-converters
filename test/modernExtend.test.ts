@@ -1,5 +1,6 @@
-import {describe, expect, test} from "vitest";
+import {describe, expect, test, vi} from "vitest";
 import * as fz from "../src/converters/fromZigbee";
+import {findByDevice} from "../src/index";
 import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
 import {setupAttributes} from "../src/lib/modernExtend";
@@ -489,5 +490,42 @@ describe("ModernExtend", () => {
             "acCurrentMultiplier",
         ]);
         expect(deviceEp.read).toHaveBeenNthCalledWith(2, "haElectricalMeasurement", ["acCurrentOverload", "acFrequency"]);
+    });
+
+    test("raw attribute modern extends consume named custom-cluster read responses", async () => {
+        const device = mockDevice({
+            modelID: "TRETAKT Smart plug",
+            manufacturerName: "IKEA of Sweden",
+            endpoints: [{ID: 1, inputClusters: ["genOnOff"], inputClusterIDs: [0xfc85]}],
+        });
+        vi.spyOn(device, "save").mockImplementation(() => {});
+        const coordinator = mockDevice({modelID: "", endpoints: [{}]});
+        const definition = await findByDevice(device);
+
+        await definition.configure?.(device, coordinator.endpoints[0], definition);
+
+        expect(device.endpoints[0].read).toHaveBeenCalledWith("manuSpecificIkeaSmartPlug", [0]);
+        expect(device.endpoints[0].read).toHaveBeenCalledWith("manuSpecificIkeaSmartPlug", [1]);
+
+        const converters = definition.fromZigbee.filter((converter) => converter.cluster === "manuSpecificIkeaSmartPlug");
+        expect(converters).toHaveLength(2);
+
+        const childLock = converters.flatMap((converter) => {
+            const result = converter.convert(definition, {data: {childLock: 0}, endpoint: device.endpoints[0]} as never, () => {}, {}, {
+                device,
+                state: {},
+            } as never);
+            return result === undefined ? [] : [result];
+        });
+        const ledEnable = converters.flatMap((converter) => {
+            const result = converter.convert(definition, {data: {ledEnable: 1}, endpoint: device.endpoints[0]} as never, () => {}, {}, {
+                device,
+                state: {},
+            } as never);
+            return result === undefined ? [] : [result];
+        });
+
+        expect(childLock).toStrictEqual([{child_lock: "UNLOCK"}]);
+        expect(ledEnable).toStrictEqual([{led_enable: "TRUE"}]);
     });
 });
