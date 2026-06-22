@@ -224,6 +224,15 @@ export interface DefinitionMeta {
      */
     overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
     /**
+     * Home Assistant discovery hints for bridge integrations.
+     */
+    homeassistant?: {
+        /**
+         * Discover switch exposes as a more specific Home Assistant entity type.
+         */
+        switchType?: "valve";
+    };
+    /**
      * Never use a transition when transitioning to off (even when specified)
      */
     noOffTransitionWhenOff?: boolean | ((entity: Zh.Endpoint) => boolean);

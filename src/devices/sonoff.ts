@@ -3069,18 +3069,21 @@ const sonoffExtend = {
                 key: ["manual_default_settings"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
+                    const stateValue = meta.state[key];
+                    const current = utils.isObject(stateValue) ? stateValue : {};
+                    const nextValue = {...current, ...value};
 
-                    if (hasFlowMeter && (typeof value.irrigation_mode !== "string" || modeMap[value.irrigation_mode] === undefined)) {
+                    if (hasFlowMeter && (typeof nextValue.irrigation_mode !== "string" || modeMap[nextValue.irrigation_mode] === undefined)) {
                         logger.error("manual_default_settings invalid irrigation_mode, expected one of: duration, capacity.", NS);
                         return;
                     }
-                    if (hasFlowMeter && value.irrigation_amount_unit !== "US gallon" && value.irrigation_amount_unit !== "liter") {
+                    if (hasFlowMeter && nextValue.irrigation_amount_unit !== "US gallon" && nextValue.irrigation_amount_unit !== "liter") {
                         logger.error("manual_default_settings invalid irrigation_amount_unit, expected one of: US gallon, liter.", NS);
                         return;
                     }
 
                     const parseRequiredInt = (fieldName: string): number | undefined => {
-                        const parsed = Number(value[fieldName]);
+                        const parsed = Number(nextValue[fieldName]);
                         if (!Number.isInteger(parsed)) {
                             logger.error(`manual_default_settings invalid ${fieldName}, expected integer.`, NS);
                             return;
@@ -3096,8 +3099,8 @@ const sonoffExtend = {
                         return;
                     }
 
-                    const mode = hasFlowMeter ? modeMap[value.irrigation_mode] : modeMap.duration;
-                    const capacityUnit = hasFlowMeter ? (value.irrigation_amount_unit === "US gallon" ? 0 : 1) : 1;
+                    const mode = hasFlowMeter ? modeMap[nextValue.irrigation_mode] : modeMap.duration;
+                    const capacityUnit = hasFlowMeter ? (nextValue.irrigation_amount_unit === "US gallon" ? 0 : 1) : 1;
 
                     const array = new Uint8Array(12);
                     array[0] = mode;
@@ -3129,7 +3132,7 @@ const sonoffExtend = {
 
                     return {
                         state: {
-                            [key]: value,
+                            [key]: nextValue,
                         },
                     };
                 },
@@ -3189,10 +3192,13 @@ const sonoffExtend = {
                 key: ["seasonal_watering_adjustment"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
+                    const stateValue = meta.state[key];
+                    const current = utils.isObject(stateValue) ? stateValue : {};
+                    const nextValue = {...current, ...value};
 
                     const array = new Uint8Array(12);
                     for (let i = 0; i < 12; i++) {
-                        const rawMonthValue = Number(value[months[i]]);
+                        const rawMonthValue = Number(nextValue[months[i]]);
                         const monthValue = Number.isFinite(rawMonthValue) ? rawMonthValue : 1;
                         const boundedMonthValue = Math.min(2, Math.max(0.1, monthValue));
                         array[i] = Math.round(boundedMonthValue * 10);
@@ -3214,7 +3220,7 @@ const sonoffExtend = {
 
                     return {
                         state: {
-                            [key]: value,
+                            [key]: nextValue,
                         },
                     };
                 },
@@ -3463,12 +3469,15 @@ const sonoffExtend = {
                 key: ["valve_alarm_settings"],
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
+                    const stateValue = meta.state[key];
+                    const current = utils.isObject(stateValue) ? stateValue : {};
+                    const nextValue = {...current, ...value};
                     const state = {
-                        enable_alarm_water_shortage: !!value.enable_alarm_water_shortage,
-                        enable_alarm_water_leak: !!value.enable_alarm_water_leak,
-                        enable_water_shortage_auto_close: !!value.enable_water_shortage_auto_close,
-                        alarm_water_shortage_duration: Number(value.alarm_water_shortage_duration) || 0,
-                        alarm_water_leak_duration: Number(value.alarm_water_leak_duration) || 0,
+                        enable_alarm_water_shortage: !!nextValue.enable_alarm_water_shortage,
+                        enable_alarm_water_leak: !!nextValue.enable_alarm_water_leak,
+                        enable_water_shortage_auto_close: !!nextValue.enable_water_shortage_auto_close,
+                        alarm_water_shortage_duration: Number(nextValue.alarm_water_shortage_duration) || 0,
+                        alarm_water_leak_duration: Number(nextValue.alarm_water_leak_duration) || 0,
                     };
 
                     let enableBits = 0;
@@ -4274,8 +4283,13 @@ const sonoffExtend = {
                 endpoints: endpointNames,
                 convertSet: async (entity, key, value, meta) => {
                     utils.assertObject(value, key);
+                    const stateValue = meta.state[key];
+                    const reportKey = meta.endpoint_name ? `irrigation_plan_report_${meta.endpoint_name}` : "irrigation_plan_report";
+                    const reportValue = meta.state[reportKey];
+                    const current = utils.isObject(stateValue) ? stateValue : utils.isObject(reportValue) ? reportValue : {};
+                    const nextValue = {...current, ...value};
                     const parseIntWithDefault = (fieldName: string, defaultValue: number, min: number, max: number): number | undefined => {
-                        const raw = value[fieldName];
+                        const raw = nextValue[fieldName];
                         const parsed = raw === undefined || raw === null ? defaultValue : Number(raw);
                         if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
                             logger.error(`irrigation_plan_settings invalid ${fieldName}, expected integer in range [${min}, ${max}].`, NS);
@@ -4294,12 +4308,12 @@ const sonoffExtend = {
                     }
                     payloadValue[i++] = planIndex & 0xff;
                     // Whether schedule is enabled
-                    payloadValue[i++] = value.enable_state ? 0x01 : 0x00;
+                    payloadValue[i++] = nextValue.enable_state ? 0x01 : 0x00;
 
                     // Loop type
                     const loopTypeModeKey =
-                        typeof value.loop_type_mode === "string" && value.loop_type_mode in loopTypeModeMappingReverse
-                            ? (value.loop_type_mode as keyof typeof loopTypeModeMappingReverse)
+                        typeof nextValue.loop_type_mode === "string" && nextValue.loop_type_mode in loopTypeModeMappingReverse
+                            ? (nextValue.loop_type_mode as keyof typeof loopTypeModeMappingReverse)
                             : "odd_days";
                     const loopTypeMode = loopTypeModeMappingReverse[loopTypeModeKey];
                     let loopTypeValueCode = 0;
@@ -4310,7 +4324,7 @@ const sonoffExtend = {
                         }
                         loopTypeValueCode = loopTypeIntervalDays;
                     } else if (loopTypeMode === loopTypeModeMappingReverse.weekdays) {
-                        const weekDays = value.loop_type_week_days;
+                        const weekDays = nextValue.loop_type_week_days;
                         if (utils.isObject(weekDays)) {
                             for (const dayName of loopTypeWeekDayNames) {
                                 if (weekDays[dayName] === true) {
@@ -4324,7 +4338,7 @@ const sonoffExtend = {
                     payloadValue[i++] = loopTypeWord & 0xff;
 
                     // Enable date: start of local day -> device local-2000 seconds
-                    const enableDateValue = value.enable_date;
+                    const enableDateValue = nextValue.enable_date;
                     if (!utils.isString(enableDateValue)) {
                         logger.error("irrigation_plan_settings invalid enable_date, expected local date in YYYY-MM-DD format.", NS);
                         return;
@@ -4361,18 +4375,18 @@ const sonoffExtend = {
                     let irrigationModeCode = irrigationModeMappingReverse.duration;
                     if (hasFlowMeter) {
                         const irrigationModeKey =
-                            typeof value.irrigation_mode === "string"
-                                ? (value.irrigation_mode as keyof typeof irrigationModeMappingReverse)
+                            typeof nextValue.irrigation_mode === "string"
+                                ? (nextValue.irrigation_mode as keyof typeof irrigationModeMappingReverse)
                                 : "duration";
                         irrigationModeCode = irrigationModeMappingReverse[irrigationModeKey] ?? irrigationModeMappingReverse.duration;
                     } else {
-                        const irrigationModeKey = value.irrigation_mode === "duration_with_interval" ? "duration_with_interval" : "duration";
+                        const irrigationModeKey = nextValue.irrigation_mode === "duration_with_interval" ? "duration_with_interval" : "duration";
                         irrigationModeCode = irrigationModeMappingReverse[irrigationModeKey];
                     }
                     payloadValue[i++] = irrigationModeCode & 0xff;
 
                     // Start time offset from start of local day.
-                    const startTimeValue = value.start_time;
+                    const startTimeValue = nextValue.start_time;
                     if (!utils.isString(startTimeValue)) {
                         logger.error("irrigation_plan_settings invalid start_time, expected HH:mm.", NS);
                         return;
@@ -4414,8 +4428,8 @@ const sonoffExtend = {
 
                     // Irrigation amount unit
                     const irrigationAmountUnitKey = hasFlowMeter
-                        ? typeof value.irrigation_amount_unit === "string"
-                            ? (value.irrigation_amount_unit as keyof typeof irrigationAmountUnitMappingReverse)
+                        ? typeof nextValue.irrigation_amount_unit === "string"
+                            ? (nextValue.irrigation_amount_unit as keyof typeof irrigationAmountUnitMappingReverse)
                             : "US gallon"
                         : "liter";
                     const irrigationAmountUnitCode =
@@ -4440,14 +4454,14 @@ const sonoffExtend = {
                     payloadValue[i++] = failSafe & 0xff;
 
                     // Create datetime: Unix UTC seconds.
-                    if (!utils.isString(value.create_datetime)) {
+                    if (!utils.isString(nextValue.create_datetime)) {
                         logger.error(
                             "irrigation_plan_settings invalid create_datetime, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).",
                             NS,
                         );
                         return;
                     }
-                    const createDatetimeUTC = parseIsoWithOffsetToUtcSeconds(value.create_datetime);
+                    const createDatetimeUTC = parseIsoWithOffsetToUtcSeconds(nextValue.create_datetime);
                     if (createDatetimeUTC === undefined) {
                         logger.error(
                             "irrigation_plan_settings invalid create_datetime, expected ISO 8601 datetime with timezone offset (Z or ±HH:mm).",
@@ -4473,7 +4487,7 @@ const sonoffExtend = {
                             defaultResponseOptions,
                         );
 
-                    return {state: {[key]: value}};
+                    return {state: {[key]: nextValue}};
                 },
             },
         ];
@@ -7936,6 +7950,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         whiteLabel: [{model: "SWV-ZFU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZFU"}]}],
         description: "Zigbee smart water valve",
+        meta: {homeassistant: {switchType: "valve"}},
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
@@ -8061,6 +8076,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SWV-ZF2",
         vendor: "SONOFF",
         description: "Zigbee dual-channel smart water valve",
+        meta: {homeassistant: {switchType: "valve"}},
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.deviceAddCustomCluster("customClusterEwelink", {
@@ -8208,6 +8224,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         whiteLabel: [{model: "SWV-ZNU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZNU"}]}],
         description: "Zigbee smart water valve",
+        meta: {homeassistant: {switchType: "valve"}},
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
