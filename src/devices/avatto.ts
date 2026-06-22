@@ -176,7 +176,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xdtnpp1a", "_TZE284_xdtnpp1a"]),
         model: "TRV26",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
@@ -232,22 +232,6 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [
-                    49,
-                    "running_state",
-                    tuya.valueConverterBasic.lookup({
-                        heat: tuya.enum(1),
-                        idle: tuya.enum(0),
-                    }),
-                ],
-                [
-                    49,
-                    "system_mode",
-                    tuya.valueConverterBasic.lookup({
-                        heat: tuya.enum(1),
-                        off: tuya.enum(0),
-                    }),
-                ],
-                [
                     2,
                     "preset",
                     tuya.valueConverterBasic.lookup({
@@ -259,6 +243,7 @@ export const definitions: DefinitionWithExtend[] = [
                         holiday: tuya.enum(5),
                     }),
                 ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 1, heat: 0})],
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [6, "battery", tuya.valueConverter.raw],
@@ -268,21 +253,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, "window_detection", tuya.valueConverter.raw],
                 [16, "open_window_temperature", tuya.valueConverter.divideBy10],
                 [17, "open_window_time", tuya.valueConverter.raw],
-                [19, "factory_reset", tuya.valueConverter.onOff],
-                [21, "holiday_temperature", tuya.valueConverter.raw],
-                [24, "comfort_temperature", tuya.valueConverter.divideBy10],
-                [25, "eco_temperature", tuya.valueConverter.divideBy10],
                 [17, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
                 [18, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
+                [19, "factory_reset", tuya.valueConverter.onOff],
                 [19, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
                 [20, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [21, "holiday_temperature", tuya.valueConverter.raw],
                 [21, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [22, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [23, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
+                [24, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [25, "eco_temperature", tuya.valueConverter.divideBy10],
                 [35, "error_status", tuya.valueConverter.raw],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.raw],
                 [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [
+                    49,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(1),
+                        off: tuya.enum(0),
+                    }),
+                ],
                 [101, "uptime", tuya.valueConverter.divideBy10],
                 [102, "descale_countdown", tuya.valueConverter.divideBy10],
             ],
@@ -382,7 +375,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_5cuocqty", "_TZE204_nqqylykc", "_TZE204_2cyb66xl", "_TZE204_tgdnh7pw", "_TZE284_nqqylykc"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_5cuocqty",
+            "_TZE204_nqqylykc",
+            "_TZE204_2cyb66xl",
+            "_TZE204_tgdnh7pw",
+            "_TZE284_nqqylykc",
+            "_TZE204_huu3td85",
+            "_TZE284_huu3td85",
+        ]),
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
@@ -406,7 +407,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc", "_TZE284_jtbgusdc"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_o9gyszw2",
+            "_TZE204_jtbgusdc",
+            "_TZE284_jtbgusdc",
+            "_TZE204_fjms2pi9",
+            "_TZE284_fjms2pi9",
+            "_TZE28C1000000_jtbgusdc",
+        ]),
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",
@@ -447,7 +455,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LZWSM16-1",
         description: "1 gang switch module - (without neutral)",
         vendor: "AVATTO",
-        extend: [tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true}), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({switchType: true, onOffCountdown: true}),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -605,6 +617,247 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [123, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_aaeaifez", "_TZE284_aaeaifez", "_TZE28C1000000_aaeaifez"]),
+        model: "ZWT100",
+        vendor: "AVATTO",
+        description: "Zigbee Thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("On/off state of the device."),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 95, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9.9, 9.9, 0.1, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.enum("mode", ea.STATE_SET, ["manual", "program", "temporary"]).withDescription("Mode"),
+            e.child_lock(),
+            e.text("fault", ea.STATE).withDescription("Fault status"),
+            e
+                .numeric("upper_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Upper temperature limit")
+                .withValueMin(15)
+                .withValueMax(95)
+                .withValueStep(1),
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "When the room temperature is lower than 5 ℃, the valve opens; when the temperature rises to 8 ℃, the valve closes.",
+                ),
+            e
+                .enum("work_days", ea.STATE_SET, ["two-day weekend", "single day off", "no rest", "turn off programming"])
+                .withDescription("Holiday option and turn off weekly programming."),
+            e.binary("sound", ea.STATE_SET, "ON", "OFF"),
+            e.enum("sensor_selection", ea.STATE_SET, ["in", "out", "all"]).withDescription("Select sensors for temperature measurement."),
+            e
+                .numeric("temperature_variation", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Temperature difference setting for heating activation")
+                .withValueMin(0.5)
+                .withValueMax(10)
+                .withValueStep(0.5),
+            e
+                .numeric("sensor_temperature_limit", ea.STATE_SET)
+                .withUnit("°C")
+                .withDescription("Temperature limit for sensors")
+                .withValueMin(25)
+                .withValueMax(95)
+                .withValueStep(1),
+            Array.from({length: 2}, (_, i) => i + 1).reduce(
+                (composite, periodNum) =>
+                    composite
+                        .withFeature(
+                            e
+                                .numeric(`weekend_hour_${periodNum}`, ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(23)
+                                .withDescription(`Hour of weekend period ${periodNum}`),
+                        )
+                        .withFeature(
+                            e
+                                .numeric(`weekend_minute_${periodNum}`, ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(59)
+                                .withDescription(`Minute of weekend period ${periodNum}`),
+                        )
+                        .withFeature(
+                            e
+                                .numeric(`weekend_temp_${periodNum}`, ea.STATE_SET)
+                                .withValueMin(5)
+                                .withValueMax(95)
+                                .withValueStep(0.5)
+                                .withUnit("°C")
+                                .withDescription(`Target temperature of weekend period ${periodNum}`),
+                        ),
+                Array.from({length: 6}, (_, i) => i + 1).reduce(
+                    (composite, periodNum) =>
+                        composite
+                            .withFeature(
+                                e
+                                    .numeric(`workday_hour_${periodNum}`, ea.STATE_SET)
+                                    .withValueMin(0)
+                                    .withValueMax(23)
+                                    .withDescription(`Hour of workday period ${periodNum}`),
+                            )
+                            .withFeature(
+                                e
+                                    .numeric(`workday_minute_${periodNum}`, ea.STATE_SET)
+                                    .withValueMin(0)
+                                    .withValueMax(59)
+                                    .withDescription(`Minute of workday period ${periodNum}`),
+                            )
+                            .withFeature(
+                                e
+                                    .numeric(`workday_temp_${periodNum}`, ea.STATE_SET)
+                                    .withValueMin(5)
+                                    .withValueMax(95)
+                                    .withValueStep(0.5)
+                                    .withUnit("°C")
+                                    .withDescription(`Target temperature of workday period ${periodNum}`),
+                            ),
+                    e
+                        .composite("weekly_schedule", "weekly_schedule", ea.STATE_SET)
+                        .withDescription("Time-temperature schedule: 6 workday periods + 2 weekend periods"),
+                ),
+            ),
+            e.enum("backlight", ea.STATE_SET, ["off", "micro light", "medium light", "high light"]).withDescription("The backlight brightness."),
+            e.binary("direction_mode", ea.STATE_SET, "ON", "OFF").withDescription("ON: secondary_reversal, OFF: primary_reversal"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [2, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [3, "local_temperature", tuya.valueConverter.divideBy10],
+                [
+                    4,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        program: tuya.enum(1),
+                        temporary: tuya.enum(2),
+                    }),
+                ],
+                [9, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    11,
+                    "fault",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "Sensor fault",
+                                2: "Motor fault",
+                                4: "Heating fault",
+                            };
+
+                            if (value === 0) {
+                                return "No faults";
+                            }
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit, 10)) {
+                                    faults.push(name);
+                                }
+                            }
+                            return faults.join(", ");
+                        },
+                    },
+                ],
+                [15, "upper_temperature_limit", tuya.valueConverter.divideBy10],
+                [19, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [101, "running_state", tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [102, "frost_protection", tuya.valueConverter.onOff],
+                [103, "reset", tuya.valueConverter.onOff],
+                [
+                    104,
+                    "work_days",
+                    tuya.valueConverterBasic.lookup({
+                        "turn off programming": tuya.enum(0),
+                        "two-day weekend": tuya.enum(1),
+                        "single day off": tuya.enum(2),
+                        "no rest": tuya.enum(3),
+                    }),
+                ],
+                [105, "sound", tuya.valueConverter.onOff],
+                [
+                    106,
+                    "sensor_selection",
+                    tuya.valueConverterBasic.lookup({
+                        in: tuya.enum(0),
+                        out: tuya.enum(1),
+                        all: tuya.enum(2),
+                    }),
+                ],
+                [107, "temperature_variation", tuya.valueConverter.divideBy10],
+                [108, "sensor_temperature_limit", tuya.valueConverter.raw],
+                [
+                    109,
+                    "weekly_schedule",
+                    {
+                        to: (v: Record<string, number>, meta: Tz.Meta) => {
+                            const buffer = Buffer.alloc(32);
+                            for (let i = 1; i <= 6; i++) {
+                                const offset = (i - 1) * 4;
+                                const hour = v[`workday_hour_${i}`] ?? 0;
+                                const minute = v[`workday_minute_${i}`] ?? 0;
+                                const temperature = v[`workday_temp_${i}`] ?? 0;
+                                const tempInt = Math.round(temperature * 10);
+                                buffer.writeUInt8(hour, offset);
+                                buffer.writeUInt8(minute, offset + 1);
+                                buffer.writeUInt16BE(tempInt, offset + 2);
+                            }
+                            for (let i = 1; i <= 2; i++) {
+                                const offset = (6 + i - 1) * 4;
+                                const hour = v[`weekend_hour_${i}`] ?? 0;
+                                const minute = v[`weekend_minute_${i}`] ?? 0;
+                                const temperature = v[`weekend_temp_${i}`] ?? 0;
+                                const tempInt = Math.round(temperature * 10);
+                                buffer.writeUInt8(hour, offset);
+                                buffer.writeUInt8(minute, offset + 1);
+                                buffer.writeUInt16BE(tempInt, offset + 2);
+                            }
+                            return Array.from(buffer);
+                        },
+                        from: (v: Buffer, meta: Fz.Meta, options: KeyValue, publish: Publish) => {
+                            const result = {} as Record<string, number>;
+                            for (let i = 1; i <= 6; i++) {
+                                const offset = (i - 1) * 4;
+                                const hour = v.readUInt8(offset);
+                                const minute = v.readUInt8(offset + 1);
+                                const tempRaw = v.readUInt16BE(offset + 2);
+                                result[`workday_hour_${i}`] = hour;
+                                result[`workday_minute_${i}`] = minute;
+                                result[`workday_temp_${i}`] = tempRaw / 10;
+                            }
+                            for (let i = 1; i <= 2; i++) {
+                                const offset = (6 + i - 1) * 4;
+                                const hour = v.readUInt8(offset);
+                                const minute = v.readUInt8(offset + 1);
+                                const tempRaw = v.readUInt16BE(offset + 2);
+                                result[`weekend_hour_${i}`] = hour;
+                                result[`weekend_minute_${i}`] = minute;
+                                result[`weekend_temp_${i}`] = tempRaw / 10;
+                            }
+                            return result;
+                        },
+                    },
+                ],
+                [
+                    110,
+                    "backlight",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        "micro light": tuya.enum(1),
+                        "medium light": tuya.enum(2),
+                        "high light": tuya.enum(3),
+                    }),
+                ],
+                [111, "direction_mode", tuya.valueConverter.onOff],
             ],
         },
     },

@@ -1,6 +1,7 @@
 import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
@@ -37,6 +38,7 @@ import {
     postfixWithEndpointName,
     precisionRound,
     printNumbersAsHexSequence,
+    replaceToZigbeeConvertersInArray,
     sleep,
     toNumber,
 } from "./utils";
@@ -44,6 +46,7 @@ import {
 const NS = "zhc:lumi";
 const e = exposes.presets;
 const ea = exposes.access;
+const ZNCLBL01LM_RUNNING_STORE_KEY = "ZNCLBL01LM_running";
 
 declare type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
@@ -65,6 +68,8 @@ export interface ManuSpecificLumi {
         illuminance: number;
         /** ID=0x0114 | type=UINT8 | write=true | max=255 */
         displayUnit: number;
+        /** ID=0x0118 | type=UINT8 */
+        movement: number;
         /** ID=0x0129 | type=UINT8 | write=true | max=255 */
         airQuality: number;
         /** ID=0x0400 | type=BOOLEAN | write=true */
@@ -516,6 +521,15 @@ export const numericAttributes2Payload = async (
                 if (["RTCGQ14LM"].includes(model.model)) {
                     payload.trigger_indicator = value === 1;
                 } else if (["ZNCLBL01LM"].includes(model.model)) {
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11911
+                    const value1057 = typeof dataObject["1057"] === "number" ? dataObject["1057"] : undefined;
+                    const storedRunning = globalStore.getValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined);
+                    const payloadRunning = value1057 !== undefined && value1057 < 2;
+                    const shouldSuppressInStopPayload = value1057 === 2;
+                    const shouldSuppressWhileStopped = storedRunning === false && !payloadRunning;
+                    if (shouldSuppressInStopPayload || shouldSuppressWhileStopped) {
+                        break;
+                    }
                     assertNumber(value);
                     const position = options.invert_cover ? 100 - value : value;
                     payload.position = position;
@@ -533,7 +547,7 @@ export const numericAttributes2Payload = async (
                 payload.consumption = payload.energy;
                 break;
             case "150":
-                if (["KD-R01D"].includes(model.model)) {
+                if (["KD-R01D", "WS-K05E"].includes(model.model)) {
                     assertNumber(value);
                     payload.voltage = value * 0.01;
                 } else if (!["JTYJ-GD-01LM/BW"].includes(model.model)) {
@@ -874,12 +888,23 @@ export const numericAttributes2Payload = async (
                 break;
             case "1057":
                 if (["ZNCLBL01LM"].includes(model.model)) {
+                    const previousRunning = globalStore.getValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined);
                     payload.motor_state = getFromLookup(
                         value,
                         options.invert_cover ? {0: "opening", 1: "closing", 2: "stopped"} : {0: "closing", 1: "opening", 2: "stopped"},
                     );
                     assertNumber(value);
                     payload.running = value < 2;
+                    globalStore.putValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, payload.running);
+
+                    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11911
+                    if (!payload.running && previousRunning !== false) {
+                        // After stop, read the final position.
+                        // Attr 107 can still be stale near the end.
+                        msg.endpoint
+                            .read("closuresWindowCovering", ["currentPositionLiftPercentage"])
+                            .catch((error) => logger.error(`Failed to read position '${msg.device.ieeeAddr}' (${error})`, NS));
+                    }
                 }
                 break;
             case "1061":
@@ -996,6 +1021,9 @@ const numericAttributes2Lookup = (model: Definition, dataObject: KeyValue) => {
 };
 
 type LumiPresenceRegionZone = {x: number; y: number};
+type LumiPresenceConfiguredRegion = {regionId: number; zones: LumiPresenceRegionZone[]};
+type LumiPresenceRegionCommand = {regionId: number; zones: LumiPresenceRegionZone[]};
+type LumiPresenceRegionDeleteCommand = {regionId: number};
 
 const lumiPresenceConstants = {
     region_event_key: 0x0151,
@@ -1050,6 +1078,157 @@ const lumiPresenceMappers = {
         },
     },
 };
+
+const parseConfiguredPresenceRegionArray = (value: unknown): LumiPresenceConfiguredRegion[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.flatMap((region) => {
+        if (!isObject(region) || typeof region.region_id !== "number" || !Array.isArray(region.zones)) {
+            return [];
+        }
+
+        if (!region.zones.every((zone) => isObject(zone) && typeof zone.x === "number" && typeof zone.y === "number")) {
+            return [];
+        }
+
+        return [{regionId: region.region_id, zones: region.zones}];
+    });
+};
+
+const parseConfiguredPresenceRegionSummary = (value: string): LumiPresenceConfiguredRegion[] => {
+    if (!value || value === "None") {
+        return [];
+    }
+
+    return value.split(" | ").flatMap((region) => {
+        const regionMatch = region.match(/^(\d+): (.*?)(?: \(\d+ zones\))?$/);
+
+        if (!regionMatch) {
+            return [];
+        }
+
+        const regionId = Number(regionMatch[1]);
+        const zones: LumiPresenceRegionZone[] = [];
+
+        for (const row of regionMatch[2].split("; ")) {
+            const rowMatch = row.match(/^y(\d+)=(.+)$/);
+
+            if (!rowMatch) {
+                continue;
+            }
+
+            const y = Number(rowMatch[1]);
+
+            for (const range of rowMatch[2].split(",")) {
+                const rangeMatch = range.match(/^x(\d+)(?:-(\d+))?$/);
+
+                if (!rangeMatch) {
+                    continue;
+                }
+
+                const startX = Number(rangeMatch[1]);
+                const endX = rangeMatch[2] === undefined ? startX : Number(rangeMatch[2]);
+
+                for (let x = startX; x <= endX; x++) {
+                    zones.push({x, y});
+                }
+            }
+        }
+
+        return [{regionId, zones}];
+    });
+};
+
+const parseConfiguredPresenceRegions = (value: unknown): LumiPresenceConfiguredRegion[] => {
+    if (Array.isArray(value)) {
+        return parseConfiguredPresenceRegionArray(value);
+    }
+
+    if (!isString(value)) {
+        return [];
+    }
+
+    try {
+        return parseConfiguredPresenceRegionArray(JSON.parse(value));
+    } catch {
+        return parseConfiguredPresenceRegionSummary(value);
+    }
+};
+
+const summarizeConfiguredPresenceRegions = (regions: LumiPresenceConfiguredRegion[]): string => {
+    if (!regions.length) {
+        return "None";
+    }
+
+    return regions
+        .sort((left, right) => left.regionId - right.regionId)
+        .map((region) => {
+            const zonesByY = new Map<number, number[]>();
+
+            for (const zone of region.zones) {
+                zonesByY.set(zone.y, [...(zonesByY.get(zone.y) ?? []), zone.x]);
+            }
+
+            const zoneRows = [...zonesByY.entries()]
+                .sort(([leftY], [rightY]) => leftY - rightY)
+                .map(([y, xs]) => {
+                    const ranges: string[] = [];
+                    const sortedXs = [...new Set(xs)].sort((left, right) => left - right);
+                    const firstX = sortedXs[0];
+
+                    if (firstX === undefined) {
+                        return `y${y}=none`;
+                    }
+
+                    let rangeStart = firstX;
+                    let previous = firstX;
+
+                    for (const x of sortedXs.slice(1)) {
+                        if (x === previous + 1) {
+                            previous = x;
+                            continue;
+                        }
+
+                        ranges.push(rangeStart === previous ? `x${rangeStart}` : `x${rangeStart}-${previous}`);
+                        rangeStart = x;
+                        previous = x;
+                    }
+
+                    ranges.push(rangeStart === previous ? `x${rangeStart}` : `x${rangeStart}-${previous}`);
+
+                    return `y${y}=${ranges.join(",")}`;
+                });
+
+            return `${region.regionId}: ${zoneRows.join("; ")} (${region.zones.length} zones)`;
+        })
+        .join(" | ");
+};
+
+const buildConfiguredPresenceRegionsState = (regions: LumiPresenceConfiguredRegion[]): KeyValue => {
+    return {
+        configured_regions: summarizeConfiguredPresenceRegions(regions),
+    };
+};
+
+const upsertConfiguredPresenceRegion = (state: KeyValueAny, region: LumiPresenceConfiguredRegion): KeyValue => {
+    const regions = parseConfiguredPresenceRegions(state.configured_regions).filter((existingRegion) => existingRegion.regionId !== region.regionId);
+
+    regions.push({
+        regionId: region.regionId,
+        zones: [...region.zones].sort((left, right) => left.y - right.y || left.x - right.x),
+    });
+
+    return buildConfiguredPresenceRegionsState(regions);
+};
+
+const deleteConfiguredPresenceRegion = (state: KeyValueAny, regionId: number): KeyValue => {
+    return buildConfiguredPresenceRegionsState(
+        parseConfiguredPresenceRegions(state.configured_regions).filter((existingRegion) => existingRegion.regionId !== regionId),
+    );
+};
+
 export const presence = {
     constants: lumiPresenceConstants,
     mappers: lumiPresenceMappers,
@@ -1139,6 +1318,82 @@ export const presence = {
             error,
         };
     },
+};
+
+const writeAqaraFp1RegionUpsert = async (entity: Zh.Endpoint | Zh.Group, command: LumiPresenceRegionCommand) => {
+    logger.debug(`Trying to create region ${command.regionId}`, NS);
+
+    const sortedZonesAccumulator = {};
+    const sortedZonesWithSets: {[s: number]: [number]} = command.zones.reduce((accumulator: {[s: number]: Set<number>}, zone) => {
+        if (!accumulator[zone.y]) {
+            accumulator[zone.y] = new Set<number>();
+        }
+
+        accumulator[zone.y].add(zone.x);
+
+        return accumulator;
+    }, sortedZonesAccumulator);
+    const sortedZones = Object.entries(sortedZonesWithSets).reduce(
+        (acc, [key, value]) => {
+            const numKey = Number.parseInt(key, 10); // Convert string key back to number
+            acc[numKey] = Array.from(value);
+            return acc;
+        },
+        {} as {[s: number]: number[]},
+    );
+
+    const deviceConfig = new Uint8Array(7);
+
+    // Command parameters
+    deviceConfig[0] = presence.constants.region_config_cmds.create;
+    deviceConfig[1] = command.regionId;
+    deviceConfig[6] = presence.constants.region_config_cmd_suffix_upsert;
+    // Zones definition
+    deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["1"]);
+    deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["2"]) << 4;
+    deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["3"]);
+    deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["4"]) << 4;
+    deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["5"]);
+    deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["6"]) << 4;
+    deviceConfig[5] |= presence.encodeXCellsDefinition(sortedZones["7"]);
+
+    logger.info(`Create region ${command.regionId} ${printNumbersAsHexSequence([...deviceConfig], 2)}`, NS);
+
+    const payload = {
+        [presence.constants.region_config_write_attribute]: {
+            value: deviceConfig,
+            type: presence.constants.region_config_write_attribute_type,
+        },
+    };
+
+    await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
+};
+
+const writeAqaraFp1RegionDelete = async (entity: Zh.Endpoint | Zh.Group, command: LumiPresenceRegionDeleteCommand) => {
+    logger.debug(`trying to delete region ${command.regionId}`, NS);
+
+    const deviceConfig = new Uint8Array(7);
+
+    // Command parameters
+    deviceConfig[0] = presence.constants.region_config_cmds.delete;
+    deviceConfig[1] = command.regionId;
+    deviceConfig[6] = presence.constants.region_config_cmd_suffix_delete;
+    // Zones definition
+    deviceConfig[2] = 0;
+    deviceConfig[3] = 0;
+    deviceConfig[4] = 0;
+    deviceConfig[5] = 0;
+
+    logger.info(`Delete region ${command.regionId} (${printNumbersAsHexSequence([...deviceConfig], 2)})`, NS);
+
+    const payload = {
+        [presence.constants.region_config_write_attribute]: {
+            value: deviceConfig,
+            type: presence.constants.region_config_write_attribute_type,
+        },
+    };
+
+    await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
 };
 
 function readTemperature(buffer: Buffer, offset: number): number {
@@ -1750,6 +2005,7 @@ export const lumiModernExtend = {
                 mode: {name: "mode", ID: 0x0009, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 illuminance: {name: "illuminance", ID: 0x0112, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 displayUnit: {name: "displayUnit", ID: 0x0114, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                movement: {name: "movement", ID: 0x0118, type: Zcl.DataType.UINT8},
                 airQuality: {name: "airQuality", ID: 0x0129, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 curtainReverse: {name: "curtainReverse", ID: 0x0400, type: Zcl.DataType.BOOLEAN, write: true},
                 curtainHandOpen: {name: "curtainHandOpen", ID: 0x0401, type: Zcl.DataType.BOOLEAN, write: true},
@@ -2335,6 +2591,29 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            exposes: [e.action(["button_3_single", "button_4_single"])],
+            fromZigbee: [
+                {
+                    cluster: "genMultistateInput",
+                    type: ["attributeReport"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const endpoint = msg.endpoint.ID;
+                        const value = msg.data.presentValue;
+                        // Don't map any other actions/endpoint, create ghost events
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
+                        const buttonMap: {[key: number]: string} = {3: "button_3", 4: "button_4"};
+                        if (endpoint in buttonMap && value === 1) {
+                            return {action: `${buttonMap[endpoint]}_single`};
+                        }
+                        return null;
+                    },
+                } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport"]>,
+            ],
+        };
+    },
     lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi", ManuSpecificLumi>>) =>
         modernExtend.binary<"manuSpecificLumi", ManuSpecificLumi>({
             name: "calibrated",
@@ -2402,6 +2681,18 @@ export const lumiModernExtend = {
             attribute: "presentValue",
             ...args,
         }),
+    lumiStaticStateAction: (): ModernExtend => {
+        const converter: Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport"]> = {
+            cluster: "manuSpecificLumi",
+            type: ["attributeReport"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data["499"] === 1) {
+                    return {action: "static"};
+                }
+            },
+        };
+        return {fromZigbee: [converter], isModernExtend: true};
+    },
     lumiVoc: (args?: Partial<modernExtend.NumericArgs<"genAnalogInput">>) =>
         modernExtend.numeric({
             name: "voc",
@@ -2824,7 +3115,7 @@ export const lumiModernExtend = {
                 cluster: "manuSpecificLumi",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (msg.data[0x0118] !== undefined && msg.data[0x0118] === 1) {
+                    if (msg.data.movement !== undefined && msg.data.movement === 1) {
                         return {action: "movement"};
                     }
                 },
@@ -2976,12 +3267,12 @@ export const lumiModernExtend = {
     lumiBattery: (args?: {
         cluster?: "genBasic" | "manuSpecificLumi";
         voltageToPercentage?: BatteryNonLinearVoltage | BatteryLinearVoltage;
-        percentageAtrribute?: number;
+        percentageAttribute?: number;
         voltageAttribute?: number;
     }): ModernExtend => {
         args = {
             cluster: "manuSpecificLumi",
-            percentageAtrribute: 1,
+            percentageAttribute: 1,
             voltageAttribute: 1,
             ...args,
         };
@@ -2994,8 +3285,8 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     const payload: KeyValueAny = {};
                     const lookup: KeyValueAny = numericAttributes2Lookup(model, msg.data);
-                    if (lookup[args.percentageAtrribute.toString()]) {
-                        const value = lookup[args.percentageAtrribute];
+                    if (lookup[args.percentageAttribute.toString()]) {
+                        const value = lookup[args.percentageAttribute];
                         assertNumber(value);
                         if (!args.voltageToPercentage) payload.battery = value;
                     }
@@ -3552,6 +3843,13 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
+    w600ExternalTempSensor: (): ModernExtend => createW600ExternalTempSensor(),
+    w600Heartbeat: (): ModernExtend => createW600Heartbeat(),
+    w600Thermostat: (): ModernExtend => createW600Thermostat(),
+    w600Schedule: (): ModernExtend => createW600Schedule(),
+    w600WeeklySchedule: (): ModernExtend => createW600WeeklySchedule(),
+    w600PresetTemperatureTable: (): ModernExtend => createW600PresetTemperatureTable(),
+    w600ValvePosition: (): ModernExtend => createW600ValvePosition(),
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
         let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
         if (type === "genAnalogOutput") {
@@ -3602,6 +3900,2008 @@ export const lumiModernExtend = {
 };
 
 export {lumiModernExtend as modernExtend};
+
+const W600_NS = "zhc:aqara_w600";
+const W600_LUMI_CLUSTER = "manuSpecificLumi";
+const W600_THERMOSTAT_CLUSTER = "hvacThermostat";
+const W600_ATTR_TEMP_SETPOINT_HOLD_DURATION = 0x0024;
+const W600_ATTR_SYSTEM_MODE = 0x0271;
+const W600_ATTR_SCHEDULE = 0x027d;
+const W600_ATTR_PRESET = 0x0311;
+const W600_ATTR_PRESET_TEMPERATURE_TABLE = 0x0317;
+const W600_ATTR_SENSOR_SOURCE = 0x0280;
+const W600_ATTR_SENSOR_BINDING = 0xfff2;
+const W600_ATTR_HEARTBEAT = 0x00f7;
+const W600_ATTR_VALVE_POSITION = 0x0360;
+const W600_EXTERNAL_TEMP_SENSOR = Buffer.from("00158d00019d1b98", "hex");
+const W600_PRESET_TABLE_STORE_KEY = "w600PresetTemperatureTable";
+const W600_SENSOR_BINDING_COUNTER_STORE_KEY = "w600SensorBindingCounter";
+const W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY = "w600ManualCustomPresetSuppressionUntil";
+const W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY = "w600WeeklyScheduleDraft";
+const W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY = "w600WeeklyScheduleOtaStage";
+const W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY = "w600WeeklyScheduleUploadState";
+const W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_MS = 15_000;
+const W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS = 5 * 60 * 1000;
+const W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS = new Map<string, NodeJS.Timeout>();
+const W600_SENSOR_BINDING_MARKER = Buffer.from([0x00, 0x01, 0x00, 0x55]);
+const W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR = Buffer.from([
+    0x15, 0x0a, 0x01, 0x00, 0x00, 0x01, 0x06, 0xe6, 0xb8, 0xa9, 0xe5, 0xba, 0xa6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x07, 0x65,
+]);
+
+const W600_PRESET_ORDER = ["home", "away", "sleep", "vacation", "wind_down"] as const;
+type W600PresetName = (typeof W600_PRESET_ORDER)[number];
+type W600PresetOrNone = W600PresetName | "none";
+type W600PresetTemperatureTable = Record<W600PresetName, number>;
+type W600Publish = ((payload: KeyValue) => void) | undefined;
+type W600WeeklyScheduleUploadStatus = "idle" | "staged" | "in_progress" | "success" | "failed";
+type W600WeeklyScheduleOperation = "save_schedule" | "clear_schedule";
+
+interface W600PresetTemperatureDefinition {
+    preset: W600PresetName;
+    property: string;
+    label: string;
+    description: string;
+}
+
+interface W600WeeklyScheduleDayDefinition {
+    label: string;
+    mask: number;
+    property: string;
+}
+
+interface W600WeeklyScheduleTransition {
+    minutes: number;
+    preset: W600PresetName;
+}
+
+interface W600WeeklyScheduleRecord {
+    dayMask: number;
+    minutes: number;
+    presetId: number;
+}
+
+interface W600WeeklyScheduleNormalizedDraft {
+    draft: Record<string, string>;
+    records: W600WeeklyScheduleRecord[];
+}
+
+interface W600WeeklyScheduleUploadState {
+    status: W600WeeklyScheduleUploadStatus;
+    error: string;
+    operation: W600WeeklyScheduleOperation;
+    recordCount: number;
+    uploadId: string | undefined;
+    updatedAt: number;
+}
+
+interface W600WeeklyScheduleOtaStage {
+    createdAt: number;
+    lastActivityAt: number;
+    image: Buffer;
+    operation: W600WeeklyScheduleOperation;
+    recordCount: number;
+    uploadId: string;
+}
+
+const W600_PRESET_BY_ID = {
+    1: "home",
+    2: "away",
+    3: "sleep",
+    5: "vacation",
+    6: "wind_down",
+    255: "none",
+} as const;
+
+const W600_PRESET_ID_BY_NAME = {
+    home: 1,
+    away: 2,
+    sleep: 3,
+    vacation: 5,
+    wind_down: 6,
+} as const;
+
+const W600_PRESET_TEMPERATURE_DEFINITIONS: readonly W600PresetTemperatureDefinition[] = [
+    {preset: "home", property: "preset_home_temperature", label: "Home temperature", description: "Home preset temperature"},
+    {preset: "away", property: "preset_away_temperature", label: "Away temperature", description: "Away preset temperature"},
+    {preset: "sleep", property: "preset_sleep_temperature", label: "Sleep temperature", description: "Sleep preset temperature"},
+    {preset: "vacation", property: "preset_vacation_temperature", label: "Vacation temperature", description: "Vacation preset temperature"},
+    {preset: "wind_down", property: "preset_wind_down_temperature", label: "Wind down temperature", description: "Wind-down preset temperature"},
+] as const;
+
+const W600_PRESET_NAME_BY_PROPERTY = Object.fromEntries(
+    W600_PRESET_TEMPERATURE_DEFINITIONS.map((definition) => [definition.property, definition.preset]),
+) as Record<string, W600PresetName>;
+
+const W600_PROPERTY_BY_PRESET_NAME = Object.fromEntries(
+    W600_PRESET_TEMPERATURE_DEFINITIONS.map((definition) => [definition.preset, definition.property]),
+) as Record<W600PresetName, string>;
+
+const W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS: readonly W600WeeklyScheduleDayDefinition[] = [
+    {label: "Sunday", mask: 0x01, property: "weekly_schedule_sunday"},
+    {label: "Monday", mask: 0x02, property: "weekly_schedule_monday"},
+    {label: "Tuesday", mask: 0x04, property: "weekly_schedule_tuesday"},
+    {label: "Wednesday", mask: 0x08, property: "weekly_schedule_wednesday"},
+    {label: "Thursday", mask: 0x10, property: "weekly_schedule_thursday"},
+    {label: "Friday", mask: 0x20, property: "weekly_schedule_friday"},
+    {label: "Saturday", mask: 0x40, property: "weekly_schedule_saturday"},
+] as const;
+
+const W600_WEEKLY_SCHEDULE_DAY_PROPERTIES = W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({property}) => property);
+const W600_WEEKLY_SCHEDULE_HEADER_STRING = "ROUTERX-ENCRYPTEDO00";
+const W600_WEEKLY_SCHEDULE_IMAGE_TYPE = 0x1400;
+const W600_WEEKLY_SCHEDULE_FILE_VERSION = 0x00000100;
+const W600_WEEKLY_SCHEDULE_STACK_VERSION = 0x0002;
+const W600_WEEKLY_SCHEDULE_IMAGE_NOTIFY_QUERY_JITTER = 48;
+const W600_WEEKLY_SCHEDULE_UPLOAD_STATUSES = ["idle", "staged", "in_progress", "success", "failed"] as const;
+
+function findW600ClimateExpose(extend: ModernExtend) {
+    return extend.exposes?.find((expose): expose is exposes.Climate => typeof expose !== "function" && expose.type === "climate");
+}
+
+function normalizeW600EnumKey(value: unknown) {
+    return typeof value === "string"
+        ? value
+              .trim()
+              .toLowerCase()
+              .replace(/[\s-]+/g, "_")
+        : undefined;
+}
+
+function parseW600EnumName<TLookup extends Record<string, unknown>>(value: unknown, lookup: TLookup, key: string): keyof TLookup & string {
+    const normalized = normalizeW600EnumKey(value);
+
+    if (normalized != null && Object.hasOwn(lookup, normalized)) {
+        return normalized as keyof TLookup & string;
+    }
+
+    throw new Error(`${key} must be one of: ${Object.keys(lookup).join(", ")}`);
+}
+
+function parseW600HalfDegreeTemperature(value: unknown, key: string, min: number, max: number) {
+    const numeric = Number(value);
+
+    if (!Number.isFinite(numeric)) {
+        throw new Error(`${key} must be a number`);
+    }
+
+    if (numeric < min || numeric > max) {
+        throw new Error(`${key} must be between ${min} and ${max}`);
+    }
+
+    const scaled = Math.round(numeric * 100);
+
+    if (scaled % 50 !== 0) {
+        throw new Error(`${key} must use 0.5 C steps`);
+    }
+
+    return scaled;
+}
+
+function getW600DeviceStoreKey(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    if (typeof deviceOrEntity === "string") {
+        return deviceOrEntity;
+    }
+
+    if ("ieeeAddr" in deviceOrEntity && typeof deviceOrEntity.ieeeAddr === "string") {
+        return deviceOrEntity.ieeeAddr;
+    }
+
+    if ("deviceIeeeAddress" in deviceOrEntity && typeof deviceOrEntity.deviceIeeeAddress === "string") {
+        return deviceOrEntity.deviceIeeeAddress;
+    }
+
+    throw new Error("Unable to derive device store key");
+}
+
+function getW600DeviceBuffer(entity: Zh.Endpoint) {
+    return Buffer.from(entity.deviceIeeeAddress.substring(2), "hex");
+}
+
+function parseW600SensorSelection(value: unknown, key: string) {
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+
+        if (normalized === "internal" || normalized === "external") {
+            return normalized;
+        }
+    }
+
+    throw new Error(`${key} must be one of: internal, external`);
+}
+
+function getW600SensorSelectionFromState(value: unknown) {
+    if (typeof value !== "string") {
+        return undefined;
+    }
+
+    const normalized = value.trim().toLowerCase();
+    return normalized === "internal" || normalized === "external" ? normalized : undefined;
+}
+
+function parseW600ExternalTemperatureInput(value: unknown, key: string) {
+    const numeric = Number(value);
+
+    if (!Number.isFinite(numeric)) {
+        throw new Error(`${key} must be a number`);
+    }
+
+    if (numeric < -40 || numeric > 125) {
+        throw new Error(`${key} must be between -40 and 125`);
+    }
+
+    return Math.round(numeric * 100);
+}
+
+function decodeW600Heartbeat(buffer: Buffer) {
+    const heartbeat: KeyValue = {};
+    let offset = 0;
+
+    while (offset + 2 <= buffer.length) {
+        const key = buffer.readUInt8(offset);
+        const type = buffer.readUInt8(offset + 1);
+        offset += 2;
+
+        switch (type) {
+            case Zcl.DataType.BOOLEAN:
+            case Zcl.DataType.UINT8:
+            case Zcl.DataType.ENUM8:
+                if (offset + 1 > buffer.length) return heartbeat;
+                heartbeat[key] = buffer.readUInt8(offset);
+                offset += 1;
+                break;
+            case Zcl.DataType.INT8:
+                if (offset + 1 > buffer.length) return heartbeat;
+                heartbeat[key] = buffer.readInt8(offset);
+                offset += 1;
+                break;
+            case Zcl.DataType.UINT16:
+            case Zcl.DataType.ENUM16:
+                if (offset + 2 > buffer.length) return heartbeat;
+                heartbeat[key] = buffer.readUInt16LE(offset);
+                offset += 2;
+                break;
+            case Zcl.DataType.INT16:
+                if (offset + 2 > buffer.length) return heartbeat;
+                heartbeat[key] = buffer.readInt16LE(offset);
+                offset += 2;
+                break;
+            case Zcl.DataType.UINT32:
+                if (offset + 4 > buffer.length) return heartbeat;
+                heartbeat[key] = buffer.readUInt32LE(offset);
+                offset += 4;
+                break;
+            case Zcl.DataType.OCTET_STR: {
+                if (offset + 1 > buffer.length) return heartbeat;
+                const length = buffer.readUInt8(offset);
+                offset += 1;
+
+                if (offset + length > buffer.length) return heartbeat;
+                heartbeat[key] = buffer.subarray(offset, offset + length);
+                offset += length;
+                break;
+            }
+            default:
+                logger.debug(`Unsupported W600 heartbeat type 0x${type.toString(16)} for sub-key 0x${key.toString(16)}`, W600_NS);
+                return heartbeat;
+        }
+    }
+
+    return heartbeat;
+}
+
+function decodeW600Heartbeat9c(buffer: Buffer) {
+    if (buffer.length < 8) {
+        return undefined;
+    }
+
+    const windowOpenStatus = buffer[4];
+    const windowOpen = windowOpenStatus === 0x00 ? false : windowOpenStatus === 0x0d || windowOpenStatus === 0x0e ? true : undefined;
+    const valveAlarm =
+        windowOpenStatus === 0x10 ? true : windowOpenStatus === 0x00 || windowOpenStatus === 0x0d || windowOpenStatus === 0x0e ? false : undefined;
+
+    return {
+        valveAlarm,
+        windowOpen,
+    };
+}
+
+function parseW600BinaryEnabled(value: unknown) {
+    if (value === 1 || value === true) {
+        return true;
+    }
+
+    if (value === 0 || value === false) {
+        return false;
+    }
+
+    if (typeof value === "string") {
+        const normalized = value.trim().toLowerCase();
+
+        if (normalized === "on" || normalized === "true") {
+            return true;
+        }
+
+        if (normalized === "off" || normalized === "false") {
+            return false;
+        }
+    }
+
+    return undefined;
+}
+
+function parseRequiredW600BinaryEnabled(value: unknown, key: string) {
+    const enabled = parseW600BinaryEnabled(value);
+
+    if (enabled == null) {
+        throw new Error(`${key} must be one of: ON, OFF`);
+    }
+
+    return enabled;
+}
+
+function parseW600ScheduleEnabled(value: unknown) {
+    return parseW600BinaryEnabled(value);
+}
+
+function parseW600TemperatureSetpointHold(value: unknown) {
+    if (typeof value === "boolean") {
+        return value;
+    }
+
+    if (value === 1 || value === "true") {
+        return true;
+    }
+
+    if (value === 0 || value === "false") {
+        return false;
+    }
+
+    return undefined;
+}
+
+function getW600OverrideActiveState(state: KeyValue | undefined) {
+    return parseW600TemperatureSetpointHold(state?.override_active) ?? parseW600TemperatureSetpointHold(state?.temperature_setpoint_hold);
+}
+
+function parseW600HeatingEnabled(value: unknown) {
+    if (value === "off") {
+        return false;
+    }
+
+    if (value === "heat" || value === "auto") {
+        return true;
+    }
+
+    return undefined;
+}
+
+function getRequestedW600ScheduleEnabled(meta: Tz.Meta) {
+    if (meta.message?.schedule != null) {
+        return parseRequiredW600BinaryEnabled(meta.message.schedule, "schedule");
+    }
+
+    const requestedSystemMode = normalizeW600EnumKey(meta.message?.system_mode);
+
+    if (requestedSystemMode === "auto") {
+        return true;
+    }
+
+    if (requestedSystemMode === "heat" || requestedSystemMode === "off") {
+        return false;
+    }
+
+    const scheduleEnabled = parseW600ScheduleEnabled(meta.state?.schedule);
+
+    if (scheduleEnabled != null) {
+        return scheduleEnabled;
+    }
+
+    if (meta.state?.system_mode === "auto") {
+        return true;
+    }
+
+    if (meta.state?.system_mode === "heat" || meta.state?.system_mode === "off") {
+        return false;
+    }
+
+    return undefined;
+}
+
+async function safeW600Read(endpoint: Zh.Endpoint, cluster: string | number, attributes: Array<string | number>, options?: KeyValue) {
+    try {
+        await endpoint.read(cluster, attributes as never, options);
+    } catch (error) {
+        const details = error instanceof Error ? error.message : String(error);
+        logger.debug(`Safe read failed for ${endpoint.deviceIeeeAddress} on ${String(cluster)} [${attributes.join(", ")}]: ${details}`, W600_NS);
+    }
+}
+
+function readW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number) {
+    return entity.read(W600_LUMI_CLUSTER, [attribute] as never, {manufacturerCode});
+}
+
+function writeW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number, value: unknown, type = Zcl.DataType.UINT8) {
+    return entity.write(
+        W600_LUMI_CLUSTER,
+        {
+            [attribute]: {value, type},
+        },
+        {manufacturerCode},
+    );
+}
+
+function getNextW600SensorBindingCounter(entity: Zh.Device | Zh.Endpoint) {
+    const storeKey = getW600DeviceStoreKey(entity);
+    const counter = globalStore.getValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, 0x12);
+    globalStore.putValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, (counter + 1) & 0xff);
+    return counter;
+}
+
+function buildW600SensorPayload(entity: Zh.Device | Zh.Endpoint, action: number, payload: Buffer) {
+    const header = Buffer.from([0xaa, 0x71, payload.length + 3, 0x44, getNextW600SensorBindingCounter(entity)]);
+    const checksum = (0x200 - header.reduce((sum, byte) => sum + byte, 0)) & 0xff;
+
+    return Buffer.concat([header, Buffer.from([checksum, action, Zcl.DataType.OCTET_STR, payload.length]), payload]);
+}
+
+function getW600TimestampBuffer() {
+    const timestamp = Buffer.alloc(4);
+    timestamp.writeUInt32BE(Math.floor(Date.now() / 1000), 0);
+    return timestamp;
+}
+
+function buildW600ExternalTempSensorBindPayload(entity: Zh.Endpoint) {
+    const payload = Buffer.concat([
+        getW600TimestampBuffer(),
+        Buffer.from([0x14]),
+        getW600DeviceBuffer(entity),
+        W600_EXTERNAL_TEMP_SENSOR,
+        W600_SENSOR_BINDING_MARKER,
+        W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR,
+    ]);
+
+    return buildW600SensorPayload(entity, 0x02, payload);
+}
+
+function buildW600ExternalTempSensorUnbindPayload(entity: Zh.Endpoint) {
+    const payload = Buffer.concat([getW600TimestampBuffer(), Buffer.from([0x14]), getW600DeviceBuffer(entity), Buffer.alloc(12)]);
+
+    return buildW600SensorPayload(entity, 0x04, payload);
+}
+
+function buildW600ExternalTemperaturePayload(entity: Zh.Endpoint, centiDegrees: number) {
+    const temperatureBuffer = Buffer.alloc(4);
+    temperatureBuffer.writeFloatBE(centiDegrees, 0);
+
+    return buildW600SensorPayload(entity, 0x05, Buffer.concat([W600_EXTERNAL_TEMP_SENSOR, W600_SENSOR_BINDING_MARKER, temperatureBuffer]));
+}
+
+function createW600Heartbeat(): ModernExtend {
+    return {
+        exposes: [
+            e.battery().withDescription("Battery percentage"),
+            e.valve_alarm().withDescription("Indicates whether temperature control abnormal notification has reported an active alert"),
+            e.binary("window_open", ea.STATE, true, false).withDescription("Indicates whether open window detection has reported an open window"),
+        ],
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const value = msg.data[W600_ATTR_HEARTBEAT];
+
+                    if (!Buffer.isBuffer(value)) {
+                        return;
+                    }
+
+                    const heartbeat = decodeW600Heartbeat(value);
+                    const result: KeyValue = {};
+
+                    if (typeof heartbeat[0x0d] === "number" && Number.isFinite(heartbeat[0x0d])) {
+                        const device = meta.device ?? msg.device;
+                        device.softwareBuildID = trv.decodeFirmwareVersionString(heartbeat[0x0d] as number);
+                    }
+
+                    if (typeof heartbeat[0x18] === "number" && Number.isFinite(heartbeat[0x18])) {
+                        result.battery = Math.max(0, Math.min(100, heartbeat[0x18] as number));
+                    }
+
+                    if (Buffer.isBuffer(heartbeat[0x9c])) {
+                        const heartbeat9c = decodeW600Heartbeat9c(heartbeat[0x9c] as Buffer);
+
+                        if (heartbeat9c) {
+                            if (typeof heartbeat9c.valveAlarm === "boolean") {
+                                result.valve_alarm = heartbeat9c.valveAlarm;
+                            }
+
+                            if (typeof heartbeat9c.windowOpen === "boolean") {
+                                result.window_open = heartbeat9c.windowOpen;
+                            }
+                        }
+                    }
+
+                    return Object.keys(result).length > 0 ? result : undefined;
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        isModernExtend: true,
+    };
+}
+
+function deriveW600SystemMode(args: {heatingEnabled: boolean | undefined; scheduleEnabled: boolean | undefined}) {
+    if (args.heatingEnabled === false) {
+        return "off";
+    }
+
+    if (args.heatingEnabled === true && args.scheduleEnabled === true) {
+        return "auto";
+    }
+
+    if (args.heatingEnabled === true && args.scheduleEnabled === false) {
+        return "heat";
+    }
+
+    return undefined;
+}
+
+function deriveW600RunningStateFromValvePosition(position: unknown) {
+    if (typeof position !== "number" || !Number.isFinite(position)) {
+        return undefined;
+    }
+
+    if (position > 0) {
+        return "heat";
+    }
+
+    if (position === 0) {
+        return "idle";
+    }
+
+    return undefined;
+}
+
+function buildW600ScheduleState(enabled: boolean) {
+    return {schedule: enabled ? "ON" : "OFF"};
+}
+
+function isW600ManualCustomPresetSuppressionActive(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const suppressUntil = globalStore.getValue(getW600DeviceStoreKey(deviceOrEntity), W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY, 0);
+    return typeof suppressUntil === "number" && suppressUntil > Date.now();
+}
+
+function startW600ManualCustomPresetSuppression(
+    deviceOrEntity: string | Zh.Device | Zh.Endpoint,
+    durationMs = W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_MS,
+) {
+    globalStore.putValue(getW600DeviceStoreKey(deviceOrEntity), W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY, Date.now() + durationMs);
+}
+
+function clearW600ManualCustomPresetSuppression(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    globalStore.putValue(getW600DeviceStoreKey(deviceOrEntity), W600_MANUAL_CUSTOM_PRESET_SUPPRESSION_UNTIL_STORE_KEY, 0);
+}
+
+function getCachedW600PresetTemperatureTable(entity: Zh.Device | Zh.Endpoint, meta: Tz.Meta | Fz.Meta) {
+    const storeKey = getW600DeviceStoreKey(entity);
+    const cached = globalStore.getValue(storeKey, W600_PRESET_TABLE_STORE_KEY);
+
+    if (cached && typeof cached === "object") {
+        return {...cached} as W600PresetTemperatureTable;
+    }
+
+    const table = {} as W600PresetTemperatureTable;
+
+    for (const {preset, property} of W600_PRESET_TEMPERATURE_DEFINITIONS) {
+        const stateValue = meta.state?.[property];
+
+        if (typeof stateValue !== "number" || !Number.isFinite(stateValue)) {
+            return undefined;
+        }
+
+        table[preset] = Math.round(stateValue * 100);
+    }
+
+    return table;
+}
+
+function decodeW600PresetTemperatureTable(buffer: Buffer) {
+    if (buffer.length < 1) {
+        return undefined;
+    }
+
+    const entryCount = buffer.readUInt8(0);
+    const table = {} as Partial<W600PresetTemperatureTable>;
+
+    for (let index = 0; index < entryCount; index++) {
+        const offset = 1 + index * 5;
+
+        if (offset + 5 > buffer.length) {
+            break;
+        }
+
+        const presetId = buffer.readUInt8(offset);
+        const presetName = W600_PRESET_BY_ID[presetId as keyof typeof W600_PRESET_BY_ID];
+
+        if (!presetName || presetName === "none") {
+            continue;
+        }
+
+        table[presetName] = buffer.readUInt16LE(offset + 3);
+    }
+
+    return Object.keys(table).length === 0 ? undefined : (table as W600PresetTemperatureTable);
+}
+
+function encodeW600PresetTemperatureTable(table: W600PresetTemperatureTable) {
+    const buffer = Buffer.alloc(1 + W600_PRESET_ORDER.length * 5);
+    buffer.writeUInt8(W600_PRESET_ORDER.length, 0);
+
+    W600_PRESET_ORDER.forEach((presetName, index) => {
+        const centiDegrees = table[presetName];
+
+        if (!Number.isInteger(centiDegrees)) {
+            throw new Error(`Missing cached value for ${presetName} preset temperature`);
+        }
+
+        const offset = 1 + index * 5;
+        buffer.writeUInt8(W600_PRESET_ID_BY_NAME[presetName], offset);
+        buffer.writeUInt8(0, offset + 1);
+        buffer.writeUInt8(0, offset + 2);
+        buffer.writeUInt16LE(centiDegrees, offset + 3);
+    });
+
+    return buffer;
+}
+
+function parseW600ScheduleTriggerValue(value: unknown, key: string) {
+    if (value === true || value === 1) {
+        return;
+    }
+
+    if (typeof value === "string") {
+        const normalized = normalizeW600EnumKey(value);
+
+        if (normalized && ["trigger", "press", "pressed", "start", "save", "clear", "true", "1"].includes(normalized)) {
+            return;
+        }
+    }
+
+    throw new Error(`${key} must be one of: trigger, press, start`);
+}
+
+function formatW600ScheduleTime(totalMinutes: number) {
+    const hours = Math.floor(totalMinutes / 60)
+        .toString()
+        .padStart(2, "0");
+    const minutes = (totalMinutes % 60).toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+}
+
+function formatW600ScheduleDayTransitions(transitions: W600WeeklyScheduleTransition[]) {
+    return transitions.map(({minutes, preset}) => `${formatW600ScheduleTime(minutes)}/${preset}`).join(", ");
+}
+
+function parseW600ScheduleDayTransitions(value: unknown, key: string): W600WeeklyScheduleTransition[] {
+    if (typeof value !== "string") {
+        throw new Error(`${key} must be a string`);
+    }
+
+    const compact = value.replace(/\s+/g, "");
+
+    if (compact === "") {
+        return [];
+    }
+
+    const parts = compact.split(",");
+
+    if (parts.some((part) => part.length === 0)) {
+        throw new Error(`${key} must use comma-delimited entries in the format HH:MM/preset`);
+    }
+
+    const transitions: W600WeeklyScheduleTransition[] = [];
+    const seenMinutes = new Set<number>();
+
+    for (const part of parts) {
+        const match = part.match(/^([0-9]|[01]\d|2[0-3]):([0-5]\d)\/(.+)$/);
+
+        if (!match) {
+            throw new Error(`${key} entries must use the format H:MM/preset or HH:MM/preset, for example 08:00/home`);
+        }
+
+        const minutes = Number.parseInt(match[1], 10) * 60 + Number.parseInt(match[2], 10);
+
+        if (seenMinutes.has(minutes)) {
+            throw new Error(`${key} cannot contain multiple entries for ${formatW600ScheduleTime(minutes)}`);
+        }
+
+        seenMinutes.add(minutes);
+        transitions.push({
+            minutes,
+            preset: parseW600EnumName(match[3], W600_PRESET_ID_BY_NAME, key) as W600PresetName,
+        });
+    }
+
+    transitions.sort((left, right) => left.minutes - right.minutes);
+    return transitions;
+}
+
+function createEmptyW600WeeklyScheduleDraft() {
+    return Object.fromEntries(W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({property}) => [property, ""])) as Record<string, string>;
+}
+
+function buildW600WeeklyScheduleStatePayload(draft: Record<string, string>) {
+    return Object.fromEntries(W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({property}) => [property, draft[property] === "" ? null : draft[property]]));
+}
+
+function buildW600WeeklyScheduleUploadStatePayload(uploadState: W600WeeklyScheduleUploadState) {
+    return {
+        schedule_upload_status: uploadState.status,
+    };
+}
+
+function normalizeW600WeeklyScheduleDraft(draft: Record<string, string | undefined>): W600WeeklyScheduleNormalizedDraft {
+    const normalizedDraft = createEmptyW600WeeklyScheduleDraft();
+    const records: W600WeeklyScheduleRecord[] = [];
+
+    for (const {mask, property} of W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS) {
+        const transitions = parseW600ScheduleDayTransitions(draft[property] ?? "", property);
+        normalizedDraft[property] = formatW600ScheduleDayTransitions(transitions);
+
+        for (const transition of transitions) {
+            records.push({dayMask: mask, minutes: transition.minutes, presetId: W600_PRESET_ID_BY_NAME[transition.preset]});
+        }
+    }
+
+    records.sort((left, right) => left.dayMask - right.dayMask || left.minutes - right.minutes || left.presetId - right.presetId);
+    return {draft: normalizedDraft, records};
+}
+
+function encodeW600WeeklyScheduleSch2(records: W600WeeklyScheduleRecord[]) {
+    if (records.length > 0xff) {
+        throw new Error("Weekly schedule contains too many entries");
+    }
+
+    const buffer = Buffer.alloc(5 + records.length * 12);
+    buffer.write("SCH2", 0, "ascii");
+    buffer.writeUInt8(records.length, 4);
+
+    records.forEach((record, index) => {
+        const offset = 5 + index * 12;
+        buffer.writeUInt8(record.dayMask, offset);
+        buffer.writeUInt16LE(record.minutes, offset + 1);
+        buffer.writeUInt8(0x01, offset + 3);
+        buffer.writeUInt8(record.presetId, offset + 4);
+    });
+
+    return buffer;
+}
+
+function buildW600WeeklyScheduleCrc32Table() {
+    const table = new Uint32Array(256);
+
+    for (let index = 0; index < 256; index++) {
+        let value = index;
+
+        for (let bit = 0; bit < 8; bit++) {
+            value = (value & 1) === 1 ? (value >>> 1) ^ 0xedb88320 : value >>> 1;
+        }
+
+        table[index] = value >>> 0;
+    }
+
+    return table;
+}
+
+const W600_WEEKLY_SCHEDULE_CRC32_TABLE = buildW600WeeklyScheduleCrc32Table();
+
+function computeW600WeeklyScheduleCrc32(buffer: Buffer) {
+    let crc = 0xffffffff;
+
+    for (const value of buffer) {
+        crc = W600_WEEKLY_SCHEDULE_CRC32_TABLE[(crc ^ value) & 0xff] ^ (crc >>> 8);
+    }
+
+    return (crc ^ 0xffffffff) >>> 0;
+}
+
+function buildW600WeeklyScheduleSubelement(sch2Payload: Buffer) {
+    const subelement = Buffer.alloc(35 + sch2Payload.length);
+    subelement.writeUInt32LE(0x014f, 0);
+    subelement.writeUInt32LE(sch2Payload.length + 21, 4);
+    subelement.writeUInt8(0x01, 22);
+    subelement.writeUInt8(0x04, 23);
+    subelement.writeUInt8(0x01, 24);
+    subelement.writeUInt8(0x04, 34);
+    sch2Payload.copy(subelement, 35);
+    subelement.writeUInt32LE(computeW600WeeklyScheduleCrc32(subelement), 10);
+    return subelement;
+}
+
+function buildW600WeeklyScheduleImage(records: W600WeeklyScheduleRecord[]) {
+    const sch2Payload = encodeW600WeeklyScheduleSch2(records);
+    const subelement = buildW600WeeklyScheduleSubelement(sch2Payload);
+    const header = Buffer.alloc(56);
+    const headerString = Buffer.alloc(32);
+    headerString.write(W600_WEEKLY_SCHEDULE_HEADER_STRING, 0, "ascii");
+    header.writeUInt32LE(0x0beef11e, 0);
+    header.writeUInt16LE(0x0100, 4);
+    header.writeUInt16LE(56, 6);
+    header.writeUInt16LE(0, 8);
+    header.writeUInt16LE(manufacturerCode, 10);
+    header.writeUInt16LE(W600_WEEKLY_SCHEDULE_IMAGE_TYPE, 12);
+    header.writeUInt32LE(W600_WEEKLY_SCHEDULE_FILE_VERSION, 14);
+    header.writeUInt16LE(W600_WEEKLY_SCHEDULE_STACK_VERSION, 18);
+    headerString.copy(header, 20);
+
+    const subelementHeader = Buffer.alloc(6);
+    subelementHeader.writeUInt16LE(0xf006, 0);
+    subelementHeader.writeUInt32LE(subelement.length, 2);
+
+    const image = Buffer.concat([header, subelementHeader, subelement]);
+    image.writeUInt32LE(image.length, 52);
+    return image;
+}
+
+function normalizeW600WeeklyScheduleUploadState(uploadState: Partial<W600WeeklyScheduleUploadState> | undefined): W600WeeklyScheduleUploadState {
+    const normalizedStatus = W600_WEEKLY_SCHEDULE_UPLOAD_STATUSES.includes(uploadState?.status as W600WeeklyScheduleUploadStatus)
+        ? (uploadState?.status as W600WeeklyScheduleUploadStatus)
+        : "idle";
+
+    return {
+        status: normalizedStatus,
+        error: typeof uploadState?.error === "string" ? uploadState.error : "",
+        operation: uploadState?.operation === "clear_schedule" ? "clear_schedule" : "save_schedule",
+        recordCount: Number.isInteger(uploadState?.recordCount) && (uploadState?.recordCount ?? 0) >= 0 ? (uploadState?.recordCount as number) : 0,
+        uploadId: typeof uploadState?.uploadId === "string" ? uploadState.uploadId : undefined,
+        updatedAt: typeof uploadState?.updatedAt === "number" ? uploadState.updatedAt : 0,
+    };
+}
+
+function getW600WeeklyScheduleUploadStatePayload(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const uploadState = normalizeW600WeeklyScheduleUploadState(
+        globalStore.getValue(getW600DeviceStoreKey(deviceOrEntity), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY),
+    );
+    return buildW600WeeklyScheduleUploadStatePayload(uploadState);
+}
+
+function updateW600WeeklyScheduleUploadState(
+    deviceOrEntity: string | Zh.Device | Zh.Endpoint,
+    partialState: Partial<W600WeeklyScheduleUploadState>,
+    publish?: W600Publish,
+) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const currentState = normalizeW600WeeklyScheduleUploadState(globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY));
+    const nextState = normalizeW600WeeklyScheduleUploadState({
+        ...currentState,
+        ...partialState,
+        updatedAt: Date.now(),
+    });
+
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY, nextState);
+
+    const payload = buildW600WeeklyScheduleUploadStatePayload(nextState);
+
+    if (typeof publish === "function") {
+        publish(payload);
+    }
+
+    return {state: payload, uploadState: nextState};
+}
+
+function clearW600WeeklyScheduleUploadTimeout(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const timeout = W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.get(storeKey);
+
+    if (timeout != null) {
+        clearTimeout(timeout);
+        W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.delete(storeKey);
+    }
+}
+
+function describeW600WeeklyScheduleOperation(operation: W600WeeklyScheduleOperation) {
+    return operation === "clear_schedule" ? "clear schedule upload" : "save schedule upload";
+}
+
+function failW600WeeklyScheduleUpload(deviceOrEntity: string | Zh.Device | Zh.Endpoint, error: unknown, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const uploadState = normalizeW600WeeklyScheduleUploadState(globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY));
+    const message = typeof error === "string" && error.trim() !== "" ? error : "Unknown weekly schedule upload failure";
+
+    clearW600WeeklyScheduleUploadTimeout(storeKey);
+    globalStore.clearValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY);
+    logger.warning(`W600 ${describeW600WeeklyScheduleOperation(uploadState.operation)} failed for ${storeKey}: ${message}`, W600_NS);
+    return updateW600WeeklyScheduleUploadState(storeKey, {status: "failed", error: message}, publish);
+}
+
+function armW600WeeklyScheduleUploadTimeout(deviceOrEntity: string | Zh.Device | Zh.Endpoint, uploadId: string, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    clearW600WeeklyScheduleUploadTimeout(storeKey);
+
+    const timeout = setTimeout(() => {
+        const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY);
+
+        if (!stage || stage.uploadId !== uploadId) {
+            return;
+        }
+
+        failW600WeeklyScheduleUpload(storeKey, "Timed out waiting for the device to finish the weekly schedule OTA transfer", publish);
+    }, W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS).unref();
+    W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.set(storeKey, timeout);
+}
+
+function updateW600WeeklyScheduleOtaStage(deviceOrEntity: string | Zh.Device | Zh.Endpoint, partialStage: Partial<W600WeeklyScheduleOtaStage>) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY) as W600WeeklyScheduleOtaStage | undefined;
+
+    if (!stage || !Buffer.isBuffer(stage.image)) {
+        return undefined;
+    }
+
+    const nextStage: W600WeeklyScheduleOtaStage = {
+        ...stage,
+        ...partialStage,
+        lastActivityAt: Date.now(),
+    };
+
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY, nextStage);
+    return nextStage;
+}
+
+function markW600WeeklyScheduleUploadStarted(deviceOrEntity: string | Zh.Device | Zh.Endpoint, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const currentState = normalizeW600WeeklyScheduleUploadState(globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY));
+    const stage = updateW600WeeklyScheduleOtaStage(storeKey, {});
+
+    if (!stage) {
+        return undefined;
+    }
+
+    const shouldPublish = currentState.status !== "in_progress" || currentState.uploadId !== stage.uploadId || currentState.error !== "";
+
+    if (shouldPublish) {
+        logger.info(
+            `W600 ${describeW600WeeklyScheduleOperation(stage.operation)} started for ${storeKey}; image size ${stage.image.length} bytes`,
+            W600_NS,
+        );
+    }
+
+    armW600WeeklyScheduleUploadTimeout(storeKey, stage.uploadId, publish);
+    return updateW600WeeklyScheduleUploadState(
+        storeKey,
+        {
+            status: "in_progress",
+            error: "",
+            operation: stage.operation,
+            recordCount: stage.recordCount,
+            uploadId: stage.uploadId,
+        },
+        shouldPublish ? publish : undefined,
+    );
+}
+
+function noteW600WeeklyScheduleUploadBlock(deviceOrEntity: string | Zh.Device | Zh.Endpoint, publish?: W600Publish) {
+    const stage = updateW600WeeklyScheduleOtaStage(deviceOrEntity, {});
+
+    if (!stage) {
+        return undefined;
+    }
+
+    armW600WeeklyScheduleUploadTimeout(deviceOrEntity, stage.uploadId, publish);
+    return stage;
+}
+
+function completeW600WeeklyScheduleUpload(deviceOrEntity: string | Zh.Device | Zh.Endpoint, publish?: W600Publish) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY) as Partial<W600WeeklyScheduleOtaStage> | undefined;
+    const operation = stage?.operation === "clear_schedule" ? "clear_schedule" : "save_schedule";
+
+    clearW600WeeklyScheduleUploadTimeout(storeKey);
+    globalStore.clearValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY);
+    logger.info(`W600 ${describeW600WeeklyScheduleOperation(operation)} completed for ${storeKey}`, W600_NS);
+    return updateW600WeeklyScheduleUploadState(storeKey, {status: "success", error: "", operation}, publish);
+}
+
+function getActiveW600WeeklyScheduleOtaStage(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const storeKey = getW600DeviceStoreKey(deviceOrEntity);
+    const stage = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY) as W600WeeklyScheduleOtaStage | undefined;
+
+    if (!stage || !Buffer.isBuffer(stage.image) || typeof stage.createdAt !== "number") {
+        return undefined;
+    }
+
+    const lastActivityAt = typeof stage.lastActivityAt === "number" ? stage.lastActivityAt : stage.createdAt;
+
+    if (Date.now() - lastActivityAt > W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS) {
+        failW600WeeklyScheduleUpload(storeKey, "Weekly schedule OTA stage expired before the transfer completed");
+        return undefined;
+    }
+
+    return stage;
+}
+
+function ensureNoActiveW600WeeklyScheduleUpload(deviceOrEntity: string | Zh.Device | Zh.Endpoint) {
+    const stage = getActiveW600WeeklyScheduleOtaStage(deviceOrEntity);
+
+    if (!stage) {
+        return;
+    }
+
+    const uploadState = normalizeW600WeeklyScheduleUploadState(
+        globalStore.getValue(getW600DeviceStoreKey(deviceOrEntity), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY),
+    );
+    throw new Error(
+        `A weekly schedule upload is already active (${uploadState.status}) for ${describeW600WeeklyScheduleOperation(stage.operation)}. ` +
+            "Wait for it to finish before starting another save or clear.",
+    );
+}
+
+function getCachedW600WeeklyScheduleDraft(entity: string | Zh.Device | Zh.Endpoint, meta: Tz.Meta | Fz.Meta) {
+    const draft = createEmptyW600WeeklyScheduleDraft();
+    const storeKey = getW600DeviceStoreKey(entity);
+    const cached = globalStore.getValue(storeKey, W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY) as Record<string, string> | undefined;
+
+    for (const {property} of W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS) {
+        if (typeof cached?.[property] === "string") {
+            draft[property] = cached[property];
+        } else if (typeof meta.state?.[property] === "string") {
+            draft[property] = meta.state[property] as string;
+        }
+    }
+
+    return draft;
+}
+
+function seedW600WeeklyScheduleDraftState(deviceOrEntity: string | Zh.Device | Zh.Endpoint, state: KeyValue) {
+    const draft = getCachedW600WeeklyScheduleDraft(deviceOrEntity, {state} as Fz.Meta);
+    Object.assign(state, buildW600WeeklyScheduleStatePayload(draft));
+}
+
+function stageW600WeeklyScheduleUpload(
+    entity: Zh.Device | Zh.Endpoint,
+    draft: Record<string, string>,
+    image: Buffer,
+    operation: W600WeeklyScheduleOperation,
+    recordCount: number,
+    publish?: W600Publish,
+) {
+    const storeKey = getW600DeviceStoreKey(entity);
+    const uploadId = `${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 10)}`;
+
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY, draft);
+    globalStore.putValue(storeKey, W600_WEEKLY_SCHEDULE_OTA_STAGE_STORE_KEY, {
+        createdAt: Date.now(),
+        lastActivityAt: Date.now(),
+        image,
+        operation,
+        recordCount,
+        uploadId,
+    } satisfies W600WeeklyScheduleOtaStage);
+    armW600WeeklyScheduleUploadTimeout(storeKey, uploadId, publish);
+    return updateW600WeeklyScheduleUploadState(storeKey, {status: "staged", error: "", operation, recordCount, uploadId});
+}
+
+function getNumericW600OtaRequestField(data: KeyValue | undefined, key: string) {
+    const value = data?.[key];
+
+    if (value == null) {
+        return undefined;
+    }
+
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : undefined;
+}
+
+function matchesW600WeeklyScheduleOtaRequest(data: KeyValue | undefined, requireFileVersion = false) {
+    if (
+        getNumericW600OtaRequestField(data, "manufacturerCode") !== manufacturerCode ||
+        getNumericW600OtaRequestField(data, "imageType") !== W600_WEEKLY_SCHEDULE_IMAGE_TYPE
+    ) {
+        return false;
+    }
+
+    return !requireFileVersion || getNumericW600OtaRequestField(data, "fileVersion") === W600_WEEKLY_SCHEDULE_FILE_VERSION;
+}
+
+function createW600ExternalTempSensor(): ModernExtend {
+    const readSensorState = async (entity: Zh.Endpoint) => {
+        await readW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE);
+    };
+
+    return {
+        exposes: [
+            e
+                .temperature_sensor_select(["internal", "external"])
+                .withAccess(ea.ALL)
+                .withLabel("Temperature source")
+                .withDescription("Choose whether the thermostat uses its internal sensor or data provided via 'External Sensor Temperature'"),
+            e
+                .external_temperature_input()
+                .withValueMin(-40)
+                .withValueMax(125)
+                .withValueStep(0.01)
+                .withDescription("Manual external temperature forwarded to the W600 when temperature source is external")
+                .withCategory("config"),
+        ],
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    const result: KeyValue = {};
+
+                    if (msg.data[W600_ATTR_SENSOR_SOURCE] === 0 || msg.data[W600_ATTR_SENSOR_SOURCE] === 1) {
+                        result.sensor = msg.data[W600_ATTR_SENSOR_SOURCE] === 1 ? "external" : "internal";
+                    }
+
+                    return Object.keys(result).length > 0 ? result : undefined;
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["sensor"],
+                convertSet: async (entity, key, value) => {
+                    assertEndpoint(entity);
+                    const sensor = parseW600SensorSelection(value, key);
+
+                    if (sensor === "external") {
+                        await writeW600LumiAttribute(
+                            entity,
+                            W600_ATTR_SENSOR_BINDING,
+                            buildW600ExternalTempSensorBindPayload(entity),
+                            Zcl.DataType.OCTET_STR,
+                        );
+                        await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 1);
+
+                        return {state: {sensor: "external"}};
+                    }
+
+                    await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 0);
+                    await writeW600LumiAttribute(
+                        entity,
+                        W600_ATTR_SENSOR_BINDING,
+                        buildW600ExternalTempSensorUnbindPayload(entity),
+                        Zcl.DataType.OCTET_STR,
+                    );
+
+                    return {state: {sensor: "internal"}};
+                },
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readSensorState(entity);
+                },
+            },
+            {
+                key: ["external_temperature_input"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const requestedSensor = meta.message?.sensor != null ? parseW600SensorSelection(meta.message.sensor, "sensor") : undefined;
+                    const currentSensor = getW600SensorSelectionFromState(meta.state?.sensor);
+                    const sensor = requestedSensor ?? currentSensor;
+
+                    if (sensor !== "external") {
+                        throw new Error("external_temperature_input can only be used when sensor is external");
+                    }
+
+                    const shouldRefreshBinding = currentSensor !== "external" || requestedSensor === "external";
+
+                    if (shouldRefreshBinding) {
+                        await writeW600LumiAttribute(
+                            entity,
+                            W600_ATTR_SENSOR_BINDING,
+                            buildW600ExternalTempSensorBindPayload(entity),
+                            Zcl.DataType.OCTET_STR,
+                        );
+                        await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 1);
+                    }
+
+                    const centiDegrees = parseW600ExternalTemperatureInput(value, key);
+                    await writeW600LumiAttribute(
+                        entity,
+                        W600_ATTR_SENSOR_BINDING,
+                        buildW600ExternalTemperaturePayload(entity, centiDegrees),
+                        Zcl.DataType.OCTET_STR,
+                    );
+
+                    return {
+                        state: {
+                            external_temperature_input: centiDegrees / 100,
+                            ...(shouldRefreshBinding ? {sensor: "external"} : {}),
+                        },
+                    };
+                },
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readSensorState(entity);
+                },
+            },
+        ],
+        configure: [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE], {manufacturerCode});
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function createW600Thermostat(): ModernExtend {
+    const extend = modernExtend.thermostat({
+        setpoints: {
+            values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
+        },
+        localTemperatureCalibration: {values: {min: -5, max: 5, step: 0.1}},
+        temperatureSetpointHoldDuration: true,
+        systemMode: {values: ["off", "heat", "auto"], configure: {skip: true}},
+        runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
+    });
+
+    const climateExpose = findW600ClimateExpose(extend);
+    climateExpose?.withPreset([...W600_PRESET_ORDER], "Selected preset scene");
+    climateExpose?.setAccess("preset", ea.ALL);
+    const holdDurationExpose = extend.exposes?.find(
+        (expose): expose is exposes.Numeric =>
+            typeof expose !== "function" && expose.type === "numeric" && expose.property === "temperature_setpoint_hold_duration",
+    );
+    holdDurationExpose
+        ?.withLabel("Manual Override Duration")
+        .withUnit("min")
+        .withCategory("config")
+        .withDescription("Duration in minutes for the current manual override. 0 means until next schedule event, 65535 means indefinitely.");
+    extend.exposes?.push(
+        e.binary("override_active", ea.STATE, true, false).withLabel("Manual Override").withDescription("Temporary manual override active"),
+    );
+
+    const thermostatConverter = {
+        cluster: W600_THERMOSTAT_CLUSTER,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+
+            if (result && msg.data.tempSetpointHold !== undefined) {
+                const holdProperty = postfixWithEndpointName("temperature_setpoint_hold", msg, model, meta);
+                result.override_active = msg.data.tempSetpointHold === 1;
+                delete result[holdProperty];
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+    const occupiedHeatingSetpointConverter = {
+        key: ["occupied_heating_setpoint"],
+        options: tz.thermostat_occupied_heating_setpoint.options,
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const result = await tz.thermostat_occupied_heating_setpoint.convertSet(entity, key, value, meta);
+            const resultState = result && "state" in result ? result.state : undefined;
+            const shouldUseHold = getRequestedW600ScheduleEnabled(meta) !== false;
+
+            if (shouldUseHold) {
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
+            }
+
+            startW600ManualCustomPresetSuppression(entity);
+
+            return {
+                state: {
+                    ...(resultState ?? {}),
+                    ...(shouldUseHold ? {system_mode: "auto", schedule: "ON", override_active: true} : {}),
+                    preset: "none",
+                },
+            };
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            await tz.thermostat_occupied_heating_setpoint.convertGet?.(entity, key, meta);
+        },
+    } satisfies Tz.Converter;
+
+    const systemModeConverter = {
+        key: ["system_mode"],
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const normalized = parseW600EnumName(value, {off: 0, heat: 1, auto: 2}, key);
+
+            if (normalized === "off") {
+                clearW600ManualCustomPresetSuppression(entity);
+                await writeW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE, 0);
+                await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+                return {state: {system_mode: "off", schedule: "OFF", override_active: false, running_state: "idle"}};
+            }
+
+            await writeW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE, 1);
+
+            if (normalized === "auto") {
+                clearW600ManualCustomPresetSuppression(entity);
+                await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 1);
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+                return {state: {system_mode: "auto", schedule: "ON", override_active: false}};
+            }
+
+            clearW600ManualCustomPresetSuppression(entity);
+            await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
+            await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+            return {state: {system_mode: "heat", schedule: "OFF", override_active: false}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await readW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE);
+            await readW600LumiAttribute(entity, W600_ATTR_SCHEDULE);
+            await entity.read(W600_THERMOSTAT_CLUSTER, ["tempSetpointHold"]);
+        },
+    } satisfies Tz.Converter;
+
+    const presetConverter = {
+        key: ["preset"],
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const normalized = parseW600EnumName(value, {none: 0, ...W600_PRESET_ID_BY_NAME}, key) as W600PresetOrNone;
+            const scheduleEnabled = getRequestedW600ScheduleEnabled(meta) !== false;
+
+            if (normalized === "none") {
+                startW600ManualCustomPresetSuppression(entity);
+
+                if (scheduleEnabled) {
+                    await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
+                    return {state: {system_mode: "auto", schedule: "ON", preset: "none", override_active: true}};
+                }
+
+                return {state: {preset: "none"}};
+            }
+
+            clearW600ManualCustomPresetSuppression(entity);
+            await writeW600LumiAttribute(entity, W600_ATTR_PRESET, W600_PRESET_ID_BY_NAME[normalized]);
+
+            if (scheduleEnabled) {
+                await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
+                return {state: {system_mode: "auto", schedule: "ON", preset: normalized, override_active: true}};
+            }
+
+            return {state: {preset: normalized}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await readW600LumiAttribute(entity, W600_ATTR_PRESET);
+        },
+    } satisfies Tz.Converter;
+
+    const holdDurationConverter = {
+        key: ["temperature_setpoint_hold_duration"],
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown) => {
+            assertEndpoint(entity);
+            const duration = Number(value);
+
+            if (!Number.isInteger(duration) || duration < 0 || duration > 65535) {
+                throw new Error(`${key} must be an integer between 0 and 65535`);
+            }
+
+            await entity.write(
+                W600_THERMOSTAT_CLUSTER,
+                {[W600_ATTR_TEMP_SETPOINT_HOLD_DURATION]: {value: duration, type: Zcl.DataType.UINT16}},
+                {writeUndiv: true},
+            );
+            return {state: {temperature_setpoint_hold_duration: duration}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await entity.read(W600_THERMOSTAT_CLUSTER, ["tempSetpointHoldDuration"]);
+        },
+    } satisfies Tz.Converter;
+
+    const runningStateConverter = {
+        key: ["running_state"],
+        convertGet: async (entity: Zh.Endpoint | Zh.Group) => {
+            assertEndpoint(entity);
+            await readW600LumiAttribute(entity, W600_ATTR_VALVE_POSITION);
+        },
+    } satisfies Tz.Converter;
+
+    extend.toZigbee = replaceToZigbeeConvertersInArray(
+        extend.toZigbee ?? [],
+        [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_temperature_setpoint_hold_duration],
+        [occupiedHeatingSetpointConverter, systemModeConverter, holdDurationConverter],
+    );
+    extend.toZigbee ??= [];
+    extend.toZigbee.push(presetConverter, runningStateConverter);
+
+    extend.fromZigbee = (extend.fromZigbee ?? []).map((converter) => (converter === fz.thermostat ? thermostatConverter : converter));
+    extend.fromZigbee.push(
+        {
+            cluster: W600_THERMOSTAT_CLUSTER,
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const device = meta.device ?? msg.device;
+                const result: KeyValue = {};
+                const hold = msg.data.tempSetpointHold !== undefined ? msg.data.tempSetpointHold === 1 : getW600OverrideActiveState(meta.state);
+                const heatingEnabled = parseW600HeatingEnabled(meta.state?.system_mode);
+                const scheduleEnabled = parseW600ScheduleEnabled(meta.state?.schedule);
+
+                if (msg.data.tempSetpointHold === 0) {
+                    clearW600ManualCustomPresetSuppression(device);
+                }
+
+                if (msg.data.tempSetpointHold !== undefined) {
+                    result.override_active = hold;
+                    const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled});
+
+                    if (systemMode) {
+                        result.system_mode = systemMode;
+                    }
+                }
+
+                if (isW600ManualCustomPresetSuppressionActive(device) && (msg.data.occupiedHeatingSetpoint !== undefined || hold === true)) {
+                    result.preset = "none";
+                }
+
+                return Object.keys(result).length > 0 ? result : undefined;
+            },
+        } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        {
+            cluster: W600_LUMI_CLUSTER,
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const device = meta.device ?? msg.device;
+                const result: KeyValue = {};
+                const heatingEnabled =
+                    msg.data[W600_ATTR_SYSTEM_MODE] !== undefined
+                        ? msg.data[W600_ATTR_SYSTEM_MODE] === 1
+                        : parseW600HeatingEnabled(meta.state?.system_mode);
+                const scheduleEnabled =
+                    msg.data[W600_ATTR_SCHEDULE] !== undefined ? msg.data[W600_ATTR_SCHEDULE] === 1 : parseW600ScheduleEnabled(meta.state?.schedule);
+                const runningState = deriveW600RunningStateFromValvePosition(msg.data[W600_ATTR_VALVE_POSITION]);
+
+                if (runningState) {
+                    result.running_state = runningState;
+                }
+
+                if (msg.data[W600_ATTR_SYSTEM_MODE] !== undefined || msg.data[W600_ATTR_SCHEDULE] !== undefined) {
+                    const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled});
+
+                    if (systemMode) {
+                        result.system_mode = systemMode;
+                    }
+
+                    if (heatingEnabled === false) {
+                        clearW600ManualCustomPresetSuppression(device);
+                        result.schedule = "OFF";
+                        result.override_active = false;
+                        result.running_state = "idle";
+
+                        if (parseW600ScheduleEnabled(meta.state?.schedule) !== false) {
+                            writeW600LumiAttribute(msg.endpoint, W600_ATTR_SCHEDULE, 0).catch((error) =>
+                                logger.warning(
+                                    `Failed to disable W600 schedule after heating was turned off for '${device.ieeeAddr}': ${error}`,
+                                    W600_NS,
+                                ),
+                            );
+                            msg.endpoint
+                                .write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0})
+                                .catch((error) =>
+                                    logger.warning(
+                                        `Failed to clear W600 manual override after heating was turned off for '${device.ieeeAddr}': ${error}`,
+                                        W600_NS,
+                                    ),
+                                );
+                        }
+                    }
+                }
+
+                const presetValue = msg.data[W600_ATTR_PRESET];
+
+                if (typeof presetValue === "number" && Object.hasOwn(W600_PRESET_BY_ID, presetValue)) {
+                    if (presetValue === 255) {
+                        startW600ManualCustomPresetSuppression(device);
+                        result.preset = "none";
+                    } else if (isW600ManualCustomPresetSuppressionActive(device)) {
+                        result.preset = "none";
+                    } else {
+                        clearW600ManualCustomPresetSuppression(device);
+                        result.preset = W600_PRESET_BY_ID[presetValue as keyof typeof W600_PRESET_BY_ID];
+                    }
+                }
+
+                return Object.keys(result).length > 0 ? result : undefined;
+            },
+        } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+    );
+
+    extend.configure ??= [];
+    const configureOverrideActive = modernExtend.setupConfigureForReporting(W600_THERMOSTAT_CLUSTER, "tempSetpointHold", {
+        config: {min: "MIN", max: "1_HOUR", change: 0},
+        access: ea.STATE_GET,
+    });
+
+    if (configureOverrideActive) {
+        extend.configure.push(configureOverrideActive);
+    }
+
+    extend.configure.push(async (device) => {
+        const endpoint = device.getEndpoint(1);
+        await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SYSTEM_MODE, W600_ATTR_SCHEDULE, W600_ATTR_PRESET], {manufacturerCode});
+        await safeW600Read(endpoint, W600_THERMOSTAT_CLUSTER, ["tempSetpointHold"]);
+    });
+
+    return extend;
+}
+
+function createW600ValvePosition(): ModernExtend {
+    return modernExtend.numeric<"manuSpecificLumi", ManuSpecificLumi>({
+        name: "position",
+        valueMin: 0,
+        valueMax: 100,
+        scale: 1,
+        precision: 2,
+        unit: "%",
+        access: "STATE_GET",
+        cluster: W600_LUMI_CLUSTER,
+        attribute: {ID: W600_ATTR_VALVE_POSITION, type: Zcl.DataType.SINGLE_PREC},
+        description: "Position of the valve, 100% is fully open",
+        label: "Valve position",
+        zigbeeCommandOptions: {manufacturerCode},
+    });
+}
+
+function createW600Schedule(): ModernExtend {
+    return {
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data[W600_ATTR_SCHEDULE] === undefined) {
+                        return;
+                    }
+
+                    const heatingEnabled =
+                        msg.data[W600_ATTR_SYSTEM_MODE] !== undefined
+                            ? msg.data[W600_ATTR_SYSTEM_MODE] === 1
+                            : parseW600HeatingEnabled(meta.state?.system_mode);
+
+                    if (heatingEnabled === false) {
+                        return buildW600ScheduleState(false);
+                    }
+
+                    return buildW600ScheduleState(msg.data[W600_ATTR_SCHEDULE] === 1);
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const enabled = parseRequiredW600BinaryEnabled(value, key);
+                    const heatingEnabled = parseW600HeatingEnabled(meta.state?.system_mode);
+
+                    if (enabled) {
+                        await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 1);
+
+                        const state: KeyValue = buildW600ScheduleState(true);
+                        const systemMode = deriveW600SystemMode({
+                            heatingEnabled,
+                            scheduleEnabled: true,
+                        });
+
+                        if (systemMode) {
+                            state.system_mode = systemMode;
+                        }
+
+                        return {state};
+                    }
+
+                    clearW600ManualCustomPresetSuppression(entity);
+                    await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 0});
+                    await writeW600LumiAttribute(entity, W600_ATTR_SCHEDULE, 0);
+
+                    const state: KeyValue = {...buildW600ScheduleState(false), override_active: false};
+                    const systemMode = deriveW600SystemMode({heatingEnabled, scheduleEnabled: false});
+
+                    if (systemMode) {
+                        state.system_mode = systemMode;
+                    }
+
+                    return {state};
+                },
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readW600LumiAttribute(entity, W600_ATTR_SCHEDULE);
+                },
+            },
+        ],
+        configure: [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SCHEDULE], {manufacturerCode});
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function createW600WeeklySchedule(): ModernExtend {
+    const dayDescription =
+        "Staged weekly schedule for this day. Use comma-delimited entries in the format HH:MM/preset, for example '08:00/home, 19:00/vacation'. Editing the text fields does not upload anything until Save schedule is triggered.";
+    const uploadStatusDescription = "Current state of the custom OTA transfer used to upload the weekly schedule to the thermostat.";
+    const onEvent: NonNullable<ModernExtend["onEvent"]> = [
+        (event) => {
+            const shouldSeedDraft =
+                event.type === "start" ||
+                event.type === "deviceJoined" ||
+                (event.type === "deviceInterview" && (event.data.status === "started" || event.data.status === "successful"));
+
+            if (!shouldSeedDraft) {
+                return;
+            }
+
+            seedW600WeeklyScheduleDraftState(event.data.device, event.data.state);
+
+            const uploadState = normalizeW600WeeklyScheduleUploadState(
+                globalStore.getValue(getW600DeviceStoreKey(event.data.device), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY),
+            );
+
+            globalStore.putValue(getW600DeviceStoreKey(event.data.device), W600_WEEKLY_SCHEDULE_UPLOAD_STATE_STORE_KEY, uploadState);
+            event.data.state.schedule_upload_status = uploadState.status;
+
+            if (event.type === "start") {
+                const endpoint = event.data.device.getEndpoint(1);
+                void safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SCHEDULE], {manufacturerCode});
+            }
+        },
+    ];
+
+    return {
+        exposes: [
+            ...W600_WEEKLY_SCHEDULE_DAY_DEFINITIONS.map(({label, property}) =>
+                e.text(property, ea.STATE_SET).withLabel(`${label} schedule`).withDescription(dayDescription).withCategory("config"),
+            ),
+            e
+                .enum("schedule_upload_status", ea.STATE, [...W600_WEEKLY_SCHEDULE_UPLOAD_STATUSES])
+                .withLabel("Schedule upload status")
+                .withDescription(uploadStatusDescription)
+                .withCategory("diagnostic"),
+            e
+                .enum("save_schedule", ea.SET, ["trigger"])
+                .withLabel("Save schedule")
+                .withDescription("Upload the weekly schedule to the thermostat")
+                .withCategory("config"),
+            e
+                .enum("clear_schedule", ea.SET, ["trigger"])
+                .withLabel("Clear schedule")
+                .withDescription("Clear all weekly schedule inputs and upload an empty schedule to the thermostat")
+                .withCategory("config"),
+        ],
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data[W600_ATTR_SCHEDULE] === undefined) {
+                        return;
+                    }
+
+                    const device = meta.device ?? msg.device;
+                    return getW600WeeklyScheduleUploadStatePayload(device);
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+            {
+                cluster: "genOta",
+                type: ["commandQueryNextImageRequest"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const device = meta.device ?? msg.device;
+                    const stage = getActiveW600WeeklyScheduleOtaStage(device);
+
+                    if (!stage) {
+                        return;
+                    }
+
+                    if (!matchesW600WeeklyScheduleOtaRequest(msg.data)) {
+                        await msg.endpoint.commandResponse(
+                            "genOta",
+                            "queryNextImageResponse",
+                            {status: Zcl.Status.NO_IMAGE_AVAILABLE},
+                            undefined,
+                            msg.meta.zclTransactionSequenceNumber,
+                        );
+                        return;
+                    }
+
+                    markW600WeeklyScheduleUploadStarted(device, publish);
+                    await msg.endpoint.commandResponse(
+                        "genOta",
+                        "queryNextImageResponse",
+                        {
+                            status: Zcl.Status.SUCCESS,
+                            manufacturerCode,
+                            imageType: W600_WEEKLY_SCHEDULE_IMAGE_TYPE,
+                            fileVersion: W600_WEEKLY_SCHEDULE_FILE_VERSION,
+                            imageSize: stage.image.length,
+                        },
+                        undefined,
+                        msg.meta.zclTransactionSequenceNumber,
+                    );
+                },
+            } satisfies Fz.Converter<"genOta", undefined, ["commandQueryNextImageRequest"]>,
+            {
+                cluster: "genOta",
+                type: ["commandImageBlockRequest"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const device = meta.device ?? msg.device;
+                    const stage = getActiveW600WeeklyScheduleOtaStage(device);
+
+                    if (!stage) {
+                        return;
+                    }
+
+                    if (!matchesW600WeeklyScheduleOtaRequest(msg.data, true)) {
+                        await msg.endpoint.commandResponse(
+                            "genOta",
+                            "imageBlockResponse",
+                            {status: Zcl.Status.INVALID_IMAGE},
+                            undefined,
+                            msg.meta.zclTransactionSequenceNumber,
+                        );
+                        return;
+                    }
+
+                    markW600WeeklyScheduleUploadStarted(device, publish);
+                    const fileOffset = Number(msg.data.fileOffset);
+                    const maximumDataSize = Number(msg.data.maximumDataSize);
+
+                    if (
+                        !Number.isInteger(fileOffset) ||
+                        !Number.isInteger(maximumDataSize) ||
+                        fileOffset < 0 ||
+                        maximumDataSize <= 0 ||
+                        fileOffset >= stage.image.length
+                    ) {
+                        failW600WeeklyScheduleUpload(
+                            device,
+                            `Received invalid image block request (offset=${String(msg.data.fileOffset)}, maximumDataSize=${String(msg.data.maximumDataSize)})`,
+                            publish,
+                        );
+                        await msg.endpoint.commandResponse(
+                            "genOta",
+                            "imageBlockResponse",
+                            {status: Zcl.Status.ABORT},
+                            undefined,
+                            msg.meta.zclTransactionSequenceNumber,
+                        );
+                        return;
+                    }
+
+                    const chunk = stage.image.subarray(fileOffset, Math.min(stage.image.length, fileOffset + maximumDataSize));
+                    noteW600WeeklyScheduleUploadBlock(device, publish);
+                    await msg.endpoint.commandResponse(
+                        "genOta",
+                        "imageBlockResponse",
+                        {
+                            status: Zcl.Status.SUCCESS,
+                            manufacturerCode,
+                            imageType: W600_WEEKLY_SCHEDULE_IMAGE_TYPE,
+                            fileVersion: W600_WEEKLY_SCHEDULE_FILE_VERSION,
+                            fileOffset,
+                            dataSize: chunk.length,
+                            data: chunk,
+                        },
+                        undefined,
+                        msg.meta.zclTransactionSequenceNumber,
+                    );
+                },
+            } satisfies Fz.Converter<"genOta", undefined, ["commandImageBlockRequest"]>,
+            {
+                cluster: "genOta",
+                type: ["commandUpgradeEndRequest"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const device = meta.device ?? msg.device;
+                    const stage = getActiveW600WeeklyScheduleOtaStage(device);
+
+                    if (!stage) {
+                        return;
+                    }
+
+                    if (!matchesW600WeeklyScheduleOtaRequest(msg.data, true)) {
+                        return;
+                    }
+
+                    const upgradeStatus = getNumericW600OtaRequestField(msg.data, "status");
+
+                    if (upgradeStatus != null && upgradeStatus !== 0) {
+                        failW600WeeklyScheduleUpload(device, `Device ended the OTA transfer with status ${String(msg.data.status)}`, publish);
+                        return;
+                    }
+
+                    await msg.endpoint.commandResponse(
+                        "genOta",
+                        "upgradeEndResponse",
+                        {
+                            manufacturerCode,
+                            imageType: W600_WEEKLY_SCHEDULE_IMAGE_TYPE,
+                            fileVersion: W600_WEEKLY_SCHEDULE_FILE_VERSION,
+                            currentTime: 0,
+                            upgradeTime: 0,
+                        },
+                        undefined,
+                        msg.meta.zclTransactionSequenceNumber,
+                    );
+                    completeW600WeeklyScheduleUpload(device, publish);
+                },
+            } satisfies Fz.Converter<"genOta", undefined, ["commandUpgradeEndRequest"]>,
+        ],
+        toZigbee: [
+            {
+                key: [...W600_WEEKLY_SCHEDULE_DAY_PROPERTIES],
+                convertSet: (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const draft = getCachedW600WeeklyScheduleDraft(entity, meta);
+                    const transitions = parseW600ScheduleDayTransitions(value, key);
+                    draft[key] = formatW600ScheduleDayTransitions(transitions);
+                    globalStore.putValue(getW600DeviceStoreKey(entity), W600_WEEKLY_SCHEDULE_DRAFT_STORE_KEY, draft);
+                    return {state: {[key]: draft[key] === "" ? null : draft[key]}};
+                },
+            },
+            {
+                key: ["save_schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    parseW600ScheduleTriggerValue(value, key);
+                    ensureNoActiveW600WeeklyScheduleUpload(entity);
+                    const draft = getCachedW600WeeklyScheduleDraft(entity, meta);
+
+                    for (const property of W600_WEEKLY_SCHEDULE_DAY_PROPERTIES) {
+                        if (meta.message?.[property] !== undefined) {
+                            draft[property] = meta.message[property] as string;
+                        }
+                    }
+
+                    const normalized = normalizeW600WeeklyScheduleDraft(draft);
+                    const image = buildW600WeeklyScheduleImage(normalized.records);
+                    const uploadState = stageW600WeeklyScheduleUpload(
+                        entity,
+                        normalized.draft,
+                        image,
+                        "save_schedule",
+                        normalized.records.length,
+                        meta.publish,
+                    );
+
+                    logger.info(
+                        `Staged W600 save schedule upload for ${getW600DeviceStoreKey(entity)} with ${normalized.records.length} entries (${image.length} bytes)`,
+                        W600_NS,
+                    );
+
+                    try {
+                        await entity.commandResponse(
+                            "genOta",
+                            "imageNotify",
+                            {payloadType: 0, queryJitter: W600_WEEKLY_SCHEDULE_IMAGE_NOTIFY_QUERY_JITTER},
+                            {sendPolicy: "immediate"},
+                        );
+                    } catch (error) {
+                        const details = error instanceof Error ? error.message : String(error);
+                        failW600WeeklyScheduleUpload(entity, `Failed to send imageNotify: ${details}`, meta.publish);
+                        throw error;
+                    }
+
+                    return {state: {...buildW600WeeklyScheduleStatePayload(normalized.draft), ...uploadState.state}};
+                },
+            },
+            {
+                key: ["clear_schedule"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    parseW600ScheduleTriggerValue(value, key);
+                    ensureNoActiveW600WeeklyScheduleUpload(entity);
+                    const draft = createEmptyW600WeeklyScheduleDraft();
+                    const image = buildW600WeeklyScheduleImage([]);
+                    const uploadState = stageW600WeeklyScheduleUpload(entity, draft, image, "clear_schedule", 0, meta.publish);
+
+                    logger.info(`Staged W600 clear schedule upload for ${getW600DeviceStoreKey(entity)} (${image.length} bytes)`, W600_NS);
+
+                    try {
+                        await entity.commandResponse(
+                            "genOta",
+                            "imageNotify",
+                            {payloadType: 0, queryJitter: W600_WEEKLY_SCHEDULE_IMAGE_NOTIFY_QUERY_JITTER},
+                            {sendPolicy: "immediate"},
+                        );
+                    } catch (error) {
+                        const details = error instanceof Error ? error.message : String(error);
+                        failW600WeeklyScheduleUpload(entity, `Failed to send imageNotify: ${details}`, meta.publish);
+                        throw error;
+                    }
+
+                    return {state: {...buildW600WeeklyScheduleStatePayload(draft), ...uploadState.state}};
+                },
+            },
+        ],
+        onEvent,
+        isModernExtend: true,
+    };
+}
+
+function createW600PresetTemperatureTable(): ModernExtend {
+    return {
+        exposes: W600_PRESET_TEMPERATURE_DEFINITIONS.map(({property, label, description}) =>
+            e
+                .numeric(property, ea.ALL)
+                .withLabel(label)
+                .withValueMin(5)
+                .withValueMax(30)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription(description)
+                .withCategory("config"),
+        ),
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const value = msg.data[W600_ATTR_PRESET_TEMPERATURE_TABLE];
+
+                    if (!Buffer.isBuffer(value) || value.length === 0) {
+                        return;
+                    }
+
+                    const table = decodeW600PresetTemperatureTable(value);
+
+                    if (!table) {
+                        return;
+                    }
+
+                    const device = meta.device ?? msg.device;
+                    globalStore.putValue(getW600DeviceStoreKey(device), W600_PRESET_TABLE_STORE_KEY, table);
+
+                    const result: KeyValue = {};
+
+                    for (const [presetName, centiDegrees] of Object.entries(table)) {
+                        result[W600_PROPERTY_BY_PRESET_NAME[presetName as W600PresetName]] = centiDegrees / 100;
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: W600_PRESET_TEMPERATURE_DEFINITIONS.map(({property}) => property),
+                convertSet: async (entity, key, value, meta) => {
+                    assertEndpoint(entity);
+                    const presetName = W600_PRESET_NAME_BY_PROPERTY[key];
+                    const table = getCachedW600PresetTemperatureTable(entity, meta);
+
+                    if (!table) {
+                        throw new Error("Preset temperature table is unknown. Read the preset temperature properties first.");
+                    }
+
+                    table[presetName] = parseW600HalfDegreeTemperature(value, key, 5, 30);
+                    await writeW600LumiAttribute(
+                        entity,
+                        W600_ATTR_PRESET_TEMPERATURE_TABLE,
+                        encodeW600PresetTemperatureTable(table),
+                        Zcl.DataType.OCTET_STR,
+                    );
+                    globalStore.putValue(getW600DeviceStoreKey(entity), W600_PRESET_TABLE_STORE_KEY, table);
+
+                    return {state: {[key]: table[presetName] / 100}};
+                },
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readW600LumiAttribute(entity, W600_ATTR_PRESET_TEMPERATURE_TABLE);
+                },
+            },
+        ],
+        configure: [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_PRESET_TEMPERATURE_TABLE], {manufacturerCode});
+            },
+        ],
+        isModernExtend: true,
+    };
+}
 
 const feederDaysLookup = {
     127: "everyday",
@@ -3962,7 +6262,7 @@ export const fromZigbee = {
                 if (msg.data.presentValue === 0) {
                     // Aqara Opple does not generate a release event when pressed for more than 5 seconds
                     // After 5 seconds of not releasing we assume release.
-                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
+                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000).unref();
                     globalStore.putValue(msg.endpoint, "timer", timer);
                 }
                 return {action: `button_${button}_${action}`};
@@ -4325,7 +6625,7 @@ export const fromZigbee = {
                 if (timeout !== 0) {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
-                    }, timeout * 1000);
+                    }, timeout * 1000).unref();
 
                     globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
                 }
@@ -4499,7 +6799,7 @@ export const fromZigbee = {
                     if (timeout !== 0) {
                         const timer = setTimeout(() => {
                             publish({vibration: false});
-                        }, timeout * 1000);
+                        }, timeout * 1000).unref();
 
                         globalStore.putValue(msg.endpoint, "vibration_timer", timer);
                     }
@@ -4592,7 +6892,7 @@ export const fromZigbee = {
             if (timeout !== 0) {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
-                }, timeout * 1000);
+                }, timeout * 1000).unref();
 
                 globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
             }
@@ -4947,10 +7247,10 @@ export const fromZigbee = {
                     globalStore.putValue(msg.endpoint, "hold", Date.now());
                     const holdTimer = setTimeout(() => {
                         globalStore.putValue(msg.endpoint, "hold", false);
-                    }, options.hold_timeout_expire || 4000);
+                    }, options.hold_timeout_expire || 4000).unref();
                     globalStore.putValue(msg.endpoint, "hold_timer", holdTimer);
                     // After 4000 milliseconds of not receiving release we assume it will not happen.
-                }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+                }, options.hold_timeout || 1000).unref(); // After 1000 milliseconds of not releasing we assume hold.
                 globalStore.putValue(msg.endpoint, "timer", timer);
             } else if (state === 1) {
                 if (globalStore.getValue(msg.endpoint, "hold")) {
@@ -5229,6 +7529,98 @@ export const fromZigbee = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+
+    lumi_toilet: {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            Object.entries(msg.data).forEach(([key, value]) => {
+                switch (Number.parseInt(key, 10)) {
+                    case 0xfff1: {
+                        // @ts-expect-error ignore
+                        if (value.length < 8) {
+                            logger.debug(`Cannot handle ${value}, frame too small`, "zhc:lumi:toilet");
+                            return;
+                        }
+                        // @ts-expect-error ignore
+                        const attr = value.slice(3, 7);
+                        // @ts-expect-error ignore
+                        const len = value.slice(7, 8).readUInt8();
+                        // @ts-expect-error ignore
+                        const val = value.slice(8, 8 + len);
+                        switch (attr.readInt32BE()) {
+                            case 0x04030055:
+                                result.lid_switch = val.readUInt8() === 1 ? "OPEN" : "CLOSE";
+                                break;
+                            case 0x04040055:
+                                result.seat_switch = val.readUInt8() === 1 ? "OPEN" : "CLOSE";
+                                break;
+                            case 0x04200055:
+                                result.night_light = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x0e2f0055:
+                                result.seat_temp = ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"][val.readUInt32BE()];
+                                break;
+                            case 0x0e300055:
+                                result.cleaning_mode = ["Stop", "Rear", "Rear_Moving", "Female", "Female_Moving", "Child"][val.readUInt32BE()];
+                                break;
+                            case 0x0e340055:
+                                result.nozzle_position = ["Back", "Slightly_Back", "Middle", "Slightly_Front", "Front"][val.readUInt32BE()];
+                                break;
+                            case 0x0e330055:
+                                result.water_pressure = ["Weak", "Slightly_Weak", "Middle", "Slightly_Strong", "Strong"][val.readUInt32BE()];
+                                break;
+                            case 0x0e320055:
+                                result.water_temp = ["Off", "Temp_31C", "Temp_33C", "Temp_35C", "Temp_37C", "Temp_39C"][val.readUInt32BE()];
+                                break;
+                            case 0x0e350055:
+                                result.dryer_temp = ["Off", "Normal", "Low", "Mid_Low", "Middle", "Mid_High", "High"][val.readUInt32BE()];
+                                break;
+                            case 0x0e270055:
+                                result.nozzle_clean = ["Off", "Auto", "Manual"][val.readUInt32BE()];
+                                break;
+                            case 0x03010055:
+                                result.occupancy_status = val.readUInt8() === 1;
+                                break;
+                            case 0x041a0055:
+                                result.foot_sensor_switch = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x041f0055:
+                                result.auto_flush_after_leave = val.readUInt8() === 0 ? "ON" : "OFF";
+                                break;
+                            case 0x04220055:
+                                result.beeper_switch = val.readUInt8() === 0 ? "ON" : "OFF";
+                                break;
+                            case 0x04240055:
+                                result.child_seat_mode = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x04250055:
+                                result.pre_mist_switch = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x04420055:
+                                result.auto_foam_on_sit = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            case 0x04430055:
+                                result.auto_foam_on_leave = val.readUInt8() === 1 ? "ON" : "OFF";
+                                break;
+                            default:
+                                logger.debug(`Unknown attribute ${attr} = ${val}`, "zhc:lumi:toilet");
+                        }
+                        break;
+                    }
+                    case 0x00ff:
+                    case 0x0007:
+                    case 0x00f7:
+                        logger.debug(`Unhandled key ${key} = ${value}`, "zhc:lumi:toilet");
+                        break;
+                    default:
+                        logger.debug(`Unknown key ${key} = ${value}`, "zhc:lumi:toilet");
+                }
+            });
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
 };
 
 export const toZigbee = {
@@ -5723,55 +8115,14 @@ export const toZigbee = {
 
             const command = commandWrapper.payload.command;
 
-            logger.debug(`Trying to create region ${command.region_id}`, NS);
+            await writeAqaraFp1RegionUpsert(entity, {regionId: command.region_id, zones: command.zones});
 
-            const sortedZonesAccumulator = {};
-            const sortedZonesWithSets: {[s: number]: [number]} = command.zones.reduce(
-                (accumulator: {[s: number]: Set<number>}, zone: {x: number; y: number}) => {
-                    if (!accumulator[zone.y]) {
-                        accumulator[zone.y] = new Set<number>();
-                    }
-
-                    accumulator[zone.y].add(zone.x);
-
-                    return accumulator;
-                },
-                sortedZonesAccumulator,
-            );
-            const sortedZones = Object.entries(sortedZonesWithSets).reduce(
-                (acc, [key, value]) => {
-                    const numKey = Number.parseInt(key, 10); // Convert string key back to number
-                    acc[numKey] = Array.from(value);
-                    return acc;
-                },
-                {} as {[s: number]: number[]},
-            );
-
-            const deviceConfig = new Uint8Array(7);
-
-            // Command parameters
-            deviceConfig[0] = presence.constants.region_config_cmds.create;
-            deviceConfig[1] = command.region_id;
-            deviceConfig[6] = presence.constants.region_config_cmd_suffix_upsert;
-            // Zones definition
-            deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["1"]);
-            deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["2"]) << 4;
-            deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["3"]);
-            deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["4"]) << 4;
-            deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["5"]);
-            deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["6"]) << 4;
-            deviceConfig[5] |= presence.encodeXCellsDefinition(sortedZones["7"]);
-
-            logger.info(`Create region ${command.region_id} ${printNumbersAsHexSequence([...deviceConfig], 2)}`, NS);
-
-            const payload = {
-                [presence.constants.region_config_write_attribute]: {
-                    value: deviceConfig,
-                    type: presence.constants.region_config_write_attribute_type,
-                },
+            return {
+                state: upsertConfiguredPresenceRegion(meta.state, {
+                    regionId: command.region_id,
+                    zones: command.zones,
+                }),
             };
-
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_presence_region_delete: {
@@ -5789,30 +8140,11 @@ export const toZigbee = {
             }
             const command = commandWrapper.payload.command;
 
-            logger.debug(`trying to delete region ${command.region_id}`, NS);
+            await writeAqaraFp1RegionDelete(entity, {regionId: command.region_id});
 
-            const deviceConfig = new Uint8Array(7);
-
-            // Command parameters
-            deviceConfig[0] = presence.constants.region_config_cmds.delete;
-            deviceConfig[1] = command.region_id;
-            deviceConfig[6] = presence.constants.region_config_cmd_suffix_delete;
-            // Zones definition
-            deviceConfig[2] = 0;
-            deviceConfig[3] = 0;
-            deviceConfig[4] = 0;
-            deviceConfig[5] = 0;
-
-            logger.info(`Delete region ${command.region_id} (${printNumbersAsHexSequence([...deviceConfig], 2)})`, NS);
-
-            const payload = {
-                [presence.constants.region_config_write_attribute]: {
-                    value: deviceConfig,
-                    type: presence.constants.region_config_write_attribute_type,
-                },
+            return {
+                state: deleteConfiguredPresenceRegion(meta.state, command.region_id),
             };
-
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_cube_operation_mode: {
@@ -6688,12 +9020,12 @@ export const toZigbee = {
                                 if (result2 && desiredStates.includes(result2[0x0421] as number)) {
                                     resolve();
                                 } else {
-                                    setTimeout(checkDesiredState, 500);
+                                    setTimeout(checkDesiredState, 500).unref();
                                 }
                             };
-                            setTimeout(checkDesiredState, 500);
+                            setTimeout(checkDesiredState, 500).unref();
                         } else {
-                            setTimeout(checkState, 500);
+                            setTimeout(checkState, 500).unref();
                         }
                     };
                     void checkState();
@@ -7258,6 +9590,130 @@ export const toZigbee = {
             logger.info(`Aqara W100: thermostat_mode set to ${value}`, NS);
             const defaults = w100EnsureDefaults(meta);
             return {state: {...defaults, thermostat_mode: value}};
+        },
+    } satisfies Tz.Converter,
+
+    lumi_toilet: {
+        key: [
+            "lid_switch",
+            "seat_switch",
+            "night_light",
+            "seat_temp",
+            "cleaning_mode",
+            "nozzle_position",
+            "water_pressure",
+            "water_temp",
+            "dryer_temp",
+            "nozzle_clean",
+            "stop_button",
+            "flush_big",
+            "flush_small",
+            "foam_shield",
+            "foot_sensor_switch",
+            "auto_flush_after_leave",
+            "beeper_switch",
+            "child_seat_mode",
+            "pre_mist_switch",
+            "auto_foam_on_sit",
+            "auto_foam_on_leave",
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            const sendAttr = async (attrCode: number, value: number, length: number) => {
+                // @ts-expect-error ignore
+                entity.sendSeq = ((entity.sendSeq || 0) + 1) % 256;
+                // @ts-expect-error ignore
+                const val = Buffer.from([0x00, 0x02, entity.sendSeq, 0, 0, 0, 0, 0]);
+                // @ts-expect-error ignore
+                entity.sendSeq += 1;
+                val.writeInt32BE(attrCode, 3);
+                val.writeUInt8(length, 7);
+                let v = Buffer.alloc(length);
+                switch (length) {
+                    case 1:
+                        v.writeUInt8(value);
+                        break;
+                    case 2:
+                        v.writeUInt16BE(value);
+                        break;
+                    case 4:
+                        v.writeUInt32BE(value);
+                        break;
+                    default:
+                        // @ts-expect-error ignore
+                        v = value;
+                }
+                await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+                    "manuSpecificLumi",
+                    {65521: {value: Buffer.concat([val, v]), type: 0x41}},
+                    {manufacturerCode: manufacturerCode},
+                );
+            };
+            switch (key) {
+                case "lid_switch":
+                    await sendAttr(0x04030055, getFromLookup(value, {CLOSE: 0, OPEN: 1}), 1);
+                    break;
+                case "seat_switch":
+                    await sendAttr(0x04040055, getFromLookup(value, {CLOSE: 0, OPEN: 1}), 1);
+                    break;
+                case "night_light":
+                    await sendAttr(0x04200055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "seat_temp":
+                    await sendAttr(0x0e2f0055, getFromLookup(value, {off: 0, temp_31c: 1, temp_33c: 2, temp_35c: 3, temp_37c: 4, temp_39c: 5}), 4);
+                    break;
+                case "cleaning_mode":
+                    await sendAttr(0x0e300055, getFromLookup(value, {stop: 0, rear: 1, rear_moving: 2, female: 3, female_moving: 4, child: 5}), 4);
+                    break;
+                case "nozzle_position":
+                    await sendAttr(0x0e340055, getFromLookup(value, {back: 0, slightly_back: 1, middle: 2, slightly_front: 3, front: 4}), 4);
+                    break;
+                case "water_pressure":
+                    await sendAttr(0x0e330055, getFromLookup(value, {weak: 0, slightly_weak: 1, middle: 2, slightly_strong: 3, strong: 4}), 4);
+                    break;
+                case "water_temp":
+                    await sendAttr(0x0e320055, getFromLookup(value, {off: 0, temp_31c: 1, temp_33c: 2, temp_35c: 3, temp_37c: 4, temp_39c: 5}), 4);
+                    break;
+                case "dryer_temp":
+                    await sendAttr(0x0e350055, getFromLookup(value, {off: 0, normal: 1, low: 2, mid_low: 3, middle: 4, mid_high: 5, high: 6}), 4);
+                    break;
+                case "nozzle_clean":
+                    await sendAttr(0x0e270055, getFromLookup(value, {off: 0, auto: 1, manual: 2}), 4);
+                    break;
+                case "stop_button":
+                    await sendAttr(0x04010055, 1, 1);
+                    break;
+                case "flush_big":
+                    await sendAttr(0x04070055, 1, 1);
+                    break;
+                case "flush_small":
+                    await sendAttr(0x04020055, 1, 1);
+                    break;
+                case "foam_shield":
+                    await sendAttr(0x04190055, 0, 1);
+                    break;
+                case "foot_sensor_switch":
+                    await sendAttr(0x041a0055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "auto_flush_after_leave":
+                    await sendAttr(0x041f0055, getFromLookup(value, {ON: 0, OFF: 1}), 1);
+                    break;
+                case "beeper_switch":
+                    await sendAttr(0x04220055, getFromLookup(value, {ON: 0, OFF: 1}), 1);
+                    break;
+                case "child_seat_mode":
+                    await sendAttr(0x04240055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "pre_mist_switch":
+                    await sendAttr(0x04250055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "auto_foam_on_sit":
+                    await sendAttr(0x04420055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+                case "auto_foam_on_leave":
+                    await sendAttr(0x04430055, getFromLookup(value, {OFF: 0, ON: 1}), 1);
+                    break;
+            }
+            return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
 };

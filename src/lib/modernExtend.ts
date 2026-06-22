@@ -35,6 +35,7 @@ import type {
     LevelConfigFeatures,
     ModernExtend,
     OnEvent,
+    PowerSource,
     Range,
     Tz,
     Zh,
@@ -48,12 +49,12 @@ import {
     exposeEndpoints,
     flatten,
     getEndpointName,
+    getEndpointsWithCluster,
     getFromLookup,
     getFromLookupByValue,
     getOptions,
     hasAlreadyProcessedMessage,
     isEndpoint,
-    isNumber,
     isObject,
     isString,
     noOccupancySince,
@@ -62,20 +63,6 @@ import {
     splitArrayIntoChunks,
     toNumber,
 } from "./utils";
-
-function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
-    if (!device.endpoints) {
-        throw new Error(`${device.ieeeAddr} ${device.endpoints}`);
-    }
-    const endpoints =
-        type === "input"
-            ? device.endpoints.filter((ep) => ep.getInputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)))
-            : device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)));
-    if (endpoints.length === 0) {
-        throw new Error(`Device ${device.ieeeAddr} has no ${type} cluster ${cluster}`);
-    }
-    return endpoints;
-}
 
 const NS = "zhc:modernextend";
 
@@ -307,7 +294,7 @@ export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExt
     return {configure, isModernExtend: true};
 }
 
-export function forcePowerSource(args: {powerSource: "Mains (single phase)" | "Battery"}): ModernExtend {
+export function forcePowerSource(args: {powerSource: PowerSource}): ModernExtend {
     const configure: Configure[] = [
         (device, coordinatorEndpoint, definition) => {
             device.powerSource = args.powerSource;
@@ -512,7 +499,9 @@ export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">>
         name: "device_temperature",
         cluster: "genDeviceTempCfg",
         attribute: "currentTemperature",
-        reporting: {min: "5_MINUTES", max: "1_HOUR", change: 1},
+        // Attribute does not support reporting according to the spec
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12199
+        reporting: false, // {min: "5_MINUTES", max: "1_HOUR", change: 1},
         description: "Temperature of the device",
         unit: "°C",
         access: "STATE_GET",
@@ -675,8 +664,11 @@ export function poll(args: {
 
                 clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
 
-                if (seconds <= 0) {
-                    logger.debug(`Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds})`, NS);
+                if (seconds <= 0 || event.data.options.disabled) {
+                    logger.debug(
+                        `Not polling '${args.key}' for '${event.data.device.ieeeAddr}' since poll interval is <= 0 (got ${seconds}) or disabled`,
+                        NS,
+                    );
                 } else {
                     logger.debug(`Polling '${args.key}' for '${event.data.device.ieeeAddr}' at an interval of ${seconds}`, NS);
                     const setTimer = () => {
@@ -689,7 +681,7 @@ export function poll(args: {
                             if (globalStore.getValue(event.data.device.ieeeAddr, args.key) === timer) {
                                 setTimer();
                             }
-                        }, seconds * 1000);
+                        }, seconds * 1000).unref();
                         globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
                     };
                     setTimer();
@@ -734,7 +726,8 @@ export function iasArmCommandDefaultResponse(): ModernExtend {
     return {fromZigbee: [converter], isModernExtend: true};
 }
 
-export function iasGetPanelStatusResponse(): ModernExtend {
+export function iasGetPanelStatusResponse(options?: {audiblenotif?: number}): ModernExtend {
+    const defaultAudibleNotif = options?.audiblenotif ?? 0;
     const converter: Fz.Converter<"ssIasAce", undefined, ["commandGetPanelStatus"]> = {
         cluster: "ssIasAce",
         type: ["commandGetPanelStatus"],
@@ -745,7 +738,7 @@ export function iasGetPanelStatusResponse(): ModernExtend {
                 const payload = {
                     panelstatus: globalStore.getValue(msg.endpoint, "panelStatus"),
                     secondsremain: Math.min(secondsRemain, constants.iasMaxSecondsRemain),
-                    audiblenotif: 0x00,
+                    audiblenotif: globalStore.getValue(msg.endpoint, "audibleNotif", defaultAudibleNotif),
                     alarmstatus: 0x00,
                 };
                 assertNumber(msg.meta.zclTransactionSequenceNumber);
@@ -780,11 +773,14 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
                             const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
                             payload.time = secondsUTC - new Date().getTimezoneOffset() * 60;
                         }
+
+                        // XXX: we're replying to specific attributes, which could be incorrect (not based on the request attrIds)
                         endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, payload).catch((e) => {
                             logger.warning(`Custom time response failed for '${event.data.device.ieeeAddr}': ${e}`, "zhc:customtimeresponse");
                         });
                         return true;
                     }
+
                     return false;
                 };
             }
@@ -1188,7 +1184,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         ? {
               modes: ["xy"] satisfies ("xy" | "hs")[],
               applyRedFix: false,
-              enhancedHue: true,
+              enhancedHue: false,
               ...(isObject(color) ? color : {}),
           }
         : false;
@@ -1239,8 +1235,8 @@ export function light(args: LightArgs = {}): ModernExtend {
         if (argsColor.applyRedFix) {
             meta.applyRedFix = true;
         }
-        if (!argsColor.enhancedHue) {
-            meta.supportsEnhancedHue = false;
+        if (argsColor.enhancedHue) {
+            meta.supportsEnhancedHue = true;
         }
     }
 
@@ -1739,7 +1735,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     const timeout = options?.[timeoutProperty] != null ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
                     if (timeout !== 0) {
-                        const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
+                        const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000).unref();
                         globalStore.putValue(msg.endpoint, "timer", timer);
                     }
                 }
@@ -1798,7 +1794,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         clearTimeout(globalStore.getValue(msg.endpoint, "timeout"));
                         if (addTimeout) {
                             // At least one zone active
-                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000);
+                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000).unref();
                             globalStore.putValue(msg.endpoint, "timeout", timer);
                         } else {
                             globalStore.clearValue(msg.endpoint, "timeout");
@@ -2418,7 +2414,7 @@ export function gasMeter(args: GasMeterArgs = {}): ModernExtend {
 // #region Other extends
 
 /**
- * Version of the GP spec: 1.1.1
+ * Version of the GP spec: 1.1.2
  */
 export const GPDF_COMMANDS: Record<number, string> = {
     /*0x00*/ 0: "identify",
@@ -2512,12 +2508,9 @@ export function genericGreenPower(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
                 if (commandID >= 0xe0) return; // Skip op commands
 
-                const gpdfCommandStr = GPDF_COMMANDS[commandID];
-                const payloadBuf = "raw" in msg.data.commandFrame ? msg.data.commandFrame.raw : undefined;
-
                 return {
-                    action: gpdfCommandStr ?? `unknown_${commandID}`,
-                    payload: payloadBuf?.length > 0 ? Array.from(payloadBuf) : [],
+                    action: GPDF_COMMANDS[commandID] ?? `unknown_${commandID}`,
+                    payload: "raw" in msg.data.commandFrame ? Array.from(msg.data.commandFrame.raw) : [],
                 };
             },
         } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
@@ -3196,36 +3189,18 @@ export interface ThermostatArgs {
     localTemperatureCalibration?: Omit<ValuesWithModernExtendConfiguration<true | MinMaxStep>, "fromZigbee">;
     setpoints: Omit<ValuesWithModernExtendConfiguration<Partial<Record<keyof typeof SETPOINT_LOOKUP, MinMaxStep>>>, "fromZigbee">;
     setpointsLimit?: Partial<Record<keyof typeof SETPOINT_LIMIT_LOOKUP, MinMaxStep>>;
-    systemMode?: Omit<
-        ValuesWithModernExtendConfiguration<Array<"off" | "heat" | "cool" | "auto" | "dry" | "fan_only" | "sleep" | "emergency_heating">>,
-        "fromZigbee"
-    >;
-    runningState?: Omit<ValuesWithModernExtendConfiguration<Array<"idle" | "heat" | "cool" | "fan_only">>, "fromZigbee">;
-    runningMode?: Omit<ValuesWithModernExtendConfiguration<Array<"off" | "cool" | "heat">>, "fromZigbee">;
-    fanMode?: Array<"off" | "low" | "medium" | "high" | "on" | "auto" | "smart">;
-    piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee">;
+    systemMode?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatSystemMode[]>, "fromZigbee">;
+    runningState?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatRunningState[]>, "fromZigbee">;
+    runningMode?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatRunningMode[]>, "fromZigbee">;
+    fanMode?: constants.ThermostatFanMode[];
+    piHeatingDemand?: Omit<ValuesWithModernExtendConfiguration<true | Access>, "fromZigbee"> & {dontMapPIHeatingDemand?: boolean};
     temperatureSetpointHold?: true | Omit<ValuesWithModernExtendConfiguration<true>, "values" | "fromZigbee" | "toZigbee">;
     temperatureSetpointHoldDuration?: true;
     endpoint?: string;
-    ctrlSeqeOfOper?: Omit<
-        ValuesWithModernExtendConfiguration<
-            Array<
-                | "cooling_only"
-                | "cooling_with_reheat"
-                | "heating_only"
-                | "heating_with_reheat"
-                | "cooling_and_heating_4-pipes"
-                | "cooling_and_heating_4-pipes_with_reheat"
-            >
-        >,
-        "fromZigbee"
-    >;
-    programmingOperationMode?: Omit<
-        ValuesWithModernExtendConfiguration<Array<"setpoint" | "schedule" | "schedule_with_preheat" | "eco">>,
-        "fromZigbee"
-    >;
+    ctrlSeqeOfOper?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatControlSequenceOfOperation[]>, "fromZigbee">;
+    programmingOperationMode?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatProgrammingOperationMode[]>, "fromZigbee">;
     setpointChangeSource?: Omit<ValuesWithModernExtendConfiguration<true>, "fromZigbee" | "toZigbee">;
-    weeklySchedule?: Omit<ValuesWithModernExtendConfiguration<Array<"heat" | "cool">>, "fromZigbee">;
+    weeklySchedule?: Omit<ValuesWithModernExtendConfiguration<constants.ThermostatScheduleMode[]>, "fromZigbee">;
 }
 
 export function thermostat(args: ThermostatArgs): ModernExtend {
@@ -3258,6 +3233,8 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     const toZigbee = [];
     const onEvent: OnEvent.Handler[] = [];
     const configure: Configure[] = <Configure[]>[];
+
+    const meta: DefinitionMeta = {thermostat: {}};
 
     const expose = e.climate().withLocalTemperature(undefined, localTemperature?.values?.description ?? undefined);
     exposes.push(expose);
@@ -3395,6 +3372,10 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     if (piHeatingDemand) {
         expose.withPiHeatingDemand(piHeatingDemand.values !== true ? piHeatingDemand.values : undefined);
 
+        if (piHeatingDemand.dontMapPIHeatingDemand === true) {
+            meta.thermostat = {...(meta.thermostat ?? {}), dontMapPIHeatingDemand: true};
+        }
+
         if (!piHeatingDemand.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_pi_heating_demand);
         }
@@ -3475,7 +3456,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
     }
 
     if (programmingOperationMode) {
-        expose.withProgrammingOperationMode(programmingOperationMode.values);
+        exposes.push(e.programming_operation_mode(programmingOperationMode.values));
 
         if (!programmingOperationMode.toZigbee?.skip) {
             toZigbee.push(tz.thermostat_programming_operation_mode);
@@ -3514,7 +3495,7 @@ export function thermostat(args: ThermostatArgs): ModernExtend {
         }
     }
 
-    return {exposes, fromZigbee, toZigbee, configure, onEvent, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, onEvent, meta, isModernExtend: true};
 }
 
 // #endregion

@@ -1,15 +1,18 @@
-import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
-
 const ea = exposes.access;
+
+const NS = "zhc:zemismart";
 
 const valueConverterLocal = {
     indiciatorStatus: tuya.valueConverterBasic.lookup({
@@ -83,6 +86,129 @@ const valueConverterLocal = {
     },
 };
 
+const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZMCSW032D_cover_position: {
+        key: ["position", "tilt"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            if (meta.options.time_close != null && meta.options.time_open != null) {
+                const oldPosition = meta.state.position;
+                if (value === 100) {
+                    await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
+                } else if (value === 0) {
+                    await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
+                } else {
+                    if (utils.isNumber(oldPosition) && oldPosition > value) {
+                        const delta = oldPosition - value;
+                        utils.assertNumber(meta.options.time_open);
+                        const timeBeforeStop = delta * (meta.options.time_open / 100) * 1000;
+                        await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
+                        await utils.sleep(timeBeforeStop);
+                        await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
+                    } else if (utils.isNumber(oldPosition) && oldPosition < value) {
+                        const delta = value - oldPosition;
+                        utils.assertNumber(meta.options.time_close);
+                        const timeBeforeStop = delta * (meta.options.time_close / 100) * 1000;
+                        await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
+                        await utils.sleep(timeBeforeStop);
+                        await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
+                    }
+                }
+
+                return {state: {position: value}};
+            }
+        },
+        convertGet: async (entity, key, meta) => {
+            const isPosition = key === "position";
+            await entity.read("closuresWindowCovering", [isPosition ? "currentPositionLiftPercentage" : "currentPositionTiltPercentage"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZMCSW032D_cover_position: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        options: [
+            exposes.options.invert_cover(),
+            e.numeric("time_close", ea.SET).withDescription("Set the full closing time of the roller shutter (e.g. set it to 20) (value is in s)."),
+            e.numeric("time_open", ea.SET).withDescription("Set the full opening time of the roller shutter (e.g. set it to 21) (value is in s)."),
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            const timeCoverSetMiddle = 60;
+
+            // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
+            // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
+            if (options.time_close != null && options.time_open != null) {
+                if (!globalStore.hasValue(msg.endpoint, "position")) {
+                    globalStore.putValue(msg.endpoint, "position", {lastPreviousAction: -1, CurrentPosition: -1, since: false});
+                }
+
+                const entry = globalStore.getValue(msg.endpoint, "position");
+                // ignore if first action is middle and ignore action middle if previous action is middle
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
+                    if ((entry.CurrentPosition === -1 && entry.lastPreviousAction === -1) || entry.lastPreviousAction === 50) {
+                        logger.warning("ZMCSW032D ignore action", NS);
+                        return;
+                    }
+                }
+                let currentPosition = entry.CurrentPosition;
+                const lastPreviousAction = entry.lastPreviousAction;
+                const deltaTimeSec = Math.floor((Date.now() - entry.since) / 1000); // convert to sec
+
+                entry.since = Date.now();
+                entry.lastPreviousAction = msg.data.currentPositionLiftPercentage;
+
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        if (lastPreviousAction === 100) {
+                            // Open
+                            currentPosition = currentPosition === -1 ? 0 : currentPosition;
+                            currentPosition = currentPosition + (deltaTimeSec * 100) / Number(options.time_open);
+                        } else if (lastPreviousAction === 0) {
+                            // Close
+                            currentPosition = currentPosition === -1 ? 100 : currentPosition;
+                            currentPosition = currentPosition - (deltaTimeSec * 100) / Number(options.time_close);
+                        }
+                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
+                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                    }
+                }
+                entry.CurrentPosition = currentPosition;
+
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
+                    // position cast float to int
+                    result.position = currentPosition | 0;
+                } else {
+                    if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
+                        // position cast float to int
+                        result.position = currentPosition | 0;
+                    } else {
+                        entry.CurrentPosition = lastPreviousAction;
+                        result.position = lastPreviousAction;
+                    }
+                }
+                result.position = options.invert_cover ? 100 - result.position : result.position;
+            } else {
+                // Previous solution without time_close and time_open
+                if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
+                    const liftPercentage = msg.data.currentPositionLiftPercentage;
+                    result.position = liftPercentage;
+                    result.position = options.invert_cover ? 100 - result.position : result.position;
+                }
+            }
+            // Add the state
+            if ("position" in result) {
+                result.state = result.position === 0 ? "CLOSE" : "OPEN";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa", "_TZE200_sq6affpe", "_TZE284_wdfurkoa", "_TZE284_6fopvb6v"]),
@@ -139,8 +265,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM-CSW032-D",
         vendor: "Zemismart",
         description: "Curtain/roller blind switch",
-        fromZigbee: [fz.ZMCSW032D_cover_position],
-        toZigbee: [tz.cover_state, tz.ZMCSW032D_cover_position],
+        fromZigbee: [fzLocal.ZMCSW032D_cover_position],
+        toZigbee: [tz.cover_state, tzLocal.ZMCSW032D_cover_position],
         exposes: [e.cover_position()],
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint) => {
@@ -155,7 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TB25",
         vendor: "Zemismart",
         description: "Smart light switch and socket - 2 gang with neutral wire",
-        extend: [tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"]})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"]})],
         meta: {multiEndpoint: true},
         endpoint: () => {
             return {left: 1, center: 2, right: 3};
@@ -213,7 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZIGBEE-B09-UK",
         vendor: "Zemismart",
         description: "Zigbee smart outlet universal socket with USB port",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]})],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, endpoints: ["l1", "l2"]})],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
@@ -408,6 +534,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.identify(),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true, endpoints: ["l1", "l2"]}),
         ],
     },
@@ -416,14 +543,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMO-606-20A",
         vendor: "Zemismart",
         description: "Smart 20A outlet",
-        extend: [m.identify(), tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true})],
+        extend: [
+            m.identify(),
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({indicatorMode: true, onOffCountdown: true, childLock: true}),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sa2ueffe", "_TZE204_zuepxzck", "_TZE284_lnyz4a6v"]),
         model: "ZMS-206US-1",
         vendor: "Zemismart",
         description: "Smart screen switch 1 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -482,7 +613,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -568,7 +699,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -675,11 +806,12 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_y4jqpry8",
             "_TZE204_xibaabmu",
             "_TZE284_xibaabmu",
+            "_TZE204_08qc13ct",
         ]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -948,12 +1080,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai"]),
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai", "_TZ3000_a37eix1s"]),
         model: "KES-606US-L4",
         vendor: "Zemismart",
         description: "Smart light switch - 4 gang (US)",
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 endpoints: ["l1", "l2", "l3", "l4"],
                 powerOnBehavior2: true,

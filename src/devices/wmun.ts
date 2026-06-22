@@ -1,4 +1,5 @@
 import * as m from "../lib/modernExtend";
+import * as tuya from "../lib/tuya";
 import * as zosung from "../lib/zosung";
 
 const ez = zosung.presetsZosung;
@@ -9,7 +10,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: "TS1201", manufacturerName: "_TZ3290_u9xac5rv"}],
+        fingerprint: tuya.fingerprint("TS1201", ["_TZ3290_u9xac5rv", "_TZ3290_lidgqyzu"]),
         model: "ZS05",
         vendor: "WMUN",
         description: "Universal smart IR remote control on batteries",
