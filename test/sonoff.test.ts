@@ -695,11 +695,13 @@ describe("Sonoff SWV-ZFE", () => {
         expect(exposeNames).toContain("seasonal_watering_adjustment_june");
         expect(exposeNames).toContain("enable_alarm_water_shortage");
         expect(exposeNames).toContain("irrigation_plan_duration");
+        expect(exposeNames).toContain("irrigation_plan_remove_plan_index");
         expect(exposeNames).not.toContain("manual_default_settings");
         expect(exposeNames).not.toContain("seasonal_watering_adjustment");
         expect(exposeNames).not.toContain("valve_alarm_settings");
         expect(exposeNames).not.toContain("irrigation_plan_settings");
         expect(exposeNames).not.toContain("irrigation_plan_report");
+        expect(exposeNames).not.toContain("irrigation_plan_remove");
 
         expect(device.exposes.find((expose) => expose.name === "irrigation_plan_interval_days")).toMatchObject({value_min: 0});
         expect(device.exposes.find((expose) => expose.name === "irrigation_plan_amount")).toMatchObject({value_min: 0});
@@ -932,6 +934,36 @@ describe("Sonoff SWV-ZFE", () => {
                     irrigation_plan_interval_days: 0,
                     irrigation_plan_duration: 5,
                     irrigation_plan_amount: 0,
+                },
+            });
+        });
+
+        it("removes an irrigation plan through the scalar plan index", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_remove_plan_index"));
+
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_remove_plan_index", 3, meta);
+
+            expect(commandFn).toHaveBeenCalledWith("customClusterEwelink", "irrigationPlanRemove", {data: [3]}, {disableDefaultResponse: true});
+            expect(result).toMatchObject({
+                state: {
+                    irrigation_plan_remove: {plan_index: 3},
+                    irrigation_plan_remove_plan_index: 3,
+                    irrigation_plan_settings_3: null,
+                },
+            });
+        });
+
+        it("keeps the legacy composite irrigation plan remove command", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_remove"));
+
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_remove", {plan_index: 4}, meta);
+
+            expect(commandFn).toHaveBeenCalledWith("customClusterEwelink", "irrigationPlanRemove", {data: [4]}, {disableDefaultResponse: true});
+            expect(result).toMatchObject({
+                state: {
+                    irrigation_plan_remove: {plan_index: 4},
+                    irrigation_plan_remove_plan_index: 4,
+                    irrigation_plan_settings_4: null,
                 },
             });
         });

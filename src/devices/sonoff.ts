@@ -4623,22 +4623,23 @@ const sonoffExtend = {
 
         const baseExposes = [
             e
-                .composite("irrigation_plan_remove", "irrigation_plan_remove", ea.SET)
-                .withDescription("Remove irrigation plan")
-                .withFeature(
-                    e.numeric("plan_index", ea.SET).withValueMin(0).withValueMax(5).withDescription("The index of the irrigation plan to remove"),
-                )
+                .numeric("irrigation_plan_remove_plan_index", ea.SET)
+                .withValueMin(0)
+                .withValueMax(5)
+                .withDescription("Index of the irrigation plan to remove")
                 .withCategory("config"),
         ];
-        const exposes = baseExposes.flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+        const exposes = baseExposes.flatMap((expose) => utils.exposeEndpoints(expose, endpointNames));
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["irrigation_plan_remove"],
+                key: ["irrigation_plan_remove", "irrigation_plan_remove_plan_index"],
                 endpoints: endpointNames,
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertObject(value, key);
-                    const planIndex = Number(value.plan_index);
+                    if (key === "irrigation_plan_remove") {
+                        utils.assertObject(value, key);
+                    }
+                    const planIndex = key === "irrigation_plan_remove" ? Number((value as KeyValue).plan_index) : Number(value);
                     const data = Buffer.alloc(1);
                     data.writeUInt8(planIndex & 0xff, 0);
 
@@ -4657,7 +4658,8 @@ const sonoffExtend = {
 
                     return {
                         state: {
-                            [key]: {plan_index: planIndex},
+                            irrigation_plan_remove: {plan_index: planIndex},
+                            irrigation_plan_remove_plan_index: planIndex,
                             [settingsProperty]: null,
                         },
                     };
