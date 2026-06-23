@@ -821,7 +821,8 @@ const tuyaExposes = {
         e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light").withCategory("config"),
     powerOutageMemory: () =>
         e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage").withCategory("config"),
-    batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
+    batteryState: () =>
+        e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery").withCategory("diagnostic"),
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
