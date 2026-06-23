@@ -527,17 +527,16 @@ const programmingModeConverter = {
     //    Index 2 (mod 4): UNKNOWN (always 0, reserved)
     //    Index 3 (mod 4): TEMPERATURE (15-30°C)
     //    Example: [8, 0, 0, 17] means 08:00 → 17°C
-    from: (v: any) => {
+    from: (v: number[] | Record<string, number>) => {
         return v;
     },
-    to: (v: any, meta: any) => {
-        let existing: any = {};
-        if (meta && meta.state && meta.state.programming_mode &&
-            typeof meta.state.programming_mode === "object") {
+    to: (v: Record<string, number>, meta: KeyValueAny) => {
+        let existing: Record<string, number> = {};
+        if (meta?.state?.programming_mode && typeof meta.state.programming_mode === "object") {
             existing = {...meta.state.programming_mode};
         }
         const merged = {...existing, ...v};
-        const buffer: any[] = [];
+        const buffer: number[] = [];
         for (let i = 0; i < 48; i++) {
             buffer[i] = merged[i.toString()] || 0;
         }
