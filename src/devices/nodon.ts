@@ -291,10 +291,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDO-4-1-00",
         vendor: "NodOn",
         description: "Door & window opening sensor",
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact()],
-        extend: [m.battery({voltageReporting: true})],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            // No bind needed: coordinator is already enrolled as IAS CIE during pairing.
+            await endpoint.configureReporting("ssIasZone", [{
+                attribute: "zoneStatus",
+                minimumReportInterval: 0,
+                maximumReportInterval: constants.repInterval.HOUR,
+                reportableChange: 1,
+            }]);
+        },
         ota: true,
     },
     {
