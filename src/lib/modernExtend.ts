@@ -1896,6 +1896,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
 // Uses Electrical Measurement and/or Gas Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
 type MeterType = "electricity" | "gas"; // water, etc
+const diagnosticHomeAssistant = {entityCategory: "diagnostic"} as const satisfies exposes.HomeAssistant;
 interface MeterArgs {
     type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
@@ -2206,8 +2207,8 @@ function genericMeter(args: MeterArgs = {}) {
 
     if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
-        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
-        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
+        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
+        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
@@ -2288,9 +2289,9 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
-        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
+        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
-        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
+        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
 
@@ -2308,7 +2309,10 @@ function genericMeter(args: MeterArgs = {}) {
             toZigbee.push(tz.electrical_measurement_power_phase_b, tz.electrical_measurement_power_phase_c);
         }
         if (args.voltage !== false) {
-            exposes.push(e.voltage_phase_b().withAccess(ea.STATE_GET), e.voltage_phase_c().withAccess(ea.STATE_GET));
+            exposes.push(
+                e.voltage_phase_b().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant),
+                e.voltage_phase_c().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant),
+            );
             toZigbee.push(tz.acvoltage_phase_b, tz.acvoltage_phase_c);
         }
         if (args.current !== false) {
