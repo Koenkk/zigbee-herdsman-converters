@@ -47,7 +47,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HT-SLM-2",
         vendor: "Heimgard Technologies",
         description: "Smart (fingerprint/PIN/RFID) doorlock",
-        fromZigbee: [h.fzLocal.slm_2_lock, h.fzLocal.slm_2_sound_volume, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
+        fromZigbee: [h.fzLocal.slm_2_lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
         toZigbee: [tz.lock, h.tzLocal.slm_2_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},
         ota: true,

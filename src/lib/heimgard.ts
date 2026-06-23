@@ -1,6 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import * as m from "./modernExtend";
-import type {Fz, KeyValue, KeyValueAny, Tz} from "./types";
+import type {Fz, KeyValueAny, Tz} from "./types";
 import * as utils from "./utils";
 import {postfixWithEndpointName} from "./utils";
 
@@ -35,6 +35,10 @@ export const fzLocal = {
                 result[postfixWithEndpointName("auto_relock_time", msg, model, meta)] = msg.data.autoRelockTime;
             }
 
+            if (msg.data["soundVolume"] !== undefined) {
+                result.volume = utils.getFromLookup(msg.data["soundVolume"], {0: "off", 1: "low", 2: "medium", 3: "high"});
+            }
+
             if (msg.data.doorState !== undefined) {
                 const lookup: KeyValueAny = {
                     0: "open",
@@ -42,17 +46,6 @@ export const fzLocal = {
                     255: "undefined",
                 };
                 result[postfixWithEndpointName("door_state", msg, model, meta)] = lookup[msg.data.doorState];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
-    slm_2_sound_volume: {
-        cluster: "closuresDoorLock",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta): KeyValue => {
-            const result: KeyValue = {};
-            if (msg.data["soundVolume"] !== undefined) {
-                result.volume = utils.getFromLookup(msg.data["soundVolume"], {0: "off", 1: "low", 2: "medium", 3: "high"});
             }
             return result;
         },
