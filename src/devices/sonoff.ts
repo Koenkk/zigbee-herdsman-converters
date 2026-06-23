@@ -2967,7 +2967,9 @@ const sonoffExtend = {
             }
         }
 
-        const exposes = [e.enum("valve_abnormal_state", ea.STATE, allCombinations).withDescription("Valve abnormal state")];
+        const exposes = [
+            e.enum("valve_abnormal_state", ea.STATE, allCombinations).withDescription("Valve abnormal state").withCategory("diagnostic"),
+        ];
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
             {
@@ -3304,7 +3306,8 @@ const sonoffExtend = {
             )
             .withFeature(e.text("start_time", ea.STATE).withDescription("Schedule start time"))
             .withFeature(e.text("expected_end_time", ea.STATE).withDescription("Expected end time"))
-            .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time"));
+            .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time"))
+            .withCategory("diagnostic");
         if (hasFlowMeter) {
             baseExposes
                 .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]).withDescription("Irrigation amount unit"))
@@ -3592,9 +3595,9 @@ const sonoffExtend = {
         const clusterName = "customClusterEwelink";
         const commandName = "readRecord";
         const exposes = [
-            e.text("24_hours_records", ea.STATE),
-            e.text("30_days_records", ea.STATE),
-            e.text("180_days_records", ea.STATE),
+            e.text("24_hours_records", ea.STATE).withCategory("diagnostic"),
+            e.text("30_days_records", ea.STATE).withCategory("diagnostic"),
+            e.text("180_days_records", ea.STATE).withCategory("diagnostic"),
             e
                 .composite("read_swvzf_records", "read_swvzf_records", ea.STATE_SET)
                 .withDescription(

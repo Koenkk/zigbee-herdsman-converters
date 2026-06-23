@@ -707,6 +707,16 @@ describe("Sonoff SWV-ZFE", () => {
         expect(device.exposes.find((expose) => expose.name === "irrigation_plan_amount")).toMatchObject({value_min: 0});
     });
 
+    it("marks read-only valve status and history exposes as diagnostics", () => {
+        expect(device.exposes.find((expose) => expose.name === "manual_irrigation_duration")).toMatchObject({category: "config"});
+        expect(device.exposes.find((expose) => expose.name === "irrigation_plan_duration")).toMatchObject({category: "config"});
+        expect(device.exposes.find((expose) => expose.name === "valve_abnormal_state")).toMatchObject({category: "diagnostic"});
+        expect(device.exposes.find((expose) => expose.name === "irrigation_schedule_status")).toMatchObject({category: "diagnostic"});
+        expect(device.exposes.find((expose) => expose.name === "24_hours_records")).toMatchObject({category: "diagnostic"});
+        expect(device.exposes.find((expose) => expose.name === "30_days_records")).toMatchObject({category: "diagnostic"});
+        expect(device.exposes.find((expose) => expose.name === "180_days_records")).toMatchObject({category: "diagnostic"});
+    });
+
     describe("toZigbee", () => {
         it("merges partial manual default settings with current state", async () => {
             const tzConverter = device.toZigbee.find((c) => c.key.includes("manual_default_settings"));
