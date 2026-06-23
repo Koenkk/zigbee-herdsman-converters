@@ -10308,7 +10308,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 1-25%, middle: 26-50%, high: 51-100%"),
+            e
+                .enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                .withDescription("low: 1-25%, middle: 26-50%, high: 51-100%")
+                .withCategory("diagnostic"),
             e.temperature(),
             e.soil_moisture(),
             e.humidity(),
@@ -14651,7 +14654,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("error_status", ea.STATE).withDescription("Device error code"),
             e.enum("rain_sensor_status", ea.STATE, ["rain", "no_rain"]).withDescription("Rain sensor state"),
             e.binary("rain_sensor_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable rain sensor"),
-            e.enum("battery_state", ea.STATE, ["no_charge", "charging", "charged"]).withDescription("Battery charging state"),
+            e
+                .enum("battery_state", ea.STATE, ["no_charge", "charging", "charged"])
+                .withDescription("Battery charging state")
+                .withCategory("diagnostic"),
         ],
         meta: {
             tuyaSendCommand: "sendData",
@@ -24076,7 +24082,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%"),
+            e
+                .enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                .withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%")
+                .withCategory("diagnostic"),
             e.soil_moisture(),
             e.temperature(),
             e.humidity(),
