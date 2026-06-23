@@ -5670,6 +5670,39 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hyssaqjk"]),
+        model: "QZ-4x4-6 W/B",
+        vendor: "Nova Digital",
+        description: "Quartzo 6 gang switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.switch().withEndpoint("l4"),
+            tuya.exposes.switch().withEndpoint("l5"),
+            tuya.exposes.switch().withEndpoint("l6"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Turns the backlight on or off"),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [5, "state_l5", tuya.valueConverter.onOff],
+                [6, "state_l6", tuya.valueConverter.onOff],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [16, "backlight_switch", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_raz9qavg"]),
         model: "KRC-103",
         vendor: "Videosec",
