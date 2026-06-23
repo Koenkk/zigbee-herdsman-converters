@@ -9683,28 +9683,30 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ZHT series thermostat",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
         exposes: [
-            e.binary("state", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Turn the thermostat ON/OFF"),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e.child_lock(),
-            e.enum("system_mode", ea.STATE_SET, ["Auto", "Manual"])
-                .withDescription("Manual = Manual or Schedule = Auto"),
+            e.enum("system_mode", ea.STATE_SET, ["Auto", "Manual"]).withDescription("Manual = Manual or Schedule = Auto"),
             e.eco_mode(),
-            e.temperature_sensor_select(["IN", "AL", "OU"])
-                .withLabel("Sensor")
-                .withDescription("Choose which sensor to use. Default: AL"),
-            e.enum("valve_state", ea.STATE, ["close", "open"])
-                .withDescription("State of the valve"),
+            e.temperature_sensor_select(["IN", "AL", "OU"]).withLabel("Sensor").withDescription("Choose which sensor to use. Default: AL"),
+            e.enum("valve_state", ea.STATE, ["close", "open"]).withDescription("State of the valve"),
             e.min_temperature().withValueMin(0).withValueMax(20),
             e.max_temperature().withValueMin(20).withValueMax(50),
-            e.climate()
+            e
+                .climate()
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 0, 50, 1, ea.STATE_SET)
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
-            e.numeric("max_temperature_limit", ea.STATE_SET)
+            e
+                .numeric("max_temperature_limit", ea.STATE_SET)
                 .withDescription("Max temperature limit")
-                .withValueMin(25).withValueMax(70).withValueStep(1),
-            e.numeric("deadzone_temperature", ea.STATE_SET)
-                .withValueMax(5).withValueMin(1).withValueStep(1)
+                .withValueMin(25)
+                .withValueMax(70)
+                .withValueStep(1),
+            e
+                .numeric("deadzone_temperature", ea.STATE_SET)
+                .withValueMax(5)
+                .withValueMin(1)
+                .withValueStep(1)
                 .withPreset("default", 1, "Default value")
                 .withDescription("The difference between local temp and set temp that triggers heating"),
             (() => {
@@ -9713,30 +9715,30 @@ export const definitions: DefinitionWithExtend[] = [
                     {name: "S", full: "Saturday", start: 16},
                     {name: "U", full: "Sunday", start: 32},
                 ];
-                let composite = e.composite("programming_mode", "programming_mode", ea.STATE_SET)
-                    .withDescription(
-                        "Schedule: W=Weekdays, S=Saturday, U=Sunday. " +
-                        "4 slots each with hour(h), minute(m), temperature(t)."
-                    );
+                let composite = e
+                    .composite("programming_mode", "programming_mode", ea.STATE_SET)
+                    .withDescription("Schedule: W=Weekdays, S=Saturday, U=Sunday. " + "4 slots each with hour(h), minute(m), temperature(t).");
                 for (const group of groups) {
                     for (let slot = 0; slot < 4; slot++) {
-                        const offset = group.start + (slot * 4);
+                        const offset = group.start + slot * 4;
                         const label = `${group.name}${slot + 1}`;
                         composite = composite.withFeature(
-                            e.numeric((offset).toString(), ea.STATE_SET)
-                                .withValueMin(0).withValueMax(23)
-                                .withDescription(`${label}h`)
+                            e.numeric(offset.toString(), ea.STATE_SET).withValueMin(0).withValueMax(23).withDescription(`${label}h`),
                         );
                         composite = composite.withFeature(
-                            e.numeric((offset + 1).toString(), ea.STATE_SET)
-                                .withValueMin(0).withValueMax(59)
-                                .withDescription(`${label}m`)
+                            e
+                                .numeric((offset + 1).toString(), ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(59)
+                                .withDescription(`${label}m`),
                         );
                         composite = composite.withFeature(
-                            e.numeric((offset + 3).toString(), ea.STATE_SET)
-                                .withValueMin(5).withValueMax(45)
+                            e
+                                .numeric((offset + 3).toString(), ea.STATE_SET)
+                                .withValueMin(5)
+                                .withValueMax(45)
                                 .withUnit("°C")
-                                .withDescription(`${label}t`)
+                                .withDescription(`${label}t`),
                         );
                     }
                 }
@@ -9746,25 +9748,37 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
-                [2, "system_mode", tuya.valueConverterBasic.lookup({
-                    Auto: tuya.enum(0),
-                   Manual: tuya.enum(1),
-                })],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        Auto: tuya.enum(0),
+                        Manual: tuya.enum(1),
+                    }),
+                ],
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [18, "min_temperature", tuya.valueConverter.raw],
                 [19, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
-                [32, "sensor", tuya.valueConverterBasic.lookup({
-                    IN: tuya.enum(0),
-                    AL: tuya.enum(2),
-                    OU: tuya.enum(1),
-                })],
+                [
+                    32,
+                    "sensor",
+                    tuya.valueConverterBasic.lookup({
+                        IN: tuya.enum(0),
+                        AL: tuya.enum(2),
+                        OU: tuya.enum(1),
+                    }),
+                ],
                 [34, "max_temperature", tuya.valueConverter.raw],
                 [39, "child_lock", tuya.valueConverter.lockUnlock],
                 [40, "eco_mode", tuya.valueConverter.onOff],
-                [47, "valve_state", tuya.valueConverterBasic.lookup({
-                    closed: tuya.enum(0),
-                    open: tuya.enum(1),
-                })],
+                [
+                    47,
+                    "valve_state",
+                    tuya.valueConverterBasic.lookup({
+                        closed: tuya.enum(0),
+                        open: tuya.enum(1),
+                    }),
+                ],
                 [50, "current_heating_setpoint", tuya.valueConverter.raw],
                 [68, "programming_mode", programmingModeConverter],
                 [101, "max_temperature_limit", tuya.valueConverter.raw],
