@@ -5668,16 +5668,12 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
         ],
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hyssaqjk"]),
         model: "QZ-4x4-6 W/B",
         vendor: "Nova Digital",
         description: "Quartzo 6 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-        },
         exposes: [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
@@ -5705,7 +5701,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_raz9qavg"]),
         model: "KRC-103",
