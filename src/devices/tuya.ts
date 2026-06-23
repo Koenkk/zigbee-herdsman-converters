@@ -24106,6 +24106,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
             e.binary("anti_interference", ea.STATE_SET, "ON", "OFF").withDescription("Anti interference function"),
         ],
+        whiteLabel: [
+            {
+                model: "AY-204ZX",
+                vendor: "AOYAN",
+                description: "24Ghz millimeter wave and T&H sensor",
+                fingerprint: [{modelID: "AY-204ZX", manufacturerName: "AOYAN"}],
+            },
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
