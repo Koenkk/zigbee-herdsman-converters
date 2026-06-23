@@ -511,9 +511,16 @@ const ar331ProHolidayTimeConverter = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
-        options: [e.binary("invert_top_rail", ea.SET, true, false).withDescription("Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).")],
+        options: [
+            e
+                .binary("invert_top_rail", ea.SET, true, false)
+                .withDescription(
+                    "Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).",
+                ),
+        ],
         convertSet: async (entity, key, value, meta) => {
             const ep = meta.endpoint_name;
             const invertTop = meta.options?.invert_top_rail === true;
@@ -546,7 +553,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
         },
-    },
+    } satisfies Tz.Converter,
     acmelec_ae720k_state_double_on: {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
@@ -1122,10 +1129,17 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
-        options: [e.binary("invert_top_rail", ea.SET, true, false).withDescription("Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).")],
+        options: [
+            e
+                .binary("invert_top_rail", ea.SET, true, false)
+                .withDescription(
+                    "Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).",
+                ),
+        ],
         convert: (model, msg, publish, options, meta) => {
             const N = msg.data.currentPositionLiftPercentage;
             if (N === undefined || N > 100) return;
@@ -1141,7 +1155,7 @@ const fzLocal = {
                 state_top: top === 0 ? "CLOSE" : "OPEN",
             };
         },
-    },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
     // ZT08 (_TZE284_hodyryli) — LCD weather station with clock.
     // The MCU expects mcuSyncTime in raw Unix seconds (8 bytes: UTC + local),
     // followed by a DP 17 write ~500 ms later that commits the new time to the LCD.
