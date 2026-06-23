@@ -3654,6 +3654,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Mercator Ikuü", model: "SMD4106W-RGB-ZB"},
             {vendor: "Tuya", model: "A5C-21F7-01"},
             {vendor: "Mercator Ikuü", model: "S9E27LED9W-RGB-Z"},
+            {vendor: "Hatsy", model: "SDL-312Z"},
             {
                 vendor: "Aldi",
                 model: "L122CB63H11A9.0W",
@@ -5637,6 +5638,39 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hyssaqjk"]),
+        model: "QZ-4x4-6 W/B",
+        vendor: "Nova Digital",
+        description: "Quartzo 6 gang switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.switch().withEndpoint("l4"),
+            tuya.exposes.switch().withEndpoint("l5"),
+            tuya.exposes.switch().withEndpoint("l6"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Turns the backlight on or off"),
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [5, "state_l5", tuya.valueConverter.onOff],
+                [6, "state_l6", tuya.valueConverter.onOff],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [16, "backlight_switch", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_raz9qavg"]),
         model: "KRC-103",
         vendor: "Videosec",
@@ -7064,7 +7098,12 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nova Digital", "FZB-2", "2-Gang switch with backlight, countdown and inching", ["_TZ3000_5ksufhqi"]),
             tuya.whitelabel("iHseno", "_TZ3000_zxrfobzw", "2-gang touch switch", ["_TZ3000_zxrfobzw"]),
             tuya.whitelabel("Moes", "ZM4LT2", "2-gang switch module", ["_TZ3000_criiahcg"]),
-            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", ["_TZ3000_lugaswf8", "_TZ3000_nuenzetq", "_TZ3000_ruldv5dt"]),
+            tuya.whitelabel("Tuya", "ZG-2002-RF", "Three mode Zigbee Switch", [
+                "_TZ3000_lugaswf8",
+                "_TZ3000_nuenzetq",
+                "_TZ3000_ruldv5dt",
+                "_TZ3210_nuenzetq",
+            ]),
         ],
     },
 
@@ -10271,7 +10310,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Soil moisture sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 1-25%, middle: 26-50%, high: 51-100%"),
+            e
+                .enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                .withDescription("low: 1-25%, middle: 26-50%, high: 51-100%")
+                .withCategory("diagnostic"),
             e.temperature(),
             e.soil_moisture(),
             e.humidity(),
@@ -14598,7 +14640,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("error_status", ea.STATE).withDescription("Device error code"),
             e.enum("rain_sensor_status", ea.STATE, ["rain", "no_rain"]).withDescription("Rain sensor state"),
             e.binary("rain_sensor_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable/disable rain sensor"),
-            e.enum("battery_state", ea.STATE, ["no_charge", "charging", "charged"]).withDescription("Battery charging state"),
+            e
+                .enum("battery_state", ea.STATE, ["no_charge", "charging", "charged"])
+                .withDescription("Battery charging state")
+                .withCategory("diagnostic"),
         ],
         meta: {
             tuyaSendCommand: "sendData",
@@ -24023,7 +24068,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%"),
+            e
+                .enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                .withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%")
+                .withCategory("diagnostic"),
             e.soil_moisture(),
             e.temperature(),
             e.humidity(),
@@ -24667,16 +24715,26 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
-            e.battery(),
             e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
-            e.text("work_state", ea.STATE),
-            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
-            e.binary("motor_fault", ea.STATE, true, false),
+            e.enum("mode", ea.STATE_SET, ["morning", "night"]).withDescription("Operating mode. morning=normal, night=slower and quieter"),
+            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor rotation direction. Change if blind moves wrong way"),
+            e.binary("auto_power", ea.STATE_SET, true, false).withDescription("Auto-complete open/close when curtain is manually pulled"),
+            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current motor movement status"),
+            e.enum("countdown", ea.STATE_SET, ["cancel", "1h", "2h", "3h", "4h"]).withDescription("Countdown timer to trigger open/close"),
+            e.numeric("countdown_left", ea.STATE).withUnit("s").withDescription("Remaining countdown time in seconds"),
+            e.numeric("time_total", ea.STATE).withUnit("ms").withDescription("Full travel time in ms, populated after calibration"),
+            e
+                .enum("situation_set", ea.STATE, ["fully_open", "fully_close"])
+                .withDescription("Whether motor treats 100% as fully open or fully closed"),
+            e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor hardware fault"),
+            e.battery(),
+            e
+                .enum("border", ea.SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"])
+                .withDescription("Set or clear motor travel limits"),
+            e.numeric("position_best", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Saved favourite position"),
+            e.enum("click_control", ea.SET, ["up", "down"]).withDescription("Single jog step up or down"),
         ],
         meta: {
-            // All datapoints go in here
             tuyaDatapoints: [
                 [
                     1,
@@ -24689,15 +24747,53 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
-                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [
+                    4,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        morning: tuya.enum(0),
+                        night: tuya.enum(1),
+                    }),
+                ],
+                [
+                    5,
+                    "motor_direction",
+                    tuya.valueConverterBasic.lookup({
+                        forward: tuya.enum(0),
+                        back: tuya.enum(1),
+                    }),
+                ],
+                [6, "auto_power", tuya.valueConverter.onOff],
                 [
                     7,
                     "work_state",
-                    tuya.valueConverterBasic.lookup((options) =>
-                        options.invert_cover ? {opening: tuya.enum(0), closing: tuya.enum(1)} : {opening: tuya.enum(1), closing: tuya.enum(0)},
-                    ),
+                    tuya.valueConverterBasic.lookup({
+                        opening: tuya.enum(0),
+                        closing: tuya.enum(1),
+                    }),
                 ],
-                [12, "motor_fault", tuya.valueConverter.trueFalse1],
+                [
+                    8,
+                    "countdown",
+                    tuya.valueConverterBasic.lookup({
+                        cancel: tuya.enum(0),
+                        "1h": tuya.enum(1),
+                        "2h": tuya.enum(2),
+                        "3h": tuya.enum(3),
+                        "4h": tuya.enum(4),
+                    }),
+                ],
+                [9, "countdown_left", tuya.valueConverter.raw],
+                [10, "time_total", tuya.valueConverter.raw],
+                [
+                    11,
+                    "situation_set",
+                    tuya.valueConverterBasic.lookup({
+                        fully_open: tuya.enum(0),
+                        fully_close: tuya.enum(1),
+                    }),
+                ],
+                [12, "motor_fault", {from: (v: number) => v !== 0}],
                 [13, "battery", tuya.valueConverter.raw],
                 [
                     16,
@@ -24710,7 +24806,15 @@ export const definitions: DefinitionWithExtend[] = [
                         remove_top_bottom: tuya.enum(4),
                     }),
                 ],
-                [20, "click_control", tuya.valueConverterBasic.lookup({up: tuya.enum(0), down: tuya.enum(1)})],
+                [19, "position_best", tuya.valueConverter.raw],
+                [
+                    20,
+                    "click_control",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                    }),
+                ],
             ],
         },
     },
@@ -26094,7 +26198,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "PIR motion sensor, vibration sensor, and light sensor",
         exposes: [
-            e.enum("presence", ea.STATE, ["true", "false"]).withDescription("Presence state, true: motion detected, false: no motion"),
+            e.occupancy().withDescription("Presence state, true: motion detected, false: no motion"),
             e.binary("vibration", ea.STATE, true, false).withDescription("Vibration state, true: vibration detected, false: no vibration"),
             e.enum("illuminance_warning", ea.STATE, ["none", "low", "high"]).withDescription("Illuminance warning level"),
             e.battery(),
@@ -26144,7 +26248,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [4, "battery", tuya.valueConverter.raw],
-                [1, "presence", tuya.valueConverterBasic.lookup({true: tuya.enum(1), false: tuya.enum(0)})],
+                [1, "occupancy", tuya.valueConverter.trueFalse1],
                 [3, "vibration", tuya.valueConverter.raw],
                 [6, "vibration_sensitivity", tuya.valueConverter.raw],
                 [20, "illuminance", tuya.valueConverter.raw],

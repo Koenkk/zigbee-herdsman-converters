@@ -12,11 +12,29 @@ const ea = exposes.access;
 
 const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
+const SHELLY_PRESENCE_MAX_ZONES = 10;
 
 const NS = "zhc:shelly";
 
 const HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID = 0x0b04;
 const HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID = 0x0510;
+
+const checkOption = (device: Zh.Device | DummyDevice, options: KeyValue, key: string, defaultValue = false): boolean => {
+    if (options?.[key] === "true") return true;
+    if (options?.[key] === "false") return false;
+    if (!utils.isDummyDevice(device) && device.meta[key] !== undefined) return !!device.meta[key];
+
+    return defaultValue;
+};
+
+const shellyPresenceEndpointNames = (device: Zh.Device | DummyDevice): string[] => {
+    const count =
+        !utils.isDummyDevice(device) && typeof device.meta.presence_zone_count === "number"
+            ? Math.min(Math.max(Math.trunc(device.meta.presence_zone_count), 1), SHELLY_PRESENCE_MAX_ZONES)
+            : SHELLY_PRESENCE_MAX_ZONES;
+
+    return Array.from({length: count}, (_, index) => String(index + 1));
+};
 
 interface ShellyRPC {
     attributes: {
@@ -371,6 +389,56 @@ const shellyModernExtend = {
             }),
         ];
     },
+    shellyWindowCovering(): ModernExtend {
+        const result = m.windowCovering({controls: ["lift", "tilt"]});
+        const tiltOption = e
+            .enum("cover_tilt_enabled", ea.SET, ["auto", "true", "false"])
+            .withDescription("Expose tilt/slat controls for covers with Shelly slat control enabled");
+        const exposesFn: DefinitionExposesFunction = (device, options) => {
+            const cover = e.cover().withPosition();
+            if (checkOption(device, options, "cover_tilt_enabled")) {
+                cover.withTilt();
+            }
+
+            return [cover];
+        };
+
+        result.exposes = [exposesFn];
+        result.options = [...(result.options ?? []), tiltOption];
+
+        return result;
+    },
+    shellyPresenceOccupancy(): ModernExtend {
+        const exposesFn: DefinitionExposesFunction = (device) => {
+            return shellyPresenceEndpointNames(device).map((endpointName) => e.occupancy().withAccess(ea.STATE_GET).withEndpoint(endpointName));
+        };
+
+        const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
+            {
+                cluster: "msOccupancySensing",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!("occupancy" in msg.data)) return;
+
+                    const endpointName = utils.getEndpointName(msg, model, meta).toString();
+                    if (!shellyPresenceEndpointNames(meta.device).includes(endpointName)) return;
+
+                    return {[utils.postfixWithEndpointName("occupancy", msg, model, meta)]: (msg.data.occupancy & 1) > 0};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["occupancy"],
+                convertGet: async (entity, key, meta) => {
+                    await determineEndpoint(entity, meta, "msOccupancySensing").read("msOccupancySensing", ["occupancy"]);
+                },
+            },
+        ];
+
+        return {exposes: [exposesFn], fromZigbee, toZigbee, isModernExtend: true};
+    },
     shellyRPCSetup(features: string[] = []): ModernExtend {
         // Set helper variables
         const shellyRPCBugFixed = false; // For firmware 20250819-150402/ga0def2d
@@ -380,6 +448,8 @@ const shellyModernExtend = {
         const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
         const featureTwoPMInputMode = features.includes("2PMInputMode");
         const featureOnePMInputMode = features.includes("1PMInputMode");
+        const featureCoverTiltAuto = features.includes("CoverTiltAuto");
+        const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
 
         // Generic helper functions
         const validateTime = (value: string) => {
@@ -423,11 +493,31 @@ const shellyModernExtend = {
 
         const rpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
             const command = {
-                id: 1, // We can't read replies anyway so don't care for now
+                id: 1,
                 method: method,
                 params: params,
             };
             return await rpcSendRaw(endpoint, JSON.stringify(command));
+        };
+
+        const rpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
+            await rpcSend(endpoint, method, params);
+            const rxCtlResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
+            const expectedLen = rxCtlResult.rxCtl;
+            if (!expectedLen) return undefined;
+
+            let accumulated = "";
+            while (accumulated.length < expectedLen) {
+                const dataResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["data"], {
+                    ...SHELLY_OPTIONS,
+                    timeout: 1000,
+                });
+                if (!dataResult.data) break;
+                accumulated += dataResult.data;
+            }
+
+            if (accumulated.length < expectedLen) return undefined;
+            return JSON.parse(accumulated.substring(0, expectedLen));
         };
 
         const rpcReceive = async (endpoint: Zh.Endpoint | Zh.Group, key: string) => {
@@ -760,6 +850,56 @@ const shellyModernExtend = {
                     await rpcReceive(ep, "rpc_rxctl");
                 } catch (e) {
                     logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
+                }
+            });
+        }
+        if (featureCoverTiltAuto) {
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    const response = await rpcRequest(ep, "Cover.GetConfig", {id: 0});
+                    const result = response?.result ?? response?.params ?? response;
+                    if (!result) return;
+                    assertObject<KeyValue>(result);
+                    if (!result.slat) return;
+                    assertObject<KeyValue>(result.slat);
+                    const enabled = result.slat.enable;
+                    if (typeof enabled === "boolean" && device.meta.cover_tilt_enabled !== enabled) {
+                        device.meta.cover_tilt_enabled = enabled;
+                        device.save();
+                    }
+                } catch (e) {
+                    logger.warning(`Failed to read cover_tilt_enabled during configure, use manual option to override: ${e}`, NS);
+                }
+            });
+        }
+        if (featurePresenceZonesAuto) {
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    const response = await rpcRequest(ep, "Shelly.GetConfig");
+                    const result = response?.result ?? response?.params ?? response;
+                    if (!result) return;
+                    assertObject<KeyValue>(result);
+
+                    let zoneCount = Object.keys(result).filter((key) => /^presencezone:\d+$/.test(key)).length;
+                    if (zoneCount === 0) {
+                        const presenceConfig = result.presence;
+                        if (presenceConfig) {
+                            assertObject<KeyValue>(presenceConfig);
+                            zoneCount = typeof presenceConfig.main_zone === "string" ? 1 : 0;
+                        }
+                    }
+                    if (zoneCount < 1 || zoneCount > SHELLY_PRESENCE_MAX_ZONES) return;
+
+                    if (device.meta.presence_zone_count !== zoneCount) {
+                        device.meta.presence_zone_count = zoneCount;
+                        device.save();
+                    }
+                } catch (e) {
+                    logger.warning(`Failed to read presence zones during configure, using last known or default exposed zones: ${e}`, NS);
                 }
             });
         }
@@ -1501,9 +1641,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             m.deviceEndpoints({endpoints: {sw1: 2, sw2: 3}}),
-            m.windowCovering({controls: ["lift", "tilt"]}),
+            shellyModernExtend.shellyWindowCovering(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
+            shellyModernExtend.shellyRPCSetup(["2PMInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1987,19 +2127,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Presence Gen4 Zigbee",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
-            m.occupancy({reporting: false, endpointNames: ["1"]}),
-            m.occupancy({reporting: false, endpointNames: ["2"]}),
-            m.occupancy({reporting: false, endpointNames: ["3"]}),
-            m.occupancy({reporting: false, endpointNames: ["4"]}),
-            m.occupancy({reporting: false, endpointNames: ["5"]}),
-            m.occupancy({reporting: false, endpointNames: ["6"]}),
-            m.occupancy({reporting: false, endpointNames: ["7"]}),
-            m.occupancy({reporting: false, endpointNames: ["8"]}),
-            m.occupancy({reporting: false, endpointNames: ["9"]}),
-            m.occupancy({reporting: false, endpointNames: ["10"]}),
+            shellyModernExtend.shellyPresenceOccupancy(),
             ...shellyModernExtend.shellyLightLevel(),
             m.identify(),
             ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["PresenceZonesAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
