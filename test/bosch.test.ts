@@ -1,6 +1,9 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
-import {mockDevice} from "./utils";
+import {boschThermostatExtend} from "../src/lib/bosch";
+import {repInterval} from "../src/lib/constants";
+import type {DefinitionExposesFunction} from "../src/lib/types";
+import {mockDevice, reportingItem} from "./utils";
 
 describe("Bosch thermostats", () => {
     it("exposes standard weekly schedule controls for BTH-RM230Z", async () => {
@@ -9,12 +12,14 @@ describe("Bosch thermostats", () => {
             manufacturerName: "BOSCH",
             endpoints: [{ID: 1, inputClusters: ["genOnOff", "hvacThermostat", "hvacUserInterfaceCfg", "msRelativeHumidity"]}],
         });
+        vi.spyOn(device, "save").mockImplementation(() => {});
         const definition = await findByDevice(device);
 
         expect(definition.toZigbee.some((converter) => converter.key.includes("weekly_schedule"))).toBe(true);
         expect(definition.toZigbee.some((converter) => converter.key.includes("clear_weekly_schedule"))).toBe(true);
         expect(definition.fromZigbee.some((converter) => converter.cluster === "hvacThermostat")).toBe(true);
-        expect(JSON.stringify(definition.exposes)).toContain("weekly_schedule");
+        const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        expect(JSON.stringify(exposes)).toContain("weekly_schedule");
 
         const coordinator = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
         const endpoint = device.getEndpoint(1);
@@ -33,5 +38,41 @@ describe("Bosch thermostats", () => {
 
         expect(definition.toZigbee.some((converter) => converter.key.includes("weekly_schedule"))).toBe(false);
         expect(JSON.stringify(definition.exposes)).not.toContain("weekly_schedule");
+    });
+});
+
+describe("Bosch thermostat relayState extension", () => {
+    const relayStateExposes = (device: ReturnType<typeof mockDevice>) => {
+        const relayState = boschThermostatExtend.relayState();
+        expect(relayState.exposes).toHaveLength(1);
+
+        const expose = relayState.exposes?.[0] as DefinitionExposesFunction;
+        return expose(device, {});
+    };
+
+    it("exposes and configures the relay when the device supports genOnOff", async () => {
+        const relayState = boschThermostatExtend.relayState();
+        const device = mockDevice({modelID: "RBSH-RTH0-ZB-EU", endpoints: [{ID: 1, inputClusters: ["genOnOff"]}]});
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+
+        await relayState.configure?.[0](device, coordinatorEndpoint, {} as never);
+
+        const exposes = relayStateExposes(device);
+        expect(exposes.map((expose) => expose.type)).toStrictEqual(["switch"]);
+        expect(exposes[0].features?.map((feature) => feature.property)).toStrictEqual(["state"]);
+        expect(device.getEndpoint(1).bind).toHaveBeenCalledWith("genOnOff", coordinatorEndpoint);
+        expect(device.getEndpoint(1).configureReporting).toHaveBeenCalledWith("genOnOff", [reportingItem("onOff", 0, repInterval.MAX, 1)]);
+    });
+
+    it("does not expose or configure the relay when the device does not support genOnOff", async () => {
+        const relayState = boschThermostatExtend.relayState();
+        const device = mockDevice({modelID: "RBSH-RTH0-ZB-EU", endpoints: [{ID: 1, inputClusters: ["hvacThermostat"]}]});
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+
+        await relayState.configure?.[0](device, coordinatorEndpoint, {} as never);
+
+        expect(relayStateExposes(device)).toStrictEqual([]);
+        expect(device.getEndpoint(1).bind).not.toHaveBeenCalled();
+        expect(device.getEndpoint(1).configureReporting).not.toHaveBeenCalled();
     });
 });
