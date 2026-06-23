@@ -21,6 +21,7 @@ import type {
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 function conditionalPressure(): ModernExtend {
     const base = m.pressure();
@@ -191,6 +192,73 @@ interface Third24gRadar {
     };
     commands: never;
     commandResponses: never;
+}
+
+function thirdRealitySoilMoisture(): ModernExtend {
+    const expose = e.soil_moisture().withAccess(ea.STATE_GET);
+
+    const supportsNativeSoilMoisture = (device: Zh.Device | DummyDevice): boolean => {
+        if (utils.isDummyDevice(device)) return true;
+        return device.endpoints.some((endpoint) => endpoint.supportsInputCluster("msSoilMoisture"));
+    };
+
+    const getMeasurementEndpoint = (device: Zh.Device): Zh.Endpoint => {
+        return (
+            device.endpoints.find((endpoint) => endpoint.supportsInputCluster("msSoilMoisture")) ??
+            device.endpoints.find((endpoint) => endpoint.supportsInputCluster("msRelativeHumidity")) ??
+            device.endpoints[0]
+        );
+    };
+
+    const hasMeasuredValue = (data: KeyValue): data is KeyValue & {measuredValue: number} => {
+        if (!("measuredValue" in data)) return false;
+        utils.assertNumber(data.measuredValue);
+        return true;
+    };
+
+    return {
+        exposes: [() => [expose]],
+        fromZigbee: [
+            {
+                cluster: "msSoilMoisture",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (hasMeasuredValue(msg.data)) return {soil_moisture: msg.data.measuredValue / 100};
+                },
+            },
+            {
+                cluster: "msRelativeHumidity",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (!supportsNativeSoilMoisture(msg.device) && hasMeasuredValue(msg.data)) {
+                        return {soil_moisture: msg.data.measuredValue / 100};
+                    }
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["soil_moisture"],
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = getMeasurementEndpoint(meta.device);
+                    await endpoint.read(supportsNativeSoilMoisture(meta.device) ? "msSoilMoisture" : "msRelativeHumidity", ["measuredValue"]);
+                },
+            },
+        ],
+        configure: [
+            async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+                const endpoint = getMeasurementEndpoint(device);
+                if (supportsNativeSoilMoisture(device)) {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["msSoilMoisture"]);
+                    await reporting.soil_moisture(endpoint);
+                } else {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["msRelativeHumidity"]);
+                    await reporting.humidity(endpoint);
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
 }
 
 export const fzLocal = {
@@ -890,7 +958,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
-            m.soilMoisture(),
+            thirdRealitySoilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
                 name: "3rSoilSpecialCluster",
