@@ -113,6 +113,64 @@ describe("Shelly Wi-Fi setup", () => {
         expect(read).not.toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
     });
 
+    it("uses a long Shelly RPC data read timeout so delayed chunks do not advance unread", async () => {
+        const configResponse = JSON.stringify({
+            id: 1,
+            result: {
+                sta: {
+                    enable: true,
+                    ssid: "The Internet of Shitty Things",
+                    ipv4mode: "dhcp",
+                },
+            },
+        });
+        const statusResponse = JSON.stringify({
+            id: 1,
+            result: {
+                status: "got ip",
+                sta_ip: "192.168.1.230",
+            },
+        });
+        const responses = [configResponse, statusResponse];
+        let currentResponse = "";
+        let chunks: string[] = [];
+        const read = vi.fn((cluster: string, attributes: string[]) => {
+            if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) {
+                currentResponse = responses.shift() ?? "";
+                chunks = [currentResponse.slice(0, 20), currentResponse.slice(20)];
+                return Promise.resolve({rxCtl: currentResponse.length});
+            }
+            if (cluster === "shellyRPCCluster" && attributes.includes("data")) {
+                return Promise.resolve({data: chunks.shift()});
+            }
+            return Promise.resolve({});
+        });
+        const publish = vi.fn();
+        const device = mockShelly2PMCover(read);
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee?.find((c) => c.key.includes("wifi_config"));
+        assert(converter?.convertGet);
+
+        await converter.convertGet(device.getEndpoint(239), "wifi_config", {
+            device,
+            state: {},
+            publish,
+        } as unknown as Tz.Meta);
+
+        expect(publish).toHaveBeenCalledWith({
+            dhcp_enabled: true,
+            ip_address: "192.168.1.230",
+            wifi_config: {
+                enabled: true,
+                ssid: "The Internet of Shitty Things",
+            },
+            wifi_status: "got ip",
+        });
+        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["data"], expect.objectContaining({timeout: 10000}));
+        expect(read.mock.calls.filter(([cluster, attributes]) => cluster === "shellyRPCCluster" && attributes.includes("data"))).toHaveLength(4);
+        expect(read).not.toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
+    });
+
     it("publishes the configured full Shelly Wi-Fi SSID when RPC readback fails", async () => {
         const read = vi.fn((cluster: string, attributes: string[]) => {
             if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) throw new Error("RPC unavailable");
@@ -137,6 +195,31 @@ describe("Shelly Wi-Fi setup", () => {
             },
         });
         expect(read).not.toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
+    });
+
+    it("does not fail a get when both Shelly Wi-Fi readback paths are unavailable", async () => {
+        const read = vi.fn((cluster: string, attributes: string[]) => {
+            if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) throw new Error("RPC unavailable");
+            if (cluster === "shellyWiFiSetupCluster" && attributes.includes("status")) throw new Error("setup cluster unavailable");
+            return Promise.resolve({});
+        });
+        const publish = vi.fn();
+        const device = mockShelly2PMCover(read);
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee?.find((c) => c.key.includes("wifi_config"));
+        assert(converter?.convertGet);
+
+        await expect(
+            converter.convertGet(device.getEndpoint(239), "wifi_config", {
+                device,
+                state: {},
+                publish,
+            } as unknown as Tz.Meta),
+        ).resolves.toBeUndefined();
+
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith("shellyWiFiSetupCluster", {actionCode: 0}, expect.any(Object));
+        expect(read).toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
+        expect(publish).not.toHaveBeenCalled();
     });
 });
 
