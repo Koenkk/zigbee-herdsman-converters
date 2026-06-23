@@ -2461,7 +2461,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.voc(),
             e.aqi(),
             e.pm10(),
-            e.enum("battery_state", ea.STATE, ["not_charging", "charging", "charged"]),
+            e.enum("battery_state", ea.STATE, ["not_charging", "charging", "charged"]).withCategory("diagnostic"),
         ],
     },
     {

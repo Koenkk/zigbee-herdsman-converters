@@ -222,16 +222,7 @@ export interface DefinitionMeta {
     /**
      * Override the Home Assistant discovery payload using a custom function.
      */
-    overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
-    /**
-     * Home Assistant discovery hints for bridge integrations.
-     */
-    homeassistant?: {
-        /**
-         * Discover switch exposes as a more specific Home Assistant entity type.
-         */
-        switchType?: "valve";
-    };
+    overrideHaDiscoveryPayload?(payload: KeyValueAny, options?: KeyValueAny): void;
     /**
      * Never use a transition when transitioning to off (even when specified)
      */

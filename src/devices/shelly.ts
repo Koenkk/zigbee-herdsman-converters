@@ -19,6 +19,14 @@ const NS = "zhc:shelly";
 const HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID = 0x0b04;
 const HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID = 0x0510;
 
+const checkOption = (device: Zh.Device | DummyDevice, options: KeyValue, key: string, defaultValue = false): boolean => {
+    if (options?.[key] === "true") return true;
+    if (options?.[key] === "false") return false;
+    if (!utils.isDummyDevice(device) && device.meta[key] !== undefined) return !!device.meta[key];
+
+    return defaultValue;
+};
+
 const shellyPresenceEndpointNames = (device: Zh.Device | DummyDevice): string[] => {
     const count =
         !utils.isDummyDevice(device) && typeof device.meta.presence_zone_count === "number"
@@ -381,6 +389,25 @@ const shellyModernExtend = {
             }),
         ];
     },
+    shellyWindowCovering(): ModernExtend {
+        const result = m.windowCovering({controls: ["lift", "tilt"]});
+        const tiltOption = e
+            .enum("cover_tilt_enabled", ea.SET, ["auto", "true", "false"])
+            .withDescription("Expose tilt/slat controls for covers with Shelly slat control enabled");
+        const exposesFn: DefinitionExposesFunction = (device, options) => {
+            const cover = e.cover().withPosition();
+            if (checkOption(device, options, "cover_tilt_enabled")) {
+                cover.withTilt();
+            }
+
+            return [cover];
+        };
+
+        result.exposes = [exposesFn];
+        result.options = [...(result.options ?? []), tiltOption];
+
+        return result;
+    },
     shellyPresenceOccupancy(): ModernExtend {
         const exposesFn: DefinitionExposesFunction = (device) => {
             return shellyPresenceEndpointNames(device).map((endpointName) => e.occupancy().withAccess(ea.STATE_GET).withEndpoint(endpointName));
@@ -421,6 +448,7 @@ const shellyModernExtend = {
         const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
         const featureTwoPMInputMode = features.includes("2PMInputMode");
         const featureOnePMInputMode = features.includes("1PMInputMode");
+        const featureCoverTiltAuto = features.includes("CoverTiltAuto");
         const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
 
         // Generic helper functions
@@ -822,6 +850,27 @@ const shellyModernExtend = {
                     await rpcReceive(ep, "rpc_rxctl");
                 } catch (e) {
                     logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
+                }
+            });
+        }
+        if (featureCoverTiltAuto) {
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    const response = await rpcRequest(ep, "Cover.GetConfig", {id: 0});
+                    const result = response?.result ?? response?.params ?? response;
+                    if (!result) return;
+                    assertObject<KeyValue>(result);
+                    if (!result.slat) return;
+                    assertObject<KeyValue>(result.slat);
+                    const enabled = result.slat.enable;
+                    if (typeof enabled === "boolean" && device.meta.cover_tilt_enabled !== enabled) {
+                        device.meta.cover_tilt_enabled = enabled;
+                        device.save();
+                    }
+                } catch (e) {
+                    logger.warning(`Failed to read cover_tilt_enabled during configure, use manual option to override: ${e}`, NS);
                 }
             });
         }
@@ -1592,9 +1641,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             m.deviceEndpoints({endpoints: {sw1: 2, sw2: 3}}),
-            m.windowCovering({controls: ["lift", "tilt"]}),
+            shellyModernExtend.shellyWindowCovering(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
+            shellyModernExtend.shellyRPCSetup(["2PMInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {

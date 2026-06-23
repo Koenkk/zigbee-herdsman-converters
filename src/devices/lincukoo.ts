@@ -380,7 +380,12 @@ export const definitions: DefinitionWithExtend[] = [
             ];
 
             if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
-                exps.push(e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("battery state of the sensor"));
+                exps.push(
+                    e
+                        .enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                        .withDescription("battery state of the sensor")
+                        .withCategory("diagnostic"),
+                );
             } else {
                 exps.push(e.enum("alarm_ringtone", ea.STATE_SET, ["ring1", "ring2", "ring3"]).withDescription("Ringtone of the alarm"));
                 exps.push(e.battery());
@@ -461,7 +466,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("m")
                 .withDescription("Maximum range"),
             e.numeric("radar_sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(4).withValueStep(1).withDescription("Sensitivity of the radar"),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high", "usb"]).withDescription("battery state of the sensor"),
+            e
+                .enum("battery_state", ea.STATE, ["low", "middle", "high", "usb"])
+                .withDescription("battery state of the sensor")
+                .withCategory("diagnostic"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -804,7 +812,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1.5)
                 .withUnit("m")
                 .withDescription("Detection distance"),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high", "USB"]).withDescription("Battery status"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high", "USB"]).withDescription("Battery status").withCategory("diagnostic"),
             e.binary("switch_night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light switch"),
         ],
         meta: {
