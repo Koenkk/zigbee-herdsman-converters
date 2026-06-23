@@ -685,7 +685,8 @@ describe("Sonoff SWV-ZFE", () => {
     });
 
     it("marks the switch expose for Home Assistant valve discovery", () => {
-        expect(device.meta?.homeassistant?.switchType).toStrictEqual("valve");
+        expect(device.meta?.homeassistant).toBeUndefined();
+        expect(device.exposes.find((expose) => expose.type === "switch")).toMatchObject({homeassistant: {type: "valve"}});
     });
 
     it("exposes irrigation controls as Home Assistant friendly scalar entities", () => {

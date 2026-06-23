@@ -14,6 +14,9 @@ import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export interface HomeAssistant {
+    type?: "valve";
+}
 
 export class Base {
     name: string;
@@ -25,6 +28,7 @@ export class Base {
     description?: string;
     features?: Feature[];
     category?: "config" | "diagnostic";
+    homeassistant?: HomeAssistant;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -70,6 +74,11 @@ export class Base {
     withCategory(category: "config" | "diagnostic") {
         this.category = category;
         this.validateCategory();
+        return this;
+    }
+
+    withHomeAssistant(homeassistant: HomeAssistant) {
+        this.homeassistant = homeassistant;
         return this;
     }
 
@@ -121,6 +130,7 @@ export class Base {
             target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
+        target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
     }
 }
 

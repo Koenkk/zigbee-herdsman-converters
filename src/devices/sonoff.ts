@@ -8076,7 +8076,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         whiteLabel: [{model: "SWV-ZFU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZFU"}]}],
         description: "Zigbee smart water valve",
-        meta: {homeassistant: {switchType: "valve"}},
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
@@ -8122,6 +8121,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
+                homeassistant: {type: "valve"},
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -8202,7 +8202,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SWV-ZF2",
         vendor: "SONOFF",
         description: "Zigbee dual-channel smart water valve",
-        meta: {homeassistant: {switchType: "valve"}},
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
             m.deviceAddCustomCluster("customClusterEwelink", {
@@ -8256,6 +8255,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
+                homeassistant: {type: "valve"},
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -8350,7 +8350,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         whiteLabel: [{model: "SWV-ZNU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZNU"}]}],
         description: "Zigbee smart water valve",
-        meta: {homeassistant: {switchType: "valve"}},
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
@@ -8392,6 +8391,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
+                homeassistant: {type: "valve"},
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
