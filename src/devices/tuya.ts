@@ -23428,6 +23428,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            {
+                model: "AY208Z",
+                vendor: "AOYAN",
+                description: "24G millimeter wave human presence sensor",
+                fingerprint: [{modelID: "AY208Z", manufacturerName: "AOYAN"}],
+            },
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z5jz7wpo"]),
