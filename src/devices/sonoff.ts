@@ -7194,7 +7194,8 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "valve_work_state",
                 cluster: "customClusterEwelink",
                 attribute: {ID: 0x5010, type: Zcl.DataType.BOOLEAN},
-                description: "Current valve work state",
+                description:
+                    "Current valve work state, this turns on when a Cyclic timed or quantitative irrigation program is running, and turns off when the program is complete.",
                 access: "STATE",
                 valueOn: ["working", 1],
                 valueOff: ["idle", 0],
