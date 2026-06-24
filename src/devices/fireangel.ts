@@ -18,7 +18,7 @@ const fzLocal = {
             if (lastTestTimeout) clearTimeout(lastTestTimeout);
 
             if (testActive) {
-                const timeout = setTimeout(() => publish({test: false}), 8000);
+                const timeout = setTimeout(() => publish({test: false}), 8000).unref();
                 globalStore.putValue(msg.endpoint, "lastTestTimeout", timeout);
             }
 

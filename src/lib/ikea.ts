@@ -558,7 +558,7 @@ export function tradfriOccupancy(): ModernExtend {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
                         globalStore.clearValue(msg.endpoint, "timer");
-                    }, timeout * 1000);
+                    }, timeout * 1000).unref();
                     globalStore.putValue(msg.endpoint, "timer", timer);
                 }
 

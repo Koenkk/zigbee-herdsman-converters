@@ -407,7 +407,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc", "_TZE284_jtbgusdc", "_TZE204_fjms2pi9", "_TZE284_fjms2pi9"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_o9gyszw2",
+            "_TZE204_jtbgusdc",
+            "_TZE284_jtbgusdc",
+            "_TZE204_fjms2pi9",
+            "_TZE284_fjms2pi9",
+            "_TZE28C1000000_jtbgusdc",
+        ]),
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",

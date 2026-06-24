@@ -226,6 +226,7 @@ import {definitions as niko} from "./niko";
 import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
 import {definitions as nobo} from "./nobo";
+import {definitions as nodieby} from "./nodieby";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
@@ -600,6 +601,7 @@ const definitions: DefinitionWithExtend[] = [
     ...niko,
     ...ninjaBlocks,
     ...niviss,
+    ...nodieby,
     ...nodon,
     ...nordtronic,
     ...nous,

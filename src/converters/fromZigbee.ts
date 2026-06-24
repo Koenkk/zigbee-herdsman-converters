@@ -596,7 +596,7 @@ export const occupancy_with_timeout: Fz.Converter<"msOccupancySensing", undefine
         if (timeout !== 0) {
             const timer = setTimeout(() => {
                 publish({occupancy: false});
-            }, timeout * 1000);
+            }, timeout * 1000).unref();
 
             globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
         }
@@ -1099,7 +1099,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
         if (timeout !== 0) {
             const timer = setTimeout(() => {
                 publish({vibration: false});
-            }, timeout * 1000);
+            }, timeout * 1000).unref();
 
             globalStore.getValue(msg.endpoint, "timers").push(timer);
         }
@@ -1293,7 +1293,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
         if (timeout !== 0) {
-            const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+            const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000).unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
         }
 
@@ -1470,7 +1470,7 @@ export const command_move: Fz.Converter<"genLevelCtrl", undefined, ["commandMove
                     const property = postfixWithEndpointName("brightness", msg, model, meta);
                     const deltaProperty = postfixWithEndpointName("action_brightness_delta", msg, model, meta);
                     publish({[property]: brightness, [deltaProperty]: delta});
-                }, intervalOpts);
+                }, intervalOpts).unref();
 
                 globalStore.putValue(msg.endpoint, "simulated_brightness_timer", timer);
             }
@@ -1911,7 +1911,7 @@ export const checkin_presence: Fz.Converter<"genPollCtrl", undefined, ["commandC
         // Stop existing timer because presence is detected and set a new one.
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+        const timer = setTimeout(() => publish({presence: false}), timeout * 1000).unref();
         globalStore.putValue(msg.endpoint, "timer", timer);
 
         return {presence: true};
