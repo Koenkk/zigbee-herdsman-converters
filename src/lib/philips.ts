@@ -591,7 +591,7 @@ const philipsModernExtend = {
                             } catch (_e) {
                                 // Best-effort sync
                             }
-                        }, 1000);
+                        }, 1000).unref();
                     }
 
                     // Merge syncColorState results into newState. syncColorState
@@ -1009,7 +1009,7 @@ const philipsTz = {
                     } catch (_e) {
                         // Ignore read failures — best-effort sync
                     }
-                }, 1000);
+                }, 1000).unref();
 
                 return {state};
             }

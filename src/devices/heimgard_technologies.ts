@@ -42,10 +42,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["HT-SLM-2"],
+        zigbeeModel: ["HT-SLM-2", "HT-SLM-3"],
         model: "HT-SLM-2",
         vendor: "Heimgard Technologies",
-        description: "Doorlock with fingerprint",
+        description: "Smart (fingerprint/PIN/RFID) doorlock",
+        whiteLabel: [{model: "HT-SLM-3", description: "Entry (PIN/RFID) door lock", fingerprint: [{modelID: "HT-SLM-3"}]}],
         fromZigbee: [fz.lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},

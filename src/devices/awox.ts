@@ -393,6 +393,13 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "EGLO", model: "900116"}],
     },
     {
+        zigbeeModel: ["ESMLzm_TW_GU10"],
+        model: "110308",
+        vendor: "AwoX",
+        description: "Connect.Z GU10 tunable white",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
         fingerprint: [
             {
                 type: "Router",

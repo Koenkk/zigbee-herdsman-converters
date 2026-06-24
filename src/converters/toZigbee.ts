@@ -1567,6 +1567,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
 
         let daysofweek = value.dayofweek;
         const transitions = value.transitions;
+        const convertedTransitions: TClusterCommandPayload<"hvacThermostat", "setWeeklySchedule">["transitions"] = [];
         let numoftrans = 0;
         const modes: string[] = [];
 
@@ -1590,47 +1591,61 @@ export const thermostat_weekly_schedule: Tz.Converter = {
 
             // transform transition payload values if needed
             for (const elem of transitions) {
+                const heatSetpoint = elem.heatSetpoint ?? elem.heat_setpoint;
+                const coolSetpoint = elem.coolSetpoint ?? elem.cool_setpoint;
+                let transitionTime = elem.transitionTime ?? elem.transition_time ?? elem.time;
+                const convertedTransition: Partial<TClusterCommandPayload<"hvacThermostat", "setWeeklySchedule">["transitions"][number]> = {};
+
                 // update mode if needed
-                if (elem.heatSetpoint != null && !modes.includes("heat")) {
+                if (heatSetpoint != null && !modes.includes("heat")) {
                     modes.push("heat");
                 }
-                if (elem.coolSetpoint != null && !modes.includes("cool")) {
+                if (coolSetpoint != null && !modes.includes("cool")) {
                     modes.push("cool");
                 }
 
                 // transform setpoint values if numeric
-                if (typeof elem.heatSetpoint === "number") {
-                    elem.heatSetpoint = Math.round(elem.heatSetpoint * 100);
+                if (typeof heatSetpoint === "number") {
+                    convertedTransition.heatSetpoint = Math.round(heatSetpoint * 100);
+                } else if (heatSetpoint != null) {
+                    convertedTransition.heatSetpoint = heatSetpoint;
                 }
-                if (typeof elem.coolSetpoint === "number") {
-                    elem.coolSetpoint = Math.round(elem.coolSetpoint * 100);
+                if (typeof coolSetpoint === "number") {
+                    convertedTransition.coolSetpoint = Math.round(coolSetpoint * 100);
+                } else if (coolSetpoint != null) {
+                    convertedTransition.coolSetpoint = coolSetpoint;
                 }
 
                 // accept 24h time notation (e.g. 19:30)
-                if (typeof elem.transitionTime === "string") {
-                    const time = elem.transitionTime.split(":");
+                if (typeof transitionTime === "string") {
+                    const time = transitionTime.split(":");
                     const timeHour = Number.parseInt(time[0], 10) * 60;
                     const timeMinute = Number.parseInt(time[1], 10);
 
                     if (time.length !== 2 || Number.isNaN(timeHour) || Number.isNaN(timeMinute)) {
-                        logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem.transitionTime}'!`, NS);
+                        logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${transitionTime}'!`, NS);
                     } else {
-                        elem.transitionTime = timeHour + timeMinute;
+                        transitionTime = timeHour + timeMinute;
                     }
-                } else if (typeof elem.transitionTime === "object") {
-                    if (elem.transitionTime.hour == null || elem.transitionTime.minute == null) {
+                } else if (typeof transitionTime === "object") {
+                    if (transitionTime.hour == null || transitionTime.minute == null) {
                         throw new Error(
-                            `weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), but got '${JSON.stringify(elem.transitionTime)}'!`,
+                            `weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), but got '${JSON.stringify(transitionTime)}'!`,
                         );
                     }
-                    if (Number.isNaN(elem.transitionTime.hour)) {
-                        throw new Error(`weekly_schedule: expected time.hour to be a number, but got '${elem.transitionTime.hour}'!`);
+                    if (Number.isNaN(transitionTime.hour)) {
+                        throw new Error(`weekly_schedule: expected time.hour to be a number, but got '${transitionTime.hour}'!`);
                     }
-                    if (Number.isNaN(elem.transitionTime.minute)) {
-                        throw new Error(`weekly_schedule: expected time.minute to be a number, but got '${elem.transitionTime.minute}'!`);
+                    if (Number.isNaN(transitionTime.minute)) {
+                        throw new Error(`weekly_schedule: expected time.minute to be a number, but got '${transitionTime.minute}'!`);
                     }
-                    elem.transitionTime = Number.parseInt(elem.transitionTime.hour, 10) * 60 + Number.parseInt(elem.transitionTime.minute, 10);
+                    transitionTime = Number.parseInt(transitionTime.hour, 10) * 60 + Number.parseInt(transitionTime.minute, 10);
                 }
+
+                convertedTransition.transitionTime = transitionTime;
+                convertedTransitions.push(
+                    convertedTransition as TClusterCommandPayload<"hvacThermostat", "setWeeklySchedule">["transitions"][number],
+                );
             }
         } else {
             logger.error("weekly_schedule: transitions is not an array!", NS);
@@ -1669,7 +1684,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
         await entity.command(
             "hvacThermostat",
             "setWeeklySchedule",
-            {dayofweek, numoftrans, transitions, mode},
+            {dayofweek, numoftrans, transitions: convertedTransitions, mode},
             utils.getOptions(meta.mapped, entity),
         );
     },

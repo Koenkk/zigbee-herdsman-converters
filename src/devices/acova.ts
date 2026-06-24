@@ -21,11 +21,10 @@ const acova = {
                         msg.data.systemMode,
                         constants.acovaThermostatSystemModes as Record<string | number, string>,
                     );
-                    if (result.system_mode === "off") {
-                        result.hvac_action = "off";
-                    }
                 }
-                result.local_temperature = null;
+                if (model.model === "ALCANTARA2") {
+                    result.local_temperature = null;
+                }
                 return result;
             },
         } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,

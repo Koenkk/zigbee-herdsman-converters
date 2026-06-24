@@ -548,6 +548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {},
                 description: "Battery state",
                 access: "STATE_GET",
+                entityCategory: "diagnostic",
                 reporting: null,
             }),
             m.iasZoneAlarm({

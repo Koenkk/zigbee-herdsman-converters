@@ -18,7 +18,7 @@ const fzLocal = {
             }
 
             const lookup: KeyValueAny = {commandOn: "bell1", commandOff: "bell2"};
-            const timer = setTimeout(() => globalStore.getValue(msg.endpoint, "action").pop(), timeout * 1000);
+            const timer = setTimeout(() => globalStore.getValue(msg.endpoint, "action").pop(), timeout * 1000).unref();
 
             const list = globalStore.getValue(msg.endpoint, "action");
             if (list.length === 0 || list.length > 4) {

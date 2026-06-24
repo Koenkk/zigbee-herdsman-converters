@@ -35,7 +35,7 @@ const fzLocal = {
             const data = utf8FromStr(msg.data["16896"] as string);
 
             clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-            const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000);
+            const timer = setTimeout(() => publish({action: "lock", state: "LOCK"}), 2 * 1000).unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
 
             return {
