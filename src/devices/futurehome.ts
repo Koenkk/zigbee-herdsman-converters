@@ -331,7 +331,11 @@ const futurehomeExtend = {
                 } satisfies Tz.Converter,
             ],
             exposes: [
-                exposes.numeric("previous_session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh"),
+                exposes
+                    .numeric("previous_session_energy", ea.STATE_GET)
+                    .withLabel("Session energy")
+                    .withDescription("Previous session")
+                    .withUnit("kWh"),
             ],
         };
     },
