@@ -821,7 +821,8 @@ const tuyaExposes = {
         e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]).withDescription("Mode of the indicator light").withCategory("config"),
     powerOutageMemory: () =>
         e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage").withCategory("config"),
-    batteryState: () => e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery"),
+    batteryState: () =>
+        e.enum("battery_state", ea.STATE, ["low", "medium", "high"]).withDescription("State of the battery").withCategory("diagnostic"),
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
@@ -1947,7 +1948,7 @@ export const valueConverter = {
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     localTempCalibration1: {
         from: (v: number) => {
-            if (v > 55) v -= 0x100000000;
+            if (v > 0x7fffffff) v -= 0x100000000;
             return v / 10;
         },
         to: (v: number) => {
@@ -3905,19 +3906,16 @@ const tuyaFz = {
                                 (c) => c.cluster.name === "haElectricalMeasurement" && c.attribute.name === lookup[key],
                             );
                             const time = (configuredReporting ? configuredReporting.minimumReportInterval : 5) * 2 + 1;
-                            globalStore.putValue(
-                                msg.endpoint,
-                                key,
-                                setTimeout(() => {
-                                    const payload = {[key]: value};
-                                    // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
-                                    // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
-                                    if (key === "current") {
-                                        payload.power = 0;
-                                    }
-                                    publish(payload);
-                                }, time * 1000),
-                            );
+                            const timer = setTimeout(() => {
+                                const payload = {[key]: value};
+                                // Device takes a lot of time to report power 0 in some cases. When current == 0 we can assume power == 0
+                                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7868445
+                                if (key === "current") {
+                                    payload.power = 0;
+                                }
+                                publish(payload);
+                            }, time * 1000).unref();
+                            globalStore.putValue(msg.endpoint, key, timer);
                             delete result[key];
                         }
                     }
@@ -4506,7 +4504,7 @@ const tuyaModernExtend = {
                                     if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
                                         setTimer();
                                     }
-                                }, queryIntervalSeconds * 1000);
+                                }, queryIntervalSeconds * 1000).unref();
                                 globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
                             };
                             setTimer();

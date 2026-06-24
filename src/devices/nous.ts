@@ -53,7 +53,7 @@ export const definitions: DefinitionWithExtend[] = [
 
                             setTimeout(() => {
                                 publish({warming_up: false});
-                            }, 120 * 1000);
+                            }, 120 * 1000).unref();
                             return true;
                         },
                     },

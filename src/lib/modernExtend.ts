@@ -553,6 +553,7 @@ export interface OnOffArgs {
     endpointNames?: string[];
     configureReporting?: boolean;
     description?: string;
+    homeassistant?: exposes.HomeAssistant;
 }
 export function onOff(args: OnOffArgs = {}): ModernExtend {
     const {
@@ -561,10 +562,13 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
         configureReporting = true,
         endpointNames = undefined,
         description = undefined,
+        homeassistant = undefined,
         ota = false,
     } = args;
 
-    const exposes: Expose[] = description ? exposeEndpoints(e.switch(description), endpointNames) : exposeEndpoints(e.switch(), endpointNames);
+    const switchExpose = description ? e.switch(description) : e.switch();
+    if (homeassistant) switchExpose.withHomeAssistant(homeassistant);
+    const exposes: Expose[] = exposeEndpoints(switchExpose, endpointNames);
 
     const fromZigbee = [skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
     const toZigbee: Tz.Converter[] = [endpointNames ? {...tz.on_off, endpoints: endpointNames} : tz.on_off];
@@ -681,7 +685,7 @@ export function poll(args: {
                             if (globalStore.getValue(event.data.device.ieeeAddr, args.key) === timer) {
                                 setTimer();
                             }
-                        }, seconds * 1000);
+                        }, seconds * 1000).unref();
                         globalStore.putValue(event.data.device.ieeeAddr, args.key, timer);
                     };
                     setTimer();
@@ -1735,7 +1739,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                     const timeout = options?.[timeoutProperty] != null ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
                     if (timeout !== 0) {
-                        const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000);
+                        const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), timeout * 1000).unref();
                         globalStore.putValue(msg.endpoint, "timer", timer);
                     }
                 }
@@ -1794,7 +1798,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                         clearTimeout(globalStore.getValue(msg.endpoint, "timeout"));
                         if (addTimeout) {
                             // At least one zone active
-                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000);
+                            const timer = setTimeout(() => publish({[alarm1Name]: false, [alarm2Name]: false}), keepAliveTimeout * 1000).unref();
                             globalStore.putValue(msg.endpoint, "timeout", timer);
                         } else {
                             globalStore.clearValue(msg.endpoint, "timeout");

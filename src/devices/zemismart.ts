@@ -93,10 +93,6 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             if (meta.options.time_close != null && meta.options.time_open != null) {
-                const sleepSeconds = async (s: number) => {
-                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
-                };
-
                 const oldPosition = meta.state.position;
                 if (value === 100) {
                     await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
@@ -106,18 +102,16 @@ const tzLocal = {
                     if (utils.isNumber(oldPosition) && oldPosition > value) {
                         const delta = oldPosition - value;
                         utils.assertNumber(meta.options.time_open);
-                        const mutiplicateur = meta.options.time_open / 100;
-                        const timeBeforeStop = delta * mutiplicateur;
+                        const timeBeforeStop = delta * (meta.options.time_open / 100) * 1000;
                         await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
-                        await sleepSeconds(timeBeforeStop);
+                        await utils.sleep(timeBeforeStop);
                         await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
                     } else if (utils.isNumber(oldPosition) && oldPosition < value) {
                         const delta = value - oldPosition;
                         utils.assertNumber(meta.options.time_close);
-                        const mutiplicateur = meta.options.time_close / 100;
-                        const timeBeforeStop = delta * mutiplicateur;
+                        const timeBeforeStop = delta * (meta.options.time_close / 100) * 1000;
                         await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-                        await sleepSeconds(timeBeforeStop);
+                        await utils.sleep(timeBeforeStop);
                         await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
                     }
                 }

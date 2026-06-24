@@ -195,11 +195,16 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "ZB-RGBCW",
         vendor: "Lonsonho",
-        version: "0.0.1",
+        version: "0.0.2",
         description: "Zigbee 3.0 LED-bulb, RGBW LED",
-        extend: [
-            m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false, configureReporting: true}),
-        ],
+        // Configure reporting for color fails
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32345
+        extend: [m.light({colorTemp: {range: [153, 500], startup: false}, color: true, effect: false, powerOnBehavior: false})],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.onOff(endpoint);
+            await reporting.brightness(endpoint);
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TYZB01_zsl6z0pw", "_TYZB01_uqkphoed"]),
