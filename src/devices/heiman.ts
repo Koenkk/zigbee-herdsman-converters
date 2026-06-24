@@ -97,6 +97,7 @@ interface HeimanPrivateCluster {
         remoteSelfTest: number;
         temperatureOffset: number;
         switchType: number;
+        humidityOffset: number;
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
@@ -219,6 +220,7 @@ const heimanExtend = {
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16, write: true},
                 switchType: {name: "switchType", ID: 0x1010, type: Zcl.DataType.ENUM8, write: true},
+                humidityOffset: {name: "humidityOffset", ID: 0x1012, type: Zcl.DataType.UINT16, write: true},
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
@@ -1488,6 +1490,18 @@ const heimanExtend = {
             access: "ALL",
             ...args,
         }),
+    humidityOffset: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "humidity_offset",
+            unit: "",
+            valueMin: 0,
+            valueMax: 1500,
+            cluster: "heimanClusterSpecial",
+            attribute: "humidityOffset",
+            description: "used for humidity offset, unit: 0.01RH%",
+            access: "ALL",
+            ...args,
+        }),
     reportedPackages: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "reported_packages",
@@ -1635,6 +1649,9 @@ const fzLocal = {
             }
             if (data.temperatureOffset !== undefined) {
                 result.temperature_offset = data.temperatureOffset;
+            }
+            if (data.humidityOffset !== undefined) {
+                result.humidity_offset = data.humidityOffset;
             }
             if (data.deviceCascadeState !== undefined) {
                 result.siren_for_automation_only = smokeSirenLookup[data.deviceCascadeState as number];
@@ -3578,6 +3595,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "occupanyControlOnOffIlluminanceThreshold",
                     "radarDetectionMinRange",
                     "radarDetectionMaxRange",
+                    "humidityOffset",
+                    "temperatureOffset",
                     "indicatorLightLevelControlOf1",
                     "rebootedCount",
                     "rejoinedCount",
@@ -3658,6 +3677,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_control",
                 lookup: {start: 65534, reset: 65535},
