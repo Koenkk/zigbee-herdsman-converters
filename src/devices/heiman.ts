@@ -3657,6 +3657,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "occupany sensor work mode",
                 access: "ALL",
             }),
+            heimanExtend.temperatureOffset(),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_control",
                 lookup: {start: 65534, reset: 65535},
