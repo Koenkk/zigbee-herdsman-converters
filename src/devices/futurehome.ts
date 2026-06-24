@@ -10,6 +10,18 @@ const ea = exposes.access;
 interface FuturehomeHaApplianceControl {
     attributes: {
         autoCharge: number;
+        energyMeterStart: number;
+        energyMeterNow: number;
+        a1: number;
+        a2: number;
+        a5: number;
+        a6: number;
+        a7: number;
+        a8: number;
+        a9: number;
+        aa: number;
+        ab: number;
+        a10: number;
     };
     commands: never;
     commandResponses: never;
@@ -297,7 +309,7 @@ const futurehomeExtend = {
                     cluster: "haApplianceControl",
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
-                        const prev_session_energy = (msg.data.latestAccumulatedEnergy - msg.data.previousAccumulatedEnergy) / 1000;
+                        const prev_session_energy = (msg.data.energyMeterNow - msg.data.energyMeterStart) / 1000;
                         return {
                             previous_session_energy: prev_session_energy,
                         };
@@ -305,7 +317,9 @@ const futurehomeExtend = {
                 },
             ],
             toZigbee: [],
-            exposes: [exposes.numeric("previous_session_energy", ea.STATE)],
+            exposes: [
+                exposes.numeric("previous_session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh"),
+            ],
         };
     },
 };
@@ -419,14 +433,14 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
-                    previousAccumulatedEnergy: {
-                        name: "previousAccumulatedEnergy",
+                    energyMeterStart: {
+                        name: "energyMeterStart",
                         ID: 0xef03,
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                     },
-                    latestAccumulatedEnergy: {
-                        name: "latestAccumulatedEnergy",
+                    energyMeterNow: {
+                        name: "energyMeterNow",
                         ID: 0xef04,
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
@@ -562,6 +576,114 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {divisor: 1000, multiplier: 1},
                 power: false,
                 threePhase: true,
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "energy_meter_start",
+                cluster: "haApplianceControl",
+                attribute: "energyMeterStart",
+                description: "energyMeterStart",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "energy_meter_now",
+                cluster: "haApplianceControl",
+                attribute: "energyMeterNow",
+                description: "energyMeterNow",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a1",
+                cluster: "haApplianceControl",
+                attribute: "a1",
+                description: "a1",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a2",
+                cluster: "haApplianceControl",
+                attribute: "a2",
+                description: "a2",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a5",
+                cluster: "haApplianceControl",
+                attribute: "a5",
+                description: "a5",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a6",
+                cluster: "haApplianceControl",
+                attribute: "a6",
+                description: "a6",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a7",
+                cluster: "haApplianceControl",
+                attribute: "a7",
+                description: "a7",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a8",
+                cluster: "haApplianceControl",
+                attribute: "a8",
+                description: "a8",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a9",
+                cluster: "haApplianceControl",
+                attribute: "a9",
+                description: "a9",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "aa",
+                cluster: "haApplianceControl",
+                attribute: "aa",
+                description: "aa",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "ab",
+                cluster: "haApplianceControl",
+                attribute: "ab",
+                description: "ab",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "a10",
+                cluster: "haApplianceControl",
+                attribute: "a10",
+                description: "a10",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
         ],
     },
