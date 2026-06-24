@@ -309,12 +309,15 @@ const futurehomeExtend = {
                     cluster: "haApplianceControl",
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
-                        const prev_session_energy = (msg.data.energyMeterNow - msg.data.energyMeterStart) / 1000;
-                        return {
-                            previous_session_energy: prev_session_energy,
-                        };
+                        // const prev_session_energy = (msg.data.energyMeterNow - msg.data.energyMeterStart) / 1000;
+                        if (msg.data.energyMeterNow !== undefined && msg.data.energyMeterStart !== undefined) {
+                            const prev_session_energy = msg.data.energyMeterNow - msg.data.energyMeterStart;
+                            return {
+                                previous_session_energy: prev_session_energy,
+                            };
+                        }
                     },
-                },
+                } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
             toZigbee: [
                 {
@@ -592,6 +595,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "haApplianceControl",
                 attribute: "energyMeterStart",
                 description: "energyMeterStart",
+                unit: "kWh",
                 access: "STATE_GET",
                 scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
@@ -602,6 +606,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "haApplianceControl",
                 attribute: "energyMeterNow",
                 description: "energyMeterNow",
+                unit: "kWh",
                 access: "STATE_GET",
                 scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
