@@ -316,7 +316,17 @@ const futurehomeExtend = {
                     },
                 },
             ],
-            toZigbee: [],
+            toZigbee: [
+                {
+                    key: ["prev_session_energy"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read<"haApplianceControl", FuturehomeHaApplianceControl>("haApplianceControl", [
+                            "energyMeterNow",
+                            "energyMeterStart",
+                        ]);
+                    },
+                } satisfies Tz.Converter,
+            ],
             exposes: [
                 exposes.numeric("previous_session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh"),
             ],
@@ -583,6 +593,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "energyMeterStart",
                 description: "energyMeterStart",
                 access: "STATE_GET",
+                scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
@@ -592,6 +603,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "energyMeterNow",
                 description: "energyMeterNow",
                 access: "STATE_GET",
+                scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
@@ -619,7 +631,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a5",
                 description: "a5",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -628,7 +640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a6",
                 description: "a6",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                // reporting: {min: 5, max: "1_HOUR", change: 1}, not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -637,7 +649,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a7",
                 description: "a7",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -646,7 +658,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a8",
                 description: "a8",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -655,7 +667,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a9",
                 description: "a9",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                reporting: {min: 5, max: "1_HOUR", change: 1}, // reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -673,7 +685,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "ab",
                 description: "ab",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -682,7 +694,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a10",
                 description: "a10",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
+                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
         ],
