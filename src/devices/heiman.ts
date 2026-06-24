@@ -3562,6 +3562,8 @@ export const definitions: DefinitionWithExtend[] = [
                 "heimanClusterSpecial",
             ]);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
             await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
             await endpoint.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
@@ -3591,6 +3593,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             heimanExtend.heimanClusterSpecial(),
             m.illuminance(),
+            m.temperature(),
+            m.humidity(),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "target_distance",
                 unit: "meter(s)",
