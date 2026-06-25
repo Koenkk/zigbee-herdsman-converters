@@ -1719,18 +1719,11 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE204_lb0fsvba",
-            },
-        ],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lb0fsvba"]),
         model: "ZBN-DJ-63",
         vendor: "Tuya",
         description: "Smart circuit breaker",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET).withDescription("Circuit Breaker Switch"),
             e.energy().withDescription("Total Forward Energy (kWh)").withAccess(ea.STATE),
