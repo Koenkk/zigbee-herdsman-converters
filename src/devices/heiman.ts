@@ -220,7 +220,7 @@ const heimanExtend = {
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16, write: true},
                 switchType: {name: "switchType", ID: 0x1010, type: Zcl.DataType.ENUM8, write: true},
-                humidityOffset: {name: "humidityOffset", ID: 0x1012, type: Zcl.DataType.UINT16, write: true},
+                humidityOffset: {name: "humidityOffset", ID: 0x1012, type: Zcl.DataType.INT16, write: true},
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
@@ -1494,7 +1494,7 @@ const heimanExtend = {
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "humidity_offset",
             unit: "",
-            valueMin: 0,
+            valueMin: -1500,
             valueMax: 1500,
             cluster: "heimanClusterSpecial",
             attribute: "humidityOffset",
