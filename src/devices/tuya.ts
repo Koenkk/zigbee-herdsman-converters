@@ -7283,6 +7283,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_mhhxxjrs",
             "_TZ3000_iv4eq7eh",
             "_TZ3000_mzcp0of6",
+            "_TZ3210_aksyshpw", // https://github.com/Koenkk/zigbee2mqtt/issues/32391
         ]),
         model: "TS0003_switch_module_2",
         vendor: "Tuya",
