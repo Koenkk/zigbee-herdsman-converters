@@ -156,4 +156,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsWindowCovering({endpointNames: ["1", "2", "3", "4"]}),
         ],
     },
+    {
+        zigbeeModel: ["Sonesse2 40 WF Li-ion Roller"],
+        model: "1245993",
+        vendor: "SOMFY",
+        description: "Sonesse 40 WireFree Zigbee Li-ion USB-C roller shade",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
 ];
