@@ -335,7 +335,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_zigisuyh", "_TZ3000_v4mevirn", "_TZ3000_mlswgkc3"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_zigisuyh", "_TZ3000_v4mevirn", "_TZ3000_mlswgkc3", "_TZ3000_gazjngjl"]),
         model: "ZIGBEE-B09-UK",
         vendor: "Zemismart",
         description: "Zigbee smart outlet universal socket with USB port",

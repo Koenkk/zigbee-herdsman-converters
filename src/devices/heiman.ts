@@ -97,6 +97,7 @@ interface HeimanPrivateCluster {
         remoteSelfTest: number;
         temperatureOffset: number;
         switchType: number;
+        humidityOffset: number;
         rebootedCount: number;
         rejoinedCount: number;
         reportedPackages: number;
@@ -219,6 +220,7 @@ const heimanExtend = {
                 remoteSelfTest: {name: "remoteSelfTest", ID: 0x1009, type: Zcl.DataType.UINT8},
                 temperatureOffset: {name: "temperatureOffset", ID: 0x100d, type: Zcl.DataType.INT16, write: true},
                 switchType: {name: "switchType", ID: 0x1010, type: Zcl.DataType.ENUM8, write: true},
+                humidityOffset: {name: "humidityOffset", ID: 0x1012, type: Zcl.DataType.INT16, write: true},
                 rebootedCount: {name: "rebootedCount", ID: 0x0019, type: Zcl.DataType.UINT16},
                 rejoinedCount: {name: "rejoinedCount", ID: 0x001a, type: Zcl.DataType.UINT16},
                 reportedPackages: {name: "reportedPackages", ID: 0x001b, type: Zcl.DataType.UINT16},
@@ -1480,11 +1482,27 @@ const heimanExtend = {
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "temperature_offset",
             unit: "",
-            valueMin: -1500,
-            valueMax: 1500,
+            valueMin: -15.0,
+            valueMax: 15.0,
+            valueStep: 0.1,
+            scale: 100,
             cluster: "heimanClusterSpecial",
             attribute: "temperatureOffset",
-            description: "used for temperature offset, unit: 0.01℃",
+            description: "used for temperature offset, unit: ℃",
+            access: "ALL",
+            ...args,
+        }),
+    humidityOffset: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "humidity_offset",
+            unit: "",
+            valueMin: -15.0,
+            valueMax: 15.0,
+            valueStep: 0.1,
+            scale: 100,
+            cluster: "heimanClusterSpecial",
+            attribute: "humidityOffset",
+            description: "used for humidity offset, unit: RH%",
             access: "ALL",
             ...args,
         }),
@@ -1635,6 +1653,9 @@ const fzLocal = {
             }
             if (data.temperatureOffset !== undefined) {
                 result.temperature_offset = data.temperatureOffset;
+            }
+            if (data.humidityOffset !== undefined) {
+                result.humidity_offset = data.humidityOffset;
             }
             if (data.deviceCascadeState !== undefined) {
                 result.siren_for_automation_only = smokeSirenLookup[data.deviceCascadeState as number];
@@ -3562,6 +3583,8 @@ export const definitions: DefinitionWithExtend[] = [
                 "heimanClusterSpecial",
             ]);
             await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
             await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
             await endpoint.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
@@ -3576,6 +3599,8 @@ export const definitions: DefinitionWithExtend[] = [
                     "occupanyControlOnOffIlluminanceThreshold",
                     "radarDetectionMinRange",
                     "radarDetectionMaxRange",
+                    "humidityOffset",
+                    "temperatureOffset",
                     "indicatorLightLevelControlOf1",
                     "rebootedCount",
                     "rejoinedCount",
@@ -3591,6 +3616,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.occupancy(),
             heimanExtend.heimanClusterSpecial(),
             m.illuminance(),
+            m.temperature(),
+            m.humidity(),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "target_distance",
                 unit: "meter(s)",
@@ -3653,6 +3680,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "occupany sensor work mode",
                 access: "ALL",
             }),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_control",
                 lookup: {start: 65534, reset: 65535},

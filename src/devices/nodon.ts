@@ -79,15 +79,6 @@ const nodonModernExtend = {
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
             ...args,
         }),
-    dryContact: (args?: Partial<m.EnumLookupArgs<"genBinaryInput">>) =>
-        m.enumLookup({
-            name: "dry_contact",
-            lookup: {contact_closed: 0x00, contact_open: 0x01},
-            cluster: "genBinaryInput",
-            attribute: {ID: 0x055, type: Zcl.DataType.ENUM8},
-            description: "State of the contact, closed or open.",
-            ...args,
-        }),
     impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
         const resultName = "impulse_mode_configuration";
         const resultUnit = "ms";
@@ -284,7 +275,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDC-4-1-00",
         vendor: "NodOn",
         description: "Dry contact sensor",
-        extend: [m.battery({voltageReporting: true}), nodonModernExtend.dryContact()],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.binary({
+                name: "dry_contact",
+                cluster: "genBinaryInput",
+                attribute: "presentValue",
+                reporting: {min: 0, max: constants.repInterval.HOUR, change: 1},
+                valueOn: ["contact_closed", 1],
+                valueOff: ["contact_open", 0],
+                description: "State of the dry contact, closed or open.",
+                access: "STATE_GET",
+            }),
+        ],
         ota: true,
     },
     {

@@ -757,28 +757,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM230Z",
         vendor: "Bosch",
         description: "Room thermostat II 230V",
+        options: [exposes.options.homeassistant_climate_modes()],
         meta: {
-            overrideHaDiscoveryPayload: (payload) => {
+            overrideHaDiscoveryPayload: (payload, options) => {
                 if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    const climateModes = options?.homeassistant_climate_modes;
+                    const activeModes = climateModes === "cool" ? ["cool"] : climateModes === "heat_cool" ? ["heat", "cool"] : ["heat"];
+                    const fallbackMode = activeModes[0];
+                    const activeModesTemplate = `[${activeModes.map((mode) => `'${mode}'`).join(",")}]`;
+
                     payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
                     payload.mode_command_template =
-                        "{% set values = " +
-                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
-                        `{% if value == "heat" or value == "cool" %}` +
+                        `{% set active_modes = ${activeModesTemplate} %}` +
+                        `{% set values = {'auto':'schedule','off':'pause'} %}` +
+                        "{% if value in active_modes %}" +
                         `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
                         "{% else %}" +
                         `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
                         "{% endif %}";
                     payload.mode_state_template =
-                        "{% set values = " +
-                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        `{% set active_modes = ${activeModesTemplate} %}` +
+                        `{% set fallback_mode = '${fallbackMode}' %}` +
+                        "{% set values = {'schedule':'auto','pause':'off'} %}" +
                         "{% set value = value_json.operating_mode %}" +
-                        `{% if value == "manual" %}` +
-                        "{{ value_json.system_mode }}" +
+                        "{% set mode = value_json.system_mode %}" +
+                        "{% if value == 'manual' %}" +
+                        "{{ mode if mode in active_modes else fallback_mode }}" +
                         "{% else %}" +
                         `{{ values[value] if value in values.keys() else 'off' }}` +
                         "{% endif %}";
-                    payload.modes = ["off", "heat", "cool", "auto"];
+                    payload.modes = ["off", ...activeModes, "auto"];
                 }
             },
         },
