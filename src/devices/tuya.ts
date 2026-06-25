@@ -511,6 +511,49 @@ const ar331ProHolidayTimeConverter = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0301_dual_rail_2: {
+        key: ["state", "position"],
+        options: [
+            e
+                .binary("invert_top_rail", ea.SET, true, false)
+                .withDescription(
+                    "Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).",
+                ),
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            const ep = meta.endpoint_name;
+            const invertTop = meta.options?.invert_top_rail === true;
+            const goTo = async (lift: number) =>
+                await entity.command(
+                    "closuresWindowCovering",
+                    "goToLiftPercentage",
+                    {percentageliftvalue: Math.max(0, Math.min(100, Math.round(lift)))},
+                    utils.getOptions(meta.mapped, entity),
+                );
+            if (key === "position") {
+                utils.assertNumber(value, key);
+                let lift: number;
+                if (ep === "bottom") lift = value === 0 ? 0 : utils.mapNumberRange(value, 0, 100, 50, 100);
+                else if (ep === "top") lift = utils.mapNumberRange(invertTop ? 100 - value : value, 0, 100, 0, 50);
+                else lift = value;
+                await goTo(lift);
+                return;
+            }
+            const cmd = String(value).toUpperCase();
+            if (cmd === "STOP") {
+                await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
+                return;
+            }
+            const open = cmd === "OPEN";
+            if (ep === "bottom") await goTo(open ? 100 : 0);
+            else if (ep === "top") await goTo(utils.mapNumberRange(invertTop ? (open ? 0 : 100) : open ? 100 : 0, 0, 100, 0, 50));
+            else await entity.command("closuresWindowCovering", open ? "upOpen" : "downClose", {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
+        },
+    } satisfies Tz.Converter,
     acmelec_ae720k_state_double_on: {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
@@ -1086,6 +1129,33 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0301_dual_rail_2: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        options: [
+            e
+                .binary("invert_top_rail", ea.SET, true, false)
+                .withDescription(
+                    "Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).",
+                ),
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            const N = msg.data.currentPositionLiftPercentage;
+            if (N === undefined || N > 100) return;
+            const bottom = N < 50 ? 0 : Math.round(utils.mapNumberRange(N, 50, 100, 0, 100));
+            let top = N > 50 ? 0 : Math.round(utils.mapNumberRange(N, 0, 50, 0, 100));
+            if (options?.invert_top_rail === true) top = 100 - top;
+            return {
+                position: N,
+                state: N === 0 ? "CLOSE" : "OPEN",
+                position_bottom: bottom,
+                state_bottom: bottom === 0 ? "CLOSE" : "OPEN",
+                position_top: top,
+                state_top: top === 0 ? "CLOSE" : "OPEN",
+            };
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
     // ZT08 (_TZE284_hodyryli) — LCD weather station with clock.
     // The MCU expects mcuSyncTime in raw Unix seconds (8 bytes: UTC + local),
     // followed by a DP 17 write ~500 ms later that commits the new time to the LCD.
@@ -5463,74 +5533,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0301_dual_rail_2",
         vendor: "Tuya",
         description: "Top-down bottom-up single control shade",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        whiteLabel: [tuya.whitelabel("Yoolax", "Day-Night Shade", "Top-down bottom-up day/night shade", ["_TZE200_eatmkx5j"])],
+        extend: [m.deviceEndpoints({endpoints: {bottom: 1, top: 1}}), m.battery()],
+        fromZigbee: [fzLocal.TS0301_dual_rail_2],
+        toZigbee: [tzLocal.TS0301_dual_rail_2],
         exposes: [
+            e.cover_position().withDescription("Unified position"),
             e.cover_position().withEndpoint("bottom").withDescription("Bottom rail"),
             e.cover_position().withEndpoint("top").withDescription("Top rail"),
-            e.battery(),
         ],
-        meta: {
-            tuyaDatapoints: [
-                // Bottom rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
-                //               DP2 is set position and DP3 is current position
-                //                   50-100 control the Bottom shade, with 50 being fully closed, and 100 being fully open.
-                //                   50 is a special case though, as the actual 50 value is used by the top shade for fully open
-                //                      so we override that to 0 which is both top and bottom closed.
-                //                   51 results in the window being slightly open so we have to use the above logic.
-                [1, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
-                [
-                    2,
-                    "position_bottom",
-                    {
-                        to: (v) => {
-                            const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100);
-                            return result;
-                        },
-                        from: (v) => {
-                            const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100);
-                            return result;
-                        },
-                    },
-                ],
-                [
-                    3,
-                    "position_bottom",
-                    {
-                        to: (v) => {
-                            const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100);
-                            return result;
-                        },
-                        from: (v) => {
-                            const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100);
-                            return result;
-                        },
-                    },
-                ],
-                // Top rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
-                //            DP2 is set position and DP3 is current position
-                //                0-50 control the Bottom shade, with 0 being fully closed, and 50 being fully open.
-                //            DP3 does not update when controlling the top shade via DP2, I suspect this is because the
-                //                returned information is consumed by the bottom shade DP3.
-
-                [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
-                [2, "position_top", tuya.valueConverterBasic.scale(0, 100, 0, 50)],
-                [
-                    3,
-                    "position_top",
-                    {
-                        to: (v) => {
-                            const result = utils.mapNumberRange(v, 0, 100, 0, 50);
-                            return result;
-                        },
-                        from: (v) => {
-                            const result = v > 50 ? 0 : utils.mapNumberRange(v, 0, 50, 0, 100);
-                            return result;
-                        },
-                    },
-                ],
-                // Battery
-                [103, "battery", tuya.valueConverter.raw],
-            ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
     {
