@@ -2860,13 +2860,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue wired wall switch module",
         extend: [philips.m.addManuSpecificPhilipsCluster(), philips.m.addPhilipsGenBasicCluster()],
-        fromZigbee: [
-            philips.fz.hue_wall_switch_device_mode,
-            philips.fz.hue_wall_switch,
-            fz.command_toggle,
-            fz.command_move,
-            fz.command_stop,
-        ],
+        fromZigbee: [philips.fz.hue_wall_switch_device_mode, philips.fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
         exposes: [
             e.action([
                 "left_press",
