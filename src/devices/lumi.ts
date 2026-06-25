@@ -5768,6 +5768,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "UT-A01E",
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
+        ota: true,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.electricityMeter({current: false, voltage: false, power: {divisor: 1}, energy: {divisor: 1000}}),
