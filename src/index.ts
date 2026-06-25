@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import {Zcl} from "zigbee-herdsman";
+import type {TFoundationPayload} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import * as fromZigbee from "./converters/fromZigbee";
 import * as toZigbee from "./converters/toZigbee";
 import * as exposesLib from "./lib/exposes";
@@ -630,49 +631,58 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
 // Can be used to handle events for devices which are not fully paired yet (no modelID).
 // Example usecase: https://github.com/Koenkk/zigbee2mqtt/issues/2399#issuecomment-570583325
 export function onEvent(event: OnEvent.Event): Promise<void> {
-    if (event.type === "stop") return;
-    const {device} = event.data;
-
-    // support Legrand security protocol
-    // when pairing, a powered device will send a read frame to every device on the network
-    // it expects at least one answer. The payload contains the number of seconds
-    // since when the device is powered. If the value is too high, it will leave & not pair
-    // 23 works, 200 doesn't
-    if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP && !device.customReadResponse) {
-        device.customReadResponse = (frame, endpoint) => {
-            if (frame.isCluster("genBasic") && frame.payload.find((i: {attrId: number}) => i.attrId === 61440)) {
-                const options = {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true};
-                const payload = {61440: {value: 23, type: 35}};
-
-                endpoint.readResponse("genBasic", frame.header.transactionSequenceNumber, payload, options).catch((e) => {
-                    logger.warning(`Legrand security read response failed: ${e}`, NS);
-                });
-
-                return true;
-            }
-
-            return false;
-        };
+    if (event.type === "stop") {
+        return;
     }
 
-    // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
-    // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
-    if (device.modelID === "aqara.feeder.acn001" && !device.customReadResponse) {
-        device.customReadResponse = (frame, endpoint) => {
-            if (frame.isCluster("genTime")) {
-                const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
-                const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
-                const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
+    const {device} = event.data;
 
-                endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
-                    logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
-                });
+    if (device.customReadResponse === undefined) {
+        if (device.manufacturerID === Zcl.ManufacturerCode.LEGRAND_GROUP) {
+            // support Legrand security protocol
+            // when pairing, a powered device will send a read frame to every device on the network
+            // it expects at least one answer. The payload contains the number of seconds
+            // since when the device is powered. If the value is too high, it will leave & not pair
+            // 23 works, 200 doesn't
+            device.customReadResponse = (frame, endpoint) => {
+                if (frame.isCluster("genBasic") && (frame.payload as TFoundationPayload<"read">).some((i) => i.attrId === 61440)) {
+                    // XXX: we're replying to specific attribute, which could be incorrect (not based on the request attrIds)
+                    endpoint
+                        .readResponse(
+                            "genBasic",
+                            frame.header.transactionSequenceNumber,
+                            {61440: {value: 23, type: Zcl.DataType.UINT32}},
+                            {manufacturerCode: Zcl.ManufacturerCode.LEGRAND_GROUP, disableDefaultResponse: true},
+                        )
+                        .catch((e) => {
+                            logger.warning(`Legrand security read response failed: ${e}`, NS);
+                        });
 
-                return true;
-            }
+                    return true;
+                }
 
-            return false;
-        };
+                return false;
+            };
+        } else if (device.modelID === "aqara.feeder.acn001") {
+            // Aqara feeder C1 polls the time during the interview, need to send back the local time instead of the UTC.
+            // The device.definition has not yet been set - therefore the device.definition.onEvent method does not work.
+            device.customReadResponse = (frame, endpoint) => {
+                if (frame.isCluster("genTime")) {
+                    const oneJanuary2000 = new Date("January 01, 2000 00:00:00 UTC+00:00").getTime();
+                    const secondsUTC = Math.round((Date.now() - oneJanuary2000) / 1000);
+                    const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
+
+                    // XXX: we're replying to specific attribute, which could be incorrect (not based on the request attrIds)
+                    endpoint.readResponse("genTime", frame.header.transactionSequenceNumber, {time: secondsLocal}).catch((e) => {
+                        logger.warning(`ZNCWWSQ01LM custom time response failed: ${e}`, NS);
+                    });
+
+                    return true;
+                }
+
+                return false;
+            };
+        }
     }
 
     return Promise.resolve();

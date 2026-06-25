@@ -16,4 +16,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hive Smart Light Bulb E27 Dimmable",
         extend: [m.light()],
     },
+    {
+        zigbeeModel: ["PFMOT001"],
+        model: "PFMOT001",
+        vendor: "LDS",
+        description: "Hive Pet Friendly Motion sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]})],
+    },
 ];

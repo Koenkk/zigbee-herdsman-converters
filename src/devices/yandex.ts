@@ -736,4 +736,74 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ["YNDX-00526"],
+        model: "YNDX_00526",
+        vendor: "Yandex",
+        description: "Contact sensor",
+        ota: true,
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery({
+                voltage: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["YNDX-00527"],
+        model: "YNDX_00527",
+        vendor: "Yandex",
+        description: "Leak sensor",
+        ota: true,
+        extend: [
+            m.iasZoneAlarm({
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "battery_low"],
+            }),
+            m.battery({
+                voltage: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["YNDX-00528"],
+        model: "YNDX_00528",
+        vendor: "Yandex",
+        description: "Motion and illuminance sensor",
+        ota: true,
+        extend: [
+            m.enumLookup({
+                name: "sensitivity",
+                lookup: {low: 0, medium: 1, high: 2},
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0xf000, type: Zcl.DataType.ENUM8},
+                description: "Sensor sensitivity",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: manufacturerCodeNew},
+            }),
+            m.occupancy(),
+            m.illuminance(),
+            m.battery({
+                voltage: true,
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["YNDX-00529"],
+        model: "YNDX_00529",
+        vendor: "Yandex",
+        description: "Temperature and humidity and pressure sensor",
+        ota: true,
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.pressure(),
+            m.battery({
+                voltage: true,
+            }),
+        ],
+    },
 ];

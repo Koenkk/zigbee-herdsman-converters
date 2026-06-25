@@ -219,6 +219,21 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({configureReporting: true})],
     },
     {
+        zigbeeModel: ["WallDimmerSlave"],
+        model: "AU-A1ZB2WDM-Slave",
+        vendor: "Aurora",
+        description: "AOne Rotary Slave Dimmer",
+        extend: [
+            m.deviceEndpoints({endpoints: {default: 2, backlight: 3}}),
+            m.commandsOnOff({endpointNames: ["default"]}),
+            m.commandsLevelCtrl({endpointNames: ["default"]}),
+            m.onOff({powerOnBehavior: false, endpointNames: ["backlight"]}),
+        ],
+        meta: {
+            multiEndpoint: true,
+        },
+    },
+    {
         zigbeeModel: ["DoubleSocket50AU"],
         model: "AU-A1ZBDSS",
         vendor: "Aurora Lighting",

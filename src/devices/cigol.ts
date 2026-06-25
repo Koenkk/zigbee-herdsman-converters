@@ -133,8 +133,8 @@ export const definitions: DefinitionWithExtend[] = [
                     else label = `Input B-${ep - 30}`;
                     exposesArray.push(
                         e
-                            .enum("input", ea.STATE, ["off", "single", "double", "hold"])
-                            .withDescription(`${label} (off, single, double, hold)`)
+                            .enum("input", ea.ALL, ["off", "single", "double", "hold"])
+                            .withDescription(`${label} (Off, Single, Double, Hold)`)
                             .withLabel(label)
                             .withEndpoint(`${ep}`),
                     );

@@ -11,7 +11,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-AUZG01",
         vendor: "MakeGood",
         description: "Double Zigbee power point",
-        extend: [tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, endpoints: ["l1", "l2"], electricalMeasurements: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({powerOutageMemory: true, indicatorMode: true, endpoints: ["l1", "l2"], electricalMeasurements: true}),
+        ],
         meta: {multiEndpointSkip: ["power", "current", "voltage", "energy"], multiEndpoint: true},
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -31,7 +34,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_bep7ccew"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_bep7ccew", "_TZ3210_qlmnxmac"]),
+        whiteLabel: [tuya.whitelabel("Melery", "_TZ3210_qlmnxmac", "2 gang power point with power monitoring", ["_TZ3210_qlmnxmac"])],
         model: "MG-GPO01",
         vendor: "MakeGood",
         description: "Double Zigbee power point",
@@ -40,6 +44,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {right: 1, left: 2}}),
             m.identify(),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 endpoints: ["right", "left"],
                 powerOutageMemory: true,

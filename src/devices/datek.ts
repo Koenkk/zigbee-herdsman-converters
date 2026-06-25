@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-
+import type {ConfigureReportingItem} from "zigbee-herdsman/dist/controller/model/endpoint";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -7,10 +7,247 @@ import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+interface DatekGenBasic {
+    attributes: {
+        lockFw: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+interface DatekClosuresDoorLock {
+    attributes: {
+        masterPinMode: boolean;
+        rfidEnable: boolean;
+        hingeMode: boolean;
+        serviceMode: number;
+        lockMode: number;
+        relockEnabled: boolean;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface DatekSsIasZone {
+    attributes: {
+        ledOnMotion: boolean;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const datekExtend = {
+    datekGenBasicCluster: () =>
+        m.deviceAddCustomCluster("genBasic", {
+            name: "genBasic",
+            ID: Zcl.Clusters.genBasic.ID,
+            attributes: {
+                lockFw: {name: "lockFw", ID: 0x5000, type: Zcl.DataType.CHAR_STR},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    datekClosuresDoorLockCluster: () =>
+        m.deviceAddCustomCluster("closuresDoorLock", {
+            name: "closuresDoorLock",
+            ID: Zcl.Clusters.closuresDoorLock.ID,
+            attributes: {
+                masterPinMode: {name: "masterPinMode", ID: 0x4000, type: Zcl.DataType.BOOLEAN, write: true},
+                rfidEnable: {name: "rfidEnable", ID: 0x4001, type: Zcl.DataType.BOOLEAN, write: true},
+                hingeMode: {name: "hingeMode", ID: 0x4002, type: Zcl.DataType.BOOLEAN, write: true}, //False: Right hinged door, True: Left hinged door
+                serviceMode: {name: "serviceMode", ID: 0x4003, type: Zcl.DataType.UINT8, write: true},
+                lockMode: {name: "lockMode", ID: 0x4004, type: Zcl.DataType.UINT8, write: true},
+                relockEnabled: {name: "relockEnabled", ID: 0x4005, type: Zcl.DataType.BOOLEAN, write: true},
+                audioVolume: {name: "audioVolume", ID: 0x4006, type: Zcl.DataType.UINT8, write: true, min: 0x00, max: 0x05},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    datekSsIasZoneCluster: () =>
+        m.deviceAddCustomCluster("ssIasZone", {
+            name: "ssIasZone",
+            ID: Zcl.Clusters.ssIasZone.ID,
+            attributes: {
+                ledOnMotion: {name: "ledOnMotion", ID: 0x4000, type: Zcl.DataType.BOOLEAN, write: true},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+};
+
+const tzLocal = {
+    idlock_master_pin_mode: {
+        key: ["master_pin_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write<"closuresDoorLock", DatekClosuresDoorLock>(
+                "closuresDoorLock",
+                {16384: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {master_pin_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresDoorLock", DatekClosuresDoorLock>("closuresDoorLock", ["masterPinMode"], {
+                manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS,
+            });
+        },
+    } satisfies Tz.Converter,
+    idlock_rfid_enable: {
+        key: ["rfid_enable"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write<"closuresDoorLock", DatekClosuresDoorLock>(
+                "closuresDoorLock",
+                {16385: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {rfid_enable: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresDoorLock", DatekClosuresDoorLock>("closuresDoorLock", ["rfidEnable"], {
+                manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS,
+            });
+        },
+    } satisfies Tz.Converter,
+    idlock_service_mode: {
+        key: ["service_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {deactivated: 0, random_pin_1x_use: 5, random_pin_24_hours: 6};
+            await entity.write<"closuresDoorLock", DatekClosuresDoorLock>(
+                "closuresDoorLock",
+                {16387: {value: utils.getFromLookup(value, lookup), type: 0x20}},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {service_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresDoorLock", DatekClosuresDoorLock>("closuresDoorLock", ["serviceMode"], {
+                manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS,
+            });
+        },
+    } satisfies Tz.Converter,
+    idlock_lock_mode: {
+        key: ["lock_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {auto_off_away_off: 0, auto_on_away_off: 1, auto_off_away_on: 2, auto_on_away_on: 3};
+            await entity.write<"closuresDoorLock", DatekClosuresDoorLock>(
+                "closuresDoorLock",
+                {16388: {value: utils.getFromLookup(value, lookup), type: 0x20}},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {lock_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresDoorLock", DatekClosuresDoorLock>("closuresDoorLock", ["lockMode"], {
+                manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS,
+            });
+        },
+    } satisfies Tz.Converter,
+    idlock_relock_enabled: {
+        key: ["relock_enabled"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write<"closuresDoorLock", DatekClosuresDoorLock>(
+                "closuresDoorLock",
+                {16389: {value: value === true ? 1 : 0, type: 0x10}},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {relock_enabled: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresDoorLock", DatekClosuresDoorLock>("closuresDoorLock", ["relockEnabled"], {
+                manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS,
+            });
+        },
+    } satisfies Tz.Converter,
+    led_on_motion: {
+        key: ["led_on_motion"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write<"ssIasZone", DatekSsIasZone>(
+                "ssIasZone",
+                {ledOnMotion: value === true},
+                {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS},
+            );
+            return {state: {led_on_motion: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"ssIasZone", DatekSsIasZone>("ssIasZone", ["ledOnMotion"], {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS});
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    idlock: {
+        cluster: "closuresDoorLock",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if ("masterPinMode" in msg.data) {
+                result.master_pin_mode = msg.data.masterPinMode === true;
+            }
+            if ("rfidEnable" in msg.data) {
+                result.rfid_enable = msg.data.rfidEnable === true;
+            }
+            if ("serviceMode" in msg.data) {
+                const lookup: Record<number, string> = {
+                    0: "deactivated",
+                    1: "random_pin_1x_use",
+                    5: "random_pin_1x_use",
+                    6: "random_pin_24_hours",
+                    9: "random_pin_24_hours",
+                };
+                // From Datek manual:  0: Deactivated, 1: 1x use, 2: 2x uses,  3: 5x uses,  4: 10x uses, 5: Random PIN 1x use, 6: Random PIN 24 hours,  7: Always valid, 8: 12 hours,  9: 24 hours
+                result.service_mode = lookup[msg.data.serviceMode];
+            }
+            if ("lockMode" in msg.data) {
+                const lookup: Record<number, string> = {0: "auto_off_away_off", 1: "auto_on_away_off", 2: "auto_off_away_on", 3: "auto_on_away_on"};
+                result.lock_mode = lookup[msg.data.lockMode];
+            }
+            if ("relockEnabled" in msg.data) {
+                result.relock_enabled = msg.data.relockEnabled === true;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", DatekClosuresDoorLock, ["attributeReport", "readResponse"]>,
+    idlock_fw: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if ("lockFw" in msg.data) {
+                result.idlock_lock_fw = msg.data.lockFw;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"genBasic", DatekGenBasic, ["attributeReport", "readResponse"]>,
+    metering_datek: {
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.metering.convert(model, msg, publish, options, meta) as KeyValueAny;
+            // Filter incorrect 0 energy values reported by the device:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/7852
+            if (result && result.energy === 0) {
+                delete result.energy;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+    led_on_motion: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValueAny = {};
+            if ("ledOnMotion" in msg.data) {
+                result.led_on_motion = msg.data.ledOnMotion === true;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"ssIasZone", DatekSsIasZone, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -18,22 +255,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HLU2909K",
         vendor: "Datek",
         description: "APEX smart plug 16A",
-        fromZigbee: [fz.on_off, fz.electrical_measurement, fz.temperature],
-        toZigbee: [tz.on_off, tz.power_on_behavior],
+        version: "0.0.1",
+        extend: [m.electricityMeter({cluster: "electrical", power: {min: 5, max: "1_HOUR", change: 1}}), m.onOff(), m.temperature()],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "msTemperatureMeasurement"]);
-            await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor"]);
-            await endpoint.read("haElectricalMeasurement", ["acCurrentMultiplier", "acCurrentDivisor"]);
-            await endpoint.read("haElectricalMeasurement", ["acPowerMultiplier", "acPowerDivisor"]);
-            await reporting.onOff(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.temperature(endpoint);
-        },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.temperature(), e.power_on_behavior()],
     },
     {
         zigbeeModel: ["Meter Reader"],
@@ -44,7 +268,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter({
                 cluster: "metering",
-                fzMetering: fz.metering_datek,
+                fzMetering: fzLocal.metering_datek,
                 producedEnergy: true,
             }),
             m.electricityMeter({
@@ -78,9 +302,9 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ias_enroll,
             fz.ias_occupancy_alarm_1,
             fz.ias_occupancy_alarm_1_report,
-            fz.led_on_motion,
+            fzLocal.led_on_motion,
         ],
-        toZigbee: [tz.occupancy_timeout, tz.led_on_motion],
+        toZigbee: [tz.occupancy_timeout, tzLocal.led_on_motion],
         configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DATEK_WIRELESS_AS};
             const endpoint = device.getEndpoint(1);
@@ -88,16 +312,14 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
             await reporting.occupancy(endpoint);
             await reporting.temperature(endpoint);
-            const payload = [
-                {
-                    attribute: {ID: 0x4000, type: 0x10},
-                },
-            ];
-            // @ts-expect-error ignore
-            await endpoint.configureReporting("ssIasZone", payload, options);
+            await endpoint.configureReporting<"ssIasZone", DatekSsIasZone>(
+                "ssIasZone",
+                reporting.payload<"ssIasZone", DatekSsIasZone>("ledOnMotion", 0, repInterval.HOUR, 0),
+                options,
+            );
             await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
             await endpoint.read("msOccupancySensing", ["pirOToUDelay"]);
-            await endpoint.read("ssIasZone", [0x4000], options);
+            await endpoint.read<"ssIasZone", DatekSsIasZone>("ssIasZone", ["ledOnMotion"], options);
         },
         exposes: [
             e.temperature(),
@@ -106,31 +328,32 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_on_motion", ea.ALL, true, false).withDescription("Enable/disable LED on motion"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [m.illuminance()],
+        extend: [m.illuminance(), datekExtend.datekSsIasZoneCluster()],
     },
     {
         zigbeeModel: ["ID Lock 150", "ID Lock 202"],
         model: "0402946",
         vendor: "Datek",
         description: "Zigbee module for ID lock",
+        extend: [datekExtend.datekClosuresDoorLockCluster(), datekExtend.datekGenBasicCluster()],
         fromZigbee: [
             fz.lock,
             fz.battery,
             fz.lock_operation_event,
             fz.lock_programming_event,
-            fz.idlock,
-            fz.idlock_fw,
+            fzLocal.idlock,
+            fzLocal.idlock_fw,
             fz.lock_pin_code_response,
             fz.lock_programming_event_read_pincode,
         ],
         toZigbee: [
             tz.lock,
             tz.lock_sound_volume,
-            tz.idlock_master_pin_mode,
-            tz.idlock_rfid_enable,
-            tz.idlock_service_mode,
-            tz.idlock_lock_mode,
-            tz.idlock_relock_enabled,
+            tzLocal.idlock_master_pin_mode,
+            tzLocal.idlock_rfid_enable,
+            tzLocal.idlock_service_mode,
+            tzLocal.idlock_lock_mode,
+            tzLocal.idlock_relock_enabled,
             tz.pincode_lock,
         ],
         meta: {pinCodeCount: 109},
@@ -140,42 +363,46 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
-            const payload = [
+            const payload: ConfigureReportingItem<"closuresDoorLock", DatekClosuresDoorLock>[] = [
                 {
-                    attribute: {ID: 0x4000, type: 0x10},
+                    attribute: "masterPinMode",
                     minimumReportInterval: 0,
                     maximumReportInterval: repInterval.HOUR,
                     reportableChange: 1,
                 },
                 {
-                    attribute: {ID: 0x4001, type: 0x10},
+                    attribute: "rfidEnable",
                     minimumReportInterval: 0,
                     maximumReportInterval: repInterval.HOUR,
                     reportableChange: 1,
                 },
                 {
-                    attribute: {ID: 0x4003, type: 0x20},
+                    attribute: "serviceMode",
                     minimumReportInterval: 0,
                     maximumReportInterval: repInterval.HOUR,
                     reportableChange: 1,
                 },
                 {
-                    attribute: {ID: 0x4004, type: 0x20},
+                    attribute: "lockMode",
                     minimumReportInterval: 0,
                     maximumReportInterval: repInterval.HOUR,
                     reportableChange: 1,
                 },
                 {
-                    attribute: {ID: 0x4005, type: 0x10},
+                    attribute: "relockEnabled",
                     minimumReportInterval: 0,
                     maximumReportInterval: repInterval.HOUR,
                     reportableChange: 1,
                 },
             ];
-            await endpoint.configureReporting("closuresDoorLock", payload, options);
+            await endpoint.configureReporting<"closuresDoorLock", DatekClosuresDoorLock>("closuresDoorLock", payload, options);
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume", "doorState"]);
-            await endpoint.read("closuresDoorLock", [0x4000, 0x4001, 0x4003, 0x4004, 0x4005], options);
-            await endpoint.read("genBasic", [0x5000], options);
+            await endpoint.read<"closuresDoorLock", DatekClosuresDoorLock>(
+                "closuresDoorLock",
+                ["masterPinMode", "rfidEnable", "serviceMode", "lockMode", "relockEnabled"],
+                options,
+            );
+            await endpoint.read<"genBasic", DatekGenBasic>("genBasic", ["lockFw"], options);
         },
         exposes: [
             e.lock(),

@@ -2,6 +2,7 @@ import {gt as semverGt, valid as semverValid} from "semver";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as eurotronic from "../devices/eurotronic";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
@@ -76,15 +77,6 @@ const nodonModernExtend = {
                 "Manuel calibration: Set rotation run time down of the roller shutter. " +
                 "Do not change it if your roller shutter is already calibrated.",
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
-            ...args,
-        }),
-    dryContact: (args?: Partial<m.EnumLookupArgs<"genBinaryInput">>) =>
-        m.enumLookup({
-            name: "dry_contact",
-            lookup: {contact_closed: 0x00, contact_open: 0x01},
-            cluster: "genBinaryInput",
-            attribute: {ID: 0x055, type: Zcl.DataType.ENUM8},
-            description: "State of the contact, closed or open.",
             ...args,
         }),
     impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
@@ -234,6 +226,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Electrical heating actuator",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), m.humidity(), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["IRB-4-1-00"],
@@ -282,7 +275,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDC-4-1-00",
         vendor: "NodOn",
         description: "Dry contact sensor",
-        extend: [m.battery({voltageReporting: true}), nodonModernExtend.dryContact()],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.binary({
+                name: "dry_contact",
+                cluster: "genBinaryInput",
+                attribute: "presentValue",
+                reporting: {min: 0, max: constants.repInterval.HOUR, change: 1},
+                valueOn: ["contact_closed", 1],
+                valueOff: ["contact_open", 0],
+                description: "State of the dry contact, closed or open.",
+                access: "STATE_GET",
+            }),
+        ],
         ota: true,
     },
     {
@@ -308,6 +313,7 @@ export const definitions: DefinitionWithExtend[] = [
                 producedEnergy: true,
             }),
         ],
+        exposes: [e.power_apparent()],
         ota: true,
     },
     {
@@ -402,6 +408,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Pilot wire heating module",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["SIN-4-FP-21"],
@@ -438,9 +445,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
-            tz.eurotronic_error_status,
-            tz.eurotronic_child_lock,
-            tz.eurotronic_mirror_display,
+            eurotronic.tzLocal.eurotronic_error_status,
+            eurotronic.tzLocal.eurotronic_child_lock,
+            eurotronic.tzLocal.eurotronic_mirror_display,
         ],
         exposes: [
             e.child_lock(),
