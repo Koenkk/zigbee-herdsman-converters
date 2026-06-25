@@ -1789,6 +1789,160 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lb0fsvba"]),
+        model: "ZBN-DJ-63",
+        vendor: "Tuya",
+        description: "Smart circuit breaker",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET).withDescription("Circuit Breaker Switch"),
+            e.energy().withDescription("Total Forward Energy (kWh)").withAccess(ea.STATE),
+            exposes.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total Reverse Energy (kWh)"),
+            e.power().withDescription("Active Power (W)").withAccess(ea.STATE),
+            e.voltage().withDescription("Phase A Voltage (V)").withAccess(ea.STATE),
+            e.current().withDescription("Phase A Current (A)").withAccess(ea.STATE),
+            exposes.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current Temperature"),
+
+            exposes.binary("switch_prepayment", ea.STATE_SET, "ON", "OFF").withDescription("Prepaid Function Switch"),
+            exposes.binary("clear_energy", ea.SET, "ON", "OFF").withDescription("Clear Remaining Available Energy"),
+            exposes.numeric("balance_energy", ea.STATE).withUnit("kWh").withDescription("Remaining Available Energy Display (kWh)"),
+            exposes.numeric("charge_energy", ea.SET).withValueMin(0).withValueMax(999999).withUnit("kWh").withDescription("Energy Recharge"),
+
+            exposes.binary("over_current_breaker", ea.ALL, "ON", "OFF").withDescription("Overcurrent Alarm Enabled"),
+            exposes
+                .numeric("over_current_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(63)
+                .withUnit("A")
+                .withDescription("Overcurrent Threshold"),
+            exposes.binary("over_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Overvoltage Alarm Enabled"),
+            exposes
+                .numeric("over_voltage_threshold", ea.ALL)
+                .withValueMin(240)
+                .withValueMax(260)
+                .withUnit("V")
+                .withDescription("Overvoltage Threshold"),
+            exposes.binary("under_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Undervoltage Alarm Enabled"),
+            exposes
+                .numeric("under_voltage_threshold", ea.ALL)
+                .withValueMin(195)
+                .withValueMax(220)
+                .withUnit("V")
+                .withDescription("Undervoltage Threshold"),
+            exposes.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Residual Current Display"),
+            exposes.binary("leakage_breaker", ea.ALL, "ON", "OFF").withDescription("Leakage Current Alarm Enabled"),
+            exposes.numeric("leakage_delay", ea.STATE_SET).withValueMin(1).withValueMax(9999).withUnit("s").withDescription("Leakage Delay"),
+            exposes
+                .numeric("leakage_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(99)
+                .withUnit("mA")
+                .withDescription("Leakage Current Threshold"),
+            exposes.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Temperature Alarm Enabled"),
+            exposes
+                .numeric("high_temperature_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(85)
+                .withUnit("°C")
+                .withDescription("Temperature Threshold"),
+
+            exposes.numeric("countdown", ea.STATE_SET).withValueMin(0).withValueMax(43200).withUnit("s").withDescription("Countdown Timer"),
+            exposes
+                .numeric("power_on_delay", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(9999)
+                .withUnit("s")
+                .withDescription("Power-On Delay Energization Time"),
+            exposes.numeric("recover_count", ea.STATE_SET).withValueMin(0).withValueMax(999).withDescription("Reclosing Attempt Limit"),
+            exposes.binary("recover_enable", ea.STATE_SET, "ON", "OFF").withDescription("Reclosing Enable"),
+
+            exposes
+                .enum("fault", ea.STATE, [
+                    "clear",
+                    "short_circuit_alarm",
+                    "surge_alarm",
+                    "overload_alarm",
+                    "leakagecurr_alarm",
+                    "temp_dif_fault",
+                    "fire_alarm",
+                    "high_power_alarm",
+                    "self_test_alarm",
+                    "ov_cr",
+                    "unbalance_alarm",
+                    "ov_vol",
+                    "undervoltage_alarm",
+                    "miss_phase_alarm",
+                    "outage_alarm",
+                    "magnetism_alarm",
+                    "credit_alarm",
+                    "no_balance_alarm",
+                ])
+                .withDescription("Fault Alarm"),
+
+            exposes.enum("relay_power_on_state", ea.STATE_SET, ["Off", "On", "Restore"]).withDescription("Relay Power-On State Setting"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2],
+                [
+                    9,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        short_circuit_alarm: 1 << 0,
+                        surge_alarm: 1 << 1,
+                        overload_alarm: 1 << 2,
+                        leakagecurr_alarm: 1 << 3,
+                        temp_dif_fault: 1 << 4,
+                        fire_alarm: 1 << 5,
+                        high_power_alarm: 1 << 6,
+                        self_test_alarm: 1 << 7,
+                        ov_cr: 1 << 8,
+                        unbalance_alarm: 1 << 9,
+                        ov_vol: 1 << 10,
+                        undervoltage_alarm: 1 << 11,
+                        miss_phase_alarm: 1 << 12,
+                        outage_alarm: 1 << 13,
+                        magnetism_alarm: 1 << 14,
+                        credit_alarm: 1 << 15,
+                        no_balance_alarm: 1 << 16,
+                    }),
+                ],
+                [11, "switch_prepayment", tuya.valueConverter.onOff],
+                [12, "clear_energy", tuya.valueConverter.onOff],
+                [13, "balance_energy", tuya.valueConverter.divideBy100],
+                [14, "charge_energy", tuya.valueConverter.divideBy100],
+                [15, "leakage_current", tuya.valueConverter.raw],
+                [16, "state", tuya.valueConverter.onOff],
+                [17, null, tuya.valueConverter.threshold_2],
+                [17, "leakage_threshold", tuya.valueConverter.threshold_2],
+                [17, "leakage_breaker", tuya.valueConverter.threshold_2],
+                [17, "high_temperature_threshold", tuya.valueConverter.threshold_2],
+                [17, "high_temperature_breaker", tuya.valueConverter.threshold_2],
+                [18, null, tuya.valueConverter.threshold_3],
+                [18, "over_current_threshold", tuya.valueConverter.threshold_3],
+                [18, "over_current_breaker", tuya.valueConverter.threshold_3],
+                [18, "over_voltage_threshold", tuya.valueConverter.threshold_3],
+                [18, "over_voltage_breaker", tuya.valueConverter.threshold_3],
+                [18, "under_voltage_threshold", tuya.valueConverter.threshold_3],
+                [18, "under_voltage_breaker", tuya.valueConverter.threshold_3],
+                [102, "recover_count", tuya.valueConverter.raw],
+                [103, "temperature", tuya.valueConverter.raw],
+                [104, "recover_enable", tuya.valueConverter.onOff],
+                [105, "countdown", tuya.valueConverter.countdown],
+                [106, "cycle_time", tuya.valueConverter.raw],
+                [107, "leakage_delay", tuya.valueConverter.raw],
+                [110, "reverse_energy", tuya.valueConverter.divideBy100],
+                [119, "power_on_delay", tuya.valueConverter.raw],
+                [124, "alarm_over_current_count", tuya.valueConverter.raw],
+                [125, "alarm_low_current_count", tuya.valueConverter.raw],
+                [127, "status", tuya.valueConverter.raw],
+                [134, "relay_power_on_state", tuya.valueConverterBasic.lookup({Off: 0, On: 1, Restore: 2})],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zofmmt9s"]),
         model: "ZSM-01",
         vendor: "Novato",
