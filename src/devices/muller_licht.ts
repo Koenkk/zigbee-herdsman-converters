@@ -243,7 +243,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["tint Smart Switch"],
+        zigbeeModel: ["tint Smart Switch", "switch01", "switch01\u0000"],
         model: "404021",
         description: "Tint smart switch",
         vendor: "Müller Licht",
