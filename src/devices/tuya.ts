@@ -1730,7 +1730,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart circuit breaker",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
         configure: tuya.configureMagicPacket,
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET).withDescription("Circuit Breaker Switch"),
