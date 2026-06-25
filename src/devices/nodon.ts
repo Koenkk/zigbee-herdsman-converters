@@ -281,7 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "dry_contact",
                 cluster: "genBinaryInput",
                 attribute: "presentValue",
-                reporting: {attribute: "presentValue", min: 0, max: constants.repInterval.HOUR, change: 1},
+                reporting: {min: 0, max: constants.repInterval.HOUR, change: 1},
                 valueOn: ["contact_closed", 1],
                 valueOff: ["contact_open", 0],
                 description: "State of the dry contact, closed or open.",
