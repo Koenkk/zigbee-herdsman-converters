@@ -10037,6 +10037,15 @@ export const definitions: DefinitionWithExtend[] = [
                 acCurrentDivisor,
                 acCurrentMultiplier: 1,
             });
+            // _TZ3008_reatplte reports voltage and power scaled by 10 (e.g. rmsVoltage=2350 means 235.0V).
+            // The device exposes the correct divisors via the haElectricalMeasurement cluster, but
+            // TS011F_plug_1's configure does not read them, so the cache defaults to 1 and values appear 10x too large.
+            // Reading the acCurrent* attributes fails on this device with UNSUPPORTED_ATTRIBUTE (like other
+            // Tuya TS011F plugs, see comment about _TZ3000_0zfrhq4i above), so only the voltage and power
+            // divisors are read from the device here; current uses the hardcoded value saved above.
+            if (device.manufacturerName === "_TZ3008_reatplte") {
+                await endpoint.read("haElectricalMeasurement", ["acVoltageMultiplier", "acVoltageDivisor", "acPowerMultiplier", "acPowerDivisor"]);
+            }
             endpoint.saveClusterAttributeKeyValue("seMetering", {
                 divisor: 100,
                 multiplier: 1,
