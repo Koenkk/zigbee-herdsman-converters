@@ -1766,13 +1766,23 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(220)
                 .withUnit("V")
                 .withDescription("Undervoltage Threshold"),
-            exposes.numeric('leakage_current', ea.STATE).withUnit('mA').withDescription('Residual Current Display'),
+            exposes.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Residual Current Display"),
             exposes.binary("leakage_breaker", ea.ALL, "ON", "OFF").withDescription("Leakage Current Alarm Enabled"),
             exposes.numeric("leakage_delay", ea.STATE_SET).withValueMin(1).withValueMax(9999).withUnit("s").withDescription("Leakage Delay"),
-            exposes.numeric('leakage_threshold', ea.ALL).withValueMin(10).withValueMax(99).withUnit('mA').withDescription('Leakage Current Threshold'),
+            exposes
+                .numeric("leakage_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(99)
+                .withUnit("mA")
+                .withDescription("Leakage Current Threshold"),
             exposes.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Temperature Alarm Enabled"),
             exposes.numeric("high_temperature_threshold", ea.ALL).withUnit("°C").withDescription("Temperature Threshold"),
-            exposes.numeric('high_temperature_threshold', ea.ALL).withValueMin(10).withValueMax(85).withUnit('°C').withDescription('Temperature Threshold'),
+            exposes
+                .numeric("high_temperature_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(85)
+                .withUnit("°C")
+                .withDescription("Temperature Threshold"),
 
             exposes.numeric("countdown", ea.STATE_SET).withValueMin(0).withValueMax(43200).withUnit("s").withDescription("Countdown Timer"),
             exposes
