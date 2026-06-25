@@ -1776,7 +1776,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("mA")
                 .withDescription("Leakage Current Threshold"),
             exposes.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Temperature Alarm Enabled"),
-            exposes.numeric("high_temperature_threshold", ea.ALL).withUnit("°C").withDescription("Temperature Threshold"),
             exposes
                 .numeric("high_temperature_threshold", ea.ALL)
                 .withValueMin(10)
