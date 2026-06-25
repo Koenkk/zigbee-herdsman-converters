@@ -3263,7 +3263,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_yojqa8xn", "_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE204_yojqa8xn", "_TZE284_chbyv06x"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_yojqa8xn",
+            "_TZE204_zougpkpy",
+            "_TZE204_chbyv06x",
+            "_TZE204_yojqa8xn",
+            "_TZE284_chbyv06x",
+            "_TZE28C1000000_chbyv06x",
+        ]),
         model: "TS0601_gas_sensor_2",
         vendor: "Tuya",
         description: "Gas sensor",
@@ -3280,7 +3287,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("alarm_time", ea.STATE_SET).withValueMin(1).withValueMax(180).withValueStep(1).withUnit("s").withDescription("Alarm time"),
             e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
         ],
-        whiteLabel: [tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", ["_TZE204_zougpkpy", "_TZE204_chbyv06x", "_TZE284_chbyv06x"])],
+        whiteLabel: [
+            tuya.whitelabel("DYGSM", "DY-RQ500A", "Gas sensor", [
+                "_TZE204_zougpkpy",
+                "_TZE204_chbyv06x",
+                "_TZE284_chbyv06x",
+                "_TZE28C1000000_chbyv06x",
+            ]),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalseEnum0],
@@ -7269,6 +7283,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_mhhxxjrs",
             "_TZ3000_iv4eq7eh",
             "_TZ3000_mzcp0of6",
+            "_TZ3210_aksyshpw", // https://github.com/Koenkk/zigbee2mqtt/issues/32391
         ]),
         model: "TS0003_switch_module_2",
         vendor: "Tuya",
