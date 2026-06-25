@@ -329,7 +329,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory('config'),
             e.power_apparent(),
         ],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             // Explicit bind — not done by m.electricityMeter because configureReporting: false
@@ -345,37 +345,22 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read('seMetering', ['multiplier', 'divisor']);
 
             // Split into batches of ≤5 to stay within the ~85-byte ZCL frame limit
-            try {
-                await endpoint.configureReporting('haElectricalMeasurement', [
-                    {attribute: 'acFrequency',   minimumReportInterval: 30,  maximumReportInterval: 3600, reportableChange: 500},  // 5 Hz
-                    {attribute: 'rmsVoltage',    minimumReportInterval: 30,  maximumReportInterval: 3600, reportableChange: 2300}, // 23 V
-                    {attribute: 'rmsCurrent',    minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 100},  // 1 A
-                    {attribute: 'activePower',   minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 250},  // 250 W
-                    {attribute: 'apparentPower', minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 250},  // 250 VA
-                ]);
-            } catch (error) {
-                logger.debug(`SEM-4-1-00: haElectricalMeasurement batch 1 configureReporting failed: ${(error as Error).message}`);
-            }
-            try {
-                await endpoint.configureReporting('haElectricalMeasurement', [
-                    {attribute: 'powerFactor', minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 20}, // 0.20
-                ]);
-            } catch (error) {
-                logger.debug(`SEM-4-1-00: haElectricalMeasurement batch 2 configureReporting failed: ${(error as Error).message}`);
-            }
-
-            const seAttrs = [
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'acFrequency',   minimumReportInterval: 30,  maximumReportInterval: 3600, reportableChange: 500},  // 5 Hz
+                {attribute: 'rmsVoltage',    minimumReportInterval: 30,  maximumReportInterval: 3600, reportableChange: 2300}, // 23 V
+                {attribute: 'rmsCurrent',    minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 100},  // 1 A
+                {attribute: 'activePower',   minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 250},  // 250 W
+                {attribute: 'apparentPower', minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 250},  // 250 VA
+            ]);
+            await endpoint.configureReporting('haElectricalMeasurement', [
+                {attribute: 'powerFactor', minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 20}, // 0.20
+            ]);
+            await endpoint.configureReporting('seMetering', [
                 {attribute: 'currentSummDelivered', minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
-                {attribute: 'currentSummReceived',  minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
-            ];
-
-            for (const attr of seAttrs) {
-                try {
-                    await endpoint.configureReporting('seMetering', [attr]);
-                } catch (error) {
-                    logger.debug(`SEM-4-1-00: seMetering/${attr.attribute} configureReporting failed: ${(error as Error).message}`);
-                }
-            }
+            ]);
+            await endpoint.configureReporting('seMetering', [
+                {attribute: 'currentSummReceived', minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
+            ]);
         },
         ota: true,
     },
