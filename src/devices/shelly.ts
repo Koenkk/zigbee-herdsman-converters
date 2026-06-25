@@ -27,6 +27,23 @@ const checkOption = (device: Zh.Device | DummyDevice, options: KeyValue, key: st
     return defaultValue;
 };
 
+const shellySwitchInputEndpoints = (device: Zh.Device | DummyDevice, endpoints: Record<string, number>): Record<string, number> => {
+    if (utils.isDummyDevice(device)) return endpoints;
+
+    return Object.fromEntries(Object.entries(endpoints).filter(([, endpoint]) => device.getEndpoint(endpoint) !== undefined));
+};
+
+const shellySwitchInputExposes = (device: Zh.Device | DummyDevice, endpoints: Record<string, number>): Expose[] =>
+    Object.keys(shellySwitchInputEndpoints(device, endpoints)).map((endpoint) =>
+        e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint(endpoint),
+    );
+
+const shellyDeviceEndpoints = (endpoints: Record<string, number>): ModernExtend => ({
+    meta: {multiEndpoint: true},
+    endpoint: (device) => shellySwitchInputEndpoints(device, endpoints),
+    isModernExtend: true,
+});
+
 const shellyPresenceEndpointNames = (device: Zh.Device | DummyDevice): string[] => {
     const count =
         !utils.isDummyDevice(device) && typeof device.meta.presence_zone_count === "number"
@@ -533,6 +550,26 @@ const shellyModernExtend = {
             }
         };
 
+        const getRPCEndpoint = (entity: Zh.Endpoint | Zh.Group): Zh.Endpoint | Zh.Group => {
+            utils.assertEndpoint(entity);
+            const endpoint = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+            if (!endpoint) throw new Error(`Shelly RPC endpoint ${SHELLY_ENDPOINT_ID} not found`);
+            return endpoint;
+        };
+
+        const getShellySwitchConfig = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<KeyValue | undefined> => {
+            const response = await rpcRequest(endpoint, "Switch.GetConfig", {id});
+            const result = response?.result ?? response?.params ?? response;
+            if (!result) return undefined;
+            assertObject<KeyValue>(result);
+            return result;
+        };
+
+        const getShellySwitchMode = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<string | undefined> => {
+            const config = await getShellySwitchConfig(endpoint, id);
+            return typeof config?.in_mode === "string" ? config.in_mode : undefined;
+        };
+
         // Features for exposes
         const featurePercentage = (name: string, label: string) => {
             return e.numeric(name, ea.STATE_SET).withValueMin(0).withValueMax(100).withValueStep(1).withLabel(label).withUnit("%");
@@ -790,24 +827,25 @@ const shellyModernExtend = {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
-                return [
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw1"),
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw2"),
-                ];
+                return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2, sw2: 3})).map((endpoint) =>
+                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                );
             });
             toZigbee.push({
                 key: ["switch_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    const ep = getRPCEndpoint(entity);
                     await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
-                    await rpcSend(ep, "Switch.GetConfig", {id: switchId});
-                    await rpcReceive(ep, "rpc_rxctl");
+                    const ep = getRPCEndpoint(entity);
+                    const mode = await getShellySwitchMode(ep, switchId);
+                    if (mode) {
+                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
+                    }
                 },
             });
             configure.push(async (device) => {
@@ -815,8 +853,7 @@ const shellyModernExtend = {
                 if (!ep) return;
                 try {
                     for (const id of [0, 1]) {
-                        await rpcSend(ep, "Switch.GetConfig", {id});
-                        await rpcReceive(ep, "rpc_rxctl");
+                        await getShellySwitchConfig(ep, id);
                     }
                 } catch (e) {
                     logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
@@ -827,27 +864,30 @@ const shellyModernExtend = {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
-                return [e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw1")];
+                return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2})).map((endpoint) =>
+                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                );
             });
             toZigbee.push({
                 key: ["switch_mode"],
                 convertSet: async (entity, key, value, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    const ep = getRPCEndpoint(entity);
                     await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
-                    await rpcSend(ep, "Switch.GetConfig", {id: 0});
-                    await rpcReceive(ep, "rpc_rxctl");
+                    const ep = getRPCEndpoint(entity);
+                    const mode = await getShellySwitchMode(ep, 0);
+                    if (mode) {
+                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
+                    }
                 },
             });
             configure.push(async (device) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
                 if (!ep) return;
                 try {
-                    await rpcSend(ep, "Switch.GetConfig", {id: 0});
-                    await rpcReceive(ep, "rpc_rxctl");
+                    await getShellySwitchConfig(ep, 0);
                 } catch (e) {
                     logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
                 }
@@ -1388,9 +1428,8 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (!Object.hasOwn(msg.data, "switchType")) return {};
-            const epName = utils.getFromLookup(msg.endpoint.ID, {2: "sw1", 3: "sw1", 4: "sw2"});
-            if (!epName) return {};
-            return {[`switch_type_${epName}`]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
+            const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
+            return {[property]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
     } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
 
@@ -1619,7 +1658,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        exposes: (device) => [
             e.action([
                 "input_1_on",
                 "input_1_off",
@@ -1636,11 +1675,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "input_2_triple",
                 "input_2_hold",
             ]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+            ...shellySwitchInputExposes(device, {sw1: 2, sw2: 3}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2, sw2: 3}}),
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
             shellyModernExtend.shellyWindowCovering(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMInputMode", "CoverTiltAuto"]),
@@ -1691,7 +1729,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        exposes: (device) => [
             e.action([
                 "input_1_on",
                 "input_1_off",
@@ -1708,11 +1746,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "input_2_triple",
                 "input_2_hold",
             ]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+            ...shellySwitchInputExposes(device, {sw1: 3, sw2: 4}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, sw1: 3, sw2: 4}}),
+            shellyDeviceEndpoints({l1: 1, l2: 2, sw1: 3, sw2: 4}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
