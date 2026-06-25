@@ -1,8 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
 import * as m from "./modernExtend";
 import type {Fz, KeyValueAny, Tz} from "./types";
 import * as utils from "./utils";
-import {postfixWithEndpointName} from "./utils";
 
 const VOLUME_LOOKUP = {off: 0, low: 1, medium: 2, high: 3};
 
@@ -24,29 +24,13 @@ export const fzLocal = {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValueAny = {};
-            if (msg.data.lockState !== undefined) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = msg.data.lockState === 1 ? "LOCK" : "UNLOCK";
-                const lookup = ["not_fully_locked", "locked", "unlocked"];
-                result[postfixWithEndpointName("lock_state", msg, model, meta)] = lookup[msg.data.lockState];
-            }
-
-            if (msg.data.autoRelockTime !== undefined) {
-                result[postfixWithEndpointName("auto_relock_time", msg, model, meta)] = msg.data.autoRelockTime;
-            }
+            const convertedResult = fz.lock.convert(model, msg, publish, options, meta);
+            const result: KeyValueAny = typeof convertedResult === "object" && convertedResult !== null ? convertedResult : {};
 
             if (msg.data["soundVolume"] !== undefined) {
                 result.volume = utils.getFromLookup(msg.data["soundVolume"], {0: "off", 1: "low", 2: "medium", 3: "high"});
             }
 
-            if (msg.data.doorState !== undefined) {
-                const lookup: KeyValueAny = {
-                    0: "open",
-                    1: "closed",
-                    255: "undefined",
-                };
-                result[postfixWithEndpointName("door_state", msg, model, meta)] = lookup[msg.data.doorState];
-            }
             return result;
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
