@@ -26131,12 +26131,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("Excellux", ["NTCHT01", "NTCHT02"]),
+        fingerprint: tuya.fingerprint("Excellux", ["NTCHT01", "NTCHT02", "NTCHT03"]),
         model: "ZG-105NTH",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Temperature and humidity sensor with probe",
-        whiteLabel: [tuya.whitelabel("Excellux", "ZG-106NTH", "Temperature and humidity sensor with probe", ["NTCHT02"])],
+        whiteLabel: [
+            tuya.whitelabel("Excellux", "ZG-106NTH", "Temperature and humidity sensor with probe", ["NTCHT02"]),
+            tuya.whitelabel("Excellux", "EZ-L01NTH", "Probe Temperature && Temperature && Humidity with LCD", ["NTCHT03"]),
+        ],
         exposes: [
             e
                 .enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])
