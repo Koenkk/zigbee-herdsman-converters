@@ -299,10 +299,10 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ['SEM-4-1-00'],
-        model: 'SEM-4-1-00',
-        vendor: 'NodOn',
-        description: 'Energy monitoring sensor',
+        zigbeeModel: ["SEM-4-1-00"],
+        model: "SEM-4-1-00",
+        vendor: "NodOn",
+        description: "Energy monitoring sensor",
         extend: [
             m.identify(),
             m.electricityMeter({
@@ -314,52 +314,54 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             {
-                key: ['energy_reset'],
+                key: ["energy_reset"],
                 convertSet: async (entity, _key, _value, _meta) => {
                     // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
                     // Network membership, bindings and configureReporting are not affected (ZCL spec).
-                    await entity.command('genBasic', 'resetFactDefault', {});
+                    await entity.command("genBasic", "resetFactDefault", {});
                     return {state: {}};
                 },
             },
         ],
         exposes: [
-            e.enum('energy_reset', ea.SET, ['reset'])
-                .withDescription('Reset all energy counters to 0')
-                .withCategory('config'),
+            e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config"),
             e.power_apparent(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
 
             // Explicit bind — not done by m.electricityMeter because configureReporting: false
-            await endpoint.bind('haElectricalMeasurement', coordinatorEndpoint);
-            await endpoint.bind('seMetering', coordinatorEndpoint);
+            await endpoint.bind("haElectricalMeasurement", coordinatorEndpoint);
+            await endpoint.bind("seMetering", coordinatorEndpoint);
 
-            await endpoint.read('haElectricalMeasurement', [
-                'acVoltageMultiplier', 'acVoltageDivisor',
-                'acCurrentMultiplier', 'acCurrentDivisor',
-                'acPowerMultiplier', 'acPowerDivisor',
-                'acFrequencyMultiplier', 'acFrequencyDivisor',
+            await endpoint.read("haElectricalMeasurement", [
+                "acVoltageMultiplier",
+                "acVoltageDivisor",
+                "acCurrentMultiplier",
+                "acCurrentDivisor",
+                "acPowerMultiplier",
+                "acPowerDivisor",
+                "acFrequencyMultiplier",
+                "acFrequencyDivisor",
             ]);
-            await endpoint.read('seMetering', ['multiplier', 'divisor']);
+            await endpoint.read("seMetering", ["multiplier", "divisor"]);
 
             // Split into batches of ≤5 to stay within the ~85-byte ZCL frame limit
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {attribute: 'acFrequency',   minimumReportInterval: 30,  maximumReportInterval: 3600, reportableChange: 500},  // 5 Hz
-                {attribute: 'rmsVoltage',    minimumReportInterval: 30,  maximumReportInterval: 3600, reportableChange: 2300}, // 23 V
-                {attribute: 'rmsCurrent',    minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 100},  // 1 A
-                {attribute: 'activePower',   minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 250},  // 250 W
-                {attribute: 'apparentPower', minimumReportInterval: 10,  maximumReportInterval: 3600, reportableChange: 250},  // 250 VA
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "acFrequency", minimumReportInterval: 30, maximumReportInterval: 3600, reportableChange: 500}, // 5 Hz
+                {attribute: "rmsVoltage", minimumReportInterval: 30, maximumReportInterval: 3600, reportableChange: 2300}, // 23 V
+                {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 100}, // 1 A
+                {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 250}, // 250 W
+                {attribute: "apparentPower", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 250}, // 250 VA
             ]);
-            await endpoint.configureReporting('haElectricalMeasurement', [
-                {attribute: 'powerFactor', minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 20}, // 0.20
+            await endpoint.configureReporting("haElectricalMeasurement", [
+                {attribute: "powerFactor", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 20}, // 0.20
             ]);
-            await endpoint.configureReporting('seMetering', [
-                {attribute: 'currentSummDelivered', minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
+            await endpoint.configureReporting("seMetering", [
+                {attribute: "currentSummDelivered", minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
             ]);
-            await endpoint.configureReporting('seMetering', [
-                {attribute: 'currentSummReceived', minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
+            await endpoint.configureReporting("seMetering", [
+                {attribute: "currentSummReceived", minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
             ]);
         },
         ota: true,
