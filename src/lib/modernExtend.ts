@@ -148,6 +148,39 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     return time;
 }
 
+function getAttributeValue<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    msg: Fz.Message<Cl, Custom, ["attributeReport", "readResponse"]>,
+    cluster: Cl,
+    attribute: ClusterWithAttribute<Cl, Custom>["attribute"],
+    manufacturerCode: number | undefined,
+    device: Zh.Device | undefined,
+): unknown {
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    if (attributeKey in msg.data) {
+        return msg.data[attributeKey as keyof typeof msg.data];
+    }
+
+    if (isString(attribute)) {
+        return undefined;
+    }
+
+    const attributeID = attribute.ID;
+    if (typeof attributeID !== "number") {
+        return undefined;
+    }
+
+    try {
+        const clusterDefinition = Zcl.Utils.getCluster(cluster, manufacturerCode, device?.customClusters);
+        const clusterAttribute = Zcl.Utils.getClusterAttribute(clusterDefinition, attributeID, manufacturerCode);
+
+        if (clusterAttribute?.name && clusterAttribute.name in msg.data) {
+            return msg.data[clusterAttribute.name as keyof typeof msg.data];
+        }
+    } catch {
+        // Some vendor-specific raw attributes are intentionally not present in a cluster definition.
+    }
+}
+
 export async function setupAttributes<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     entity: Zh.Device | Zh.Endpoint,
     coordinatorEndpoint: Zh.Endpoint,
@@ -2625,9 +2658,10 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
             convert:
                 fzConvert ??
                 ((model, msg, publish, options, meta) => {
-                    if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                    if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
                         // skip undefined value
-                        if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                        return {[expose.property]: getFromLookupByValue(value, lookup)};
                     }
                 }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -2749,13 +2783,14 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
             convert:
                 fzConvert ??
                 ((model, msg, publish, options, meta) => {
-                    if (attributeKey in msg.data) {
+                    const attributeValue = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                    if (attributeValue !== undefined) {
                         const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
                         if (endpoints && !endpoint) {
                             return;
                         }
 
-                        let value = msg.data[attributeKey];
+                        let value = attributeValue;
                         assertNumber(value);
 
                         if (scale !== undefined) {
@@ -2846,8 +2881,9 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: msg.data[attributeKey] === valueOn[1] ? valueOn[0] : valueOff[0]};
+                const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    return {[expose.property]: value === valueOn[1] ? valueOn[0] : valueOff[0]};
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -2918,8 +2954,9 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: msg.data[attributeKey]};
+                const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    return {[expose.property]: value};
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
