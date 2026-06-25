@@ -16,6 +16,10 @@ import {getLabelFromName} from "./utils";
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
 export interface HomeAssistant {
     type?: "valve";
+    entityCategory?: "config" | "diagnostic";
+    deviceClass?: string;
+    enabledByDefault?: boolean;
+    icon?: string;
 }
 
 export class Base {
