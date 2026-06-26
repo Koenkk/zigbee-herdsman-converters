@@ -779,7 +779,6 @@ const tzLocal = {
     snzb_09p_alert: {
         key: ["siren_on"],
         convertSet: async (entity, key, value, meta) => {
-            const state = meta.state || {};
             const device = meta.device;
             const message = meta.message;
             if (!device) return;
