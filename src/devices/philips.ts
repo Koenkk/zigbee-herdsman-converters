@@ -2855,6 +2855,39 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["ROM002"],
+        model: "9290042970A",
+        vendor: "Philips",
+        description: "Hue wired wall switch module",
+        extend: [philips.m.addManuSpecificPhilipsCluster(), philips.m.addPhilipsGenBasicCluster()],
+        fromZigbee: [philips.fz.hue_wall_switch_device_mode, philips.fz.hue_wall_switch, fz.command_toggle, fz.command_move, fz.command_stop],
+        exposes: [
+            e.action([
+                "left_press",
+                "left_press_release",
+                "right_press",
+                "right_press_release",
+                "left_hold",
+                "left_hold_release",
+                "right_hold",
+                "right_hold_release",
+                "toggle",
+                "brightness_move_up",
+                "brightness_move_down",
+                "brightness_stop",
+            ]),
+            e.enum("device_mode", ea.ALL, ["single_rocker", "single_push_button", "dual_rocker", "dual_push_button"]),
+        ],
+        toZigbee: [philips.tz.hue_wall_switch_device_mode],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "manuSpecificPhilips"]);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V, disableDefaultResponse: true};
+            await endpoint.write("genBasic", {52: {value: 0, type: 48}}, options);
+        },
+        ota: true,
+    },
+    {
         zigbeeModel: ["RWL020", "RWL021"],
         model: "324131092621",
         vendor: "Philips",

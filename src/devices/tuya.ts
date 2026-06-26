@@ -511,6 +511,49 @@ const ar331ProHolidayTimeConverter = {
 };
 
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0301_dual_rail_2: {
+        key: ["state", "position"],
+        options: [
+            e
+                .binary("invert_top_rail", ea.SET, true, false)
+                .withDescription(
+                    "Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).",
+                ),
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            const ep = meta.endpoint_name;
+            const invertTop = meta.options?.invert_top_rail === true;
+            const goTo = async (lift: number) =>
+                await entity.command(
+                    "closuresWindowCovering",
+                    "goToLiftPercentage",
+                    {percentageliftvalue: Math.max(0, Math.min(100, Math.round(lift)))},
+                    utils.getOptions(meta.mapped, entity),
+                );
+            if (key === "position") {
+                utils.assertNumber(value, key);
+                let lift: number;
+                if (ep === "bottom") lift = value === 0 ? 0 : utils.mapNumberRange(value, 0, 100, 50, 100);
+                else if (ep === "top") lift = utils.mapNumberRange(invertTop ? 100 - value : value, 0, 100, 0, 50);
+                else lift = value;
+                await goTo(lift);
+                return;
+            }
+            const cmd = String(value).toUpperCase();
+            if (cmd === "STOP") {
+                await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
+                return;
+            }
+            const open = cmd === "OPEN";
+            if (ep === "bottom") await goTo(open ? 100 : 0);
+            else if (ep === "top") await goTo(utils.mapNumberRange(invertTop ? (open ? 0 : 100) : open ? 100 : 0, 0, 100, 0, 50));
+            else await entity.command("closuresWindowCovering", open ? "upOpen" : "downClose", {}, utils.getOptions(meta.mapped, entity));
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
+        },
+    } satisfies Tz.Converter,
     acmelec_ae720k_state_double_on: {
         key: ["state"],
         convertSet: async (entity, key, value, meta) => {
@@ -1086,6 +1129,33 @@ const tzLocal = {
 };
 
 const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0301_dual_rail_2: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        options: [
+            e
+                .binary("invert_top_rail", ea.SET, true, false)
+                .withDescription(
+                    "Invert the top rail so that 'open' (position 100) raises the rail instead of lowering it; default false keeps the upstream convention (position 100 = down).",
+                ),
+        ],
+        convert: (model, msg, publish, options, meta) => {
+            const N = msg.data.currentPositionLiftPercentage;
+            if (N === undefined || N > 100) return;
+            const bottom = N < 50 ? 0 : Math.round(utils.mapNumberRange(N, 50, 100, 0, 100));
+            let top = N > 50 ? 0 : Math.round(utils.mapNumberRange(N, 0, 50, 0, 100));
+            if (options?.invert_top_rail === true) top = 100 - top;
+            return {
+                position: N,
+                state: N === 0 ? "CLOSE" : "OPEN",
+                position_bottom: bottom,
+                state_bottom: bottom === 0 ? "CLOSE" : "OPEN",
+                position_top: top,
+                state_top: top === 0 ? "CLOSE" : "OPEN",
+            };
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
     // ZT08 (_TZE284_hodyryli) — LCD weather station with clock.
     // The MCU expects mcuSyncTime in raw Unix seconds (8 bytes: UTC + local),
     // followed by a DP 17 write ~500 ms later that commits the new time to the LCD.
@@ -1718,6 +1788,160 @@ const fzLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lb0fsvba"]),
+        model: "ZBN-DJ-63",
+        vendor: "Tuya",
+        description: "Smart circuit breaker",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET).withDescription("Circuit Breaker Switch"),
+            e.energy().withDescription("Total Forward Energy (kWh)").withAccess(ea.STATE),
+            exposes.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total Reverse Energy (kWh)"),
+            e.power().withDescription("Active Power (W)").withAccess(ea.STATE),
+            e.voltage().withDescription("Phase A Voltage (V)").withAccess(ea.STATE),
+            e.current().withDescription("Phase A Current (A)").withAccess(ea.STATE),
+            exposes.numeric("temperature", ea.STATE).withUnit("°C").withDescription("Current Temperature"),
+
+            exposes.binary("switch_prepayment", ea.STATE_SET, "ON", "OFF").withDescription("Prepaid Function Switch"),
+            exposes.binary("clear_energy", ea.SET, "ON", "OFF").withDescription("Clear Remaining Available Energy"),
+            exposes.numeric("balance_energy", ea.STATE).withUnit("kWh").withDescription("Remaining Available Energy Display (kWh)"),
+            exposes.numeric("charge_energy", ea.SET).withValueMin(0).withValueMax(999999).withUnit("kWh").withDescription("Energy Recharge"),
+
+            exposes.binary("over_current_breaker", ea.ALL, "ON", "OFF").withDescription("Overcurrent Alarm Enabled"),
+            exposes
+                .numeric("over_current_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(63)
+                .withUnit("A")
+                .withDescription("Overcurrent Threshold"),
+            exposes.binary("over_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Overvoltage Alarm Enabled"),
+            exposes
+                .numeric("over_voltage_threshold", ea.ALL)
+                .withValueMin(240)
+                .withValueMax(260)
+                .withUnit("V")
+                .withDescription("Overvoltage Threshold"),
+            exposes.binary("under_voltage_breaker", ea.ALL, "ON", "OFF").withDescription("Undervoltage Alarm Enabled"),
+            exposes
+                .numeric("under_voltage_threshold", ea.ALL)
+                .withValueMin(195)
+                .withValueMax(220)
+                .withUnit("V")
+                .withDescription("Undervoltage Threshold"),
+            exposes.numeric("leakage_current", ea.STATE).withUnit("mA").withDescription("Residual Current Display"),
+            exposes.binary("leakage_breaker", ea.ALL, "ON", "OFF").withDescription("Leakage Current Alarm Enabled"),
+            exposes.numeric("leakage_delay", ea.STATE_SET).withValueMin(1).withValueMax(9999).withUnit("s").withDescription("Leakage Delay"),
+            exposes
+                .numeric("leakage_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(99)
+                .withUnit("mA")
+                .withDescription("Leakage Current Threshold"),
+            exposes.binary("high_temperature_breaker", ea.ALL, "ON", "OFF").withDescription("Temperature Alarm Enabled"),
+            exposes
+                .numeric("high_temperature_threshold", ea.ALL)
+                .withValueMin(10)
+                .withValueMax(85)
+                .withUnit("°C")
+                .withDescription("Temperature Threshold"),
+
+            exposes.numeric("countdown", ea.STATE_SET).withValueMin(0).withValueMax(43200).withUnit("s").withDescription("Countdown Timer"),
+            exposes
+                .numeric("power_on_delay", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(9999)
+                .withUnit("s")
+                .withDescription("Power-On Delay Energization Time"),
+            exposes.numeric("recover_count", ea.STATE_SET).withValueMin(0).withValueMax(999).withDescription("Reclosing Attempt Limit"),
+            exposes.binary("recover_enable", ea.STATE_SET, "ON", "OFF").withDescription("Reclosing Enable"),
+
+            exposes
+                .enum("fault", ea.STATE, [
+                    "clear",
+                    "short_circuit_alarm",
+                    "surge_alarm",
+                    "overload_alarm",
+                    "leakagecurr_alarm",
+                    "temp_dif_fault",
+                    "fire_alarm",
+                    "high_power_alarm",
+                    "self_test_alarm",
+                    "ov_cr",
+                    "unbalance_alarm",
+                    "ov_vol",
+                    "undervoltage_alarm",
+                    "miss_phase_alarm",
+                    "outage_alarm",
+                    "magnetism_alarm",
+                    "credit_alarm",
+                    "no_balance_alarm",
+                ])
+                .withDescription("Fault Alarm"),
+
+            exposes.enum("relay_power_on_state", ea.STATE_SET, ["Off", "On", "Restore"]).withDescription("Relay Power-On State Setting"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2],
+                [
+                    9,
+                    "fault",
+                    tuya.valueConverterBasic.lookup({
+                        clear: 0,
+                        short_circuit_alarm: 1 << 0,
+                        surge_alarm: 1 << 1,
+                        overload_alarm: 1 << 2,
+                        leakagecurr_alarm: 1 << 3,
+                        temp_dif_fault: 1 << 4,
+                        fire_alarm: 1 << 5,
+                        high_power_alarm: 1 << 6,
+                        self_test_alarm: 1 << 7,
+                        ov_cr: 1 << 8,
+                        unbalance_alarm: 1 << 9,
+                        ov_vol: 1 << 10,
+                        undervoltage_alarm: 1 << 11,
+                        miss_phase_alarm: 1 << 12,
+                        outage_alarm: 1 << 13,
+                        magnetism_alarm: 1 << 14,
+                        credit_alarm: 1 << 15,
+                        no_balance_alarm: 1 << 16,
+                    }),
+                ],
+                [11, "switch_prepayment", tuya.valueConverter.onOff],
+                [12, "clear_energy", tuya.valueConverter.onOff],
+                [13, "balance_energy", tuya.valueConverter.divideBy100],
+                [14, "charge_energy", tuya.valueConverter.divideBy100],
+                [15, "leakage_current", tuya.valueConverter.raw],
+                [16, "state", tuya.valueConverter.onOff],
+                [17, null, tuya.valueConverter.threshold_2],
+                [17, "leakage_threshold", tuya.valueConverter.threshold_2],
+                [17, "leakage_breaker", tuya.valueConverter.threshold_2],
+                [17, "high_temperature_threshold", tuya.valueConverter.threshold_2],
+                [17, "high_temperature_breaker", tuya.valueConverter.threshold_2],
+                [18, null, tuya.valueConverter.threshold_3],
+                [18, "over_current_threshold", tuya.valueConverter.threshold_3],
+                [18, "over_current_breaker", tuya.valueConverter.threshold_3],
+                [18, "over_voltage_threshold", tuya.valueConverter.threshold_3],
+                [18, "over_voltage_breaker", tuya.valueConverter.threshold_3],
+                [18, "under_voltage_threshold", tuya.valueConverter.threshold_3],
+                [18, "under_voltage_breaker", tuya.valueConverter.threshold_3],
+                [102, "recover_count", tuya.valueConverter.raw],
+                [103, "temperature", tuya.valueConverter.raw],
+                [104, "recover_enable", tuya.valueConverter.onOff],
+                [105, "countdown", tuya.valueConverter.countdown],
+                [106, "cycle_time", tuya.valueConverter.raw],
+                [107, "leakage_delay", tuya.valueConverter.raw],
+                [110, "reverse_energy", tuya.valueConverter.divideBy100],
+                [119, "power_on_delay", tuya.valueConverter.raw],
+                [124, "alarm_over_current_count", tuya.valueConverter.raw],
+                [125, "alarm_low_current_count", tuya.valueConverter.raw],
+                [127, "status", tuya.valueConverter.raw],
+                [134, "relay_power_on_state", tuya.valueConverterBasic.lookup({Off: 0, On: 1, Restore: 2})],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zofmmt9s"]),
         model: "ZSM-01",
@@ -3704,6 +3928,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Zigbee GU10 5W smart bulb",
             },
             {vendor: "Nedis", model: "ZBLC1E14"},
+            {vendor: "Emos", model: "GoSmart ZQZ516R"},
+            {vendor: "Emos", model: "GoSmart ZQZ322R"},
             tuya.whitelabel("Aldi", "L122FF63H11A5.0W", "LIGHTWAY smart home LED-lamp - spot", ["_TZ3000_j0gtlepx"]),
             tuya.whitelabel("Aldi", "L122AA63H11A6.5W", "LIGHTWAY smart home LED-lamp - candle", ["_TZ3000_iivsrikg"]),
             tuya.whitelabel("Aldi", "C422AC11D41H140.0W", "MEGOS LED panel RGB+CCT 40W 3600lm 62 x 62 cm", ["_TZ3000_v1srfw9x"]),
@@ -5461,74 +5687,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0301_dual_rail_2",
         vendor: "Tuya",
         description: "Top-down bottom-up single control shade",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        whiteLabel: [tuya.whitelabel("Yoolax", "Day-Night Shade", "Top-down bottom-up day/night shade", ["_TZE200_eatmkx5j"])],
+        extend: [m.deviceEndpoints({endpoints: {bottom: 1, top: 1}}), m.battery()],
+        fromZigbee: [fzLocal.TS0301_dual_rail_2],
+        toZigbee: [tzLocal.TS0301_dual_rail_2],
         exposes: [
+            e.cover_position().withDescription("Unified position"),
             e.cover_position().withEndpoint("bottom").withDescription("Bottom rail"),
             e.cover_position().withEndpoint("top").withDescription("Top rail"),
-            e.battery(),
         ],
-        meta: {
-            tuyaDatapoints: [
-                // Bottom rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
-                //               DP2 is set position and DP3 is current position
-                //                   50-100 control the Bottom shade, with 50 being fully closed, and 100 being fully open.
-                //                   50 is a special case though, as the actual 50 value is used by the top shade for fully open
-                //                      so we override that to 0 which is both top and bottom closed.
-                //                   51 results in the window being slightly open so we have to use the above logic.
-                [1, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
-                [
-                    2,
-                    "position_bottom",
-                    {
-                        to: (v) => {
-                            const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100);
-                            return result;
-                        },
-                        from: (v) => {
-                            const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100);
-                            return result;
-                        },
-                    },
-                ],
-                [
-                    3,
-                    "position_bottom",
-                    {
-                        to: (v) => {
-                            const result = v === 0 ? 0 : utils.mapNumberRange(v, 0, 100, 50, 100);
-                            return result;
-                        },
-                        from: (v) => {
-                            const result = v < 50 ? 0 : utils.mapNumberRange(v, 50, 100, 0, 100);
-                            return result;
-                        },
-                    },
-                ],
-                // Top rail - DP1 is control, however it only controls the bottom rail, no known workaround currently.
-                //            DP2 is set position and DP3 is current position
-                //                0-50 control the Bottom shade, with 0 being fully closed, and 50 being fully open.
-                //            DP3 does not update when controlling the top shade via DP2, I suspect this is because the
-                //                returned information is consumed by the bottom shade DP3.
-
-                [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(2), STOP: tuya.enum(1)})],
-                [2, "position_top", tuya.valueConverterBasic.scale(0, 100, 0, 50)],
-                [
-                    3,
-                    "position_top",
-                    {
-                        to: (v) => {
-                            const result = utils.mapNumberRange(v, 0, 100, 0, 50);
-                            return result;
-                        },
-                        from: (v) => {
-                            const result = v > 50 ? 0 : utils.mapNumberRange(v, 0, 50, 0, 100);
-                            return result;
-                        },
-                    },
-                ],
-                // Battery
-                [103, "battery", tuya.valueConverter.raw],
-            ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
         },
     },
     {
@@ -6203,7 +6374,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew", "_TZ3000_gazjngjl"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_bep7ccew"]),
         model: "TS011F_2_gang_power",
         vendor: "Tuya",
         description: "2 gang socket with power monitoring and USB",
@@ -26129,12 +26300,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("Excellux", ["NTCHT01", "NTCHT02"]),
+        fingerprint: tuya.fingerprint("Excellux", ["NTCHT01", "NTCHT02", "NTCHT03"]),
         model: "ZG-105NTH",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         description: "Temperature and humidity sensor with probe",
-        whiteLabel: [tuya.whitelabel("Excellux", "ZG-106NTH", "Temperature and humidity sensor with probe", ["NTCHT02"])],
+        whiteLabel: [
+            tuya.whitelabel("Excellux", "ZG-106NTH", "Temperature and humidity sensor with probe", ["NTCHT02"]),
+            tuya.whitelabel("Excellux", "EZ-L01NTH", "Probe Temperature && Temperature && Humidity with LCD", ["NTCHT03"]),
+        ],
         exposes: [
             e
                 .enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])

@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import {boschThermostatExtend} from "../src/lib/bosch";
 import {repInterval} from "../src/lib/constants";
-import type {DefinitionExposesFunction} from "../src/lib/types";
+import type {DefinitionExposesFunction, KeyValueAny} from "../src/lib/types";
 import {mockDevice, reportingItem} from "./utils";
 
 describe("Bosch thermostats", () => {
@@ -74,5 +74,54 @@ describe("Bosch thermostat relayState extension", () => {
         expect(relayStateExposes(device)).toStrictEqual([]);
         expect(device.getEndpoint(1).bind).not.toHaveBeenCalled();
         expect(device.getEndpoint(1).configureReporting).not.toHaveBeenCalled();
+    });
+});
+
+describe("Bosch Room thermostat II 230V Home Assistant climate modes", () => {
+    const getDefinition = () =>
+        findByDevice(
+            mockDevice({
+                modelID: "RBSH-RTH0-ZB-EU",
+                manufacturerName: "BOSCH",
+                endpoints: [{ID: 1, inputClusters: ["hvacThermostat"]}],
+            }),
+        );
+
+    const buildPayload = async (options = {}) => {
+        const definition = await getDefinition();
+        const payload: KeyValueAny = {
+            mode_command_topic: "zigbee2mqtt/bad_thermostat/set/system_mode",
+        };
+
+        definition.meta?.overrideHaDiscoveryPayload?.(payload, options);
+
+        return {definition, payload};
+    };
+
+    it("defaults to heat-only Home Assistant climate discovery", async () => {
+        const {definition, payload} = await buildPayload();
+        const option = definition.options?.find((option) => option.name === "homeassistant_climate_modes");
+
+        expect(option?.label).toBe("Home Assistant climate modes");
+        expect(payload.mode_command_topic).toBe("zigbee2mqtt/bad_thermostat/set");
+        expect(payload.mode_command_template).toContain("{% set active_modes = ['heat'] %}");
+        expect(payload.mode_state_template).toContain("{% set fallback_mode = 'heat' %}");
+        expect(payload.modes).toStrictEqual(["off", "heat", "auto"]);
+    });
+
+    it("can expose cool-only Home Assistant climate discovery", async () => {
+        const {payload} = await buildPayload({homeassistant_climate_modes: "cool"});
+
+        expect(payload.mode_command_template).toContain("{% set active_modes = ['cool'] %}");
+        expect(payload.mode_state_template).toContain("{% set fallback_mode = 'cool' %}");
+        expect(payload.modes).toStrictEqual(["off", "cool", "auto"]);
+    });
+
+    it("can expose heat and cool Home Assistant climate discovery", async () => {
+        const {payload} = await buildPayload({homeassistant_climate_modes: "heat_cool"});
+
+        expect(payload.mode_command_template).toContain("{% set active_modes = ['heat','cool'] %}");
+        expect(payload.mode_state_template).toContain("{% set fallback_mode = 'heat' %}");
+        expect(payload.modes).toStrictEqual(["off", "heat", "cool", "auto"]);
     });
 });
