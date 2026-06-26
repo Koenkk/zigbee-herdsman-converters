@@ -187,6 +187,7 @@ function indicatorMode(endpoint?: string) {
             consistent_with_load: 0,
             always_off: 3,
             always_on: 1,
+            flash_on_click: 4,
         },
         cluster: "manuSpecificSchneiderLightSwitchConfiguration",
         attribute: "ledIndication",

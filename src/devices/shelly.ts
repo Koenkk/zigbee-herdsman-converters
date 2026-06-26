@@ -13,6 +13,7 @@ const ea = exposes.access;
 const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
 const SHELLY_PRESENCE_MAX_ZONES = 10;
+const SHELLY_RPC_DATA_READ_TIMEOUT = 10000;
 
 const NS = "zhc:shelly";
 
@@ -58,6 +59,24 @@ interface ShellyRPC {
         data: string;
         txCtl: number;
         rxCtl: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWiFiSetup {
+    attributes: {
+        status: string;
+        ip: string;
+        actionCode: number;
+        dhcp: boolean;
+        enabled: boolean;
+        ssid: string;
+        password: string;
+        staticIp: string;
+        netMask: string;
+        gateway: string;
+        nameServer: string;
     };
     commands: never;
     commandResponses: never;
@@ -110,6 +129,79 @@ interface ShellyLightLevel {
     commands: never;
     commandResponses: never;
 }
+
+let shellyRpcSending = false;
+
+const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
+    // Since RPC messages require multiple writes to complete, we have to make sure
+    // we're not interleaving request/response transactions accidentally.
+    while (shellyRpcSending) {
+        await sleep(200);
+    }
+    try {
+        shellyRpcSending = true;
+        return await callback();
+    } finally {
+        shellyRpcSending = false;
+    }
+};
+
+const shellyRpcSendRawUnlocked = async (endpoint: Zh.Endpoint | Zh.Group, message: string) => {
+    const splitBytes = 40;
+
+    logger.debug(">>> shellyRPC write TxCtl", NS);
+    const txCtl = message.length;
+    await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {txCtl: txCtl}, SHELLY_OPTIONS);
+    logger.debug(`>>> TxCtl: ${txCtl}`, NS);
+
+    logger.debug(">>> shellyRPC write Data", NS);
+    let dataToSend = message;
+    while (dataToSend.length > 0) {
+        const data = dataToSend.substring(0, splitBytes);
+        dataToSend = dataToSend.substring(splitBytes);
+        await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {data: data}, SHELLY_OPTIONS);
+        logger.debug(`>>> Data: ${data}`, NS);
+    }
+};
+
+const shellyRpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) =>
+    shellyRpcLock(async () => await shellyRpcSendRawUnlocked(endpoint, message));
+
+const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
+    const command = {
+        id: 1,
+        method: method,
+        params: params,
+    };
+    return await shellyRpcSendRaw(endpoint, JSON.stringify(command));
+};
+
+const shellyRpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
+    return await shellyRpcLock(async () => {
+        const command = {
+            id: 1,
+            method: method,
+            params: params,
+        };
+        await shellyRpcSendRawUnlocked(endpoint, JSON.stringify(command));
+        const rxCtlResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
+        const expectedLen = rxCtlResult.rxCtl;
+        if (!expectedLen) return undefined;
+
+        let accumulated = "";
+        while (accumulated.length < expectedLen) {
+            const dataResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["data"], {
+                ...SHELLY_OPTIONS,
+                timeout: SHELLY_RPC_DATA_READ_TIMEOUT,
+            });
+            if (!dataResult.data) break;
+            accumulated += dataResult.data;
+        }
+
+        if (accumulated.length < expectedLen) return undefined;
+        return JSON.parse(accumulated.substring(0, expectedLen));
+    });
+};
 
 // =============================================================================
 // WS90 Weather Station - Calculated Values (stored in device.meta for persistence)
@@ -476,66 +568,9 @@ const shellyModernExtend = {
             }
         };
 
-        // RPC helper functions
-        let rpcSending = false;
-
-        const rpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) => {
-            // Since RPC messages require multiple writes to complete, we have to make sure
-            // we're not interleaving them accidentally. This is good enough for now, at least
-            // until the RPC receive firmware bug is fixed by Shelly.
-            while (rpcSending) {
-                await sleep(200);
-            }
-            try {
-                rpcSending = true;
-                const splitBytes = 40;
-
-                logger.debug(">>> shellyRPC write TxCtl", NS);
-                const txCtl = message.length;
-                await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {txCtl: txCtl}, SHELLY_OPTIONS);
-                logger.debug(`>>> TxCtl: ${txCtl}`, NS);
-
-                logger.debug(">>> shellyRPC write Data", NS);
-                let dataToSend = message;
-                while (dataToSend.length > 0) {
-                    const data = dataToSend.substring(0, splitBytes);
-                    dataToSend = dataToSend.substring(splitBytes);
-                    await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {data: data}, SHELLY_OPTIONS);
-                    logger.debug(`>>> Data: ${data}`, NS);
-                }
-            } finally {
-                rpcSending = false;
-            }
-        };
-
-        const rpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
-            const command = {
-                id: 1,
-                method: method,
-                params: params,
-            };
-            return await rpcSendRaw(endpoint, JSON.stringify(command));
-        };
-
-        const rpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
-            await rpcSend(endpoint, method, params);
-            const rxCtlResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
-            const expectedLen = rxCtlResult.rxCtl;
-            if (!expectedLen) return undefined;
-
-            let accumulated = "";
-            while (accumulated.length < expectedLen) {
-                const dataResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["data"], {
-                    ...SHELLY_OPTIONS,
-                    timeout: 1000,
-                });
-                if (!dataResult.data) break;
-                accumulated += dataResult.data;
-            }
-
-            if (accumulated.length < expectedLen) return undefined;
-            return JSON.parse(accumulated.substring(0, expectedLen));
-        };
+        const rpcSendRaw = shellyRpcSendRaw;
+        const rpcSend = shellyRpcSend;
+        const rpcRequest = shellyRpcRequest;
 
         const rpcReceive = async (endpoint: Zh.Endpoint | Zh.Group, key: string) => {
             logger.debug(`||| shellyRPC rpcReceive(${key})`, NS);
@@ -946,12 +981,96 @@ const shellyModernExtend = {
         return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     },
     shellyWiFiSetup(): ModernExtend {
-        // biome-ignore lint/suspicious/noExplicitAny: generic
-        const refresh = async (endpoint: any) => {
-            await endpoint.write("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
+        const normalizeWifiString = (value: unknown): string | undefined => (typeof value === "string" && value !== "" ? value : undefined);
+        const getKnownFullWifiSsid = (device: Zh.Device, options?: KeyValue): string | undefined => {
+            if (typeof options?.shelly_wifi_ssid === "string" && options.shelly_wifi_ssid !== "") return options.shelly_wifi_ssid;
+            if (typeof device.meta.shelly_wifi_ssid === "string" && device.meta.shelly_wifi_ssid !== "") return device.meta.shelly_wifi_ssid;
+            return undefined;
+        };
+        const cacheFullWifiSsid = (device: Zh.Device, ssid: unknown) => {
+            if (typeof ssid === "string" && ssid !== "" && device.meta.shelly_wifi_ssid !== ssid) {
+                device.meta.shelly_wifi_ssid = ssid;
+                device.save();
+            }
+        };
+        const rpcResult = (response: KeyValue | undefined): KeyValue | undefined => {
+            const result = response?.result ?? response?.params ?? response;
+            if (!result) return undefined;
+            assertObject<KeyValue>(result);
+            return result;
+        };
+        const readWifiStateViaRpc = async (endpoint: Zh.Endpoint): Promise<KeyValue | undefined> => {
+            const config = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetConfig"));
+            const status = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetStatus"));
+            const state: KeyValue = {};
+            const wifiConfig: KeyValue = {};
+
+            const sta = config?.sta;
+            if (sta) {
+                assertObject<KeyValue>(sta);
+                if (typeof sta.enable === "boolean") wifiConfig.enabled = sta.enable;
+                if (typeof sta.ssid === "string") wifiConfig.ssid = sta.ssid;
+                if (typeof sta.ipv4mode === "string") state.dhcp_enabled = sta.ipv4mode === "dhcp";
+                if (typeof sta.ip === "string") wifiConfig.static_ip = normalizeWifiString(sta.ip);
+                if (typeof sta.netmask === "string") wifiConfig.net_mask = normalizeWifiString(sta.netmask);
+                if (typeof sta.gw === "string") wifiConfig.gateway = normalizeWifiString(sta.gw);
+                if (typeof sta.nameserver === "string") wifiConfig.name_server = normalizeWifiString(sta.nameserver);
+            }
+
+            if (status) {
+                if (typeof status.status === "string") state.wifi_status = status.status;
+                if (typeof status.sta_ip === "string") state.ip_address = normalizeWifiString(status.sta_ip);
+                if (wifiConfig.ssid === undefined && typeof status.ssid === "string") wifiConfig.ssid = status.ssid;
+            }
+
+            if (Object.keys(wifiConfig).length > 0) {
+                state.wifi_config = wifiConfig;
+            }
+
+            return Object.keys(state).length > 0 ? state : undefined;
+        };
+        const refresh = async (endpoint: Zh.Endpoint, meta?: Tz.Meta) => {
+            let published = false;
+            if (meta) {
+                try {
+                    const rpcState = await readWifiStateViaRpc(endpoint);
+                    const ssid = rpcState?.wifi_config;
+                    if (ssid && utils.isObject(ssid)) {
+                        cacheFullWifiSsid(endpoint.getDevice(), ssid.ssid);
+                    }
+                    if (rpcState) {
+                        meta.publish(rpcState);
+                        published = true;
+                    }
+                } catch (e) {
+                    logger.debug(`Failed to read Wi-Fi state through Shelly RPC, falling back to setup cluster: ${e}`, NS);
+                    const ssid = getKnownFullWifiSsid(endpoint.getDevice(), meta.options);
+                    if (ssid) {
+                        meta.publish({wifi_config: {ssid}});
+                        published = true;
+                    }
+                }
+            }
+
+            if (published) {
+                return;
+            }
+
+            try {
+                await endpoint.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
+                await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>(
+                    "shellyWiFiSetupCluster",
+                    ["status", "ip", "enabled", "dhcp", "ssid"],
+                    SHELLY_OPTIONS,
+                );
+                await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
+                await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
+                if (meta) {
+                    published = true;
+                }
+            } catch (e) {
+                logger.warning(`Failed to read Wi-Fi state through Shelly setup cluster; leaving previous state unchanged: ${e}`, NS);
+            }
         };
 
         const exposes: Expose[] = [
@@ -1006,7 +1125,14 @@ const shellyModernExtend = {
 
                     // Wi-Fi config
                     if (msg.data.enabled !== undefined) wifi_config.enabled = msg.data.enabled === 1;
-                    if (msg.data.ssid !== undefined) wifi_config.ssid = msg.data.ssid;
+                    if (msg.data.ssid !== undefined) {
+                        const reportedSsid = normalizeWifiString(msg.data.ssid);
+                        const knownFullSsid = getKnownFullWifiSsid(meta.device, options);
+                        wifi_config.ssid = knownFullSsid && reportedSsid && knownFullSsid.startsWith(reportedSsid) ? knownFullSsid : reportedSsid;
+                        if (reportedSsid && (!knownFullSsid || reportedSsid.length > knownFullSsid.length)) {
+                            cacheFullWifiSsid(meta.device, reportedSsid);
+                        }
+                    }
                     if (msg.data.staticIp !== undefined) wifi_config.static_ip = msg.data.staticIp;
                     if (msg.data.netMask !== undefined) wifi_config.net_mask = msg.data.netMask;
                     if (msg.data.gateway !== undefined) wifi_config.gateway = msg.data.gateway;
@@ -1028,15 +1154,19 @@ const shellyModernExtend = {
             {
                 key: ["wifi_status", "ip_address", "dhcp_enabled"],
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
-                    await refresh(ep);
+                    utils.assertEndpoint(entity);
+                    const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                    if (!ep) throw new Error(`Shelly endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                    await refresh(ep, meta);
                 },
             },
             {
                 key: ["wifi_config"],
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
-                    await refresh(ep);
+                    utils.assertEndpoint(entity);
+                    const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                    if (!ep) throw new Error(`Shelly endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                    await refresh(ep, meta);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     assertObject<KeyValue>(value);
@@ -1089,11 +1219,18 @@ const shellyModernExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
                 await refresh(ep);
             },
         ];
 
-        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        const options = [
+            e
+                .text("shelly_wifi_ssid", ea.SET)
+                .withDescription("Full Wi-Fi SSID to use when the Shelly Wi-Fi setup cluster reports a shortened network name"),
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, options, isModernExtend: true};
     },
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
