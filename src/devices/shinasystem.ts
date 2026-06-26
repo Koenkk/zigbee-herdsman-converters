@@ -343,6 +343,17 @@ const tzLocal = {
             await entity.read("msTemperatureMeasurement", ["measuredValue"]);
         },
     } satisfies Tz.Converter,
+    sihas_set_people: {
+        key: ["people"],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            await endpoint.write("genAnalogInput", {presentValue: value as number});
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            await endpoint.read("genAnalogInput", ["presentValue"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -358,7 +369,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SiHAS multipurpose sensor",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people],
+        toZigbee: [tzLocal.sihas_set_people],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genPowerCfg", "genAnalogInput"];
@@ -382,7 +393,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SiHAS multipurpose ToF sensor",
         meta: {battery: {voltageToPercentage: {min: 3200, max: 4100, vOffset: 1000}}},
         fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
+        toZigbee: [tzLocal.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genPowerCfg", "genAnalogInput"];

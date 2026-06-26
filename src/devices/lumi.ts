@@ -46,6 +46,7 @@ const {
     lumiLedDisabledNight,
     lumiFlipIndicatorLight,
     lumiPreventReset,
+    lumiAqaraH2EuShutterSwitchAction,
     lumiClickMode,
     lumiSlider,
     lumiSetEventMode,
@@ -75,7 +76,6 @@ const {manufacturerCode} = lumi;
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
-const aqaraH2EuShutterSwitchActionLookup = {hold: 0, single: 1, double: 2, release: 255};
 const aqaraH2EuShutterSwitchMultiEndpointSkip = ["energy", "position", "state", "tilt"];
 const aqaraH2EuShutterSwitchMultiClickAttribute = 0x0286;
 
@@ -83,7 +83,9 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
     for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
         const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
         await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
-        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 3600, 1));
+        // Set report max to 0 to prevent stale actions being published
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 0, 1));
         // Initialize Aqara's per-button multi-click setting on startup.
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
@@ -1897,6 +1899,12 @@ export const definitions: DefinitionWithExtend[] = [
                         '"enter" / "leave" events are usually triggered first, followed by "occupied" / "unoccupied" after a couple of seconds.',
                 ),
             e
+                .text("configured_regions", ea.STATE)
+                .withDescription(
+                    "Region definitions written through Zigbee2MQTT. " +
+                        "This is a Zigbee2MQTT-side cache and may not include regions configured by another gateway.",
+                ),
+            e
                 .composite("region_upsert", "region_upsert", ea.SET)
                 .withDescription(
                     "Definition of a new region to be added (or replace existing one). " +
@@ -3380,6 +3388,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Spotlight T2",
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
+    },
+    {
+        zigbeeModel: ["lumi.light.acn040"],
+        model: "SSWQD22LM",
+        vendor: "Aqara",
+        description: "Spotlight T2 Pro",
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, colorTempRange: [166, 370]})],
     },
     {
         zigbeeModel: ["lumi.switch.n0agl1"],
@@ -5094,9 +5109,11 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             },
         },
+        version: "0.0.1",
         configure: configureAqaraH2EuShutterSwitch,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiAqaraH2EuShutterSwitchAction(),
             lumiZigbeeOTA(),
             m.deviceEndpoints({
                 endpoints: aqaraH2EuShutterSwitchEndpoints,
@@ -5104,10 +5121,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({cluster: "metering", power: false, energy: {divisor: 1000}}),
             m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
-            lumiAction({
-                actionLookup: aqaraH2EuShutterSwitchActionLookup,
-                endpointNames: aqaraH2EuShutterSwitchEndpointNames,
-            }),
             lumiMultiClick({description: "Multi-click mode for top wireless button", endpointName: "top_wireless_button"}),
             lumiMultiClick({description: "Multi-click mode for bottom wireless button", endpointName: "bottom_wireless_button"}),
         ],
@@ -5755,6 +5768,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "UT-A01E",
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
+        ota: true,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.electricityMeter({current: false, voltage: false, power: {divisor: 1}, energy: {divisor: 1000}}),
@@ -5853,6 +5867,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_presence, lumi.toZigbee.lumi_motion_sensitivity],
         exposes: [e.power_outage_count(), e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity.")],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -5861,6 +5876,17 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x014f], {manufacturerCode: manufacturerCode}); // Read current PIR interval
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+
+            // Configure reporting so presence (0x0142) and PIR detection (0x014d) update autonomously.
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.configureReporting<"manuSpecificLumi", ManuSpecificLumi>(
+                "manuSpecificLumi",
+                [
+                    {attribute: {ID: 0x0142, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+                    {attribute: {ID: 0x014d, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
+                ],
+                {manufacturerCode: manufacturerCode},
+            );
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),

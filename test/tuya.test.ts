@@ -56,4 +56,28 @@ describe("lib/tuya", () => {
             expect(result).toStrictEqual(data.from);
         });
     });
+
+    describe("valueConverter.localTempCalibration1", () => {
+        const conv = tuya.valueConverter.localTempCalibration1;
+
+        // Regression for the `if (v > 55)` threshold bug: positive offsets above
+        // 5.5 °C (raw > 55) were wrongly treated as 2's-complement negatives and
+        // had 0x100000000 subtracted, e.g. from(60) === -429496723.6 instead of 6.
+        it("from() decodes positive calibration above 5.5 °C", () => {
+            expect(conv.from(60)).toBe(6); // was -429496723.6
+            expect(conv.from(90)).toBe(9); // max range, was -429496720.6
+        });
+
+        it("from() still decodes values up to 5.5 °C and negatives", () => {
+            expect(conv.from(0)).toBe(0);
+            expect(conv.from(55)).toBe(5.5);
+            expect(conv.from(0x100000000 - 90)).toBe(-9); // encoded -9
+        });
+
+        it("to()/from() round-trips the full range", () => {
+            for (const c of [-9, -5.5, -0.5, 0, 0.5, 5.5, 6, 9]) {
+                expect(conv.from(conv.to(c))).toBe(c);
+            }
+        });
+    });
 });

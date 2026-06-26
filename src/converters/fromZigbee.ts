@@ -19,8 +19,6 @@ import {
 
 const NS = "zhc:fz";
 const defaultSimulatedBrightness = 255;
-const e = exposes.presets;
-const ea = exposes.access;
 
 // #region Generic/recommended converters
 export const fan: Fz.Converter<"hvacFanCtrl", undefined, ["attributeReport", "readResponse"]> = {
@@ -598,7 +596,7 @@ export const occupancy_with_timeout: Fz.Converter<"msOccupancySensing", undefine
         if (timeout !== 0) {
             const timer = setTimeout(() => {
                 publish({occupancy: false});
-            }, timeout * 1000);
+            }, timeout * 1000).unref();
 
             globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
         }
@@ -1101,7 +1099,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
         if (timeout !== 0) {
             const timer = setTimeout(() => {
                 publish({vibration: false});
-            }, timeout * 1000);
+            }, timeout * 1000).unref();
 
             globalStore.getValue(msg.endpoint, "timers").push(timer);
         }
@@ -1295,7 +1293,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
         if (timeout !== 0) {
-            const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+            const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000).unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
         }
 
@@ -1472,7 +1470,7 @@ export const command_move: Fz.Converter<"genLevelCtrl", undefined, ["commandMove
                     const property = postfixWithEndpointName("brightness", msg, model, meta);
                     const deltaProperty = postfixWithEndpointName("action_brightness_delta", msg, model, meta);
                     publish({[property]: brightness, [deltaProperty]: delta});
-                }, intervalOpts);
+                }, intervalOpts).unref();
 
                 globalStore.putValue(msg.endpoint, "simulated_brightness_timer", timer);
             }
@@ -1913,7 +1911,7 @@ export const checkin_presence: Fz.Converter<"genPollCtrl", undefined, ["commandC
         // Stop existing timer because presence is detected and set a new one.
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+        const timer = setTimeout(() => publish({presence: false}), timeout * 1000).unref();
         globalStore.putValue(msg.endpoint, "timer", timer);
 
         return {presence: true};
@@ -1982,207 +1980,6 @@ export const hw_version: Fz.Converter<"genBasic", undefined, ["attributeReport",
 // #endregion
 
 // #region Non-generic converters
-export const ptvo_switch_uart: Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genMultistateValue",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
-        if (Array.isArray(data)) {
-            let bHex = false;
-            let code: number;
-            let index: number;
-            for (index = 0; index < data.length; index += 1) {
-                code = data[index] as number;
-                if (code < 32 || code > 127) {
-                    bHex = true;
-                    break;
-                }
-            }
-            if (!bHex) {
-                data = data.toString();
-            } else {
-                data = [...data];
-            }
-        }
-        return {action: data};
-    },
-};
-export const ptvo_switch_analog_input: Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genAnalogInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const payload: KeyValueAny = {};
-        const channel = msg.endpoint.ID;
-        const name = `l${channel}`;
-        const endpoint = msg.endpoint;
-        payload[name] = precisionRound(msg.data.presentValue, 3);
-        const cluster = "genLevelCtrl";
-        if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
-            payload[`brightness_${name}`] = msg.data.presentValue;
-        } else if (msg.data.description !== undefined) {
-            const data1 = msg.data.description;
-            if (data1) {
-                const data2 = data1.split(",");
-                const devid = data2[1];
-                const unit = data2[0];
-                if (devid) {
-                    payload[`device_${name}`] = devid;
-                }
-
-                const valRaw = msg.data.presentValue;
-                if (unit) {
-                    let val = precisionRound(valRaw, 1);
-
-                    const nameLookup: KeyValueAny = {
-                        C: "temperature",
-                        "%": "humidity",
-                        m: "altitude",
-                        Pa: "pressure",
-                        ppm: "quality",
-                        psize: "particle_size",
-                        V: "voltage",
-                        A: "current",
-                        Wh: "energy",
-                        W: "power",
-                        Hz: "frequency",
-                        pf: "power_factor",
-                        lx: "illuminance",
-                    };
-
-                    let nameAlt = "";
-                    if (unit === "A" || unit === "pf") {
-                        if (valRaw < 1) {
-                            val = precisionRound(valRaw, 3);
-                        }
-                    }
-                    if (unit.startsWith("mcpm") || unit.startsWith("ncpm")) {
-                        const num = unit.substr(4, 1);
-                        nameAlt = num === "A" ? `${unit.substr(0, 4)}10` : unit;
-                        val = precisionRound(valRaw, 2);
-                    } else {
-                        nameAlt = nameLookup[unit];
-                    }
-                    if (nameAlt === undefined) {
-                        const valueIndex = Number.parseInt(unit, 10);
-                        if (!Number.isNaN(valueIndex)) {
-                            nameAlt = `val${unit}`;
-                        }
-                    }
-
-                    if (nameAlt !== undefined) {
-                        payload[`${nameAlt}_${name}`] = val;
-                    }
-                }
-            }
-        }
-        return payload;
-    },
-};
-export const orvibo_raw_1: Fz.Converter<23, undefined, "raw"> = {
-    cluster: 23,
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        // 25,0,8,3,0,0 - click btn 1
-        // 25,0,8,3,0,2 - hold btn 1
-        // 25,0,8,3,0,3 - release btn 1
-        // 25,0,8,11,0,0 - click btn 2
-        // 25,0,8,11,0,2 - hold btn 2
-        // 25,0,8,11,0,3 - release btn 2
-        // 25,0,8,7,0,0 - click btn 3
-        // 25,0,8,7,0,2 - hold btn 3
-        // 25,0,8,7,0,3 - release btn 3
-        // 25,0,8,15,0,0 - click btn 4
-        // 25,0,8,15,0,2 - hold btn 4
-        // 25,0,8,15,0,3 - release btn 4
-        // TODO: do not know how to get to use 5,6,7,8 buttons
-        const buttonLookup: KeyValueAny = {
-            3: "button_1",
-            11: "button_2",
-            7: "button_3",
-            15: "button_4",
-        };
-
-        const actionLookup: KeyValueAny = {
-            0: "click",
-            2: "hold",
-            3: "release",
-        };
-        const button = buttonLookup[msg.data[3]];
-        const action = actionLookup[msg.data[5]];
-        if (button) {
-            return {action: `${button}_${action}`};
-        }
-    },
-};
-export const orvibo_raw_2: Fz.Converter<23, undefined, "raw"> = {
-    cluster: 23,
-    type: "raw",
-    convert: (model, msg, publish, options, meta) => {
-        const buttonLookup: KeyValueAny = {
-            1: "button_1",
-            2: "button_2",
-            3: "button_3",
-            4: "button_4",
-            5: "button_5",
-            6: "button_6",
-            7: "button_7",
-        };
-
-        const actionLookup: KeyValueAny = {
-            0: "click",
-            2: "hold",
-            3: "release",
-        };
-        const button = buttonLookup[msg.data[3]];
-        const action = actionLookup[msg.data[5]];
-        if (button) {
-            return {action: `${button}_${action}`};
-        }
-    },
-};
-export const tint_scene: Fz.Converter<"genBasic", undefined, "write"> = {
-    cluster: "genBasic",
-    type: "write",
-    convert: (model, msg, publish, options, meta) => {
-        const payload = {action: `scene_${msg.data["16389"]}`};
-        addActionGroup(payload, msg, model);
-        return payload;
-    },
-};
-export const tint404011_move_to_color_temp: Fz.Converter<"lightingColorCtrl", undefined, "commandMoveToColorTemp"> = {
-    cluster: "lightingColorCtrl",
-    type: "commandMoveToColorTemp",
-    convert: (model, msg, publish, options, meta) => {
-        // The remote has an internal state so store the last action in order to
-        // determine the direction of the color temperature change.
-        if (!globalStore.hasValue(msg.endpoint, "last_color_temp")) {
-            globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
-        }
-
-        const lastTemp = globalStore.getValue(msg.endpoint, "last_color_temp");
-        globalStore.putValue(msg.endpoint, "last_color_temp", msg.data.colortemp);
-        let direction = "down";
-        if (lastTemp > msg.data.colortemp) {
-            direction = "up";
-        } else if (lastTemp < msg.data.colortemp) {
-            direction = "down";
-        } else if (msg.data.colortemp === 370 || msg.data.colortemp === 555) {
-            // The remote goes up to 370 in steps and emits 555 on down button hold.
-            direction = "down";
-        } else if (msg.data.colortemp === 153) {
-            direction = "up";
-        }
-
-        const payload = {
-            action: postfixWithEndpointName("color_temperature_move", msg, model, meta),
-            action_color_temperature: msg.data.colortemp,
-            action_transition_time: msg.data.transtime,
-            action_color_temperature_direction: direction,
-        };
-        addActionGroup(payload, msg, model);
-        return payload;
-    },
-};
 export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]> = {
     cluster: "genOnOff",
     type: ["commandOn", "commandOff", "commandToggle"],
@@ -2191,392 +1988,12 @@ export const ewelink_action: Fz.Converter<"genOnOff", undefined, ["commandOn", "
         return {action: lookup[msg.type]};
     },
 };
-// export const _8840100H_water_leak_alarm: Fz.Converter = {
-//     cluster: "haApplianceEventsAlerts",
-//     type: "commandAlertsNotification",
-//     convert: (model, msg, publish, options, meta) => {
-//         const alertStatus = msg.data.aalert;
-//         return {
-//             water_leak: (alertStatus & (1 << 12)) > 0,
-//         };
-//     },
-// };
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const W2_module_carbon_monoxide: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            carbon_monoxide: (zoneStatus & (1 << 8)) > 8,
-        };
-    },
-};
 export const command_status_change_notification_action: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
     cluster: "ssIasZone",
     type: "commandStatusChangeNotification",
     convert: (model, msg, publish, options, meta) => {
         const lookup: KeyValueAny = {0: "off", 1: "single", 2: "double", 3: "hold"};
         return {action: lookup[msg.data.zonestatus]};
-    },
-};
-export const ptvo_multistate_action: Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genMultistateInput",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
-        const value = msg.data.presentValue;
-        const action = actionLookup[value];
-        return {action: postfixWithEndpointName(action, msg, model, meta)};
-    },
-};
-export const konke_action: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const value = msg.data.onOff;
-        const lookup: KeyValueAny = {128: "single", 129: "double", 130: "hold"};
-        return lookup[value] ? {action: lookup[value]} : null;
-    },
-};
-export const keen_home_smart_vent_pressure: Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msPressureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"] as string) / 1000.0;
-        return {pressure};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const U02I007C01_contact: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        if (msg.endpoint.ID !== 1) return;
-        return {
-            contact: !((zoneStatus & 1) > 0),
-        };
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const U02I007C01_water_leak: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        if (msg.endpoint.ID !== 2) return;
-        return {
-            water_leak: (zoneStatus & 1) > 0,
-        };
-    },
-};
-export const almond_click: Fz.Converter<"ssIasAce", undefined, ["commandArm"]> = {
-    cluster: "ssIasAce",
-    type: ["commandArm"],
-    convert: (model, msg, publish, options, meta) => {
-        const action = msg.data.armmode;
-        const lookup: KeyValueAny = {3: "single", 0: "double", 2: "long"};
-
-        // Workaround to ignore duplicated (false) presses that
-        // are 100ms apart, since the button often generates
-        // multiple duplicated messages for a single click event.
-        if (!globalStore.hasValue(msg.endpoint, "since")) {
-            globalStore.putValue(msg.endpoint, "since", 0);
-        }
-
-        const now = Date.now();
-        const since = globalStore.getValue(msg.endpoint, "since");
-
-        if (now - since > 100 && lookup[action]) {
-            globalStore.putValue(msg.endpoint, "since", now);
-            return {action: lookup[action]};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SAGE206612_state: Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]> = {
-    cluster: "genOnOff",
-    type: ["commandOn", "commandOff"],
-    convert: (model, msg, publish, options, meta) => {
-        const timeout = 28;
-
-        if (!globalStore.hasValue(msg.endpoint, "action")) {
-            globalStore.putValue(msg.endpoint, "action", []);
-        }
-
-        const lookup: KeyValueAny = {commandOn: "bell1", commandOff: "bell2"};
-        const timer = setTimeout(() => globalStore.getValue(msg.endpoint, "action").pop(), timeout * 1000);
-
-        const list = globalStore.getValue(msg.endpoint, "action");
-        if (list.length === 0 || list.length > 4) {
-            list.push(timer);
-            return {action: lookup[msg.type]};
-        }
-        if (timeout > 0) {
-            list.push(timer);
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZMCSW032D_cover_position: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "closuresWindowCovering",
-    type: ["attributeReport", "readResponse"],
-    options: [
-        exposes.options.invert_cover(),
-        e.numeric("time_close", ea.SET).withDescription("Set the full closing time of the roller shutter (e.g. set it to 20) (value is in s)."),
-        e.numeric("time_open", ea.SET).withDescription("Set the full opening time of the roller shutter (e.g. set it to 21) (value is in s)."),
-    ],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        const timeCoverSetMiddle = 60;
-
-        // https://github.com/Koenkk/zigbee-herdsman-converters/pull/1336
-        // Need to add time_close and time_open in your configuration.yaml after friendly_name (and set your time)
-        if (options.time_close != null && options.time_open != null) {
-            if (!globalStore.hasValue(msg.endpoint, "position")) {
-                globalStore.putValue(msg.endpoint, "position", {lastPreviousAction: -1, CurrentPosition: -1, since: false});
-            }
-
-            const entry = globalStore.getValue(msg.endpoint, "position");
-            // ignore if first action is middle and ignore action middle if previous action is middle
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
-                if ((entry.CurrentPosition === -1 && entry.lastPreviousAction === -1) || entry.lastPreviousAction === 50) {
-                    logger.warning("ZMCSW032D ignore action", NS);
-                    return;
-                }
-            }
-            let currentPosition = entry.CurrentPosition;
-            const lastPreviousAction = entry.lastPreviousAction;
-            const deltaTimeSec = Math.floor((Date.now() - entry.since) / 1000); // convert to sec
-
-            entry.since = Date.now();
-            entry.lastPreviousAction = msg.data.currentPositionLiftPercentage;
-
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage === 50) {
-                if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                    if (lastPreviousAction === 100) {
-                        // Open
-                        currentPosition = currentPosition === -1 ? 0 : currentPosition;
-                        currentPosition = currentPosition + (deltaTimeSec * 100) / Number(options.time_open);
-                    } else if (lastPreviousAction === 0) {
-                        // Close
-                        currentPosition = currentPosition === -1 ? 100 : currentPosition;
-                        currentPosition = currentPosition - (deltaTimeSec * 100) / Number(options.time_close);
-                    }
-                    currentPosition = currentPosition > 100 ? 100 : currentPosition;
-                    currentPosition = currentPosition < 0 ? 0 : currentPosition;
-                }
-            }
-            entry.CurrentPosition = currentPosition;
-
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
-                // position cast float to int
-                result.position = currentPosition | 0;
-            } else {
-                if (deltaTimeSec < timeCoverSetMiddle || deltaTimeSec > timeCoverSetMiddle) {
-                    // position cast float to int
-                    result.position = currentPosition | 0;
-                } else {
-                    entry.CurrentPosition = lastPreviousAction;
-                    result.position = lastPreviousAction;
-                }
-            }
-            result.position = options.invert_cover ? 100 - result.position : result.position;
-        } else {
-            // Previous solution without time_close and time_open
-            if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage !== 50) {
-                const liftPercentage = msg.data.currentPositionLiftPercentage;
-                result.position = liftPercentage;
-                result.position = options.invert_cover ? 100 - result.position : result.position;
-            }
-        }
-        // Add the state
-        if ("position" in result) {
-            result.state = result.position === 0 ? "CLOSE" : "OPEN";
-        }
-        return result;
-    },
-};
-export const ias_keypad: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {
-            tamper: (zoneStatus & (1 << 2)) > 0,
-            battery_low: (zoneStatus & (1 << 3)) > 0,
-            restore_reports: (zoneStatus & (1 << 5)) > 0,
-        };
-    },
-};
-export const itcmdr_clicks: Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]> = {
-    cluster: "genMultistateInput",
-    type: ["readResponse", "attributeReport"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
-        const clicks = msg.data.presentValue;
-        const action = lookup[clicks] ? lookup[clicks] : "many";
-        return {action};
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZB003X_attr: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasZone",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const data = msg.data;
-        const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
-        const keeptimelookup: Record<number, number> = {0: 0, 1: 30, 2: 60, 3: 120, 4: 240, 5: 480};
-        if (data && data.currentZoneSensitivityLevel !== undefined) {
-            const value = data.currentZoneSensitivityLevel;
-            return {sensitivity: senslookup[value]};
-        }
-        if (data && data["61441"] !== undefined) {
-            const value = data["61441"] as number;
-            return {keep_time: keeptimelookup[value]};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const ZB003X_occupancy: Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification"> = {
-    cluster: "ssIasZone",
-    type: "commandStatusChangeNotification",
-    convert: (model, msg, publish, options, meta) => {
-        const zoneStatus = msg.data.zonestatus;
-        return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
-    },
-};
-export const rc_110_level_to_scene: Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]> = {
-    cluster: "genLevelCtrl",
-    type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
-    convert: (model, msg, publish, options, meta) => {
-        const scenes: KeyValueAny = {2: "1", 52: "2", 102: "3", 153: "4", 194: "5", 254: "6"};
-        return {action: `scene_${scenes[msg.data.level]}`};
-    },
-};
-const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
-    33: "press_on",
-    32: "press_off",
-    52: "release",
-    53: "hold_on",
-    54: "hold_off",
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const sunricher_switch2801K2: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        if (SUNRICHER_SWITCH2801K2_LOOKUP[commandID] === undefined) {
-            logger.error(`Sunricher: missing command '${commandID}'`, NS);
-        } else {
-            return {action: SUNRICHER_SWITCH2801K2_LOOKUP[commandID]};
-        }
-    },
-};
-const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
-    33: "press_on",
-    32: "press_off",
-    55: "press_high",
-    56: "press_low",
-    53: "hold_high",
-    54: "hold_low",
-    52: "release",
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const sunricher_switch2801K4: Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]> = {
-    cluster: "greenPower",
-    type: ["commandNotification", "commandCommissioningNotification"],
-    convert: (model, msg, publish, options, meta) => {
-        const commandID = msg.data.commandID;
-        if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-        if (commandID >= 0xe0) return; // Skip op commands
-
-        if (SUNRICHER_SWITCH2801K4_LOOKUP[commandID] === undefined) {
-            logger.error(`Sunricher: missing command '${commandID}'`, NS);
-        } else {
-            return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SNZB02_temperature: Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msTemperatureMeasurement",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const temperature = msg.data.measuredValue / 100.0;
-
-        // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-        // SNZB-02 reports stranges values sometimes
-        if (temperature > -33 && temperature < 100) {
-            const property = postfixWithEndpointName("temperature", msg, model, meta);
-            return {[property]: temperature};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const SNZB02_humidity: Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "msRelativeHumidity",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const humidity = msg.data.measuredValue / 100.0;
-
-        // https://github.com/Koenkk/zigbee2mqtt/issues/13640
-        // SNZB-02 reports stranges values sometimes
-        if (humidity >= 0 && humidity <= 99.75) {
-            return {humidity};
-        }
-    },
-};
-export const awox_colors: Fz.Converter<"lightingColorCtrl", undefined, ["raw"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const buffer = msg.data;
-        const commonForColors = buffer[0] === 17 && buffer[2] === 48 && buffer[3] === 0 && buffer[5] === 8 && buffer[6] === 0;
-        let color = null;
-        if (commonForColors && [255, 254].includes(buffer[4])) {
-            color = "red";
-        } else if (commonForColors && [42, 41].includes(buffer[4])) {
-            color = "yellow";
-        } else if (commonForColors && [85, 84].includes(buffer[4])) {
-            color = "green";
-        } else if (commonForColors && [170, 169].includes(buffer[4])) {
-            color = "blue";
-        }
-
-        if (color != null) {
-            return {action: color, action_group: msg.groupID};
-        }
-    },
-};
-// biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-export const awox_refreshColored: Fz.Converter<"lightingColorCtrl", undefined, ["commandMoveHue"]> = {
-    cluster: "lightingColorCtrl",
-    type: ["commandMoveHue"],
-    convert: (model, msg, publish, options, meta) => {
-        if (msg.data.movemode === 1 && msg.data.rate === 12) {
-            return {action: "refresh_colored", action_group: msg.groupID};
-        }
-    },
-};
-export const awox_refresh: Fz.Converter<"genLevelCtrl", undefined, ["raw"]> = {
-    cluster: "genLevelCtrl",
-    type: ["raw"],
-    convert: (model, msg, publish, options, meta) => {
-        const buffer = msg.data;
-        const isRefresh = buffer[0] === 17 && buffer[2] === 16 && (buffer[3] === 1 || buffer[3] === 0) && buffer[4] === 1;
-        const isRefreshLong = buffer[0] === 17 && buffer[2] === 16 && buffer[3] === 1 && buffer[4] === 2;
-        if (isRefresh) {
-            return {action: "refresh", action_group: msg.groupID};
-        }
-        if (isRefreshLong) {
-            return {action: "refresh_long", action_group: msg.groupID};
-        }
     },
 };
 // #endregion
@@ -2741,16 +2158,6 @@ export const command_arm_with_transaction: Fz.Converter<"ssIasAce", undefined, "
         if (!payload) return;
         payload.action_transaction = msg.meta.zclTransactionSequenceNumber;
         return payload;
-    },
-};
-export const command_on_presence: Fz.Converter<"genOnOff", undefined, "commandOn"> = {
-    cluster: "genOnOff",
-    type: "commandOn",
-    convert: (model, msg, publish, options, meta) => {
-        const newMsg = {...msg, type: "commandCheckin" as const, data: {}};
-        const payload1 = checkin_presence.convert(model, newMsg, publish, options, meta);
-        const payload2 = command_on.convert(model, msg, publish, options, meta);
-        return {...payload1, ...payload2};
     },
 };
 export const ias_ace_occupancy_with_timeout: Fz.Converter<"ssIasAce", undefined, "commandGetPanelStatus"> = {

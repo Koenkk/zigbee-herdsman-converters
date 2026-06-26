@@ -506,7 +506,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMe
         attribute: "measuredValue",
         reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 1},
         description: "Sensirion VOC index: 100 = average, <100 = less tVOC, >100 = more tVOC",
-        access: "STATE",
+        access: "STATE_GET",
         ...args,
     });
 }
@@ -558,7 +558,7 @@ export function tradfriOccupancy(): ModernExtend {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
                         globalStore.clearValue(msg.endpoint, "timer");
-                    }, timeout * 1000);
+                    }, timeout * 1000).unref();
                     globalStore.putValue(msg.endpoint, "timer", timer);
                 }
 

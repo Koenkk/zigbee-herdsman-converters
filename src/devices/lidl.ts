@@ -122,7 +122,7 @@ const valueConverterLocal = {
                                     time_left: timeLeftInMinutes,
                                 });
                             }
-                        }, 60 * 1000);
+                        }, 60 * 1000).unref();
                     }
                     // initial reporting
                     result.time_left = ts.timer;

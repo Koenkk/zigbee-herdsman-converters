@@ -6,7 +6,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose} from "../lib/types";
+import type {DefinitionWithExtend} from "../lib/types";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -1334,7 +1334,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_j37rooaxrcdcqo5n",
             "_TZ3290_ot6ewjvmejq5ekhl",
             "_TZ3290_xjpbcxn92aaxvmlz",
-            "_TZ3290_gnl5a6a5xvql7c2a",
             "_TZ3290_yyax9ajf",
             "_TZ3290_nkpxapoz",
             "_TZ3290_785fbxik",
@@ -1353,45 +1352,22 @@ export const definitions: DefinitionWithExtend[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: (device, options) => {
-            const exposes: Expose[] = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
-            if (device.manufacturerName !== "") {
-                exposes.push(e.battery(), e.battery_voltage());
-            }
-            return exposes;
-        },
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
-            if (device.manufacturerName !== "_TZ3290_gnl5a6a5xvql7c2a") {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-                await reporting.batteryPercentageRemaining(endpoint);
-                await reporting.batteryVoltage(endpoint);
-            }
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a", "_TZ3290_785fbxik"])],
+        whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_785fbxik"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZ3000_ogjpfoyn"]),
         model: "ZWV-YC",
         vendor: "Moes",
         description: "Water valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
-        exposes: [
-            tuya.exposes.errorStatus(),
-            tuya.exposes.switch(),
-            tuya.exposes.batteryState(),
-            tuya.exposes.countdown().withValueMin(0).withValueMax(255).withUnit("minutes").withDescription("Max on time in minutes"),
-        ],
-        meta: {
-            tuyaSendCommand: "sendData",
-            tuyaDatapoints: [
-                [26, "error_status", tuya.valueConverter.raw],
-                [101, "state", tuya.valueConverter.onOff],
-                [111, "countdown", tuya.valueConverter.raw],
-                [115, "battery_state", tuya.valueConverter.batteryState],
-            ],
-        },
+        extend: [m.battery(), m.onOff({powerOnBehavior: false, configureReporting: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0011", ["_TZ3000_hhiodade"]),
@@ -1538,7 +1514,24 @@ export const definitions: DefinitionWithExtend[] = [
                         CLOSE: tuya.enum(2),
                     }),
                 ],
-                [2, "position", tuya.valueConverter.coverPosition],
+                [
+                    2,
+                    "position",
+                    {
+                        // Workaround: Fix overflow / underdlow in position readings when limits are reached for some seconds:
+                        // - When the curtain is fully opened it coninues with 101, 102, ...
+                        // - When the curtain is fully closed it coninues with 255, 254, ...
+                        from: (v) => {
+                            if (v > 100) {
+                                return v > 150 ? 0 : 100;
+                            }
+                            return v;
+                        },
+                        to: (v, meta) => {
+                            return tuya.valueConverter.coverPosition.to(v, meta);
+                        },
+                    },
+                ],
                 [
                     3,
                     "calibration",
@@ -1944,7 +1937,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: () => ({}),
     },
     {
-        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj"]),
+        fingerprint: tuya.fingerprint("TS0043", ["_TZ3000_gbm10jnj", "_TZ3000_sj7jbgks"]),
         model: "ZT-B-EU3",
         vendor: "Moes",
         description: "Scene remote with 3 keys",

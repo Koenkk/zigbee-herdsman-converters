@@ -222,7 +222,7 @@ export interface DefinitionMeta {
     /**
      * Override the Home Assistant discovery payload using a custom function.
      */
-    overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
+    overrideHaDiscoveryPayload?(payload: KeyValueAny, options?: KeyValueAny): void;
     /**
      * Never use a transition when transitioning to off (even when specified)
      */
@@ -443,7 +443,7 @@ export namespace Tz {
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
-        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
+        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<ConvertSetResult>;
     }
 }
 
