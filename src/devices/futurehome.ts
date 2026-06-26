@@ -642,9 +642,8 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "a5",
                 cluster: "haApplianceControl",
                 attribute: "a5",
-                description: "a5",
+                description: "a5 - not reportable",
                 access: "STATE_GET",
-                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -653,34 +652,30 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "a6",
                 description: "a6",
                 access: "STATE_GET",
-                // reporting: {min: 5, max: "1_HOUR", change: 1}, not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "a7",
                 cluster: "haApplianceControl",
                 attribute: "a7",
-                description: "a7",
+                description: "a7 - not reportable",
                 access: "STATE_GET",
-                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "a8",
                 cluster: "haApplianceControl",
                 attribute: "a8",
-                description: "a8",
+                description: "a8 - not reportable",
                 access: "STATE_GET",
-                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "a9",
                 cluster: "haApplianceControl",
                 attribute: "a9",
-                description: "a9",
+                description: "a9 - not reportable",
                 access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1}, // reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -696,18 +691,16 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "ab",
                 cluster: "haApplianceControl",
                 attribute: "ab",
-                description: "ab",
+                description: "ab - not reportable",
                 access: "STATE_GET",
-                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "a10",
                 cluster: "haApplianceControl",
                 attribute: "a10",
-                description: "a10",
+                description: "a10 - not reportable",
                 access: "STATE_GET",
-                // reporting: {min: 5, max: "1_HOUR", change: 1},  not reportable
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
         ],
