@@ -1475,12 +1475,7 @@ const fzLocal = {
 
             const baseGroupId = meta.state?.base_group_id as number | undefined;
             const status = (meta.state?.assignment_status as string) || statusUnassigned;
-            // Device sends 0xFF at max brightness, which zigbee-herdsman parses as NaN
-            // Clamp to 254 (max valid ZCL level per Zigbee spec)
-            let level = msg.data.level as number;
-            if (Number.isNaN(level)) {
-                level = 254;
-            }
+            const level = msg.data.level as number;
 
             const prevBrightness = meta.state?.brightness as number | undefined;
             const prevDirection = meta.state?.brightness_direction as string | undefined;
@@ -15215,7 +15210,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tzLocal.TS011F_threshold],
         exposes: (device, options) => {
             const exposes: Expose[] = [];
-            if (!["_TZ3000_303avxxt", "_TZ3000_ibefeicf", "_TZ3000_yi0n4xfd", "_TZ3000_zjchz7pd"].includes(device.manufacturerName)) {
+            if (!["_TZ3000_303avxxt", "_TZ3000_ibefeicf", "_TZ3000_zjchz7pd"].includes(device.manufacturerName)) {
                 exposes.push(
                     e.temperature(),
                     e
@@ -23508,7 +23503,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "curtain_4_position_close",
                 ])
                 .withDescription("Triggered action from scene button, light knob, or curtain control"),
-            e.numeric("brightness", ea.STATE).withValueMin(1).withValueMax(254).withDescription("Brightness level from light mode (1-254)"),
+            e.numeric("brightness", ea.STATE).withValueMin(1).withValueMax(255).withDescription("Brightness level from light mode (1-255)"),
             e.numeric("color_temp", ea.STATE).withValueMin(153).withValueMax(523).withDescription("Color temperature from light mode (mired)"),
             e
                 .numeric("curtain_position", ea.STATE)
