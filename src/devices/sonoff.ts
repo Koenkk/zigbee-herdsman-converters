@@ -759,24 +759,20 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     snzb_09p_alert: {
-        key: ["start_manual_alarm", "cancel_alarm", "start_scene_alarm", "siren_on"],
+        key: ["siren_on"],
         convertSet: async (entity, key, value, meta) => {
             const device = meta.device;
+            const message = meta.message;
             if (!device) return;
             const endpoint = device.getEndpoint(1);
             if (!endpoint) return;
 
             let payload: Buffer;
-            switch (key) {
-                case "cancel_alarm":
-                    payload = Buffer.from([1]);
-                    break;
-                case "siren_on": {
-                    payload = Buffer.from([0]);
-                    break;
-                }
-                default:
-                    throw new Error(`Unsupported SNZB-09P alert command key '${key}'`);
+
+            if (message.siren_on === "ON") {
+                payload = Buffer.from([0]);
+            } else {
+                payload = Buffer.from([1]);
             }
 
             await endpoint.command<"customClusterEwelink", "alertCommand", SonoffSnzb09p>(
