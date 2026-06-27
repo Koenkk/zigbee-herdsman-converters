@@ -9,6 +9,7 @@ import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz, Zh} from "../lib/types";
 import {
+    assertNumber,
     assertString,
     configureSetPowerSourceWhenUnknown,
     getEndpointName,
@@ -923,6 +924,117 @@ export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
         commands: {},
         commandsResponse: {},
     });
+}
+
+export interface IkeaMotionSensor {
+    attributes: {
+        onOnlyWhenDark: boolean;
+        onTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export function addCustomClusterManuSpecificIkeaMotionSensor(): ModernExtend {
+    return m.deviceAddCustomCluster("manuSpecificIkeaMotionSensor", {
+        name: "manuSpecificIkeaMotionSensor",
+        ID: 0xfc81,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {
+            onOnlyWhenDark: {name: "onOnlyWhenDark", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+            onTime: {name: "onTime", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+        },
+        commands: {},
+        commandsResponse: {}
+    })
+}
+
+export function ikeaMotionSensorSettings(): ModernExtend {
+    return {
+        exposes: [
+            presets.binary("on_only_when_dark", access.ALL, true, false)
+                .withCategory("config")
+                .withLabel("On only when dark"),
+            presets.numeric("on_time", access.ALL)
+                .withCategory("config")
+                .withLabel("On time")
+                .withUnit("seconds")
+                .withValueMin(10)
+                .withValueMax(65534)
+        ],
+        fromZigbee: [
+            {
+                cluster: "manuSpecificIkeaMotionSensor",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const state: KeyValue = {};
+
+                    if (msg.data.onOnlyWhenDark !== undefined) {
+                        state.on_only_when_dark = Boolean(msg.data.onOnlyWhenDark);
+                    }
+                    if (msg.data.onTime !== undefined) {
+                        state.on_time = msg.data.onTime;
+                    }
+
+                    return state;
+                }
+            } satisfies Fz.Converter<"manuSpecificIkeaMotionSensor", IkeaMotionSensor, ["attributeReport", "readResponse"]>
+        ],
+        toZigbee: [
+            {
+                key: ["on_only_when_dark"],
+                async convertSet(entity, key, value, meta) {
+                    await entity.write<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", {onOnlyWhenDark: value ? true : false}, manufacturerOptions)
+                    return {state: {on_only_when_dark: value}}
+                },
+                async convertGet(entity, key, meta) {
+                    await entity.read<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", ["onOnlyWhenDark"])
+                },
+            },
+            {
+                key: ["on_time"],
+                async convertSet(entity, key, value, meta) {
+                    assertNumber(value)
+                    await entity.write<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", {onTime: value}, manufacturerOptions)
+                    return {state: {on_time: value}}
+                },
+                async convertGet(entity, key, meta) {
+                    await entity.read<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", ["onTime"])
+                },
+            }
+        ] satisfies Tz.Converter[],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificIkeaMotionSensor"]);
+                await endpoint.configureReporting<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>(
+                    "manuSpecificIkeaMotionSensor",
+                    [
+                        {
+                            attribute: "onOnlyWhenDark",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: m.TIME_LOOKUP["1_HOUR"],
+                            reportableChange: 1,
+                        },
+                    ],
+                    manufacturerOptions,
+                );
+                await endpoint.configureReporting<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>(
+                    "manuSpecificIkeaMotionSensor",
+                    [
+                        {
+                            attribute: "onTime",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: m.TIME_LOOKUP["1_HOUR"],
+                            reportableChange: 1,
+                        },
+                    ],
+                    manufacturerOptions,
+                );
+            }
+        ] satisfies Configure[],
+        isModernExtend: true,
+    }
 }
 
 export interface IkeaUnknown {
