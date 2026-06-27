@@ -28090,9 +28090,9 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.soilWarning(),
                 e.battery(),
             ];
-            if (device.modelID === 'ZG-303L') {
-                exposes.push(e.illuminance());
-                exposes.push(e
+            if (!isDummyDevice(device) && device.modelID === "ZG-303L") {
+                exposes.splice(3, 0, e.illuminance());
+                exposes.splice(9, 0, e
                     .numeric("illuminance_sampling", ea.STATE_SET)
                     .withValueMin(5)
                     .withValueMax(3600)
