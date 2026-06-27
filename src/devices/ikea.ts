@@ -3,10 +3,10 @@ import {Zcl} from "zigbee-herdsman";
 import {repInterval} from "../lib/constants";
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaMotionSensor,
     addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
-    addCustomClusterManuSpecificIkeaMotionSensor,
     addCustomClusterTradfriButton,
     addIkeaGenScenesCluster,
     ikeaAirPurifier,

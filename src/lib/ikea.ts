@@ -945,22 +945,21 @@ export function addCustomClusterManuSpecificIkeaMotionSensor(): ModernExtend {
             onTime: {name: "onTime", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
         },
         commands: {},
-        commandsResponse: {}
-    })
+        commandsResponse: {},
+    });
 }
 
 export function ikeaMotionSensorSettings(): ModernExtend {
     return {
         exposes: [
-            presets.binary("on_only_when_dark", access.ALL, true, false)
-                .withCategory("config")
-                .withLabel("On only when dark"),
-            presets.numeric("on_time", access.ALL)
+            presets.binary("on_only_when_dark", access.ALL, true, false).withCategory("config").withLabel("On only when dark"),
+            presets
+                .numeric("on_time", access.ALL)
                 .withCategory("config")
                 .withLabel("On time")
                 .withUnit("seconds")
                 .withValueMin(10)
-                .withValueMax(65534)
+                .withValueMax(65534),
         ],
         fromZigbee: [
             {
@@ -977,31 +976,39 @@ export function ikeaMotionSensorSettings(): ModernExtend {
                     }
 
                     return state;
-                }
-            } satisfies Fz.Converter<"manuSpecificIkeaMotionSensor", IkeaMotionSensor, ["attributeReport", "readResponse"]>
+                },
+            } satisfies Fz.Converter<"manuSpecificIkeaMotionSensor", IkeaMotionSensor, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
             {
                 key: ["on_only_when_dark"],
                 async convertSet(entity, key, value, meta) {
-                    await entity.write<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", {onOnlyWhenDark: value ? true : false}, manufacturerOptions)
-                    return {state: {on_only_when_dark: value}}
+                    await entity.write<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>(
+                        "manuSpecificIkeaMotionSensor",
+                        {onOnlyWhenDark: value ? true : false},
+                        manufacturerOptions,
+                    );
+                    return {state: {on_only_when_dark: value}};
                 },
                 async convertGet(entity, key, meta) {
-                    await entity.read<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", ["onOnlyWhenDark"])
+                    await entity.read<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", ["onOnlyWhenDark"]);
                 },
             },
             {
                 key: ["on_time"],
                 async convertSet(entity, key, value, meta) {
-                    assertNumber(value)
-                    await entity.write<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", {onTime: value}, manufacturerOptions)
-                    return {state: {on_time: value}}
+                    assertNumber(value);
+                    await entity.write<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>(
+                        "manuSpecificIkeaMotionSensor",
+                        {onTime: value},
+                        manufacturerOptions,
+                    );
+                    return {state: {on_time: value}};
                 },
                 async convertGet(entity, key, meta) {
-                    await entity.read<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", ["onTime"])
+                    await entity.read<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>("manuSpecificIkeaMotionSensor", ["onTime"]);
                 },
-            }
+            },
         ] satisfies Tz.Converter[],
         configure: [
             async (device, coordinatorEndpoint) => {
@@ -1031,10 +1038,10 @@ export function ikeaMotionSensorSettings(): ModernExtend {
                     ],
                     manufacturerOptions,
                 );
-            }
+            },
         ] satisfies Configure[],
         isModernExtend: true,
-    }
+    };
 }
 
 export interface IkeaUnknown {
