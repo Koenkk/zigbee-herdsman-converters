@@ -243,7 +243,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["tint Smart Switch", "switch01", "switch01\u0000"],
+        fingerprint: [
+            {manufacturerName: "MLI", modelID: "tint Smart Switch"},
+            {manufacturerName: "MLI", modelID: "switch01"},
+        ],
         model: "404021",
         description: "Tint smart switch",
         vendor: "Müller Licht",
