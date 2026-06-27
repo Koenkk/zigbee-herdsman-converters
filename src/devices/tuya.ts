@@ -27328,7 +27328,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-IR01",
         vendor: "HOBEIAN",
         description: "Smart IR remote switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}),zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            zosung.zosungExtend.addZosungIRTransmitCluster(),
+            zosung.zosungExtend.addZosungIRControlCluster(),
+        ],
         fromZigbee: [
             fzZosung.zosung_send_ir_code_00,
             fzZosung.zosung_send_ir_code_01,
@@ -27348,9 +27352,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("switch6", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch6"),
             e.temperature(),
             e.humidity(),
-            ez.learn_ir_code().withDescription('Turn on to learn new IR code '),
-            ez.learned_ir_code().withDescription('The IR code learned by device'),
-            ez.ir_code_to_send().withDescription('The IR code to send by device (Support SmartIR IR code library. IR remote Firmware ID must be Firmware ID>01062026)'),
+            ez.learn_ir_code().withDescription("Turn on to learn new IR code "),
+            ez.learned_ir_code().withDescription("The IR code learned by device"),
+            ez
+                .ir_code_to_send()
+                .withDescription(
+                    "The IR code to send by device (Support SmartIR IR code library. IR remote Firmware ID must be Firmware ID>01062026)",
+                ),
             e.enum("switch1_on", ea.STATE_SET, ["study", "registered", "unregistered"]).withDescription("Switch 1 on IR code Study and Study status"),
             e
                 .enum("switch1_off", ea.STATE_SET, ["study", "registered", "unregistered"])
@@ -28072,7 +28080,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-303B","ZG-303L"],
+        zigbeeModel: ["ZG-303B", "ZG-303L"],
         model: "HZ-SL10",
         vendor: "Haozee",
         description: "Soil moisture sensor",
@@ -28090,15 +28098,17 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.soilWarning(),
                 e.battery(),
             ];
-            if (device.modelID === 'ZG-303L') {
+            if (device.modelID === "ZG-303L") {
                 exposes.push(e.illuminance());
-                exposes.push(e
-                    .numeric("illuminance_sampling", ea.STATE_SET)
-                    .withValueMin(5)
-                    .withValueMax(3600)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Brightness acquisition interval (refresh and update only while active)"));
+                exposes.push(
+                    e
+                        .numeric("illuminance_sampling", ea.STATE_SET)
+                        .withValueMin(5)
+                        .withValueMax(3600)
+                        .withValueStep(1)
+                        .withUnit("s")
+                        .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+                );
             }
             return exposes;
         },
@@ -28126,11 +28136,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Pressure Sensing Strap/Bed Occupancy Sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("pressure_state", ea.STATE, ["none", "sit", "sedentary"]).withDescription("Pressure state,none: Vacant,sit: Sitting,sedentary: Sedentary"),
             e
-                .numeric("current_pressure", ea.STATE)
-                .withUnit("x")
-                .withDescription("Sensing pressure value"),
+                .enum("pressure_state", ea.STATE, ["none", "sit", "sedentary"])
+                .withDescription("Pressure state,none: Vacant,sit: Sitting,sedentary: Sedentary"),
+            e.numeric("current_pressure", ea.STATE).withUnit("x").withDescription("Sensing pressure value"),
             e.temperature(),
             e.humidity(),
             e.battery(),
@@ -28154,13 +28163,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(1440)
                 .withValueStep(1)
-                .withDescription("Set sedentary Reminder Time"),    
-             tuya.exposes.temperatureCalibration(),
-             tuya.exposes.humidityCalibration(),
+                .withDescription("Set sedentary Reminder Time"),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "pressure_state", tuya.valueConverterBasic.lookup({'none': tuya.enum(0),'sit': tuya.enum(1),'sedentary': tuya.enum(2)})],
+                [1, "pressure_state", tuya.valueConverterBasic.lookup({none: tuya.enum(0), sit: tuya.enum(1), sedentary: tuya.enum(2)})],
                 [2, "current_pressure", tuya.valueConverter.raw],
                 [101, "temperature", tuya.valueConverter.divideBy10],
                 [102, "humidity", tuya.valueConverter.raw],
