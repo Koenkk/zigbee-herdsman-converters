@@ -13788,7 +13788,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_zyrdrmno"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_zyrdrmno", "_TZE200_osmxri8y"]),
         model: "ZB-Sm",
         vendor: "Tuya",
         description: "Tubular motor",
