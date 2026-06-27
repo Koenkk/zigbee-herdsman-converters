@@ -27338,7 +27338,7 @@ export const definitions: DefinitionWithExtend[] = [
             fzZosung.zosung_send_ir_code_05,
             fz.battery,
         ],
-        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code]
+        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: [
             e.binary("switch1", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch1"),
             e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch2"),
