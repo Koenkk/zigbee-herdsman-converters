@@ -28100,14 +28100,17 @@ export const definitions: DefinitionWithExtend[] = [
             ];
             if (!isDummyDevice(device) && device.modelID === "ZG-303L") {
                 exposes.splice(3, 0, e.illuminance());
-                exposes.splice(9, 0, e
-                    .numeric("illuminance_sampling", ea.STATE_SET)
-                    .withValueMin(5)
-                    .withValueMax(3600)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Brightness acquisition interval (refresh and update only while active)"));
-
+                exposes.splice(
+                    9,
+                    0,
+                    e
+                        .numeric("illuminance_sampling", ea.STATE_SET)
+                        .withValueMin(5)
+                        .withValueMax(3600)
+                        .withValueStep(1)
+                        .withUnit("s")
+                        .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+                );
             }
             return exposes;
         },
