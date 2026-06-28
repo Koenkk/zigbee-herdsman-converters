@@ -5651,10 +5651,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0301", [
-            "_TZE210_inpjmc0h",
-            "_TZE210_yqwse3h5",
-        ]),
+        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h", "_TZE210_yqwse3h5"]),
         model: "TS0301_dual_rail",
         vendor: "Tuya",
         description: "Top-down bottom-up dual motor shade",
