@@ -2382,7 +2382,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "The buzzer can be muted and alarmed manually. " +
                         'During a gas alarm, the buzzer can be manually muted for 10 minutes ("mute"), but cannot be unmuted manually ' +
                         "before this timeout expires. The buzzer cannot be pre-muted, as this function only works during a gas alarm. " +
-                        'During the absence of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
+                        'During the  of a gas alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
                         'but for this "linkage_alarm" option must be enabled',
                 ),
             e.binary("buzzer_manual_alarm", ea.STATE_GET, true, false).withDescription("Buzzer alarmed (manually)"),
@@ -2452,7 +2452,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "The buzzer can be muted and alarmed manually. " +
                         'During a smoke alarm, the buzzer can be manually muted for 80 seconds ("mute") and unmuted ("alarm"). ' +
                         "The buzzer cannot be pre-muted, as this function only works during a smoke alarm. " +
-                        'During the absence of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
+                        'During the  of a smoke alarm, the buzzer can be manually alarmed ("alarm") and disalarmed ("mute"), ' +
                         'but for this "linkage_alarm" option must be enabled',
                 ),
             e.binary("buzzer_manual_alarm", ea.STATE_GET, true, false).withDescription("Buzzer alarmed (manually)"),
@@ -5874,7 +5874,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode: manufacturerCode}); // Read motion sensitivity
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0142], {manufacturerCode: manufacturerCode}); // Read current presence
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x014f], {manufacturerCode: manufacturerCode}); // Read current PIR interval
-            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current  delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
 
             // Configure reporting so presence (0x0142) and PIR detection (0x014d) update autonomously.
@@ -5913,9 +5913,9 @@ export const definitions: DefinitionWithExtend[] = [
 
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "absence_delay_timer",
-                valueMin: 10,
+                valueMin: 1,
                 valueMax: 300,
-                valueStep: 5,
+                valueStep: 1,
                 scale: 1,
                 unit: "sec",
                 cluster: "manuSpecificLumi",
