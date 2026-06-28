@@ -462,12 +462,12 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
      {
-        zigbeeModel: ["PAR16 DIM 50 GU10 - TW"],
+        zigbeeModel: ["PAR16 DIM 50 GU10 TW"],
         model: "4099854461767/4099854461774",
         vendor: "OSRAM",
         description: "SMART+ LED PAR16 50 GU10 - Tunable White",
         extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
-    },
+        },
         fromZigbee: [ledvanceFz.pbc_level_to_action],
         exposes: [
             e.action(["hold", "release", "toggle"]).withEndpoint("l1"),
