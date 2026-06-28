@@ -813,6 +813,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_xibaabmu",
             "_TZE284_xibaabmu",
             "_TZE204_08qc13ct",
+            "_TZE28C1000000_y4jqpry8",
         ]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",
