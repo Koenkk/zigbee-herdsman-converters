@@ -489,3 +489,4 @@ export const definitions: DefinitionWithExtend[] = [
     description: "SMART+ LED PAR16 50 GU10 - Tunable White",
     extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
 },
+];
