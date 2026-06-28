@@ -13788,7 +13788,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_zyrdrmno"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_zyrdrmno", "_TZE200_osmxri8y"]),
         model: "ZB-Sm",
         vendor: "Tuya",
         description: "Tubular motor",
@@ -27328,7 +27328,21 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-IR01",
         vendor: "HOBEIAN",
         description: "Smart IR remote switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            zosung.zosungExtend.addZosungIRTransmitCluster(),
+            zosung.zosungExtend.addZosungIRControlCluster(),
+        ],
+        fromZigbee: [
+            fzZosung.zosung_send_ir_code_00,
+            fzZosung.zosung_send_ir_code_01,
+            fzZosung.zosung_send_ir_code_02,
+            fzZosung.zosung_send_ir_code_03,
+            fzZosung.zosung_send_ir_code_04,
+            fzZosung.zosung_send_ir_code_05,
+            fz.battery,
+        ],
+        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
         exposes: [
             e.binary("switch1", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch1"),
             e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch2"),
@@ -27338,6 +27352,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("switch6", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch6"),
             e.temperature(),
             e.humidity(),
+            ez.learn_ir_code().withDescription("Turn on to learn new IR code "),
+            ez.learned_ir_code().withDescription("The IR code learned by device"),
+            ez
+                .ir_code_to_send()
+                .withDescription(
+                    "The IR code to send by device (Support SmartIR IR code library. IR remote Firmware ID must be Firmware ID>01062026)",
+                ),
             e.enum("switch1_on", ea.STATE_SET, ["study", "registered", "unregistered"]).withDescription("Switch 1 on IR code Study and Study status"),
             e
                 .enum("switch1_off", ea.STATE_SET, ["study", "registered", "unregistered"])
@@ -28056,6 +28077,111 @@ export const definitions: DefinitionWithExtend[] = [
             for (const ep of [1, 2, 3, 4, 5, 6, 7, 8]) {
                 await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
             }
+        },
+    },
+    {
+        zigbeeModel: ["ZG-303B", "ZG-303L"],
+        model: "HZ-SL10",
+        vendor: "Haozee",
+        description: "Soil moisture sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: (device) => {
+            const exposes = [
+                e.dry(),
+                e.temperature(),
+                e.soil_moisture(),
+                tuya.exposes.temperatureUnit(),
+                tuya.exposes.temperatureCalibration(),
+                tuya.exposes.soilCalibration(),
+                tuya.exposes.temperatureSampling(),
+                tuya.exposes.soilSampling(),
+                tuya.exposes.soilWarning(),
+                e.battery(),
+            ];
+            if (!isDummyDevice(device) && device.modelID === "ZG-303L") {
+                exposes.splice(3, 0, e.illuminance());
+                exposes.splice(
+                    9,
+                    0,
+                    e
+                        .numeric("illuminance_sampling", ea.STATE_SET)
+                        .withValueMin(5)
+                        .withValueMax(3600)
+                        .withValueStep(1)
+                        .withUnit("s")
+                        .withDescription("Brightness acquisition interval (refresh and update only while active)"),
+                );
+            }
+            return exposes;
+        },
+        meta: {
+            tuyaDatapoints: [
+                [106, "dry", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.divideBy10],
+                [3, "soil_moisture", tuya.valueConverter.raw],
+                [15, "battery", tuya.valueConverter.raw],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [104, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [102, "soil_calibration", tuya.valueConverter.localTempCalibration2],
+                [111, "temperature_sampling", tuya.valueConverter.raw],
+                [112, "soil_sampling", tuya.valueConverter.raw],
+                [110, "soil_warning", tuya.valueConverter.raw],
+                [103, "illuminance", tuya.valueConverter.raw],
+                [107, "illuminance_sampling", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        zigbeeModel: ["ZG-210Z"],
+        model: "ZG-210Z",
+        vendor: "HOBEIAN",
+        description: "Pressure Sensing Strap/Bed Occupancy Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .enum("pressure_state", ea.STATE, ["none", "sit", "sedentary"])
+                .withDescription("Pressure state,none: Vacant,sit: Sitting,sedentary: Sedentary"),
+            e.numeric("current_pressure", ea.STATE).withUnit("x").withDescription("Sensing pressure value"),
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            e
+                .numeric("pressure_intensity", ea.ALL)
+                .withUnit("x")
+                .withValueMin(0)
+                .withValueMax(2000)
+                .withValueStep(1)
+                .withDescription("Set Sensing pressure intensity value"),
+            exposes
+                .numeric("presence_delay", ea.ALL)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withDescription("Delay to report no presence"),
+            exposes
+                .numeric("sedentary_reminder", ea.ALL)
+                .withUnit("minutes")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withValueStep(1)
+                .withDescription("Set sedentary Reminder Time"),
+            tuya.exposes.temperatureCalibration(),
+            tuya.exposes.humidityCalibration(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "pressure_state", tuya.valueConverterBasic.lookup({none: tuya.enum(0), sit: tuya.enum(1), sedentary: tuya.enum(2)})],
+                [2, "current_pressure", tuya.valueConverter.raw],
+                [101, "temperature", tuya.valueConverter.divideBy10],
+                [102, "humidity", tuya.valueConverter.raw],
+                [15, "battery", tuya.valueConverter.raw],
+                [105, "pressure_intensity", tuya.valueConverter.raw],
+                [106, "presence_delay", tuya.valueConverter.raw],
+                [107, "sedentary_reminder", tuya.valueConverter.raw],
+                [103, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [104, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
+            ],
         },
     },
 ];
