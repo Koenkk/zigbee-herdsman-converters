@@ -5913,9 +5913,9 @@ export const definitions: DefinitionWithExtend[] = [
 
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "absence_delay_timer",
-                valueMin: 10,
+                valueMin: 1,
                 valueMax: 300,
-                valueStep: 5,
+                valueStep: 1,
                 scale: 1,
                 unit: "sec",
                 cluster: "manuSpecificLumi",
