@@ -2813,6 +2813,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.curtain.acn018"],
+        model: "C200",
+        vendor: "Aqara",
+        description: "Curtain motor C200",
+        toZigbee: [lumi.toZigbee.lumi_curtain_limits_calibration, lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM],
+        exposes: [
+            e.enum("limits_calibration", ea.SET, ["start", "end", "reset"]).withDescription("Calibrate the position limits"),
+            e
+                .enum("automatic_calibration", ea.SET, ["calibrate"])
+                .withDescription("Performs an automatic calibration process similar to Aqara’s method to set curtain limits."),
+        ],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
+            lumiCurtainSpeed(),
+            lumiCurtainManualOpenClose(),
+            lumiCurtainAdaptivePullingSpeed(),
+            lumiCurtainManualStop(),
+            lumiCurtainReverse(),
+            lumiCurtainStatus(),
+            lumiCurtainLastManualOperation(),
+            lumiCurtainPosition(),
+            lumiCurtainTraverseTime(),
+            lumiCurtainCalibrationStatus(),
+            lumiCurtainCalibrated(),
+            lumiCurtainIdentifyBeep(),
+            m.identify(),
+            lumiZigbeeOTA(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.curtain.acn002"],
         model: "ZNJLBL01LM",
         description: "Roller shade driver E1",
