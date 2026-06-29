@@ -5955,6 +5955,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02LD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) sensor with screen and probe temperature detection",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
                 name: "customSonoffSnzb02ld",

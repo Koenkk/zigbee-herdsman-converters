@@ -5651,7 +5651,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h"]),
+        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h", "_TZE210_yqwse3h5"]),
         model: "TS0301_dual_rail",
         vendor: "Tuya",
         description: "Top-down bottom-up dual motor shade",
@@ -5907,6 +5907,196 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rqhnxkqu"]),
+        model: "TO-6 W/B",
+        vendor: "Nova Digital",
+        description: "Topazio 6 gang Zigbee wall switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.switch().withEndpoint("l4"),
+            tuya.exposes.switch().withEndpoint("l5"),
+            tuya.exposes.switch().withEndpoint("l6"),
+
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET).withDescription("Enables/disables the button backlight"),
+
+            e.enum("indicator_status", ea.STATE_SET, ["off", "relay", "invert"]).withDescription("Controls the LED indicator mode"),
+
+            e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET),
+
+            e.binary("induction", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables capacitive induction for the buttons"),
+
+            e.enum("vibration_gear", ea.STATE_SET, ["off", "low", "medium", "high"]).withDescription("Controls the vibration feedback intensity"),
+
+            e.enum("mode_1", ea.STATE_SET, ["switch_1", "scene_1"]).withDescription("Button 1 mode"),
+            e.enum("mode_2", ea.STATE_SET, ["switch_2", "scene_2"]).withDescription("Button 2 mode"),
+            e.enum("mode_3", ea.STATE_SET, ["switch_3", "scene_3"]).withDescription("Button 3 mode"),
+            e.enum("mode_4", ea.STATE_SET, ["switch_4", "scene_4"]).withDescription("Button 4 mode"),
+            e.enum("mode_5", ea.STATE_SET, ["switch_5", "scene_5"]).withDescription("Button 5 mode"),
+            e.enum("mode_6", ea.STATE_SET, ["switch_6", "scene_6"]).withDescription("Button 6 mode"),
+
+            e.action(["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6"]),
+
+            e
+                .numeric("countdown_l1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 1"),
+            e
+                .numeric("countdown_l2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 2"),
+            e
+                .numeric("countdown_l3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 3"),
+            e
+                .numeric("countdown_l4", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 4"),
+            e
+                .numeric("countdown_l5", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 5"),
+            e
+                .numeric("countdown_l6", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 6"),
+
+            e
+                .numeric("inching_l1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 1"),
+            e
+                .numeric("inching_l2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 2"),
+            e
+                .numeric("inching_l3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 3"),
+            e
+                .numeric("inching_l4", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 4"),
+            e
+                .numeric("inching_l5", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 5"),
+            e
+                .numeric("inching_l6", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 6"),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverterBasic.lookup({scene_1: tuya.enum(0)})],
+                [2, "action", tuya.valueConverterBasic.lookup({scene_2: tuya.enum(0)})],
+                [3, "action", tuya.valueConverterBasic.lookup({scene_3: tuya.enum(0)})],
+                [4, "action", tuya.valueConverterBasic.lookup({scene_4: tuya.enum(0)})],
+                [5, "action", tuya.valueConverterBasic.lookup({scene_5: tuya.enum(0)})],
+                [6, "action", tuya.valueConverterBasic.lookup({scene_6: tuya.enum(0)})],
+
+                [18, "mode_1", tuya.valueConverterBasic.lookup({switch_1: tuya.enum(0), scene_1: tuya.enum(1)})],
+                [19, "mode_2", tuya.valueConverterBasic.lookup({switch_2: tuya.enum(0), scene_2: tuya.enum(1)})],
+                [20, "mode_3", tuya.valueConverterBasic.lookup({switch_3: tuya.enum(0), scene_3: tuya.enum(1)})],
+                [21, "mode_4", tuya.valueConverterBasic.lookup({switch_4: tuya.enum(0), scene_4: tuya.enum(1)})],
+                [22, "mode_5", tuya.valueConverterBasic.lookup({switch_5: tuya.enum(0), scene_5: tuya.enum(1)})],
+                [23, "mode_6", tuya.valueConverterBasic.lookup({switch_6: tuya.enum(0), scene_6: tuya.enum(1)})],
+
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+                [28, "state_l5", tuya.valueConverter.onOff],
+                [29, "state_l6", tuya.valueConverter.onOff],
+
+                [30, "countdown_l1", tuya.valueConverter.raw],
+                [31, "countdown_l2", tuya.valueConverter.raw],
+                [32, "countdown_l3", tuya.valueConverter.raw],
+                [33, "countdown_l4", tuya.valueConverter.raw],
+                [34, "countdown_l5", tuya.valueConverter.raw],
+                [35, "countdown_l6", tuya.valueConverter.raw],
+
+                [36, "backlight_mode", tuya.valueConverter.onOff],
+
+                [
+                    37,
+                    "indicator_status",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        invert: tuya.enum(2),
+                    }),
+                ],
+
+                [38, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [103, "induction", tuya.valueConverter.onOff],
+
+                [
+                    104,
+                    "vibration_gear",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        low: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        high: tuya.enum(3),
+                    }),
+                ],
+
+                [105, "inching_l1", tuya.valueConverter.raw],
+                [106, "inching_l2", tuya.valueConverter.raw],
+                [107, "inching_l3", tuya.valueConverter.raw],
+                [108, "inching_l4", tuya.valueConverter.raw],
+                [109, "inching_l5", tuya.valueConverter.raw],
+                [110, "inching_l6", tuya.valueConverter.raw],
+            ],
+        },
+    },
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ojtqawav", "_TZE204_gbagoilo", "_TZE200_ojtqawav"]),
         model: "TS0601_switch_1_gang",
@@ -15235,7 +15425,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e
                     .numeric("over_current_threshold", ea.STATE_SET)
                     .withValueMin(1)
-                    .withValueMax(64)
+                    .withValueMax(65)
                     .withValueStep(1)
                     .withUnit("A")
                     .withDescription("Over-current threshold"),
@@ -15250,7 +15440,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.binary("over_voltage_breaker", ea.STATE_SET, "ON", "OFF").withDescription("Over-voltage breaker"),
                 e
                     .numeric("under_voltage_threshold", ea.STATE_SET)
-                    .withValueMin(76)
+                    .withValueMin(75)
                     .withValueMax(240)
                     .withValueStep(1)
                     .withUnit("V")
