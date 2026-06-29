@@ -5940,19 +5940,91 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.action(["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6"]),
 
-            e.numeric("countdown_l1", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s").withDescription("Countdown timer for channel 1"),
-            e.numeric("countdown_l2", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s").withDescription("Countdown timer for channel 2"),
-            e.numeric("countdown_l3", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s").withDescription("Countdown timer for channel 3"),
-            e.numeric("countdown_l4", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s").withDescription("Countdown timer for channel 4"),
-            e.numeric("countdown_l5", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s").withDescription("Countdown timer for channel 5"),
-            e.numeric("countdown_l6", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s").withDescription("Countdown timer for channel 6"),
+            e
+                .numeric("countdown_l1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 1"),
+            e
+                .numeric("countdown_l2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 2"),
+            e
+                .numeric("countdown_l3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 3"),
+            e
+                .numeric("countdown_l4", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 4"),
+            e
+                .numeric("countdown_l5", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 5"),
+            e
+                .numeric("countdown_l6", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 6"),
 
-            e.numeric("inching_l1", ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit("s").withDescription("Inching/pulse duration for channel 1"),
-            e.numeric("inching_l2", ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit("s").withDescription("Inching/pulse duration for channel 2"),
-            e.numeric("inching_l3", ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit("s").withDescription("Inching/pulse duration for channel 3"),
-            e.numeric("inching_l4", ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit("s").withDescription("Inching/pulse duration for channel 4"),
-            e.numeric("inching_l5", ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit("s").withDescription("Inching/pulse duration for channel 5"),
-            e.numeric("inching_l6", ea.STATE_SET).withValueMin(0).withValueMax(3600).withValueStep(1).withUnit("s").withDescription("Inching/pulse duration for channel 6"),
+            e
+                .numeric("inching_l1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 1"),
+            e
+                .numeric("inching_l2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 2"),
+            e
+                .numeric("inching_l3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 3"),
+            e
+                .numeric("inching_l4", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 4"),
+            e
+                .numeric("inching_l5", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 5"),
+            e
+                .numeric("inching_l6", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 6"),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
