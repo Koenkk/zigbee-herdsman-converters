@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.75.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.74.0...v26.75.0) (2026-06-29)
+
+
+### Features
+
+* **add:** 4099854461767/4099854461774 ([#12575](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12575)) ([39c0fd9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39c0fd92ea00f0e5d80c54f9014700f05e8c633c))
+* **add:** TO-6-W-B ([#12580](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12580)) ([c981734](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c981734a44e03a8065eb83bc6fabca730a7e2a88))
+* SONOFF SNZB-02LD: support OTA ([#12572](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12572)) ([a677ebb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a677ebbc276ec4d5b882751906963838a6b57352))
+
+
+### Bug Fixes
+
+* Aqara PS-S04D: adjust min/step values for absence delay timer ([#12577](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12577)) ([d579980](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d579980a295bf9dcdafade19936361a3a5df1fa6))
+* **detect:** Detect `_TZE210_yqwse3h5` as Tuya TS0301_dual_rail ([#12571](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12571)) ([969dee1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/969dee19bdd3ca79c2453f61db0f393419292d7c))
+* **detect:** Detect `_TZE28C1000000_y4jqpry8` as Zemismart ZMS-206US-4 ([#12573](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12573)) ([5ee2ba1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5ee2ba138e793c5d6a208c1f7c02c0ad0f2010ef))
+* **detect:** Detect MLI switch01 as Müller Licht 404021 ([#12556](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12556)) ([5fb231d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5fb231da09ed2407f0202c82ca05d402e1df8bc4))
+* **ignore:** bump the minor-patch group with 3 updates ([#12578](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12578)) ([fd97b8e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd97b8edd10faa756ffe97dc2b02e3bed24d2cf3))
+* Legrand 067772: expose as switch ([#12574](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12574)) ([7ca59b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7ca59b5b327f582fd80ad94cc16c67ae9df68324))
+* Schneider Electric 41EPBDWCLMZ/354PBDMBTZ: expose level_config (on_level, current_level_startup) ([#12581](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12581)) ([5730968](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5730968da035999089414378e74fd74cbf64b553))
+* Tuya TS011F_with_threshold: fix over current and under voltage limits https://github.com/Koenkk/zigbee2mqtt/issues/32423 ([0a7f280](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0a7f280329ab73500e6ea1c3eefbb35cf1a6ff6b))
+
 ## [26.74.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.73.0...v26.74.0) (2026-06-27)
 
 
