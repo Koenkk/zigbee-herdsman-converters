@@ -10408,6 +10408,25 @@ export const definitions: DefinitionWithExtend[] = [
                 acCurrentDivisor,
                 acCurrentMultiplier: 1,
             });
+            // Some TS011F plugs (e.g. _TZ3008_reatplte) report voltage/power/current scaled by a non-default
+            // factor and expose the correct multipliers/divisors via the haElectricalMeasurement cluster.
+            // Try to read each attribute individually because some devices return UNSUPPORTED_ATTRIBUTE for a
+            // subset, and reading them in bulk would cause one failure to abort the rest. Successful reads are
+            // cached by zigbee-herdsman and override the hardcoded values saved above.
+            for (const attr of [
+                "acVoltageMultiplier",
+                "acVoltageDivisor",
+                "acPowerMultiplier",
+                "acPowerDivisor",
+                "acCurrentMultiplier",
+                "acCurrentDivisor",
+            ] as const) {
+                try {
+                    await endpoint.read("haElectricalMeasurement", [attr]);
+                } catch {
+                    /* Not all Tuya plugs expose all multiplier/divisor attributes; fall back to defaults. */
+                }
+            }
             endpoint.saveClusterAttributeKeyValue("seMetering", {
                 divisor: 100,
                 multiplier: 1,
