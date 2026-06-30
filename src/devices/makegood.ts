@@ -187,21 +187,25 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l1"),
             tuya.exposes.switch().withEndpoint("l2"),
 
-            e.numeric("countdown_l1", ea.STATE_SET)
+            e
+                .numeric("countdown_l1", ea.STATE_SET)
                 .withUnit("s")
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withDescription("Auto-off/on countdown timer for socket 1"),
-            e.numeric("countdown_l2", ea.STATE_SET)
+            e
+                .numeric("countdown_l2", ea.STATE_SET)
                 .withUnit("s")
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withDescription("Auto-off/on countdown timer for socket 2"),
 
-            e.enum("power_on_behavior", ea.STATE_SET, ["power_off", "power_on", "last"])
+            e
+                .enum("power_on_behavior", ea.STATE_SET, ["power_off", "power_on", "last"])
                 .withEndpoint("l1")
                 .withDescription("Behavior when power is restored — socket 1"),
-            e.enum("power_on_behavior", ea.STATE_SET, ["power_off", "power_on", "last"])
+            e
+                .enum("power_on_behavior", ea.STATE_SET, ["power_off", "power_on", "last"])
                 .withEndpoint("l2")
                 .withDescription("Behavior when power is restored — socket 2"),
 
@@ -214,19 +218,25 @@ export const definitions: DefinitionWithExtend[] = [
 
             tuya.exposes.backlightModeOffOn(),
 
-            e.composite("backlight_color", "backlight_color", ea.STATE_SET)
+            e
+                .composite("backlight_color", "backlight_color", ea.STATE_SET)
                 .withDescription("Backlight color config is only meaningful when backlight mode is ON")
                 .withFeature(
-                    e.enum("mode", ea.STATE_SET, ["single", "multi"]).withDescription(
-                        "single: one color per socket; multi: separate on/off colors per socket",
-                    ),
+                    e
+                        .enum("mode", ea.STATE_SET, ["single", "multi"])
+                        .withDescription("single: one color per socket; multi: separate on/off colors per socket"),
                 )
                 .withFeature(
                     e
                         .composite("socket1", "socket1", ea.STATE_SET)
                         .withDescription("Socket 1 LED")
                         .withFeature(
-                            e.numeric("onBrightness", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Brightness when socket is ON"),
+                            e
+                                .numeric("onBrightness", ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(100)
+                                .withUnit("%")
+                                .withDescription("Brightness when socket is ON"),
                         )
                         .withFeature(
                             e
@@ -251,7 +261,11 @@ export const definitions: DefinitionWithExtend[] = [
                                 .withDescription("Brightness when socket is OFF — backlight mode ON only"),
                         )
                         .withFeature(
-                            e.numeric("offHue", ea.STATE_SET).withValueMin(0).withValueMax(360).withDescription("Hue when OFF — multi-color mode only"),
+                            e
+                                .numeric("offHue", ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(360)
+                                .withDescription("Hue when OFF — multi-color mode only"),
                         )
                         .withFeature(
                             e
@@ -266,7 +280,12 @@ export const definitions: DefinitionWithExtend[] = [
                         .composite("socket2", "socket2", ea.STATE_SET)
                         .withDescription("Socket 2 LED")
                         .withFeature(
-                            e.numeric("onBrightness", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Brightness when socket is ON"),
+                            e
+                                .numeric("onBrightness", ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(100)
+                                .withUnit("%")
+                                .withDescription("Brightness when socket is ON"),
                         )
                         .withFeature(
                             e
@@ -291,7 +310,11 @@ export const definitions: DefinitionWithExtend[] = [
                                 .withDescription("Brightness when socket is OFF — backlight mode ON only"),
                         )
                         .withFeature(
-                            e.numeric("offHue", ea.STATE_SET).withValueMin(0).withValueMax(360).withDescription("Hue when OFF — multi-color mode only"),
+                            e
+                                .numeric("offHue", ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(360)
+                                .withDescription("Hue when OFF — multi-color mode only"),
                         )
                         .withFeature(
                             e
