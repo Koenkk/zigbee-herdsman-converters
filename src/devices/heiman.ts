@@ -3713,4 +3713,57 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        zigbeeModel: ["HM-5HA-E"],
+        model: "HM-5HA-E",
+        vendor: "Heiman",
+        description: "Heat detector",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "temperatureOffset",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
 ];
