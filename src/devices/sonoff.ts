@@ -272,6 +272,20 @@ interface SonoffSwvzn {
     };
 }
 
+interface SonoffSnzb02ul {
+    attributes: {
+        comfortTemperatureMax: number;
+        comfortTemperatureMin: number;
+        temperatureUnits: number;
+        comfortHumidityMin: number;
+        comfortHumidityMax: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 // SWV-ZN/ZF history response type
 type SonoffSwvHistoryRecord = {
     channel?: string;
@@ -6007,6 +6021,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SNZB-02LD",
         vendor: "SONOFF",
         description: "Waterproof (IP65) sensor with screen and probe temperature detection",
+        ota: true,
         extend: [
             m.deviceAddCustomCluster("customSonoffSnzb02ld", {
                 name: "customSonoffSnzb02ld",
@@ -9754,5 +9769,127 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["faultCode"], defaultResponseOptions);
         },
+    },
+    {
+        zigbeeModel: ["SNZB-02UL"],
+        model: "SNZB-02UL",
+        vendor: "SONOFF",
+        description: "E-ink screen temperature and humidity sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    comfortTemperatureMax: {name: "comfortTemperatureMax", ID: 0x0003, type: Zcl.DataType.INT16, write: true},
+                    comfortTemperatureMin: {name: "comfortTemperatureMin", ID: 0x0004, type: Zcl.DataType.INT16, write: true},
+                    comfortHumidityMin: {name: "comfortHumidityMin", ID: 0x0005, type: Zcl.DataType.UINT16, write: true},
+                    comfortHumidityMax: {name: "comfortHumidityMax", ID: 0x0006, type: Zcl.DataType.UINT16, write: true},
+                    temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery(),
+            m.temperature({valueMin: 0, valueMax: 50}),
+            m.humidity({valueMin: 5, valueMax: 95}),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "comfort_temperature_min",
+                cluster: "customClusterEwelink",
+                attribute: "comfortTemperatureMin",
+                entityCategory: "config",
+                description:
+                    "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 0,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "comfort_temperature_max",
+                cluster: "customClusterEwelink",
+                attribute: "comfortTemperatureMax",
+                entityCategory: "config",
+                description:
+                    "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 0,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "temperature_units",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "customClusterEwelink",
+                attribute: "temperatureUnits",
+                entityCategory: "config",
+                description:
+                    "The unit of the temperature displayed on the device screen. Note: wake up the device by pressing the button on the back before changing this value.",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "comfort_humidity_min",
+                cluster: "customClusterEwelink",
+                attribute: "comfortHumidityMin",
+                entityCategory: "config",
+                description:
+                    "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 5,
+                valueMax: 95,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "comfort_humidity_max",
+                cluster: "customClusterEwelink",
+                attribute: "comfortHumidityMax",
+                entityCategory: "config",
+                description:
+                    "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: 5,
+                valueMax: 95,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "temperature_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureCalibration",
+                entityCategory: "config",
+                description:
+                    "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -50,
+                valueMax: 50,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
+                name: "humidity_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "humidityCalibration",
+                entityCategory: "config",
+                description:
+                    "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
+                valueMin: -95,
+                valueMax: 95,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "%",
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (!endpoint) {
+                throw new Error("Endpoint 1 not found");
+            }
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+        },
+        ota: true,
     },
 ];

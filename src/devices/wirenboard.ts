@@ -12,6 +12,44 @@ import {assertString, getFromLookup, getOptions, toNumber} from "../lib/utils";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface WbGenAnalogInput {
+    attributes: {noiseDetected: number; noiseThreshold: number; noiseTimeout: number};
+    commands: never;
+    commandResponses: never;
+}
+
+interface WbGenMultistateInput {
+    attributes: {
+        mswSlaveId: number;
+        mswSerialNumber: number;
+        mswFwVersion: string;
+        mswFwSignature: string;
+        mswBootVersion: string;
+        mswComponentVersion: string;
+        mswComponentSignature: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface WbMsTemperatureMeasurement {
+    attributes: {temperatureOffset: number};
+    commands: never;
+    commandResponses: never;
+}
+
+interface WbMsOccupancySensing {
+    attributes: {occupancyLevel: number; occupancySensitivity: number; occupancyTimeout: number};
+    commands: never;
+    commandResponses: never;
+}
+
+interface WbVocMeasurement {
+    attributes: {measuredValue: number};
+    commands: never;
+    commandResponses: never;
+}
+
 interface SprutDevice {
     attributes: {
         isConnected: number;
@@ -729,6 +767,269 @@ const {
 } = sprutModernExtend;
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["WB-MSW-ZIGBEE v.4"],
+        model: "WB-MSW-ZIGBEE_v.4_official",
+        vendor: "Wiren Board",
+        description: "Wall-mounted multi sensor with official Wiren Board firmware",
+        ota: true,
+        extend: [
+            m.deviceEndpoints({endpoints: {default: 1, buzzer: 2, heater: 3, led_red: 4, led_green: 5}, multiEndpointSkip: ["occupancy"]}),
+            // Custom cluster declarations
+            m.deviceAddCustomCluster("genAnalogInput", {
+                name: "genAnalogInput",
+                ID: Zcl.Clusters.genAnalogInput.ID,
+                attributes: {
+                    noiseDetected: {name: "noiseDetected", ID: 0x1000, type: Zcl.DataType.BOOLEAN},
+                    noiseThreshold: {name: "noiseThreshold", ID: 0x1001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    noiseTimeout: {name: "noiseTimeout", ID: 0x1002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genMultistateInput", {
+                name: "genMultistateInput",
+                ID: Zcl.Clusters.genMultistateInput.ID,
+                attributes: {
+                    mswSlaveId: {name: "mswSlaveId", ID: 0x1000, type: Zcl.DataType.UINT8, max: 0xff},
+                    mswSerialNumber: {name: "mswSerialNumber", ID: 0x1001, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    mswFwVersion: {name: "mswFwVersion", ID: 0x1002, type: Zcl.DataType.CHAR_STR},
+                    mswFwSignature: {name: "mswFwSignature", ID: 0x1003, type: Zcl.DataType.CHAR_STR},
+                    mswBootVersion: {name: "mswBootVersion", ID: 0x1004, type: Zcl.DataType.CHAR_STR},
+                    mswComponentVersion: {name: "mswComponentVersion", ID: 0x1005, type: Zcl.DataType.CHAR_STR},
+                    mswComponentSignature: {name: "mswComponentSignature", ID: 0x1006, type: Zcl.DataType.CHAR_STR},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("msTemperatureMeasurement", {
+                name: "msTemperatureMeasurement",
+                ID: Zcl.Clusters.msTemperatureMeasurement.ID,
+                attributes: {
+                    temperatureOffset: {name: "temperatureOffset", ID: 0x1000, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("msOccupancySensing", {
+                name: "msOccupancySensing",
+                ID: Zcl.Clusters.msOccupancySensing.ID,
+                attributes: {
+                    occupancyLevel: {name: "occupancyLevel", ID: 0x1000, type: Zcl.DataType.UINT16, max: 0xffff},
+                    occupancySensitivity: {name: "occupancySensitivity", ID: 0x1001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    occupancyTimeout: {name: "occupancyTimeout", ID: 0x1002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("wbVoc", {
+                name: "wbVoc",
+                ID: 0x042e,
+                attributes: {
+                    measuredValue: {name: "measuredValue", ID: 0x0000, type: Zcl.DataType.SINGLE_PREC},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            // Standard measurements & switches
+            m.onOff({powerOnBehavior: false, endpointNames: ["buzzer", "heater", "led_red", "led_green"]}),
+            m.illuminance({reporting: false}),
+            m.temperature({reporting: false}),
+            m.humidity({reporting: false}),
+            m.occupancy({reporting: false}),
+            m.co2({scale: 1, reporting: false}),
+            // Custom attributes
+            m.numeric({
+                name: "noise_level",
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                description: "Current noise level",
+                unit: "dBA",
+                precision: 2,
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                reporting: false,
+            }),
+            m.binary<"genAnalogInput", WbGenAnalogInput>({
+                name: "noise",
+                cluster: "genAnalogInput",
+                attribute: "noiseDetected",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                description: "Noise detected",
+                access: "STATE_GET",
+                reporting: false,
+            }),
+            m.numeric<"genAnalogInput", WbGenAnalogInput>({
+                name: "noise_threshold",
+                cluster: "genAnalogInput",
+                attribute: "noiseThreshold",
+                description: "Noise detection threshold",
+                valueMin: 0,
+                valueMax: 150,
+                unit: "dBA",
+                access: "ALL",
+                entityCategory: "config",
+                reporting: false,
+            }),
+            m.numeric<"genAnalogInput", WbGenAnalogInput>({
+                name: "noise_timeout",
+                cluster: "genAnalogInput",
+                attribute: "noiseTimeout",
+                description: "Time in seconds after which noise is cleared",
+                valueMin: 0,
+                valueMax: 2000,
+                unit: "s",
+                access: "ALL",
+                entityCategory: "config",
+                reporting: false,
+            }),
+            m.binary({
+                name: "status_led",
+                cluster: "genBinaryOutput",
+                attribute: "presentValue",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Status LED control",
+                access: "ALL",
+                reporting: false,
+            }),
+            m.enumLookup({
+                name: "connectivity",
+                lookup: {offline: 1, online: 2, firmware_update: 3, component_update: 4},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                description: "Device connectivity state",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                reporting: false,
+            }),
+            m.numeric<"genMultistateInput", WbGenMultistateInput>({
+                name: "modbus_slave_id",
+                cluster: "genMultistateInput",
+                attribute: "mswSlaveId",
+                description: "Device Modbus slave ID",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                reporting: false,
+            }),
+            m.numeric<"genMultistateInput", WbGenMultistateInput>({
+                name: "serial_number",
+                cluster: "genMultistateInput",
+                attribute: "mswSerialNumber",
+                description: "Device serial number",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                reporting: false,
+            }),
+            m.text<"genMultistateInput", WbGenMultistateInput>({
+                name: "fw_version",
+                cluster: "genMultistateInput",
+                attribute: "mswFwVersion",
+                description: "Device firmware version",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+            }),
+            m.text<"genMultistateInput", WbGenMultistateInput>({
+                name: "fw_signature",
+                cluster: "genMultistateInput",
+                attribute: "mswFwSignature",
+                description: "Device firmware signature",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+            }),
+            m.text<"genMultistateInput", WbGenMultistateInput>({
+                name: "boot_version",
+                cluster: "genMultistateInput",
+                attribute: "mswBootVersion",
+                description: "Device bootloader version",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+            }),
+            m.text<"genMultistateInput", WbGenMultistateInput>({
+                name: "component_version",
+                cluster: "genMultistateInput",
+                attribute: "mswComponentVersion",
+                description: "Device component firmware version",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+            }),
+            m.text<"genMultistateInput", WbGenMultistateInput>({
+                name: "component_signature",
+                cluster: "genMultistateInput",
+                attribute: "mswComponentSignature",
+                description: "Device component firmware signature",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+            }),
+            m.numeric<"msTemperatureMeasurement", WbMsTemperatureMeasurement>({
+                name: "temperature_offset",
+                cluster: "msTemperatureMeasurement",
+                attribute: "temperatureOffset",
+                description: "Offset subtracted from the raw temperature reading",
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 0.1,
+                unit: "°C",
+                scale: 100,
+                access: "ALL",
+                entityCategory: "config",
+                reporting: false,
+            }),
+            m.numeric<"msOccupancySensing", WbMsOccupancySensing>({
+                name: "occupancy_level",
+                cluster: "msOccupancySensing",
+                attribute: "occupancyLevel",
+                description: "Raw occupancy level reported by the sensor",
+                access: "STATE_GET",
+                entityCategory: "diagnostic",
+                reporting: false,
+            }),
+            m.numeric<"msOccupancySensing", WbMsOccupancySensing>({
+                name: "occupancy_sensitivity",
+                cluster: "msOccupancySensing",
+                attribute: "occupancySensitivity",
+                description: "Occupancy detection sensitivity",
+                valueMin: 0,
+                valueMax: 2000,
+                access: "ALL",
+                entityCategory: "config",
+                reporting: false,
+            }),
+            m.numeric<"msOccupancySensing", WbMsOccupancySensing>({
+                name: "occupancy_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "occupancyTimeout",
+                description: "Time in seconds after which occupancy is cleared",
+                valueMin: 0,
+                valueMax: 2000,
+                unit: "s",
+                access: "ALL",
+                entityCategory: "config",
+                reporting: false,
+            }),
+            m.numeric<"wbVoc", WbVocMeasurement>({
+                name: "voc",
+                label: "VOC",
+                cluster: "wbVoc",
+                attribute: "measuredValue",
+                description: "Measured VOC concentration",
+                unit: "µg/m³",
+                access: "STATE_GET",
+                reporting: false,
+            }),
+            // Bindings (reporting is firmware-driven, so clusters are only bound)
+            m.bindCluster({cluster: "genAnalogInput", clusterType: "input"}),
+            m.bindCluster({cluster: "genBinaryOutput", clusterType: "input"}),
+            m.bindCluster({cluster: "genMultistateInput", clusterType: "input"}),
+            m.bindCluster({cluster: "msIlluminanceMeasurement", clusterType: "input"}),
+            m.bindCluster({cluster: "msTemperatureMeasurement", clusterType: "input"}),
+            m.bindCluster({cluster: "msRelativeHumidity", clusterType: "input"}),
+            m.bindCluster({cluster: "msOccupancySensing", clusterType: "input"}),
+            m.bindCluster({cluster: "msCO2", clusterType: "input"}),
+            m.bindCluster({cluster: "wbVoc", clusterType: "input"}),
+        ],
+    },
     {
         zigbeeModel: ["WBMSW3"],
         model: "WB-MSW-ZIGBEE v.3",
