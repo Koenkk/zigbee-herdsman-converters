@@ -3712,7 +3712,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["HM-5HA-E"],
+        zigbeeModel: ["HM-5HA-E", "HM-5HA-EF-3.0"],
         model: "HM-5HA-E",
         vendor: "Heiman",
         description: "Heat detector",
