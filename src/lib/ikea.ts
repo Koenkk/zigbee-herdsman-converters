@@ -9,7 +9,6 @@ import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {Configure, Expose, Fz, KeyValue, KeyValueAny, LevelConfigFeatures, ModernExtend, OnEvent, Range, Tz, Zh} from "../lib/types";
 import {
-    assertNumber,
     assertString,
     configureSetPowerSourceWhenUnknown,
     getEndpointName,
@@ -955,10 +954,10 @@ export const ikeaMotionSensorTriggerMode = m.enumLookup<"manuSpecificIkeaMotionS
     cluster: "manuSpecificIkeaMotionSensor",
     attribute: "onOnlyWhenDark",
     description: "Controls whether the motion sensor triggers at all times or only when illuminance is low.",
-    reporting: { min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1 },
+    reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
     label: "Illuminance sensor threshold",
     fzConvert(model, msg, publish, options, meta) {
-        return { lux_value: msg.data.onOnlyWhenDark ? "only_when_dark" : "always" }
+        return {lux_value: msg.data.onOnlyWhenDark ? "only_when_dark" : "always"}
     },
 })
 
@@ -968,7 +967,7 @@ export const ikeaMotionSensorOnDuration = m.numeric<"manuSpecificIkeaMotionSenso
     attribute: "onTime",
     description: "How long bound devices remain on after motion is detected.",
     unit: "s",
-    reporting: { min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1 },
+    reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
     valueMin: 10,
     valueMax: 65534,
     valueStep: 10,
