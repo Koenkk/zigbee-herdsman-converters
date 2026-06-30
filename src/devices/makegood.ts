@@ -90,7 +90,7 @@ const backlightColorToZigbee: Tz.Converter = {
         await tuya.sendDataPointRaw(entity, 107, [buf]);
         return {state: {backlight_color: cfg}};
     },
-};
+} satisfies Tz.Converter;
 
 // --- Definitions ---
 
