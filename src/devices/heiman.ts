@@ -3687,7 +3687,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "radarLearningControl",
                 description: "Radar learning mode, please wake up the device first.",
-                access: "ALL",
+                access: "STATE_SET",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_state",
