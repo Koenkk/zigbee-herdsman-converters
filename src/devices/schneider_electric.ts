@@ -187,6 +187,7 @@ function indicatorMode(endpoint?: string) {
             consistent_with_load: 0,
             always_off: 3,
             always_on: 1,
+            flash_on_click: 4,
         },
         cluster: "manuSpecificSchneiderLightSwitchConfiguration",
         attribute: "ledIndication",
@@ -2016,9 +2017,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser 40/300-Series Module Dimmer",
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.ignore_transition],
         exposes: [
-            e.light_brightness(),
+            e.light_brightness().withLevelConfig(["on_level", "current_level_startup"]),
             e
                 .numeric("ballast_minimum_level", ea.ALL)
                 .withValueMin(1)

@@ -335,7 +335,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_zigisuyh", "_TZ3000_v4mevirn", "_TZ3000_mlswgkc3"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_zigisuyh", "_TZ3000_v4mevirn", "_TZ3000_mlswgkc3", "_TZ3000_gazjngjl"]),
         model: "ZIGBEE-B09-UK",
         vendor: "Zemismart",
         description: "Zigbee smart outlet universal socket with USB port",
@@ -695,7 +695,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke", "_TZE204_iyki9kjp", "_TZE284_k7v0eqke", "_TZE284_e4pf6l87"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_k7v0eqke",
+            "_TZE204_iyki9kjp",
+            "_TZE284_k7v0eqke",
+            "_TZE284_e4pf6l87",
+            "_TZE28C1000000_e4pf6l87",
+        ]),
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
@@ -807,6 +813,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_xibaabmu",
             "_TZE284_xibaabmu",
             "_TZE204_08qc13ct",
+            "_TZE28C1000000_y4jqpry8",
         ]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",

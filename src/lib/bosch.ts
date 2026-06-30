@@ -3533,7 +3533,27 @@ export const boschThermostatExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    relayState: () => m.onOff({description: "The state of the relay controlling the connected heating/cooling device", powerOnBehavior: false}),
+    relayState: (): ModernExtend => {
+        const description = "The state of the relay controlling the connected heating/cooling device";
+        const relay = m.onOff({description, powerOnBehavior: false, configureReporting: false});
+        const relayExposes = (relay.exposes ?? []).filter((relayExpose): relayExpose is Expose => typeof relayExpose !== "function");
+        const relayEndpoint = (device: Zh.Device) => device.endpoints.find((endpoint) => endpoint.supportsInputCluster("genOnOff"));
+        const expose: DefinitionExposesFunction = (device) => {
+            return utils.isDummyDevice(device) || relayEndpoint(device) ? relayExposes : [];
+        };
+        const configure: Configure = async (device, coordinatorEndpoint) => {
+            const endpoint = relayEndpoint(device);
+            if (!endpoint) {
+                logger.debug(`Skipping Bosch thermostat relay reporting for ${device.ieeeAddr}: no genOnOff input cluster`, NS);
+                return;
+            }
+
+            await endpoint.bind("genOnOff", coordinatorEndpoint);
+            await endpoint.configureReporting("genOnOff", payload<"genOnOff">("onOff", 0, repInterval.MAX, 1));
+        };
+
+        return {...relay, exposes: [expose], configure: [configure]};
+    },
     cableSensorMode: () =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "cable_sensor_mode",
