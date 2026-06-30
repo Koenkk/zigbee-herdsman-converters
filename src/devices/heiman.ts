@@ -3747,7 +3747,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.identify(),
             m.temperature(),
-            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "battery_low", "test", "tamper"]}),
             heimanExtend.heimanClusterSpecial(),
             heimanExtend.heimanClusterSensorFaultState(),
             heimanExtend.heimanClusterDeviceMuteState(),
