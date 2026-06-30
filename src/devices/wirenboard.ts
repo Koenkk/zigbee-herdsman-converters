@@ -769,7 +769,7 @@ const {
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["WB-MSW-ZIGBEE v.4"],
-        model: "WB-MSW-ZIGBEE v.4 (Official firmware)",
+        model: "WB-MSW-ZIGBEE_v.4_official",
         vendor: "Wiren Board",
         description: "Wall-mounted multi sensor with official Wiren Board firmware",
         ota: true,
