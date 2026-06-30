@@ -4,7 +4,7 @@ import * as e from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import type {DefinitionWithExtend, KeyValueAny, Tz} from "../lib/types";
 
 const ea = e.access;
 
@@ -87,7 +87,7 @@ const backlightColorToZigbee: Tz.Converter = {
         writeSocket(cfg.socket1 ?? {}, 1);
         writeSocket(cfg.socket2 ?? {}, 11);
 
-        await tuya.sendDataPointRaw(entity, 107, [...buf]);
+        await tuya.sendDataPointRaw(entity, 107, [buf]);
         return {state: {backlight_color: cfg}};
     },
 };
