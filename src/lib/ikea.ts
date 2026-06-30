@@ -957,9 +957,9 @@ export const ikeaMotionSensorTriggerMode = m.enumLookup<"manuSpecificIkeaMotionS
     reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
     label: "Illuminance sensor threshold",
     fzConvert(model, msg, publish, options, meta) {
-        return {lux_value: msg.data.onOnlyWhenDark ? "only_when_dark" : "always"}
+        return {lux_value: msg.data.onOnlyWhenDark ? "only_when_dark" : "always"};
     },
-})
+});
 
 export const ikeaMotionSensorOnDuration = m.numeric<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>({
     name: "timer",
@@ -972,7 +972,7 @@ export const ikeaMotionSensorOnDuration = m.numeric<"manuSpecificIkeaMotionSenso
     valueMax: 65534,
     valueStep: 10,
     label: "On duration",
-})
+});
 
 export interface IkeaUnknown {
     attributes: never;
