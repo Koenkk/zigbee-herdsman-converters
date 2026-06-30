@@ -3680,17 +3680,18 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
-            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_control",
-                lookup: {start: 65534, reset: 65535},
+                valueOn: ["start", 65534],
+                valueOff: ["reset", 65535],
                 cluster: "heimanClusterSpecial",
                 attribute: "radarLearningControl",
                 description: "Radar learning mode, please wake up the device first.",
-                access: "STATE_SET",
+                access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_state",
-                lookup: {not: 0, learning: 1, completed: 2, failed: 3},
+                lookup: {normal: 0, learning: 1, completed: 2, failed: 3},
                 cluster: "heimanClusterSpecial",
                 attribute: "radarLearningState",
                 description: "radar learning state",
