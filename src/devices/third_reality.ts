@@ -1427,7 +1427,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RVS01031Z",
         vendor: "Third Reality",
         description: "Zigbee vibration sensor",
+        fromZigbee: [fzLocal.thirdreality_acceleration, fz.ias_vibration_alarm_1],
         ota: true,
+        exposes: [e.vibration()],
         extend: [
             m.deviceAddCustomCluster("3rVirationSpecialcluster", {
                 name: "3rVirationSpecialcluster",
@@ -1446,11 +1448,6 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.battery(),
-            m.iasZoneAlarm({
-                zoneType: "generic",
-                zoneAttributes: ["alarm_1"],
-                description: "Being in vibration",
-            }),
             m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
                 name: "cool_down_time",
                 unit: "s",
