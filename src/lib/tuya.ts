@@ -5252,7 +5252,11 @@ const tuyaModernExtend = {
 
                     const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
 
-                    msg.endpoint.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                    msg.endpoint
+                        .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
+                        .catch((error) =>
+                            logger.warning(() => `Failed to sync '${msg.device.ieeeAddr}:${msg.endpoint.ID}' on weather request (${error})`, NS),
+                        );
                 }
             },
         };
@@ -5264,7 +5268,12 @@ const tuyaModernExtend = {
 
                 const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
 
-                entity.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                entity
+                    .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
+                    .catch(
+                        (error) => () =>
+                            logger.warning(`Failed to sync weather for '${utils.isGroup(entity) ? entity.groupID : entity.ID}' (${error})`, NS),
+                    );
 
                 return {state: {[key]: value}};
             },
