@@ -1,6 +1,16 @@
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
 
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    zigbeeModel: ['332816'],
+    model: '332816',
+    vendor: 'Bilisty',
+    description: 'Automatically generated definition',
+    extend: [m.onOff({"powerOnBehavior":false})],
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["1001248", "ZBT-ColorTemperature-Panel"],
