@@ -615,6 +615,22 @@ const tzLocal = {
             return {state: {switch_mode: value}};
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0726_indicator_mode: {
+        key: ["indicator_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("genOnOff", {
+                32769: {
+                    value: utils.getFromLookup(value, {none: 0, relay: 1, pos: 2}),
+                    type: 0x30,
+                },
+            });
+            return {state: {indicator_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", [0x8001]);
+        },
+    } satisfies Tz.Converter,
     led_control: {
         key: ["brightness", "color", "color_temp", "transition"],
         options: [exposes.options.color_sync()],
@@ -1205,6 +1221,16 @@ const fzLocal = {
             return {action: `scene_${msg.endpoint.ID}`};
         },
     } satisfies Fz.Converter<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0726_indicator_mode: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data[0x8001] !== undefined) {
+                return {indicator_mode: utils.getFromLookupByValue(msg.data[0x8001], {none: 0, relay: 1, pos: 2})};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", tuya.TuyaGenOnOff, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0222_humidity: {
         ...fz.humidity,
@@ -11699,8 +11725,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "1 gang switch with neutral wire",
         extend: [tuya.modernExtend.tuyaBase()],
-        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action, fzLocal.TS0726_indicator_mode],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tzLocal.TS0726_indicator_mode],
         exposes: (device) => {
             const exposes = [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])];
             if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_ovbvmhiq") {
@@ -11719,8 +11745,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "2 gang switch with neutral wire",
         extend: [tuya.modernExtend.tuyaBase()],
-        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
-        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
+        fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action, fzLocal.TS0726_indicator_mode],
+        toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode, tzLocal.TS0726_indicator_mode],
         exposes: (device) => {
             const exposes = [
                 ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
