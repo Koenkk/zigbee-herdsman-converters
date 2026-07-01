@@ -1785,7 +1785,7 @@ const fzLocal = {
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rjjsib2d"]),
-        model: "ZSN-01P",
+        model: "ZSN-03P",
         vendor: "Novato",
         description: "Temperature & humidity sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
