@@ -20257,6 +20257,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Important: respondToMcuVersionResponse should be false otherwise there is an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60})],
+        whiteLabel: [tuya.whitelabel("Tongou", "TOQCB2-80-2P", "Smart circuit breaker (2P)", ["_TZE284_mrffaamu", "_TZE204_mrffaamu"])],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
