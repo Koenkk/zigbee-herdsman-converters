@@ -23218,6 +23218,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-102ZM",
         vendor: "HOBEIAN",
         description: "Vibration sensor",
+        whiteLabel: [
+            {
+                model: "AY02SZ",
+                vendor: "AOYAN",
+                description: "Vibration sensor",
+                fingerprint: [{modelID: "AY02SZ", manufacturerName: "AOYAN"}],
+            },
+        ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.vibration(),
