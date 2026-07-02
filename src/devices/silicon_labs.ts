@@ -1,12 +1,11 @@
-import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
 
-export const definitions: DefinitionWithExtend[] = [
-    {
-        zigbeeModel: ["RB-ElectricityDsp-061-3"],
-        model: "RB-ElectricityDsp-061-3",
-        vendor: "Silicon Labs",
-        description: "Electricity meter",
-        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
-    },
+export default {
+    zigbeeModel: ['TS0601'],
+    model: 'TS0601',
+    vendor: '_TZE28C1000000_alh14edn',
+    description: 'Automatically generated definition',
+    extend: [m.battery()],
+};
+
 ];
