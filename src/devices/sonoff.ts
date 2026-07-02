@@ -7578,7 +7578,12 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff"]);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msFlowMeasurement"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read("customClusterEwelink", [0x500c, 0x5011]);
+            await endpoint.read("customClusterEwelink", [0x500c]).catch((error) => {
+                logger.warning(`SWV read customClusterEwelink(current_device_status) failed: ${error}`, NS);
+            });
+            await endpoint.read("customClusterEwelink", [0x5011]).catch((error) => {
+                logger.warning(`SWV read customClusterEwelink(lackWaterCloseValveTimeout) failed: ${error}`, NS);
+            });
         },
     },
     {
