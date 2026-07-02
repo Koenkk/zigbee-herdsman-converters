@@ -1,7 +1,12 @@
 import {describe, expect, it} from "vitest";
+import {definitions as develcoDefinitions} from "../src/devices/develco";
 import {fromZigbee} from "../src/index";
+import {mockDevice} from "./utils";
 
 describe("converters/fromZigbee", () => {
+    const zhemi101Definition = develcoDefinitions.find((definition) => definition.model === "ZHEMI101");
+    const zhemi101MeteringConverter = zhemi101Definition?.fromZigbee?.find((converter) => converter.cluster === "seMetering");
+
     it("Message with no properties does not error converting battery percentages", () => {
         const payload = fromZigbee.battery.convert(
             // @ts-expect-error mock
@@ -51,6 +56,138 @@ describe("converters/fromZigbee", () => {
             battery: 98,
             voltage: 2700,
         });
+    });
+
+    it("ZHEMI101 converts electricity instantaneous demand to W", () => {
+        const device = mockDevice({
+            modelID: "ZHEMI101",
+            endpoints: [
+                {
+                    ID: 2,
+                    attributes: {seMetering: {attributes: {unitOfMeasure: 0, multiplier: 1, divisor: 1000, meteringDeviceType: 0}}},
+                },
+            ],
+        });
+        const endpoint = device.getEndpoint(2);
+
+        const payload = zhemi101MeteringConverter?.convert(
+            // @ts-expect-error minimal model
+            zhemi101Definition,
+            {
+                data: {instantaneousDemand: 280},
+                endpoint,
+                device,
+                meta: {rawData: Buffer.from([])},
+                groupID: 0,
+                type: "attributeReport",
+                cluster: "seMetering",
+                linkquality: 0,
+            },
+            null,
+            {},
+            {state: {interface_mode: "electricity", unit_of_measure: 0, metering_device_type: 0, multiplier: 1, divisor: 1000}},
+        );
+
+        expect(payload).toStrictEqual({power: 280});
+    });
+
+    it("ZHEMI101 republishes missing metering metadata from stale null state", () => {
+        const device = mockDevice({
+            ieeeAddr: "0x0000000000000003",
+            modelID: "ZHEMI101",
+            endpoints: [
+                {
+                    ID: 2,
+                    attributes: {seMetering: {attributes: {unitOfMeasure: 0, multiplier: 1, divisor: 1000, meteringDeviceType: 0}}},
+                },
+            ],
+        });
+        const endpoint = device.getEndpoint(2);
+
+        const payload = zhemi101MeteringConverter?.convert(
+            // @ts-expect-error minimal model
+            zhemi101Definition,
+            {
+                data: {instantaneousDemand: 280},
+                endpoint,
+                device,
+                meta: {rawData: Buffer.from([])},
+                groupID: 0,
+                type: "attributeReport",
+                cluster: "seMetering",
+                linkquality: 0,
+            },
+            null,
+            {},
+            {
+                state: {
+                    interface_mode: "electricity",
+                    unit_of_measure: null,
+                    metering_device_type: null,
+                    multiplier: null,
+                    divisor: null,
+                },
+            },
+        );
+
+        expect(payload).toStrictEqual({
+            divisor: 1000,
+            metering_device_type: 0,
+            multiplier: 1,
+            power: 280,
+            unit_of_measure: 0,
+        });
+    });
+
+    it("ZHEMI101 keeps gas and water instantaneous demand in m3/h", () => {
+        for (const [interfaceMode, property] of [
+            ["gas", "flow"],
+            ["water", "flow"],
+        ] as const) {
+            const device = mockDevice({
+                ieeeAddr: interfaceMode === "gas" ? "0x0000000000000001" : "0x0000000000000002",
+                modelID: "ZHEMI101",
+                endpoints: [
+                    {
+                        ID: 2,
+                        attributes: {
+                            seMetering: {
+                                attributes: {unitOfMeasure: 1, multiplier: 1, divisor: 1000, meteringDeviceType: interfaceMode === "gas" ? 1 : 2},
+                            },
+                        },
+                    },
+                ],
+            });
+            const endpoint = device.getEndpoint(2);
+
+            const payload = zhemi101MeteringConverter?.convert(
+                // @ts-expect-error minimal model
+                zhemi101Definition,
+                {
+                    data: {instantaneousDemand: 280},
+                    endpoint,
+                    device,
+                    meta: {rawData: Buffer.from([])},
+                    groupID: 0,
+                    type: "attributeReport",
+                    cluster: "seMetering",
+                    linkquality: 0,
+                },
+                null,
+                {},
+                {
+                    state: {
+                        interface_mode: interfaceMode,
+                        unit_of_measure: 1,
+                        metering_device_type: interfaceMode === "gas" ? 1 : 2,
+                        multiplier: 1,
+                        divisor: 1000,
+                    },
+                },
+            );
+
+            expect(payload).toStrictEqual({[property]: 0.28});
+        }
     });
 
     it("Device uses reported percentage", () => {
