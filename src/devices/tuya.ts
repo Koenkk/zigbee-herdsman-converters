@@ -565,7 +565,7 @@ const tzLocal = {
 
             // AE-720K requires ON twice (similar to pressing ON twice on device)
             await tuya.sendDataPointBool(entity, 1, true);
-            await utils.sleep(220);
+            await new Promise((r) => setTimeout(r, 220));
             await tuya.sendDataPointBool(entity, 1, true);
 
             return {state: {state: "ON"}};
@@ -966,7 +966,7 @@ const tzLocal = {
                         });
                     },
                     transitionSeconds * 1000 + 100,
-                ).unref();
+                );
             }
 
             return ret;
@@ -1030,9 +1030,7 @@ const tzLocal = {
 
             for (let slot = 1; slot <= 4; slot++) {
                 await bindSlotTS0601SmartSceneKnob(entity, slot, mode);
-                if (slot < 4) {
-                    await utils.sleep(500);
-                }
+                if (slot < 4) await new Promise((resolve) => setTimeout(resolve, 500));
             }
 
             // Scene mode doesn't use Group ID
@@ -1174,7 +1172,7 @@ const fzLocal = {
                     const be4 = (n: number) => [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff];
                     const payload = [...be4(utcTime), ...be4(localTime)];
                     await ep.command("manuSpecificTuya", "mcuSyncTime", {payloadSize: 8, payload}, {disableDefaultResponse: true});
-                    await utils.sleep(500);
+                    await new Promise((r) => setTimeout(r, 500));
                     try {
                         await tuya.sendDataPointBool(ep, 17, false);
                     } catch {
@@ -2166,12 +2164,6 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Tesla Smart", model: "TSL-SEN-DOOR"},
             {vendor: "Cleverio", model: "SS100"},
             {vendor: "HOBEIAN", model: "ZG-102ZA", fingerprint: [{modelID: "ZG-102Z"}]},
-            {
-                vendor: "AOYAN",
-                model: "AY-101Z",
-                description: "Door/window sensor",
-                fingerprint: [{modelID: "AY-101Z", manufacturerName: "AOYAN  "}],
-            },
             tuya.whitelabel("Niceboy", "ORBIS Windows & Door Sensor", "Door sensor", ["_TZ3000_qrldbmfn"]),
             tuya.whitelabel("Tuya", "ZD06", "Door window sensor", ["_TZ3000_rcuyhwe3", "_TZ3000_996rpfy6"]),
             tuya.whitelabel("Tuya", "ZD08", "Door sensor", ["_TZ3000_7d8yme6f"]),
@@ -3776,12 +3768,6 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "ZG-301Z",
                 fingerprint: [{modelID: "ZG-301Z"}],
             },
-            {
-                vendor: "AOYAN",
-                model: "AY301Z",
-                description: "Wall switch module",
-                fingerprint: [{modelID: "AY301Z"}],
-            },
             tuya.whitelabel("Tuya", "QS-zigbee-S08-16A-RF", "Wall switch module", ["_TZ3000_dlhhrhs8"]),
         ],
         description: "Wall switch module",
@@ -4379,15 +4365,6 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "HOBEIAN",
                 model: "ZG-222Z",
                 fingerprint: [{modelID: "ZG-222Z"}],
-            },
-            {
-                vendor: "AOYAN",
-                model: "AY222Z",
-                description: "Water leak detector",
-                fingerprint: [
-                    {modelID: "AY222Z", manufacturerName: "AOYAN"},
-                    {modelID: "AY222Z", manufacturerName: "AOYAN  "},
-                ],
             },
             tuya.whitelabel("Meian", "SW02", "Water leak sensor", ["_TZ3000_kyb656no"]),
             tuya.whitelabel("Aubess", "IH-K665", "Water leak sensor", ["_TZ3000_kstbkt6a"]),
@@ -5748,6 +5725,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_f5efvtbv",
             "_TZE204_lbhh5o6z",
             "_TZE284_lbhh5o6z",
+            "_TZE204_tayx2ud6",
         ]),
         model: "TS0601_switch_4_gang_1",
         vendor: "Tuya",
@@ -5757,6 +5735,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l2"),
             tuya.exposes.switch().withEndpoint("l3"),
             tuya.exposes.switch().withEndpoint("l4"),
+            tuya.exposes.powerOnBehavior(),
+            e.binary("backlight_switch", ea.ALL, true, false),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [
@@ -5768,6 +5748,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv", "_TZE284_f5efvtbv"]),
             tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z", "_TZE284_lbhh5o6z"]),
             tuya.whitelabel("Tuya", "MG-ZG04W", "4 gang switch", ["_TZE204_mexisfik"]),
+            tuya.whitelabel("Nova Digital", "ZIG-04 W/B", "4 gang switch 4x4", ["_TZE204_tayx2ud6"]),
         ],
         meta: {
             multiEndpoint: true,
@@ -5776,37 +5757,20 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "state_l2", tuya.valueConverter.onOff],
                 [3, "state_l3", tuya.valueConverter.onOff],
                 [4, "state_l4", tuya.valueConverter.onOff],
+                [
+                    14,
+                    "power_on_behavior",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+                [16, "backlight_switch", tuya.valueConverter.onOff],
             ],
         },
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1};
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jwsjbxjs", "_TZE200_leaqthqq"]),
-        model: "TS0601_switch_5_gang",
-        vendor: "Tuya",
-        description: "5 gang switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            tuya.exposes.switch().withEndpoint("l1"),
-            tuya.exposes.switch().withEndpoint("l2"),
-            tuya.exposes.switch().withEndpoint("l3"),
-            tuya.exposes.switch().withEndpoint("l4"),
-            tuya.exposes.switch().withEndpoint("l5"),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1};
-        },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, "state_l1", tuya.valueConverter.onOff],
-                [2, "state_l2", tuya.valueConverter.onOff],
-                [3, "state_l3", tuya.valueConverter.onOff],
-                [4, "state_l4", tuya.valueConverter.onOff],
-                [5, "state_l5", tuya.valueConverter.onOff],
-            ],
         },
     },
     {
@@ -5824,6 +5788,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_gxbdnfrh",
             "_TZE284_g1enhdsi",
             "_TZE284_r731zlxk",
+            "_TZE204_tpnnym5s",
         ]),
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
@@ -5844,6 +5809,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.powerOnBehavior(),
             tuya.exposes.indicatorModeNoneRelayPos(),
+            e.binary("backlight_switch", ea.ALL, true, false),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
@@ -5875,6 +5841,7 @@ export const definitions: DefinitionWithExtend[] = [
                         pos: tuya.enum(2),
                     }),
                 ],
+                [16, "backlight_switch", tuya.valueConverter.onOff],
             ],
         },
         whiteLabel: [
@@ -5883,6 +5850,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
             tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
+            tuya.whitelabel("Nova Digital", "ZIG-06 W/B", "6 gang switch 4x4", ["_TZE204_tpnnym5s"]),
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
         ],
     },
@@ -7030,7 +6998,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (v === "off") {
                                 if (meta.options.wake_before_power_transition === true) {
                                     await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-                                    await utils.sleep(120);
+                                    await new Promise((r) => setTimeout(r, 120));
                                 }
 
                                 await tuya.sendDataPointBool(ep, 1, false, "dataRequest", 1);
@@ -7040,7 +7008,7 @@ export const definitions: DefinitionWithExtend[] = [
                             if (meta.options.wake_before_power_transition === true) {
                                 if (meta.state.system_mode === "off") {
                                     await tuya.sendDataPointBool(ep, 1, true, "dataRequest", 1);
-                                    await utils.sleep(120);
+                                    await new Promise((r) => setTimeout(r, 120));
                                 }
                             }
 
@@ -14158,22 +14126,6 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             },
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5", "_TZE200_y8wkaq6w"]),
-            {
-                model: "AY201Z",
-                vendor: "AOYAN",
-                description: "Temperature & humidity LCD sensor",
-                fingerprint: [
-                    {manufacturerName: "_TZE200_qoy0ekbd"},
-                    {manufacturerName: "_TZE200_znbl8dj5"},
-                    {manufacturerName: "_TZE200_a8sdabtg"},
-                    {manufacturerName: "_TZE200_dikkika5"},
-                    {manufacturerName: "_TZE200_vs0skpuc"},
-                    {manufacturerName: "_TZE200_3xfjp0ag"},
-                    {manufacturerName: "_TZE200_ehhrv2e3"},
-                    {manufacturerName: "_TZE200_lhqtjwax"},
-                    {manufacturerName: "_TZE200_y8wkaq6w"},
-                ],
-            },
         ],
         meta: {
             tuyaDatapoints: [
