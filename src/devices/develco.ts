@@ -212,6 +212,23 @@ const zhemi101GetMeterConfig = (
     };
 };
 
+const zhemi101PublishMissingMeterConfig = (payload: KeyValueAny, meta: Fz.Meta, config: KeyValueAny) => {
+    const fields = {
+        unit_of_measure: config.unitOfMeasure,
+        metering_device_type: config.meteringDeviceType,
+        multiplier: config.multiplier,
+        divisor: config.divisor,
+        summation_formatting: config.summationFormatting,
+        demand_formatting: config.demandFormatting,
+    };
+
+    for (const [property, value] of Object.entries(fields)) {
+        if (value !== undefined && meta.state?.[property] == null) {
+            payload[property] = value;
+        }
+    }
+};
+
 const zhemi101GetMeterConfigFromEntity = (entity: KeyValueAny, meta: Tz.Meta): KeyValueAny => {
     const cached = zhemi101MeterConfigCache.get(zhemi101MeterConfigKey(entity)) ?? {};
     const interfaceMode = zhemi101FirstDefined(cached.interfaceMode, meta.state?.interface_mode);
@@ -409,6 +426,7 @@ const develco = {
                 const data = msg.data as KeyValueAny;
                 const payload: KeyValueAny = {};
                 const summationFormatting = zhemi101FirstDefined(data.summaFormatting, data.summationFormatting);
+                zhemi101PublishMissingMeterConfig(payload, meta, config);
 
                 if (data.unitOfMeasure !== undefined) payload.unit_of_measure = data.unitOfMeasure;
                 if (data.meteringDeviceType !== undefined) payload.metering_device_type = data.meteringDeviceType;
@@ -1208,6 +1226,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHEMI101",
         vendor: "Develco",
         description: "Energy/gas/water meter interface",
+        version: "0.0.1",
         fromZigbee: [develco.fz.metering_zhemi101, develco.fz.pulse_configuration, develco.fz.interface_mode],
         toZigbee: [develco.tz.pulse_configuration, develco.tz.interface_mode_zhemi101, develco.tz.unit_summation_zhemi101],
         endpoint: (device) => {

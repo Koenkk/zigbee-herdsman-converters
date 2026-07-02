@@ -85,10 +85,58 @@ describe("converters/fromZigbee", () => {
             },
             null,
             {},
-            {state: {interface_mode: "electricity"}},
+            {state: {interface_mode: "electricity", unit_of_measure: 0, metering_device_type: 0, multiplier: 1, divisor: 1000}},
         );
 
         expect(payload).toStrictEqual({power: 280});
+    });
+
+    it("ZHEMI101 republishes missing metering metadata from stale null state", () => {
+        const device = mockDevice({
+            ieeeAddr: "0x0000000000000003",
+            modelID: "ZHEMI101",
+            endpoints: [
+                {
+                    ID: 2,
+                    attributes: {seMetering: {attributes: {unitOfMeasure: 0, multiplier: 1, divisor: 1000, meteringDeviceType: 0}}},
+                },
+            ],
+        });
+        const endpoint = device.getEndpoint(2);
+
+        const payload = zhemi101MeteringConverter?.convert(
+            // @ts-expect-error minimal model
+            zhemi101Definition,
+            {
+                data: {instantaneousDemand: 280},
+                endpoint,
+                device,
+                meta: {rawData: Buffer.from([])},
+                groupID: 0,
+                type: "attributeReport",
+                cluster: "seMetering",
+                linkquality: 0,
+            },
+            null,
+            {},
+            {
+                state: {
+                    interface_mode: "electricity",
+                    unit_of_measure: null,
+                    metering_device_type: null,
+                    multiplier: null,
+                    divisor: null,
+                },
+            },
+        );
+
+        expect(payload).toStrictEqual({
+            divisor: 1000,
+            metering_device_type: 0,
+            multiplier: 1,
+            power: 280,
+            unit_of_measure: 0,
+        });
     });
 
     it("ZHEMI101 keeps gas and water instantaneous demand in m3/h", () => {
@@ -127,7 +175,15 @@ describe("converters/fromZigbee", () => {
                 },
                 null,
                 {},
-                {state: {interface_mode: interfaceMode}},
+                {
+                    state: {
+                        interface_mode: interfaceMode,
+                        unit_of_measure: 1,
+                        metering_device_type: interfaceMode === "gas" ? 1 : 2,
+                        multiplier: 1,
+                        divisor: 1000,
+                    },
+                },
             );
 
             expect(payload).toStrictEqual({[property]: 0.28});
