@@ -15450,6 +15450,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOutageMemory: true,
                 indicatorMode: true,
                 onOffCountdown: true,
+                childLock: true,
             }),
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
