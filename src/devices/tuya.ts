@@ -10401,69 +10401,85 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Haozee", "HT-SP-ZB-01", "Smart plug (with power monitoring)", ["_TZ3210_w0qqde0g"]),
         ],
         ota: true,
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaOnOff({
-                electricalMeasurements: true,
-                electricalMeasurementsFzConverter: tuya.fz.TS011F_electrical_measurement,
-
-                // Conditional features
-                powerOutageMemory: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
-                indicatorMode: (manufacturerName) => manufacturerName !== "_TZ3000_ww6drja5",
-                childLock: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
-                onOffCountdown: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
-                switchTypeButton: true,
-            }),
-            m.identify(),
+        extend: [tuya.modernExtend.tuyaBase(), m.identify(), m.electricityMeter()],
+        fromZigbee: [
+            fz.on_off,
+            tuya.fz.on_off_countdown,
+            tuya.fz.power_outage_memory,
+            tuya.fz.child_lock,
+            tuya.fz.indicator_mode,
+            tuya.fz.switch_type_button,
         ],
+        toZigbee: [
+            tz.on_off,
+            tuya.tz.on_off_countdown,
+            tuya.tz.power_on_behavior_1,
+            tuya.tz.child_lock,
+            tuya.tz.backlight_indicator_mode_1,
+            tuya.tz.switch_type_button,
+        ],
+        // Dynamic multi-gang: first endpoint stays as unsuffixed "state"; the rest become CH<ID>.
+        // A single function controls ordering: state -> CH2..CHN -> features.
+        exposes: (device) => {
+            const eps = !utils.isDummyDevice(device) ? device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")) : [];
+            const mfr = device?.manufacturerName;
+            const feats = [];
+            feats.push(e.switch()); // first endpoint = state
+            for (const ep of eps.slice(1)) feats.push(e.switch().withEndpoint(`CH${ep.ID}`)); // CH2..CHN
+            // Features (mirrors the vendor-specific conditions of the original plug_1)
+            if (mfr !== "_TZ3000_cicwjqth") {
+                feats.push(tuya.exposes.countdown().withAccess(ea.ALL)); // first endpoint -> countdown
+                for (const ep of eps.slice(1)) feats.push(tuya.exposes.countdown().withAccess(ea.ALL).withEndpoint(`CH${ep.ID}`)); // CH2..CHN -> countdown_CHn
+            }
+            if (mfr !== "_TZ3000_cicwjqth") feats.push(tuya.exposes.powerOutageMemory());
+            if (mfr !== "_TZ3000_ww6drja5") feats.push(tuya.exposes.indicatorMode());
+            if (mfr !== "_TZ3000_cicwjqth") feats.push(e.child_lock());
+            feats.push(tuya.exposes.switchTypeButton());
+            return feats;
+        },
+        endpoint: (device) => {
+            const map: {[s: string]: number} = {};
+            const eps = device?.endpoints ? device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")) : [];
+            for (const ep of eps.slice(1)) map[`CH${ep.ID}`] = ep.ID;
+            return map;
+        },
+        meta: {
+            multiEndpoint: true,
+            // Device-level attributes must not get an endpoint suffix.
+            // Do NOT list "state" here: multi-gang switching relies on "state" being suffixed per endpoint.
+            multiEndpointSkip: ["power", "current", "voltage", "energy", "child_lock", "power_outage_memory", "indicator_mode", "switch_type"],
+        },
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-
             if (!["_TZ3000_okaz9tjs"].includes(device.manufacturerName)) {
                 // https://github.com/Koenkk/zigbee2mqtt/issues/29034
                 await reporting.currentSummDelivered(endpoint);
                 await reporting.rmsVoltage(endpoint, {change: 5});
                 await reporting.rmsCurrent(endpoint, {change: 50});
             }
-
             if (
                 !["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon", "_TZ3000_cicwjqth"].includes(
                     device.manufacturerName,
                 )
             ) {
-                // Gives INVALID_DATA_TYPE error for _TZ3000_0zfrhq4i (as well as a few others in issue 20028)
+                // Gives INVALID_DATA_TYPE for _TZ3000_0zfrhq4i and a few others (issue 20028).
                 // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
-                // Don't do this for `_TZ3000_gjnozsaz` (was previously in the list, but removed after:
-                // https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
+                // Excludes _TZ3000_gjnozsaz per https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
                 await reporting.activePower(endpoint, {change: 10});
             }
-
-            const acCurrentDivisor = ["_TZ3000_typdpbpg"].includes(device.manufacturerName) ? 2000 : 1000;
+            // Fallback scaling factors, used only when the device does not report its own
+            // multipliers/divisors. m.electricityMeter() reads them from the device and,
+            // when successful, overrides the values saved here.
             endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
-                acCurrentDivisor,
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 1,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+                acCurrentDivisor: 1000,
                 acCurrentMultiplier: 1,
             });
-            // Some TS011F plugs (e.g. _TZ3008_reatplte) report voltage/power/current scaled by a non-default
-            // factor and expose the correct multipliers/divisors via the haElectricalMeasurement cluster.
-            // Try to read each attribute individually because some devices return UNSUPPORTED_ATTRIBUTE for a
-            // subset, and reading them in bulk would cause one failure to abort the rest. Successful reads are
-            // cached by zigbee-herdsman and override the hardcoded values saved above.
-            for (const attr of [
-                "acVoltageMultiplier",
-                "acVoltageDivisor",
-                "acPowerMultiplier",
-                "acPowerDivisor",
-                "acCurrentMultiplier",
-                "acCurrentDivisor",
-            ] as const) {
-                try {
-                    await endpoint.read("haElectricalMeasurement", [attr]);
-                } catch {
-                    /* Not all Tuya plugs expose all multiplier/divisor attributes; fall back to defaults. */
-                }
-            }
             endpoint.saveClusterAttributeKeyValue("seMetering", {
                 divisor: 100,
                 multiplier: 1,
@@ -10512,6 +10528,109 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Gas sensor",
         extend: [m.iasZoneAlarm({zoneType: "gas", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+    },
+    {
+        fingerprint: [
+            {modelID: "TS011F", manufacturerName: "_TZ3000_tary5dvv"},
+            {modelID: "TS011F", manufacturerName: "_TZ3210_iooniers"},
+            {modelID: "TS011F", manufacturerName: "_TZ3000_xvfd3nkp"},
+            {modelID: "TS011F", manufacturerName: "_TZ3000_qziabvzj"},
+        ],
+        model: "TS011F_Socket",
+        description: "Smart plug (with power monitoring)",
+        vendor: "Tuya",
+        whiteLabel: [
+            tuya.whitelabel("EIGHTREE", "EIGHTREE Socket", "EIGHTREE ZigBee socket based on Tuya", [
+                "_TZ3000_tary5dvv",
+                "_TZ3210_iooniers",
+                "_TZ3000_xvfd3nkp",
+                "_TZ3000_qziabvzj",
+            ]),
+        ],
+        ota: true,
+        extend: [tuya.modernExtend.tuyaBase(), m.identify(), m.electricityMeter()],
+        fromZigbee: [
+            fz.on_off,
+            tuya.fz.on_off_countdown,
+            tuya.fz.power_outage_memory,
+            tuya.fz.child_lock,
+            tuya.fz.indicator_mode,
+            tuya.fz.switch_type_button,
+        ],
+        toZigbee: [
+            tz.on_off,
+            tuya.tz.on_off_countdown,
+            tuya.tz.power_on_behavior_1,
+            tuya.tz.child_lock,
+            tuya.tz.backlight_indicator_mode_1,
+            tuya.tz.switch_type_button,
+        ],
+        // Dynamic multi-gang: first endpoint stays as unsuffixed "state"; the rest become CH<ID>.
+        // A single function controls ordering: state -> CH2..CHN -> features.
+        exposes: (device) => {
+            const eps = !utils.isDummyDevice(device) ? device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")) : [];
+            const _mfr = device?.manufacturerName;
+            const feats = [];
+            feats.push(e.switch()); // first endpoint = state
+            for (const ep of eps.slice(1)) feats.push(e.switch().withEndpoint(`CH${ep.ID}`)); // CH2..CHN
+            // Features (mirrors the vendor-specific conditions of the original plug_1)
+            feats.push(tuya.exposes.countdown().withAccess(ea.ALL)); // first endpoint -> countdown
+            for (const ep of eps.slice(1)) feats.push(tuya.exposes.countdown().withAccess(ea.ALL).withEndpoint(`CH${ep.ID}`)); // CH2..CHN -> countdown_CHn
+
+            feats.push(tuya.exposes.powerOutageMemory());
+            feats.push(tuya.exposes.indicatorMode());
+            feats.push(e.child_lock());
+            feats.push(tuya.exposes.switchTypeButton());
+            return feats;
+        },
+        endpoint: (device) => {
+            const map: {[s: string]: number} = {};
+            const eps = device?.endpoints ? device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")) : [];
+            for (const ep of eps.slice(1)) map[`CH${ep.ID}`] = ep.ID;
+            return map;
+        },
+        meta: {
+            multiEndpoint: true,
+            // Device-level attributes must not get an endpoint suffix.
+            // Do NOT list "state" here: multi-gang switching relies on "state" being suffixed per endpoint.
+            multiEndpointSkip: ["power", "current", "voltage", "energy", "child_lock", "power_outage_memory", "indicator_mode", "switch_type"],
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+
+            if (
+                !["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon", "_TZ3000_cicwjqth"].includes(
+                    device.manufacturerName,
+                )
+            ) {
+                // Gives INVALID_DATA_TYPE for _TZ3000_0zfrhq4i and a few others (issue 20028).
+                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                // Excludes _TZ3000_gjnozsaz per https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
+                await reporting.activePower(endpoint, {change: 10});
+            }
+            // Fallback scaling factors, used only when the device does not report its own
+            // multipliers/divisors. m.electricityMeter() reads them from the device and,
+            // when successful, overrides the values saved here.
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 1,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+                acCurrentDivisor: 1000,
+                acCurrentMultiplier: 1,
+            });
+            endpoint.saveClusterAttributeKeyValue("seMetering", {
+                divisor: 100,
+                multiplier: 1,
+            });
+            utils.attachOutputCluster(device, "genOta");
+            device.save();
+        },
     },
     {
         fingerprint: [
