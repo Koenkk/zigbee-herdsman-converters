@@ -1,5 +1,22 @@
 # Changelog
 
+## [26.77.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.76.0...v26.77.0) (2026-07-02)
+
+
+### Features
+
+* **add:** AY-204ZX ([#12517](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12517)) ([c4351ce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c4351ce5854affa320f1ca2d4481c8b321424ee0))
+* **add:** TOQCB2-80-2P ([#12602](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12602)) ([782eb74](https://github.com/Koenkk/zigbee-herdsman-converters/commit/782eb747150632a33365a5a82fd1cd804bdc0156))
+* **add:** ZSN-03P ([#12594](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12594)) ([ae45db6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ae45db6b9cba89f40a3c7c907113b4e64c4d8553))
+
+
+### Bug Fixes
+
+* Soma SmartShades3: remove tilt control ([#12597](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12597)) ([4134983](https://github.com/Koenkk/zigbee-herdsman-converters/commit/413498303bda91e603f3017abed83bf0a55c4831))
+* SONOFF SWV: fix configure when optional attribute is unsupported ([#12600](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12600)) ([4146a1f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4146a1fcd4615872d8b34d7fc3155dc634190986))
+* Tuya TS011F_with_threshold: expose `child_lock` ([#12598](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12598)) ([0eddac3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0eddac344f4684ba896f9a62160ec0bcc3f5a67f))
+* Tuya: fix weather crash due to missing await ([#12595](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12595)) ([087766b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/087766b0f3712773ef4191e993e79e2a681d68d5))
+
 ## [26.76.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.75.0...v26.76.0) (2026-06-30)
 
 
