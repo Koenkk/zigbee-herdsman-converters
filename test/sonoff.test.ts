@@ -549,6 +549,32 @@ describe("Sonoff TRVZB", () => {
     });
 });
 
+describe("Sonoff SWV", () => {
+    it("continues configuring when optional water shortage auto-close attribute is unsupported", async () => {
+        const device = mockDevice({
+            modelID: "SWV",
+            endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genOnOff", "msFlowMeasurement"], inputClusterIDs: [0xfc11]}],
+        });
+        const coordinator = mockDevice({modelID: "Coordinator", endpoints: [{ID: 1}]});
+        const endpoint = device.getEndpoint(1);
+        const readFn = endpoint.read as Mock;
+        const swv = await findByDevice(device);
+
+        readFn.mockImplementation((_cluster: string, attributes: number[]) => {
+            if (attributes.includes(0x5011)) {
+                return Promise.reject(new Error("Status 'UNSUPPORTED_ATTRIBUTE'"));
+            }
+
+            return Promise.resolve({});
+        });
+
+        await expect(swv.configure(device, coordinator.getEndpoint(1), swv)).resolves.toBeUndefined();
+
+        expect(readFn).toHaveBeenCalledWith("customClusterEwelink", [0x500c]);
+        expect(readFn).toHaveBeenCalledWith("customClusterEwelink", [0x5011]);
+    });
+});
+
 describe("Sonoff SNZB-02DR2", () => {
     let device: Definition;
     let endpoint: ZHModels.Endpoint;

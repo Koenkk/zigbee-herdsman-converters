@@ -1784,6 +1784,43 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rjjsib2d"]),
+        model: "ZSN-03P",
+        vendor: "Novato",
+        description: "Temperature & humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.temperature(),
+            e.humidity(),
+            tuya.exposes.batteryState(),
+            tuya.exposes.temperatureUnit(),
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("Temperature calibration offset"),
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity calibration offset"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "temperature", tuya.valueConverter.divideBy10],
+                [2, "humidity", tuya.valueConverter.raw],
+                [3, "battery_state", tuya.valueConverter.batteryState],
+                [9, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [23, "temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [24, "humidity_calibration", tuya.valueConverter.localTempCalibration2],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lb0fsvba"]),
         model: "ZBN-DJ-63",
         vendor: "Tuya",
@@ -15413,6 +15450,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOutageMemory: true,
                 indicatorMode: true,
                 onOffCountdown: true,
+                childLock: true,
             }),
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
@@ -20219,6 +20257,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Important: respondToMcuVersionResponse should be false otherwise there is an avalanche of commandMcuVersionResponse messages every second.
         // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60})],
+        whiteLabel: [tuya.whitelabel("Tongou", "TOQCB2-80-2P", "Smart circuit breaker (2P)", ["_TZE284_mrffaamu", "_TZE204_mrffaamu"])],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -24545,7 +24584,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZK"],
+        zigbeeModel: ["ZG-204ZK", "AY-204ZX"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ka8l86iu", "_TZE200_zbfmvj13"]),
         model: "ZG-204ZK",
         vendor: "HOBEIAN",
@@ -24582,6 +24621,14 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Motion detection sensitivity"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
             e.binary("anti_interference", ea.STATE_SET, "ON", "OFF").withDescription("Anti interference function"),
+        ],
+        whiteLabel: [
+            {
+                model: "AY-204ZX",
+                vendor: "AOYAN",
+                description: "24Ghz millimeter wave and T&H sensor",
+                fingerprint: [{modelID: "AY-204ZX", manufacturerName: "AOYAN"}],
+            },
         ],
         meta: {
             tuyaDatapoints: [
