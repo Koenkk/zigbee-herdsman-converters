@@ -264,12 +264,14 @@ const zhemi101NormalizeMeterValue = (rawValue: unknown, config: KeyValueAny, isD
     const unitInfo = zhemi101UnitInfo[zhemi101ToNumber(config.unitOfMeasure) ?? -1];
     if (unitInfo === undefined) return undefined;
 
-    const normalized = raw * zhemi101Scale(config) * unitInfo.factorToTarget;
+    // The spec scales electric demand to kW; Z2M's power property is W.
+    const factorToTarget = isDemand && unitInfo.kind === "energy" ? unitInfo.factorToTarget * 1000 : unitInfo.factorToTarget;
+    const normalized = raw * zhemi101Scale(config) * factorToTarget;
     const sourceDecimals = zhemi101DecimalsFromFormatting(
         isDemand ? config.demandFormatting : config.summationFormatting,
         zhemi101DecimalsFromDivisor(config.divisor),
     );
-    const extraDecimals = unitInfo.factorToTarget === 1 ? 0 : unitInfo.factorToTarget < 1 ? Math.ceil(-Math.log10(unitInfo.factorToTarget)) + 2 : 2;
+    const extraDecimals = factorToTarget === 1 ? 0 : factorToTarget < 1 ? Math.ceil(-Math.log10(factorToTarget)) + 2 : 2;
     return utils.precisionRound(normalized, Math.min(9, sourceDecimals + extraDecimals));
 };
 
@@ -1226,7 +1228,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.energy().withDescription("Normalized cumulative energy. Source units such as kWh or BTU are converted to kWh."),
             e.produced_energy().withDescription("Normalized produced energy, when reported by the meter."),
-            e.power().withUnit("kW").withDescription("Normalized instantaneous demand. Source units such as kW or BTU/h are converted to kW."),
+            e.power().withDescription("Normalized instantaneous demand. Source units such as kW or BTU/h are converted to W."),
             e
                 .numeric("gas", ea.STATE)
                 .withUnit("m³")
