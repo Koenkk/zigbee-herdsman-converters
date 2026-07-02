@@ -1595,16 +1595,72 @@ const fzLocal = {
     } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>,
 };
 
+const shellyRpcResult = (response: KeyValue | undefined): KeyValue | undefined => {
+    const result = response?.result ?? response?.params ?? response;
+    if (!result) return undefined;
+    assertObject<KeyValue>(result);
+    return result;
+};
+
+const getShellyInputId = (meta: Pick<Tz.Meta, "endpoint_name">): number => {
+    if (meta.endpoint_name === "sw2") return 1;
+    return 0;
+};
+
+const getShellyRpcEndpoint = (entity: Zh.Endpoint | Zh.Group): Zh.Endpoint | undefined => {
+    if (!utils.isEndpoint(entity)) return undefined;
+    return entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+};
+
+const shellyInputTypeLookup = {
+    switch: "toggle",
+    button: "momentary",
+} as const;
+
+const shellyInputTypeSetLookup = {
+    toggle: "switch",
+    momentary: "button",
+} as const;
+
 const tzLocal = {
     switch_input_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
             const lookup = {toggle: 0, momentary: 1} as const;
+            const rpcEndpoint = getShellyRpcEndpoint(entity);
+            if (rpcEndpoint) {
+                const inputId = getShellyInputId(meta);
+                try {
+                    await shellyRpcSend(rpcEndpoint, "Input.SetConfig", {
+                        id: inputId,
+                        config: {type: utils.getFromLookup(value as string, shellyInputTypeSetLookup)},
+                    });
+                    return {state: {switch_type: value}};
+                } catch {
+                    // Fall back to the standard Zigbee input config cluster for devices that expose it.
+                }
+            }
+
             const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
             await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
+            const rpcEndpoint = getShellyRpcEndpoint(entity);
+            if (rpcEndpoint) {
+                const inputId = getShellyInputId(meta);
+                try {
+                    const config = shellyRpcResult(await shellyRpcRequest(rpcEndpoint, "Input.GetConfig", {id: inputId}));
+                    if (typeof config?.type === "string") {
+                        const switchType = utils.getFromLookup(config.type, shellyInputTypeLookup);
+                        meta.publish({[meta.endpoint_name ? `switch_type_${meta.endpoint_name}` : "switch_type"]: switchType});
+                    }
+                    return;
+                } catch {
+                    // Fall back to the standard Zigbee input config cluster for devices that expose it.
+                }
+            }
+
             const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
             await ep.read("genOnOffSwitchCfg", ["switchType"]);
         },
