@@ -172,7 +172,7 @@ const futurehomeExtend = {
                             | "4: plugged_in"
                             | "2: plugged_in_charging"
                             | "3: plugged_in_paused"
-                            | "5X: running"
+                            | "5: stopped"
                             | "8X: failure" = "plugged_out";
                         let chargingOn = false;
 
@@ -194,7 +194,7 @@ const futurehomeExtend = {
                                 chargingOn = false;
                                 break;
                             case 0x05: // Running
-                                chargerStatus = "5X: running";
+                                chargerStatus = "5: stopped";
                                 chargingOn = false;
                                 break;
                             case 0x08: // Failure
@@ -239,7 +239,7 @@ const futurehomeExtend = {
                         "2: plugged_in_charging",
                         "3: plugged_in_paused",
                         "4: plugged_in",
-                        "5X: running",
+                        "5: stopped",
                         "8X: failure",
                     ])
                     .withDescription("Current EV charger state"),
@@ -524,7 +524,7 @@ export const definitions: DefinitionWithExtend[] = [
                     a10: {
                         name: "a10",
                         ID: 0xef10,
-                        type: Zcl.DataType.UINT8,
+                        type: Zcl.DataType.UINT16, // tested with write
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
