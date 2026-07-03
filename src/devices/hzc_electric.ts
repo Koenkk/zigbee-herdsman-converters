@@ -162,6 +162,21 @@ const hzcExtend = {
                         const autoTime = mapAttribute(data, 0x8004, "auto_time", (v) => (Number(v) === 1 ? "ON" : "OFF"));
                         if (autoTime !== undefined) {
                             result.auto_time = autoTime;
+                            result.auto_time = autoTime;
+                            if (autoTime === "ON") {
+                                const secondsUTC = Math.round(Date.now() / 1000);
+                                const secondsLocal = secondsUTC - new Date().getTimezoneOffset() * 60;
+                                await msg.endpoint.write(
+                                    "hvacThermostat",
+                                    {
+                                        32779: {
+                                            value: secondsLocal,
+                                            type: Zcl.DataType.UINT32,
+                                        },
+                                    },
+                                    {disableResponse: true, timeout: 30000},
+                                );
+                            }
                         }
 
                         // holiday_time (0x8002 = 32770)
@@ -567,6 +582,9 @@ export const definitions: DefinitionWithExtend[] = [
             hzcExtend.hzcWindowFromZigbee(),
             hzcExtend.hzcValueFromZigbee(),
             m.thermostat({
+                localTemperature: {
+                    configure: { reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10 } },
+                },
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 systemMode: {values: ["heat", "off"]},
             }),
