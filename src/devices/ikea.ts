@@ -3,6 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import {repInterval} from "../lib/constants";
 import {
     addCustomClusterManuSpecificIkeaAirPurifier,
+    addCustomClusterManuSpecificIkeaMotionSensor,
     addCustomClusterManuSpecificIkeaSmartPlug,
     addCustomClusterManuSpecificIkeaUnknown,
     addCustomClusterManuSpecificIkeaVocIndexMeasurement,
@@ -19,6 +20,8 @@ import {
     ikeaLight,
     ikeaMediaCommands,
     ikeaModernExtend,
+    ikeaMotionSensorOnDuration,
+    ikeaMotionSensorTriggerMode,
     ikeaVoc,
     styrbarCommandOn,
     tradfriCommandsLevelCtrl,
@@ -1231,10 +1234,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "VALLHORN wireless motion sensor",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
+            addCustomClusterManuSpecificIkeaMotionSensor(),
             m.occupancy(),
             m.illuminance(),
             m.identify({isSleepy: true}),
             m.battery({voltage: true, voltageReporting: true}),
+            ikeaMotionSensorTriggerMode(),
+            ikeaMotionSensorOnDuration(),
         ],
         ota: true,
     },
