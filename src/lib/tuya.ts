@@ -1654,6 +1654,16 @@ export const valueConverter = {
             };
         },
     },
+    phaseVariant5: {
+        from: (v: string | Buffer) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v, "base64");
+            return {
+                voltage: ((buf[2] << 8) | buf[3]) / 10,
+                current: ((buf[5] << 8) | buf[6]) / 1000,
+                power: (buf[8] << 8) | buf[9],
+            };
+        },
+    },
     onOffWithZeros: {
         to: (v: string) => {
             if (v === "OFF") return false;
