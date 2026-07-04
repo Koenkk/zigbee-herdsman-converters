@@ -2500,6 +2500,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "device_restart", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [tuya.whitelabel("MOES", "ZM6LT1", "Electricity Energy Monitor", ["_TZE284_2fnssffc"])],
     },
 ];
