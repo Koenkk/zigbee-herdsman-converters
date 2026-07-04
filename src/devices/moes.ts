@@ -2486,10 +2486,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [10, "fault", tuya.valueConverter.raw],
                 [17, "alarm_set_2", tuya.valueConverter.raw],
                 [20, "clear_event", tuya.valueConverter.onOff],
-                [44, "online_state", tuya.valueConverterBasic.lookup({
-                    offline: tuya.enum(0),
-                    online: tuya.enum(1),
-                })],
+                [
+                    44,
+                    "online_state",
+                    tuya.valueConverterBasic.lookup({
+                        offline: tuya.enum(0),
+                        online: tuya.enum(1),
+                    }),
+                ],
                 [49, "ac_frequency", tuya.valueConverter.divideBy100],
                 [51, "active_energy", tuya.valueConverter.divideBy100],
                 [101, "countdown_1", tuya.valueConverter.raw],
