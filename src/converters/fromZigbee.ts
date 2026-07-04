@@ -1169,9 +1169,9 @@ export const ias_contact_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandS
         };
     },
 };
-export const ias_contact_alarm_1_report: Fz.Converter<"ssIasZone", undefined, "attributeReport"> = {
+export const ias_contact_alarm_1_report: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
-    type: "attributeReport",
+    type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
         if (zoneStatus !== undefined) {
