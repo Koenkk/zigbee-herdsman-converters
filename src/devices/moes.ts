@@ -2471,7 +2471,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
             e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Total active energy"),
             e.numeric("fault", ea.STATE).withDescription("Fault status"),
-            e.numeric("alarm_set_2", ea.STATE_SET).withDescription("Alarm set 2"),
             e.binary("clear_event", ea.STATE_SET, "ON", "OFF").withDescription("Clear event"),
             e.enum("online_state", ea.STATE, ["offline", "online"]).withDescription("Online state"),
             e.numeric("countdown_1", ea.STATE_SET).withUnit("s").withDescription("Countdown timer").withValueMin(0).withValueMax(2000),
