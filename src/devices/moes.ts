@@ -2453,8 +2453,8 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc"]),
         model: "ZM6LT1",
-        vendor: "MOES",
-        description: "Smart 1-Phase Energy Power Meter With CT Sensor Clamp",
+        vendor: "Moes",
+        description: "Smart 1-phase energy power meter with CT sensor clamp",
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,
