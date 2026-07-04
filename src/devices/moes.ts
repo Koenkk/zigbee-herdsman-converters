@@ -999,7 +999,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.min_temperature_limit(),
                 e
                     .climate()
-                    .withSetpoint("current_heating_setpoint", 5, 45, heatingStepSize, ea.STATE_SET)
+                    .withSetpoint("current_heating_setpoint", 5, 90, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
                     .withLocalTemperatureCalibration(
                         -30,
