@@ -1,6 +1,6 @@
 import {describe, expect, it} from "vitest";
 import {definitions as develcoDefinitions} from "../src/devices/develco";
-import {fromZigbee} from "../src/index";
+import {findByDevice, fromZigbee} from "../src/index";
 import {mockDevice} from "./utils";
 
 describe("converters/fromZigbee", () => {
@@ -218,6 +218,37 @@ describe("converters/fromZigbee", () => {
         expect(payload).toStrictEqual({
             battery: 1,
             voltage: 2700,
+        });
+    });
+
+    it("XHS2-UE uses voltage curve instead of stale reported battery percentage", async () => {
+        const definition = await findByDevice(mockDevice({modelID: "URC4460BC0-X-R", endpoints: []}));
+
+        const payload = fromZigbee.battery.convert(
+            definition,
+            {
+                data: {
+                    batteryVoltage: 28,
+                    batteryPercentageRemaining: 54,
+                },
+                endpoint: null,
+                device: null,
+                meta: null,
+                groupID: null,
+                type: "attributeReport",
+                cluster: "genPowerCfg",
+                linkquality: 0,
+            },
+            null,
+            {},
+            {
+                meta: {},
+            }.meta,
+        );
+
+        expect(payload).toStrictEqual({
+            battery: 100,
+            voltage: 2800,
         });
     });
 
