@@ -22,5 +22,5 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: 'Villeroy & Boch',
         description: 'My View mirror cabinet',
         extend: [m.light({"colorTemp":{"range":[153,500]}})],
-    };
+    },
 ];
