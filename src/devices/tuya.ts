@@ -2721,7 +2721,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZN2S-RS02E",
         vendor: "Tuya",
         description: "Two gang switch with colored backlight modes",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1}})],
         exposes: [
             tuya.exposes.switch().withDescription("All switches"),
             tuya.exposes.switch().withEndpoint("l1"),
