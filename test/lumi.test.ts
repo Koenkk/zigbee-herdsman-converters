@@ -1,10 +1,27 @@
 import {beforeEach, describe, expect, it} from "vitest";
-import {fromZigbee, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
+import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
 import type {Definition, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
+    describe("PS-S04D battery", () => {
+        it("decodes battery percentage (tag 24) and voltage (tag 23) from the 0x00F7 struct", () => {
+            const extend = lumiModernExtend.lumiBattery({voltageAttribute: 0x0017, percentageAttribute: 0x0018});
+            // tag 23 (0x17), uint16 (0x21) = 2916 mV; tag 24 (0x18), uint8 (0x20) = 97 %
+            const data = Buffer.from([0x17, 0x21, 0x64, 0x0b, 0x18, 0x20, 0x61]);
+            const result = extend.fromZigbee[0].convert(
+                {model: "PS-S04D"} as Definition,
+                // @ts-expect-error mock
+                {data: {247: data}},
+                null,
+                null,
+                null,
+            );
+            expect(result).toStrictEqual({battery: 97, voltage: 2916});
+        });
+    });
+
     describe("RTCZCGQ11LM configured regions", () => {
         const createPresenceMeta = (state = {}): {device: ReturnType<typeof mockDevice>; meta: Tz.Meta} => {
             const device = mockDevice({modelID: "lumi.motion.ac01", endpoints: [{ID: 1}]});
