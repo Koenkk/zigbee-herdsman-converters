@@ -11122,17 +11122,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            try {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            } catch {
-                // Some Tuya devices fail binding
-            }
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["AY-602ZL"],
@@ -11156,23 +11145,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-        endpoint: (device) => {
-            return {left: 1, right: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            try {
-                for (const ID of [1, 2]) {
-                    const endpoint = device.getEndpoint(ID);
-                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-                }
-            } catch {
-                // Some Tuya devices fail binding
-            }
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["AY-603ZL"],
@@ -11196,23 +11168,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
-        endpoint: (device) => {
-            return {left: 1, center: 2, right: 3};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            try {
-                for (const ID of [1, 2, 3]) {
-                    const endpoint = device.getEndpoint(ID);
-                    await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-                }
-            } catch {
-                // Some Tuya devices fail binding
-            }
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
     },
     {
         zigbeeModel: ["TS0014"],
