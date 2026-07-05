@@ -480,7 +480,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
                 [3, "position", tuya.valueConverter.coverPositionInverted],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
