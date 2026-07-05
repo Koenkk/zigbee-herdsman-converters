@@ -5311,7 +5311,7 @@ const tuyaClusters = {
                 tuyaMovingState: {name: "tuyaMovingState", ID: 0xf000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaCalibration: {name: "tuyaCalibration", ID: 0xf001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaMotorReversal: {name: "tuyaMotorReversal", ID: 0xf002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.ENUM8, write: true, max: 0xffff},
+                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 tuyaSwitchType: {name: "tuyaSwitchType", ID: 0x8000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {},
