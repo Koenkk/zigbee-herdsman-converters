@@ -11743,16 +11743,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_1_gang",
         vendor: "Tuya",
         description: "1 gang switch with neutral wire",
-        extend: [tuya.modernExtend.tuyaBase()],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.enumLookup({
+                name: "indicator_mode",
+                lookup: {none: 0, relay: 1, pos: 2},
+                cluster: "genOnOff",
+                attribute: {ID: 0x8001, type: DataType.ENUM8},
+                description: "Mode of the indicator light",
+            }),
+        ],
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
-        exposes: (device) => {
-            const exposes = [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])];
-            if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_ovbvmhiq") {
-                exposes.push(e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]));
-            }
-            return exposes;
-        },
+        exposes: [e.switch(), e.power_on_behavior(), e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]), e.action(["scene_1"])],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -11763,21 +11766,24 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0726_2_gang",
         vendor: "Tuya",
         description: "2 gang switch with neutral wire",
-        extend: [tuya.modernExtend.tuyaBase()],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.enumLookup({
+                name: "indicator_mode",
+                lookup: {none: 0, relay: 1, pos: 2},
+                cluster: "genOnOff",
+                attribute: {ID: 0x8001, type: DataType.ENUM8},
+                description: "Mode of the indicator light",
+            }),
+        ],
         fromZigbee: [fz.on_off, tuya.fz.power_on_behavior_2, fzLocal.TS0726_action],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_2, tzLocal.TS0726_switch_mode],
-        exposes: (device) => {
-            const exposes = [
-                ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
-                ...[1, 2].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
-                ...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
-                e.action(["scene_1", "scene_2"]),
-            ];
-            if (utils.isDummyDevice(device) || device.manufacturerName === "_TZ3000_icoxotza") {
-                exposes.push(e.enum("indicator_mode", ea.ALL, ["none", "relay", "pos"]));
-            }
-            return exposes;
-        },
+        exposes: [
+            ...[1, 2].map((ep) => e.switch().withEndpoint(`l${ep}`)),
+            ...[1, 2].map((ep) => e.power_on_behavior().withEndpoint(`l${ep}`)),
+            ...[1, 2].map((ep) => e.enum("switch_mode", ea.STATE_SET, ["switch", "scene"]).withEndpoint(`l${ep}`)),
+            e.action(["scene_1", "scene_2"]),
+        ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
