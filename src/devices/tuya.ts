@@ -14691,7 +14691,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZM"],
+        zigbeeModel: ["ZG-204ZM", "AY205Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij", "_TZE200_yflzeeqj"]),
         model: "ZG-204ZM",
         vendor: "Tuya",
@@ -14769,6 +14769,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            {
+                model: "AY205Z",
+                vendor: "AOYAN",
+                description: "PIR 24Ghz human presence sensor",
+                fingerprint: [{modelID: "AY205Z", manufacturerName: "AOYAN"}],
+            },
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_bw4ayyeh"]),
