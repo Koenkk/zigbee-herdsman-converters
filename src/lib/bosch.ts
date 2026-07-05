@@ -3577,6 +3577,18 @@ export const boschThermostatExtend = {
             scale: 100,
             reporting: {min: 30, max: "MAX", change: 20},
             access: "STATE_GET",
+            fzConvert: (_model, msg, _publish, _options, meta) => {
+                const cableSensorMode = meta.state.cable_sensor_mode ?? msg.endpoint.getClusterAttributeValue("hvacThermostat", "cableSensorMode");
+                if (cableSensorMode === "not_used" || cableSensorMode === 0x00) {
+                    return;
+                }
+
+                const value = msg.data.cableSensorTemperature;
+                if (typeof value !== "number") {
+                    throw new Error("cableSensorTemperature must be a number");
+                }
+                return {cable_sensor_temperature: value / 100};
+            },
         }),
     heaterType: () =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
