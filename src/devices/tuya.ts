@@ -11102,7 +11102,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["AY-601ZL"],
+        zigbeeModel: ["AY-601ZL", "AY-801ZL"],
         model: "AY-601ZL",
         vendor: "AOYAN",
         description: "1 gang switch module - without neutral wire",
@@ -11124,7 +11124,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["AY-602ZL"],
+        zigbeeModel: ["AY-602ZL", "AY-802ZL"],
         model: "AY-602ZL",
         vendor: "AOYAN",
         description: "2 gang switch module - without neutral wire",
@@ -11147,7 +11147,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["AY-603ZL"],
+        zigbeeModel: ["AY-603ZL", "AY-803ZL"],
         model: "AY-603ZL",
         vendor: "AOYAN",
         description: "3 gang switch module - without neutral wire",
