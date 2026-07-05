@@ -14169,7 +14169,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZM"],
+        zigbeeModel: ["ZG-204ZM", "AY205Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2aaelwxk", "_TZE200_kb5noeto", "_TZE200_tyffvoij", "_TZE200_yflzeeqj"]),
         model: "ZG-204ZM",
         vendor: "Tuya",
