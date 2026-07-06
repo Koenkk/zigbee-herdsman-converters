@@ -86,7 +86,7 @@ interface ZosungIRMessage {
         num?: number;
         freq?: number;
         type?: number;
-        key_code?: string;
+        key_code?: string;  // "@typescript-eslint/camelcase": ["off"]
     };
     key_code?: string,
     num?: number;
@@ -97,7 +97,7 @@ interface ZosungIRMessage {
 type InfraredSignal = {
     timings?: number[];
     modulation?: number;
-    repeat_count?: number;
+    repeat_count?: number;  // "@typescript-eslint/camelcase": ["off"]
 };
 
 export const zosungExtend = {
