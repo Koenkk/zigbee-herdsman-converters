@@ -78,17 +78,16 @@ interface ZosungIrControl {
     commandResponses: never;
 }
 
-/* eslint-disable @typescript-eslint/naming-convention */
 interface ZosungIRMessage {
-    key_num?: number;
+    key_num?: number; // eslint-disable-line @typescript-eslint/naming-convention
     delay?: number;
     key1?: {
         num?: number;
         freq?: number;
         type?: number;
-        key_code?: string;
+        key_code?: string; // eslint-disable-line @typescript-eslint/naming-convention
     };
-    key_code?: string,
+    key_code?: string; // eslint-disable-line @typescript-eslint/naming-convention
     num?: number;
     freq?: number;
     type?: number;
@@ -97,9 +96,8 @@ interface ZosungIRMessage {
 type InfraredSignal = {
     timings?: number[];
     modulation?: number;
-    repeat_count?: number;
+    repeat_count?: number; // eslint-disable-line @typescript-eslint/naming-convention
 };
-/* eslint-enable @typescript-eslint/naming-convention */
 
 export const zosungExtend = {
     addZosungIRTransmitCluster: () =>
