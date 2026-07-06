@@ -404,7 +404,7 @@ const hzcExtend = {
             cluster: "hvacUserInterfaceCfg",
             attribute: {ID: 0x8002, type: Zcl.DataType.UINT8},
             description: "Holiday time in days",
-            valueMin: 0,
+            valueMin: 1,
             valueMax: 99,
             access: "ALL",
             reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
