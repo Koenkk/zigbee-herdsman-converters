@@ -78,6 +78,28 @@ interface ZosungIrControl {
     commandResponses: never;
 }
 
+
+interface ZosungIRMessage {
+    key_num?: number;
+    delay?: number;
+    key1?: {
+        num?: number;
+        freq?: number;
+        type?: number;
+        key_code?: string;
+    };
+    key_code?: string,
+    num?: number;
+    freq?: number;
+    type?: number;
+}
+
+type InfraredSignal = {
+    timings?: number[];
+    modulation?: number;
+    repeat_count?: number;
+};
+
 export const zosungExtend = {
     addZosungIRTransmitCluster: () =>
         m.deviceAddCustomCluster("zosungIRTransmit", {
@@ -268,7 +290,7 @@ function encodeTuyaTimings(timings: number[]) {
     return bytesToBase64(Uint8Array.from(compressed));
 }
 
-function buildIrMsgFromTimings(obj: any) {
+function buildIrMsgFromTimings(obj: InfraredSignal) {
     const timings = obj.timings ?? [];
     const modulation = obj.modulation ?? 38000;
     const repeatCount = obj.repeat_count ?? 0;
@@ -295,32 +317,33 @@ function buildIrMsgFromTimings(obj: any) {
     });
 }
 
-function normalizeIrMsg(value: any | string) {
+function normalizeIrMsg(value: InfraredSignal | ZosungIRMessage | string) {
     if (value === undefined || value === null || value === "") {
         throw new Error("IR code payload is empty");
     }
 
     // Object input.
-    if (typeof value === "object" && value.timings) {
+    if (typeof value === "object" && "timings" in value ) {
         if (Array.isArray(value.timings)) {
             return buildIrMsgFromTimings(value);
         }
 
         // Already full Zosung-style object.
-        if (value.key_num !== undefined && value.key1 !== undefined) {
+        const zozung_value = <ZosungIRMessage>value;
+        if (zozung_value.key_num !== undefined && zozung_value.key1 !== undefined) {
             return JSON.stringify(value);
         }
 
         // Direct key_code object.
-        if (value.key_code !== undefined) {
+        if (zozung_value.key_code !== undefined) {
             return JSON.stringify({
                 key_num: 1,
-                delay: value.delay ?? 300,
+                delay: zozung_value.delay ?? 300,
                 key1: {
-                    num: value.num ?? 1,
-                    freq: value.freq ?? 38000,
-                    type: value.type ?? 1,
-                    key_code: value.key_code,
+                    num: zozung_value.num ?? 1,
+                    freq: zozung_value.freq ?? 38000,
+                    type: zozung_value.type ?? 1,
+                    key_code: zozung_value.key_code,
                 },
             });
         }
