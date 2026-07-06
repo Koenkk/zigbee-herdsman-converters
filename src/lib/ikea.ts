@@ -925,6 +925,59 @@ export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
     });
 }
 
+export interface IkeaMotionSensor {
+    attributes: {
+        onOnlyWhenDark: boolean;
+        onTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export function addCustomClusterManuSpecificIkeaMotionSensor(): ModernExtend {
+    return m.deviceAddCustomCluster("manuSpecificIkeaMotionSensor", {
+        name: "manuSpecificIkeaMotionSensor",
+        ID: 0xfc81,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {
+            onOnlyWhenDark: {name: "onOnlyWhenDark", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+            onTime: {name: "onTime", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
+
+export function ikeaMotionSensorTriggerMode(): ModernExtend {
+    return m.enumLookup<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>({
+        name: "lux_value",
+        lookup: {always: false, only_when_dark: true},
+        cluster: "manuSpecificIkeaMotionSensor",
+        attribute: "onOnlyWhenDark",
+        description: "Controls whether the motion sensor triggers at all times or only when illuminance is low.",
+        reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
+        label: "Illuminance sensor threshold",
+        fzConvert(model, msg, publish, options, meta) {
+            return {lux_value: msg.data.onOnlyWhenDark ? "only_when_dark" : "always"};
+        },
+    });
+}
+
+export function ikeaMotionSensorOnDuration(): ModernExtend {
+    return m.numeric<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>({
+        name: "timer",
+        cluster: "manuSpecificIkeaMotionSensor",
+        attribute: "onTime",
+        description: "How long bound devices remain on after motion is detected.",
+        unit: "s",
+        reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
+        valueMin: 10,
+        valueMax: 65534,
+        valueStep: 10,
+        label: "On duration",
+    });
+}
+
 export interface IkeaUnknown {
     attributes: never;
     commands: never;

@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as h from "../lib/heimgard";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -42,11 +43,29 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["HT-SLM-2", "HT-SLM-3"],
+        zigbeeModel: ["HT-SLM-2"],
         model: "HT-SLM-2",
         vendor: "Heimgard Technologies",
         description: "Smart (fingerprint/PIN/RFID) doorlock",
-        whiteLabel: [{model: "HT-SLM-3", description: "Entry (PIN/RFID) door lock", fingerprint: [{modelID: "HT-SLM-3"}]}],
+        fromZigbee: [h.fzLocal.slm_2_lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
+        toZigbee: [tz.lock, h.tzLocal.slm_2_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
+        meta: {pinCodeCount: 39},
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
+        },
+        exposes: [e.lock(), e.pincode(), e.battery()],
+        extend: [h.SLM_2.sound_volume()],
+    },
+    {
+        zigbeeModel: ["HT-SLM-3"],
+        model: "HT-SLM-3",
+        vendor: "Heimgard Technologies",
+        description: "Entry (PIN/RFID) door lock",
         fromZigbee: [fz.lock, fz.battery, fz.lock_pin_code_response, fz.lock_user_status_response],
         toZigbee: [tz.lock, tz.lock_sound_volume, tz.identify, tz.pincode_lock, tz.lock_userstatus],
         meta: {pinCodeCount: 39},

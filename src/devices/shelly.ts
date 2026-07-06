@@ -12,17 +12,71 @@ const ea = exposes.access;
 
 const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
+const SHELLY_PRESENCE_MAX_ZONES = 10;
+const SHELLY_RPC_DATA_READ_TIMEOUT = 10000;
 
 const NS = "zhc:shelly";
 
 const HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID = 0x0b04;
 const HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID = 0x0510;
 
+const checkOption = (device: Zh.Device | DummyDevice, options: KeyValue, key: string, defaultValue = false): boolean => {
+    if (options?.[key] === "true") return true;
+    if (options?.[key] === "false") return false;
+    if (!utils.isDummyDevice(device) && device.meta[key] !== undefined) return !!device.meta[key];
+
+    return defaultValue;
+};
+
+const shellySwitchInputEndpoints = (device: Zh.Device | DummyDevice, endpoints: Record<string, number>): Record<string, number> => {
+    if (utils.isDummyDevice(device)) return endpoints;
+
+    return Object.fromEntries(Object.entries(endpoints).filter(([, endpoint]) => device.getEndpoint(endpoint) !== undefined));
+};
+
+const shellySwitchInputExposes = (device: Zh.Device | DummyDevice, endpoints: Record<string, number>): Expose[] =>
+    Object.keys(shellySwitchInputEndpoints(device, endpoints)).map((endpoint) =>
+        e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint(endpoint),
+    );
+
+const shellyDeviceEndpoints = (endpoints: Record<string, number>): ModernExtend => ({
+    meta: {multiEndpoint: true},
+    endpoint: (device) => shellySwitchInputEndpoints(device, endpoints),
+    isModernExtend: true,
+});
+
+const shellyPresenceEndpointNames = (device: Zh.Device | DummyDevice): string[] => {
+    const count =
+        !utils.isDummyDevice(device) && typeof device.meta.presence_zone_count === "number"
+            ? Math.min(Math.max(Math.trunc(device.meta.presence_zone_count), 1), SHELLY_PRESENCE_MAX_ZONES)
+            : SHELLY_PRESENCE_MAX_ZONES;
+
+    return Array.from({length: count}, (_, index) => String(index + 1));
+};
+
 interface ShellyRPC {
     attributes: {
         data: string;
         txCtl: number;
         rxCtl: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ShellyWiFiSetup {
+    attributes: {
+        status: string;
+        ip: string;
+        actionCode: number;
+        dhcp: boolean;
+        enabled: boolean;
+        ssid: string;
+        password: string;
+        staticIp: string;
+        netMask: string;
+        gateway: string;
+        nameServer: string;
     };
     commands: never;
     commandResponses: never;
@@ -75,6 +129,79 @@ interface ShellyLightLevel {
     commands: never;
     commandResponses: never;
 }
+
+let shellyRpcSending = false;
+
+const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
+    // Since RPC messages require multiple writes to complete, we have to make sure
+    // we're not interleaving request/response transactions accidentally.
+    while (shellyRpcSending) {
+        await sleep(200);
+    }
+    try {
+        shellyRpcSending = true;
+        return await callback();
+    } finally {
+        shellyRpcSending = false;
+    }
+};
+
+const shellyRpcSendRawUnlocked = async (endpoint: Zh.Endpoint | Zh.Group, message: string) => {
+    const splitBytes = 40;
+
+    logger.debug(">>> shellyRPC write TxCtl", NS);
+    const txCtl = message.length;
+    await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {txCtl: txCtl}, SHELLY_OPTIONS);
+    logger.debug(`>>> TxCtl: ${txCtl}`, NS);
+
+    logger.debug(">>> shellyRPC write Data", NS);
+    let dataToSend = message;
+    while (dataToSend.length > 0) {
+        const data = dataToSend.substring(0, splitBytes);
+        dataToSend = dataToSend.substring(splitBytes);
+        await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {data: data}, SHELLY_OPTIONS);
+        logger.debug(`>>> Data: ${data}`, NS);
+    }
+};
+
+const shellyRpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) =>
+    shellyRpcLock(async () => await shellyRpcSendRawUnlocked(endpoint, message));
+
+const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
+    const command = {
+        id: 1,
+        method: method,
+        params: params,
+    };
+    return await shellyRpcSendRaw(endpoint, JSON.stringify(command));
+};
+
+const shellyRpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
+    return await shellyRpcLock(async () => {
+        const command = {
+            id: 1,
+            method: method,
+            params: params,
+        };
+        await shellyRpcSendRawUnlocked(endpoint, JSON.stringify(command));
+        const rxCtlResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["rxCtl"], SHELLY_OPTIONS);
+        const expectedLen = rxCtlResult.rxCtl;
+        if (!expectedLen) return undefined;
+
+        let accumulated = "";
+        while (accumulated.length < expectedLen) {
+            const dataResult = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["data"], {
+                ...SHELLY_OPTIONS,
+                timeout: SHELLY_RPC_DATA_READ_TIMEOUT,
+            });
+            if (!dataResult.data) break;
+            accumulated += dataResult.data;
+        }
+
+        if (accumulated.length < expectedLen) return undefined;
+        return JSON.parse(accumulated.substring(0, expectedLen));
+    });
+};
 
 // =============================================================================
 // WS90 Weather Station - Calculated Values (stored in device.meta for persistence)
@@ -371,6 +498,56 @@ const shellyModernExtend = {
             }),
         ];
     },
+    shellyWindowCovering(): ModernExtend {
+        const result = m.windowCovering({controls: ["lift", "tilt"]});
+        const tiltOption = e
+            .enum("cover_tilt_enabled", ea.SET, ["auto", "true", "false"])
+            .withDescription("Expose tilt/slat controls for covers with Shelly slat control enabled");
+        const exposesFn: DefinitionExposesFunction = (device, options) => {
+            const cover = e.cover().withPosition();
+            if (checkOption(device, options, "cover_tilt_enabled", true)) {
+                cover.withTilt();
+            }
+
+            return [cover];
+        };
+
+        result.exposes = [exposesFn];
+        result.options = [...(result.options ?? []), tiltOption];
+
+        return result;
+    },
+    shellyPresenceOccupancy(): ModernExtend {
+        const exposesFn: DefinitionExposesFunction = (device) => {
+            return shellyPresenceEndpointNames(device).map((endpointName) => e.occupancy().withAccess(ea.STATE_GET).withEndpoint(endpointName));
+        };
+
+        const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
+            {
+                cluster: "msOccupancySensing",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!("occupancy" in msg.data)) return;
+
+                    const endpointName = utils.getEndpointName(msg, model, meta).toString();
+                    if (!shellyPresenceEndpointNames(meta.device).includes(endpointName)) return;
+
+                    return {[utils.postfixWithEndpointName("occupancy", msg, model, meta)]: (msg.data.occupancy & 1) > 0};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["occupancy"],
+                convertGet: async (entity, key, meta) => {
+                    await determineEndpoint(entity, meta, "msOccupancySensing").read("msOccupancySensing", ["occupancy"]);
+                },
+            },
+        ];
+
+        return {exposes: [exposesFn], fromZigbee, toZigbee, isModernExtend: true};
+    },
     shellyRPCSetup(features: string[] = []): ModernExtend {
         // Set helper variables
         const shellyRPCBugFixed = false; // For firmware 20250819-150402/ga0def2d
@@ -380,6 +557,8 @@ const shellyModernExtend = {
         const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
         const featureTwoPMInputMode = features.includes("2PMInputMode");
         const featureOnePMInputMode = features.includes("1PMInputMode");
+        const featureCoverTiltAuto = features.includes("CoverTiltAuto");
+        const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
 
         // Generic helper functions
         const validateTime = (value: string) => {
@@ -389,46 +568,9 @@ const shellyModernExtend = {
             }
         };
 
-        // RPC helper functions
-        let rpcSending = false;
-
-        const rpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) => {
-            // Since RPC messages require multiple writes to complete, we have to make sure
-            // we're not interleaving them accidentally. This is good enough for now, at least
-            // until the RPC receive firmware bug is fixed by Shelly.
-            while (rpcSending) {
-                await sleep(200);
-            }
-            try {
-                rpcSending = true;
-                const splitBytes = 40;
-
-                logger.debug(">>> shellyRPC write TxCtl", NS);
-                const txCtl = message.length;
-                await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {txCtl: txCtl}, SHELLY_OPTIONS);
-                logger.debug(`>>> TxCtl: ${txCtl}`, NS);
-
-                logger.debug(">>> shellyRPC write Data", NS);
-                let dataToSend = message;
-                while (dataToSend.length > 0) {
-                    const data = dataToSend.substring(0, splitBytes);
-                    dataToSend = dataToSend.substring(splitBytes);
-                    await endpoint.write<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", {data: data}, SHELLY_OPTIONS);
-                    logger.debug(`>>> Data: ${data}`, NS);
-                }
-            } finally {
-                rpcSending = false;
-            }
-        };
-
-        const rpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
-            const command = {
-                id: 1, // We can't read replies anyway so don't care for now
-                method: method,
-                params: params,
-            };
-            return await rpcSendRaw(endpoint, JSON.stringify(command));
-        };
+        const rpcSendRaw = shellyRpcSendRaw;
+        const rpcSend = shellyRpcSend;
+        const rpcRequest = shellyRpcRequest;
 
         const rpcReceive = async (endpoint: Zh.Endpoint | Zh.Group, key: string) => {
             logger.debug(`||| shellyRPC rpcReceive(${key})`, NS);
@@ -441,6 +583,26 @@ const shellyModernExtend = {
                 const result = await endpoint.read<"shellyRPCCluster", ShellyRPC>("shellyRPCCluster", ["data"], {...SHELLY_OPTIONS, timeout: 1000});
                 logger.debug(`<<< Data: ${JSON.stringify(result)}`, NS);
             }
+        };
+
+        const getRPCEndpoint = (entity: Zh.Endpoint | Zh.Group): Zh.Endpoint | Zh.Group => {
+            utils.assertEndpoint(entity);
+            const endpoint = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+            if (!endpoint) throw new Error(`Shelly RPC endpoint ${SHELLY_ENDPOINT_ID} not found`);
+            return endpoint;
+        };
+
+        const getShellySwitchConfig = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<KeyValue | undefined> => {
+            const response = await rpcRequest(endpoint, "Switch.GetConfig", {id});
+            const result = response?.result ?? response?.params ?? response;
+            if (!result) return undefined;
+            assertObject<KeyValue>(result);
+            return result;
+        };
+
+        const getShellySwitchMode = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<string | undefined> => {
+            const config = await getShellySwitchConfig(endpoint, id);
+            return typeof config?.in_mode === "string" ? config.in_mode : undefined;
         };
 
         // Features for exposes
@@ -700,24 +862,25 @@ const shellyModernExtend = {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
-                return [
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw1"),
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw2"),
-                ];
+                return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2, sw2: 3})).map((endpoint) =>
+                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                );
             });
             toZigbee.push({
                 key: ["switch_mode"],
                 convertSet: async (entity, key, value, meta) => {
                     const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    const ep = getRPCEndpoint(entity);
                     await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
-                    await rpcSend(ep, "Switch.GetConfig", {id: switchId});
-                    await rpcReceive(ep, "rpc_rxctl");
+                    const ep = getRPCEndpoint(entity);
+                    const mode = await getShellySwitchMode(ep, switchId);
+                    if (mode) {
+                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
+                    }
                 },
             });
             configure.push(async (device) => {
@@ -725,8 +888,7 @@ const shellyModernExtend = {
                 if (!ep) return;
                 try {
                     for (const id of [0, 1]) {
-                        await rpcSend(ep, "Switch.GetConfig", {id});
-                        await rpcReceive(ep, "rpc_rxctl");
+                        await getShellySwitchConfig(ep, id);
                     }
                 } catch (e) {
                     logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
@@ -737,41 +899,178 @@ const shellyModernExtend = {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
-                return [e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint("sw1")];
+                return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2})).map((endpoint) =>
+                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                );
             });
             toZigbee.push({
                 key: ["switch_mode"],
                 convertSet: async (entity, key, value, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
+                    const ep = getRPCEndpoint(entity);
                     await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyRPCCluster");
-                    await rpcSend(ep, "Switch.GetConfig", {id: 0});
-                    await rpcReceive(ep, "rpc_rxctl");
+                    const ep = getRPCEndpoint(entity);
+                    const mode = await getShellySwitchMode(ep, 0);
+                    if (mode) {
+                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
+                    }
                 },
             });
             configure.push(async (device) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
                 if (!ep) return;
                 try {
-                    await rpcSend(ep, "Switch.GetConfig", {id: 0});
-                    await rpcReceive(ep, "rpc_rxctl");
+                    await getShellySwitchConfig(ep, 0);
                 } catch (e) {
                     logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
+                }
+            });
+        }
+        if (featureCoverTiltAuto) {
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    const response = await rpcRequest(ep, "Cover.GetConfig", {id: 0});
+                    const result = response?.result ?? response?.params ?? response;
+                    if (!result) return;
+                    assertObject<KeyValue>(result);
+                    if (!result.slat) return;
+                    assertObject<KeyValue>(result.slat);
+                    const enabled = result.slat.enable;
+                    if (typeof enabled === "boolean" && device.meta.cover_tilt_enabled !== enabled) {
+                        device.meta.cover_tilt_enabled = enabled;
+                        device.save();
+                    }
+                } catch (e) {
+                    logger.warning(`Failed to read cover_tilt_enabled during configure, use manual option to override: ${e}`, NS);
+                }
+            });
+        }
+        if (featurePresenceZonesAuto) {
+            configure.push(async (device) => {
+                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
+                try {
+                    const response = await rpcRequest(ep, "Shelly.GetConfig");
+                    const result = response?.result ?? response?.params ?? response;
+                    if (!result) return;
+                    assertObject<KeyValue>(result);
+
+                    let zoneCount = Object.keys(result).filter((key) => /^presencezone:\d+$/.test(key)).length;
+                    if (zoneCount === 0) {
+                        const presenceConfig = result.presence;
+                        if (presenceConfig) {
+                            assertObject<KeyValue>(presenceConfig);
+                            zoneCount = typeof presenceConfig.main_zone === "string" ? 1 : 0;
+                        }
+                    }
+                    if (zoneCount < 1 || zoneCount > SHELLY_PRESENCE_MAX_ZONES) return;
+
+                    if (device.meta.presence_zone_count !== zoneCount) {
+                        device.meta.presence_zone_count = zoneCount;
+                        device.save();
+                    }
+                } catch (e) {
+                    logger.warning(`Failed to read presence zones during configure, using last known or default exposed zones: ${e}`, NS);
                 }
             });
         }
         return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
     },
     shellyWiFiSetup(): ModernExtend {
-        // biome-ignore lint/suspicious/noExplicitAny: generic
-        const refresh = async (endpoint: any) => {
-            await endpoint.write("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
-            await endpoint.read("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
+        const normalizeWifiString = (value: unknown): string | undefined => (typeof value === "string" && value !== "" ? value : undefined);
+        const getKnownFullWifiSsid = (device: Zh.Device, options?: KeyValue): string | undefined => {
+            if (typeof options?.shelly_wifi_ssid === "string" && options.shelly_wifi_ssid !== "") return options.shelly_wifi_ssid;
+            if (typeof device.meta.shelly_wifi_ssid === "string" && device.meta.shelly_wifi_ssid !== "") return device.meta.shelly_wifi_ssid;
+            return undefined;
+        };
+        const cacheFullWifiSsid = (device: Zh.Device, ssid: unknown) => {
+            if (typeof ssid === "string" && ssid !== "" && device.meta.shelly_wifi_ssid !== ssid) {
+                device.meta.shelly_wifi_ssid = ssid;
+                device.save();
+            }
+        };
+        const rpcResult = (response: KeyValue | undefined): KeyValue | undefined => {
+            const result = response?.result ?? response?.params ?? response;
+            if (!result) return undefined;
+            assertObject<KeyValue>(result);
+            return result;
+        };
+        const readWifiStateViaRpc = async (endpoint: Zh.Endpoint): Promise<KeyValue | undefined> => {
+            const config = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetConfig"));
+            const status = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetStatus"));
+            const state: KeyValue = {};
+            const wifiConfig: KeyValue = {};
+
+            const sta = config?.sta;
+            if (sta) {
+                assertObject<KeyValue>(sta);
+                if (typeof sta.enable === "boolean") wifiConfig.enabled = sta.enable;
+                if (typeof sta.ssid === "string") wifiConfig.ssid = sta.ssid;
+                if (typeof sta.ipv4mode === "string") state.dhcp_enabled = sta.ipv4mode === "dhcp";
+                if (typeof sta.ip === "string") wifiConfig.static_ip = normalizeWifiString(sta.ip);
+                if (typeof sta.netmask === "string") wifiConfig.net_mask = normalizeWifiString(sta.netmask);
+                if (typeof sta.gw === "string") wifiConfig.gateway = normalizeWifiString(sta.gw);
+                if (typeof sta.nameserver === "string") wifiConfig.name_server = normalizeWifiString(sta.nameserver);
+            }
+
+            if (status) {
+                if (typeof status.status === "string") state.wifi_status = status.status;
+                if (typeof status.sta_ip === "string") state.ip_address = normalizeWifiString(status.sta_ip);
+                if (wifiConfig.ssid === undefined && typeof status.ssid === "string") wifiConfig.ssid = status.ssid;
+            }
+
+            if (Object.keys(wifiConfig).length > 0) {
+                state.wifi_config = wifiConfig;
+            }
+
+            return Object.keys(state).length > 0 ? state : undefined;
+        };
+        const refresh = async (endpoint: Zh.Endpoint, meta?: Tz.Meta) => {
+            let published = false;
+            if (meta) {
+                try {
+                    const rpcState = await readWifiStateViaRpc(endpoint);
+                    const ssid = rpcState?.wifi_config;
+                    if (ssid && utils.isObject(ssid)) {
+                        cacheFullWifiSsid(endpoint.getDevice(), ssid.ssid);
+                    }
+                    if (rpcState) {
+                        meta.publish(rpcState);
+                        published = true;
+                    }
+                } catch (e) {
+                    logger.debug(`Failed to read Wi-Fi state through Shelly RPC, falling back to setup cluster: ${e}`, NS);
+                    const ssid = getKnownFullWifiSsid(endpoint.getDevice(), meta.options);
+                    if (ssid) {
+                        meta.publish({wifi_config: {ssid}});
+                        published = true;
+                    }
+                }
+            }
+
+            if (published) {
+                return;
+            }
+
+            try {
+                await endpoint.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 0}, SHELLY_OPTIONS);
+                await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>(
+                    "shellyWiFiSetupCluster",
+                    ["status", "ip", "enabled", "dhcp", "ssid"],
+                    SHELLY_OPTIONS,
+                );
+                await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
+                await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
+                if (meta) {
+                    published = true;
+                }
+            } catch (e) {
+                logger.warning(`Failed to read Wi-Fi state through Shelly setup cluster; leaving previous state unchanged: ${e}`, NS);
+            }
         };
 
         const exposes: Expose[] = [
@@ -826,7 +1125,14 @@ const shellyModernExtend = {
 
                     // Wi-Fi config
                     if (msg.data.enabled !== undefined) wifi_config.enabled = msg.data.enabled === 1;
-                    if (msg.data.ssid !== undefined) wifi_config.ssid = msg.data.ssid;
+                    if (msg.data.ssid !== undefined) {
+                        const reportedSsid = normalizeWifiString(msg.data.ssid);
+                        const knownFullSsid = getKnownFullWifiSsid(meta.device, options);
+                        wifi_config.ssid = knownFullSsid && reportedSsid && knownFullSsid.startsWith(reportedSsid) ? knownFullSsid : reportedSsid;
+                        if (reportedSsid && (!knownFullSsid || reportedSsid.length > knownFullSsid.length)) {
+                            cacheFullWifiSsid(meta.device, reportedSsid);
+                        }
+                    }
                     if (msg.data.staticIp !== undefined) wifi_config.static_ip = msg.data.staticIp;
                     if (msg.data.netMask !== undefined) wifi_config.net_mask = msg.data.netMask;
                     if (msg.data.gateway !== undefined) wifi_config.gateway = msg.data.gateway;
@@ -848,15 +1154,19 @@ const shellyModernExtend = {
             {
                 key: ["wifi_status", "ip_address", "dhcp_enabled"],
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
-                    await refresh(ep);
+                    utils.assertEndpoint(entity);
+                    const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                    if (!ep) throw new Error(`Shelly endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                    await refresh(ep, meta);
                 },
             },
             {
                 key: ["wifi_config"],
                 convertGet: async (entity, key, meta) => {
-                    const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
-                    await refresh(ep);
+                    utils.assertEndpoint(entity);
+                    const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+                    if (!ep) throw new Error(`Shelly endpoint ${SHELLY_ENDPOINT_ID} not found`);
+                    await refresh(ep, meta);
                 },
                 convertSet: async (entity, key, value, meta) => {
                     assertObject<KeyValue>(value);
@@ -909,11 +1219,18 @@ const shellyModernExtend = {
         const configure: Configure[] = [
             async (device, coordinatorEndpoint, definition) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
+                if (!ep) return;
                 await refresh(ep);
             },
         ];
 
-        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+        const options = [
+            e
+                .text("shelly_wifi_ssid", ea.SET)
+                .withDescription("Full Wi-Fi SSID to use when the Shelly Wi-Fi setup cluster reports a shortened network name"),
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, options, isModernExtend: true};
     },
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
@@ -1248,9 +1565,8 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             if (!Object.hasOwn(msg.data, "switchType")) return {};
-            const epName = utils.getFromLookup(msg.endpoint.ID, {2: "sw1", 3: "sw1", 4: "sw2"});
-            if (!epName) return {};
-            return {[`switch_type_${epName}`]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
+            const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
+            return {[property]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
     } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
 
@@ -1479,7 +1795,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        exposes: (device) => [
             e.action([
                 "input_1_on",
                 "input_1_off",
@@ -1496,14 +1812,13 @@ export const definitions: DefinitionWithExtend[] = [
                 "input_2_triple",
                 "input_2_hold",
             ]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+            ...shellySwitchInputExposes(device, {sw1: 2, sw2: 3}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2, sw2: 3}}),
-            m.windowCovering({controls: ["lift", "tilt"]}),
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
+            shellyModernExtend.shellyWindowCovering(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
+            shellyModernExtend.shellyRPCSetup(["2PMInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1551,7 +1866,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        exposes: (device) => [
             e.action([
                 "input_1_on",
                 "input_1_off",
@@ -1568,11 +1883,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "input_2_triple",
                 "input_2_hold",
             ]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw2"),
+            ...shellySwitchInputExposes(device, {sw1: 3, sw2: 4}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, sw1: 3, sw2: 4}}),
+            shellyDeviceEndpoints({l1: 1, l2: 2, sw1: 3, sw2: 4}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
@@ -1987,19 +2301,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Presence Gen4 Zigbee",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
-            m.occupancy({reporting: false, endpointNames: ["1"]}),
-            m.occupancy({reporting: false, endpointNames: ["2"]}),
-            m.occupancy({reporting: false, endpointNames: ["3"]}),
-            m.occupancy({reporting: false, endpointNames: ["4"]}),
-            m.occupancy({reporting: false, endpointNames: ["5"]}),
-            m.occupancy({reporting: false, endpointNames: ["6"]}),
-            m.occupancy({reporting: false, endpointNames: ["7"]}),
-            m.occupancy({reporting: false, endpointNames: ["8"]}),
-            m.occupancy({reporting: false, endpointNames: ["9"]}),
-            m.occupancy({reporting: false, endpointNames: ["10"]}),
+            shellyModernExtend.shellyPresenceOccupancy(),
             ...shellyModernExtend.shellyLightLevel(),
             m.identify(),
             ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["PresenceZonesAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },

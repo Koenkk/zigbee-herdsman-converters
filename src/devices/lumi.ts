@@ -83,7 +83,9 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
     for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
         const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
         await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
-        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 3600, 1));
+        // Set report max to 0 to prevent stale actions being published
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 0, 1));
         // Initialize Aqara's per-button multi-click setting on startup.
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
@@ -2811,6 +2813,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.curtain.acn018"],
+        model: "C200",
+        vendor: "Aqara",
+        description: "Curtain motor",
+        toZigbee: [lumi.toZigbee.lumi_curtain_limits_calibration, lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM],
+        exposes: [
+            e.enum("limits_calibration", ea.SET, ["start", "end", "reset"]).withDescription("Calibrate the position limits"),
+            e
+                .enum("automatic_calibration", ea.SET, ["calibrate"])
+                .withDescription("Performs an automatic calibration process similar to Aqara’s method to set curtain limits."),
+        ],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
+            lumiCurtainSpeed(),
+            lumiCurtainManualOpenClose(),
+            lumiCurtainAdaptivePullingSpeed(),
+            lumiCurtainManualStop(),
+            lumiCurtainReverse(),
+            lumiCurtainStatus(),
+            lumiCurtainLastManualOperation(),
+            lumiCurtainPosition(),
+            lumiCurtainTraverseTime(),
+            lumiCurtainCalibrationStatus(),
+            lumiCurtainCalibrated(),
+            lumiCurtainIdentifyBeep(),
+            m.identify(),
+            lumiZigbeeOTA(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.curtain.acn002"],
         model: "ZNJLBL01LM",
         description: "Roller shade driver E1",
@@ -5107,6 +5140,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             },
         },
+        version: "0.0.1",
         configure: configureAqaraH2EuShutterSwitch,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
@@ -5765,6 +5799,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "UT-A01E",
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
+        ota: true,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.electricityMeter({current: false, voltage: false, power: {divisor: 1}, energy: {divisor: 1000}}),
@@ -5909,9 +5944,9 @@ export const definitions: DefinitionWithExtend[] = [
 
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "absence_delay_timer",
-                valueMin: 10,
+                valueMin: 1,
                 valueMax: 300,
-                valueStep: 5,
+                valueStep: 1,
                 scale: 1,
                 unit: "sec",
                 cluster: "manuSpecificLumi",

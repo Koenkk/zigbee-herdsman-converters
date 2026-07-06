@@ -6,7 +6,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose} from "../lib/types";
+import type {DefinitionWithExtend} from "../lib/types";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -480,7 +480,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
                 [3, "position", tuya.valueConverter.coverPositionInverted],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
@@ -999,7 +999,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.min_temperature_limit(),
                 e
                     .climate()
-                    .withSetpoint("current_heating_setpoint", 5, 45, heatingStepSize, ea.STATE_SET)
+                    .withSetpoint("current_heating_setpoint", 5, 90, heatingStepSize, ea.STATE_SET)
                     .withLocalTemperature(ea.STATE)
                     .withLocalTemperatureCalibration(
                         -30,
@@ -1334,7 +1334,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3290_j37rooaxrcdcqo5n",
             "_TZ3290_ot6ewjvmejq5ekhl",
             "_TZ3290_xjpbcxn92aaxvmlz",
-            "_TZ3290_gnl5a6a5xvql7c2a",
             "_TZ3290_yyax9ajf",
             "_TZ3290_nkpxapoz",
             "_TZ3290_785fbxik",
@@ -1353,23 +1352,15 @@ export const definitions: DefinitionWithExtend[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: (device, options) => {
-            const exposes: Expose[] = [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()];
-            if (device.manufacturerName !== "") {
-                exposes.push(e.battery(), e.battery_voltage());
-            }
-            return exposes;
-        },
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
-            if (device.manufacturerName !== "_TZ3290_gnl5a6a5xvql7c2a") {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-                await reporting.batteryPercentageRemaining(endpoint);
-                await reporting.batteryVoltage(endpoint);
-            }
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_gnl5a6a5xvql7c2a", "_TZ3290_785fbxik"])],
+        whiteLabel: [tuya.whitelabel("Tuya", "iH-F8260", "Universal smart IR remote control", ["_TZ3290_785fbxik"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_cjfmu5he", "_TZ3000_mq4wujmp", "_TZ3000_5af5r192", "_TZ3000_ogjpfoyn"]),
@@ -2456,6 +2447,56 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     return fields;
                 })(),
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc"]),
+        model: "ZM6LT1",
+        vendor: "Moes",
+        description: "Smart 1-phase energy power meter with CT sensor clamp",
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryIntervalSeconds: 60,
+            }),
+        ],
+        exposes: [
+            e.energy(),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.ac_frequency(),
+            e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
+            e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Total active energy"),
+            e.numeric("fault", ea.STATE).withDescription("Fault status"),
+            e.binary("clear_event", ea.STATE_SET, "ON", "OFF").withDescription("Clear event"),
+            e.enum("online_state", ea.STATE, ["offline", "online"]).withDescription("Online state"),
+            e.numeric("countdown_1", ea.STATE_SET).withUnit("s").withDescription("Countdown timer").withValueMin(0).withValueMax(2000),
+            e.binary("device_restart", ea.SET, "ON", "OFF").withDescription("Device restart"),
+        ],
+        meta: {
+            multiEndpointSkip: ["reverse_energy", "active_energy"],
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [2, "reverse_energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant5],
+                [10, "fault", tuya.valueConverter.raw],
+                [17, "alarm_set_2", tuya.valueConverter.raw],
+                [20, "clear_event", tuya.valueConverter.onOff],
+                [
+                    44,
+                    "online_state",
+                    tuya.valueConverterBasic.lookup({
+                        offline: tuya.enum(0),
+                        online: tuya.enum(1),
+                    }),
+                ],
+                [49, "ac_frequency", tuya.valueConverter.divideBy100],
+                [51, "active_energy", tuya.valueConverter.divideBy100],
+                [101, "countdown_1", tuya.valueConverter.raw],
+                [104, "device_restart", tuya.valueConverter.onOff],
             ],
         },
     },

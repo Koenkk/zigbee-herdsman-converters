@@ -148,6 +148,39 @@ function convertReportingConfigTime(time: ReportingConfigTime): number {
     return time;
 }
 
+function getAttributeValue<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    msg: Fz.Message<Cl, Custom, ["attributeReport", "readResponse"]>,
+    cluster: Cl,
+    attribute: ClusterWithAttribute<Cl, Custom>["attribute"],
+    manufacturerCode: number | undefined,
+    device: Zh.Device | undefined,
+): unknown {
+    const attributeKey = isString(attribute) ? attribute : attribute.ID;
+    if (attributeKey in msg.data) {
+        return msg.data[attributeKey as keyof typeof msg.data];
+    }
+
+    if (isString(attribute)) {
+        return undefined;
+    }
+
+    const attributeID = attribute.ID;
+    if (typeof attributeID !== "number") {
+        return undefined;
+    }
+
+    try {
+        const clusterDefinition = Zcl.Utils.getCluster(cluster, manufacturerCode, device?.customClusters);
+        const clusterAttribute = Zcl.Utils.getClusterAttribute(clusterDefinition, attributeID, manufacturerCode);
+
+        if (clusterAttribute?.name && clusterAttribute.name in msg.data) {
+            return msg.data[clusterAttribute.name as keyof typeof msg.data];
+        }
+    } catch {
+        // Some vendor-specific raw attributes are intentionally not present in a cluster definition.
+    }
+}
+
 export async function setupAttributes<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     entity: Zh.Device | Zh.Endpoint,
     coordinatorEndpoint: Zh.Endpoint,
@@ -553,6 +586,7 @@ export interface OnOffArgs {
     endpointNames?: string[];
     configureReporting?: boolean;
     description?: string;
+    homeassistant?: exposes.HomeAssistant;
 }
 export function onOff(args: OnOffArgs = {}): ModernExtend {
     const {
@@ -561,10 +595,13 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
         configureReporting = true,
         endpointNames = undefined,
         description = undefined,
+        homeassistant = undefined,
         ota = false,
     } = args;
 
-    const exposes: Expose[] = description ? exposeEndpoints(e.switch(description), endpointNames) : exposeEndpoints(e.switch(), endpointNames);
+    const switchExpose = description ? e.switch(description) : e.switch();
+    if (homeassistant) switchExpose.withHomeAssistant(homeassistant);
+    const exposes: Expose[] = exposeEndpoints(switchExpose, endpointNames);
 
     const fromZigbee = [skipDuplicateTransaction ? fz.on_off_skip_duplicate_transaction : fz.on_off];
     const toZigbee: Tz.Converter[] = [endpointNames ? {...tz.on_off, endpoints: endpointNames} : tz.on_off];
@@ -1892,6 +1929,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
 // Uses Electrical Measurement and/or Gas Metering, but for simplicity was put here.
 type MultiplierDivisor = {multiplier?: number; divisor?: number};
 type MeterType = "electricity" | "gas"; // water, etc
+const diagnosticHomeAssistant = {entityCategory: "diagnostic"} as const satisfies exposes.HomeAssistant;
 interface MeterArgs {
     type?: MeterType;
     cluster?: "both" | "metering" | "electrical";
@@ -2202,8 +2240,8 @@ function genericMeter(args: MeterArgs = {}) {
 
     if (args.cluster === "both") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
-        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
-        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
+        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
+        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
@@ -2284,9 +2322,9 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement;
     } else if (args.cluster === "electrical") {
         if (args.power !== false) exposes.push(e.power().withAccess(ea.STATE_GET));
-        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET));
+        if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
-        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET));
+        if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
 
@@ -2304,7 +2342,10 @@ function genericMeter(args: MeterArgs = {}) {
             toZigbee.push(tz.electrical_measurement_power_phase_b, tz.electrical_measurement_power_phase_c);
         }
         if (args.voltage !== false) {
-            exposes.push(e.voltage_phase_b().withAccess(ea.STATE_GET), e.voltage_phase_c().withAccess(ea.STATE_GET));
+            exposes.push(
+                e.voltage_phase_b().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant),
+                e.voltage_phase_c().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant),
+            );
             toZigbee.push(tz.acvoltage_phase_b, tz.acvoltage_phase_c);
         }
         if (args.current !== false) {
@@ -2617,9 +2658,10 @@ export function enumLookup<Cl extends string | number, Custom extends TCustomClu
             convert:
                 fzConvert ??
                 ((model, msg, publish, options, meta) => {
-                    if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                    if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
                         // skip undefined value
-                        if (msg.data[attributeKey] !== undefined) return {[expose.property]: getFromLookupByValue(msg.data[attributeKey], lookup)};
+                        return {[expose.property]: getFromLookupByValue(value, lookup)};
                     }
                 }),
             // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -2741,13 +2783,14 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
             convert:
                 fzConvert ??
                 ((model, msg, publish, options, meta) => {
-                    if (attributeKey in msg.data) {
+                    const attributeValue = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                    if (attributeValue !== undefined) {
                         const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
                         if (endpoints && !endpoint) {
                             return;
                         }
 
-                        let value = msg.data[attributeKey];
+                        let value = attributeValue;
                         assertNumber(value);
 
                         if (scale !== undefined) {
@@ -2838,8 +2881,9 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: msg.data[attributeKey] === valueOn[1] ? valueOn[0] : valueOff[0]};
+                const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    return {[expose.property]: value === valueOn[1] ? valueOn[0] : valueOff[0]};
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic
@@ -2910,8 +2954,9 @@ export function text<Cl extends string | number, Custom extends TCustomCluster |
             cluster: cluster.toString(),
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (attributeKey in msg.data && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
-                    return {[expose.property]: msg.data[attributeKey]};
+                const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
+                if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                    return {[expose.property]: value};
                 }
             },
             // biome-ignore lint/suspicious/noExplicitAny: generic

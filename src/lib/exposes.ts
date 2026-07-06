@@ -14,6 +14,13 @@ import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export interface HomeAssistant {
+    type?: "valve";
+    entityCategory?: "config" | "diagnostic";
+    deviceClass?: string;
+    enabledByDefault?: boolean;
+    icon?: string;
+}
 
 export class Base {
     name: string;
@@ -25,6 +32,7 @@ export class Base {
     description?: string;
     features?: Feature[];
     category?: "config" | "diagnostic";
+    homeassistant?: HomeAssistant;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -70,6 +78,11 @@ export class Base {
     withCategory(category: "config" | "diagnostic") {
         this.category = category;
         this.validateCategory();
+        return this;
+    }
+
+    withHomeAssistant(homeassistant: HomeAssistant) {
+        this.homeassistant = homeassistant;
         return this;
     }
 
@@ -121,6 +134,7 @@ export class Base {
             target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
+        target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
     }
 }
 
@@ -840,6 +854,10 @@ export const options = {
         new Enum("thermostat_unit", access.SET, ["celsius", "fahrenheit"]).withDescription(
             "Controls the temperature unit of the thermostat (default celsius).",
         ),
+    homeassistant_climate_modes: () =>
+        new Enum("homeassistant_climate_modes", access.SET, ["heat", "cool", "heat_cool"])
+            .withLabel("Home Assistant climate modes")
+            .withDescription("Controls which modes are exposed in Home Assistant climate discovery (default heat)."),
     expose_pin: () =>
         new Binary("expose_pin", access.SET, true, false)
             .withLabel("Expose PIN")
