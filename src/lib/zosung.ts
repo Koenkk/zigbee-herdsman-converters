@@ -598,7 +598,7 @@ export const fzZosung = {
                 const learnedTimings = decodeTuyaTimings(rcv.buf)
                 logger.debug(`Received: ${learnedIRCode}`, NS);
                 messagesClear(msg.endpoint, seq);
-                await msg.endpoint.command(
+                await msg.endpoint.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
                     "zosungIRControl",
                     "zosungControlIRCommand00",
                     {
