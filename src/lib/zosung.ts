@@ -326,7 +326,7 @@ function normalizeIrMsg(value: InfraredSignal | ZosungIRMessage | string) {
     }
 
     // Object input.
-    if (typeof value === "object" && "timings" in value ) {
+    if (typeof value === "object" && "timings" in value) {
         if (Array.isArray(value.timings)) {
             return buildIrMsgFromTimings(value);
         }
@@ -417,37 +417,37 @@ function decodeTuyaTimings(compressed: number[]): number[] {
 
     try {
         while (pos < compressed.length) {
-        const header = compressed[pos++];
-        const blockType = header >> 5;
+            const header = compressed[pos++];
+            const blockType = header >> 5;
 
-        if (blockType === 0) {
-            // Literal block
-            const length = (header & 0x1f) + 1;
-            for (let i = 0; i < length; i++) {
-            if (pos >= compressed.length) throw new Error("Truncated literal");
-            decompressed.push(compressed[pos++]);
+            if (blockType === 0) {
+                // Literal block
+                const length = (header & 0x1f) + 1;
+                for (let i = 0; i < length; i++) {
+                    if (pos >= compressed.length) throw new Error("Truncated literal");
+                    decompressed.push(compressed[pos++]);
+                }
+            } else {
+                // Reference block
+                let length = blockType + 2;
+                if (length === 9) {
+                    // extended length: accumulate 255 bytes per 0xFF then a remainder
+                    while (pos < compressed.length && compressed[pos] === 0xff) {
+                        length += 255;
+                        pos++;
+                    }
+                    if (pos >= compressed.length) throw new Error("Truncated extended length");
+                    length += compressed[pos++];
+                }
+                if (pos >= compressed.length) throw new Error("Truncated distance");
+                const distance = (((header & 0x1f) << 8) | compressed[pos++]) >>> 0;
+                const offset = distance + 1;
+                for (let i = 0; i < length; i++) {
+                    const idx = decompressed.length - offset;
+                    if (idx < 0) throw new Error("Invalid reference offset");
+                    decompressed.push(decompressed[idx]);
+                }
             }
-        } else {
-            // Reference block
-            let length = blockType + 2;
-            if (length === 9) {
-            // extended length: accumulate 255 bytes per 0xFF then a remainder
-            while (pos < compressed.length && compressed[pos] === 0xff) {
-                length += 255;
-                pos++;
-            }
-            if (pos >= compressed.length) throw new Error("Truncated extended length");
-            length += compressed[pos++];
-            }
-            if (pos >= compressed.length) throw new Error("Truncated distance");
-            const distance = (((header & 0x1f) << 8) | compressed[pos++]) >>> 0;
-            const offset = distance + 1;
-            for (let i = 0; i < length; i++) {
-            const idx = decompressed.length - offset;
-            if (idx < 0) throw new Error("Invalid reference offset");
-            decompressed.push(decompressed[idx]);
-            }
-        }
         }
     } catch {
         // truncated or malformed stream: stop decoding and continue with what we have
@@ -621,7 +621,7 @@ export const fzZosung = {
             const rcv = messagesGet(msg.endpoint, seq);
             if (rcv) {
                 const learnedIRCode = rcv.buf.toString("base64");
-                const learnedTimings = decodeTuyaTimings(rcv.buf)
+                const learnedTimings = decodeTuyaTimings(rcv.buf);
                 logger.debug(`Received: ${learnedIRCode}`, NS);
                 messagesClear(msg.endpoint, seq);
                 await msg.endpoint.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
