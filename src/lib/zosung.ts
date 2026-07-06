@@ -79,15 +79,18 @@ interface ZosungIrControl {
 }
 
 interface ZosungIRMessage {
-    key_num?: number; // eslint-disable-line @typescript-eslint/naming-convention
+    // biome-ignore lint/style/useNamingConvention: required by protocol schema
+    key_num?: number;
     delay?: number;
     key1?: {
         num?: number;
         freq?: number;
         type?: number;
-        key_code?: string; // eslint-disable-line @typescript-eslint/naming-convention
+        // biome-ignore lint/style/useNamingConvention: required by protocol schema
+        key_code?: string;
     };
-    key_code?: string; // eslint-disable-line @typescript-eslint/naming-convention
+    // biome-ignore lint/style/useNamingConvention: required by protocol schema
+    key_code?: string;
     num?: number;
     freq?: number;
     type?: number;
@@ -96,7 +99,8 @@ interface ZosungIRMessage {
 type InfraredSignal = {
     timings?: number[];
     modulation?: number;
-    repeat_count?: number; // eslint-disable-line @typescript-eslint/naming-convention
+    // biome-ignore lint/style/useNamingConvention: required by protocol schema
+    repeat_count?: number;
 };
 
 export const zosungExtend = {
