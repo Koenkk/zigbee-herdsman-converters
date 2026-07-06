@@ -583,7 +583,7 @@ export const definitions: DefinitionWithExtend[] = [
             hzcExtend.hzcValueFromZigbee(),
             m.thermostat({
                 localTemperature: {
-                    configure: { reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10 } },
+                    configure: {reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10}},
                 },
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 5, max: 40, step: 0.5}}},
                 systemMode: {values: ["heat", "off"]},
