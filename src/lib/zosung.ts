@@ -258,11 +258,7 @@ function calcStringCrc(str: string) {
     );
 }
 
-function bytesToBase64(bytes: Uint8Array): string {
-    return Buffer.from(bytes).toString("base64");
-}
-
-function encodeTuyaTimings(timings: number[]) {
+function encodeTuyaTimings(timings: number[]): string {
     const rawBytes = new Uint8Array(timings.length * 2);
 
     for (let i = 0; i < timings.length; i++) {
@@ -290,7 +286,7 @@ function encodeTuyaTimings(timings: number[]) {
         pos += chunkLen;
     }
 
-    return bytesToBase64(Uint8Array.from(compressed));
+    return Buffer.from(Uint8Array.from(compressed)).toString("base64");
 }
 
 function buildIrMsgFromTimings(obj: InfraredSignal) {
