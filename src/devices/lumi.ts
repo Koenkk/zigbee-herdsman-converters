@@ -5923,24 +5923,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumi.lumiModernExtend.lumiPreventLeave(),
-            m.quirkCheckinInterval("1_HOUR"), // No genPollCtrl; gives the request queue a lifetime so the queued battery read (below) survives until the device wakes
+            m.quirkCheckinInterval("1_HOUR"), // No genPollCtrl; gives the request queue a lifetime so fp300BatteryPoll's queued read survives until the device wakes
             lumi.lumiModernExtend.lumiBattery({
                 voltageAttribute: 0x0017, // Attribute: 23 (battery voltage in mV)
                 percentageAttribute: 0x0018, // Attribute: 24 (battery percentage, the device's own gauge; tracks discharge consistently with attribute 23)
             }),
-            // Firmware 0.0.0_6542 never pushes the 0x00F7 struct that carries battery data, so poll it.
-            // The device is a sleepy end device: the queued read is delivered the next time it wakes up.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/32153
-            m.poll({
-                key: "battery",
-                defaultIntervalSeconds: 4 * 60 * 60,
-                poll: (device) => {
-                    device
-                        .getEndpoint(1)
-                        .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00f7], {manufacturerCode, sendPolicy: "queue"})
-                        .catch((error) => logger.debug(`Failed to read battery of '${device.ieeeAddr}' (${error})`, NS));
-                },
-            }),
+            lumi.lumiModernExtend.fp300BatteryPoll(),
             lumi.lumiModernExtend.fp1ePresence(),
             lumi.lumiModernExtend.fp300PIRDetection(),
 

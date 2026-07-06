@@ -20,6 +20,22 @@ describe("lib/lumi", () => {
             );
             expect(result).toStrictEqual({battery: 97, voltage: 2916});
         });
+
+        it("records when the 0x00F7 struct was last received, keeping the battery poll dormant while fresh", () => {
+            const extend = lumiModernExtend.fp300BatteryPoll();
+            const device = mockDevice({modelID: "lumi.sensor_occupy.agl8", endpoints: [{ID: 1}]}, "EndDevice");
+            expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeUndefined();
+            const before = Date.now();
+            extend.fromZigbee[0].convert(
+                {model: "PS-S04D"} as Definition,
+                // @ts-expect-error mock
+                {data: {247: Buffer.from([0x17, 0x21, 0x64, 0x0b])}, device},
+                null,
+                null,
+                null,
+            );
+            expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeGreaterThanOrEqual(before);
+        });
     });
 
     describe("RTCZCGQ11LM configured regions", () => {
