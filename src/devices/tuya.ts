@@ -8307,14 +8307,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", 
-        [
-        "_TZE284_pzm3wab5", 
-        "_TZE284_twybxdzl", 
-        "_TZE284_hgeqeyuv",
-        "_TZE28C1000000_twybxdzl",
-        "_TZE28C1000000_hgeqeyuv",
-        "_TZE28C1000000_pzm3wab5"
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_pzm3wab5",
+            "_TZE284_twybxdzl",
+            "_TZE284_hgeqeyuv",
+            "_TZE28C1000000_twybxdzl",
+            "_TZE28C1000000_hgeqeyuv",
+            "_TZE28C1000000_pzm3wab5",
         ]),
         model: "ZF24",
         vendor: "Tuya",
