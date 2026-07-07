@@ -6373,6 +6373,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
     },
     {
+        zigbeeModel: ["Dongle-PP10"],
+        model: "Dongle-PP10",
+        vendor: "SONOFF",
+        description: "Dongle Plus CC2674P10 (CC2674P10) with router firmware",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
+    {
         zigbeeModel: ["ZBCurtain"],
         model: "ZBCurtain",
         vendor: "SONOFF",

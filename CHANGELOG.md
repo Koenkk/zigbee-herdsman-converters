@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.79.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.78.0...v26.79.0) (2026-07-06)
+
+
+### Features
+
+* **add:** AY-601ZL, AY-602ZL, AY-603ZL ([#12521](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12521)) ([f209856](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f20985662a215f32c6bec122bf97d3cbbb657ea9))
+* **add:** Dongle-PP10 ([#12633](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12633)) ([a832fc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a832fc05d2915e8ce012e3e039f3cadfb9dfa0f8))
+* **add:** ZRS-USC-WH ([#12630](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12630)) ([d9db2dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9db2dce68919027d6a1259bf276fc86b829bec0))
+* Zozung/Tuya based IR blasters: add support for Home Assistant infrared timings ([#12634](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12634)) ([5e65e97](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e65e9795d4d080ff6b58abd13c8775297e6e893))
+
+
+### Bug Fixes
+
+* Aqara PS-S04D: fix battery never reporting ([#12624](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12624)) ([9cda578](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cda578f86ffd5ff9125bf9fb9d595978bf338bf))
+* Definition generator: fix occupancy sensor on multi endpoint device ([#12626](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12626)) ([4c62c23](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c62c2312200283a7a6791cab365ef0d7e09777b))
+* **detect:** Detect `_TZE2841000000_rccxox8p` as Tuya PA-44Z https://github.com/Koenkk/zigbee2mqtt/issues/32496 ([b4dfaa9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b4dfaa93d15d853fb5d3bdc8de0c0a7f3d2da9f6))
+* ENGO E40: expose battery information of TRV and firmware info TRV ([#12628](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12628)) ([dba448c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dba448cdd33472f57155bc027cd56b89c2c1a9ba))
+* **ignore:** bump the minor-patch group with 3 updates ([#12631](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12631)) ([c6f37f0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c6f37f0974665d6129562bbc5daacdc12257e304))
+* Tuya ZN2S-RS02E: fix endpoints ([#12629](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12629)) ([19a462c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/19a462cb062354bfa3e675b77c4df56139ea9cbb))
+
 ## [26.78.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.77.0...v26.78.0) (2026-07-05)
 
 

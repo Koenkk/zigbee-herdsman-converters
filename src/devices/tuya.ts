@@ -8307,7 +8307,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pzm3wab5", "_TZE284_twybxdzl", "_TZE284_hgeqeyuv"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_pzm3wab5",
+            "_TZE284_twybxdzl",
+            "_TZE284_hgeqeyuv",
+            "_TZE28C1000000_twybxdzl",
+            "_TZE28C1000000_hgeqeyuv",
+            "_TZE28C1000000_pzm3wab5",
+        ]),
         model: "ZF24",
         vendor: "Tuya",
         description: "Human presence sensor (millimeter wave radar)",
@@ -8357,8 +8364,8 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel("Tuya", "ZT24", "Human presence sensor (millimeter wave radar)", ["_TZE284_hgeqeyuv"]),
-            tuya.whitelabel("Tuya", "ZX24", "Human presence sensor (millimeter wave radar)", ["_TZE284_pzm3wab5"]),
+            tuya.whitelabel("Tuya", "ZT24", "Human presence sensor (millimeter wave radar)", ["_TZE284_hgeqeyuv", "_TZE28C1000000_hgeqeyuv"]),
+            tuya.whitelabel("Tuya", "ZX24", "Human presence sensor (millimeter wave radar)", ["_TZE284_pzm3wab5", "_TZE28C1000000_pzm3wab5"]),
         ],
     },
     {
@@ -10683,7 +10690,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_m9skfctm", "_TZE200_rccxox8p", "_TZE284_rccxox8p"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_m9skfctm", "_TZE200_rccxox8p", "_TZE284_rccxox8p", "_TZE2841000000_rccxox8p"]),
         model: "PA-44Z",
         vendor: "Tuya",
         description: "Photoelectric smoke detector",
@@ -27923,6 +27930,63 @@ export const definitions: DefinitionWithExtend[] = [
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [16, "backlight_mode", tuya.valueConverter.onOff],
                 [101, "child_lock", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_0kihjsys"]),
+        model: "_TZE284_0kihjsys",
+        vendor: "EyZEE",
+        description: "5-Gang TZExxx Zigbee Touch Switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e.switch().withEndpoint("l5"),
+            e
+                .binary("couple_decouple", ea.STATE_SET, "ON", "OFF")
+                .withDescription(
+                    "Effective with EyZEE Decouplar switch only. " +
+                        "Couple/Decouple: Click ON, then DOUBLE-TAP the physical button to activate Decouple mode. " +
+                        "Click OFF, then DOUBLE-TAP the physical button to deactivate Decouple mode.",
+                ),
+            e
+                .enum("indicator_mode", ea.STATE_SET, ["off", "on_off_status", "switch_position"])
+                .withDescription("Indicator Mode: off=Backlight off, on_off_status=Red ON / Blue OFF, switch_position=Pink ON / Off when OFF"),
+            e.enum("restart_status_1", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 1"),
+            e.enum("restart_status_2", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 2"),
+            e.enum("restart_status_3", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 3"),
+            e.enum("restart_status_4", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 4"),
+            e.enum("restart_status_5", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior for Switch 5"),
+            e.binary("restart_status", ea.STATE_SET, "ON", "OFF").withDescription("Global power restoration status"),
+        ],
+        endpoint: () => ({l1: 1, l2: 1, l3: 1, l4: 1, l5: 1}),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [5, "state_l5", tuya.valueConverter.onOff],
+                [7, "timer_1", tuya.valueConverter.countdown],
+                [8, "timer_2", tuya.valueConverter.countdown],
+                [9, "timer_3", tuya.valueConverter.countdown],
+                [10, "timer_4", tuya.valueConverter.countdown],
+                [11, "timer_5", tuya.valueConverter.countdown],
+                [14, "restart_status", tuya.valueConverter.onOff],
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({off: tuya.enum(0), on_off_status: tuya.enum(1), switch_position: tuya.enum(2)}),
+                ],
+                [29, "restart_status_1", tuya.valueConverter.powerOnBehaviorEnum],
+                [30, "restart_status_2", tuya.valueConverter.powerOnBehaviorEnum],
+                [31, "restart_status_3", tuya.valueConverter.powerOnBehaviorEnum],
+                [32, "restart_status_4", tuya.valueConverter.powerOnBehaviorEnum],
+                [33, "restart_status_5", tuya.valueConverter.powerOnBehaviorEnum],
             ],
         },
     },
