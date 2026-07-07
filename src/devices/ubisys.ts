@@ -111,17 +111,16 @@ const ubisys = {
                 const log = (message: string) => {
                     logger.warning(`ubisys: ${message}`, NS);
                 };
-                const sleepSeconds = async (s: number) => {
-                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
-                };
                 const waitUntilStopped = async () => {
                     let operationalStatus = 0;
                     do {
-                        await sleepSeconds(2);
-                        const response = await entity.read("closuresWindowCovering", ["operationalStatus"]);
+                        await utils.sleep(2000);
+                        const response = await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", [
+                            "operationalStatus",
+                        ]);
                         operationalStatus = response.operationalStatus;
                     } while (operationalStatus !== 0);
-                    await sleepSeconds(2);
+                    await utils.sleep(2000);
                 };
                 const writeAttrFromJson = async (
                     attr: string,
@@ -139,9 +138,13 @@ const ubisys = {
                             attrValue = converterFunc(attrValue);
                         }
                         const attributes = {[attr]: attrValue};
-                        await entity.write("closuresWindowCovering", attributes, manufacturerOptions.ubisys);
+                        await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>(
+                            "closuresWindowCovering",
+                            attributes,
+                            manufacturerOptions.ubisys,
+                        );
                         if (delaySecondsAfter) {
-                            await sleepSeconds(delaySecondsAfter);
+                            await utils.sleep(delaySecondsAfter * 1000);
                         }
                     }
                 };
@@ -151,16 +154,16 @@ const ubisys = {
                 let mode = (await entity.read("closuresWindowCovering", ["windowCoveringMode"])).windowCoveringMode;
                 const modeCalibrationBitMask = 0x02;
                 if (mode & modeCalibrationBitMask) {
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
-                        ubisysWindowCoveringMode: mode & ~modeCalibrationBitMask,
+                    await entity.write("closuresWindowCovering", {
+                        windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
-                    await sleepSeconds(2);
+                    await utils.sleep(2000);
                 }
                 // delay a bit if reconfiguring basic configuration attributes
                 await writeAttrFromJson("ubisysWindowCoveringType", undefined, undefined, 2);
                 await writeAttrFromJson("ubisysConfigStatus", undefined, undefined, 2);
                 // @ts-expect-error ignore
-                if (await writeAttrFromJson("ubisysWindowCoveringMode", undefined, undefined, 2)) {
+                if (await writeAttrFromJson("windowCoveringMode", undefined, undefined, 2)) {
                     mode = value.windowCoveringMode;
                 }
                 if (hasCalibrate) {
@@ -186,17 +189,17 @@ const ubisys = {
                         manufacturerOptions.ubisys,
                     );
                     // enable calibration mode
-                    await sleepSeconds(2);
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
-                        ubisysWindowCoveringMode: mode | modeCalibrationBitMask,
+                    await utils.sleep(2000);
+                    await entity.write("closuresWindowCovering", {
+                        windowCoveringMode: mode | modeCalibrationBitMask,
                     });
-                    await sleepSeconds(2);
+                    await utils.sleep(2000);
                     // move down a bit and back up to detect upper limit
                     log("  Moving cover down a bit...");
                     await entity.command("closuresWindowCovering", "downClose", {});
-                    await sleepSeconds(5);
+                    await utils.sleep(5000);
                     await entity.command("closuresWindowCovering", "stop", {});
-                    await sleepSeconds(2);
+                    await utils.sleep(2000);
                     log("  Moving up again to detect upper limit...");
                     await entity.command("closuresWindowCovering", "upOpen", {});
                     await waitUntilStopped();
@@ -236,11 +239,11 @@ const ubisys = {
                 if (hasCalibrate) {
                     log("  Finalizing calibration...");
                     // disable calibration mode again
-                    await sleepSeconds(2);
-                    await entity.write<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", {
-                        ubisysWindowCoveringMode: mode & ~modeCalibrationBitMask,
+                    await utils.sleep(2000);
+                    await entity.write("closuresWindowCovering", {
+                        windowCoveringMode: mode & ~modeCalibrationBitMask,
                     });
-                    await sleepSeconds(2);
+                    await utils.sleep(2000);
                     // re-read and dump all relevant attributes
                     log("  Done - will now read back the results.");
                     await ubisys.tz.configure_j1.convertGet(entity, key, meta);
@@ -262,7 +265,7 @@ const ubisys = {
                     ]),
                 );
                 log(
-                    await entity.read("closuresWindowCovering", [
+                    await entity.read<"closuresWindowCovering", UbisysClosuresWindowCovering>("closuresWindowCovering", [
                         "configStatus",
                         "windowCoveringMode",
                         "currentPositionLiftPercentage",

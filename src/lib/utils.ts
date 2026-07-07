@@ -13,6 +13,7 @@ import type {
     Fz,
     KeyValue,
     KeyValueAny,
+    PowerSource,
     Publish,
     Tz,
     Zh,
@@ -181,7 +182,7 @@ export function postfixWithEndpointName(value: string, msg: Fz.Message<any, any,
         meta = {device: null};
     }
 
-    if (definition.meta?.multiEndpoint && (!definition.meta.multiEndpointSkip || !definition.meta.multiEndpointSkip.includes(value))) {
+    if (definition.meta?.multiEndpoint && !definition.meta.multiEndpointSkip?.includes(value)) {
         const endpointName = definition.endpoint !== undefined ? getKey(definition.endpoint(meta.device), msg.endpoint.ID) : msg.endpoint.ID;
 
         // NOTE: endpointName can be undefined if we have a definition.endpoint and the endpoint is
@@ -348,7 +349,9 @@ export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
 }
 
 export async function sleep(ms: number) {
-    return await new Promise((resolve) => setTimeout(resolve, ms));
+    return await new Promise<void>((resolve) => {
+        setTimeout(resolve, ms).unref();
+    });
 }
 
 export function toSnakeCase(value: string | KeyValueAny) {
@@ -531,7 +534,7 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: NodeJS.Timeout) => {
                 clearTimeout(t);
             });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
@@ -539,11 +542,11 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
-                }, since * 1000);
+                }, since * 1000).unref();
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: NodeJS.Timeout) => {
                 clearTimeout(t);
             });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
@@ -633,41 +636,41 @@ export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, fail
     }
 };
 
-export function getFromLookup<V>(value: unknown, lookup: {[s: number | string]: V}, defaultValue: V = undefined, keyIsBool = false): V {
+export function getFromLookup<V>(key: unknown, lookup: Record<string | number, V>, defaultValue: V = undefined, keyIsBool = false): V {
     if (!keyIsBool) {
-        if (typeof value === "string") {
-            for (const key of [value, value.toLowerCase(), value.toUpperCase()]) {
-                if (lookup[key] !== undefined) {
-                    return lookup[key];
+        if (typeof key === "string") {
+            for (const k of [key, key.toLowerCase(), key.toUpperCase()]) {
+                if (lookup[k] !== undefined) {
+                    return lookup[k];
                 }
             }
-        } else if (typeof value === "number") {
-            if (lookup[value] !== undefined) {
-                return lookup[value];
+        } else if (typeof key === "number") {
+            if (lookup[key] !== undefined) {
+                return lookup[key];
             }
         } else {
-            throw new Error(`Expected string or number, got: ${typeof value}`);
+            throw new Error(`Expected string or number, got: ${typeof key}`);
         }
     } else {
         // Silly hack, but boolean is not supported as index
-        if (typeof value === "boolean") {
-            const stringValue = value.toString();
-            for (const key of [stringValue, stringValue.toLowerCase(), stringValue.toUpperCase()]) {
-                if (lookup[key] !== undefined) {
-                    return lookup[key];
+        if (typeof key === "boolean") {
+            const stringKey = key.toString();
+            for (const k of [stringKey, stringKey.toLowerCase(), stringKey.toUpperCase()]) {
+                if (lookup[k] !== undefined) {
+                    return lookup[k];
                 }
             }
         } else {
-            throw new Error(`Expected boolean, got: ${typeof value}`);
+            throw new Error(`Expected boolean, got: ${typeof key}`);
         }
     }
     if (defaultValue === undefined) {
-        throw new Error(`Value: '${value}' not found in: [${Object.keys(lookup).join(", ")}]`);
+        throw new Error(`Key '${key}' not found in: [${Object.keys(lookup).join(", ")}]`);
     }
     return defaultValue;
 }
 
-export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unknown}, defaultValue: string = undefined): string {
+export function getFromLookupByValue(value: unknown, lookup: Record<string, unknown>, defaultValue: string = undefined): string {
     for (const [key, val] of Object.entries(lookup)) {
         if (val === value) {
             return key;
@@ -679,7 +682,7 @@ export function getFromLookupByValue(value: unknown, lookup: {[s: string]: unkno
     return defaultValue;
 }
 
-export function configureSetPowerSourceWhenUnknown(powerSource: "Battery" | "Mains (single phase)"): Configure {
+export function configureSetPowerSourceWhenUnknown(powerSource: PowerSource): Configure {
     return (device: Zh.Device): void => {
         if (!device.powerSource || device.powerSource === "Unknown") {
             logger.debug(`Device has no power source, forcing to '${powerSource}'`, NS);
@@ -740,4 +743,18 @@ export function determineEndpoint(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta,
     }
     // In case no endpoint is given, match the first endpoint which support the cluster.
     return device.endpoints.find((e) => e.supportsInputCluster(cluster)) ?? device.endpoints[0];
+}
+
+export function getEndpointsWithCluster(device: Zh.Device, cluster: string | number, type: "input" | "output") {
+    if (!device.endpoints) {
+        throw new Error(`Device ${device.ieeeAddr} has no endpoints`);
+    }
+    const endpoints =
+        type === "input"
+            ? device.endpoints.filter((ep) => ep.getInputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)))
+            : device.endpoints.filter((ep) => ep.getOutputClusters().find((c) => (isNumber(cluster) ? c.ID === cluster : c.name === cluster)));
+    if (endpoints.length === 0) {
+        throw new Error(`Device ${device.ieeeAddr} has no ${type} cluster ${cluster}`);
+    }
+    return endpoints;
 }

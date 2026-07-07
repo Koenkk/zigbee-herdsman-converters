@@ -1,11 +1,10 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
 
@@ -34,6 +33,33 @@ interface Salus {
     commandResponses: never;
 }
 
+const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    SP600_power: {
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.dateCode === "20160120") {
+                // Cannot use metering, divisor/multiplier is not according to ZCL.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/2233
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
+
+                const result: KeyValueAny = {};
+                if (msg.data.instantaneousDemand !== undefined) {
+                    result.power = msg.data.instantaneousDemand;
+                }
+                // Summation is reported in Watthours
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const value = msg.data.currentSummDelivered;
+                    result.energy = value / 1000.0;
+                }
+                return result;
+            }
+            return fz.metering.convert(model, msg, publish, options, meta);
+        },
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SPE600"],
@@ -48,7 +74,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP600",
         vendor: "Salus Controls",
         description: "Smart plug (UK socket)",
-        extend: [m.onOff(), m.electricityMeter({cluster: "metering", fzMetering: fz.SP600_power})],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering", fzMetering: fzLocal.SP600_power})],
         ota: {manufacturerName: "SalusControls"},
     },
     {

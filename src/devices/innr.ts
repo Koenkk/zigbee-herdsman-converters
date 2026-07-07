@@ -2,9 +2,20 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
+
+const fzLocal = {
+    rc_110_level_to_scene: {
+        cluster: "genLevelCtrl",
+        type: ["commandMoveToLevel", "commandMoveToLevelWithOnOff"],
+        convert: (model, msg, publish, options, meta) => {
+            const scenes: KeyValueAny = {2: "1", 52: "2", 102: "3", 153: "4", 194: "5", 254: "6"};
+            return {action: `scene_${scenes[msg.data.level]}`};
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMoveToLevel", "commandMoveToLevelWithOnOff"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -81,6 +92,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Innr",
         description: "Smart round ceiling lamp comfort",
         extend: [m.light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RCL 242 C"],
+        model: "RCL 242 C",
+        vendor: "Innr",
+        description: "Round ceilng light (42cm) - white and colour",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         ota: true,
     },
     {
@@ -850,8 +869,15 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["FL 230 C"],
         model: "FL 230 C",
         vendor: "Innr",
-        description: "Lightstrip colour",
+        description: "Lightstrip colour, 3m",
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
+    },
+    {
+        zigbeeModel: ["FL 250 C"],
+        model: "FL 250 C",
+        vendor: "Innr",
+        description: "Lightstrip colour, 5m",
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
         zigbeeModel: ["OFL 120 C"],
@@ -933,6 +959,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["OSL 232 C"],
+        model: "OSL 232 C",
+        vendor: "Innr",
+        description: "Outdoor Smart Spot White & Colour",
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["BE 220"],
         model: "BE 220",
         vendor: "Innr",
@@ -944,7 +977,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RC 110",
         vendor: "Innr",
         description: "Innr RC 110 Remote Control",
-        fromZigbee: [fz.command_step, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fz.rc_110_level_to_scene],
+        fromZigbee: [fz.command_step, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fzLocal.rc_110_level_to_scene],
         toZigbee: [],
         meta: {multiEndpoint: true},
         endpoint: (device) => {
@@ -969,7 +1002,8 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "SP 244", vendor: "Innr", description: "Smart plug (US)", fingerprint: [{modelID: "SP 244"}]},
         ],
         // Needs FW 1.9.27/1.9.28+
-        extend: [m.onOff(), m.electricityMeter()],
+        extend: [m.onOff({configureReporting: true}), m.electricityMeter()],
+        version: "0.0.1",
         ota: true,
     },
     {

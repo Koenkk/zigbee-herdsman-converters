@@ -506,7 +506,7 @@ export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMe
         attribute: "measuredValue",
         reporting: {min: "1_MINUTE", max: "2_MINUTES", change: 1},
         description: "Sensirion VOC index: 100 = average, <100 = less tVOC, >100 = more tVOC",
-        access: "STATE",
+        access: "STATE_GET",
         ...args,
     });
 }
@@ -558,7 +558,7 @@ export function tradfriOccupancy(): ModernExtend {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
                         globalStore.clearValue(msg.endpoint, "timer");
-                    }, timeout * 1000);
+                    }, timeout * 1000).unref();
                     globalStore.putValue(msg.endpoint, "timer", timer);
                 }
 
@@ -753,7 +753,7 @@ export function ikeaBilresaDouble(): ModernExtend {
                 if (hasAlreadyProcessedMessage(msg, model)) return;
                 return {action: `${msg.data.value === 257 ? "off" : "on"}_double`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowSingle">,
     ];
 
     return {exposes, fromZigbee, isModernExtend: true};
@@ -775,7 +775,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 const direction = msg.data.value === 257 ? "left" : "right";
                 return {action: `arrow_${direction}_click`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowSingle">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowSingle">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowHold",
@@ -785,7 +785,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                 globalStore.putValue(msg.endpoint, "direction", direction);
                 return {action: `arrow_${direction}_hold`};
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowHold">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowHold">,
         {
             cluster: "genScenes",
             type: "commandTradfriArrowRelease",
@@ -799,7 +799,7 @@ export function ikeaArrowClick(args?: {styrbar?: boolean; bind?: boolean}): Mode
                     return result;
                 }
             },
-        } satisfies Fz.Converter<"genScenes", undefined, "commandTradfriArrowRelease">,
+        } satisfies Fz.Converter<"genScenes", IkeaGenScenesCluster, "commandTradfriArrowRelease">,
     ];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -925,6 +925,59 @@ export function addCustomClusterManuSpecificIkeaSmartPlug(): ModernExtend {
     });
 }
 
+export interface IkeaMotionSensor {
+    attributes: {
+        onOnlyWhenDark: boolean;
+        onTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+export function addCustomClusterManuSpecificIkeaMotionSensor(): ModernExtend {
+    return m.deviceAddCustomCluster("manuSpecificIkeaMotionSensor", {
+        name: "manuSpecificIkeaMotionSensor",
+        ID: 0xfc81,
+        manufacturerCode: Zcl.ManufacturerCode.IKEA_OF_SWEDEN,
+        attributes: {
+            onOnlyWhenDark: {name: "onOnlyWhenDark", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+            onTime: {name: "onTime", ID: 0x0002, type: Zcl.DataType.UINT16, write: true},
+        },
+        commands: {},
+        commandsResponse: {},
+    });
+}
+
+export function ikeaMotionSensorTriggerMode(): ModernExtend {
+    return m.enumLookup<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>({
+        name: "lux_value",
+        lookup: {always: false, only_when_dark: true},
+        cluster: "manuSpecificIkeaMotionSensor",
+        attribute: "onOnlyWhenDark",
+        description: "Controls whether the motion sensor triggers at all times or only when illuminance is low.",
+        reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
+        label: "Illuminance sensor threshold",
+        fzConvert(model, msg, publish, options, meta) {
+            return {lux_value: msg.data.onOnlyWhenDark ? "only_when_dark" : "always"};
+        },
+    });
+}
+
+export function ikeaMotionSensorOnDuration(): ModernExtend {
+    return m.numeric<"manuSpecificIkeaMotionSensor", IkeaMotionSensor>({
+        name: "timer",
+        cluster: "manuSpecificIkeaMotionSensor",
+        attribute: "onTime",
+        description: "How long bound devices remain on after motion is detected.",
+        unit: "s",
+        reporting: {min: 0, max: m.TIME_LOOKUP["1_HOUR"], change: 1},
+        valueMin: 10,
+        valueMax: 65534,
+        valueStep: 10,
+        label: "On duration",
+    });
+}
+
 export interface IkeaUnknown {
     attributes: never;
     commands: never;
@@ -989,6 +1042,44 @@ export function addCustomClusterTradfriButton(): ModernExtend {
             action3: {name: "action3", ID: 0x03, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
             action4: {name: "action4", ID: 0x04, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
             action6: {name: "action6", ID: 0x06, parameters: [{name: "data", type: Zcl.DataType.UINT8, max: 0xff}]},
+        },
+        commandsResponse: {},
+    });
+}
+
+export interface IkeaGenScenesCluster {
+    attributes: never;
+    commands: {
+        tradfriArrowSingle: {
+            value: number;
+            value2: number;
+        };
+        tradfriArrowHold: {
+            value: number;
+        };
+        tradfriArrowRelease: {
+            value: number;
+        };
+    };
+    commandResponses: never;
+}
+
+export function addIkeaGenScenesCluster(): ModernExtend {
+    return m.deviceAddCustomCluster("genScenes", {
+        name: "genScenes",
+        ID: Zcl.Clusters.genScenes.ID,
+        attributes: {},
+        commands: {
+            tradfriArrowSingle: {
+                name: "tradfriArrowSingle",
+                ID: 0x07,
+                parameters: [
+                    {name: "value", type: Zcl.DataType.UINT16, max: 0xffff},
+                    {name: "value2", type: Zcl.DataType.UINT16, max: 0xffff},
+                ],
+            },
+            tradfriArrowHold: {name: "tradfriArrowHold", ID: 0x08, parameters: [{name: "value", type: Zcl.DataType.UINT16, max: 0xffff}]},
+            tradfriArrowRelease: {name: "tradfriArrowRelease", ID: 0x09, parameters: [{name: "value", type: Zcl.DataType.UINT16, max: 0xffff}]},
         },
         commandsResponse: {},
     });

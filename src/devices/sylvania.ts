@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart+ contact and temperature sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: "3V_2100"}},
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 2800}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
@@ -138,7 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceLight({})],
     },
     {
-        zigbeeModel: ["Edge-lit Under Cabinet TW"],
+        zigbeeModel: ["Edge-lit Under Cabinet TW", "LIGHTIFY Conv Under Cabinet TW"],
         model: "72569",
         vendor: "Sylvania",
         description: "SMART+ Zigbee adjustable white edge-lit under cabinet light",

@@ -2,12 +2,12 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
-import {type DevelcoGenBasic, develcoModernExtend} from "../lib/develco";
+import {type DevelcoGenBasic, type DevelcoIasZone, type DevelcoSeMetering, develcoModernExtend} from "../lib/develco";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -30,20 +30,344 @@ const develcoLedControlMap = {
     255: "both",
 };
 
+const zhemi101Uint48Max = 0xffffffffffff;
+// UI hint only. The authoritative max depends on reported multiplier/divisor and is checked in convertSet.
+const zhemi101UnitSummationUiMax = Number.MAX_SAFE_INTEGER;
+const zhemi101UnitOfMeasure = {
+    kWh: 0x00,
+    cubicMeters: 0x01,
+    cubicFeet: 0x02,
+    ccf: 0x03,
+    usGallons: 0x04,
+    imperialGallons: 0x05,
+    btu: 0x06,
+    liters: 0x07,
+} as const;
+const zhemi101MeteringDeviceType = {
+    electricity: 0x00,
+    gas: 0x01,
+    water: 0x02,
+} as const;
+const zhemi101UnitInfo: Record<number, {kind: "energy" | "volume"; factorToTarget: number}> = {
+    [zhemi101UnitOfMeasure.kWh]: {kind: "energy", factorToTarget: 1},
+    [zhemi101UnitOfMeasure.cubicMeters]: {kind: "volume", factorToTarget: 1},
+    [zhemi101UnitOfMeasure.cubicFeet]: {kind: "volume", factorToTarget: 0.028316846592},
+    [zhemi101UnitOfMeasure.ccf]: {kind: "volume", factorToTarget: 2.8316846592},
+    [zhemi101UnitOfMeasure.usGallons]: {kind: "volume", factorToTarget: 0.003785411784},
+    [zhemi101UnitOfMeasure.imperialGallons]: {kind: "volume", factorToTarget: 0.00454609},
+    [zhemi101UnitOfMeasure.btu]: {kind: "energy", factorToTarget: 0.00029307107017222},
+    [zhemi101UnitOfMeasure.liters]: {kind: "volume", factorToTarget: 0.001},
+};
+const zhemi101MeterConfigCache = new Map<string, KeyValueAny>();
+
+const zhemi101ToNumber = (value: unknown): number | undefined => {
+    if (typeof value === "bigint") return Number(value);
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string" && value.trim() !== "") {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+};
+
+const zhemi101FirstDefined = (...values: unknown[]): unknown => values.find((value) => value !== undefined && value !== null);
+
+const zhemi101EndpointId = (endpoint: KeyValueAny): number | string => endpoint.ID ?? endpoint.id ?? endpoint.endpointID ?? "default";
+
+const zhemi101MeterConfigKey = (entity: KeyValueAny): string =>
+    `${entity.device?.ieeeAddr ?? entity.getDevice?.()?.ieeeAddr ?? "unknown"}/${zhemi101EndpointId(entity)}`;
+
+const zhemi101DecodeInterfaceMode = (value: unknown): unknown => {
+    if (typeof value === "string") return value;
+    const numericValue = zhemi101ToNumber(value);
+    return numericValue !== undefined && constants.develcoInterfaceMode[numericValue] !== undefined
+        ? constants.develcoInterfaceMode[numericValue]
+        : value;
+};
+
+const zhemi101ApplyInterfaceMode = (cache: KeyValueAny, interfaceMode: unknown, force: boolean): KeyValueAny => {
+    const modeChanged = cache.interfaceMode !== interfaceMode;
+    cache.interfaceMode = interfaceMode;
+
+    if (force || modeChanged) {
+        delete cache.multiplier;
+        delete cache.divisor;
+        delete cache.summationFormatting;
+        delete cache.demandFormatting;
+        delete cache.unitOfMeasure;
+        delete cache.meteringDeviceType;
+    }
+
+    if ((force || modeChanged || cache.unitOfMeasure === undefined) && interfaceMode === "electricity") {
+        cache.unitOfMeasure = zhemi101UnitOfMeasure.kWh;
+    } else if ((force || modeChanged || cache.unitOfMeasure === undefined) && (interfaceMode === "gas" || interfaceMode === "water")) {
+        cache.unitOfMeasure = zhemi101UnitOfMeasure.cubicMeters;
+    }
+
+    if ((force || modeChanged || cache.meteringDeviceType === undefined) && interfaceMode === "electricity") {
+        cache.meteringDeviceType = zhemi101MeteringDeviceType.electricity;
+    } else if ((force || modeChanged || cache.meteringDeviceType === undefined) && interfaceMode === "gas") {
+        cache.meteringDeviceType = zhemi101MeteringDeviceType.gas;
+    } else if ((force || modeChanged || cache.meteringDeviceType === undefined) && interfaceMode === "water") {
+        cache.meteringDeviceType = zhemi101MeteringDeviceType.water;
+    }
+
+    return cache;
+};
+
+const zhemi101ApplyStandardMeteringAttributes = (cache: KeyValueAny, data: KeyValueAny): KeyValueAny => {
+    const summationFormatting = zhemi101FirstDefined(data.summaFormatting, data.summationFormatting);
+    if (data.unitOfMeasure !== undefined) cache.unitOfMeasure = data.unitOfMeasure;
+    if (data.multiplier !== undefined) cache.multiplier = data.multiplier;
+    if (data.divisor !== undefined) cache.divisor = data.divisor;
+    if (summationFormatting !== undefined) cache.summationFormatting = summationFormatting;
+    if (data.demandFormatting !== undefined) cache.demandFormatting = data.demandFormatting;
+    if (data.meteringDeviceType !== undefined) cache.meteringDeviceType = data.meteringDeviceType;
+    return cache;
+};
+
+const zhemi101ReadMeteringConfiguration = async (entity: KeyValueAny): Promise<void> => {
+    const key = zhemi101MeterConfigKey(entity);
+    const cache = zhemi101MeterConfigCache.get(key) ?? {};
+    const data = await entity.read("seMetering", [
+        "unitOfMeasure",
+        "multiplier",
+        "divisor",
+        "summaFormatting",
+        "demandFormatting",
+        "meteringDeviceType",
+    ]);
+    zhemi101MeterConfigCache.set(key, zhemi101ApplyStandardMeteringAttributes(cache, data));
+};
+
+const zhemi101UpdateMeterConfigFromMessage = (
+    msg: Fz.Message<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
+    meta: Fz.Meta,
+): KeyValueAny => {
+    const key = zhemi101MeterConfigKey(msg.endpoint);
+    const cache = zhemi101MeterConfigCache.get(key) ?? {};
+    const data = msg.data as KeyValueAny;
+
+    if (data.develcoInterfaceMode !== undefined) {
+        zhemi101ApplyInterfaceMode(cache, zhemi101DecodeInterfaceMode(data.develcoInterfaceMode), false);
+    } else if (cache.interfaceMode === undefined && meta.state?.interface_mode !== undefined) {
+        zhemi101ApplyInterfaceMode(cache, meta.state.interface_mode, false);
+    }
+
+    zhemi101MeterConfigCache.set(key, zhemi101ApplyStandardMeteringAttributes(cache, data));
+    return zhemi101MeterConfigCache.get(key) ?? {};
+};
+
+const zhemi101GetCachedAttribute = (
+    msg: Fz.Message<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
+    attribute: string,
+): unknown => {
+    try {
+        return msg.endpoint.getClusterAttributeValue("seMetering", attribute);
+    } catch {
+        return undefined;
+    }
+};
+
+const zhemi101GetCachedEntityAttribute = (entity: KeyValueAny, attribute: string): unknown => {
+    try {
+        return entity.getClusterAttributeValue("seMetering", attribute);
+    } catch {
+        return undefined;
+    }
+};
+
+const zhemi101GetMeterConfig = (
+    msg: Fz.Message<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
+    meta: Fz.Meta,
+): KeyValueAny => {
+    const cached = zhemi101MeterConfigCache.get(zhemi101MeterConfigKey(msg.endpoint)) ?? {};
+    const interfaceMode = zhemi101FirstDefined(cached.interfaceMode, meta.state?.interface_mode);
+
+    return {
+        interfaceMode,
+        unitOfMeasure: zhemi101FirstDefined(
+            cached.unitOfMeasure,
+            zhemi101GetCachedAttribute(msg, "unitOfMeasure"),
+            interfaceMode === "electricity"
+                ? zhemi101UnitOfMeasure.kWh
+                : interfaceMode === "gas" || interfaceMode === "water"
+                  ? zhemi101UnitOfMeasure.cubicMeters
+                  : undefined,
+        ),
+        meteringDeviceType: zhemi101FirstDefined(
+            cached.meteringDeviceType,
+            zhemi101GetCachedAttribute(msg, "meteringDeviceType"),
+            interfaceMode === "electricity"
+                ? zhemi101MeteringDeviceType.electricity
+                : interfaceMode === "gas"
+                  ? zhemi101MeteringDeviceType.gas
+                  : interfaceMode === "water"
+                    ? zhemi101MeteringDeviceType.water
+                    : undefined,
+        ),
+        multiplier: zhemi101FirstDefined(cached.multiplier, zhemi101GetCachedAttribute(msg, "multiplier"), 1),
+        divisor: zhemi101FirstDefined(cached.divisor, zhemi101GetCachedAttribute(msg, "divisor"), 1000),
+        summationFormatting: zhemi101FirstDefined(cached.summationFormatting, zhemi101GetCachedAttribute(msg, "summaFormatting")),
+        demandFormatting: zhemi101FirstDefined(cached.demandFormatting, zhemi101GetCachedAttribute(msg, "demandFormatting")),
+    };
+};
+
+const zhemi101PublishMissingMeterConfig = (payload: KeyValueAny, meta: Fz.Meta, config: KeyValueAny) => {
+    const fields = {
+        unit_of_measure: config.unitOfMeasure,
+        metering_device_type: config.meteringDeviceType,
+        multiplier: config.multiplier,
+        divisor: config.divisor,
+        summation_formatting: config.summationFormatting,
+        demand_formatting: config.demandFormatting,
+    };
+
+    for (const [property, value] of Object.entries(fields)) {
+        if (value !== undefined && meta.state?.[property] == null) {
+            payload[property] = value;
+        }
+    }
+};
+
+const zhemi101GetMeterConfigFromEntity = (entity: KeyValueAny, meta: Tz.Meta): KeyValueAny => {
+    const cached = zhemi101MeterConfigCache.get(zhemi101MeterConfigKey(entity)) ?? {};
+    const interfaceMode = zhemi101FirstDefined(cached.interfaceMode, meta.state?.interface_mode);
+
+    return {
+        interfaceMode,
+        unitOfMeasure: zhemi101FirstDefined(
+            cached.unitOfMeasure,
+            zhemi101GetCachedEntityAttribute(entity, "unitOfMeasure"),
+            interfaceMode === "electricity"
+                ? zhemi101UnitOfMeasure.kWh
+                : interfaceMode === "gas" || interfaceMode === "water"
+                  ? zhemi101UnitOfMeasure.cubicMeters
+                  : undefined,
+        ),
+        multiplier: zhemi101FirstDefined(cached.multiplier, zhemi101GetCachedEntityAttribute(entity, "multiplier"), 1),
+        divisor: zhemi101FirstDefined(cached.divisor, zhemi101GetCachedEntityAttribute(entity, "divisor"), 1000),
+    };
+};
+
+const zhemi101Scale = (config: KeyValueAny): number => {
+    return zhemi101Scaling(config).scale;
+};
+
+const zhemi101Scaling = (config: KeyValueAny): {multiplier: number; divisor: number; scale: number} => {
+    const multiplier = zhemi101ToNumber(config.multiplier);
+    const divisor = zhemi101ToNumber(config.divisor);
+    const effectiveMultiplier = multiplier ?? 1;
+    const effectiveDivisor = divisor ?? 1000;
+    const scale = effectiveMultiplier !== 0 && effectiveDivisor !== 0 ? effectiveMultiplier / effectiveDivisor : 1;
+    return {multiplier: effectiveMultiplier, divisor: effectiveDivisor, scale};
+};
+
+const zhemi101DecimalsFromDivisor = (divisor: unknown): number => {
+    const value = zhemi101ToNumber(divisor);
+    if (value === undefined || value <= 0) return 3;
+    const log10 = Math.log10(value);
+    return Number.isInteger(log10) ? log10 : 3;
+};
+
+const zhemi101DecimalsFromFormatting = (formatting: unknown, fallback: number): number => {
+    const value = zhemi101ToNumber(formatting);
+    return value === undefined ? fallback : value & 0x07;
+};
+
+const zhemi101NormalizeMeterValue = (rawValue: unknown, config: KeyValueAny, isDemand: boolean): number | undefined => {
+    const raw = zhemi101ToNumber(rawValue);
+    if (raw === undefined || raw === zhemi101Uint48Max) return undefined;
+
+    const unitInfo = zhemi101UnitInfo[zhemi101ToNumber(config.unitOfMeasure) ?? -1];
+    if (unitInfo === undefined) return undefined;
+
+    // The spec scales electric demand to kW; Z2M's power property is W.
+    const factorToTarget = isDemand && unitInfo.kind === "energy" ? unitInfo.factorToTarget * 1000 : unitInfo.factorToTarget;
+    const normalized = raw * zhemi101Scale(config) * factorToTarget;
+    const sourceDecimals = zhemi101DecimalsFromFormatting(
+        isDemand ? config.demandFormatting : config.summationFormatting,
+        zhemi101DecimalsFromDivisor(config.divisor),
+    );
+    const extraDecimals = factorToTarget === 1 ? 0 : factorToTarget < 1 ? Math.ceil(-Math.log10(factorToTarget)) + 2 : 2;
+    return utils.precisionRound(normalized, Math.min(9, sourceDecimals + extraDecimals));
+};
+
+const zhemi101FormatRational = (numerator: bigint, denominator: bigint): string => {
+    const integer = numerator / denominator;
+    const remainder = numerator % denominator;
+    if (remainder === 0n) return integer.toString();
+
+    let fraction = "";
+    let scaledRemainder = remainder;
+    for (let i = 0; i < 12 && scaledRemainder !== 0n; i++) {
+        scaledRemainder *= 10n;
+        fraction += (scaledRemainder / denominator).toString();
+        scaledRemainder %= denominator;
+    }
+
+    return `${integer.toString()}.${fraction.replace(/0+$/, "")}`;
+};
+
+const zhemi101FormatUnitSummationMax = (config: KeyValueAny, unitInfo: {factorToTarget: number}): string => {
+    const {multiplier, divisor, scale} = zhemi101Scaling(config);
+    if (unitInfo.factorToTarget === 1 && Number.isInteger(multiplier) && Number.isInteger(divisor) && multiplier > 0 && divisor > 0) {
+        return zhemi101FormatRational(BigInt(zhemi101Uint48Max) * BigInt(multiplier), BigInt(divisor));
+    }
+
+    return (zhemi101Uint48Max * scale * unitInfo.factorToTarget).toLocaleString("en-US", {
+        maximumFractionDigits: 12,
+        useGrouping: false,
+    });
+};
+
+const zhemi101DenormalizeUnitSummation = (value: unknown, config: KeyValueAny): number => {
+    const normalizedValue = zhemi101ToNumber(value);
+    if (normalizedValue === undefined || normalizedValue < 0) {
+        throw new Error(`Invalid unit_summation value: ${value}`);
+    }
+
+    const unitInfo = zhemi101UnitInfo[zhemi101ToNumber(config.unitOfMeasure) ?? -1];
+    if (unitInfo === undefined) {
+        throw new Error("Cannot set unit_summation because unit of measure is not known yet");
+    }
+
+    const maxUnitSummation = zhemi101Uint48Max * zhemi101Scale(config) * unitInfo.factorToTarget;
+    if (normalizedValue > maxUnitSummation) {
+        throw new Error(
+            `unit_summation cannot exceed ${zhemi101FormatUnitSummationMax(config, unitInfo)} with the current multiplier ${zhemi101Scaling(config).multiplier} and divisor ${zhemi101Scaling(config).divisor}`,
+        );
+    }
+
+    const rawValue = normalizedValue / unitInfo.factorToTarget / zhemi101Scale(config);
+    const roundedRawValue = Math.round(rawValue);
+    if (!Number.isFinite(rawValue) || roundedRawValue < 0 || roundedRawValue > zhemi101Uint48Max) {
+        throw new Error(
+            `unit_summation cannot exceed ${zhemi101FormatUnitSummationMax(config, unitInfo)} with the current multiplier ${zhemi101Scaling(config).multiplier} and divisor ${zhemi101Scaling(config).divisor}`,
+        );
+    }
+
+    return roundedRawValue;
+};
+
+const zhemi101MeterKind = (config: KeyValueAny): "energy" | "gas" | "water" | undefined => {
+    if (config.interfaceMode === "electricity") return "energy";
+    if (config.interfaceMode === "gas") return "gas";
+    if (config.interfaceMode === "water") return "water";
+
+    const meteringDeviceType = zhemi101ToNumber(config.meteringDeviceType);
+    if (meteringDeviceType !== undefined) {
+        const deviceType = meteringDeviceType & 0x07;
+        if (deviceType === zhemi101MeteringDeviceType.electricity) return "energy";
+        if (deviceType === zhemi101MeteringDeviceType.gas) return "gas";
+        if (deviceType === zhemi101MeteringDeviceType.water) return "water";
+    }
+
+    return zhemi101UnitInfo[zhemi101ToNumber(config.unitOfMeasure) ?? -1]?.kind === "energy" ? "energy" : undefined;
+};
+
 // develco specific converters
 const develco = {
     fz: {
-        force_divisor_1000: {
-            cluster: "seMetering",
-            type: ["attributeReport"],
-            convert: (model, msg, publish, options, meta) => {
-                if (msg.data.divisor != null) {
-                    // Device sends wrong divisor (512) while it should be fixed to 1000
-                    // https://github.com/Koenkk/zigbee-herdsman-converters/issues/3066
-                    msg.endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
-                }
-            },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport"]>,
         // Some Develco devices report strange values sometimes
         // https://github.com/Koenkk/zigbee2mqtt/issues/13329
         electrical_measurement: {
@@ -52,20 +376,6 @@ const develco = {
                 if (!Number.isNaN(msg.data.rmsVoltage) && !Number.isNaN(msg.data.rmsCurrent) && !Number.isNaN(msg.data.activePower)) {
                     return fz.electrical_measurement.convert(model, msg, publish, options, meta);
                 }
-            },
-        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
-        total_power: {
-            cluster: "haElectricalMeasurement",
-            type: ["attributeReport", "readResponse"],
-            convert: (model, msg, publish, options, meta) => {
-                const result: KeyValue = {};
-                if (msg.data.totalActivePower !== undefined && !Number.isNaN(msg.data.totalActivePower)) {
-                    result[utils.postfixWithEndpointName("power", msg, model, meta)] = msg.data.totalActivePower;
-                }
-                if (msg.data.totalReactivePower !== undefined && !Number.isNaN(msg.data.totalReactivePower)) {
-                    result[utils.postfixWithEndpointName("power_reactive", msg, model, meta)] = msg.data.totalReactivePower;
-                }
-                return result;
             },
         } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
         metering: {
@@ -87,7 +397,7 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
         interface_mode: {
             cluster: "seMetering",
             type: ["attributeReport", "readResponse"],
@@ -106,7 +416,49 @@ const develco = {
 
                 return result;
             },
-        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
+        metering_zhemi101: {
+            cluster: "seMetering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                zhemi101UpdateMeterConfigFromMessage(msg, meta);
+                const config = zhemi101GetMeterConfig(msg, meta);
+                const data = msg.data as KeyValueAny;
+                const payload: KeyValueAny = {};
+                const summationFormatting = zhemi101FirstDefined(data.summaFormatting, data.summationFormatting);
+                zhemi101PublishMissingMeterConfig(payload, meta, config);
+
+                if (data.unitOfMeasure !== undefined) payload.unit_of_measure = data.unitOfMeasure;
+                if (data.meteringDeviceType !== undefined) payload.metering_device_type = data.meteringDeviceType;
+                if (summationFormatting !== undefined) payload.summation_formatting = summationFormatting;
+                if (data.demandFormatting !== undefined) payload.demand_formatting = data.demandFormatting;
+                if (data.multiplier !== undefined) payload.multiplier = data.multiplier;
+                if (data.divisor !== undefined) payload.divisor = data.divisor;
+
+                const meterKind = zhemi101MeterKind(config);
+                if (data.currentSummDelivered !== undefined) {
+                    const property =
+                        meterKind === "energy" ? "energy" : meterKind === "gas" ? "gas" : meterKind === "water" ? "water_consumed" : undefined;
+                    const value = zhemi101NormalizeMeterValue(data.currentSummDelivered, config, false);
+                    if (property !== undefined && value !== undefined) payload[utils.postfixWithEndpointName(property, msg, model, meta)] = value;
+                }
+                if (data.currentSummReceived !== undefined && meterKind === "energy") {
+                    const value = zhemi101NormalizeMeterValue(data.currentSummReceived, config, false);
+                    if (value !== undefined) payload[utils.postfixWithEndpointName("produced_energy", msg, model, meta)] = value;
+                }
+                if (data.instantaneousDemand !== undefined) {
+                    const property = meterKind === "energy" ? "power" : meterKind === "gas" || meterKind === "water" ? "flow" : undefined;
+                    const value = zhemi101NormalizeMeterValue(data.instantaneousDemand, config, true);
+                    if (property !== undefined && value !== undefined) payload[utils.postfixWithEndpointName(property, msg, model, meta)] = value;
+                }
+                if (data.status !== undefined) {
+                    payload.battery_low = (data.status & 2) > 0;
+                    payload.check_meter = (data.status & 1) > 0;
+                }
+
+                return payload;
+            },
+        } satisfies Fz.Converter<"seMetering", DevelcoSeMetering, ["attributeReport", "readResponse"]>,
         fault_status: {
             cluster: "genBinaryInput",
             type: ["attributeReport", "readResponse"],
@@ -147,35 +499,133 @@ const develco = {
 
                 return state;
             },
-        } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+        } satisfies Fz.Converter<"ssIasZone", DevelcoIasZone, ["attributeReport", "readResponse"]>,
+        metering_emizb132: {
+            cluster: "seMetering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+                const payload: KeyValueAny = {};
+                const multiplier = 1; // msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number;
+                const divisor = 1000; // msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number;
+                const factor = multiplier && divisor ? multiplier / divisor : null;
+
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const value = msg.data.currentSummDelivered;
+                    if (value === 0 || value === 0xffffffffffff || Number.isNaN(value)) {
+                        return;
+                    }
+                    const property = utils.postfixWithEndpointName("energy", msg, model, meta);
+                    payload[property] = value * (factor ?? 1);
+                }
+                if (msg.data.currentSummReceived !== undefined) {
+                    const value = msg.data.currentSummReceived;
+                    const property = utils.postfixWithEndpointName("produced_energy", msg, model, meta);
+                    payload[property] = value * (factor ?? 1);
+                }
+                return payload;
+            },
+        } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+        electrical_measurement_emizb132: {
+            cluster: "haElectricalMeasurement",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const interfaceModeLookup: Record<string, {value: number; acCurrentDivisor: number}> = {
+                    norwegian_han: {value: 0x0200, acCurrentDivisor: 10},
+                    norwegian_han_extra_load: {value: 0x0201, acCurrentDivisor: 10},
+                    aidon_meter: {value: 0x0202, acCurrentDivisor: 10},
+                    kaifa_and_kamstrup: {value: 0x0203, acCurrentDivisor: 1000},
+                };
+                const result = fz.electrical_measurement.convert(model, msg, publish, options, meta) as KeyValue;
+                // Divisor for current depends on interface_mode, adjust converted values
+                if (result && typeof result === "object") {
+                    const currentMode = (meta.state?.interface_mode as string) || "norwegian_han";
+                    const divisor = interfaceModeLookup[currentMode]?.acCurrentDivisor || 10;
+                    const clusterDivisor = msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "acCurrentDivisor") as number;
+
+                    if (result.current !== undefined) {
+                        result.current = ((result.current as number) * clusterDivisor) / divisor;
+                    }
+                    if (result.current_phase_b !== undefined) {
+                        result.current_phase_b = ((result.current_phase_b as number) * clusterDivisor) / divisor;
+                    }
+                    if (result.current_phase_c !== undefined) {
+                        result.current_phase_c = ((result.current_phase_c as number) * clusterDivisor) / divisor;
+                    }
+                }
+                return result;
+            },
+        } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+        ias_smoke_alarm_1_develco: {
+            cluster: "ssIasZone",
+            type: "commandStatusChangeNotification",
+            convert: (model, msg, publish, options, meta) => {
+                const zoneStatus = msg.data.zonestatus;
+                return {
+                    smoke: (zoneStatus & 1) > 0,
+                    battery_low: (zoneStatus & (1 << 3)) > 0,
+                    supervision_reports: (zoneStatus & (1 << 4)) > 0,
+                    restore_reports: (zoneStatus & (1 << 5)) > 0,
+                    test: (zoneStatus & (1 << 8)) > 0,
+                };
+            },
+        } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
     },
     tz: {
         pulse_configuration: {
             key: ["pulse_configuration"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoPulseConfiguration: value as number}, manufacturerOptions);
                 return {state: {pulse_configuration: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("seMetering", ["develcoPulseConfiguration"], manufacturerOptions);
+                await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoPulseConfiguration"], manufacturerOptions);
             },
         } satisfies Tz.Converter,
         interface_mode: {
             key: ["interface_mode"],
             convertSet: async (entity, key, value, meta) => {
                 const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
-                await entity.write("seMetering", payload, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", payload, manufacturerOptions);
                 return {state: {interface_mode: value}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
+                await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
+            },
+        } satisfies Tz.Converter,
+        interface_mode_zhemi101: {
+            key: ["interface_mode"],
+            convertSet: async (entity, key, value, meta) => {
+                const payload = {develcoInterfaceMode: utils.getKey(constants.develcoInterfaceMode, value, undefined, Number)};
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", payload, manufacturerOptions);
+                const cache = zhemi101MeterConfigCache.get(zhemi101MeterConfigKey(entity)) ?? {};
+                zhemi101MeterConfigCache.set(zhemi101MeterConfigKey(entity), zhemi101ApplyInterfaceMode(cache, value, true));
+                await zhemi101ReadMeteringConfiguration(entity);
+                return {state: {interface_mode: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                try {
+                    await entity.read<"seMetering", DevelcoSeMetering>("seMetering", ["develcoInterfaceMode"], manufacturerOptions);
+                } catch {
+                    // Some ZHEMI101 firmware returns a manufacturer-specific response that cannot be parsed.
+                }
+                await zhemi101ReadMeteringConfiguration(entity);
             },
         } satisfies Tz.Converter,
         current_summation: {
             key: ["current_summation"],
             convertSet: async (entity, key, value, meta) => {
-                await entity.write("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoCurrentSummation: value as number}, manufacturerOptions);
                 return {state: {current_summation: value}};
+            },
+        } satisfies Tz.Converter,
+        unit_summation_zhemi101: {
+            key: ["unit_summation"],
+            convertSet: async (entity, key, value, meta) => {
+                await zhemi101ReadMeteringConfiguration(entity);
+                const rawSummation = zhemi101DenormalizeUnitSummation(value, zhemi101GetMeterConfigFromEntity(entity, meta));
+                await entity.write<"seMetering", DevelcoSeMetering>("seMetering", {develcoCurrentSummation: rawSummation}, manufacturerOptions);
+                return {state: {unit_summation: zhemi101ToNumber(value)}};
             },
         } satisfies Tz.Converter,
         led_control: {
@@ -197,11 +647,18 @@ const develco = {
                     logger.warning(`Minimum occupancy_timeout is 5, using 5 instead of ${timeoutValue}!`, NS);
                     timeoutValue = 5;
                 }
-                await entity.write("ssIasZone", {develcoAlarmOffDelay: timeoutValue}, manufacturerOptions);
+                await entity.write<"ssIasZone", DevelcoIasZone>("ssIasZone", {develcoAlarmOffDelay: timeoutValue}, manufacturerOptions);
                 return {state: {occupancy_timeout: timeoutValue}};
             },
             convertGet: async (entity, key, meta) => {
-                await entity.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+                await entity.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+            },
+        } satisfies Tz.Converter,
+        arm_mode: {
+            key: ["arm_mode"],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertObject(value, key);
+                await tz.arm_mode.convertSet?.(entity, key, {...value, audiblenotif: value.audiblenotif ?? 1}, meta);
             },
         } satisfies Tz.Converter,
     },
@@ -243,7 +700,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.deviceTemperature(),
             m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
-            m.onOff(),
+            m.onOff({powerOnBehavior: false}),
         ],
         endpoint: (device) => {
             return {default: 2};
@@ -313,49 +770,55 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
-        fromZigbee: [develco.fz.metering, develco.fz.electrical_measurement, develco.fz.total_power, develco.fz.force_divisor_1000],
-        toZigbee: [tz.EMIZB_132_mode],
+        version: "0.0.1",
         ota: true,
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["haElectricalMeasurement", "seMetering"]);
-
-            try {
-                // Some don't support these attributes
-                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/974#issuecomment-621465038
-                await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-                await reporting.rmsVoltage(endpoint);
-                await reporting.rmsCurrent(endpoint);
-                await endpoint.configureReporting(
-                    "haElectricalMeasurement",
-                    [{attribute: "totalActivePower", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
-                    manufacturerOptions,
-                );
-                await endpoint.configureReporting(
-                    "haElectricalMeasurement",
-                    [{attribute: "totalReactivePower", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 1}],
-                    manufacturerOptions,
-                );
-            } catch {
-                /* empty */
-            }
-
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.currentSummReceived(endpoint);
-        },
-        exposes: [
-            e.numeric("power", ea.STATE).withUnit("W").withDescription("Total active power"),
-            e.numeric("power_reactive", ea.STATE).withUnit("VAr").withDescription("Total reactive power"),
-            e.energy(),
-            e.current(),
-            e.voltage(),
-            e.current_phase_b(),
-            e.voltage_phase_b(),
-            e.current_phase_c(),
-            e.voltage_phase_c(),
+        extend: [
+            develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.numeric<"haElectricalMeasurement", undefined>({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "totalActivePower",
+                description: "Total active power.",
+                unit: "W",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+            }),
+            m.numeric<"haElectricalMeasurement", undefined>({
+                name: "power_reactive",
+                cluster: "haElectricalMeasurement",
+                attribute: "totalReactivePower",
+                description: "Total reactive power.",
+                unit: "VAr",
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+            }),
+            m.enumLookup<"seMetering", DevelcoSeMetering>({
+                name: "interface_mode",
+                cluster: "seMetering",
+                attribute: "develcoInterfaceMode",
+                description: "Specifies the configuration of the external HAN port interface.",
+                entityCategory: "config",
+                access: "ALL",
+                lookup: {
+                    norwegian_han: 0x0200,
+                    norwegian_han_extra_load: 0x0201,
+                    aidon_meter: 0x0202,
+                    kaifa_and_kamstrup: 0x0203,
+                },
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DEVELCO},
+            }),
+            m.electricityMeter({
+                power: false,
+                voltage: {divisor: 10},
+                current: {divisor: 10},
+                threePhase: true,
+                energy: {divisor: 1000, multiplier: 1},
+                producedEnergy: {divisor: 1000, multiplier: 1},
+                fzMetering: develco.fz.metering_emizb132,
+                fzElectricalMeasurement: develco.fz.electrical_measurement_emizb132,
+            }),
         ],
     },
     {
@@ -367,7 +830,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
             {vendor: "Cavius", model: "2103", description: "RF SMOKE ALARM, 5 YEAR 65MM"},
         ],
-        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
@@ -444,7 +907,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Develco",
         description: "Fire detector with siren",
         whiteLabel: [{vendor: "Frient", model: "94431", description: "Smart Intelligent Heat Alarm"}],
-        fromZigbee: [fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
         toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
@@ -648,6 +1111,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoIasZone(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             // Prevent excessive reports
             // https://github.com/Koenkk/zigbee-herdsman-converters/pull/10081
@@ -667,7 +1131,7 @@ export const definitions: DefinitionWithExtend[] = [
             // modernExtend's readGenBasicPrimaryVersions is called before this one, should be fine
             const endpoint35 = device.getEndpoint(35);
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 3) {
-                await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+                await endpoint35.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
             }
             if (Number(device?.softwareBuildID?.split(".")[0]) >= 4) {
                 await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
@@ -709,6 +1173,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoIasZone(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.temperature(),
             m.illuminance({reporting: {min: 60, max: 3600, change: 500}}),
@@ -725,7 +1190,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             if (device?.softwareBuildID && Number(device.softwareBuildID.split(".")[0]) >= 2) {
                 const endpoint35 = device.getEndpoint(35);
-                await endpoint35.read("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
+                await endpoint35.read<"ssIasZone", DevelcoIasZone>("ssIasZone", ["develcoAlarmOffDelay"], manufacturerOptions);
                 await endpoint35.read<"genBasic", DevelcoGenBasic>("genBasic", ["develcoLedControl"], manufacturerOptions);
             }
         },
@@ -760,36 +1225,61 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZHEMI101"],
         model: "ZHEMI101",
         vendor: "Develco",
-        description: "Energy meter",
-        fromZigbee: [develco.fz.metering, develco.fz.pulse_configuration, develco.fz.interface_mode],
-        toZigbee: [develco.tz.pulse_configuration, develco.tz.interface_mode, develco.tz.current_summation],
+        description: "Energy/gas/water meter interface",
+        version: "0.0.1",
+        fromZigbee: [develco.fz.metering_zhemi101, develco.fz.pulse_configuration, develco.fz.interface_mode],
+        toZigbee: [develco.tz.pulse_configuration, develco.tz.interface_mode_zhemi101, develco.tz.unit_summation_zhemi101],
         endpoint: (device) => {
             return {default: 2};
         },
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
             await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
             await reporting.instantaneousDemand(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
+            await zhemi101ReadMeteringConfiguration(endpoint);
         },
         exposes: [
-            e.power(),
-            e.energy(),
+            e.energy().withDescription("Normalized cumulative energy. Source units such as kWh or BTU are converted to kWh."),
+            e.produced_energy().withDescription("Normalized produced energy, when reported by the meter."),
+            e.power().withDescription("Normalized instantaneous demand. Source units such as kW or BTU/h are converted to W."),
+            e
+                .numeric("gas", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Normalized cumulative gas volume. Source units are converted to cubic meters."),
+            e
+                .numeric("water_consumed", ea.STATE)
+                .withUnit("m³")
+                .withDescription("Normalized cumulative water volume. Source units are converted to cubic meters."),
+            e
+                .numeric("flow", ea.STATE)
+                .withUnit("m³/h")
+                .withDescription("Normalized volume flow rate for gas or water. Source units are converted to cubic meters per hour."),
             e.battery_low(),
+            e.numeric("unit_of_measure", ea.STATE).withDescription("Raw ZigBee Smart Energy UnitOfMeasure attribute."),
+            e.numeric("metering_device_type", ea.STATE).withDescription("Raw ZigBee Smart Energy MeteringDeviceType attribute."),
+            e.numeric("summation_formatting", ea.STATE).withDescription("Raw ZigBee Smart Energy SummationFormatting attribute."),
+            e.numeric("demand_formatting", ea.STATE).withDescription("Raw ZigBee Smart Energy DemandFormatting attribute."),
+            e.numeric("multiplier", ea.STATE).withDescription("Raw ZigBee Smart Energy Multiplier attribute."),
+            e.numeric("divisor", ea.STATE).withDescription("Raw ZigBee Smart Energy Divisor attribute."),
             e
                 .numeric("pulse_configuration", ea.ALL)
                 .withValueMin(0)
                 .withValueMax(65535)
-                .withDescription("Pulses per kwh. Default 1000 imp/kWh. Range 0 to 65535"),
+                .withDescription("Pulses per unit. Default 1000 imp/kWh for electricity. Range 0 to 65535"),
             e
                 .enum("interface_mode", ea.ALL, ["electricity", "gas", "water", "kamstrup-kmp", "linky", "IEC62056-21", "DSMR-2.3", "DSMR-4.0"])
                 .withDescription("Operating mode/probe"),
             e
-                .numeric("current_summation", ea.SET)
-                .withDescription("Current summation value sent to the display. e.g. 570 = 0,570 kWh")
+                .numeric("unit_summation", ea.SET)
+                .withDescription("Sets the meter summation in the normalized published unit: kWh for energy meters and m³ for gas/water meters.")
                 .withValueMin(0)
-                .withValueMax(268435455),
+                .withValueMax(zhemi101UnitSummationUiMax),
             e.binary("check_meter", ea.STATE, true, false).withDescription("Is true if communication problem with meter is experienced"),
         ],
     },
@@ -960,7 +1450,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.ignore_iaszone_attreport,
             fz.ignore_iasace_commandgetpanelstatus,
         ],
-        toZigbee: [tz.arm_mode],
+        toZigbee: [develco.tz.arm_mode],
         exposes: [
             e.battery_low(),
             e.tamper(),
@@ -981,7 +1471,7 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
-            m.iasGetPanelStatusResponse(),
+            m.iasGetPanelStatusResponse({audiblenotif: 1}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(44);
@@ -1059,6 +1549,15 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 32};
         },
+    },
+    {
+        zigbeeModel: ["Co019"],
+        model: "Co019",
+        vendor: "Develco",
+        description: "Smart relay 16A",
+        whiteLabel: [{vendor: "Futurehome", model: "FH9047"}],
+        ota: true,
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter()],
     },
     {
         zigbeeModel: ["REXZB-111"],

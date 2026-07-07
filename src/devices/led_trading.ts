@@ -8,6 +8,17 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 
+const LED_TRADING_9133_LOOKUP: Record<number, string> = {
+    19: "press_1",
+    20: "press_2",
+    21: "press_3",
+    22: "press_4",
+    27: "hold_1",
+    28: "hold_2",
+    29: "hold_3",
+    30: "hold_4",
+};
+
 const fzLocal = {
     led_trading_9133: {
         cluster: "greenPower",
@@ -15,18 +26,9 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return;
-            const lookup = {
-                19: "press_1",
-                20: "press_2",
-                21: "press_3",
-                22: "press_4",
-                27: "hold_1",
-                28: "hold_2",
-                29: "hold_3",
-                30: "hold_4",
-            };
-            return {action: utils.getFromLookup(commandID, lookup)};
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            return {action: utils.getFromLookup(commandID, LED_TRADING_9133_LOOKUP)};
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };

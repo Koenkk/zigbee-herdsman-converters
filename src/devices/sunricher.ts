@@ -1,12 +1,14 @@
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as wally from "../devices/wally";
 import * as constants from "../lib/constants";
 import {repInterval} from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import {setupConfigureForBinding} from "../lib/modernExtend";
+import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as sunricher from "../lib/sunricher";
@@ -59,6 +61,40 @@ export interface SunricherRemote {
     commandResponses: never;
 }
 
+const SRZGP2801K45C_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "high_low_release",
+    99: "cw_ww_release",
+    98: "cw_dec_ww_inc",
+    100: "ww_inc_cw_dec",
+    65: "r_g_b",
+    66: "b_g_r",
+    64: "rgb_release",
+};
+
+const SUNRICHER_SWITCH2801K2_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    52: "release",
+    53: "hold_on",
+    54: "hold_off",
+};
+
+const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
+    33: "press_on",
+    32: "press_off",
+    55: "press_high",
+    56: "press_low",
+    53: "hold_high",
+    54: "hold_low",
+    52: "release",
+};
+
 const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
@@ -66,23 +102,9 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const commandID = msg.data.commandID;
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
-            if (commandID === 224) return;
-            const lookup = {
-                33: "press_on",
-                32: "press_off",
-                55: "press_high",
-                56: "press_low",
-                53: "hold_high",
-                54: "hold_low",
-                52: "high_low_release",
-                99: "cw_ww_release",
-                98: "cw_dec_ww_inc",
-                100: "ww_inc_cw_dec",
-                65: "r_g_b",
-                66: "b_g_r",
-                64: "rgb_release",
-            };
-            return {action: utils.getFromLookup(commandID, lookup)};
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            return {action: utils.getFromLookup(commandID, SRZGP2801K45C_LOOKUP)};
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     ZG9095B: {
@@ -110,6 +132,38 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"genBasic", undefined, "write">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    sunricher_switch2801K2: {
+        cluster: "greenPower",
+        type: ["commandNotification", "commandCommissioningNotification"],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            if (SUNRICHER_SWITCH2801K2_LOOKUP[commandID] === undefined) {
+                logger.error(`Sunricher: missing command '${commandID}'`, NS);
+            } else {
+                return {action: SUNRICHER_SWITCH2801K2_LOOKUP[commandID]};
+            }
+        },
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    sunricher_switch2801K4: {
+        cluster: "greenPower",
+        type: ["commandNotification", "commandCommissioningNotification"],
+        convert: (model, msg, publish, options, meta) => {
+            const commandID = msg.data.commandID;
+            if (hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) return;
+            if (commandID >= 0xe0) return; // Skip op commands
+
+            if (SUNRICHER_SWITCH2801K4_LOOKUP[commandID] === undefined) {
+                logger.error(`Sunricher: missing command '${commandID}'`, NS);
+            } else {
+                return {action: SUNRICHER_SWITCH2801K4_LOOKUP[commandID]};
+            }
+        },
+    } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
 };
 
 const tzLocal = {
@@ -204,6 +258,166 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["HK-DIM-PIR"],
+        model: "SR-ZG9032A-PIR",
+        vendor: "Sunricher",
+        description: "Zigbee motion sensor + light sensor + 0-10V dimming",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3}}),
+            m.light({endpointNames: ["1"]}),
+            m.occupancy({endpointNames: ["2"]}),
+            m.illuminance({endpointNames: ["3"]}),
+            m.commandsOnOff({endpointNames: ["1"]}),
+            m.commandsLevelCtrl({endpointNames: ["1"]}),
+            m.enumLookup({
+                name: "dimming_brightness_curve",
+                cluster: "genBasic",
+                attribute: {ID: 0x8806, type: 0x20},
+                lookup: {
+                    linear: 0x00,
+                    gamma_1_5: 0x0f,
+                    gamma_1_8: 0x12,
+                },
+                description: "Dimming brightness curve. Options: linear, gamma 1.5, gamma 1.8. Default: linear.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "motion_sensor_lux_threshold",
+                cluster: "genBasic",
+                attribute: {ID: 0x8903, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                description:
+                    "Daylight sensor lux threshold. When the measured lux is below this value, the light is allowed to turn on. Set to minimum value to disable this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "motion_sensor_sensitivity",
+                cluster: "genBasic",
+                attribute: {ID: 0x8905, type: 0x20},
+                valueMin: 0,
+                valueMax: 15,
+                description: "Motion sensor sensitivity. 0 is highest sensitivity, 15 is lowest. Default: 1.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.enumLookup({
+                name: "brightness_module_enable",
+                cluster: "genBasic",
+                attribute: {ID: 0x890c, type: 0x20},
+                lookup: {
+                    disabled: 0,
+                    enabled: 1,
+                },
+                description: "Enable or disable the brightness module. Options: enabled, disabled. Default: enabled.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "light_on_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8902, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description:
+                    "Light on time (first delay). When motion is detected and then the area is vacated, this is the time the light stays on. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "pwm_brightness_value",
+                cluster: "genBasic",
+                attribute: {ID: 0x8908, type: 0x21},
+                valueMin: 0,
+                valueMax: 1000,
+                unit: "lux",
+                description: "Brightness value for PWM output when motion is detected. 0 disables this function. Default: disabled.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "pwm_output_percentage",
+                cluster: "genBasic",
+                attribute: {ID: 0x8909, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "PWM output percentage when motion is detected. Range: 0-100%. Default: 100%.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "light_status_after_first_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890a, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the first delay expires, during the second delay. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "second_delay_time",
+                cluster: "genBasic",
+                attribute: {ID: 0x8901, type: 0x21},
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "s",
+                description: "Duration of the second delay after the first delay expires. Unit: seconds. Default: 60 seconds.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "light_status_after_second_delay",
+                cluster: "genBasic",
+                attribute: {ID: 0x890b, type: 0x20},
+                valueMin: 0,
+                valueMax: 254,
+                unit: "%",
+                description: "Light status after the second delay expires. Range: 0-100%. Default: 0% (off).",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "linearity_error_ratio_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890d, type: 0x21},
+                valueMin: 100,
+                valueMax: 10000,
+                description:
+                    "Linearity error ratio coefficient for LUX measurement. 1000 means 1000‰ (default). Increasing this value magnifies the LUX measurement linearly, decreasing minifies it.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+            m.numeric({
+                name: "fixed_deviation_lux",
+                cluster: "genBasic",
+                attribute: {ID: 0x890e, type: 0x29},
+                valueMin: -100,
+                valueMax: 100,
+                description: "Fixed deviation of LUX measurement. Positive value increases, negative value decreases the measured LUX.",
+                entityCategory: "config",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: sunricherManufacturerCode},
+            }),
+        ],
+    },
     {
         zigbeeModel: ["ZGRC-KEY-047"],
         model: "SR-ZG2868K12-DIM",
@@ -980,7 +1194,7 @@ export const definitions: DefinitionWithExtend[] = [
                         throw error;
                     }
 
-                    await new Promise((resolve) => setTimeout(resolve, 2000 * retryCount));
+                    await utils.sleep(2000 * retryCount);
                 }
             }
         },
@@ -1860,7 +2074,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZGP2801K2-DIM",
         vendor: "Sunricher",
         description: "Pushbutton transmitter module",
-        fromZigbee: [fz.sunricher_switch2801K2],
+        fromZigbee: [fzLocal.sunricher_switch2801K2],
         toZigbee: [],
         exposes: [e.action(["press_on", "press_off", "hold_on", "hold_off", "release"])],
     },
@@ -1871,11 +2085,13 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "GreenPower_2", ieeeAddr: /^0x000000001fa.....$/},
             {modelID: "GreenPower_2", ieeeAddr: /^0x0000000034b.....$/},
             {modelID: "GreenPower_2", ieeeAddr: /^0x00000000f12.....$/},
+            {modelID: "GreenPower_2", ieeeAddr: /^0x0000000039a.....$/},
+            {modelID: "GreenPower_2", ieeeAddr: /^0x00000000675.....$/},
         ],
         model: "SR-ZGP2801K4-DIM",
         vendor: "Sunricher",
         description: "Pushbutton transmitter module",
-        fromZigbee: [fz.sunricher_switch2801K4],
+        fromZigbee: [fzLocal.sunricher_switch2801K4],
         toZigbee: [],
         exposes: [e.action(["press_on", "press_off", "press_high", "press_low", "hold_high", "hold_low", "release"])],
     },
@@ -1909,7 +2125,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9092A",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            namron.fromZigbee.namron_hvac_user_interface,
+        ],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
@@ -1920,8 +2142,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
-            tz.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat,
+            namron.toZigbee.namron_thermostat_child_lock,
         ],
         exposes: [
             e.numeric("outdoor_temperature", ea.STATE_GET).withUnit("°C").withDescription("Current temperature measured from the floor sensor"),
@@ -1984,7 +2206,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Room temperature alarm threshold, between 20 and 60 in °C.  0 means disabled.  Default: 45."),
         ],
         // Device does not ask for the time with binding, therefore we write the time every 24 hours
-        extend: [m.writeTimeDaily({endpointId: 1})],
+        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostatCluster()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = [
@@ -2244,7 +2466,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9010A",
         vendor: "Sunricher",
         description: "Door windows sensor",
-        fromZigbee: [fz.U02I007C01_contact, fz.battery],
+        fromZigbee: [wally.fzLocal.U02I007C01_contact, fz.battery],
         toZigbee: [],
         exposes: [e.contact(), e.battery()],
     },
@@ -2266,7 +2488,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9095B",
         vendor: "Sunricher",
         description: "Touch thermostat",
-        fromZigbee: [fz.thermostat, fz.namron_thermostat, fz.metering, fz.electrical_measurement, fz.namron_hvac_user_interface, fzLocal.ZG9095B],
+        fromZigbee: [
+            fz.thermostat,
+            namron.fromZigbee.namron_thermostat,
+            fz.metering,
+            fz.electrical_measurement,
+            namron.fromZigbee.namron_hvac_user_interface,
+            fzLocal.ZG9095B,
+        ],
         toZigbee: [
             tzLocal.ZG9095B.temperature_display,
             tzLocal.ZG9095B.sensor,
@@ -2281,8 +2510,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_running_state,
-            tz.namron_thermostat,
-            tz.namron_thermostat_child_lock,
+            namron.toZigbee.namron_thermostat,
+            namron.toZigbee.namron_thermostat_child_lock,
             tz.fan_mode,
             tzLocal.ZG9095B.min_setpoint_deadband,
         ],
@@ -2332,7 +2561,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
         ],
         // Device does not ask for the time with binding, therefore we write the time every 24 hours
-        extend: [m.writeTimeDaily({endpointId: 1})],
+        extend: [m.writeTimeDaily({endpointId: 1}), namron.namronExtend.addNamronHvacThermostatCluster()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genIdentify", "hvacThermostat", "seMetering", "genTime", "hvacUserInterfaceCfg"];
