@@ -189,6 +189,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jowqowye"]),
+        model: "SISWD11-ZB",
+        vendor: "Mercator Ikuü",
+        description: "Inline module dimmer switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [tuya.exposes.lightBrightness()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_pfbzs1an"]),
         model: "SPPUSB02",
         vendor: "Mercator Ikuü",

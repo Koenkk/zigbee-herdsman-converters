@@ -1654,6 +1654,16 @@ export const valueConverter = {
             };
         },
     },
+    phaseVariant5: {
+        from: (v: string | Buffer) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v, "base64");
+            return {
+                voltage: ((buf[2] << 8) | buf[3]) / 10,
+                current: ((buf[5] << 8) | buf[6]) / 1000,
+                power: (buf[8] << 8) | buf[9],
+            };
+        },
+    },
     onOffWithZeros: {
         to: (v: string) => {
             if (v === "OFF") return false;
@@ -5252,7 +5262,11 @@ const tuyaModernExtend = {
 
                     const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
 
-                    msg.endpoint.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                    msg.endpoint
+                        .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
+                        .catch((error) =>
+                            logger.warning(() => `Failed to sync '${msg.device.ieeeAddr}:${msg.endpoint.ID}' on weather request (${error})`, NS),
+                        );
                 }
             },
         };
@@ -5264,7 +5278,12 @@ const tuyaModernExtend = {
 
                 const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
 
-                entity.command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld});
+                entity
+                    .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
+                    .catch(
+                        (error) => () =>
+                            logger.warning(`Failed to sync weather for '${utils.isGroup(entity) ? entity.groupID : entity.ID}' (${error})`, NS),
+                    );
 
                 return {state: {[key]: value}};
             },
@@ -5292,7 +5311,7 @@ const tuyaClusters = {
                 tuyaMovingState: {name: "tuyaMovingState", ID: 0xf000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaCalibration: {name: "tuyaCalibration", ID: 0xf001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaMotorReversal: {name: "tuyaMotorReversal", ID: 0xf002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.ENUM8, write: true, max: 0xffff},
+                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 tuyaSwitchType: {name: "tuyaSwitchType", ID: 0x8000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {},

@@ -138,7 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [ledvanceLight({})],
     },
     {
-        zigbeeModel: ["Edge-lit Under Cabinet TW"],
+        zigbeeModel: ["Edge-lit Under Cabinet TW", "LIGHTIFY Conv Under Cabinet TW"],
         model: "72569",
         vendor: "Sylvania",
         description: "SMART+ Zigbee adjustable white edge-lit under cabinet light",

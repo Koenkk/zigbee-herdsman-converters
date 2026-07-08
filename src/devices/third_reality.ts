@@ -1447,9 +1447,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery(),
             m.iasZoneAlarm({
-                zoneType: "generic",
+                zoneType: "vibration",
                 zoneAttributes: ["alarm_1"],
-                description: "Being in vibration",
             }),
             m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
                 name: "cool_down_time",

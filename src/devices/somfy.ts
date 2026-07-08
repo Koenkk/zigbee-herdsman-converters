@@ -145,6 +145,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter()],
     },
     {
+        zigbeeModel: ["Situo 1 Zigbee"],
+        model: "1800194",
+        vendor: "SOMFY",
+        description: "Situo 1 channel blinds remote",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsWindowCovering()],
+    },
+    {
         zigbeeModel: ["Situo 4 Zigbee"],
         model: "1800195",
         vendor: "SOMFY",
