@@ -136,7 +136,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [109, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
                 [112, "temperature_delta", tuya.valueConverter.divideBy10],
                 [
                     31,
