@@ -518,12 +518,25 @@ export type ThermostatSchedule = KeyValue & {
 
 export type FromValue = string | number[] | Uint8Array;
 
-export function convertBufferToNumber(chunks: Buffer | number[]) {
+export function convertBufferToNumber(chunks: Buffer | number[], signed = true) {
+    // Input:           max 4 bytes in big-endian order
+    // Output signed:   int32 encoded with 2s complement
+    // Output unsigned: uint32
+
+    // Examples:
+    // [  1,   2,   3,   4] -> [0x01, 0x02, 0x03, 0x04] -> 0x01020304
+    // -> +16909060 signed / unsigned
+    // [255, 255, 255, 254] -> [0xFF, 0xFF, 0xFF, 0xFE] -> 0xFFFFFFFE
+    // -> -2 signed / +4294967294 unsigned
+
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
         value = value << 8;
         value += chunks[i];
     }
+
+    if (!signed) return value >>> 0;
+
     return value;
 }
 
