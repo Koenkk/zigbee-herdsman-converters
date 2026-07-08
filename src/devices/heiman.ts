@@ -1429,7 +1429,7 @@ const heimanExtend = {
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "smoke_level",
             unit: "",
-            scale: 0.1,
+            scale: 100,
             valueMin: 0,
             valueMax: 20,
             cluster: "heimanClusterSpecial",
@@ -3583,19 +3583,23 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Heiman",
         description: "Smart occupancy sensor",
         configure: async (device, cordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, cordinatorEndpoint, [
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint1, cordinatorEndpoint, [
                 "genPowerCfg",
                 "msIlluminanceMeasurement",
                 "msOccupancySensing",
                 "heimanClusterSpecial",
             ]);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
-            await endpoint.read("msRelativeHumidity", ["measuredValue"]);
-            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
-            await endpoint.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
-            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+            await reporting.occupancy(endpoint1, {min: 1, max: 0, change: 0});
+            await reporting.illuminance(endpoint1, {min: 10, max: 1800, change: 16990});
+            await reporting.temperature(endpoint1, {min: 10, max: 3600, change: 200});
+            await reporting.humidity(endpoint2, {min: 10, max: 3600, change: 500});
+            await endpoint1.read("genPowerCfg", ["batteryPercentageRemaining"]);
+            await endpoint1.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint1.read("msIlluminanceMeasurement", ["measuredValue"]);
+            await endpoint1.read("msOccupancySensing", ["occupancy", "pirOToUDelay"]);
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
                     "sensorFaultState",
@@ -3618,6 +3622,7 @@ export const definitions: DefinitionWithExtend[] = [
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
             );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
         },
         extend: [
             m.battery(),
@@ -3628,7 +3633,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.humidity(),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "target_distance",
-                unit: "meter(s)",
+                unit: "m",
                 valueMin: 1,
                 valueMax: 10,
                 valueStep: 0.01,
@@ -3650,7 +3655,30 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "occupied to unoccupied delay",
                 access: "ALL",
             }),
-            heimanExtend.heimanClusterRadarDetectionRange(),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_detection_min_range",
+                unit: "m",
+                valueMin: 0,
+                valueMax: 6,
+                valueStep: 0.25,
+                scale: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionMinRange",
+                description: "The minimum detection range of the radar",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "radar_detection_max_range",
+                unit: "m",
+                valueMin: 0,
+                valueMax: 6,
+                valueStep: 0.25,
+                scale: 100,
+                cluster: "heimanClusterSpecial",
+                attribute: "radarDetectionMaxRange",
+                description: "The maximum detection range of the radar",
+                access: "ALL",
+            }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "illuminance_threshold",
                 unit: "lx",
@@ -3663,11 +3691,11 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "pir_sensitivity_level",
+                name: "sensitivity_level",
                 lookup: {low: 0, medium: 1, high: 2},
                 cluster: "heimanClusterSpecial",
                 attribute: "sensorSensitivityLevel",
-                description: "The sensitivity of PIR Sensor",
+                description: "The sensitivity of Sensor",
                 access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -3687,7 +3715,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "heimanClusterSpecial",
                 attribute: "radarLearningControl",
                 description: "Radar learning mode, please wake up the device first.",
-                access: "STATE_SET",
+                access: "ALL",
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "learning_state",
