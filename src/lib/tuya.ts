@@ -1992,13 +1992,6 @@ export const valueConverter = {
             return v;
         },
     },
-    localTempCalibration2: {
-        from: (v: number) => v,
-        to: (v: number) => {
-            if (v < 0) return v + 0x100000000;
-            return v;
-        },
-    },
     thermostatHolidayStartStop: {
         from: (v: string) => {
             const start = {

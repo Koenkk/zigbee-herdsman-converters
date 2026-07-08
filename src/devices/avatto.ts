@@ -159,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // scale_switch (RW Boolean)
                 [39, "scale_protection", tuya.valueConverter.onOff],
                 // temp_correction (RW Integer, -10-10 C, scale 0 step 1)
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [47, "local_temperature_calibration", tuya.valueConverter.raw],
                 // comfort_temp (RW Integer, 100-250 C, scale 1 step 10)
                 [101, "comfort_temperature", tuya.valueConverter.divideBy10],
                 //! switch (RW Boolean) - Non-functional
