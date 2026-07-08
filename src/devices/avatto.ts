@@ -267,7 +267,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [35, "error_status", tuya.valueConverter.raw],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.raw],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [
                     49,
                     "system_mode",
@@ -601,7 +601,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [35, "fault", tuya.valueConverter.errorOrBatteryLow],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [36, "scale_protection", tuya.valueConverter.onOff],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [101, "valve_volume", tuya.valueConverter.raw], //
                 [102, "humidity", tuya.valueConverter.raw], //
                 [103, "out_door_sensor1", tuya.valueConverter.onOff], //

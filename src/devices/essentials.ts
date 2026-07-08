@@ -118,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [102, "eco_temperature", tuya.valueConverter.divideBy10],
                 [103, "away_setting", localValueConverters.away_setting],
-                [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [104, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [105, "schedule_override_setpoint", tuya.valueConverter.divideBy10],
                 [106, null, null], // TODO rapid heating
                 [107, "window_open", tuya.valueConverterBasic.lookup({YES: true, NO: false})],

@@ -1981,17 +1981,6 @@ export const valueConverter = {
     },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
-    localTempCalibration1: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 10;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 10;
-            if (v < 0) return v * 10 + 0x100000000;
-            return v;
-        },
-    },
     thermostatHolidayStartStop: {
         from: (v: string) => {
             const start = {
