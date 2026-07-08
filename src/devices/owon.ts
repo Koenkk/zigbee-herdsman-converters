@@ -909,19 +909,21 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion sensor",
         fromZigbee: [fz.battery, fz.ias_occupancy_alarm_1, fz.temperature, fz.humidity, fz.occupancy_timeout],
         toZigbee: [],
-        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.temperature(), e.humidity()],
+        exposes: [e.occupancy(), e.tamper(), e.battery_low(), e.battery(), e.temperature(), e.humidity()],
         configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
             const endpoint3 = device.getEndpoint(3);
-            if (device.modelID === "PIR313") {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
-            } else {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
-            }
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint1, {min: 3600, max: 65000, change: 10});
+            const measurementEndpoint = device.modelID === "PIR313" ? endpoint3 : endpoint2;
+            await reporting.bind(measurementEndpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
+            await reporting.temperature(measurementEndpoint, {min: 60, max: 3600, change: 50});
+            await reporting.humidity(measurementEndpoint, {min: 60, max: 3600, change: 100});
             device.powerSource = "Battery";
             device.save();
         },
-        extend: [m.illuminance()],
+        extend: [m.illuminance({reporting: {min: 300, max: 3600, change: 100}})],
     },
     {
         zigbeeModel: ["AC201", "AC201P_019E"],

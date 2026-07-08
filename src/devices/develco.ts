@@ -212,6 +212,23 @@ const zhemi101GetMeterConfig = (
     };
 };
 
+const zhemi101PublishMissingMeterConfig = (payload: KeyValueAny, meta: Fz.Meta, config: KeyValueAny) => {
+    const fields = {
+        unit_of_measure: config.unitOfMeasure,
+        metering_device_type: config.meteringDeviceType,
+        multiplier: config.multiplier,
+        divisor: config.divisor,
+        summation_formatting: config.summationFormatting,
+        demand_formatting: config.demandFormatting,
+    };
+
+    for (const [property, value] of Object.entries(fields)) {
+        if (value !== undefined && meta.state?.[property] == null) {
+            payload[property] = value;
+        }
+    }
+};
+
 const zhemi101GetMeterConfigFromEntity = (entity: KeyValueAny, meta: Tz.Meta): KeyValueAny => {
     const cached = zhemi101MeterConfigCache.get(zhemi101MeterConfigKey(entity)) ?? {};
     const interfaceMode = zhemi101FirstDefined(cached.interfaceMode, meta.state?.interface_mode);
@@ -264,12 +281,14 @@ const zhemi101NormalizeMeterValue = (rawValue: unknown, config: KeyValueAny, isD
     const unitInfo = zhemi101UnitInfo[zhemi101ToNumber(config.unitOfMeasure) ?? -1];
     if (unitInfo === undefined) return undefined;
 
-    const normalized = raw * zhemi101Scale(config) * unitInfo.factorToTarget;
+    // The spec scales electric demand to kW; Z2M's power property is W.
+    const factorToTarget = isDemand && unitInfo.kind === "energy" ? unitInfo.factorToTarget * 1000 : unitInfo.factorToTarget;
+    const normalized = raw * zhemi101Scale(config) * factorToTarget;
     const sourceDecimals = zhemi101DecimalsFromFormatting(
         isDemand ? config.demandFormatting : config.summationFormatting,
         zhemi101DecimalsFromDivisor(config.divisor),
     );
-    const extraDecimals = unitInfo.factorToTarget === 1 ? 0 : unitInfo.factorToTarget < 1 ? Math.ceil(-Math.log10(unitInfo.factorToTarget)) + 2 : 2;
+    const extraDecimals = factorToTarget === 1 ? 0 : factorToTarget < 1 ? Math.ceil(-Math.log10(factorToTarget)) + 2 : 2;
     return utils.precisionRound(normalized, Math.min(9, sourceDecimals + extraDecimals));
 };
 
@@ -407,6 +426,7 @@ const develco = {
                 const data = msg.data as KeyValueAny;
                 const payload: KeyValueAny = {};
                 const summationFormatting = zhemi101FirstDefined(data.summaFormatting, data.summationFormatting);
+                zhemi101PublishMissingMeterConfig(payload, meta, config);
 
                 if (data.unitOfMeasure !== undefined) payload.unit_of_measure = data.unitOfMeasure;
                 if (data.meteringDeviceType !== undefined) payload.metering_device_type = data.meteringDeviceType;
@@ -1206,6 +1226,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHEMI101",
         vendor: "Develco",
         description: "Energy/gas/water meter interface",
+        version: "0.0.1",
         fromZigbee: [develco.fz.metering_zhemi101, develco.fz.pulse_configuration, develco.fz.interface_mode],
         toZigbee: [develco.tz.pulse_configuration, develco.tz.interface_mode_zhemi101, develco.tz.unit_summation_zhemi101],
         endpoint: (device) => {
@@ -1226,7 +1247,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.energy().withDescription("Normalized cumulative energy. Source units such as kWh or BTU are converted to kWh."),
             e.produced_energy().withDescription("Normalized produced energy, when reported by the meter."),
-            e.power().withUnit("kW").withDescription("Normalized instantaneous demand. Source units such as kW or BTU/h are converted to kW."),
+            e.power().withDescription("Normalized instantaneous demand. Source units such as kW or BTU/h are converted to W."),
             e
                 .numeric("gas", ea.STATE)
                 .withUnit("m³")

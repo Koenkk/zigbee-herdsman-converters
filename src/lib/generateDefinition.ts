@@ -72,7 +72,7 @@ const INPUT_EXTENDERS: Extender[] = [
         ["msIlluminanceMeasurement"],
         async (d, eps) => [new ExtendGenerator({extend: m.illuminance, args: maybeEndpointArgs(d, eps), source: "illuminance"})],
     ],
-    [["msOccupancySensing"], async (d, eps) => [new ExtendGenerator({extend: m.occupancy, source: "occupancy"})]],
+    [["msOccupancySensing"], async (d, eps) => [new ExtendGenerator({extend: m.occupancy, args: maybeEndpointArgs(d, eps), source: "occupancy"})]],
     [
         ["ssIasZone"],
         async (d, eps) => [
