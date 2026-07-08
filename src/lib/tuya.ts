@@ -522,7 +522,7 @@ export function convertBufferToNumber(chunks: Buffer | number[], signed = true) 
     // Input:           max 4 bytes in big-endian order
     // Output signed:   int32 encoded with 2s complement
     // Output unsigned: uint32
-
+    //
     // Examples:
     // [  1,   2,   3,   4] -> [0x01, 0x02, 0x03, 0x04] -> 0x01020304
     // -> +16909060 signed / unsigned
@@ -571,6 +571,18 @@ function getDataValue(dpValue: Tuya.DpValue) {
 }
 
 export function convertDecimalValueTo4ByteHexArray(value: number) {
+    // Input: int32 or uint32
+    // Output: 4 bytes in big-endian order
+    //
+    // Examples:
+    //          +2 -> 0x00000002 -> [0x00, 0x00, 0x00, 0x02] -> [  0,   0,   0,   2]
+    // +4294967294 -> 0XFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
+    //          -2 -> 0xFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
+
+    // Encode negative values as 2s complement
+    if (value < 0) {
+        value = 0x100000000 + value;
+    }
     const hexValue = Number(value).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
