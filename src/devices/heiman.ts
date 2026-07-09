@@ -3591,10 +3591,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "msOccupancySensing",
                 "heimanClusterSpecial",
             ]);
-            await reporting.occupancy(endpoint1, {min: 1, max: 0, change: 0});
-            await reporting.illuminance(endpoint1, {min: 10, max: 1800, change: 16990});
-            await reporting.temperature(endpoint1, {min: 10, max: 3600, change: 200});
-            await reporting.humidity(endpoint2, {min: 10, max: 3600, change: 500});
             await endpoint1.read("genPowerCfg", ["batteryPercentageRemaining"]);
             await endpoint1.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint1.read("msIlluminanceMeasurement", ["measuredValue"]);
@@ -3626,11 +3622,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.battery(),
-            m.occupancy(),
+            m.occupancy({reportingConfig: {min: 1, max: 0, change: 0}}),
             heimanExtend.heimanClusterSpecial(),
-            m.illuminance(),
-            m.temperature(),
-            m.humidity(),
+            m.illuminance({reporting: {min: 10, max: 1800, change: 16990}}),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "target_distance",
                 unit: "m",
