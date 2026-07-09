@@ -465,10 +465,12 @@ export const definitions: DefinitionWithExtend[] = [
         // response to a dataQuery. Without polling, `battery` stays null forever. Confirmed
         // on hardware: dp 13 -> 100 only arrives after a dataQuery. Poll periodically and on
         // device announce so the battery level is reported reliably.
+        // respondToMcuVersionResponse is left at its default (false): with it enabled, one
+        // of the units gets stuck in an mcuVersionRequest/Response ping-pong (~3x/s) that
+        // floods the network/MQTT (see https://github.com/Koenkk/zigbee2mqtt/issues/28367).
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,
-                respondToMcuVersionResponse: true,
                 queryOnConfigure: true,
                 queryOnDeviceAnnounce: true,
                 queryIntervalSeconds: 4 * 60 * 60,
