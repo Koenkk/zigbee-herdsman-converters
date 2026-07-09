@@ -136,7 +136,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [109, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [112, "temperature_delta", tuya.valueConverter.divideBy10],
                 [
                     31,
@@ -865,7 +865,7 @@ export const definitions: DefinitionWithExtend[] = [
                         OFF: false,
                     }),
                 ],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [102, "position", tuya.valueConverter.raw],
                 [
                     103,
@@ -1227,7 +1227,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [45, "error_status", tuya.valueConverter.raw],
                 [101, "comfort_temperature", tuya.valueConverter.divideBy2],
                 [102, "eco_temperature", tuya.valueConverter.divideBy2],
-                [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [104, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [105, "auto_setpoint_override", tuya.valueConverter.divideBy2],
                 [106, "boost_heating", tuya.valueConverter.onOff],
                 [107, "window_detection", tuya.valueConverter.onOff],
