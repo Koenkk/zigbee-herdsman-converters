@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.80.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.79.0...v26.80.0) (2026-07-09)
+
+
+### Features
+
+* **add:** _TZE284_0kihjsys ([#11734](https://github.com/Koenkk/zigbee-herdsman-converters/issues/11734)) ([163e34d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/163e34ddafd9372ecf3ad31669c5a7f7269a02ec))
+* **add:** 100050060900 ([#12649](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12649)) ([0b0fc3b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b0fc3b9d54400e18e3ad1297678dddab1a8f09a))
+* **add:** SMRZB-342 ([#12637](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12637)) ([212567e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/212567ebb61736c6d39f08bc82270f38744d08e8))
+
+
+### Bug Fixes
+
+* **detect:** Detect _TZE204_qtnjuoae  as RTX ZVG1 ([#12645](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12645)) ([6b2fc89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6b2fc89f07a466b41dfa116f063766cbdac84178))
+* **detect:** Detect `_TZE28C1000000_hgeqeyuv` as ZT24 and `_TZE28C1000000_pzm3wab5` as ZX24 ([#12636](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12636)) ([51b2a80](https://github.com/Koenkk/zigbee-herdsman-converters/commit/51b2a8034efda6c9de275d58db21154c078a313f))
+* HEIMAN HS1SA-E Plus: fix smoke level  ([#12644](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12644)) ([be11dab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be11dab79f31838fd29e64220c092b43d230bfb9))
+* **ignore:** bump @types/node from 24.13.2 to 26.1.0 ([#12632](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12632)) ([cad8489](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cad84896d54e6ddf352a768e882159c43a461ce3))
+* **ignore:** bump @vitest/coverage-v8 from 3.2.4 to 4.1.10 ([#12640](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12640)) ([76adbc9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/76adbc9e7d040a399cdb2139314f833ffe45b377))
+* **ignore:** bump zigbee-herdsman from 10.6.1 to 10.6.2 in the minor-patch group ([#12639](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12639)) ([71f71d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71f71d3c574a05cdafe13ad087d08aa9772423df))
+* **ignore:** Nous small fixes ([#12641](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12641)) ([9ae8023](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ae80234d56a7bcccf229c7950739465a4be4f70))
+* Tuya: fix negative numbers in datapoints ([#12646](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12646)) ([48d66c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/48d66c16f2e511cdfe103ec17738bd6aad69aebc))
+
 ## [26.79.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.78.0...v26.79.0) (2026-07-06)
 
 
