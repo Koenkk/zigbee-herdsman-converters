@@ -622,8 +622,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "status",
                 description: "Status - not reportable",
                 lookup: {
-                    plugged_out: 0x00, 
-                    plugged_in_charging: 0x02, 
+                    plugged_out: 0x00,
+                    plugged_in_charging: 0x02,
                     plugged_in_paused: 0x03,
                     plugged_in: 0x04,
                     stopped: 0x05,
