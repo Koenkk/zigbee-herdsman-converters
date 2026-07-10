@@ -3315,7 +3315,7 @@ const tuyaTz = {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
             if (message.brightness != null) {
-                 // If state includes state_l1 assume we need to use a custom lookup
+                // If state includes state_l1 assume we need to use a custom lookup
                 const stateKey = Object.keys(state).find((k) => k.startsWith("state_l1")) ? `state_l${entity.ID}` : "state";
                 const brightnessKey = Object.keys(state).find((k) => k.startsWith("brightness_l1")) ? `brightness_l${entity.ID}` : "brightness";
 
