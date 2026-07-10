@@ -447,15 +447,11 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 // Namron Simplify Dimmer (4512791) helpers + toZigbee converters
-
 type TzConvertSet = NonNullable<Tz.Converter["convertSet"]>;
 type TzEntity = Parameters<TzConvertSet>[0];
 type TzMeta = Parameters<TzConvertSet>[3];
 
 const sdClamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
-const sdSecToZclTime = (s: number) => Math.max(0, Math.round(Number(s || 0) * 10)); // ZCL = 1/10s
-
-// Percent <-> level (1..254)
 const sdPctToLevel = (pct: number) => sdClamp(Math.round((Number(pct) / 100) * 254), 1, 254);
 const sdLevelToPct = (lvl: number) => sdClamp(Math.round((Number(lvl) / 254) * 100), 1, 100);
 
@@ -468,17 +464,9 @@ const tzLocalSimplifyDimmer4512791 = {
             const pct = Number(value);
             if (!Number.isFinite(pct) || pct < 1 || pct > 50) throw new Error("min_brightness must be 1..50 (%)");
             const lvl = sdClamp(sdPctToLevel(pct), 1, 127);
-
-            const maxLvl = store.getValue(meta.device, "max_brightness_level");
-            if (typeof maxLvl === "number" && lvl > maxLvl) {
-                throw new Error(`min_brightness (${pct}%) cannot exceed max_brightness (${sdLevelToPct(maxLvl)}%)`);
-            }
-
             // Device requires read-before-write to accept the write (off-spec HZC firmware behavior)
             await entity.read("genLevelCtrl", ["minLevel"]);
             await entity.write("genLevelCtrl", {[0x0002]: {value: lvl, type: 0x20}}, {disableDefaultResponse: true, disableResponse: false});
-
-            store.putValue(meta.device, "min_brightness_level", lvl);
             return {state: {min_brightness: sdLevelToPct(lvl)}};
         },
         convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
@@ -492,19 +480,11 @@ const tzLocalSimplifyDimmer4512791 = {
         key: ["max_brightness"],
         convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
             const pct = Number(value);
-            if (!Number.isFinite(pct) || pct < 50 || pct > 100) throw new Error("max_brightness must be 50..100 (%)");
+            if (!Number.isFinite(pct) || pct < 51 || pct > 100) throw new Error("max_brightness must be 51..100 (%)");
             const lvl = sdClamp(sdPctToLevel(pct), 127, 254);
-
-            const minLvl = store.getValue(meta.device, "min_brightness_level");
-            if (typeof minLvl === "number" && lvl < minLvl) {
-                throw new Error(`max_brightness (${pct}%) cannot be below min_brightness (${sdLevelToPct(minLvl)}%)`);
-            }
-
             // Device requires read-before-write to accept the write (off-spec HZC firmware behavior)
             await entity.read("genLevelCtrl", ["maxLevel"]);
             await entity.write("genLevelCtrl", {[0x0003]: {value: lvl, type: 0x20}}, {disableDefaultResponse: true, disableResponse: false});
-
-            store.putValue(meta.device, "max_brightness_level", lvl);
             return {state: {max_brightness: sdLevelToPct(lvl)}};
         },
         convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
@@ -519,7 +499,6 @@ const tzLocalSimplifyDimmer4512791 = {
             const s = Number(value);
             if (!Number.isFinite(s) || s < 1 || s > 10) throw new Error("dimming_speed must be 1..10 seconds");
             await entity.write("genLevelCtrl", {[0x0014]: {value: s, type: 0x20}}, {disableDefaultResponse: true});
-            store.putValue(meta.device, "dimming_speed", s);
             return {state: {dimming_speed: s}};
         },
         convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
@@ -527,41 +506,21 @@ const tzLocalSimplifyDimmer4512791 = {
         },
     } satisfies Tz.Converter,
 
-    // Brightness set with clamp + required optionsMask/optionsOverride
-    brightness_clamped: {
-        key: ["brightness", "brightness_percent", "transition"],
+    // start_brightness maps to onLevel (0x0011)
+    start_brightness: {
+        key: ["start_brightness"],
         convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const msg = (meta as unknown as {message?: Record<string, unknown>}).message ?? {};
-
-            let level = key === "brightness" ? Number(value) : sdPctToLevel(Number(value));
-            if (!Number.isFinite(level)) return;
-
-            const minLvl = store.getValue(meta.device, "min_brightness_level");
-            const maxLvl = store.getValue(meta.device, "max_brightness_level");
-            const minClamp = typeof minLvl === "number" ? minLvl : 1;
-            const maxClamp = typeof maxLvl === "number" ? maxLvl : 254;
-
-            level = Math.round(sdClamp(level, minClamp, maxClamp));
-
-            const storedSpeed = store.getValue(meta.device, "dimming_speed");
-            const transitionSec = msg["transition"] != null ? Number(msg["transition"]) : typeof storedSpeed === "number" ? storedSpeed : 0;
-
-            const transtime = sdSecToZclTime(transitionSec);
-
-            await entity.command(
-                "genLevelCtrl",
-                "moveToLevelWithOnOff",
-                {level, transtime, optionsMask: 0, optionsOverride: 0},
-                {disableDefaultResponse: true},
-            );
-
-            return {state: {state: "ON", brightness: level}};
+            const lvl = sdClamp(Math.round(Number(value)), 1, 254);
+            if (!Number.isFinite(lvl)) throw new Error("start_brightness must be 1..254");
+            await entity.write("genLevelCtrl", {[0x0011]: {value: lvl, type: 0x20}}, {disableDefaultResponse: true});
+            return {state: {start_brightness: lvl}};
+        },
+        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
+            await entity.read("genLevelCtrl", ["onLevel"]);
         },
     } satisfies Tz.Converter,
 };
-// -----------------------------------------------------------------------------
 // End Simplify Dimmer (4512791)
-// -----------------------------------------------------------------------------
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
 const ZIGBEE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
 
@@ -2636,7 +2595,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "preset", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), home: tuya.enum(1), away: tuya.enum(2)})],
                 [16, "current_heating_setpoint", tuya.valueConverter.raw],
                 [24, "local_temperature", tuya.valueConverter.raw],
-                [28, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [28, "local_temperature_calibration", tuya.valueConverter.raw],
                 [30, "child_lock", tuya.valueConverter.lockUnlock],
                 [101, "local_temperature_floor", tuya.valueConverter.raw],
                 [102, "sensor", tuya.valueConverterBasic.lookup({air_sensor: tuya.enum(0), floor_sensor: tuya.enum(1), both: tuya.enum(2)})],
@@ -2767,30 +2726,36 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("min_brightness", ea.ALL)
                 .withValueMin(1)
                 .withValueMax(50)
-                .withDescription("Minimum brightness in % (1–50). Written to device minLevel (0x0002).")
+                .withUnit("%")
+                .withDescription("Minimum brightness in % (1–50%). Written to device minLevel (0x0002).")
                 .withCategory("config"),
             exposes
                 .numeric("max_brightness", ea.ALL)
-                .withValueMin(50)
+                .withValueMin(51)
                 .withValueMax(100)
-                .withDescription("Maximum brightness in % (50–100). Written to device maxLevel (0x0003).")
+                .withUnit("%")
+                .withDescription("Maximum brightness in % (51–100%). Written to device maxLevel (0x0003).")
                 .withCategory("config"),
             exposes
                 .numeric("dimming_speed", ea.ALL)
                 .withValueMin(1)
                 .withValueMax(10)
-                .withDescription("Default dimming time in seconds (1–10). Written to device defaultMoveRate (0x0014).")
+                .withUnit("s")
+                .withDescription("Default dimming time in seconds (1–10s). Written to device defaultMoveRate (0x0014).")
                 .withCategory("config"),
             exposes
-                .composite("level_config", "level_config", ea.ALL)
-                .withFeature(
-                    exposes
-                        .numeric("on_level", ea.ALL)
-                        .withValueMin(1)
-                        .withValueMax(254)
-                        .withDescription("On-level (1–254). Applied via genLevelCtrl.onLevel (0x0011)."),
-                )
+                .numeric("start_brightness", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(254)
+                .withDescription("Default brightness at power-on/startup (1–254). Written to device onLevel (0x0011).")
                 .withCategory("config"),
+            exposes
+                .enum("startup_on_off", ea.ALL, ["off", "on", "toggle", "previous"])
+                .withDescription("On/Off state at power-on/startup.")
+                .withCategory("config"),
+            exposes
+                .enum("dimmer_mode", ea.STATE, ["trailing_edge", "leading_edge"])
+                .withDescription("Dimmer type: trailing edge (RC) or leading edge (RL). Set via Namron Simplify Hub/app."),
         ],
         fromZigbee: [
             fz.on_off,
@@ -2800,31 +2765,63 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 cluster: "genLevelCtrl",
                 type: ["attributeReport", "readResponse"],
+                convert: (
+                    model: unknown,
+                    msg: {type: string; data: Record<string | number, number>},
+                    publish: unknown,
+                    options: unknown,
+                    meta: unknown,
+                ) => {
+                    const result: Record<string, unknown> = {};
+                    // Only use readResponse for min/max - attributeReport may contain stale cached values
+                    if (Object.hasOwn(msg.data, "minLevel") && msg.type === "readResponse")
+                        result["min_brightness"] = sdLevelToPct(msg.data["minLevel"]);
+                    if (Object.hasOwn(msg.data, "maxLevel") && msg.type === "readResponse")
+                        result["max_brightness"] = sdLevelToPct(msg.data["maxLevel"]);
+                    if (Object.hasOwn(msg.data, "onLevel")) result["start_brightness"] = msg.data["onLevel"];
+                    if (Object.hasOwn(msg.data, "defaultMoveRate")) result["dimming_speed"] = msg.data["defaultMoveRate"];
+                    if (Object.hasOwn(msg.data, 0xb000))
+                        result["dimmer_mode"] = (msg.data as Record<number, number>)[0xb000] === 0 ? "trailing_edge" : "leading_edge";
+                    return result;
+                },
+            },
+            {
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"],
                 convert: (model: unknown, msg: {data: Record<string, number>}, publish: unknown, options: unknown, meta: unknown) => {
                     const result: Record<string, unknown> = {};
-                    if (Object.hasOwn(msg.data, "minLevel")) result["min_brightness"] = sdLevelToPct(msg.data["minLevel"]);
-                    if (Object.hasOwn(msg.data, "maxLevel")) result["max_brightness"] = sdLevelToPct(msg.data["maxLevel"]);
-                    if (Object.hasOwn(msg.data, "defaultMoveRate")) result["dimming_speed"] = msg.data["defaultMoveRate"];
+                    if (Object.hasOwn(msg.data, "startUpOnOff")) {
+                        const map: Record<number, string> = {0: "off", 1: "on", 2: "toggle", 255: "previous"};
+                        result["startup_on_off"] = map[msg.data["startUpOnOff"]] ?? String(msg.data["startUpOnOff"]);
+                    }
                     return result;
                 },
             },
         ],
         toZigbee: [
+            tz.light_onoff_brightness,
             tzLocalSimplifyDimmer4512791.min_brightness,
             tzLocalSimplifyDimmer4512791.max_brightness,
             tzLocalSimplifyDimmer4512791.dimming_speed,
-            tzLocalSimplifyDimmer4512791.brightness_clamped,
-            tz.light_onoff_brightness,
-            tz.level_config,
+            tzLocalSimplifyDimmer4512791.start_brightness,
+            {
+                key: ["startup_on_off"],
+                convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
+                    const map: Record<string, number> = {off: 0, on: 1, toggle: 2, previous: 255};
+                    await entity.write("genOnOff", {startUpOnOff: map[value as string] ?? Number.parseInt(value as string, 10)});
+                    return {state: {startup_on_off: value}};
+                },
+                convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
+                    await entity.read("genOnOff", ["startUpOnOff"]);
+                },
+            } satisfies Tz.Converter,
         ],
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, _coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            store.putValue(device, "min_brightness_level", sdPctToLevel(20));
-            store.putValue(device, "max_brightness_level", sdPctToLevel(100));
-            store.putValue(device, "dimming_speed", 1);
-            // Read current values from device
+            await endpoint.read("genOnOff", ["startUpOnOff"]);
             try {
-                await endpoint.read("genLevelCtrl", ["minLevel", "maxLevel", "defaultMoveRate", "onLevel"]);
+                await endpoint.read("genLevelCtrl", ["minLevel", "maxLevel", "onLevel", "defaultMoveRate"]);
+                await endpoint.read("genLevelCtrl", [0xb000]);
             } catch (_e) {
                 // Not all firmware versions support reading these
             }

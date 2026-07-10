@@ -5898,7 +5898,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_presence, lumi.toZigbee.lumi_motion_sensitivity],
         exposes: [e.power_outage_count(), e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity.")],
-        version: "0.0.1",
+        version: "0.0.2",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -5907,6 +5907,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x014f], {manufacturerCode: manufacturerCode}); // Read current PIR interval
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00f7], {manufacturerCode: manufacturerCode}); // Read battery data; firmware 0.0.0_6542 does not push the 0x00F7 struct on its own
 
             // Configure reporting so presence (0x0142) and PIR detection (0x014d) update autonomously.
             await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
@@ -5922,11 +5923,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumi.lumiModernExtend.lumiPreventLeave(),
+            m.quirkCheckinInterval("1_HOUR"), // No genPollCtrl; gives the request queue a lifetime so fp300BatteryPoll's queued read survives until the device wakes
             lumi.lumiModernExtend.lumiBattery({
-                voltageToPercentage: {min: 2850, max: 3000},
-                voltageAttribute: 0x0017, // Attribute: 23
-                //percentageAttribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
+                voltageAttribute: 0x0017, // Attribute: 23 (battery voltage in mV)
+                percentageAttribute: 0x0018, // Attribute: 24 (battery percentage, the device's own gauge; tracks discharge consistently with attribute 23)
             }),
+            lumi.lumiModernExtend.fp300BatteryPoll(),
             lumi.lumiModernExtend.fp1ePresence(),
             lumi.lumiModernExtend.fp300PIRDetection(),
 
