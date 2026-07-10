@@ -3316,6 +3316,38 @@ export const lumiModernExtend = {
                 "Indicates whether the PIR sensor detects motion (in mmWave + PIR mode after mmWave presence detection PIR sensors gets turned off so this attribute might change to false although the presence is detected).",
         });
     },
+    fp300BatteryPoll: (): ModernExtend => {
+        // FP300 firmware 0.0.0_6542 no longer pushes the 0x00F7 struct that carries the battery data
+        // (https://github.com/Koenkk/zigbee2mqtt/issues/32153), but it still answers an explicit read while awake.
+        // Rather than gating on a firmware version, track when the struct was last received and only read it back
+        // once it goes stale: firmware that pushes the struct by itself keeps this poll dormant, and on affected
+        // firmware the read response refreshes the timestamp, so reads self-regulate to ~structMaxAgeMs.
+        // The FP300 is a sleepy end device: the read is queued (`sendPolicy: "queue"`) and flushed by the request
+        // queue when the device next wakes; quirkCheckinInterval() in the definition gives the queue its lifetime.
+        const structMaxAgeMs = 4 * 60 * 60 * 1000;
+        const storeKey = "lumi_struct_last_received";
+        const structReceived: Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]> = {
+            cluster: "manuSpecificLumi",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg) => {
+                if (msg.data[0x00f7] !== undefined) globalStore.putValue(msg.device, storeKey, Date.now());
+            },
+        };
+        return {
+            ...modernExtend.poll({
+                key: "battery",
+                defaultIntervalSeconds: 60 * 60,
+                poll: (device) => {
+                    if (Date.now() - (globalStore.getValue(device, storeKey, 0) as number) < structMaxAgeMs) return;
+                    device
+                        .getEndpoint(1)
+                        .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00f7], {manufacturerCode, sendPolicy: "queue"})
+                        .catch((error) => logger.debug(`Failed to read battery of '${device.ieeeAddr}' (${error})`, NS));
+                },
+            }),
+            fromZigbee: [structReceived],
+        };
+    },
     fp300DetectionRange: (args?: {rangeOffset: number; rangesCount: number}): ModernExtend => {
         args = {
             rangeOffset: 0.25,
