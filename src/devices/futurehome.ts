@@ -12,8 +12,8 @@ interface FuturehomeHaApplianceControl {
         autoCharge: number;
         energyMeterStart: number;
         energyMeterNow: number;
-        a1: number;
-        a2: number;
+        chargingSessionStartT: number;
+        chargingSessionEndT: number;
         a5: number;
         a6: number;
         a7: number;
@@ -436,19 +436,17 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: Zcl.Clusters.haApplianceControl.ID,
                 attributes: {
                     //     ID: 0xef00,
-                    a1: {
-                        name: "a1",
+                    chargingSessionStartT: {
+                        name: "chargingSessionStartT",
                         ID: 0xef01,
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
                     },
-                    a2: {
-                        name: "a2",
+                    chargingSessionEndT: {
+                        name: "chargingSessionEndT",
                         ID: 0xef02,
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
                     },
                     energyMeterStart: {
                         name: "energyMeterStart",
@@ -620,7 +618,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "status",
                 cluster: "haApplianceControl",
                 attribute: "status",
-                description: "Status - not reportable",
+                description: "Status",
                 lookup: {
                     plugged_out: 0x00,
                     plugged_in_charging: 0x02,
@@ -632,10 +630,10 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a1",
+                name: "start_t",
                 cluster: "haApplianceControl",
-                attribute: "a1",
-                description: "a1",
+                attribute: "chargingSessionStartT",
+                description: "Start time of charging session. Time in seconds. Should be converted to date and time.",
                 access: "STATE_GET",
                 scale: 1.0,
                 unit: "s",
@@ -643,10 +641,10 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a2",
+                name: "end_t",
                 cluster: "haApplianceControl",
-                attribute: "a2",
-                description: "a2",
+                attribute: "chargingSessionEndT",
+                description: "End time of charging session. Time in seconds. Should be converted to date and time.",
                 access: "STATE_GET",
                 scale: 1.0,
                 unit: "s",
