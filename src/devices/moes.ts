@@ -473,7 +473,7 @@ export const definitions: DefinitionWithExtend[] = [
                 dp: true,
                 queryOnConfigure: true,
                 queryOnDeviceAnnounce: true,
-                queryIntervalSeconds: 4 * 60 * 60,
+                queryIntervalSeconds: 24 * 60 * 60,
             }),
         ],
         exposes: [
