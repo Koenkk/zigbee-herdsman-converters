@@ -9750,7 +9750,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: [false, 0x09],
                 valueOn: [true, 0x14],
             }),
-            sonoffExtend.inchingControlSet(),
+            sonoffExtend.inchingControlSet({}, 86399.5),
             m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "delayed_power_on_state",
                 cluster: "customClusterEwelink",
