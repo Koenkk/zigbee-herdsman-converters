@@ -310,33 +310,32 @@ const futurehomeExtend = {
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
                         // const prev_session_energy = (msg.data.energyMeterNow - msg.data.energyMeterStart) / 1000;
-                        if (msg.data.energyMeterNow !== undefined && msg.data.energyMeterStart !== undefined) {
-                            const prev_session_energy = msg.data.energyMeterNow - msg.data.energyMeterStart;
+                        // if (msg.data.energyMeterNow !== undefined && msg.data.energyMeterStart !== undefined) {
+                        //     const prev_session_energy = msg.data.energyMeterNow - msg.data.energyMeterStart;
+                        //     return {
+                        //         previous_session_energy: prev_session_energy,
+                        //     };
+                        // }
+                        let start = meta.state?.energy_meter_start !== undefined ? meta.state.energy_meter_start : null;
+                        let now = meta.state?.energy_meter_now !== undefined ? meta.state.energy_meter_now : null;
+                        if (Object.hasOwn(msg.data, "energyMeterStart")) {
+                            start = msg.data.energyMeterStart / 1000;
+                        }
+                        if (Object.hasOwn(msg.data, "energyMeterNow")) {
+                            now = msg.data.energyMeterNow / 1000;
+                        }
+                        if (start !== null && now !== null) {
+                            const consumed = (now as number) - (start as number);
                             return {
-                                previous_session_energy: prev_session_energy,
+                                // toFixed(3) prevents floating-point precision issues in JavaScript (e.g., 0.300000000004)
+                                session_energy: Number.parseFloat(consumed.toFixed(3)),
                             };
                         }
+                        return;
                     },
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
-            toZigbee: [
-                {
-                    key: ["prev_session_energy"],
-                    convertGet: async (entity, key, meta) => {
-                        await entity.read<"haApplianceControl", FuturehomeHaApplianceControl>("haApplianceControl", [
-                            "energyMeterNow",
-                            "energyMeterStart",
-                        ]);
-                    },
-                } satisfies Tz.Converter,
-            ],
-            exposes: [
-                exposes
-                    .numeric("previous_session_energy", ea.STATE_GET)
-                    .withLabel("Session energy")
-                    .withDescription("Previous session")
-                    .withUnit("kWh"),
-            ],
+            exposes: [exposes.numeric("session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh")],
         };
     },
 };
