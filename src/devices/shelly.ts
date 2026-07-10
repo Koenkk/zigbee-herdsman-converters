@@ -505,7 +505,7 @@ const shellyModernExtend = {
             .withDescription("Expose tilt/slat controls for covers with Shelly slat control enabled");
         const exposesFn: DefinitionExposesFunction = (device, options) => {
             const cover = e.cover().withPosition();
-            if (checkOption(device, options, "cover_tilt_enabled")) {
+            if (checkOption(device, options, "cover_tilt_enabled", true)) {
                 cover.withTilt();
             }
 

@@ -1,4 +1,5 @@
 import {describe, expect, it} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as tuya from "../src/lib/tuya";
 import type {Fz} from "../src/lib/types";
@@ -57,27 +58,26 @@ describe("lib/tuya", () => {
         });
     });
 
-    describe("valueConverter.localTempCalibration1", () => {
-        const conv = tuya.valueConverter.localTempCalibration1;
+    describe("closuresWindowCovering custom cluster (Tuya covers)", () => {
+        // Regression: moesCalibrationTime was declared as ENUM8 (a single byte,
+        // max 255). The calibration_time converter writes value * 10 and the
+        // exposed max is 500 s -> 5000, which does not fit in a byte:
+        //   - calibration_time 26 -> 260 throws RangeError (> 255) before sending
+        //   - smaller values (e.g. 25 -> 250) are rejected on-air as
+        //     INVALID_DATA_TYPE
+        // The attribute must be UINT16 for value * 10 (up to 5000) to encode.
+        it("declares moesCalibrationTime as UINT16 so value*10 fits", async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_1dd0d5yi",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            // Registers the custom cluster on the device (deviceAddCustomCluster).
+            await definition.configure?.(device, device.getEndpoint(1), definition);
 
-        // Regression for the `if (v > 55)` threshold bug: positive offsets above
-        // 5.5 °C (raw > 55) were wrongly treated as 2's-complement negatives and
-        // had 0x100000000 subtracted, e.g. from(60) === -429496723.6 instead of 6.
-        it("from() decodes positive calibration above 5.5 °C", () => {
-            expect(conv.from(60)).toBe(6); // was -429496723.6
-            expect(conv.from(90)).toBe(9); // max range, was -429496720.6
-        });
-
-        it("from() still decodes values up to 5.5 °C and negatives", () => {
-            expect(conv.from(0)).toBe(0);
-            expect(conv.from(55)).toBe(5.5);
-            expect(conv.from(0x100000000 - 90)).toBe(-9); // encoded -9
-        });
-
-        it("to()/from() round-trips the full range", () => {
-            for (const c of [-9, -5.5, -0.5, 0, 0.5, 5.5, 6, 9]) {
-                expect(conv.from(conv.to(c))).toBe(c);
-            }
+            const cluster = device.customClusters.closuresWindowCovering;
+            expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
     });
 });

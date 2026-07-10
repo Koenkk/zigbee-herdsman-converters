@@ -119,7 +119,7 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         expect(publish).toHaveBeenCalledWith({switch_mode_sw2: "detached"});
     });
 
-    it("exposes lift-only covers by default and opt-in tilt controls", async () => {
+    it("keeps tilt controls visible by default and allows explicit opt-out", async () => {
         const device = mockShelly2PMCover();
         const definition = await findByDevice(device);
         expect(definition.model).toBe("S4SW-002P16EU-COVER");
@@ -127,15 +127,18 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         const exposes = definition.exposes as DefinitionExposesFunction;
 
         const defaultCover = exposes(device, {}).find((expose) => expose.type === "cover");
+        const hiddenTiltCover = exposes(device, {cover_tilt_enabled: "false"}).find((expose) => expose.type === "cover");
         const tiltCover = exposes(device, {cover_tilt_enabled: "true"}).find((expose) => expose.type === "cover");
         device.meta.cover_tilt_enabled = true;
         const autoDetectedTiltCover = exposes(device, {cover_tilt_enabled: "auto"}).find((expose) => expose.type === "cover");
         assert(defaultCover);
+        assert(hiddenTiltCover);
         assert(tiltCover);
         assert(autoDetectedTiltCover);
 
         expect(getFeatureNames(defaultCover)).toContain("position");
-        expect(getFeatureNames(defaultCover)).not.toContain("tilt");
+        expect(getFeatureNames(defaultCover)).toContain("tilt");
+        expect(getFeatureNames(hiddenTiltCover)).not.toContain("tilt");
         expect(getFeatureNames(tiltCover)).toContain("position");
         expect(getFeatureNames(tiltCover)).toContain("tilt");
         expect(getFeatureNames(autoDetectedTiltCover)).toContain("tilt");
@@ -202,6 +205,10 @@ describe("Shelly 2PM Gen4 cover mode", () => {
 
         expect(device.meta.cover_tilt_enabled).toBe(false);
         expect(save).toHaveBeenCalledTimes(1);
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        const cover = exposes(device, {cover_tilt_enabled: "auto"}).find((expose) => expose.type === "cover");
+        assert(cover);
+        expect(getFeatureNames(cover)).not.toContain("tilt");
     });
 
     it("leaves persisted slat control unchanged when Cover.GetConfig has no boolean slat flag", async () => {

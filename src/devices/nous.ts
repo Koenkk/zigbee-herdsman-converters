@@ -302,9 +302,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "energy", tvc.divideBy100],
                 [2, "produced_energy", tvc.divideBy100],
-                [6, null, tvc.raw], // phase a - duplicate measurements
-                [7, null, tvc.raw], // phase b - duplicate measurements
-                [8, null, tvc.raw], // phase c - duplicate measurements
+                // [6, null, tvc.raw], // phase a - duplicate measurements
+                // [7, null, tvc.raw], // phase b - duplicate measurements
+                // [8, null, tvc.raw], // phase c - duplicate measurements
                 [9, "faults", tvc.circuitBreakerFaults1],
                 [15, "power_factor", tvc.raw],
                 [16, "energy_reset", tvc.reset],
@@ -338,7 +338,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "D5Z",
         vendor: "Nous",
         description: "Zigbee smart energy meter with leakage and prepayment",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
             te
                 .switch()

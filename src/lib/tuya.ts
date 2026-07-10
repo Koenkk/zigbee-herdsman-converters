@@ -518,12 +518,25 @@ export type ThermostatSchedule = KeyValue & {
 
 export type FromValue = string | number[] | Uint8Array;
 
-export function convertBufferToNumber(chunks: Buffer | number[]) {
+export function convertBufferToNumber(chunks: Buffer | number[], signed = true) {
+    // Input:           max 4 bytes in big-endian order
+    // Output signed:   int32 encoded with 2s complement
+    // Output unsigned: uint32
+    //
+    // Examples:
+    // [  1,   2,   3,   4] -> [0x01, 0x02, 0x03, 0x04] -> 0x01020304
+    // -> +16909060 signed / unsigned
+    // [255, 255, 255, 254] -> [0xFF, 0xFF, 0xFF, 0xFE] -> 0xFFFFFFFE
+    // -> -2 signed / +4294967294 unsigned
+
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
         value = value << 8;
         value += chunks[i];
     }
+
+    if (!signed) return value >>> 0;
+
     return value;
 }
 
@@ -558,6 +571,18 @@ function getDataValue(dpValue: Tuya.DpValue) {
 }
 
 export function convertDecimalValueTo4ByteHexArray(value: number) {
+    // Input: int32 or uint32
+    // Output: 4 bytes in big-endian order
+    //
+    // Examples:
+    //          +2 -> 0x00000002 -> [0x00, 0x00, 0x00, 0x02] -> [  0,   0,   0,   2]
+    // +4294967294 -> 0XFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
+    //          -2 -> 0xFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
+
+    // Encode negative values as 2s complement
+    if (value < 0) {
+        value = 0x100000000 + value;
+    }
     const hexValue = Number(value).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
@@ -1654,6 +1679,16 @@ export const valueConverter = {
             };
         },
     },
+    phaseVariant5: {
+        from: (v: string | Buffer) => {
+            const buf = Buffer.isBuffer(v) ? v : Buffer.from(v, "base64");
+            return {
+                voltage: ((buf[2] << 8) | buf[3]) / 10,
+                current: ((buf[5] << 8) | buf[6]) / 1000,
+                power: (buf[8] << 8) | buf[9],
+            };
+        },
+    },
     onOffWithZeros: {
         to: (v: string) => {
             if (v === "OFF") return false;
@@ -1946,57 +1981,6 @@ export const valueConverter = {
     },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
-    localTempCalibration1: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 10;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 10;
-            if (v < 0) return v * 10 + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration2: {
-        from: (v: number) => v,
-        to: (v: number) => {
-            if (v < 0) return v + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration3: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 10;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 10;
-            if (v < 0) return v * 10 + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration4: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 100;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 100;
-            if (v < 0) return v * 100 + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration5: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v;
-        },
-        to: (v: number) => {
-            if (v > 0) return v;
-            if (v < 0) return v + 0x100000000;
-            return v;
-        },
-    },
     thermostatHolidayStartStop: {
         from: (v: string) => {
             const start = {
@@ -5301,7 +5285,7 @@ const tuyaClusters = {
                 tuyaMovingState: {name: "tuyaMovingState", ID: 0xf000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaCalibration: {name: "tuyaCalibration", ID: 0xf001, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
                 tuyaMotorReversal: {name: "tuyaMotorReversal", ID: 0xf002, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
-                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.ENUM8, write: true, max: 0xffff},
+                moesCalibrationTime: {name: "moesCalibrationTime", ID: 0xf003, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 tuyaSwitchType: {name: "tuyaSwitchType", ID: 0x8000, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
             },
             commands: {},
