@@ -18,7 +18,7 @@ interface FuturehomeHaApplianceControl {
         a6: number;
         a7: number;
         a8: number;
-        a9: number;
+        status: number;
         aa: number;
         ab: number;
         a10: number;
@@ -490,8 +490,8 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
-                    a9: {
-                        name: "a9",
+                    status: {
+                        name: "status",
                         ID: 0xef09,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
@@ -616,6 +616,21 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 5, max: "1_HOUR", change: 1},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
+            m.enumLookup<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "status",
+                cluster: "haApplianceControl",
+                attribute: "status",
+                description: "Status - not reportable",
+                lookup: {
+                    plugged_out: 0x00, 
+                    plugged_in_charging: 0x02, 
+                    plugged_in_paused: 0x03,
+                    plugged_in: 0x04,
+                    stopped: 0x05,
+                },
+                access: "STATE_GET",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "a1",
                 cluster: "haApplianceControl",
@@ -667,14 +682,6 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "haApplianceControl",
                 attribute: "a8",
                 description: "a8 - not reportable",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a9",
-                cluster: "haApplianceControl",
-                attribute: "a9",
-                description: "a9 - not reportable",
                 access: "STATE_GET",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
