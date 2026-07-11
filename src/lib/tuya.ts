@@ -3320,8 +3320,7 @@ const tuyaTz = {
                 const brightnessKey = Object.keys(state).find((k) => k.startsWith("brightness_l1")) ? `brightness_l${entity.ID}` : "brightness";
                 const brightness = utils.toNumber(message.brightness, "brightness");
                 // we allow at most 1 incase its a rounding/ float precision issue
-                const brightnessUnchanged =
-                    Math.abs(utils.mapNumberRange(brightness, 0, 254, 0, 254) - state[brightnessKey]) <= 1;
+                const brightnessUnchanged = Math.abs(utils.mapNumberRange(brightness, 0, 254, 0, 254) - state[brightnessKey]) <= 1;
 
                 // if the brightness is unchanged then we need to force it on due to weirdness with moveToLevelTuya
                 if (state[stateKey] === "OFF" && brightnessUnchanged) {
