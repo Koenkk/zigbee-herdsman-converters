@@ -4371,7 +4371,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
-        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "ZG-222Z"],
+        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "ZG-222Z", "AY222Z"],
         model: "TS0207_water_leak_detector",
         vendor: "Tuya",
         description: "Water leak detector",
@@ -14212,7 +14212,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZG-227Z", "ZG-227ZL"],
+        zigbeeModel: ["ZG-227Z", "ZG-227ZL", "AY201Z"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_qoy0ekbd",
             "_TZE200_znbl8dj5",
@@ -14254,6 +14254,7 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "AOYAN",
                 description: "Temperature & humidity LCD sensor",
                 fingerprint: [
+                    {modelID: "AY201Z"},
                     {manufacturerName: "_TZE200_qoy0ekbd"},
                     {manufacturerName: "_TZE200_znbl8dj5"},
                     {manufacturerName: "_TZE200_a8sdabtg"},
