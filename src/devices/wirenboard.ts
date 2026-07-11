@@ -50,6 +50,12 @@ interface WbVocMeasurement {
     commandResponses: never;
 }
 
+interface WbGenMultistateOutput {
+    attributes: {irRomId: number};
+    commands: never;
+    commandResponses: never;
+}
+
 interface SprutDevice {
     attributes: {
         isConnected: number;
@@ -774,7 +780,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wall-mounted multi sensor with official Wiren Board firmware",
         ota: true,
         extend: [
-            m.deviceEndpoints({endpoints: {default: 1, buzzer: 2, heater: 3, led_red: 4, led_green: 5}, multiEndpointSkip: ["occupancy"]}),
+            m.deviceEndpoints({
+                endpoints: {default: 1, buzzer: 2, heater: 3, led_red: 4, led_green: 5, ir: 6},
+                multiEndpointSkip: ["occupancy", "ir_action", "ir_rom_id"],
+            }),
             // Custom cluster declarations
             m.deviceAddCustomCluster("genAnalogInput", {
                 name: "genAnalogInput",
@@ -798,6 +807,15 @@ export const definitions: DefinitionWithExtend[] = [
                     mswBootVersion: {name: "mswBootVersion", ID: 0x1004, type: Zcl.DataType.CHAR_STR},
                     mswComponentVersion: {name: "mswComponentVersion", ID: 0x1005, type: Zcl.DataType.CHAR_STR},
                     mswComponentSignature: {name: "mswComponentSignature", ID: 0x1006, type: Zcl.DataType.CHAR_STR},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("genMultistateOutput", {
+                name: "genMultistateOutput",
+                ID: Zcl.Clusters.genMultistateOutput.ID,
+                attributes: {
+                    irRomId: {name: "irRomId", ID: 0x1000, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1018,6 +1036,29 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 reporting: false,
             }),
+            // IR transceiver (endpoint 6). Action returns to stop once the device
+            // finishes playing/clearing; learn holds until an explicit stop.
+            m.numeric<"genMultistateOutput", WbGenMultistateOutput>({
+                name: "ir_rom_id",
+                cluster: "genMultistateOutput",
+                attribute: "irRomId",
+                description: "Target ROM bank for IR learn/play",
+                valueMin: 0,
+                valueMax: 79,
+                access: "ALL",
+                endpointNames: ["ir"],
+                reporting: false,
+            }),
+            m.enumLookup({
+                name: "ir_action",
+                lookup: {stop: 0, learn_ram: 1, learn_rom: 2, play_ram: 3, play_rom: 4, clear_all_rom: 5},
+                cluster: "genMultistateOutput",
+                attribute: "presentValue",
+                description: "IR transceiver action for the selected ROM bank",
+                access: "ALL",
+                endpointName: "ir",
+                reporting: false,
+            }),
             // Bindings (reporting is firmware-driven, so clusters are only bound)
             m.bindCluster({cluster: "genAnalogInput", clusterType: "input"}),
             m.bindCluster({cluster: "genBinaryOutput", clusterType: "input"}),
@@ -1028,6 +1069,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.bindCluster({cluster: "msOccupancySensing", clusterType: "input"}),
             m.bindCluster({cluster: "msCO2", clusterType: "input"}),
             m.bindCluster({cluster: "wbVoc", clusterType: "input"}),
+            m.bindCluster({cluster: "genMultistateOutput", clusterType: "input", endpointNames: ["ir"]}),
         ],
     },
     {
