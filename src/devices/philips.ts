@@ -4837,7 +4837,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
-        zigbeeModel: ["LGT009", "LGT010", "LGT012", "LGT016", "046677590161", "046677590130"],
+        zigbeeModel: ["LGT009", "LGT010", "LGT012", "LGT016", "046677590161", "046677590130", "LGT011"],
         model: "046677590161",
         vendor: "Philips",
         description: "Hue Play wall washer",
