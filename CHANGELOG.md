@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.81.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.80.0...v26.81.0) (2026-07-11)
+
+
+### Features
+
+* **add:** SSWQDYH02 ([#12663](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12663)) ([3880827](https://github.com/Koenkk/zigbee-herdsman-converters/commit/388082712c58e5493981055748cead95a5ea8fd4))
+* Aqara SSWQD22LM: support more features ([#12662](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12662)) ([ba9b2ec](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ba9b2ec50eee4ecc5adbb9c44451c8f316c7dc4b))
+* Philips 929004308301: support color ([#12665](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12665)) ([f59f886](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f59f886ec30c8259f55497e52a274d138cbab85c))
+* Wiren Board WB-MSW-ZIGBEE_v.4_official: expose IR transceiver controls ([#12654](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12654)) ([c996a89](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c996a895c027cb781be6079d19f56d626232631c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `AY222Z` as TS0207_water_leak_detector and `AY201Z` as ZG-227ZL ([#12661](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12661)) ([a56f749](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a56f74965c6cf09b5217a8af2ec15573cc4cd3ff))
+* **detect:** Detect `FB56-COS02HM1.4` as Feibit SCA01ZB ([#12664](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12664)) ([34fc3ce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/34fc3cef6405f3e4801ec3f9742d7f4f2cfbb9a1))
+* **detect:** Detect `LGT011` as Philips 046677590161 https://github.com/Koenkk/zigbee-herdsman-converters/issues/12660 ([9bb91d9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9bb91d9f50424f75efcf6234a61139fe52e98787))
+* Moes ZC-LS02: battery polling + stop mcuVersion flood ([#12650](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12650)) ([f478b1d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f478b1dcea7190f2972cf836d15b644b8c23c61f))
+* SONOFF MINIZB1GS: update inchingControlSet timeout ([#12656](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12656)) ([c55c0a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c55c0a67cc81a0a7317b9a9be5b44329df61580c))
+* SONOFF: restore composite exposes for irrigation settings ([#12647](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12647)) ([a7bf5ea](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a7bf5ea867ee7d9d4fad6a17c131d2ad5579be97))
+* Tuya RB-SRAIN01: invert cleaning_reminder ([#12651](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12651)) ([59e3bf4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/59e3bf45dff2e931e2234a572a928163704b81ea))
+
 ## [26.80.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.79.0...v26.80.0) (2026-07-09)
 
 
