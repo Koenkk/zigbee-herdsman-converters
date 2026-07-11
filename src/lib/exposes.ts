@@ -14,6 +14,7 @@ import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export type DefaultValue = number | string | boolean;
 export interface HomeAssistant {
     type?: "valve";
     entityCategory?: "config" | "diagnostic";
@@ -32,6 +33,8 @@ export class Base {
     description?: string;
     features?: Feature[];
     category?: "config" | "diagnostic";
+    // Cards need explicit defaults to build complete payloads for new atomic composites, which must be written as one object.
+    default?: DefaultValue;
     homeassistant?: HomeAssistant;
 
     withEndpoint(endpointName: string) {
@@ -78,6 +81,11 @@ export class Base {
     withCategory(category: "config" | "diagnostic") {
         this.category = category;
         this.validateCategory();
+        return this;
+    }
+
+    withDefault(value: DefaultValue) {
+        this.default = value;
         return this;
     }
 
@@ -134,6 +142,9 @@ export class Base {
             target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
+        if (this.default !== undefined) {
+            target.default = this.default;
+        }
         target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
     }
 }

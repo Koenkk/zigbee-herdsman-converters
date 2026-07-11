@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
+import {access, presets} from "../src/lib/exposes";
 import type {Tz} from "../src/lib/types";
 import {batteryVoltageToPercentage, getFromLookup, getFromLookupByValue, getTransition, mapNumberRange, toNumber} from "../src/lib/utils";
 import {mockDevice} from "./utils";
@@ -229,6 +230,30 @@ describe("utils", () => {
             it("should return first matching key", () => {
                 expect(getFromLookupByValue("same", {first: "same", second: "same", third: "different"})).toStrictEqual("first");
             });
+        });
+    });
+
+    describe("exposes defaults", () => {
+        it("sets explicit defaults", () => {
+            const expose = presets.numeric("irrigation_duration", access.ALL).withDefault(60);
+
+            expect(expose.default).toBe(60);
+        });
+
+        it("preserves defaults when cloned", () => {
+            const expose = presets
+                .composite("cyclic_timed_irrigation", "cyclic_timed_irrigation", access.ALL)
+                .withFeature(presets.numeric("total_number", access.STATE_SET).withDefault(1));
+
+            const clone = expose.clone();
+
+            expect(clone.features[0].default).toBe(1);
+        });
+
+        it("does not serialize unset defaults", () => {
+            const expose = presets.numeric("irrigation_interval", access.ALL);
+
+            expect(JSON.parse(JSON.stringify(expose))).not.toHaveProperty("default");
         });
     });
 });

@@ -2355,14 +2355,17 @@ const sonoffExtend = {
         const exposes = e
             .composite("cyclic_timed_irrigation", "cyclic_timed_irrigation", ea.ALL)
             .withDescription("Smart water valve cycle timing irrigation")
-            .withFeature(e.numeric("current_count", ea.STATE).withDescription("Number of times it has been executed").withUnit("times"))
+            .withFeature(
+                e.numeric("current_count", ea.STATE).withDescription("Number of times it has been executed").withUnit("times").withDefault(0),
+            )
             .withFeature(
                 e
                     .numeric("total_number", ea.STATE_SET)
                     .withDescription("Total times of circulating irrigation")
                     .withUnit("times")
                     .withValueMin(0)
-                    .withValueMax(100),
+                    .withValueMax(100)
+                    .withDefault(1),
             )
             .withFeature(
                 e
@@ -2370,7 +2373,8 @@ const sonoffExtend = {
                     .withDescription("Single irrigation duration")
                     .withUnit("seconds")
                     .withValueMin(0)
-                    .withValueMax(86400),
+                    .withValueMax(86400)
+                    .withDefault(60),
             )
             .withFeature(
                 e
@@ -2378,7 +2382,8 @@ const sonoffExtend = {
                     .withDescription("Time interval between two adjacent irrigation")
                     .withUnit("seconds")
                     .withValueMin(0)
-                    .withValueMax(86400),
+                    .withValueMax(86400)
+                    .withDefault(60),
             );
         const fromZigbee = [
             {
@@ -2477,14 +2482,17 @@ const sonoffExtend = {
         const exposes = e
             .composite("cyclic_quantitative_irrigation", "cyclic_quantitative_irrigation", ea.ALL)
             .withDescription("Smart water valve circulating quantitative irrigation")
-            .withFeature(e.numeric("current_count", ea.STATE).withDescription("Number of times it has been executed").withUnit("times"))
+            .withFeature(
+                e.numeric("current_count", ea.STATE).withDescription("Number of times it has been executed").withUnit("times").withDefault(0),
+            )
             .withFeature(
                 e
                     .numeric("total_number", ea.STATE_SET)
                     .withDescription("Total times of circulating irrigation")
                     .withUnit("times")
                     .withValueMin(0)
-                    .withValueMax(100),
+                    .withValueMax(100)
+                    .withDefault(1),
             )
             .withFeature(
                 e
@@ -2492,7 +2500,8 @@ const sonoffExtend = {
                     .withDescription("Single irrigation capacity")
                     .withUnit("liter")
                     .withValueMin(0)
-                    .withValueMax(6500),
+                    .withValueMax(6500)
+                    .withDefault(1),
             )
             .withFeature(
                 e
@@ -2500,7 +2509,8 @@ const sonoffExtend = {
                     .withDescription("Time interval between two adjacent irrigation")
                     .withUnit("seconds")
                     .withValueMin(0)
-                    .withValueMax(86400),
+                    .withValueMax(86400)
+                    .withDefault(60),
             );
         const fromZigbee = [
             {
