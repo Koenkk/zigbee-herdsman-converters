@@ -66,12 +66,5 @@
         "tsc-watch": "^7.2.1",
         "typescript": "^6.0.3",
         "vitest": "^4.0.0"
-    },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "@biomejs/biome",
-            "@serialport/bindings-cpp",
-            "esbuild"
-        ]
     }
 }
