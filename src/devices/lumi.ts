@@ -3421,10 +3421,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
-        zigbeeModel: ['lumi.light.acn036'],
-        model: 'SSWQDYH02',
-        vendor: 'Aqara',
-        description: 'Spotlight V1',
+        zigbeeModel: ["lumi.light.acn036"],
+        model: "SSWQDYH02",
+        vendor: "Aqara",
+        description: "Spotlight V1",
         whiteLabel: [
             {vendor: "Aqara", model: "ZNSD01LM"},
             {vendor: "Aqara", model: "ZNSD02LM"},
