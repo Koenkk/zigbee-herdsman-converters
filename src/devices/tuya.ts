@@ -28615,63 +28615,63 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_oa1odmga"]),
-    model: "TS0601_floodlight",
-    vendor: "Tuya",
-    description: "Smart RGBCW floodlight",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [e.light().withBrightness().withColorTemp([153, 500]).withColor(["hs"])],
-    meta: {
-        tuyaDatapoints: [
-            [1, "state", tuya.valueConverter.onOff],
-            // Standard Tuya light DP layout puts a work_mode enum on DP2 -
-            // writing a brightness number there gets silently ignored.
-            [
-                2,
-                "work_mode",
-                tuya.valueConverterBasic.lookup({
-                    white: tuya.enum(0),
-                    colour: tuya.enum(1),
-                    scene: tuya.enum(2),
-                    music: tuya.enum(3),
-                }),
-            ],
-            // Brightness is 0-1000 on the device but 0-254 in Z2M.
-            [3, "brightness", tuya.valueConverter.scale0_254to0_1000],
-            [4, "color_temp", tuya.valueConverter.raw],
-            [
-                5,
-                "color",
-                {
-                    to: (value) => {
-                        // The exposed 'hs' composite uses the property
-                        // names 'hue' and 'saturation', not 'h' and 's'.
-                        if (value.hue !== undefined && value.saturation !== undefined) {
-                            const hue = Math.round(value.hue);
-                            const sat = Math.round(value.saturation * 10); // 0-100 -> 0-1000
-                            // Keep current brightness (V) instead of forcing full,
-                            // fall back to full brightness if we don't know it yet.
-                            const val = value.brightness !== undefined ? Math.round(value.brightness * 10) : 1000;
-                            const hHex = hue.toString(16).padStart(4, "0");
-                            const sHex = sat.toString(16).padStart(4, "0");
-                            const vHex = val.toString(16).padStart(4, "0");
-                            return hHex + sHex + vHex;
-                        }
-                        return value;
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_oa1odmga"]),
+        model: "TS0601_floodlight",
+        vendor: "Tuya",
+        description: "Smart RGBCW floodlight",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.light().withBrightness().withColorTemp([153, 500]).withColor(["hs"])],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                // Standard Tuya light DP layout puts a work_mode enum on DP2 -
+                // writing a brightness number there gets silently ignored.
+                [
+                    2,
+                    "work_mode",
+                    tuya.valueConverterBasic.lookup({
+                        white: tuya.enum(0),
+                        colour: tuya.enum(1),
+                        scene: tuya.enum(2),
+                        music: tuya.enum(3),
+                    }),
+                ],
+                // Brightness is 0-1000 on the device but 0-254 in Z2M.
+                [3, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [4, "color_temp", tuya.valueConverter.raw],
+                [
+                    5,
+                    "color",
+                    {
+                        to: (value) => {
+                            // The exposed 'hs' composite uses the property
+                            // names 'hue' and 'saturation', not 'h' and 's'.
+                            if (value.hue !== undefined && value.saturation !== undefined) {
+                                const hue = Math.round(value.hue);
+                                const sat = Math.round(value.saturation * 10); // 0-100 -> 0-1000
+                                // Keep current brightness (V) instead of forcing full,
+                                // fall back to full brightness if we don't know it yet.
+                                const val = value.brightness !== undefined ? Math.round(value.brightness * 10) : 1000;
+                                const hHex = hue.toString(16).padStart(4, "0");
+                                const sHex = sat.toString(16).padStart(4, "0");
+                                const vHex = val.toString(16).padStart(4, "0");
+                                return hHex + sHex + vHex;
+                            }
+                            return value;
+                        },
+                        from: (value) => {
+                            if (typeof value === "string" && value.length >= 12) {
+                                const hue = Number.parseInt(value.substring(0, 4), 16);
+                                const saturation = Number.parseInt(value.substring(4, 8), 16) / 10;
+                                return {hue, saturation};
+                            }
+                            return value;
+                        },
                     },
-                    from: (value) => {
-                        if (typeof value === "string" && value.length >= 12) {
-                            const hue = Number.parseInt(value.substring(0, 4), 16);
-                            const saturation = Number.parseInt(value.substring(4, 8), 16) / 10;
-                            return {hue, saturation};
-                        }
-                        return value;
-                    },
-                },
+                ],
             ],
-        ],
+        },
     },
-},
 ];
