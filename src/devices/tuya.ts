@@ -13510,7 +13510,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("action_step_size", ea.STATE).withValueMin(0).withValueMax(255),
             e.numeric("action_color_temperature_delta", ea.STATE).withValueMin(-65535).withValueMax(65535),
             e.numeric("action_transition_time", ea.STATE).withUnit("s"),
-            e.numeric("action_rate", ea.STATE).withValueMin(0).withValueMax(255),
+            e.action_rate(),
             e.battery(),
             e
                 .enum("operation_mode", ea.ALL, ["command", "event"])

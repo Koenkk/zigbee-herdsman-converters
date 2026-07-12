@@ -250,7 +250,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("action_group", ea.STATE).withDescription("Shows the zigbee2mqtt group bound to the active data point EP(1-4)."),
             e.numeric("action_transition_time", ea.STATE),
             e.numeric("action_step_size", ea.STATE),
-            e.numeric("action_rate", ea.STATE),
+            e.action_rate(),
         ],
         toZigbee: [],
         meta: {multiEndpoint: true},

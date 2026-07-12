@@ -1385,6 +1385,10 @@ export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
         exposes.push(e.action_level());
     }
 
+    if (commands.includes("brightness_move_up") || commands.includes("brightness_move_down")) {
+        exposes.push(e.action_rate());
+    }
+
     const fromZigbee = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
@@ -1450,6 +1454,16 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [e.action(actions)];
+
+    if (
+        commands.includes("color_temperature_move_up") ||
+        commands.includes("color_temperature_move_down") ||
+        commands.includes("color_temperature_move") ||
+        commands.includes("color_move") ||
+        commands.includes("hue_move")
+    ) {
+        exposes.push(e.action_rate());
+    }
 
     const fromZigbee = [
         fz.command_move_color_temperature,
