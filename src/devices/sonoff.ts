@@ -22,6 +22,7 @@ import {
     YEAR_2000_IN_UTC,
     zclArrayValueToBytes,
 } from "../lib/sonoff";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -4275,49 +4276,145 @@ const sonoffExtend = {
             e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
         );
 
-        const irrigationPlanReport = e
-            .composite("irrigation_plan_report", "irrigation_plan_report", ea.STATE)
-            .withDescription("Irrigation plan report")
-            .withFeature(e.numeric("plan_index", ea.STATE))
-            .withFeature(e.binary("enable_state", ea.STATE, true, false))
-            .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
-            .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
-            .withFeature(
-                e
-                    .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
-                    .withDescription("Effective when loop_type_mode is weekdays")
-                    .withFeature(e.binary("sunday", ea.STATE, true, false))
-                    .withFeature(e.binary("monday", ea.STATE, true, false))
-                    .withFeature(e.binary("tuesday", ea.STATE, true, false))
-                    .withFeature(e.binary("wednesday", ea.STATE, true, false))
-                    .withFeature(e.binary("thursday", ea.STATE, true, false))
-                    .withFeature(e.binary("friday", ea.STATE, true, false))
-                    .withFeature(e.binary("saturday", ea.STATE, true, false)),
-            )
-            .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
-            .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
-            .withFeature(
-                e.enum(
-                    "irrigation_mode",
-                    ea.STATE,
-                    hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
-                ),
-            )
-            .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
-            .withFeature(e.numeric("irrigation_duration", ea.STATE))
-            .withFeature(e.numeric("interval_duration", ea.STATE));
-        if (hasFlowMeter) {
-            irrigationPlanReport
-                .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]))
-                .withFeature(e.numeric("irrigation_amount", ea.STATE))
-                .withFeature(e.numeric("fail_safe", ea.STATE));
-        }
-        irrigationPlanReport.withFeature(
-            e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+        const createIrrigationPlanReportExpose = (name: string, description: string): exposes.Composite => {
+            const expose = e
+                .composite(name, name, ea.STATE)
+                .withDescription(description)
+                .withFeature(e.numeric("plan_index", ea.STATE))
+                .withFeature(e.binary("enable_state", ea.STATE, true, false))
+                .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
+                .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
+                .withFeature(
+                    e
+                        .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
+                        .withDescription("Effective when loop_type_mode is weekdays")
+                        .withFeature(e.binary("sunday", ea.STATE, true, false))
+                        .withFeature(e.binary("monday", ea.STATE, true, false))
+                        .withFeature(e.binary("tuesday", ea.STATE, true, false))
+                        .withFeature(e.binary("wednesday", ea.STATE, true, false))
+                        .withFeature(e.binary("thursday", ea.STATE, true, false))
+                        .withFeature(e.binary("friday", ea.STATE, true, false))
+                        .withFeature(e.binary("saturday", ea.STATE, true, false)),
+                )
+                .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
+                .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
+                .withFeature(
+                    e.enum(
+                        "irrigation_mode",
+                        ea.STATE,
+                        hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                    ),
+                )
+                .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
+                .withFeature(e.numeric("irrigation_duration", ea.STATE))
+                .withFeature(e.numeric("interval_duration", ea.STATE));
+            if (hasFlowMeter) {
+                expose
+                    .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]))
+                    .withFeature(e.numeric("irrigation_amount", ea.STATE))
+                    .withFeature(e.numeric("fail_safe", ea.STATE));
+            }
+            return expose.withFeature(
+                e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+            );
+        };
+
+        const irrigationPlanReport = createIrrigationPlanReportExpose(
+            "irrigation_plan_report",
+            "Last irrigation plan report received from the device.",
+        );
+        const irrigationPlanSlotReports = Array.from({length: 6}, (_, planIndex) =>
+            createIrrigationPlanReportExpose(`irrigation_plan_report_${planIndex}`, `Cached irrigation plan report for plan_index ${planIndex}.`),
         );
 
-        const baseExposes = [irrigationPlanSettings, irrigationPlanReport];
+        // The public protocol only pushes one irrigationPlanReport object at a time; no confirmed safe per-slot read command is known yet.
+        const baseExposes = [irrigationPlanSettings, irrigationPlanReport, ...irrigationPlanSlotReports];
         const allExposes = baseExposes.flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+
+        const decodeIrrigationPlanReport = (payload: Buffer): KeyValueAny | undefined => {
+            if (payload.length < 28) return;
+
+            let offset = 0;
+
+            const planIndex = payload.readUInt8(offset);
+            offset += 1;
+            if (planIndex > 5) {
+                logger.error(`irrigationPlanReport invalid plan_index=${planIndex}`, NS);
+                return;
+            }
+
+            const enableState = payload.readUInt8(offset);
+            offset += 1;
+
+            const loopType = payload.readUInt16BE(offset);
+            const loopTypeMode = (loopType >> 8) & 0xff;
+            const loopTypeValue = loopType & 0xff;
+            offset += 2;
+
+            const enableDatetimeDevice = payload.readUInt32BE(offset);
+            const offsetSeconds = getRuntimeLocalOffsetSeconds(enableDatetimeDevice + YEAR_2000_IN_UTC);
+            const enableDatetimeUTC = deviceLocal2000ToUTCSeconds(enableDatetimeDevice, offsetSeconds);
+            offset += 4;
+
+            const irrigationMode = payload.readUInt8(offset);
+            offset += 1;
+
+            const startSeconds = payload.readUInt32BE(offset);
+            const enableDateISO = formatUtcSecondsToIsoWithOffset(enableDatetimeUTC, offsetSeconds);
+            const enableDate = enableDateISO.slice(0, 10);
+            const startHours = Math.floor(startSeconds / 3600);
+            const startMinutes = Math.floor((startSeconds % 3600) / 60);
+            const startTime = `${String(startHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
+            offset += 4;
+
+            const irrigationTotalDuration = payload.readUInt16BE(offset);
+            offset += 2;
+
+            const irrigationDuration = payload.readUInt16BE(offset);
+            offset += 2;
+
+            const intervalDuration = payload.readUInt16BE(offset);
+            offset += 2;
+
+            const irrigationAmountUnit = payload.readUInt8(offset);
+            offset += 1;
+
+            const irrigationAmount = payload.readUInt16BE(offset);
+            offset += 2;
+
+            const failSafe = payload.readUInt16BE(offset);
+            offset += 2;
+
+            const createDatetimeDevice = payload.readUInt32BE(offset);
+            const createDatetimeISO = formatUtcSecondsToIsoWithOffset(createDatetimeDevice, offsetSeconds);
+
+            return {
+                plan_index: planIndex,
+                enable_state: enableState === 1,
+                loop_type_mode: loopTypeModeMapping[loopTypeMode],
+                loop_type_interval_days: loopTypeMode === loopTypeModeMappingReverse.day_interval ? loopTypeValue : 0,
+                loop_type_week_days:
+                    loopTypeMode === loopTypeModeMappingReverse.weekdays ? decodeLoopTypeWeekDays(loopTypeValue) : decodeLoopTypeWeekDays(0),
+                enable_date: enableDate,
+                start_time: startTime,
+                irrigation_mode: hasFlowMeter
+                    ? (irrigationModeMapping[irrigationMode] ?? "duration")
+                    : irrigationModeMapping[irrigationMode] === "duration_with_interval"
+                      ? "duration_with_interval"
+                      : "duration",
+                irrigation_total_duration: irrigationTotalDuration,
+                irrigation_duration: irrigationDuration,
+                interval_duration: intervalDuration,
+                ...(hasFlowMeter
+                    ? {
+                          irrigation_amount_unit: irrigationAmountUnitMapping[irrigationAmountUnit],
+                          irrigation_amount: irrigationAmount,
+                          fail_safe: failSafe,
+                      }
+                    : {}),
+                create_datetime: createDatetimeISO,
+            };
+        };
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
             {
@@ -4349,102 +4446,28 @@ const sonoffExtend = {
                     }
 
                     if (cmdId === commandId.irrigationPlanReport) {
-                        if (payload.length < 28) return;
+                        const report = decodeIrrigationPlanReport(payload);
+                        if (!report) return;
                         const property = utils.postfixWithEndpointName("irrigation_plan_report", msg, model, meta);
+                        const endpointName = endpointNames ? utils.getKey(model.endpoint?.(meta.device) ?? {}, msg.endpoint.ID) : undefined;
+                        const storeKey = `irrigation_plan_reports_${endpointName ?? "default"}`;
+                        const storeEntity = meta.device ?? msg.device ?? msg.endpoint;
+                        const result: KeyValueAny = {[property]: report};
+                        if (!storeEntity) {
+                            result[utils.postfixWithEndpointName(`irrigation_plan_report_${report.plan_index}`, msg, model, meta)] = report;
+                            return result;
+                        }
+                        const reportsByIndex = utils.isObject(globalStore.getValue(storeEntity, storeKey, {}))
+                            ? {...globalStore.getValue(storeEntity, storeKey, {})}
+                            : {};
+                        reportsByIndex[report.plan_index] = report;
+                        globalStore.putValue(storeEntity, storeKey, reportsByIndex);
 
-                        // Payload byte offset
-                        let offset = 0;
-
-                        // Plan index
-                        const planIndex = payload.readUInt8(offset);
-                        offset += 1;
-
-                        // Whether schedule is enabled
-                        const enableState = payload.readUInt8(offset);
-                        offset += 1;
-
-                        // Loop type
-                        const loopType = payload.readUInt16BE(offset);
-                        const loopTypeMode = (loopType >> 8) & 0xff; // Loop mode
-                        const loopTypeValue = loopType & 0xff; // Loop configuration
-                        offset += 2;
-
-                        // Enable date(day start): device 2000-local seconds -> Unix UTC seconds
-                        const enableDatetimeDevice = payload.readUInt32BE(offset);
-                        const offsetSeconds = getRuntimeLocalOffsetSeconds(enableDatetimeDevice + YEAR_2000_IN_UTC);
-                        const enableDatetimeUTC = deviceLocal2000ToUTCSeconds(enableDatetimeDevice, offsetSeconds);
-                        offset += 4;
-
-                        // Irrigation mode
-                        const irrigationMode = payload.readUInt8(offset);
-                        offset += 1;
-
-                        // Effective start time (seconds from 00:00)
-                        const startSeconds = payload.readUInt32BE(offset);
-                        const enableDateISO = formatUtcSecondsToIsoWithOffset(enableDatetimeUTC, offsetSeconds);
-                        const enableDate = enableDateISO.slice(0, 10);
-                        const startHours = Math.floor(startSeconds / 3600);
-                        const startMinutes = Math.floor((startSeconds % 3600) / 60);
-                        const startTime = `${String(startHours).padStart(2, "0")}:${String(startMinutes).padStart(2, "0")}`;
-                        offset += 4;
-
-                        // Irrigation duration
-                        const irrigationTotalDuration = payload.readUInt16BE(offset);
-                        offset += 2;
-
-                        const irrigationDuration = payload.readUInt16BE(offset);
-                        offset += 2;
-
-                        // Interval duration
-                        const intervalDuration = payload.readUInt16BE(offset);
-                        offset += 2;
-
-                        // Irrigation amount unit
-                        const irrigationAmountUnit = payload.readUInt8(offset);
-                        offset += 1;
-
-                        // Irrigation amount
-                        const irrigationAmount = payload.readUInt16BE(offset);
-                        offset += 2;
-
-                        // Fail-safe timeout
-                        const failSafe = payload.readUInt16BE(offset);
-                        offset += 2;
-
-                        // Create datetime: Unix UTC seconds
-                        const createDatetimeDevice = payload.readUInt32BE(offset);
-                        const createDatetimeISO = formatUtcSecondsToIsoWithOffset(createDatetimeDevice, offsetSeconds);
-
-                        return {
-                            [property]: {
-                                plan_index: planIndex,
-                                enable_state: enableState === 1,
-                                loop_type_mode: loopTypeModeMapping[loopTypeMode],
-                                loop_type_interval_days: loopTypeMode === loopTypeModeMappingReverse.day_interval ? loopTypeValue : 0,
-                                loop_type_week_days:
-                                    loopTypeMode === loopTypeModeMappingReverse.weekdays
-                                        ? decodeLoopTypeWeekDays(loopTypeValue)
-                                        : decodeLoopTypeWeekDays(0),
-                                enable_date: enableDate,
-                                start_time: startTime,
-                                irrigation_mode: hasFlowMeter
-                                    ? (irrigationModeMapping[irrigationMode] ?? "duration")
-                                    : irrigationModeMapping[irrigationMode] === "duration_with_interval"
-                                      ? "duration_with_interval"
-                                      : "duration",
-                                irrigation_total_duration: irrigationTotalDuration,
-                                irrigation_duration: irrigationDuration,
-                                interval_duration: intervalDuration,
-                                ...(hasFlowMeter
-                                    ? {
-                                          irrigation_amount_unit: irrigationAmountUnitMapping[irrigationAmountUnit],
-                                          irrigation_amount: irrigationAmount,
-                                          fail_safe: failSafe,
-                                      }
-                                    : {}),
-                                create_datetime: createDatetimeISO,
-                            },
-                        };
+                        // The device reports one slot object at a time. Keep a per-index cache so HA can read slots independently after iterating 0-5.
+                        for (const [planIndex, planIndexReport] of Object.entries(reportsByIndex)) {
+                            result[utils.postfixWithEndpointName(`irrigation_plan_report_${planIndex}`, msg, model, meta)] = planIndexReport;
+                        }
+                        return result;
                     }
                 },
             },
