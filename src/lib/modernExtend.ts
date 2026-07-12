@@ -1381,6 +1381,10 @@ export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
     }
     const exposes: Expose[] = [e.action(actions)];
 
+    if (commands.includes("brightness_move_to_level")) {
+        exposes.push(e.action_level());
+    }
+
     const fromZigbee = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
 
     const result: ModernExtend = {exposes, fromZigbee, isModernExtend: true};
