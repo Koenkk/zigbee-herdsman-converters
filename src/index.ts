@@ -355,6 +355,25 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             allExposes.push(exposesLib.presets.action(uniqueActions));
         }
 
+        // De-duplicate and sort action parameters
+        const actionParamOrder = ["action_level", "action_rate"];
+        const actionParamExposes = new Map<string, Expose>();
+
+        for (const e of allExposes) {
+            if (typeof e !== "function" && actionParamOrder.includes(e.name)) {
+                actionParamExposes.set(e.name, e);
+            }
+        }
+
+        allExposes = allExposes.filter((expose) => !actionParamOrder.includes(expose.name));
+
+        for (const p of actionParamOrder) {
+            const e = actionParamExposes.get(p);
+            if (e) {
+                allExposes.push(e);
+            }
+        }
+
         let configure: Configure | undefined;
 
         if (configures.length !== 0) {
