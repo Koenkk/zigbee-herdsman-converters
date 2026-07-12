@@ -982,6 +982,13 @@ export const presets = {
             .withValueMax(255)
             .withValueStep(1)
             .withCategory("diagnostic"),
+    action_step_size: () =>
+        new Numeric("action_step_size", access.STATE)
+            .withDescription("Step size parameter of brightness/color Step commands")
+            .withValueMin(0)
+            .withValueMax(255)
+            .withValueStep(1)
+            .withCategory("diagnostic"),
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit("°"),
     angle_axis: (name: string) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit("°"),
     aqi: () => new Numeric("aqi", access.STATE).withDescription("Air quality index"),

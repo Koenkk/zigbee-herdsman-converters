@@ -1385,6 +1385,10 @@ export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
         exposes.push(e.action_level());
     }
 
+    if (commands.includes("brightness_step_up") || commands.includes("brightness_step_down")) {
+        exposes.push(e.action_step_size());
+    }
+
     if (commands.includes("brightness_move_up") || commands.includes("brightness_move_down")) {
         exposes.push(e.action_rate());
     }
@@ -1454,6 +1458,17 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
     const exposes: Expose[] = [e.action(actions)];
+
+    if (
+        commands.includes("color_temperature_step_up") ||
+        commands.includes("color_temperature_step_down") ||
+        commands.includes("color_hue_step_up") ||
+        commands.includes("color_hue_step_down") ||
+        commands.includes("color_saturation_step_up") ||
+        commands.includes("color_saturation_step_down")
+    ) {
+        exposes.push(e.action_step_size());
+    }
 
     if (
         commands.includes("color_temperature_move_up") ||

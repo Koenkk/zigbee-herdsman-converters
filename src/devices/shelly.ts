@@ -2126,7 +2126,6 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.action(["on", "off", "brightness_step_up", "brightness_step_down"]),
             e.numeric("action_group", ea.STATE).withDescription("Group ID associated with the action command."),
-            e.numeric("action_step_size", ea.STATE).withDescription("Step size value used for brightness step actions."),
             e.numeric("action_transition_time", ea.STATE).withDescription("Transition time in seconds for the action."),
         ],
         extend: [
