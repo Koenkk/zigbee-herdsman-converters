@@ -656,9 +656,9 @@ const inovelliExtend = {
 
                 await endpoint
                     .configureReporting(INOVELLI_CLUSTER_NAME, [
-                        {attribute: "internalTemperature", minimumReportInterval: 1800, maximumReportInterval: 3600, reportableChange: 5},
+                        {attribute: 32, minimumReportInterval: 1800, maximumReportInterval: 3600, reportableChange: 5},
                     ])
-                    .catch((e) => logger.warn(`Failed to configure internalTemperature reporting: ${e.message}`, "zhc:inovelli"));
+                    .catch((e) => logger.warning(`Failed to configure internalTemperature reporting: ${e.message}`, "zhc:inovelli"));
 
                 let endpoint2: Zh.Endpoint | undefined;
                 if (splitValuesByEndpoint) {

@@ -2182,6 +2182,7 @@ describe("Inovelli VZM31-SN definition integration", () => {
             configureReporting: {
                 1: [
                     {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
                     {cluster: "haElectricalMeasurement", items: [{attribute: "activePower", min: 15, max: 3600, change: 1}]},
                     {cluster: "seMetering", items: [{attribute: "currentSummDelivered", min: 15, max: 3600, change: 0}]},
                 ],
@@ -2408,6 +2409,7 @@ describe("Inovelli VZM30-SN definition integration", () => {
             configureReporting: {
                 1: [
                     {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
                     {
                         cluster: "haElectricalMeasurement",
                         items: [
@@ -2691,6 +2693,7 @@ describe("Inovelli VZM32-SN definition integration", () => {
             configureReporting: {
                 1: [
                     {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
                     {
                         cluster: "haElectricalMeasurement",
                         items: [
@@ -2916,7 +2919,10 @@ describe("Inovelli VZM35-SN definition integration", () => {
             writeCount: {1: 0, 2: 0},
             // fan() extend also configures onOff reporting on EP1; no other reporting clusters for VZM35-SN.
             configureReporting: {
-                1: [{cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]}],
+                1: [
+                    {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
+                ],
                 2: [],
             },
         });
@@ -3036,7 +3042,10 @@ describe("Inovelli VZM36 definition integration", () => {
             writeCount: {1: 0, 2: 0},
             // light() configures onOff reporting on EP1; fan() configures onOff reporting on EP2.
             configureReporting: {
-                1: [{cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]}],
+                1: [
+                    {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
+                ],
                 2: [{cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]}],
             },
         });
