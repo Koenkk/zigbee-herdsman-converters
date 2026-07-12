@@ -618,10 +618,12 @@ const inovelliExtend = {
         attrs,
         model,
         splitValuesByEndpoint = false,
+        temperatureReporting,
     }: {
         attrs: Array<{attributes: {[s: string]: Attribute}; clusterName: typeof INOVELLI_CLUSTER_NAME | typeof INOVELLI_MMWAVE_CLUSTER_NAME}>;
         model: Model;
         splitValuesByEndpoint?: boolean;
+        temperatureReporting?: {min: number; max: number; change: number};
     }): ModernExtend => {
         const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = [];
         const toZigbee: Tz.Converter[] = [];
@@ -654,11 +656,18 @@ const inovelliExtend = {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
 
-                await endpoint
-                    .configureReporting(INOVELLI_CLUSTER_NAME, [
-                        {attribute: 32, minimumReportInterval: 1800, maximumReportInterval: 3600, reportableChange: 5},
-                    ])
-                    .catch((e) => logger.warning(`Failed to configure internalTemperature reporting: ${e.message}`, "zhc:inovelli"));
+                if (temperatureReporting) {
+                    await endpoint
+                        .configureReporting(INOVELLI_CLUSTER_NAME, [
+                            {
+                                attribute: 32,
+                                minimumReportInterval: temperatureReporting.min,
+                                maximumReportInterval: temperatureReporting.max,
+                                reportableChange: temperatureReporting.change,
+                            },
+                        ])
+                        .catch((e) => logger.warning(`Failed to configure internalTemperature reporting: ${e.message}`, "zhc:inovelli"));
+                }
 
                 let endpoint2: Zh.Endpoint | undefined;
                 if (splitValuesByEndpoint) {
