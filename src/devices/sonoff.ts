@@ -22,6 +22,7 @@ import {
     YEAR_2000_IN_UTC,
     zclArrayValueToBytes,
 } from "../lib/sonoff";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {
     Configure,
@@ -5885,50 +5886,65 @@ const sonoffExtend = {
                 e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
             );
 
-            const irrigationPlanReport = e
-                .composite("irrigation_plan_report", "irrigation_plan_report", ea.STATE)
-                .withDescription("Irrigation plan report")
-                .withFeature(e.numeric("plan_index", ea.STATE))
-                .withFeature(e.binary("enable_state", ea.STATE, true, false))
-                .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
-                .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
-                .withFeature(
+            const createIrrigationPlanReportExpose = (name: string, description: string): exposes.Composite => {
+                const expose = e
+                    .composite(name, name, ea.STATE)
+                    .withDescription(description)
+                    .withFeature(e.numeric("plan_index", ea.STATE))
+                    .withFeature(e.binary("enable_state", ea.STATE, true, false))
+                    .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
+                    .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
+                    .withFeature(
+                        e
+                            .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
+                            .withDescription("Effective when loop_type_mode is weekdays")
+                            .withFeature(e.binary("sunday", ea.STATE, true, false))
+                            .withFeature(e.binary("monday", ea.STATE, true, false))
+                            .withFeature(e.binary("tuesday", ea.STATE, true, false))
+                            .withFeature(e.binary("wednesday", ea.STATE, true, false))
+                            .withFeature(e.binary("thursday", ea.STATE, true, false))
+                            .withFeature(e.binary("friday", ea.STATE, true, false))
+                            .withFeature(e.binary("saturday", ea.STATE, true, false)),
+                    )
+                    .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
+                    .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
+                    .withFeature(
+                        e.enum(
+                            "irrigation_mode",
+                            ea.STATE,
+                            hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                        ),
+                    )
+                    .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
+                    .withFeature(e.numeric("irrigation_duration", ea.STATE))
+                    .withFeature(e.numeric("interval_duration", ea.STATE));
+                if (hasFlowMeter) {
+                    const unitValues =
+                        utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device)
+                            ? ["us_gallon", "liter", "imperial_gallon"]
+                            : ["us_gallon", "liter"];
+                    expose.withFeature(e.enum("irrigation_amount_unit", ea.STATE, unitValues));
+                    expose.withFeature(e.numeric("irrigation_amount", ea.STATE)).withFeature(e.numeric("fail_safe", ea.STATE));
+                }
+                return expose.withFeature(
                     e
-                        .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
-                        .withDescription("Effective when loop_type_mode is weekdays")
-                        .withFeature(e.binary("sunday", ea.STATE, true, false))
-                        .withFeature(e.binary("monday", ea.STATE, true, false))
-                        .withFeature(e.binary("tuesday", ea.STATE, true, false))
-                        .withFeature(e.binary("wednesday", ea.STATE, true, false))
-                        .withFeature(e.binary("thursday", ea.STATE, true, false))
-                        .withFeature(e.binary("friday", ea.STATE, true, false))
-                        .withFeature(e.binary("saturday", ea.STATE, true, false)),
-                )
-                .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
-                .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
-                .withFeature(
-                    e.enum(
-                        "irrigation_mode",
-                        ea.STATE,
-                        hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
-                    ),
-                )
-                .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
-                .withFeature(e.numeric("irrigation_duration", ea.STATE))
-                .withFeature(e.numeric("interval_duration", ea.STATE));
-            if (hasFlowMeter) {
-                const unitValues =
-                    utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device)
-                        ? ["us_gallon", "liter", "imperial_gallon"]
-                        : ["us_gallon", "liter"];
-                irrigationPlanReport.withFeature(e.enum("irrigation_amount_unit", ea.STATE, unitValues));
-                irrigationPlanReport.withFeature(e.numeric("irrigation_amount", ea.STATE)).withFeature(e.numeric("fail_safe", ea.STATE));
-            }
-            irrigationPlanReport.withFeature(
-                e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+                        .text("create_datetime", ea.STATE)
+                        .withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+                );
+            };
+
+            const irrigationPlanReport = createIrrigationPlanReportExpose(
+                "irrigation_plan_report",
+                "Last irrigation plan report received from the device.",
+            );
+            const irrigationPlanSlotReports = Array.from({length: 6}, (_, planIndex) =>
+                createIrrigationPlanReportExpose(`irrigation_plan_report_${planIndex}`, `Cached irrigation plan report for plan_index ${planIndex}.`),
             );
 
-            return [irrigationPlanSettings, irrigationPlanReport].flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+            // The device reports all six slots when joining, then only the changed slot; the protocol has no per-slot query command.
+            return [irrigationPlanSettings, irrigationPlanReport, ...irrigationPlanSlotReports].flatMap((expose) =>
+                exposeCompositeEndpoints(expose, endpointNames),
+            );
         };
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
@@ -6056,7 +6072,25 @@ const sonoffExtend = {
                             create_datetime: createDatetimeISO,
                         };
 
-                        return {[property]: plan};
+                        const endpointName = endpointNames ? utils.getKey(model.endpoint?.(meta.device) ?? {}, msg.endpoint.ID) : undefined;
+                        const storeKey = `irrigation_plan_reports_${endpointName ?? "default"}`;
+                        const storeEntity = meta.device ?? msg.device ?? msg.endpoint;
+                        const result: KeyValueAny = {[property]: plan};
+                        const slotProperty = utils.postfixWithEndpointName(`irrigation_plan_report_${planIndex}`, msg, model, meta);
+                        if (!storeEntity) {
+                            result[slotProperty] = plan;
+                            return result;
+                        }
+                        const reportsByIndex = utils.isObject(globalStore.getValue(storeEntity, storeKey, {}))
+                            ? {...globalStore.getValue(storeEntity, storeKey, {})}
+                            : {};
+                        reportsByIndex[planIndex] = plan;
+                        globalStore.putValue(storeEntity, storeKey, reportsByIndex);
+
+                        for (const [cachedPlanIndex, cachedPlan] of Object.entries(reportsByIndex)) {
+                            result[utils.postfixWithEndpointName(`irrigation_plan_report_${cachedPlanIndex}`, msg, model, meta)] = cachedPlan;
+                        }
+                        return result;
                     }
                 },
             },
