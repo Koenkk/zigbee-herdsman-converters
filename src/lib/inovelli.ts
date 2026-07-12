@@ -5,12 +5,12 @@ import type {Parameter} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "./exposes";
+import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as reporting from "./reporting";
 import * as globalStore from "./store";
 import type {Configure, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
 import * as utils from "./utils";
-import {logger} from "./logger";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -654,10 +654,11 @@ const inovelliExtend = {
                 const endpoint = device.getEndpoint(1);
                 await reporting.bind(endpoint, coordinatorEndpoint, [INOVELLI_CLUSTER_NAME]);
 
-                await endpoint.configureReporting(INOVELLI_CLUSTER_NAME, [
-                    {attribute: "internalTemperature", minimumReportInterval: 1800,
-                        maximumReportInterval: 3600, reportableChange: 5},
-                ]).catch((e) => logger.warn(`Failed to configure internalTemperature reporting: ${e.message}`, "zhc:inovelli"));
+                await endpoint
+                    .configureReporting(INOVELLI_CLUSTER_NAME, [
+                        {attribute: "internalTemperature", minimumReportInterval: 1800, maximumReportInterval: 3600, reportableChange: 5},
+                    ])
+                    .catch((e) => logger.warn(`Failed to configure internalTemperature reporting: ${e.message}`, "zhc:inovelli"));
 
                 let endpoint2: Zh.Endpoint | undefined;
                 if (splitValuesByEndpoint) {
