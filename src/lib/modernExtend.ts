@@ -654,7 +654,7 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)")];
+    const exposes: Expose[] = [e.action(actions)];
 
     const actionPayloadLookup: KeyValueString = {
         commandOn: "on",
@@ -1379,9 +1379,7 @@ export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [
-        e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
-    ];
+    const exposes: Expose[] = [e.action(actions)];
 
     const fromZigbee = [fz.command_move_to_level, fz.command_move, fz.command_step, fz.command_stop];
 
@@ -1447,9 +1445,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [
-        e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
-    ];
+    const exposes: Expose[] = [e.action(actions)];
 
     const fromZigbee = [
         fz.command_move_color_temperature,
@@ -1629,9 +1625,7 @@ export function commandsWindowCovering(args: CommandsWindowCoveringArgs = {}): M
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [
-        e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
-    ];
+    const exposes: Expose[] = [e.action(actions)];
 
     const actionPayloadLookup: KeyValueString = {
         commandUpOpen: "open",
@@ -2572,7 +2566,7 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposesArray = [e.enum("action", ea.STATE, actions).withDescription("Triggered scene action (e.g. recall a scene)")];
+    const exposesArray = [e.action(actions)];
 
     const actionPayloadLookup: {[key: string]: string} = {
         commandRecall: "recall",
@@ -3037,7 +3031,7 @@ export function actionEnumLookup<
     let actions = Object.keys(lookup).flatMap((a) => (args.endpointNames ? args.endpointNames.map((e) => `${a}_${e}`) : [a]));
     // allows direct external input to be used by other extends in the same device
     if (args.extraActions) actions = actions.concat(args.extraActions);
-    const expose = e.enum("action", ea.STATE, actions).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic");
+    const expose = e.action(actions);
 
     const fromZigbee = [
         {
