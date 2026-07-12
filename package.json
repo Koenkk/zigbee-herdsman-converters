@@ -55,8 +55,8 @@
         "./package.json": "./package.json"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.5.2",
-        "@types/node": "^26.1.0",
+        "@biomejs/biome": "^2.5.3",
+        "@types/node": "^26.1.1",
         "@types/semver": "^7.7.1",
         "@vitest/coverage-v8": "4.1.10",
         "fast-deep-equal": "^3.1.3",
