@@ -654,7 +654,7 @@ export function commandsOnOff(args: CommandsOnOffArgs = {}): ModernExtend {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [e.action(actions)];
+    const exposes: Expose[] = [e.action(actions), e.action_group()];
 
     const actionPayloadLookup: KeyValueString = {
         commandOn: "on",
@@ -1379,7 +1379,7 @@ export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [e.action(actions)];
+    const exposes: Expose[] = [e.action(actions), e.action_group()];
 
     if (commands.includes("brightness_move_to_level")) {
         exposes.push(e.action_level());
@@ -1460,7 +1460,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [e.action(actions)];
+    const exposes: Expose[] = [e.action(actions), e.action_group()];
 
     // TODO: e.action_hue, e.action_enhanced_hue, e.action_direction, e.action_saturation,
     // e.action_color, e.action_stepx, e.action_stepy, e.action_colortemp, e.action_minimum, e.action_maximum etc.
@@ -1673,7 +1673,7 @@ export function commandsWindowCovering(args: CommandsWindowCoveringArgs = {}): M
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposes: Expose[] = [e.action(actions)];
+    const exposes: Expose[] = [e.action(actions), e.action_group()];
 
     const actionPayloadLookup: KeyValueString = {
         commandUpOpen: "open",
@@ -2614,7 +2614,7 @@ export function commandsScenes(args: CommandsScenesArgs = {}) {
     if (endpointNames) {
         actions = commands.flatMap((c) => endpointNames.map((e) => `${c}_${e}`));
     }
-    const exposesArray = [e.action(actions)];
+    const exposesArray = [e.action(actions), e.action_group()];
 
     const actionPayloadLookup: {[key: string]: string} = {
         commandRecall: "recall",
@@ -3103,7 +3103,7 @@ export function actionEnumLookup<
         } satisfies Fz.Converter<Cl, Custom, Cos extends undefined ? ["attributeReport", "readResponse"] : Cos>,
     ];
 
-    return {exposes: [expose], fromZigbee, isModernExtend: true};
+    return {exposes: [expose, e.action_group()], fromZigbee, isModernExtend: true};
 }
 
 export interface QuirkAddEndpointClusterArgs {

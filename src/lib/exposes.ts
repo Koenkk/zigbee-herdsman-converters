@@ -967,7 +967,13 @@ export const presets = {
         new Enum("action", access.STATE, values).withDescription("Triggered action (e.g. a button click)").withCategory("diagnostic"),
     action_duration: () =>
         new Numeric("action_duration", access.STATE).withUnit("s").withDescription("Triggered action duration in seconds").withCategory("diagnostic"),
-    action_group: () => new Numeric("action_group", access.STATE).withDescription("Group where the action was triggered on"),
+    action_group: () =>
+        new Numeric("action_group", access.STATE)
+            .withDescription("Target group of the action")
+            .withValueMin(0)
+            .withValueMax(65535)
+            .withValueStep(1)
+            .withCategory("diagnostic"),
     action_level: () =>
         new Numeric("action_level", access.STATE)
             .withDescription("Target brightness of Move to level command")

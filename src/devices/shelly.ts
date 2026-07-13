@@ -2123,10 +2123,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBRC-005B-B",
         vendor: "Shelly",
         description: "BLU Remote Control ZB",
-        exposes: [
-            e.action(["on", "off", "brightness_step_up", "brightness_step_down"]),
-            e.numeric("action_group", ea.STATE).withDescription("Group ID associated with the action command."),
-        ],
         extend: [
             m.battery(),
             m.commandsOnOff({commands: ["on", "off"]}),

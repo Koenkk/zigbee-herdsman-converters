@@ -269,7 +269,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "recall_2",
                 "recall_2_long",
             ]),
-            e.numeric("action_group", ea.STATE),
+            e.action_group(),
             e.action_level(),
             e.numeric("action_color_temperature", ea.STATE),
         ],

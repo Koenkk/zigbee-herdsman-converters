@@ -6,7 +6,6 @@ import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
-const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -247,7 +246,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "enhanced_move_to_hue_and_saturation",
                 "hue_stop",
             ]),
-            e.numeric("action_group", ea.STATE).withDescription("Shows the zigbee2mqtt group bound to the active data point EP(1-4)."),
+            e.action_group(),
             e.action_step_size(),
             e.action_transition_time(),
             e.action_rate(),

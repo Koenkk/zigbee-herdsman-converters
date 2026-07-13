@@ -356,7 +356,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
         }
 
         // De-duplicate and sort action parameters
-        const actionParamOrder = ["action_level", "action_step_size", "action_transition_time", "action_rate"];
+        const actionParamOrder = ["action_group", "action_level", "action_step_size", "action_transition_time", "action_rate"];
         const actionParamExposes = new Map<string, Expose>();
 
         for (const e of allExposes) {
