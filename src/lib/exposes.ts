@@ -1,9 +1,26 @@
 import assert from "node:assert";
-
+import type {
+    ThermostatAcLouverPosition,
+    ThermostatControlSequenceOfOperation,
+    ThermostatFanMode,
+    ThermostatProgrammingOperationMode,
+    ThermostatRunningMode,
+    ThermostatRunningState,
+    ThermostatScheduleMode,
+    ThermostatSystemMode,
+} from "./constants";
+import {thermostatSetpointChangeSource} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export interface HomeAssistant {
+    type?: "valve";
+    entityCategory?: "config" | "diagnostic";
+    deviceClass?: string;
+    enabledByDefault?: boolean;
+    icon?: string;
+}
 
 export class Base {
     name: string;
@@ -15,6 +32,7 @@ export class Base {
     description?: string;
     features?: Feature[];
     category?: "config" | "diagnostic";
+    homeassistant?: HomeAssistant;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -60,6 +78,11 @@ export class Base {
     withCategory(category: "config" | "diagnostic") {
         this.category = category;
         this.validateCategory();
+        return this;
+    }
+
+    withHomeAssistant(homeassistant: HomeAssistant) {
+        this.homeassistant = homeassistant;
         return this;
     }
 
@@ -111,6 +134,7 @@ export class Base {
             target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
+        target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
     }
 }
 
@@ -394,9 +418,7 @@ export class Light extends Base {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_off_transition_time", access.ALL)
                     .withLabel("ON/OFF transition time")
-                    .withDescription(
-                        "Represents the time taken to move to or from the target level when On of Off commands are received by an On/Off cluster",
-                    ),
+                    .withDescription("Seconds taken to move to or from the target level when On or Off commands are received by an On/Off cluster"),
             );
         }
         if (features.includes("on_transition_time")) {
@@ -405,7 +427,7 @@ export class Light extends Base {
                     .withLabel("ON transition time")
                     .withPreset("disabled", "disabled", "Use on_off_transition_time value")
                     .withDescription(
-                        "Represents the time taken to move the current level from the minimum level to the maximum level when an On command is received",
+                        "Seconds taken to move the current level from the minimum level to the maximum level when an On command is received",
                     ),
             );
         }
@@ -415,7 +437,7 @@ export class Light extends Base {
                     .withLabel("OFF transition time")
                     .withPreset("disabled", "disabled", "Use on_off_transition_time value")
                     .withDescription(
-                        "Represents the time taken to move the current level from the maximum level to the minimum level when an Off command is received",
+                        "Seconds taken to move the current level from the maximum level to the minimum level when an Off command is received",
                     ),
             );
         }
@@ -648,38 +670,22 @@ export class Climate extends Base {
         return this;
     }
 
-    withSystemMode(modes: string[], access = a.ALL, description = "Mode of this device") {
-        const allowed = ["off", "heat", "cool", "auto", "dry", "fan_only", "sleep", "emergency_heating"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withSystemMode(modes: ThermostatSystemMode[], access = a.ALL, description = "Mode of this device") {
         this.addFeature(new Enum("system_mode", access, modes).withDescription(description));
         return this;
     }
 
-    withRunningState(modes: string[], access = a.STATE_GET) {
-        const allowed = ["idle", "heat", "cool", "fan_only"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withRunningState(modes: ThermostatRunningState[], access = a.STATE_GET) {
         this.addFeature(new Enum("running_state", access, modes).withDescription("The current running state"));
         return this;
     }
 
-    withRunningMode(modes: string[], access = a.STATE_GET) {
-        const allowed = ["off", "cool", "heat"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withRunningMode(modes: ThermostatRunningMode[], access = a.STATE_GET) {
         this.addFeature(new Enum("running_mode", access, modes).withDescription("The current running mode"));
         return this;
     }
 
-    withFanMode(modes: string[], access = a.ALL) {
-        const allowed = ["off", "low", "medium", "high", "on", "auto", "smart"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withFanMode(modes: ThermostatFanMode[], access = a.ALL) {
         this.addFeature(new Enum("fan_mode", access, modes).withDescription("Mode of the fan"));
         return this;
     }
@@ -720,55 +726,29 @@ export class Climate extends Base {
         return this;
     }
 
-    withControlSequenceOfOperation(modes: string[], access = a.STATE) {
-        const allowed = [
-            "cooling_only",
-            "cooling_with_reheat",
-            "heating_only",
-            "heating_with_reheat",
-            "cooling_and_heating_4-pipes",
-            "cooling_and_heating_4-pipes_with_reheat",
-        ];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withControlSequenceOfOperation(modes: ThermostatControlSequenceOfOperation[], access = a.STATE) {
         this.addFeature(new Enum("control_sequence_of_operation", access, modes).withDescription("Operating environment of the thermostat"));
-        return this;
-    }
-
-    withProgrammingOperationMode(modes: string[], access = a.ALL) {
-        const allowed = ["setpoint", "schedule", "schedule_with_preheat", "eco"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
-        this.addFeature(presets.programming_operation_mode(modes).withAccess(access));
         return this;
     }
 
     withSetpointChangeSource(access = a.STATE) {
         this.addFeature(
-            new Enum("setpoint_change_source", access, ["manual", "schedule", "externally"]).withDescription("Source of the current setpoint change"),
+            new Enum("setpoint_change_source", access, Object.values(thermostatSetpointChangeSource)).withDescription(
+                "Source of the current setpoint change",
+            ),
         );
         return this;
     }
 
-    withAcLouverPosition(positions: string[], access = a.ALL) {
-        const allowed = ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"];
-        positions.forEach((m) => {
-            assert(allowed.includes(m));
-        });
+    withAcLouverPosition(positions: ThermostatAcLouverPosition[], access = a.ALL) {
         this.addFeature(
             new Enum("ac_louver_position", access, positions).withLabel("AC louver position").withDescription("AC louver position of this device"),
         );
         return this;
     }
 
-    withWeeklySchedule(modes: string[], access = a.ALL) {
-        const allowed = ["heat", "cool"];
-        modes.forEach((m) => {
-            assert(allowed.includes(m));
-        });
-
+    /** @deprecated 3.0 - uses wrong casing for some exposes - requires refactoring all weekly schedule logic */
+    withWeeklySchedule(modes: ThermostatScheduleMode[], access = a.ALL) {
         const featureDayOfWeek = new List(
             "dayofweek",
             a.SET,
@@ -874,6 +854,10 @@ export const options = {
         new Enum("thermostat_unit", access.SET, ["celsius", "fahrenheit"]).withDescription(
             "Controls the temperature unit of the thermostat (default celsius).",
         ),
+    homeassistant_climate_modes: () =>
+        new Enum("homeassistant_climate_modes", access.SET, ["heat", "cool", "heat_cool"])
+            .withLabel("Home Assistant climate modes")
+            .withDescription("Controls which modes are exposed in Home Assistant climate discovery (default heat)."),
     expose_pin: () =>
         new Binary("expose_pin", access.SET, true, false)
             .withLabel("Expose PIN")
@@ -1284,7 +1268,7 @@ export const presets = {
         new Numeric("power_reactive_phase_c", access.STATE).withUnit("VAR").withDescription("Instantaneous measured reactive power on phase C"),
     presence: () => new Binary("presence", access.STATE, true, false).withDescription("Indicates whether the device detected presence"),
     pressure: () => new Numeric("pressure", access.STATE).withUnit("hPa").withDescription("The measured atmospheric pressure"),
-    programming_operation_mode: (values = ["setpoint", "schedule", "schedule_with_preheat", "eco"]) =>
+    programming_operation_mode: (values: ThermostatProgrammingOperationMode[] = ["setpoint", "schedule", "schedule_with_preheat", "eco"]) =>
         new Enum("programming_operation_mode", access.ALL, values).withDescription(
             "Controls how programming affects the thermostat. Possible values: setpoint (only use specified setpoint), schedule (follow programmed setpoint schedule), schedule_with_preheat (follow programmed setpoint schedule with pre-heating). Changing this value does not clear programmed schedules.",
         ),
@@ -1342,7 +1326,6 @@ export const presets = {
     vibration: () => new Binary("vibration", access.STATE, true, false).withDescription("Indicates whether the device detected vibration"),
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
-    voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
     voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)

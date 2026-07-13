@@ -4,6 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import type * as m from "../lib/modernExtend";
 import {binary, deviceAddCustomCluster, deviceEndpoints, electricityMeter, enumLookup, identify, numeric, thermostat} from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
@@ -12,27 +13,203 @@ import {getFromLookup, getKey, postfixWithEndpointName, precisionRound, toNumber
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerOptions = {manufacturerCode: 0x7777};
+const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_LYTKO};
 const sensorTypes = ["3.3", "5", "6.8", "10", "12", "14.8", "15", "20", "33", "47"];
 
-interface LytoThermostat {
+interface LytkoThermostat {
     attributes: {
         occupiedSetback: number;
         lytkoSensor: number;
         lytkoTargetFirst: boolean;
+        sensorType: number;
+        targetTempFirst: boolean;
     };
     commands: never;
     commandResponses: never;
 }
 
-interface LytoUIThermostat {
+interface LytkoUIThermostat {
     attributes: {
-        brignessActive: number;
-        brignessStandby: number;
+        brightnessActive: number;
+        brightnessStandby: number;
+        brightnessActive0: number;
+        brightnessStandby0: number;
     };
     commands: never;
     commandResponses: never;
 }
+
+const lytkoExtend = {
+    lytkoHvacThermostatCluster: () =>
+        deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                occupiedSetback: {
+                    name: "occupiedSetback",
+                    ID: 0x0034,
+                    type: Zcl.DataType.UINT8,
+                    write: true,
+                    max: 0xff,
+                },
+                lytkoSensor: {
+                    name: "lytkoSensor",
+                    ID: 0xff00,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                    max: 0xff,
+                },
+                lytkoTargetFirst: {
+                    name: "lytkoTargetFirst",
+                    ID: 0xff01,
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                },
+                sensorType: {
+                    name: "sensorType",
+                    ID: 0x7700, // 30464
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                },
+                targetTempFirst: {
+                    name: "targetTempFirst",
+                    ID: 0x7701, // 30465
+                    type: Zcl.DataType.BOOLEAN,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    lytkoHvacUserInterfaceCfg: () =>
+        deviceAddCustomCluster("hvacUserInterfaceCfg", {
+            name: "hvacUserInterfaceCfg",
+            ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
+            attributes: {
+                brightnessActive: {
+                    name: "brightnessActive",
+                    ID: 0xff00,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                    max: 0xff,
+                },
+                brightnessStandby: {
+                    name: "brightnessStandby",
+                    ID: 0xff01,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                    max: 0xff,
+                },
+                brightnessActive0: {
+                    name: "brightnessActive0",
+                    ID: 0x7700, // 30464
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                },
+                brightnessStandby0: {
+                    name: "brightnessStandby0",
+                    ID: 0x7701, // 30465
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    occupiedSetback: (args?: Partial<m.NumericArgs<"hvacThermostat", LytkoThermostat>>) =>
+        numeric<"hvacThermostat", LytkoThermostat>({
+            name: "occupied_setback",
+            description: "Hysteresis",
+            unit: "°C",
+            cluster: "hvacThermostat",
+            attribute: "occupiedSetback",
+            scale: 10,
+            valueMin: 1.0,
+            valueMax: 2.5,
+            valueStep: 0.1,
+            precision: 1,
+            reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            entityCategory: "config",
+            ...args,
+        }),
+    remoteSensing: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", undefined>>) =>
+        enumLookup<"hvacThermostat", undefined>({
+            name: "remote_sensing",
+            label: "Remote sensing",
+            description: "",
+            lookup: {internally: 0, remotely: 1},
+            cluster: "hvacThermostat",
+            attribute: "remoteSensing",
+            reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            entityCategory: "config",
+            ...args,
+        }),
+    lytkoTargetFirst: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", LytkoThermostat>>) =>
+        enumLookup<"hvacThermostat", LytkoThermostat>({
+            name: "target_first",
+            label: "First temperature",
+            description: "Display target/current temperature first",
+            lookup: {Target: 0, Current: 1},
+            cluster: "hvacThermostat",
+            attribute: "lytkoTargetFirst",
+            reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            zigbeeCommandOptions: manufacturerOptions,
+            entityCategory: "config",
+            ...args,
+        }),
+    lytkoSensor: (args?: Partial<m.EnumLookupArgs<"hvacThermostat", LytkoThermostat>>) =>
+        enumLookup<"hvacThermostat", LytkoThermostat>({
+            name: "sensor_type",
+            label: "Sensor",
+            description: "Sensor type",
+            lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
+            cluster: "hvacThermostat",
+            attribute: "lytkoSensor",
+            reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            endpointName: "3",
+            zigbeeCommandOptions: manufacturerOptions,
+            entityCategory: "config",
+            ...args,
+        }),
+    brightnessActive: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", LytkoUIThermostat>>) =>
+        numeric<"hvacUserInterfaceCfg", LytkoUIThermostat>({
+            name: "brigness_Active",
+            label: "Brigness Active",
+            description: "Display brightness in work mode",
+            unit: "%",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "brightnessActive",
+            valueMin: 0,
+            valueMax: 100,
+            reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            access: "ALL",
+            entityCategory: "config",
+            ...args,
+        }),
+    brightnessStandby: (args?: Partial<m.NumericArgs<"hvacUserInterfaceCfg", LytkoUIThermostat>>) =>
+        numeric<"hvacUserInterfaceCfg", LytkoUIThermostat>({
+            name: "brigness_Standby",
+            label: "Brigness Standby",
+            description: "Display brightness in standby mode",
+            unit: "%",
+            cluster: "hvacUserInterfaceCfg",
+            attribute: "brightnessStandby",
+            valueMin: 0,
+            valueMax: 100,
+            reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            access: "ALL",
+            entityCategory: "config",
+            ...args,
+        }),
+};
 
 const fzLocal = {
     thermostat: {
@@ -785,31 +962,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -838,43 +991,14 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "3",
             }),
             identify(),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
-                entityCategory: "config",
             }),
-            enumLookup({
-                name: "remote_sensing",
-                label: "Remote sensing",
-                description: "",
-                lookup: {internally: 0, remotely: 1},
-                cluster: "hvacThermostat",
-                attribute: "remoteSensing",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
         ],
     },
@@ -886,31 +1010,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -939,43 +1039,14 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "3",
             }),
             identify(),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
-                entityCategory: "config",
             }),
-            enumLookup({
-                name: "remote_sensing",
-                label: "Remote sensing",
-                description: "",
-                lookup: {internally: 0, remotely: 1},
-                cluster: "hvacThermostat",
-                attribute: "remoteSensing",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
             numeric({
                 name: "power_apparent",
@@ -1007,65 +1078,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoTargetFirst: {
-                        name: "lytkoTargetFirst",
-                        ID: 0xff01,
-                        type: Zcl.DataType.BOOLEAN,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            deviceAddCustomCluster("hvacUserInterfaceCfg", {
-                name: "hvacUserInterfaceCfg",
-                ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
-                attributes: {
-                    brignessActive: {
-                        name: "brignessActive",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    brignessStandby: {
-                        name: "brignessStandby",
-                        ID: 0xff01,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacUserInterfaceCfg(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -1105,70 +1119,16 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["unlock", 0],
                 entityCategory: "config",
             }),
-            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
-                name: "brigness_Active",
-                label: "Brigness Active",
-                description: "Display brightness in work mode",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "brignessActive",
-                valueMin: 0,
-                valueMax: 100,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
-                access: "ALL",
-                entityCategory: "config",
-            }),
-            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
-                name: "brigness_Standby",
-                label: "Brigness Standby",
-                description: "Display brightness in standby mode",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "brignessStandby",
-                valueMin: 0,
-                valueMax: 100,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
-                access: "ALL",
-                entityCategory: "config",
-            }),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.brightnessActive(),
+            lytkoExtend.brightnessStandby(),
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "target_first",
-                label: "First temperature",
-                description: "Display target/current temperature first",
-                lookup: {Target: 0, Current: 1},
-                cluster: "hvacThermostat",
-                attribute: "lytkoTargetFirst",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoTargetFirst({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
         ],
     },
@@ -1180,31 +1140,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
@@ -1257,66 +1193,20 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "4",
             }),
             identify(),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3", "4"],
-                entityCategory: "config",
             }),
-            enumLookup({
-                name: "remote_sensing",
-                label: "Remote sensing",
-                description: "",
-                lookup: {internally: 0, remotely: 1},
-                cluster: "hvacThermostat",
-                attribute: "remoteSensing",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
-                entityCategory: "config",
             }),
-            enumLookup({
-                name: "remote_sensing",
-                label: "Remote sensing",
-                description: "",
-                lookup: {internally: 0, remotely: 1},
-                cluster: "hvacThermostat",
-                attribute: "remoteSensing",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.remoteSensing({
                 endpointName: "4",
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "4",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
         ],
     },
@@ -1328,31 +1218,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
@@ -1405,66 +1271,20 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint: "4",
             }),
             identify(),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3", "4"],
-                entityCategory: "config",
             }),
-            enumLookup({
-                name: "remote_sensing",
-                label: "Remote sensing",
-                description: "",
-                lookup: {internally: 0, remotely: 1},
-                cluster: "hvacThermostat",
-                attribute: "remoteSensing",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.remoteSensing({
                 endpointName: "3",
-                entityCategory: "config",
             }),
-            enumLookup({
-                name: "remote_sensing",
-                label: "Remote sensing",
-                description: "",
-                lookup: {internally: 0, remotely: 1},
-                cluster: "hvacThermostat",
-                attribute: "remoteSensing",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.remoteSensing({
                 endpointName: "4",
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "4",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
             numeric({
                 name: "power_apparent",
@@ -1496,65 +1316,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoTargetFirst: {
-                        name: "lytkoTargetFirst",
-                        ID: 0xff01,
-                        type: Zcl.DataType.BOOLEAN,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            deviceAddCustomCluster("hvacUserInterfaceCfg", {
-                name: "hvacUserInterfaceCfg",
-                ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
-                attributes: {
-                    brignessActive: {
-                        name: "brignessActive",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    brignessStandby: {
-                        name: "brignessStandby",
-                        ID: 0xff01,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacUserInterfaceCfg(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3, 4: 4},
             }),
@@ -1618,93 +1381,24 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["unlock", 0],
                 entityCategory: "config",
             }),
-            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
-                name: "brigness_Active",
-                label: "Brigness Active",
-                description: "Display brightness in work mode",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "brignessActive",
-                valueMin: 0,
-                valueMax: 100,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
-                access: "ALL",
-                entityCategory: "config",
-            }),
-            numeric<"hvacUserInterfaceCfg", LytoUIThermostat>({
-                name: "brigness_Standby",
-                label: "Brigness Standby",
-                description: "Display brightness in standby mode",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "brignessStandby",
-                valueMin: 0,
-                valueMax: 100,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
-                access: "ALL",
-                entityCategory: "config",
-            }),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.brightnessActive(),
+            lytkoExtend.brightnessStandby(),
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3", "4"],
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type_3",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type_4",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "4",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
+            lytkoExtend.lytkoTargetFirst({
                 name: "target_first_3",
-                label: "First temperature",
-                description: "Display target/current temperature first",
-                lookup: {Target: 0, Current: 1},
-                cluster: "hvacThermostat",
-                attribute: "lytkoTargetFirst",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
+            lytkoExtend.lytkoTargetFirst({
                 name: "target_first_4",
-                label: "First temperature",
-                description: "Display target/current temperature first",
-                lookup: {Target: 0, Current: 1},
-                cluster: "hvacThermostat",
-                attribute: "lytkoTargetFirst",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
                 endpointName: "4",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
         ],
     },
@@ -1716,65 +1410,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         meta: {multiEndpoint: true},
         extend: [
-            deviceAddCustomCluster("hvacThermostat", {
-                name: "hvacThermostat",
-                ID: Zcl.Clusters.hvacThermostat.ID,
-                attributes: {
-                    occupiedSetback: {
-                        name: "occupiedSetback",
-                        ID: 0x0034,
-                        type: Zcl.DataType.UINT8,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoSensor: {
-                        name: "lytkoSensor",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    lytkoTargetFirst: {
-                        name: "lytkoTargetFirst",
-                        ID: 0xff01,
-                        type: Zcl.DataType.BOOLEAN,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
-            deviceAddCustomCluster("hvacUserInterfaceCfg", {
-                name: "hvacUserInterfaceCfg",
-                ID: Zcl.Clusters.hvacUserInterfaceCfg.ID,
-                attributes: {
-                    brignessActive: {
-                        name: "brignessActive",
-                        ID: 0xff00,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                    brignessStandby: {
-                        name: "brignessStandby",
-                        ID: 0xff01,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: manufacturerOptions.manufacturerCode,
-
-                        write: true,
-                        max: 0xff,
-                    },
-                },
-                commands: {},
-                commandsResponse: {},
-            }),
+            lytkoExtend.lytkoHvacThermostatCluster(),
+            lytkoExtend.lytkoHvacUserInterfaceCfg(),
             deviceEndpoints({
                 endpoints: {1: 1, 3: 3},
             }),
@@ -1814,44 +1451,14 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["unlock", 0],
                 entityCategory: "config",
             }),
-            numeric<"hvacThermostat", LytoThermostat>({
-                name: "occupied_setback",
-                description: "Hysteresis",
-                unit: "°C",
-                cluster: "hvacThermostat",
-                attribute: "occupiedSetback",
-                scale: 10,
-                valueMin: 1.0,
-                valueMax: 2.5,
-                valueStep: 0.1,
-                precision: 1,
-                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+            lytkoExtend.occupiedSetback({
                 endpointNames: ["3"],
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "sensor_type",
-                label: "Sensor",
-                description: "Sensor type",
-                lookup: {"3.3K": 0, "5.0K": 1, "6.8K": 2, "10.0K": 3, "12.0K": 4, "14.8K": 5, "15.0K": 6, "20.0K": 7, "33.0K": 8, "47.0K": 9},
-                cluster: "hvacThermostat",
-                attribute: "lytkoSensor",
-                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoSensor({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
-            enumLookup<"hvacThermostat", LytoThermostat>({
-                name: "target_first",
-                label: "First temperature",
-                description: "Display target/current temperature first",
-                lookup: {Target: 0, Current: 1},
-                cluster: "hvacThermostat",
-                attribute: "lytkoTargetFirst",
-                reporting: {min: "1_SECOND", max: "1_HOUR", change: 1},
+            lytkoExtend.lytkoTargetFirst({
                 endpointName: "3",
-                zigbeeCommandOptions: manufacturerOptions,
-                entityCategory: "config",
             }),
         ],
     },

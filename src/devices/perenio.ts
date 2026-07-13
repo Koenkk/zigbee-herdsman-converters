@@ -5,7 +5,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -15,15 +15,45 @@ const switchTypeValues = ["maintained_state", "maintained_toggle", "momentary_st
 
 const defaultOnOffStateValues = ["on", "off", "previous"];
 
+type PerenioSpecific = {
+    attributes: {
+        defaultOnOffState: number;
+        alarms: number;
+        rmsCurrent: number;
+        rmsVoltage: number;
+        voltageMin: number;
+        voltageMax: number;
+        activePower: number;
+        powerMax: number;
+        consumedEnergy: number;
+        consumedEnergyLimit: number;
+        rssi: number;
+    };
+    commands: never;
+    commandResponses: never;
+};
+
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO};
 
 const perenioExtend = {
     addCustomClusterPerenio: () =>
         m.deviceAddCustomCluster("perenioSpecific", {
             name: "perenioSpecific",
-            ID: 64635,
+            ID: 0xfc7b,
             manufacturerCode: Zcl.ManufacturerCode.CUSTOM_PERENIO,
-            attributes: {},
+            attributes: {
+                defaultOnOffState: {name: "defaultOnOffState", ID: 0x0000, type: Zcl.DataType.UINT8, write: true},
+                alarms: {name: "alarms", ID: 0x0001, type: Zcl.DataType.BITMAP8, write: true},
+                rmsCurrent: {name: "rmsCurrent", ID: 0x0002, type: Zcl.DataType.UINT16},
+                rmsVoltage: {name: "rmsVoltage", ID: 0x0003, type: Zcl.DataType.UINT16},
+                voltageMin: {name: "voltageMin", ID: 0x0004, type: Zcl.DataType.UINT16, write: true},
+                voltageMax: {name: "voltageMax", ID: 0x0005, type: Zcl.DataType.UINT16, write: true},
+                activePower: {name: "activePower", ID: 0x000a, type: Zcl.DataType.UINT16},
+                powerMax: {name: "powerMax", ID: 0x000b, type: Zcl.DataType.UINT16, write: true, min: 0, max: 0xfffe},
+                consumedEnergy: {name: "consumedEnergy", ID: 0x000e, type: Zcl.DataType.UINT32},
+                consumedEnergyLimit: {name: "consumedEnergyLimit", ID: 0x000f, type: Zcl.DataType.UINT16, write: true, min: 0, max: 0xfffe},
+                rssi: {name: "rssi", ID: 0x0018, type: Zcl.DataType.INT8},
+            },
             commands: {},
             commandsResponse: {},
         }),
@@ -68,65 +98,65 @@ const fzPerenio = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            if (msg.data[2] !== undefined) {
-                result.rms_current = msg.data[2];
+            if (msg.data.rmsCurrent !== undefined) {
+                result.rms_current = msg.data.rmsCurrent;
             }
-            if (msg.data[3] !== undefined) {
-                result.rms_voltage = msg.data[3];
+            if (msg.data.rmsVoltage !== undefined) {
+                result.rms_voltage = msg.data.rmsVoltage;
             }
-            if (msg.data[4] !== undefined) {
-                result.voltage_min = msg.data[4];
+            if (msg.data.voltageMin !== undefined) {
+                result.voltage_min = msg.data.voltageMin;
             }
-            if (msg.data[5] !== undefined) {
-                result.voltage_max = msg.data[5];
+            if (msg.data.voltageMax !== undefined) {
+                result.voltage_max = msg.data.voltageMax;
             }
-            if (msg.data[10] !== undefined) {
-                result.active_power = msg.data[10];
+            if (msg.data.activePower !== undefined) {
+                result.active_power = msg.data.activePower;
             }
-            if (msg.data[11] !== undefined) {
-                result.power_max = msg.data[11];
+            if (msg.data.powerMax !== undefined) {
+                result.power_max = msg.data.powerMax;
             }
-            if (msg.data[14] !== undefined) {
-                result.consumed_energy = msg.data[14];
+            if (msg.data.consumedEnergy !== undefined) {
+                result.consumed_energy = msg.data.consumedEnergy;
             }
-            if (msg.data[15] !== undefined) {
-                result.consumed_energy_limit = msg.data[15];
+            if (msg.data.consumedEnergyLimit !== undefined) {
+                result.consumed_energy_limit = msg.data.consumedEnergyLimit;
             }
-            if (msg.data[24] !== undefined) {
-                result.rssi = msg.data[24];
+            if (msg.data.rssi !== undefined) {
+                result.rssi = msg.data.rssi;
             }
-            const powerOnStateLookup = {
+            const powerOnStateLookup: KeyValueAny = {
                 0: "off",
                 1: "on",
                 2: "previous",
             };
-            if (msg.data[0] !== undefined) {
-                result.default_on_off_state = powerOnStateLookup[msg.data[0]];
+            if (msg.data.defaultOnOffState !== undefined) {
+                result.default_on_off_state = powerOnStateLookup[msg.data.defaultOnOffState];
             }
-            if (msg.data[1] !== undefined) {
-                if (msg.data[1] === 0) {
+            if (msg.data.alarms !== undefined) {
+                if (msg.data.alarms === 0) {
                     result.alarm_voltage_min = false;
                     result.alarm_voltage_max = false;
                     result.alarm_power_max = false;
                     result.alarm_consumed_energy = false;
                 } else {
-                    if (msg.data[1] & 1) {
+                    if (msg.data.alarms & 1) {
                         result.alarm_voltage_min = true;
                     }
-                    if (msg.data[1] & 2) {
+                    if (msg.data.alarms & 2) {
                         result.alarm_voltage_max = true;
                     }
-                    if (msg.data[1] & 4) {
+                    if (msg.data.alarms & 4) {
                         result.alarm_power_max = true;
                     }
-                    if (msg.data[1] & 8) {
+                    if (msg.data.alarms & 8) {
                         result.alarm_consumed_energy = true;
                     }
                 }
             }
             return result;
         },
-    } satisfies Fz.Converter<"perenioSpecific", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"perenioSpecific", PerenioSpecific, ["attributeReport", "readResponse"]>,
 };
 
 const tzPerenio = {
@@ -165,7 +195,7 @@ const tzPerenio = {
             return {state: {default_on_off_state: val}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("perenioSpecific", [0]);
+            await entity.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["defaultOnOffState"]);
         },
     } satisfies Tz.Converter,
     alarms_reset: {
@@ -175,7 +205,7 @@ const tzPerenio = {
             return {state: {alarm_voltage_min: false, alarm_voltage_max: false, alarm_power_max: false, alarm_consumed_energy: false}};
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read("perenioSpecific", [1]);
+            await entity.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["alarms"]);
         },
     } satisfies Tz.Converter,
     alarms_limits: {
@@ -200,16 +230,16 @@ const tzPerenio = {
         convertGet: async (entity, key, meta) => {
             switch (key) {
                 case "voltage_min":
-                    await entity.read("perenioSpecific", [4]);
+                    await entity.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["voltageMin"]);
                     break;
                 case "voltage_max":
-                    await entity.read("perenioSpecific", [5]);
+                    await entity.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["voltageMax"]);
                     break;
                 case "power_max":
-                    await entity.read("perenioSpecific", [11]);
+                    await entity.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["powerMax"]);
                     break;
                 case "consumed_energy_limit":
-                    await entity.read("perenioSpecific", [15]);
+                    await entity.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["consumedEnergyLimit"]);
                     break;
             }
         },
@@ -380,32 +410,37 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             ];
             await endpoint.configureReporting("genOnOff", payload);
-            await endpoint.configureReporting("perenioSpecific", [
+            await endpoint.configureReporting<"perenioSpecific", PerenioSpecific>("perenioSpecific", [
                 {
-                    attribute: {ID: 0x000a, type: 0x21},
+                    attribute: "activePower",
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.configureReporting("perenioSpecific", [
+            await endpoint.configureReporting<"perenioSpecific", PerenioSpecific>("perenioSpecific", [
                 {
-                    attribute: {ID: 0x000e, type: 0x23},
+                    attribute: "consumedEnergy",
                     minimumReportInterval: 5,
                     maximumReportInterval: 60,
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.configureReporting("perenioSpecific", [
+            await endpoint.configureReporting<"perenioSpecific", PerenioSpecific>("perenioSpecific", [
                 {
-                    attribute: {ID: 0x0003, type: 0x21},
+                    attribute: "rmsVoltage",
                     minimumReportInterval: 5,
                     maximumReportInterval: 5,
                     reportableChange: 0,
                 },
             ]);
-            await endpoint.read("perenioSpecific", [0, 1, 2, 3]);
-            await endpoint.read("perenioSpecific", [4, 5, 11, 15]);
+            await endpoint.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", ["defaultOnOffState", "alarms", "rmsCurrent", "rmsVoltage"]);
+            await endpoint.read<"perenioSpecific", PerenioSpecific>("perenioSpecific", [
+                "voltageMin",
+                "voltageMax",
+                "powerMax",
+                "consumedEnergyLimit",
+            ]);
         },
         exposes: [
             e.switch(),

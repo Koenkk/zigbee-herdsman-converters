@@ -16,11 +16,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.windowCovering({controls: ["tilt"]}), m.battery()],
     },
     {
-        zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller"],
+        zigbeeModel: ["Sonesse 28 WF Li-Ion Roller", "Sonesse 28 WF Roller", "Sonesse 28 WF Li-Ion Zebra"],
         model: "1241755",
         vendor: "SOMFY",
         description: "Sonesse 28 WF Li-Ion roller shades",
         extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
+    },
+    {
+        zigbeeModel: ["Sonesse 28 WF Zebra"],
+        model: "1241754",
+        vendor: "SOMFY",
+        description: "Sonesse 28 WF roller shades (external battery)",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
     {
         zigbeeModel: ["Sonesse2 28 WF Roller"],
@@ -77,10 +84,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["Ysia 1 Zigbee Europe"],
+        zigbeeModel: ["Ysia 1 Zigbee Europe", "Ysia 1 HP Zigbee"],
         model: "1871157",
         vendor: "SOMFY",
         description: "Ysia 1 channel blinds remote",
+        whiteLabel: [{vendor: "SOMFY", model: "5163664A"}],
         extend: [m.battery(), m.commandsOnOff(), m.commandsWindowCovering()],
     },
     {
@@ -135,5 +143,31 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Somfy",
         description: "Connected plug E type with power monitoring",
         extend: [m.onOff(), m.electricityMeter()],
+    },
+    {
+        zigbeeModel: ["Situo 1 Zigbee"],
+        model: "1800194",
+        vendor: "SOMFY",
+        description: "Situo 1 channel blinds remote",
+        extend: [m.battery(), m.commandsOnOff(), m.commandsWindowCovering()],
+    },
+    {
+        zigbeeModel: ["Situo 4 Zigbee"],
+        model: "1800195",
+        vendor: "SOMFY",
+        description: "Situo 4 channel blinds remote",
+        extend: [
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "232": 232}}),
+            m.battery(),
+            m.commandsOnOff({endpointNames: ["1", "2", "3", "4"]}),
+            m.commandsWindowCovering({endpointNames: ["1", "2", "3", "4"]}),
+        ],
+    },
+    {
+        zigbeeModel: ["Sonesse2 40 WF Li-ion Roller"],
+        model: "1245993",
+        vendor: "SOMFY",
+        description: "Sonesse 40 WireFree Zigbee Li-ion USB-C roller shade",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
     },
 ];

@@ -1,11 +1,39 @@
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 const e = exposes.presets;
+
+const tzLocal = {
+    DTB190502A1_LED: {
+        key: ["LED"],
+        convertSet: async (entity, key, value, meta) => {
+            if (value === "default") {
+                value = 1;
+            }
+            const lookup = {
+                OFF: 0,
+                ON: 1,
+            };
+            value = utils.getFromLookup(value, lookup);
+            // Check for valid data
+            utils.assertNumber(value, key);
+            if ((value >= 0 && value < 2) === false) value = 0;
+
+            const payload = {
+                16400: {
+                    value,
+                    type: 0x21,
+                },
+            };
+
+            await entity.write("genBasic", payload);
+        },
+    } satisfies Tz.Converter,
+};
 
 const fzLocal = {
     DTB2011014: {
@@ -20,6 +48,24 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    DTB190502A1: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookupKEY: KeyValueAny = {
+                "0": "KEY_SYS",
+                "1": "KEY_UP",
+                "2": "KEY_DOWN",
+                "3": "KEY_NONE",
+            };
+            const lookupLED: KeyValueAny = {"0": "OFF", "1": "ON"};
+            return {
+                cpu_temperature: utils.precisionRound(msg.data["41361"] as number, 2),
+                key_state: lookupKEY[msg.data["41362"] as number],
+                led_state: lookupLED[msg.data["41363"] as number],
+            };
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -28,8 +74,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DTB190502A1",
         vendor: "databyte.ch",
         description: "CC2530 based IO Board",
-        fromZigbee: [fz.DTB190502A1],
-        toZigbee: [tz.DTB190502A1_LED],
+        fromZigbee: [fzLocal.DTB190502A1],
+        toZigbee: [tzLocal.DTB190502A1_LED],
         exposes: [e.binary("led_state", ea.STATE, "ON", "OFF"), e.enum("key_state", ea.STATE, ["KEY_SYS", "KEY_UP", "KEY_DOWN", "KEY_NONE"])],
     },
     {

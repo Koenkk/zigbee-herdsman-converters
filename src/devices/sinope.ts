@@ -4,6 +4,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
@@ -283,6 +284,14 @@ const fzLocal = {
             }
             if (msg.data.localTemp !== undefined) {
                 result.local_temperature = precisionRound(msg.data.localTemp, 2) / 100;
+
+                if (model.model === "TH1300ZB") {
+                    // floorTemperature and roomTemperature do not support configureReporting;
+                    // piggyback on local_temperature reports to keep values in sync.
+                    msg.endpoint
+                        .read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature", "roomTemperature"], manuSinope)
+                        .catch((e: unknown) => logger.debug(`TH1300ZB: failed to read floor/room temperature: ${e}`, "sinope"));
+                }
             }
             if (msg.data.localTemperatureCalibration !== undefined) {
                 result.local_temperature_calibration = precisionRound(msg.data.localTemperatureCalibration, 2) / 10;
@@ -303,10 +312,10 @@ const fzLocal = {
                 result.unoccupied_cooling_setpoint = precisionRound(msg.data.unoccupiedCoolingSetpoint, 2) / 100;
             }
             if (msg.data.ctrlSeqeOfOper !== undefined) {
-                result.control_sequence_of_operation = constants.thermostatControlSequenceOfOperations[msg.data.ctrlSeqeOfOper];
+                result.control_sequence_of_operation = utils.getFromLookup(msg.data.ctrlSeqeOfOper, constants.thermostatControlSequenceOfOperations);
             }
             if (msg.data.systemMode !== undefined) {
-                result.system_mode = constants.thermostatSystemModes[msg.data.systemMode];
+                result.system_mode = utils.getFromLookup(msg.data.systemMode, constants.thermostatSystemModes);
             }
             if (msg.data.pIHeatingDemand !== undefined) {
                 result.pi_heating_demand = precisionRound(msg.data.pIHeatingDemand, 0);
@@ -413,6 +422,12 @@ const fzLocal = {
             if (msg.data.temperatureSensor !== undefined) {
                 const lookup = {0: "10k", 1: "12k"};
                 result.floor_temperature_sensor = utils.getFromLookup(msg.data.temperatureSensor, lookup);
+            }
+            if (msg.data.floorTemperature !== undefined) {
+                result.floor_temperature = precisionRound(msg.data.floorTemperature, 2) / 100;
+            }
+            if (msg.data.roomTemperature !== undefined) {
+                result.room_temperature = precisionRound(msg.data.roomTemperature, 2) / 100;
             }
             if (msg.data.timeFormatToDisplay !== undefined) {
                 const lookup = {0: "24h", 1: "12h"};
@@ -1532,6 +1547,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("time_format", ea.ALL, ["24h", "12h"]).withDescription("The time format featured on the thermostat display"),
             e.enum("backlight_auto_dim", ea.ALL, ["on_demand", "sensing"]).withDescription("Control backlight dimming behavior"),
             e.enum("keypad_lockout", ea.ALL, ["unlock", "lock1"]).withDescription("Enables or disables the device’s buttons"),
+            e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Floor temperature (read-only, poll on demand)"),
+            e.numeric("room_temperature", ea.STATE).withUnit("°C").withDescription("Room temperature (read-only, poll on demand)"),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -1562,6 +1579,13 @@ export const definitions: DefinitionWithExtend[] = [
                 {attribute: "floorLimitStatus", minimumReportInterval: 1, maximumReportInterval: constants.repInterval.HOUR, reportableChange: 1},
             ]);
             await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
+
+            // floorTemperature (0x0107) and roomTemperature (0x010D) do not support configureReporting
+            // (device returns UNREPORTABLE_ATTRIBUTE). Perform an initial read on pairing; ongoing sync
+            // is handled by piggybacking on local_temperature reports in fzLocal.thermostat.
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature", "roomTemperature"], {
+                manufacturerCode: Zcl.ManufacturerCode.SINOPE_TECHNOLOGIES,
+            });
         },
     },
     {

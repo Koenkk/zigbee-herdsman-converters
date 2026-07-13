@@ -1,5 +1,4 @@
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
@@ -17,10 +16,11 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "1 channel scene switch",
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.clusters.addTuyaGenOnOffCluster(),
             m.deviceEndpoints({endpoints: {l1: 1}}),
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+            m.actionEnumLookup<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -43,10 +43,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 channel scene switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
+            tuya.clusters.addTuyaGenOnOffCluster(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+            m.actionEnumLookup<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -69,10 +70,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 channel scene switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
+            tuya.clusters.addTuyaGenOnOffCluster(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], powerOnBehavior2: true, backlightModeOffOn: true}),
-            m.actionEnumLookup<"genOnOff", undefined, ["commandTuyaAction"]>({
+            m.actionEnumLookup<"genOnOff", tuya.TuyaGenOnOff, ["commandTuyaAction"]>({
                 cluster: "genOnOff",
                 commands: ["commandTuyaAction"],
                 attribute: "value",
@@ -93,7 +95,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QARZ1DC",
         vendor: "QA",
         description: "1 channel switch",
-        extend: [tuya.modernExtend.tuyaMagicPacket(), m.deviceEndpoints({endpoints: {l1: 1}}), tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]})],
+        extend: [m.deviceEndpoints({endpoints: {l1: 1}}), tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({endpoints: ["l1"]})],
     },
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_gtdswg8k", "_TZ3000_qh6qjuan"]),
@@ -101,7 +103,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "1 channel long range switch",
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1"], switchType: true}),
         ],
@@ -113,7 +115,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 channel long range switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"], switchType: true}),
         ],
@@ -125,7 +127,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 channel long range switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3"], switchType: true}),
         ],
@@ -137,7 +139,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "4 channel long range switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2", "l3", "l4"], switchType: true}),
         ],
@@ -148,7 +150,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "1 channel wall switch",
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1"], backlightModeOffOn: true}),
         ],
@@ -160,7 +162,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "2 channel wall switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["l1", "l2"], backlightModeOffOn: true}),
         ],
@@ -172,7 +174,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "3 channel wall switch",
         meta: {multiEndpoint: true},
         extend: [
-            tuya.modernExtend.tuyaMagicPacket(),
+            tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             tuya.modernExtend.tuyaOnOff({endpoints: ["left", "center", "right"], backlightModeOffOn: true}),
         ],
@@ -281,8 +283,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "QA",
         description: "Dimmer 1 channel",
         extend: [m.light({powerOnBehavior: false, configureReporting: true, effect: false}), tuya.modernExtend.tuyaMagicPacket()],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
-        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
     },
     {
@@ -296,8 +298,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
             m.light({endpointNames: ["l1", "l2"], powerOnBehavior: false, configureReporting: true, effect: false}),
         ],
-        fromZigbee: [tuya.fz.power_on_behavior_1, fz.TS110E_switch_type, fz.TS110E, fz.on_off],
-        toZigbee: [tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tz.TS110E_options],
+        fromZigbee: [tuya.fz.power_on_behavior_1, tuya.fz.TS110E_switch_type, tuya.fz.TS110E, fz.on_off],
+        toZigbee: [tuya.tz.TS110E_light_onoff_brightness, tuya.tz.power_on_behavior_1, tuya.tz.TS110E_options],
         exposes: [e.power_on_behavior(), tuya.exposes.switchType()],
     },
     {
@@ -363,7 +365,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z2B",
         vendor: "QA",
         description: "2 channel scene switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2}})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -385,7 +387,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "QAT42Z3B",
         vendor: "QA",
         description: "3 channel scene switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),

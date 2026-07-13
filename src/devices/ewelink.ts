@@ -95,7 +95,7 @@ const ewelinkExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku"]),
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku", "_TZ3000_piuensvr", "_TZ3000_mmzmkkd4"]),
         zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
@@ -103,7 +103,10 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku"])],
+        whiteLabel: [
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku", "HOBEIAN"]),
+            tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
+        ],
     },
     {
         zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
@@ -111,6 +114,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
         extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        whiteLabel: [
+            {
+                vendor: "Mumubiz",
+                model: "CZV20",
+                description: "Zigbee smart water valve",
+                fingerprint: [{modelID: "CK-BL702-MSW-01(7010)"}],
+            },
+        ],
     },
     {
         zigbeeModel: ["SA-003-Zigbee"],
@@ -208,6 +219,13 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-02(7014)"],
+        model: "CK-TLSR8656-SS5-02(7014)",
+        vendor: "eWeLink",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
         zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
@@ -443,5 +461,38 @@ export const definitions: DefinitionWithExtend[] = [
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,
+    },
+    {
+        zigbeeModel: ["CK-BL702-MWS-01(7016)"],
+        model: "MG3-5RZ",
+        vendor: "eWeLink",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
     },
 ];

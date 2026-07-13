@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {},
         exposes: [
             e.enum("smoke_state", ea.STATE, ["alarm", "normal"]),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withCategory("diagnostic"),
             e.enum("checking_result", ea.STATE, ["checking", "check_success", "check_failure", "others"]),
             e.numeric("smoke_value", ea.STATE),
             e.numeric("battery", ea.STATE),

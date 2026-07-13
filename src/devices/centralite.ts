@@ -6,7 +6,8 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -32,6 +33,33 @@ export const centraliteExtend = {
             commands: {},
             commandsResponse: {},
         }),
+};
+
+const tzLocal = {
+    light_onoff_restorable_brightness: {
+        /**
+         * Some devices reset brightness to 100% when turned on, even if previous brightness was different
+         * This uses the stored state of the device to restore to the previous brightness level when turning on
+         */
+        key: ["state", "brightness", "brightness_percent"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            const deviceState = meta.state || {};
+            const message = meta.message;
+            const state = utils.isString(message.state) ? message.state.toLowerCase() : null;
+            const hasBrightness = message.brightness != null || message.brightness_percent != null;
+
+            // Add brightness if command is 'on' and we can restore previous value
+            if (state === "on" && !hasBrightness && utils.isNumber(deviceState.brightness) && deviceState.brightness > 0) {
+                message.brightness = deviceState.brightness;
+            }
+
+            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const fzLocal = {
@@ -70,6 +98,19 @@ export const fzLocal = {
             return {humidity};
         },
     } satisfies Fz.Converter<"manuSpecificCentraliteHumidity", ManuSpecificCentraliteHumidity, ["attributeReport", "readResponse"]>,
+    restorable_brightness: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.currentLevel !== undefined) {
+                // Ignore brightness = 0, which only happens when state is OFF
+                if (Number(msg.data.currentLevel) > 0) {
+                    return {brightness: msg.data.currentLevel};
+                }
+                return {};
+            }
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -95,8 +136,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4256050-ZHAC",
         vendor: "Centralite",
         description: "3-Series smart dimming outlet",
-        fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.light_onoff_restorable_brightness],
+        fromZigbee: [fzLocal.restorable_brightness, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tzLocal.light_onoff_restorable_brightness],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -135,8 +176,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4257050-ZHAC",
         vendor: "Centralite",
         description: "3-Series smart dimming outlet",
-        fromZigbee: [fz.restorable_brightness, fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.light_onoff_restorable_brightness, tz.ignore_transition],
+        fromZigbee: [fzLocal.restorable_brightness, fz.on_off, fz.electrical_measurement],
+        toZigbee: [tzLocal.light_onoff_restorable_brightness, tz.ignore_transition],
         exposes: [e.light_brightness(), e.power(), e.voltage(), e.current()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

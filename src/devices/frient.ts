@@ -20,6 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.electricityMeter({cluster: "metering", power: {divisor: 1000, multiplier: 1}, energy: {divisor: 1000, multiplier: 1}}),
             m.battery(),
+            develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.pulseConfiguration(),
@@ -60,5 +61,25 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasWarning(),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["SMRZB-342"],
+        model: "SMRZB-342",
+        vendor: "Frient",
+        description: "Smart DIN Relay 2",
+        extend: [
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
+            m.electricityMeter({
+                voltage: {divisor: 100, multiplier: 1},
+                current: {divisor: 1000, multiplier: 1},
+                power: {divisor: 1, multiplier: 1},
+                energy: {divisor: 1000, multiplier: 1},
+            }),
+            m.deviceTemperature(),
+        ],
+        ota: true,
+        endpoint: () => {
+            return {default: 2};
+        },
     },
 ];
