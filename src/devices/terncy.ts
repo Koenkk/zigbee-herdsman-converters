@@ -18,9 +18,11 @@ const terncyManufacturerOptions = {manufacturerCode: XIAOYAN_MANUFACTURER_CODE};
 interface AduroSmart {
     attributes: {
         terncyRotation: number;
+        cfgSwPureInput: boolean;
         cfgButtonLedPolarity: number;
         cfgButtonLedStatus: number;
         cfgDisabledRelayStatus: number;
+        cfgSelfBindingId: number;
         cfgLoopHasRelay: boolean;
     };
     commands: {
@@ -59,6 +61,17 @@ interface TerncyDimmerLightEffect {
 }
 
 const WS07_ENDPOINTS = {l1: 1, l2: 2, l3: 3};
+const WS01_ENDPOINTS = {l1: 1, l2: 2, l3: 3, l4: 4};
+const WS01_MODELS = [
+    {model: "TERNCY-WS01-S1", relayCount: 1, neutral: false},
+    {model: "TERNCY-WS01-S2", relayCount: 2, neutral: false},
+    {model: "TERNCY-WS01-S3", relayCount: 3, neutral: false},
+    {model: "TERNCY-WS01-S4", relayCount: 4, neutral: false},
+    {model: "TERNCY-WS01-D1", relayCount: 1, neutral: true},
+    {model: "TERNCY-WS01-D2", relayCount: 2, neutral: true},
+    {model: "TERNCY-WS01-D3", relayCount: 3, neutral: true},
+    {model: "TERNCY-WS01-D4", relayCount: 4, neutral: true},
+] as const;
 const WS07_WIRELESS_LED_STATUS = {
     off: 0,
     on: 1,
@@ -143,7 +156,25 @@ function ws07EndpointActions(): string[] {
     return Object.keys(WS07_ENDPOINTS).flatMap((ep) => baseActions.map((action) => `${action}_${ep}`));
 }
 
+function ws01EndpointName(msg: Fz.Message<typeof ADURO_SMART_CLUSTER, AduroSmart, "raw">): string | undefined {
+    return Object.entries(WS01_ENDPOINTS).find(([, Id]) => Id === msg.endpoint.ID)?.[0];
+}
+
+function ws01EndpointActions(): string[] {
+    const baseActions = [...Object.values(WS07_CLICK_ACTIONS), "hold", "release"];
+    return Object.keys(WS01_ENDPOINTS).flatMap((ep) => baseActions.map((action) => `${action}_${ep}`));
+}
+
 async function sendWs07SwitchConfig(entity: Zh.Endpoint | Zh.Group, command: "enablePureInput" | "setButtonLedStatus", value: number): Promise<void> {
+    await entity.command<typeof ADURO_SMART_CLUSTER, typeof command, AduroSmart>(
+        ADURO_SMART_CLUSTER,
+        command,
+        {value},
+        {...terncyManufacturerOptions, disableDefaultResponse: false},
+    );
+}
+
+async function sendWs01SwitchConfig(entity: Zh.Endpoint | Zh.Group, command: "enablePureInput" | "setButtonLedStatus", value: number): Promise<void> {
     await entity.command<typeof ADURO_SMART_CLUSTER, typeof command, AduroSmart>(
         ADURO_SMART_CLUSTER,
         command,
@@ -193,9 +224,11 @@ const terncyExtend = {
             manufacturerCode: XIAOYAN_MANUFACTURER_CODE,
             attributes: {
                 terncyRotation: {name: "terncyRotation", ID: 0x001b, type: Zcl.DataType.UINT16},
+                cfgSwPureInput: {name: "cfgSwPureInput", ID: 0x001c, type: Zcl.DataType.BOOLEAN},
                 cfgButtonLedPolarity: {name: "cfgButtonLedPolarity", ID: 0x001f, type: Zcl.DataType.UINT8, write: true},
                 cfgButtonLedStatus: {name: "cfgButtonLedStatus", ID: 0x0020, type: Zcl.DataType.UINT8},
                 cfgDisabledRelayStatus: {name: "cfgDisabledRelayStatus", ID: 0x0021, type: Zcl.DataType.UINT8},
+                cfgSelfBindingId: {name: "cfgSelfBindingId", ID: 0x0025, type: Zcl.DataType.UINT8, write: true},
                 cfgLoopHasRelay: {name: "cfgLoopHasRelay", ID: 0x0026, type: Zcl.DataType.BOOLEAN},
             },
             commands: {
@@ -360,6 +393,59 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<typeof ADURO_SMART_CLUSTER, AduroSmart, "raw">,
+    ws01_action: {
+        cluster: ADURO_SMART_CLUSTER,
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const data = [...msg.data];
+            const ep = ws01EndpointName(msg);
+
+            if (!ep || data[0] !== 0x0d || data[1] !== 0x28 || data[2] !== 0x12) {
+                return;
+            }
+
+            if (data[4] === 0x00 && data.length >= 7) {
+                const clickAction = WS07_CLICK_ACTIONS[data[6]];
+                if (clickAction) {
+                    return {action: `${clickAction}_${ep}`};
+                }
+            }
+
+            if (data[4] === 0x29 && data.length >= 9 && (data[5] === 0x02 || data[5] === 0x08)) {
+                return {
+                    action: `${data[5] === 0x02 ? "hold" : "release"}_${ep}`,
+                    action_duration: data[7] + (data[8] << 8),
+                };
+            }
+        },
+    } satisfies Fz.Converter<typeof ADURO_SMART_CLUSTER, AduroSmart, "raw">,
+    ws01_switch_config: {
+        cluster: ADURO_SMART_CLUSTER,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const ep = Object.entries(WS01_ENDPOINTS).find(([, Id]) => Id === msg.endpoint.ID)?.[0];
+            if (!ep) {
+                return;
+            }
+
+            const state: Record<string, string> = {};
+            if (typeof msg.data.cfgSwPureInput === "boolean") {
+                state[`operation_mode_${ep}`] = msg.data.cfgSwPureInput ? "wireless" : "control_relay";
+            }
+
+            const ledStatus = Object.entries(WS07_WIRELESS_LED_STATUS).find(([, value]) => value === msg.data.cfgButtonLedStatus)?.[0];
+            if (ledStatus) {
+                state[`wireless_led_status_${ep}`] = ledStatus;
+            }
+
+            const feedbackMode = Object.entries(WS07_LED_FEEDBACK_MODE).find(([, value]) => value === msg.data.cfgButtonLedPolarity)?.[0];
+            if (feedbackMode) {
+                state[`led_feedback_mode_${ep}`] = feedbackMode;
+            }
+
+            return Object.keys(state).length > 0 ? state : undefined;
+        },
+    } satisfies Fz.Converter<typeof ADURO_SMART_CLUSTER, AduroSmart, ["attributeReport", "readResponse"]>,
     dim003_light_effect_attributes: {
         cluster: TERNCY_DIMMER_LIGHT_EFFECT_CLUSTER,
         type: ["attributeReport", "readResponse"],
@@ -392,6 +478,34 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     ws07_led_feedback_mode: {
+        key: ["led_feedback_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = lookupNumber(value, key, WS07_LED_FEEDBACK_MODE);
+            await entity.write<typeof ADURO_SMART_CLUSTER, AduroSmart>(
+                ADURO_SMART_CLUSTER,
+                {cfgButtonLedPolarity: mode.value},
+                {...terncyManufacturerOptions, disableDefaultResponse: false, srcEndpoint: 110},
+            );
+            return {state: {[key]: mode.name}};
+        },
+    } satisfies Tz.Converter,
+    ws01_operation_mode: {
+        key: ["operation_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = lookupNumber(value, key, {control_relay: 0, wireless: 1});
+            await sendWs01SwitchConfig(entity, "enablePureInput", mode.value);
+            return {state: {[key]: mode.name}};
+        },
+    } satisfies Tz.Converter,
+    ws01_wireless_led_status: {
+        key: ["wireless_led_status"],
+        convertSet: async (entity, key, value, meta) => {
+            const status = lookupNumber(value, key, WS07_WIRELESS_LED_STATUS);
+            await sendWs01SwitchConfig(entity, "setButtonLedStatus", status.value);
+            return {state: {[key]: status.name}};
+        },
+    } satisfies Tz.Converter,
+    ws01_led_feedback_mode: {
         key: ["led_feedback_mode"],
         convertSet: async (entity, key, value, meta) => {
             const mode = lookupNumber(value, key, WS07_LED_FEEDBACK_MODE);
@@ -479,14 +593,41 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-export const definitions: DefinitionWithExtend[] = [
-    {
-        zigbeeModel: ["TERNCY-WS01-S4"],
-        model: "TERNCY-WS01",
+function createWs01Definition(modelInfo: (typeof WS01_MODELS)[number]): DefinitionWithExtend {
+    const relayEndpointNames = Object.keys(WS01_ENDPOINTS).slice(0, modelInfo.relayCount);
+    const relayConfigExposes = relayEndpointNames.flatMap((endpoint) => [
+        exposes
+            .enum("operation_mode", ea.STATE_SET, ["control_relay", "wireless"])
+            .withEndpoint(endpoint)
+            .withDescription("Control relay or act as wireless switch")
+            .withCategory("config"),
+        exposes
+            .enum("wireless_led_status", ea.STATE_SET, Object.keys(WS07_WIRELESS_LED_STATUS))
+            .withEndpoint(endpoint)
+            .withDescription("LED state while in wireless switch mode")
+            .withCategory("config"),
+        exposes
+            .enum("led_feedback_mode", ea.STATE_SET, Object.keys(WS07_LED_FEEDBACK_MODE))
+            .withEndpoint(endpoint)
+            .withDescription("Relay-mode LED feedback relation")
+            .withCategory("config"),
+    ]);
+
+    return {
+        zigbeeModel: [modelInfo.model],
+        model: modelInfo.model,
         vendor: "TERNCY",
-        description: "Smart light switch - 4 gang without neutral wire",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}), m.onOff({endpointNames: ["l1", "l2", "l3", "l4"]})],
-    },
+        description: `${modelInfo.relayCount}-gang ${modelInfo.neutral ? "neutral" : "no-neutral"} wall switch`,
+        fromZigbee: [fzLocal.ws01_action, fzLocal.ws01_switch_config],
+        toZigbee: [tzLocal.ws01_operation_mode, tzLocal.ws01_wireless_led_status, tzLocal.ws01_led_feedback_mode],
+        exposes: [...relayConfigExposes, e.action(ws01EndpointActions()), e.action_duration()],
+        extend: [terncyExtend.addClusterAduroSmart(), m.deviceEndpoints({endpoints: WS01_ENDPOINTS}), m.onOff({endpointNames: relayEndpointNames})],
+        meta: {multiEndpoint: true},
+    };
+}
+
+export const definitions: DefinitionWithExtend[] = [
+    ...WS01_MODELS.map(createWs01Definition),
     {
         zigbeeModel: ["DL001"],
         model: "DL001",
