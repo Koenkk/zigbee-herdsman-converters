@@ -28615,87 +28615,87 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_oa1odmga"]),
-    model: "TS0601_floodlight",
-    vendor: "Tuya",
-    description: "Smart RGBCW floodlight",
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    exposes: [e.light().withBrightness().withColorTemp([153, 500]).withColor(["hs"])],
-    meta: {
-        tuyaDatapoints: [
-            [1, "state", tuya.valueConverter.onOff],
-            // Standard Tuya light DP layout puts a work_mode enum on DP2 -
-            // writing a brightness number there gets silently ignored.
-            [
-                2,
-                "work_mode",
-                tuya.valueConverterBasic.lookup({
-                    white: tuya.enum(0),
-                    colour: tuya.enum(1),
-                    scene: tuya.enum(2),
-                    music: tuya.enum(3),
-                }),
-            ],
-            // Brightness is 0-1000 on the device but 0-254 in Z2M
-            [
-                3,
-                "brightness",
-                {
-                    ...tuya.valueConverter.scale0_254to0_1000,
-                    to: async (value, meta) => {
-                        const val = Math.round((Number(value) / 254) * 1000);
-                        if (meta.state.color_mode === "hs" && meta.state.color) {
-                            const hue = Math.round(meta.state.color.hue ?? 0);
-                            const sat = Math.round((meta.state.color.saturation ?? 100) * 10);
-                            const hHex = hue.toString(16).padStart(4, "0");
-                            const sHex = sat.toString(16).padStart(4, "0");
-                            const vHex = val.toString(16).padStart(4, "0");
-                            const endpoint = meta.device.getEndpoint(1);
-                            await tuya.sendDataPointStringBuffer(endpoint, 5, hHex + sHex + vHex);
-                            return undefined; // conversion handled here, skip the default DP3 write
-                        }
-                        return val; // white/color_temp mode: normal DP3 write
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_oa1odmga"]),
+        model: "TS0601_floodlight",
+        vendor: "Tuya",
+        description: "Smart RGBCW floodlight",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.light().withBrightness().withColorTemp([153, 500]).withColor(["hs"])],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                // Standard Tuya light DP layout puts a work_mode enum on DP2 -
+                // writing a brightness number there gets silently ignored.
+                [
+                    2,
+                    "work_mode",
+                    tuya.valueConverterBasic.lookup({
+                        white: tuya.enum(0),
+                        colour: tuya.enum(1),
+                        scene: tuya.enum(2),
+                        music: tuya.enum(3),
+                    }),
+                ],
+                // Brightness is 0-1000 on the device but 0-254 in Z2M
+                [
+                    3,
+                    "brightness",
+                    {
+                        ...tuya.valueConverter.scale0_254to0_1000,
+                        to: async (value, meta) => {
+                            const val = Math.round((Number(value) / 254) * 1000);
+                            if (meta.state.color_mode === "hs" && meta.state.color) {
+                                const hue = Math.round(meta.state.color.hue ?? 0);
+                                const sat = Math.round((meta.state.color.saturation ?? 100) * 10);
+                                const hHex = hue.toString(16).padStart(4, "0");
+                                const sHex = sat.toString(16).padStart(4, "0");
+                                const vHex = val.toString(16).padStart(4, "0");
+                                const endpoint = meta.device.getEndpoint(1);
+                                await tuya.sendDataPointStringBuffer(endpoint, 5, hHex + sHex + vHex);
+                                return undefined; // conversion handled here, skip the default DP3 write
+                            }
+                            return val; // white/color_temp mode: normal DP3 write
+                        },
                     },
-                },
-            ],
-            [4, "color_temp", tuya.valueConverter.raw],
-            [
-                5,
-                "color",
-                {
-                    to: (value) => {
-                        // Home Assistant sends {h, s} (short keys) for its
-                        // hs_color field, while Z2M's own frontend sends
-                        // {hue, saturation} (matching the exposed feature
-                        // names). Accept both.
-                        const hueRaw = value.hue !== undefined ? value.hue : value.h;
-                        const satRaw = value.saturation !== undefined ? value.saturation : value.s;
-                        if (hueRaw !== undefined && satRaw !== undefined) {
-                            const hue = Math.round(hueRaw);
-                            const sat = Math.round(satRaw * 10); // 0-100 -> 0-1000
-                            // Keep current brightness (V) instead of forcing full,
-                            // fall back to full brightness if we don't know it yet.
-                            const val = value.brightness !== undefined ? Math.round(value.brightness * 10) : 1000;
-                            const hHex = hue.toString(16).padStart(4, "0");
-                            const sHex = sat.toString(16).padStart(4, "0");
-                            const vHex = val.toString(16).padStart(4, "0");
-                            return hHex + sHex + vHex;
-                        }
-                        return value;
+                ],
+                [4, "color_temp", tuya.valueConverter.raw],
+                [
+                    5,
+                    "color",
+                    {
+                        to: (value) => {
+                            // Home Assistant sends {h, s} (short keys) for its
+                            // hs_color field, while Z2M's own frontend sends
+                            // {hue, saturation} (matching the exposed feature
+                            // names). Accept both.
+                            const hueRaw = value.hue !== undefined ? value.hue : value.h;
+                            const satRaw = value.saturation !== undefined ? value.saturation : value.s;
+                            if (hueRaw !== undefined && satRaw !== undefined) {
+                                const hue = Math.round(hueRaw);
+                                const sat = Math.round(satRaw * 10); // 0-100 -> 0-1000
+                                // Keep current brightness (V) instead of forcing full,
+                                // fall back to full brightness if we don't know it yet.
+                                const val = value.brightness !== undefined ? Math.round(value.brightness * 10) : 1000;
+                                const hHex = hue.toString(16).padStart(4, "0");
+                                const sHex = sat.toString(16).padStart(4, "0");
+                                const vHex = val.toString(16).padStart(4, "0");
+                                return hHex + sHex + vHex;
+                            }
+                            return value;
+                        },
+                        from: (value) => {
+                            if (typeof value === "string" && value.length >= 12) {
+                                const hue = Number.parseInt(value.substring(0, 4), 16);
+                                const saturation = Number.parseInt(value.substring(4, 8), 16) / 10;
+                                return {hue, saturation};
+                            }
+                            return value;
+                        },
                     },
-                    from: (value) => {
-                        if (typeof value === "string" && value.length >= 12) {
-                            const hue = Number.parseInt(value.substring(0, 4), 16);
-                            const saturation = Number.parseInt(value.substring(4, 8), 16) / 10;
-                            return {hue, saturation};
-                        }
-                        return value;
-                    },
-                },
+                ],
             ],
-        ],
+        },
     },
-},
 ];
