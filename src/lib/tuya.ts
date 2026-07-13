@@ -3329,7 +3329,7 @@ const tuyaTz = {
                     utils.getOptions(meta.mapped, entity),
                 );
 
-                if (state[stateKey] === "OFF" ) {
+                if (state[stateKey] === "OFF") {
                     await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
                 }
 
