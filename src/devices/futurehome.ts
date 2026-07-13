@@ -201,7 +201,7 @@ const futurehomeExtend = {
                         let energyStart = meta.state?.energy_meter_start !== undefined ? meta.state.energy_meter_start : null;
                         let energyNow = meta.state?.energy_meter_now !== undefined ? meta.state.energy_meter_now : null;
                         let startT = meta.state?.start_t !== undefined ? meta.state.start_t : null;
-                        let endT = meta.state?.end_t !== undefined ? meta.state.now_t : null;
+                        let endT = meta.state?.end_t !== undefined ? meta.state.end_t : null;
                         if (msg.data.energyMeterStart !== undefined) {
                             energyStart = msg.data.energyMeterStart / 1000;
                         }
