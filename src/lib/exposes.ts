@@ -989,6 +989,14 @@ export const presets = {
             .withValueMax(255)
             .withValueStep(1)
             .withCategory("diagnostic"),
+    action_transition_time: () =>
+        new Numeric("action_transition_time", access.STATE)
+            .withDescription("Transition parameter of level control commands")
+            .withValueMin(0)
+            .withValueMax(6553.5)
+            .withValueStep(0.1)
+            .withUnit("s")
+            .withCategory("diagnostic"),
     angle: (name: string) => new Numeric(name, access.STATE).withValueMin(-360).withValueMax(360).withUnit("°"),
     angle_axis: (name: string) => new Numeric(name, access.STATE).withValueMin(-90).withValueMax(90).withUnit("°"),
     aqi: () => new Numeric("aqi", access.STATE).withDescription("Air quality index"),

@@ -1365,7 +1365,7 @@ export interface CommandsLevelCtrl {
 export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
     const {
         commands = [
-            "brightness_move_to_level",
+            "brightness_move_to_level", // with on off "parameter" for all
             "brightness_move_up",
             "brightness_move_down",
             "brightness_step_up",
@@ -1383,10 +1383,12 @@ export function commandsLevelCtrl(args: CommandsLevelCtrl = {}): ModernExtend {
 
     if (commands.includes("brightness_move_to_level")) {
         exposes.push(e.action_level());
+        exposes.push(e.action_transition_time());
     }
 
     if (commands.includes("brightness_step_up") || commands.includes("brightness_step_down")) {
         exposes.push(e.action_step_size());
+        exposes.push(e.action_transition_time());
     }
 
     if (commands.includes("brightness_move_up") || commands.includes("brightness_move_down")) {
@@ -1449,6 +1451,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
             "move_to_saturation",
             "move_to_hue",
             "stop_move_step",
+            // TODO: "move_to_color", "move_to_color_temp", "color_step", more...
         ],
         bind = true,
         endpointNames = undefined,
@@ -1459,6 +1462,17 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
     }
     const exposes: Expose[] = [e.action(actions)];
 
+    // TODO: e.action_hue, e.action_enhanced_hue, e.action_direction, e.action_saturation,
+    // e.action_color, e.action_stepx, e.action_stepy, e.action_colortemp, e.action_minimum, e.action_maximum etc.
+    if (
+        commands.includes("enhanced_move_to_hue_and_saturation") ||
+        commands.includes("move_to_hue_and_saturation") ||
+        commands.includes("move_to_saturation") ||
+        commands.includes("move_to_hue")
+    ) {
+        exposes.push(e.action_transition_time());
+    }
+
     if (
         commands.includes("color_temperature_step_up") ||
         commands.includes("color_temperature_step_down") ||
@@ -1468,6 +1482,7 @@ export function commandsColorCtrl(args: CommandsColorCtrl = {}): ModernExtend {
         commands.includes("color_saturation_step_down")
     ) {
         exposes.push(e.action_step_size());
+        exposes.push(e.action_transition_time());
     }
 
     if (
