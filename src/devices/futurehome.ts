@@ -2,7 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -44,118 +44,6 @@ const localValueConverters = {
 };
 
 const futurehomeExtend = {
-    chargerStatus1: (): ModernExtend => {
-        return {
-            isModernExtend: true,
-            fromZigbee: [
-                {
-                    cluster: "haApplianceControl",
-                    type: ["commandSignalStateNotification", "commandSignalStateRsp"],
-                    convert(model, msg, publish, options, meta) {
-                        const status = msg?.data?.applianceStatus;
-                        if (status === undefined || status === null) return;
-                        let chargerStatus:
-                            | "plugged_out"
-                            | "1X: Off"
-                            | "4: plugged_in"
-                            | "2: plugged_in_charging"
-                            | "3: plugged_in_paused"
-                            | "5X: running"
-                            | "8X: failure" = "plugged_out";
-                        let chargingOn = false;
-
-                        switch (status) {
-                            case 0x01: // Off
-                                chargerStatus = "1X: Off";
-                                chargingOn = false;
-                                break;
-                            case 0x02: // StandBy → charging
-                                chargerStatus = "2: plugged_in_charging";
-                                chargingOn = true;
-                                break;
-                            case 0x03: // Programmed (paused by user)
-                                chargerStatus = "3: plugged_in_paused";
-                                chargingOn = false;
-                                break;
-                            case 0x04: // ProgrammedWaitingToStart
-                                chargerStatus = "4: plugged_in";
-                                chargingOn = false;
-                                break;
-                            case 0x05: // Running
-                                chargerStatus = "5X: running";
-                                chargingOn = false;
-                                break;
-                            case 0x08: // Failure
-                                chargerStatus = "8X: failure";
-                                chargingOn = false;
-                                break;
-                            default:
-                                chargerStatus = "plugged_out";
-                                chargingOn = false;
-                        }
-                        return {charger_status: chargerStatus, charging_on: chargingOn};
-                    },
-                } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
-            ],
-            toZigbee: [
-                {
-                    key: ["charger_status"],
-                    convertGet: async (entity, key, meta) => {
-                        await entity.command("haApplianceControl", "signalState", {});
-                    },
-                } satisfies Tz.Converter,
-            ],
-            configure: [
-                async (device, coordinatorEndpoint, logger) => {
-                    for (const endpoint of device.endpoints) {
-                        if (endpoint.supportsInputCluster("haApplianceControl")) {
-                            await endpoint.bind("haApplianceControl", coordinatorEndpoint);
-                            try {
-                                await endpoint.command("haApplianceControl", "signalState", {});
-                            } catch {
-                                // do nothing
-                            }
-                        }
-                    }
-                },
-            ],
-            options: [
-                e
-                    .numeric("charger_status_poll_interval", ea.SET)
-                    .withValueMin(-1)
-                    .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
-            ],
-            onEvent: m.poll({
-                key: "charger_status_poll",
-                optionKey: "charger_status_poll_interval",
-                option: e
-                    .numeric("charger_status_poll_interval", ea.SET)
-                    .withValueMin(-1)
-                    .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
-                defaultIntervalSeconds: 60,
-                poll: async (device) => {
-                    const endpoint = device.endpoints.find((e) => e.supportsInputCluster("haApplianceControl"));
-                    if (endpoint) {
-                        await endpoint.command("haApplianceControl", "signalState", {});
-                    }
-                },
-            }).onEvent,
-            exposes: [
-                exposes
-                    .enum("charger_status", ea.STATE_GET, [
-                        "plugged_out",
-                        "1X: Off",
-                        "2: plugged_in_charging",
-                        "3: plugged_in_paused",
-                        "4: plugged_in",
-                        "5X: running",
-                        "8X: failure",
-                    ])
-                    .withDescription("Current EV charger state"),
-                exposes.binary("charging_on", ea.STATE, "true", "false").withDescription("Indicates if the charger is actively delivering power"),
-            ],
-        };
-    },
     chargerStatus: (): ModernExtend => {
         const extend: ModernExtend = {
             isModernExtend: true,
@@ -168,7 +56,7 @@ const futurehomeExtend = {
                         if (status === undefined || status === null) return;
                         let chargerStatus:
                             | "plugged_out"
-                            | "1X: Off"
+                            | "1: Off"
                             | "4: plugged_in"
                             | "2: plugged_in_charging"
                             | "3: plugged_in_paused"
@@ -178,7 +66,7 @@ const futurehomeExtend = {
 
                         switch (status) {
                             case 0x01: // Off
-                                chargerStatus = "1X: Off";
+                                chargerStatus = "1: Off";
                                 chargingOn = false;
                                 break;
                             case 0x02: // StandBy → charging
@@ -235,7 +123,7 @@ const futurehomeExtend = {
                 exposes
                     .enum("charger_status", ea.STATE_GET, [
                         "plugged_out",
-                        "1X: Off",
+                        "1: Off",
                         "2: plugged_in_charging",
                         "3: plugged_in_paused",
                         "4: plugged_in",
@@ -309,33 +197,37 @@ const futurehomeExtend = {
                     cluster: "haApplianceControl",
                     type: ["attributeReport", "readResponse"],
                     convert: (model, msg, publish, options, meta) => {
-                        // const prev_session_energy = (msg.data.energyMeterNow - msg.data.energyMeterStart) / 1000;
-                        // if (msg.data.energyMeterNow !== undefined && msg.data.energyMeterStart !== undefined) {
-                        //     const prev_session_energy = msg.data.energyMeterNow - msg.data.energyMeterStart;
-                        //     return {
-                        //         previous_session_energy: prev_session_energy,
-                        //     };
-                        // }
-                        let start = meta.state?.energy_meter_start !== undefined ? meta.state.energy_meter_start : null;
-                        let now = meta.state?.energy_meter_now !== undefined ? meta.state.energy_meter_now : null;
-                        if (Object.hasOwn(msg.data, "energyMeterStart")) {
-                            start = msg.data.energyMeterStart / 1000;
+                        const result: KeyValue = {};
+                        let energyStart = meta.state?.energy_meter_start !== undefined ? meta.state.energy_meter_start : null;
+                        let energyNow = meta.state?.energy_meter_now !== undefined ? meta.state.energy_meter_now : null;
+                        let startT = meta.state?.start_t !== undefined ? meta.state.start_t : null;
+                        let endT = meta.state?.end_t !== undefined ? meta.state.now_t : null;
+                        if (msg.data.energyMeterStart !== undefined) {
+                            energyStart = msg.data.energyMeterStart / 1000;
                         }
-                        if (Object.hasOwn(msg.data, "energyMeterNow")) {
-                            now = msg.data.energyMeterNow / 1000;
+                        if (msg.data.energyMeterNow !== undefined) {
+                            energyNow = msg.data.energyMeterNow / 1000;
                         }
-                        if (start !== null && now !== null) {
-                            const consumed = (now as number) - (start as number);
-                            return {
-                                // toFixed(3) prevents floating-point precision issues in JavaScript (e.g., 0.300000000004)
-                                session_energy: Number.parseFloat(consumed.toFixed(3)),
-                            };
+                        if (msg.data.chargingSessionStartT !== undefined) {
+                            startT = msg.data.chargingSessionStartT;
                         }
-                        return;
+                        if (msg.data.chargingSessionEndT !== undefined) {
+                            endT = msg.data.chargingSessionEndT;
+                        }
+                        if (energyStart !== null && energyNow !== null) {
+                            result.session_energy = ((energyNow as number) - (energyStart as number)).toFixed(3);
+                        }
+                        if (startT !== null && endT !== null) {
+                            result.charging_duration = (endT as number) - (startT as number);
+                        }
+                        return result;
                     },
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
-            exposes: [exposes.numeric("session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh")],
+            exposes: [
+                exposes.numeric("session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh"),
+                exposes.numeric("charging_duration", ea.STATE).withDescription("Charging duration last session").withUnit("s"),
+            ],
         };
     },
 };
@@ -597,7 +489,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "energyMeterStart",
                 description: "energyMeterStart",
                 unit: "kWh",
-                access: "STATE_GET",
+                access: "STATE",
                 scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
@@ -608,7 +500,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "energyMeterNow",
                 description: "energyMeterNow",
                 unit: "kWh",
-                access: "STATE_GET",
+                access: "STATE",
                 scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
@@ -620,6 +512,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Status",
                 lookup: {
                     plugged_out: 0x00,
+                    off: 0x01,
                     plugged_in_charging: 0x02,
                     plugged_in_paused: 0x03,
                     plugged_in: 0x04,
@@ -633,7 +526,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "haApplianceControl",
                 attribute: "chargingSessionStartT",
                 description: "Start time of charging session. Time in seconds. Should be converted to date and time.",
-                access: "STATE_GET",
+                access: "STATE",
                 scale: 1.0,
                 unit: "s",
                 reporting: {min: 5, max: "1_HOUR", change: 1},
@@ -644,7 +537,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "haApplianceControl",
                 attribute: "chargingSessionEndT",
                 description: "End time of charging session. Time in seconds. Should be converted to date and time.",
-                access: "STATE_GET",
+                access: "STATE",
                 scale: 1.0,
                 unit: "s",
                 reporting: {min: 5, max: "1_HOUR", change: 1},
