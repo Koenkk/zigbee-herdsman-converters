@@ -200,6 +200,37 @@ const storeLocal = {
 };
 
 const convLocal = {
+    novaDigitalToWkInching: {
+        from: (value: unknown) => {
+            const buffer = Buffer.isBuffer(value)
+                ? value
+                : typeof value === "string"
+                  ? Buffer.from(value, "base64")
+                  : Array.isArray(value)
+                    ? Buffer.from(value)
+                    : Buffer.alloc(0);
+
+            if (buffer.length < 3) {
+                return 0;
+            }
+
+            const enabled = buffer.readUInt8(0) === 1;
+            const totalSeconds = buffer.readUInt16BE(1);
+
+            return enabled ? totalSeconds : 0;
+        },
+
+        to: (value: unknown) => {
+            const totalSeconds = Math.max(0, Math.min(3600, Number(value) || 0));
+
+            const buffer = Buffer.alloc(3);
+            buffer.writeUInt8(totalSeconds > 0 ? 1 : 0, 0);
+            buffer.writeUInt16BE(totalSeconds > 0 ? totalSeconds : 1, 1);
+
+            return buffer.toString("base64");
+        },
+    },
+
     energyFlowPJ1203A: (channel: string) => {
         return {
             from: (v: number, meta: Fz.Meta, options: KeyValue) => {
@@ -6133,6 +6164,106 @@ export const definitions: DefinitionWithExtend[] = [
                 [108, "inching_l4", tuya.valueConverter.raw],
                 [109, "inching_l5", tuya.valueConverter.raw],
                 [110, "inching_l6", tuya.valueConverter.raw],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3xnyj4ga"]),
+        model: "TO-WK-1W/B",
+        vendor: "Nova Digital",
+        description: "Topazio 1 gang switch with socket",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+
+            e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Controls the indicator LED mode"),
+
+            e.power_on_behavior(["off", "on", "previous"])
+                .withAccess(ea.STATE_SET)
+                .withDescription("Controls the behavior when the device is powered on after power loss"),
+
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Turns the button backlight on or off"),
+
+            e.binary("induction", ea.STATE_SET, "ON", "OFF").withDescription("Enables/disables capacitive induction for the button"),
+
+            e.enum("vibration", ea.STATE_SET, ["off", "low", "medium", "high"]).withDescription("Controls the vibration feedback intensity"),
+
+            e.energy().withDescription("Accumulated energy"),
+            e.current().withDescription("Current"),
+            e.power().withDescription("Power"),
+            e.voltage().withDescription("Voltage"),
+
+            e.numeric("countdown_l1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 1"),
+
+            e.numeric("countdown_l2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer for channel 2"),
+
+            e.numeric("inching_l1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Inching/pulse duration for channel 1"),
+        ],
+        endpoint: () => {
+            return {
+                l1: 1,
+                l2: 1,
+            };
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+
+                [7, "countdown_l1", tuya.valueConverter.raw],
+                [8, "countdown_l2", tuya.valueConverter.raw],
+
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [
+                    15,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
+
+                [16, "backlight_switch", tuya.valueConverter.onOff],
+
+                [19, "inching_l1", convLocal.novaDigitalToWkInching],
+
+                [20, "energy", tuya.valueConverter.divideBy1000],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+
+                [101, "induction", tuya.valueConverter.onOff],
+
+                [
+                    102,
+                    "vibration",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        low: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        high: tuya.enum(3),
+                    }),
+                ],
             ],
         },
     },
