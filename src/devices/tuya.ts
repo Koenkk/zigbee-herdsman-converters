@@ -7270,6 +7270,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: true,
                 endpoints: ["l1", "l2"],
                 electricalMeasurements: true,
+                onOffCountdown: true,
             }),
         ],
         endpoint: (device) => {
