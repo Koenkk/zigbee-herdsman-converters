@@ -6180,7 +6180,8 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Controls the indicator LED mode"),
 
-            e.power_on_behavior(["off", "on", "previous"])
+            e
+                .power_on_behavior(["off", "on", "previous"])
                 .withAccess(ea.STATE_SET)
                 .withDescription("Controls the behavior when the device is powered on after power loss"),
 
@@ -6195,21 +6196,24 @@ export const definitions: DefinitionWithExtend[] = [
             e.power().withDescription("Power"),
             e.voltage().withDescription("Voltage"),
 
-            e.numeric("countdown_l1", ea.STATE_SET)
+            e
+                .numeric("countdown_l1", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer for channel 1"),
 
-            e.numeric("countdown_l2", ea.STATE_SET)
+            e
+                .numeric("countdown_l2", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withValueStep(1)
                 .withUnit("s")
                 .withDescription("Countdown timer for channel 2"),
 
-            e.numeric("inching_l1", ea.STATE_SET)
+            e
+                .numeric("inching_l1", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(3600)
                 .withValueStep(1)
