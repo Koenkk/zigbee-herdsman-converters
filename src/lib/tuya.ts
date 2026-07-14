@@ -3315,13 +3315,13 @@ const tuyaTz = {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
             if (message.brightness != null) {
+               // If state includes state_l1 assume we need to use a custom lookup 
+                const stateKey = Object.keys(state).find((k) => k.startsWith("state_l1")) ? `state_l${entity.ID}` : "state";
                 // turn on
                 if (state[stateKey] === "OFF") {
                     await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
                 }
                 
-                // If state includes state_l1 assume we need to use a custom lookup
-                const stateKey = Object.keys(state).find((k) => k.startsWith("state_l1")) ? `state_l${entity.ID}` : "state";
                 const brightness = utils.toNumber(message.brightness, "brightness");
 
                 const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
