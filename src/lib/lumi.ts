@@ -1021,6 +1021,9 @@ const numericAttributes2Lookup = (model: Definition, dataObject: KeyValue) => {
 };
 
 type LumiPresenceRegionZone = {x: number; y: number};
+type LumiPresenceConfiguredRegion = {regionId: number; zones: LumiPresenceRegionZone[]};
+type LumiPresenceRegionCommand = {regionId: number; zones: LumiPresenceRegionZone[]};
+type LumiPresenceRegionDeleteCommand = {regionId: number};
 
 const lumiPresenceConstants = {
     region_event_key: 0x0151,
@@ -1075,6 +1078,157 @@ const lumiPresenceMappers = {
         },
     },
 };
+
+const parseConfiguredPresenceRegionArray = (value: unknown): LumiPresenceConfiguredRegion[] => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+
+    return value.flatMap((region) => {
+        if (!isObject(region) || typeof region.region_id !== "number" || !Array.isArray(region.zones)) {
+            return [];
+        }
+
+        if (!region.zones.every((zone) => isObject(zone) && typeof zone.x === "number" && typeof zone.y === "number")) {
+            return [];
+        }
+
+        return [{regionId: region.region_id, zones: region.zones}];
+    });
+};
+
+const parseConfiguredPresenceRegionSummary = (value: string): LumiPresenceConfiguredRegion[] => {
+    if (!value || value === "None") {
+        return [];
+    }
+
+    return value.split(" | ").flatMap((region) => {
+        const regionMatch = region.match(/^(\d+): (.*?)(?: \(\d+ zones\))?$/);
+
+        if (!regionMatch) {
+            return [];
+        }
+
+        const regionId = Number(regionMatch[1]);
+        const zones: LumiPresenceRegionZone[] = [];
+
+        for (const row of regionMatch[2].split("; ")) {
+            const rowMatch = row.match(/^y(\d+)=(.+)$/);
+
+            if (!rowMatch) {
+                continue;
+            }
+
+            const y = Number(rowMatch[1]);
+
+            for (const range of rowMatch[2].split(",")) {
+                const rangeMatch = range.match(/^x(\d+)(?:-(\d+))?$/);
+
+                if (!rangeMatch) {
+                    continue;
+                }
+
+                const startX = Number(rangeMatch[1]);
+                const endX = rangeMatch[2] === undefined ? startX : Number(rangeMatch[2]);
+
+                for (let x = startX; x <= endX; x++) {
+                    zones.push({x, y});
+                }
+            }
+        }
+
+        return [{regionId, zones}];
+    });
+};
+
+const parseConfiguredPresenceRegions = (value: unknown): LumiPresenceConfiguredRegion[] => {
+    if (Array.isArray(value)) {
+        return parseConfiguredPresenceRegionArray(value);
+    }
+
+    if (!isString(value)) {
+        return [];
+    }
+
+    try {
+        return parseConfiguredPresenceRegionArray(JSON.parse(value));
+    } catch {
+        return parseConfiguredPresenceRegionSummary(value);
+    }
+};
+
+const summarizeConfiguredPresenceRegions = (regions: LumiPresenceConfiguredRegion[]): string => {
+    if (!regions.length) {
+        return "None";
+    }
+
+    return regions
+        .sort((left, right) => left.regionId - right.regionId)
+        .map((region) => {
+            const zonesByY = new Map<number, number[]>();
+
+            for (const zone of region.zones) {
+                zonesByY.set(zone.y, [...(zonesByY.get(zone.y) ?? []), zone.x]);
+            }
+
+            const zoneRows = [...zonesByY.entries()]
+                .sort(([leftY], [rightY]) => leftY - rightY)
+                .map(([y, xs]) => {
+                    const ranges: string[] = [];
+                    const sortedXs = [...new Set(xs)].sort((left, right) => left - right);
+                    const firstX = sortedXs[0];
+
+                    if (firstX === undefined) {
+                        return `y${y}=none`;
+                    }
+
+                    let rangeStart = firstX;
+                    let previous = firstX;
+
+                    for (const x of sortedXs.slice(1)) {
+                        if (x === previous + 1) {
+                            previous = x;
+                            continue;
+                        }
+
+                        ranges.push(rangeStart === previous ? `x${rangeStart}` : `x${rangeStart}-${previous}`);
+                        rangeStart = x;
+                        previous = x;
+                    }
+
+                    ranges.push(rangeStart === previous ? `x${rangeStart}` : `x${rangeStart}-${previous}`);
+
+                    return `y${y}=${ranges.join(",")}`;
+                });
+
+            return `${region.regionId}: ${zoneRows.join("; ")} (${region.zones.length} zones)`;
+        })
+        .join(" | ");
+};
+
+const buildConfiguredPresenceRegionsState = (regions: LumiPresenceConfiguredRegion[]): KeyValue => {
+    return {
+        configured_regions: summarizeConfiguredPresenceRegions(regions),
+    };
+};
+
+const upsertConfiguredPresenceRegion = (state: KeyValueAny, region: LumiPresenceConfiguredRegion): KeyValue => {
+    const regions = parseConfiguredPresenceRegions(state.configured_regions).filter((existingRegion) => existingRegion.regionId !== region.regionId);
+
+    regions.push({
+        regionId: region.regionId,
+        zones: [...region.zones].sort((left, right) => left.y - right.y || left.x - right.x),
+    });
+
+    return buildConfiguredPresenceRegionsState(regions);
+};
+
+const deleteConfiguredPresenceRegion = (state: KeyValueAny, regionId: number): KeyValue => {
+    return buildConfiguredPresenceRegionsState(
+        parseConfiguredPresenceRegions(state.configured_regions).filter((existingRegion) => existingRegion.regionId !== regionId),
+    );
+};
+
 export const presence = {
     constants: lumiPresenceConstants,
     mappers: lumiPresenceMappers,
@@ -1164,6 +1318,82 @@ export const presence = {
             error,
         };
     },
+};
+
+const writeAqaraFp1RegionUpsert = async (entity: Zh.Endpoint | Zh.Group, command: LumiPresenceRegionCommand) => {
+    logger.debug(`Trying to create region ${command.regionId}`, NS);
+
+    const sortedZonesAccumulator = {};
+    const sortedZonesWithSets: {[s: number]: [number]} = command.zones.reduce((accumulator: {[s: number]: Set<number>}, zone) => {
+        if (!accumulator[zone.y]) {
+            accumulator[zone.y] = new Set<number>();
+        }
+
+        accumulator[zone.y].add(zone.x);
+
+        return accumulator;
+    }, sortedZonesAccumulator);
+    const sortedZones = Object.entries(sortedZonesWithSets).reduce(
+        (acc, [key, value]) => {
+            const numKey = Number.parseInt(key, 10); // Convert string key back to number
+            acc[numKey] = Array.from(value);
+            return acc;
+        },
+        {} as {[s: number]: number[]},
+    );
+
+    const deviceConfig = new Uint8Array(7);
+
+    // Command parameters
+    deviceConfig[0] = presence.constants.region_config_cmds.create;
+    deviceConfig[1] = command.regionId;
+    deviceConfig[6] = presence.constants.region_config_cmd_suffix_upsert;
+    // Zones definition
+    deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["1"]);
+    deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["2"]) << 4;
+    deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["3"]);
+    deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["4"]) << 4;
+    deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["5"]);
+    deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["6"]) << 4;
+    deviceConfig[5] |= presence.encodeXCellsDefinition(sortedZones["7"]);
+
+    logger.info(`Create region ${command.regionId} ${printNumbersAsHexSequence([...deviceConfig], 2)}`, NS);
+
+    const payload = {
+        [presence.constants.region_config_write_attribute]: {
+            value: deviceConfig,
+            type: presence.constants.region_config_write_attribute_type,
+        },
+    };
+
+    await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
+};
+
+const writeAqaraFp1RegionDelete = async (entity: Zh.Endpoint | Zh.Group, command: LumiPresenceRegionDeleteCommand) => {
+    logger.debug(`trying to delete region ${command.regionId}`, NS);
+
+    const deviceConfig = new Uint8Array(7);
+
+    // Command parameters
+    deviceConfig[0] = presence.constants.region_config_cmds.delete;
+    deviceConfig[1] = command.regionId;
+    deviceConfig[6] = presence.constants.region_config_cmd_suffix_delete;
+    // Zones definition
+    deviceConfig[2] = 0;
+    deviceConfig[3] = 0;
+    deviceConfig[4] = 0;
+    deviceConfig[5] = 0;
+
+    logger.info(`Delete region ${command.regionId} (${printNumbersAsHexSequence([...deviceConfig], 2)})`, NS);
+
+    const payload = {
+        [presence.constants.region_config_write_attribute]: {
+            value: deviceConfig,
+            type: presence.constants.region_config_write_attribute_type,
+        },
+    };
+
+    await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
 };
 
 function readTemperature(buffer: Buffer, offset: number): number {
@@ -2361,6 +2591,29 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            exposes: [e.action(["button_3_single", "button_4_single"])],
+            fromZigbee: [
+                {
+                    cluster: "genMultistateInput",
+                    type: ["attributeReport"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const endpoint = msg.endpoint.ID;
+                        const value = msg.data.presentValue;
+                        // Don't map any other actions/endpoint, create ghost events
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
+                        const buttonMap: {[key: number]: string} = {3: "button_3", 4: "button_4"};
+                        if (endpoint in buttonMap && value === 1) {
+                            return {action: `${buttonMap[endpoint]}_single`};
+                        }
+                        return null;
+                    },
+                } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport"]>,
+            ],
+        };
+    },
     lumiCurtainCalibrated: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi", ManuSpecificLumi>>) =>
         modernExtend.binary<"manuSpecificLumi", ManuSpecificLumi>({
             name: "calibrated",
@@ -3062,6 +3315,38 @@ export const lumiModernExtend = {
             description:
                 "Indicates whether the PIR sensor detects motion (in mmWave + PIR mode after mmWave presence detection PIR sensors gets turned off so this attribute might change to false although the presence is detected).",
         });
+    },
+    fp300BatteryPoll: (): ModernExtend => {
+        // FP300 firmware 0.0.0_6542 no longer pushes the 0x00F7 struct that carries the battery data
+        // (https://github.com/Koenkk/zigbee2mqtt/issues/32153), but it still answers an explicit read while awake.
+        // Rather than gating on a firmware version, track when the struct was last received and only read it back
+        // once it goes stale: firmware that pushes the struct by itself keeps this poll dormant, and on affected
+        // firmware the read response refreshes the timestamp, so reads self-regulate to ~structMaxAgeMs.
+        // The FP300 is a sleepy end device: the read is queued (`sendPolicy: "queue"`) and flushed by the request
+        // queue when the device next wakes; quirkCheckinInterval() in the definition gives the queue its lifetime.
+        const structMaxAgeMs = 4 * 60 * 60 * 1000;
+        const storeKey = "lumi_struct_last_received";
+        const structReceived: Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]> = {
+            cluster: "manuSpecificLumi",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg) => {
+                if (msg.data[0x00f7] !== undefined) globalStore.putValue(msg.device, storeKey, Date.now());
+            },
+        };
+        return {
+            ...modernExtend.poll({
+                key: "battery",
+                defaultIntervalSeconds: 60 * 60,
+                poll: (device) => {
+                    if (Date.now() - (globalStore.getValue(device, storeKey, 0) as number) < structMaxAgeMs) return;
+                    device
+                        .getEndpoint(1)
+                        .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00f7], {manufacturerCode, sendPolicy: "queue"})
+                        .catch((error) => logger.debug(`Failed to read battery of '${device.ieeeAddr}' (${error})`, NS));
+                },
+            }),
+            fromZigbee: [structReceived],
+        };
     },
     fp300DetectionRange: (args?: {rangeOffset: number; rangesCount: number}): ModernExtend => {
         args = {
@@ -4571,9 +4856,7 @@ function armW600WeeklyScheduleUploadTimeout(deviceOrEntity: string | Zh.Device |
         }
 
         failW600WeeklyScheduleUpload(storeKey, "Timed out waiting for the device to finish the weekly schedule OTA transfer", publish);
-    }, W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS);
-
-    timeout.unref?.();
+    }, W600_WEEKLY_SCHEDULE_OTA_STAGE_TTL_MS).unref();
     W600_WEEKLY_SCHEDULE_UPLOAD_TIMEOUTS.set(storeKey, timeout);
 }
 
@@ -6011,7 +6294,7 @@ export const fromZigbee = {
                 if (msg.data.presentValue === 0) {
                     // Aqara Opple does not generate a release event when pressed for more than 5 seconds
                     // After 5 seconds of not releasing we assume release.
-                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000);
+                    const timer = setTimeout(() => publish({action: `button_${button}_release`}), 5000).unref();
                     globalStore.putValue(msg.endpoint, "timer", timer);
                 }
                 return {action: `button_${button}_${action}`};
@@ -6374,7 +6657,7 @@ export const fromZigbee = {
                 if (timeout !== 0) {
                     const timer = setTimeout(() => {
                         publish({occupancy: false});
-                    }, timeout * 1000);
+                    }, timeout * 1000).unref();
 
                     globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
                 }
@@ -6548,7 +6831,7 @@ export const fromZigbee = {
                     if (timeout !== 0) {
                         const timer = setTimeout(() => {
                             publish({vibration: false});
-                        }, timeout * 1000);
+                        }, timeout * 1000).unref();
 
                         globalStore.putValue(msg.endpoint, "vibration_timer", timer);
                     }
@@ -6641,7 +6924,7 @@ export const fromZigbee = {
             if (timeout !== 0) {
                 const timer = setTimeout(() => {
                     publish({occupancy: false});
-                }, timeout * 1000);
+                }, timeout * 1000).unref();
 
                 globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
             }
@@ -6996,10 +7279,10 @@ export const fromZigbee = {
                     globalStore.putValue(msg.endpoint, "hold", Date.now());
                     const holdTimer = setTimeout(() => {
                         globalStore.putValue(msg.endpoint, "hold", false);
-                    }, options.hold_timeout_expire || 4000);
+                    }, options.hold_timeout_expire || 4000).unref();
                     globalStore.putValue(msg.endpoint, "hold_timer", holdTimer);
                     // After 4000 milliseconds of not receiving release we assume it will not happen.
-                }, options.hold_timeout || 1000); // After 1000 milliseconds of not releasing we assume hold.
+                }, options.hold_timeout || 1000).unref(); // After 1000 milliseconds of not releasing we assume hold.
                 globalStore.putValue(msg.endpoint, "timer", timer);
             } else if (state === 1) {
                 if (globalStore.getValue(msg.endpoint, "hold")) {
@@ -7864,55 +8147,14 @@ export const toZigbee = {
 
             const command = commandWrapper.payload.command;
 
-            logger.debug(`Trying to create region ${command.region_id}`, NS);
+            await writeAqaraFp1RegionUpsert(entity, {regionId: command.region_id, zones: command.zones});
 
-            const sortedZonesAccumulator = {};
-            const sortedZonesWithSets: {[s: number]: [number]} = command.zones.reduce(
-                (accumulator: {[s: number]: Set<number>}, zone: {x: number; y: number}) => {
-                    if (!accumulator[zone.y]) {
-                        accumulator[zone.y] = new Set<number>();
-                    }
-
-                    accumulator[zone.y].add(zone.x);
-
-                    return accumulator;
-                },
-                sortedZonesAccumulator,
-            );
-            const sortedZones = Object.entries(sortedZonesWithSets).reduce(
-                (acc, [key, value]) => {
-                    const numKey = Number.parseInt(key, 10); // Convert string key back to number
-                    acc[numKey] = Array.from(value);
-                    return acc;
-                },
-                {} as {[s: number]: number[]},
-            );
-
-            const deviceConfig = new Uint8Array(7);
-
-            // Command parameters
-            deviceConfig[0] = presence.constants.region_config_cmds.create;
-            deviceConfig[1] = command.region_id;
-            deviceConfig[6] = presence.constants.region_config_cmd_suffix_upsert;
-            // Zones definition
-            deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["1"]);
-            deviceConfig[2] |= presence.encodeXCellsDefinition(sortedZones["2"]) << 4;
-            deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["3"]);
-            deviceConfig[3] |= presence.encodeXCellsDefinition(sortedZones["4"]) << 4;
-            deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["5"]);
-            deviceConfig[4] |= presence.encodeXCellsDefinition(sortedZones["6"]) << 4;
-            deviceConfig[5] |= presence.encodeXCellsDefinition(sortedZones["7"]);
-
-            logger.info(`Create region ${command.region_id} ${printNumbersAsHexSequence([...deviceConfig], 2)}`, NS);
-
-            const payload = {
-                [presence.constants.region_config_write_attribute]: {
-                    value: deviceConfig,
-                    type: presence.constants.region_config_write_attribute_type,
-                },
+            return {
+                state: upsertConfiguredPresenceRegion(meta.state, {
+                    regionId: command.region_id,
+                    zones: command.zones,
+                }),
             };
-
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_presence_region_delete: {
@@ -7930,30 +8172,11 @@ export const toZigbee = {
             }
             const command = commandWrapper.payload.command;
 
-            logger.debug(`trying to delete region ${command.region_id}`, NS);
+            await writeAqaraFp1RegionDelete(entity, {regionId: command.region_id});
 
-            const deviceConfig = new Uint8Array(7);
-
-            // Command parameters
-            deviceConfig[0] = presence.constants.region_config_cmds.delete;
-            deviceConfig[1] = command.region_id;
-            deviceConfig[6] = presence.constants.region_config_cmd_suffix_delete;
-            // Zones definition
-            deviceConfig[2] = 0;
-            deviceConfig[3] = 0;
-            deviceConfig[4] = 0;
-            deviceConfig[5] = 0;
-
-            logger.info(`Delete region ${command.region_id} (${printNumbersAsHexSequence([...deviceConfig], 2)})`, NS);
-
-            const payload = {
-                [presence.constants.region_config_write_attribute]: {
-                    value: deviceConfig,
-                    type: presence.constants.region_config_write_attribute_type,
-                },
+            return {
+                state: deleteConfiguredPresenceRegion(meta.state, command.region_id),
             };
-
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", payload, {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_cube_operation_mode: {
@@ -8829,12 +9052,12 @@ export const toZigbee = {
                                 if (result2 && desiredStates.includes(result2[0x0421] as number)) {
                                     resolve();
                                 } else {
-                                    setTimeout(checkDesiredState, 500);
+                                    setTimeout(checkDesiredState, 500).unref();
                                 }
                             };
-                            setTimeout(checkDesiredState, 500);
+                            setTimeout(checkDesiredState, 500).unref();
                         } else {
-                            setTimeout(checkState, 500);
+                            setTimeout(checkState, 500).unref();
                         }
                     };
                     void checkState();

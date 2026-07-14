@@ -1,10 +1,123 @@
 import {beforeEach, describe, expect, it} from "vitest";
-import {fromZigbee, numericAttributes2Payload, type TrvScheduleConfig, trv} from "../src/lib/lumi";
+import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
-import type {Definition, Fz} from "../src/lib/types";
+import type {Definition, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
+    describe("PS-S04D battery", () => {
+        it("decodes battery percentage (tag 24) and voltage (tag 23) from the 0x00F7 struct", () => {
+            const extend = lumiModernExtend.lumiBattery({voltageAttribute: 0x0017, percentageAttribute: 0x0018});
+            // tag 23 (0x17), uint16 (0x21) = 2916 mV; tag 24 (0x18), uint8 (0x20) = 97 %
+            const data = Buffer.from([0x17, 0x21, 0x64, 0x0b, 0x18, 0x20, 0x61]);
+            const result = extend.fromZigbee[0].convert(
+                {model: "PS-S04D"} as Definition,
+                // @ts-expect-error mock
+                {data: {247: data}},
+                null,
+                null,
+                null,
+            );
+            expect(result).toStrictEqual({battery: 97, voltage: 2916});
+        });
+
+        it("records when the 0x00F7 struct was last received, keeping the battery poll dormant while fresh", () => {
+            const extend = lumiModernExtend.fp300BatteryPoll();
+            const device = mockDevice({modelID: "lumi.sensor_occupy.agl8", endpoints: [{ID: 1}]}, "EndDevice");
+            expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeUndefined();
+            const before = Date.now();
+            extend.fromZigbee[0].convert(
+                {model: "PS-S04D"} as Definition,
+                // @ts-expect-error mock
+                {data: {247: Buffer.from([0x17, 0x21, 0x64, 0x0b])}, device},
+                null,
+                null,
+                null,
+            );
+            expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeGreaterThanOrEqual(before);
+        });
+    });
+
+    describe("RTCZCGQ11LM configured regions", () => {
+        const createPresenceMeta = (state = {}): {device: ReturnType<typeof mockDevice>; meta: Tz.Meta} => {
+            const device = mockDevice({modelID: "lumi.motion.ac01", endpoints: [{ID: 1}]});
+            const definition = {model: "RTCZCGQ11LM"} as Definition;
+
+            return {
+                device,
+                meta: {
+                    state,
+                    device,
+                    message: null,
+                    mapped: definition,
+                    options: null,
+                    publish: null,
+                    endpoint_name: null,
+                },
+            };
+        };
+
+        it("returns configured_regions after a region upsert", async () => {
+            const {device, meta} = createPresenceMeta({
+                configured_regions: JSON.stringify([{region_id: 5, zones: [{x: 4, y: 7}]}]),
+            });
+
+            const result = await toZigbee.lumi_presence_region_upsert.convertSet(
+                device.endpoints[0],
+                "region_upsert",
+                {
+                    region_id: 1,
+                    zones: [
+                        {x: 2, y: 1},
+                        {x: 1, y: 1},
+                        {x: 4, y: 3},
+                    ],
+                },
+                meta,
+            );
+
+            expect(device.endpoints[0].write).toHaveBeenCalledWith(
+                "manuSpecificLumi",
+                {
+                    336: {
+                        value: new Uint8Array([1, 1, 3, 8, 0, 0, 0xff]),
+                        type: 0x41,
+                    },
+                },
+                {manufacturerCode: 0x115f},
+            );
+            expect(result).toStrictEqual({
+                state: {
+                    configured_regions: "1: y1=x1-2; y3=x4 (3 zones) | 5: y7=x4 (1 zones)",
+                },
+            });
+        });
+
+        it("returns configured_regions after a region delete", async () => {
+            const {device, meta} = createPresenceMeta({
+                configured_regions: "1: y1=x1 (1 zones) | 5: y7=x4 (1 zones)",
+            });
+
+            const result = await toZigbee.lumi_presence_region_delete.convertSet(device.endpoints[0], "region_delete", {region_id: 5}, meta);
+
+            expect(device.endpoints[0].write).toHaveBeenCalledWith(
+                "manuSpecificLumi",
+                {
+                    336: {
+                        value: new Uint8Array([3, 5, 0, 0, 0, 0, 0]),
+                        type: 0x41,
+                    },
+                },
+                {manufacturerCode: 0x115f},
+            );
+            expect(result).toStrictEqual({
+                state: {
+                    configured_regions: "1: y1=x1 (1 zones)",
+                },
+            });
+        });
+    });
+
     describe("ZNCLBL01LM terminal position readback", () => {
         const znclbl01lmDefinition = {model: "ZNCLBL01LM"} as Definition;
 

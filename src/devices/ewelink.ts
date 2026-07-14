@@ -221,6 +221,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.rain()],
     },
     {
+        zigbeeModel: ["CK-TLSR8656-SS5-02(7014)"],
+        model: "CK-TLSR8656-SS5-02(7014)",
+        vendor: "eWeLink",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
+    },
+    {
         zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
         model: "SNZB-05",
         vendor: "eWeLink",
@@ -454,5 +461,38 @@ export const definitions: DefinitionWithExtend[] = [
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,
+    },
+    {
+        zigbeeModel: ["CK-BL702-MWS-01(7016)"],
+        model: "MG3-5RZ",
+        vendor: "eWeLink",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
     },
 ];

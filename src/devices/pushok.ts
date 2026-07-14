@@ -548,6 +548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {},
                 description: "Battery state",
                 access: "STATE_GET",
+                entityCategory: "diagnostic",
                 reporting: null,
             }),
             m.iasZoneAlarm({
@@ -747,7 +748,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "status",
-                lookup: {off: 0, on: 1, moving: 2, stuck: 3, middle: 4},
+                lookup: {off: 0, on: 1, moving: 2, stuck: 3, middle: 4, micro_ventilation: 5, tilted: 6},
                 cluster: "genMultistateInput",
                 attribute: "presentValue",
                 zigbeeCommandOptions: {},

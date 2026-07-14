@@ -1,5 +1,6 @@
 import {Zcl} from "zigbee-herdsman";
 import type {PartialClusterOrRawAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import {COORDINATOR_ADDRESS} from "zigbee-herdsman/dist/zspec";
 import type {GpdManufAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -186,6 +187,7 @@ function indicatorMode(endpoint?: string) {
             consistent_with_load: 0,
             always_off: 3,
             always_on: 1,
+            flash_on_click: 4,
         },
         cluster: "manuSpecificSchneiderLightSwitchConfiguration",
         attribute: "ledIndication",
@@ -479,6 +481,7 @@ const schneiderElectricExtend = {
             attribute: "wiserControlMode",
             description: "Auto detects the correct mode for the ballast. RL-LED may have improved dimming quality for LEDs.",
             entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         });
         extend.configure.push(
             m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
@@ -1476,7 +1479,7 @@ const fzLocal = {
                     "response",
                     {
                         options: 0b000,
-                        tempMaster: msg.data.gppNwkAddr,
+                        tempMaster: msg.data.gppNwkAddr ?? COORDINATOR_ADDRESS,
                         tempMasterTx: networkParameters.channel - 11,
                         srcID: msg.data.srcID,
                         gpdCmd: 0xfe,
@@ -1842,7 +1845,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Micro module dimmer with neutral lead",
         ota: true,
-        extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(), m.light({configureReporting: true, levelConfig: {}})],
+        extend: [
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            m.light({configureReporting: true, levelConfig: {}, powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {l1: 21, l2: 22}}),
+            switchActions("l1"),
+            switchActions("l2"),
+        ],
         fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -1981,6 +1991,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Push button dimmer",
         extend: [
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.light({
                 effect: false,
                 powerOnBehavior: true,
@@ -1990,10 +2001,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.lightingBallast(),
             m.identify(),
             schneiderElectricExtend.dimmingMode(),
-            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             indicatorMode(),
         ],
-        meta: {omitOptionalLevelParams: true},
+        meta: {omitOptionalLevelAndColorParams: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(3);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingBallastCfg"]);
@@ -2007,9 +2017,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser 40/300-Series Module Dimmer",
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.lighting_ballast_configuration],
-        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config],
+        toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tz.ignore_transition],
         exposes: [
-            e.light_brightness(),
+            e.light_brightness().withLevelConfig(["on_level", "current_level_startup"]),
             e
                 .numeric("ballast_minimum_level", ea.ALL)
                 .withValueMin(1)

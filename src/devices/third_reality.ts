@@ -14,12 +14,14 @@ import type {
     Expose,
     Fz,
     KeyValue,
+    KeyValueAny,
     ModernExtend,
     Zh,
 } from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 function conditionalPressure(): ModernExtend {
     const base = m.pressure();
@@ -68,6 +70,9 @@ interface ThirdAcceleration {
         xAxis: number;
         yAxis: number;
         zAxis: number;
+        xAngle: number;
+        yAngle: number;
+        zAngle: number;
     };
     commands: never;
     commandResponses: never;
@@ -93,9 +98,9 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
-interface ThirdCO2Sensor {
+interface ThirdAirQualitySensor {
     attributes: {
-        volatileOrganicCompounds: number;
+        vocIndex: number;
     };
     commands: never;
     commandResponses: never;
@@ -189,7 +194,74 @@ interface Third24gRadar {
     commandResponses: never;
 }
 
-const fzLocal = {
+function thirdRealitySoilMoisture(): ModernExtend {
+    const expose = e.soil_moisture().withAccess(ea.STATE_GET);
+
+    const supportsNativeSoilMoisture = (device: Zh.Device | DummyDevice): boolean => {
+        if (utils.isDummyDevice(device)) return true;
+        return device.endpoints.some((endpoint) => endpoint.supportsInputCluster("msSoilMoisture"));
+    };
+
+    const getMeasurementEndpoint = (device: Zh.Device): Zh.Endpoint => {
+        return (
+            device.endpoints.find((endpoint) => endpoint.supportsInputCluster("msSoilMoisture")) ??
+            device.endpoints.find((endpoint) => endpoint.supportsInputCluster("msRelativeHumidity")) ??
+            device.endpoints[0]
+        );
+    };
+
+    const hasMeasuredValue = (data: KeyValue): data is KeyValue & {measuredValue: number} => {
+        if (!("measuredValue" in data)) return false;
+        utils.assertNumber(data.measuredValue);
+        return true;
+    };
+
+    return {
+        exposes: [() => [expose]],
+        fromZigbee: [
+            {
+                cluster: "msSoilMoisture",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (hasMeasuredValue(msg.data)) return {soil_moisture: msg.data.measuredValue / 100};
+                },
+            },
+            {
+                cluster: "msRelativeHumidity",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (!supportsNativeSoilMoisture(msg.device) && hasMeasuredValue(msg.data)) {
+                        return {soil_moisture: msg.data.measuredValue / 100};
+                    }
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["soil_moisture"],
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = getMeasurementEndpoint(meta.device);
+                    await endpoint.read(supportsNativeSoilMoisture(meta.device) ? "msSoilMoisture" : "msRelativeHumidity", ["measuredValue"]);
+                },
+            },
+        ],
+        configure: [
+            async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+                const endpoint = getMeasurementEndpoint(device);
+                if (supportsNativeSoilMoisture(device)) {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["msSoilMoisture"]);
+                    await reporting.soil_moisture(endpoint);
+                } else {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["msRelativeHumidity"]);
+                    await reporting.humidity(endpoint);
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+export const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
         type: ["attributeReport", "readResponse"],
@@ -209,6 +281,16 @@ const fzLocal = {
             return {occupancy: (zoneStatus & 1) > 0};
         },
     } satisfies Fz.Converter<"r3Specialcluster", ThirdMotionSensor, "attributeReport">,
+    itcmdr_clicks: {
+        cluster: "genMultistateInput",
+        type: ["readResponse", "attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
+            const clicks = msg.data.presentValue;
+            const action = lookup[clicks] ? lookup[clicks] : "many";
+            return {action};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -387,14 +469,14 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.co2(),
-            m.deviceAddCustomCluster("3rCO2SensorCluster", {
-                name: "3rCO2SensorCluster",
+            m.deviceAddCustomCluster("3rAirQualitySensorCluster", {
+                name: "3rAirQualitySensorCluster",
                 ID: 0x042e,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    volatileOrganicCompounds: {
-                        name: "volatileOrganicCompounds",
-                        ID: 0x0000,
+                    vocIndex: {
+                        name: "vocIndex",
+                        ID: 0x0100,
                         type: Zcl.DataType.UINT32,
                         max: 0xffffffff,
                     },
@@ -402,11 +484,11 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3rCO2SensorCluster", ThirdCO2Sensor>({
+            m.numeric<"3rAirQualitySensorCluster", ThirdAirQualitySensor>({
                 name: "voc_index",
-                cluster: "3rCO2SensorCluster",
-                attribute: "volatileOrganicCompounds",
-                unit: "aqi",
+                cluster: "3rAirQualitySensorCluster",
+                attribute: "vocIndex",
+                unit: "VOC Index points",
                 description: "Measured VOC Index",
                 access: "STATE_GET",
             }),
@@ -738,7 +820,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSB22BZ",
         vendor: "Third Reality",
         description: "Smart button",
-        fromZigbee: [fz.itcmdr_clicks],
+        fromZigbee: [fzLocal.itcmdr_clicks],
         ota: true,
         exposes: [e.action(["single", "double", "hold", "release"])],
         extend: [
@@ -876,7 +958,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
-            m.soilMoisture(),
+            thirdRealitySoilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
                 name: "3rSoilSpecialCluster",
@@ -1157,7 +1239,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "genBasic",
                 ID: Zcl.Clusters.genBasic.ID,
                 attributes: {
-                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, max: 0x64},
+                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, manufacturerCode: 0x1407, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1345,29 +1427,59 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RVS01031Z",
         vendor: "Third Reality",
         description: "Zigbee vibration sensor",
-        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fzLocal.thirdreality_acceleration],
-        toZigbee: [],
         ota: true,
-        exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage(), e.x_axis(), e.y_axis(), e.z_axis()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            device.powerSource = "Battery";
-            device.save();
-        },
         extend: [
             m.deviceAddCustomCluster("3rVirationSpecialcluster", {
                 name: "3rVirationSpecialcluster",
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 7200},
+                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16},
+                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16},
+                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16},
+                    xAngle: {name: "xAngle", ID: 0x0005, type: Zcl.DataType.INT16},
+                    yAngle: {name: "yAngle", ID: 0x0006, type: Zcl.DataType.INT16},
+                    zAngle: {name: "zAngle", ID: 0x0007, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "vibration",
+                zoneAttributes: ["alarm_1"],
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "cool_down_time",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 7200,
+                cluster: "3rVirationSpecialcluster",
+                attribute: "coolDownTime",
+                description: "coolDownTime",
+                access: "ALL",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "x_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "xAxis",
+                description: "X axis acceleration",
+                access: "STATE_GET",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "y_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "yAxis",
+                description: "Y axis acceleration",
+                access: "STATE_GET",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "z_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "zAxis",
+                description: "Z axis acceleration",
+                access: "STATE_GET",
             }),
         ],
     },

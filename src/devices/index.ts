@@ -198,6 +198,7 @@ import {definitions as lux} from "./lux";
 import {definitions as lytko} from "./lytko";
 import {definitions as mElec} from "./m_elec";
 import {definitions as makegood} from "./makegood";
+import {definitions as manhot} from "./manhot";
 import {definitions as matcallBv} from "./matcall_bv";
 import {definitions as mazda} from "./mazda";
 import {definitions as meazon} from "./meazon";
@@ -225,6 +226,7 @@ import {definitions as niko} from "./niko";
 import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
 import {definitions as nobo} from "./nobo";
+import {definitions as nodieby} from "./nodieby";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
@@ -599,6 +601,7 @@ const definitions: DefinitionWithExtend[] = [
     ...niko,
     ...ninjaBlocks,
     ...niviss,
+    ...nodieby,
     ...nodon,
     ...nordtronic,
     ...nous,
@@ -751,6 +754,7 @@ const definitions: DefinitionWithExtend[] = [
     ...qa,
     ...engo,
     ...vsmart,
+    ...manhot,
 ];
 
 export default definitions;
