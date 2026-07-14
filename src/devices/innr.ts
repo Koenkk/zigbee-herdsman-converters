@@ -357,7 +357,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 279 T",
         vendor: "Innr",
         description: "Smart bulb tunable white E27",
-        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: true,
         endpoint: (device) => {
             return {default: 1};
