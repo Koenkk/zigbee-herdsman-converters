@@ -14152,6 +14152,17 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["TS1201"],
         model: "ZS06",
         vendor: "Tuya",
+        fingerprint: tuya.fingerprint("TS1201", [
+            "_TZ3290_rlkmy85q4pzoxobl",
+            "_TZ3290_gnl5a6a5xvql7c2a",
+            "_TZ3290_jxvzqatwgsaqzx1u",
+            "_TZ3290_lypnqvlem5eq1ree",
+            "_TZ3290_yac64inudpovoaba",
+            "_TZ3290_uc8lwbi2",
+            "_TZ3290_8xzb2ghn",
+            "_TZ3290_s6ezpa3j",
+            "_TZ3290_acv1iuslxi3shaaj",
+        ]),
         description: "Universal smart IR remote control",
         extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), zosung.zosungExtend.addZosungIRControlCluster()],
         fromZigbee: [
@@ -14163,9 +14174,9 @@ export const definitions: DefinitionWithExtend[] = [
             fzZosung.zosung_send_ir_code_05,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send()],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send()],
         whiteLabel: [
-            tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl"]),
+            tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl", "_TZ3290_gnl5a6a5xvql7c2a"]),
             tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree"]),
             tuya.whitelabel("QA", "QAIRZM2", "Zigbee smart IR remote control", ["_TZ3290_yac64inudpovoaba"]),
             tuya.whitelabel("Zemismart", "ZM-18-USB", "Universal smart IR remote control", ["_TZ3290_uc8lwbi2"]),
@@ -27726,7 +27737,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.humidity(),
             ez.learn_ir_code().withDescription("Turn on to learn new IR code "),
-            ez.learned_ir_code().withDescription("The IR code learned by device"),
+            ez.learned_ir_code(),
+            ez.learned_ir_timings(),
             ez
                 .ir_code_to_send()
                 .withDescription(
