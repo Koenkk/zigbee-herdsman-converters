@@ -630,6 +630,7 @@ const definitions: DefinitionWithExtend[] = [
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...pulsar,
     ...purmo,
     ...pushok,
     ...qmotion,
