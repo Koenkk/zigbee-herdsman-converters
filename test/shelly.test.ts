@@ -97,6 +97,76 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         expect(state).toStrictEqual({switch_type_sw1: "toggle"});
     });
 
+    it("reads switch input type through the Shelly RPC endpoint", async () => {
+        const response = JSON.stringify({id: 1, result: {id: 1, type: "button", enable: true, invert: false}});
+        const read = vi.fn().mockResolvedValueOnce({rxCtl: response.length}).mockResolvedValueOnce({data: response});
+        const device = mockShelly2PMCoverWithInputs(read);
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key.includes("switch_type")) as Tz.Converter;
+        const publish = vi.fn();
+
+        await converter.convertGet?.(device.getEndpoint(3), "switch_type", {endpoint_name: "sw2", message: {}, publish} as never);
+
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
+            "shellyRPCCluster",
+            {data: expect.stringContaining("Input.GetConfig")},
+            expect.any(Object),
+        );
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith("shellyRPCCluster", {data: expect.stringContaining('"id":1')}, expect.any(Object));
+        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["rxCtl"], expect.any(Object));
+        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["data"], expect.any(Object));
+        expect(device.getEndpoint(3).read).not.toHaveBeenCalled();
+        expect(publish).toHaveBeenCalledWith({switch_type_sw2: "momentary"});
+    });
+
+    it("falls back to the input config cluster when Shelly RPC input type read fails", async () => {
+        const read = vi.fn().mockRejectedValueOnce(new Error("RPC unavailable"));
+        const device = mockShelly2PMCoverWithInputs(read);
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key.includes("switch_type")) as Tz.Converter;
+
+        await converter.convertGet?.(device.getEndpoint(3), "switch_type", {endpoint_name: "sw2", message: {}, publish: vi.fn()} as never);
+
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
+            "shellyRPCCluster",
+            {data: expect.stringContaining("Input.GetConfig")},
+            expect.any(Object),
+        );
+        expect(device.getEndpoint(3).read).toHaveBeenCalledWith("genOnOffSwitchCfg", ["switchType"]);
+    });
+
+    it("writes switch input type through the Shelly RPC endpoint", async () => {
+        const device = mockShelly2PMCoverWithInputs();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key.includes("switch_type")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(3), "switch_type", "momentary", {endpoint_name: "sw2", message: {}} as never);
+
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
+            "shellyRPCCluster",
+            {data: expect.stringContaining("Input.SetConfig")},
+            expect.any(Object),
+        );
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
+            "shellyRPCCluster",
+            {data: expect.stringContaining('"type":"button"')},
+            expect.any(Object),
+        );
+        expect(device.getEndpoint(3).write).not.toHaveBeenCalled();
+    });
+
+    it("falls back to the input config cluster when Shelly RPC input type write fails", async () => {
+        const device = mockShelly2PMCoverWithInputs();
+        vi.mocked(device.getEndpoint(239).write).mockRejectedValueOnce(new Error("RPC unavailable"));
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key.includes("switch_type")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(3), "switch_type", "momentary", {endpoint_name: "sw2", message: {}} as never);
+
+        expect(device.getEndpoint(239).write).toHaveBeenCalledWith("shellyRPCCluster", {txCtl: expect.any(Number)}, expect.any(Object));
+        expect(device.getEndpoint(3).write).toHaveBeenCalledWith("genOnOffSwitchCfg", {switchType: 1});
+    });
+
     it("reads two-channel switch mode through the Shelly RPC endpoint", async () => {
         const response = JSON.stringify({id: 1, result: {id: 1, in_mode: "detached"}});
         const read = vi.fn().mockResolvedValueOnce({rxCtl: response.length}).mockResolvedValueOnce({data: response});
