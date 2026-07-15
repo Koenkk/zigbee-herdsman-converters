@@ -254,6 +254,7 @@ import {definitions as plaid} from "./plaid";
 import {definitions as plugwise} from "./plugwise";
 import {definitions as profalux} from "./profalux";
 import {definitions as prolight} from "./prolight";
+import {definitions as pulsar} from "./pulsar";
 import {definitions as purmo} from "./purmo";
 import {definitions as pushok} from "./pushok";
 import {definitions as qa} from "./qa";
@@ -631,6 +632,7 @@ const definitions: DefinitionWithExtend[] = [
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...pulsar,
     ...purmo,
     ...pushok,
     ...qmotion,
