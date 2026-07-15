@@ -3935,6 +3935,7 @@ export const lumiModernExtend = {
     w600WeeklySchedule: (): ModernExtend => createW600WeeklySchedule(),
     w600PresetTemperatureTable: (): ModernExtend => createW600PresetTemperatureTable(),
     w600ValvePosition: (): ModernExtend => createW600ValvePosition(),
+    lumiBathroomHeaterT1: (): ModernExtend => createLumiBathroomHeaterT1(),
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
         let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
         if (type === "genAnalogOutput") {
@@ -3985,6 +3986,409 @@ export const lumiModernExtend = {
 };
 
 export {lumiModernExtend as modernExtend};
+
+const YUBA_LUMI_CLUSTER = "manuSpecificLumi";
+const YUBA_ATTR_PACKED_STATE = 0x024f;
+const YUBA_ATTR_MUTE_PROMPT_TONE = 0x0256;
+const YUBA_ATTR_MUTE_PROMPT_TIME = 0x0257;
+const YUBA_ATTR_CONSTANT_TEMPERATURE_MODE = 0x02be;
+const YUBA_ATTR_NIGHT_LIGHT = 0x0518;
+const YUBA_MODE_LOOKUP = {warm: 0, dry: 3, fan_only: 4, exhaust: 5} as const;
+const YUBA_SYSTEM_MODE_LOOKUP = {warm: "heat", dry: "dry", fan_only: "fan_only", exhaust: "fan_only"} as const;
+const YUBA_SYSTEM_MODE_TO_OPERATING_MODE = {heat: "warm", dry: "dry", fan_only: "fan_only"} as const;
+const YUBA_FAN_LOOKUP = {low: 0, medium: 1, high: 2} as const;
+const YUBA_FAN_STATE_LOOKUP = {low: 0xfffd, medium: 0xfffe, high: 0xffff} as const;
+
+function parseYubaEnabled(value: unknown, property: string): boolean {
+    const normalized = String(value).toLowerCase();
+    if (["1", "on", "true"].includes(normalized)) return true;
+    if (["0", "off", "false"].includes(normalized)) return false;
+    throw new Error(`${property} must be ON or OFF`);
+}
+
+function parseYubaClockTime(value: unknown, property: string): number {
+    const normalized = String(value);
+    if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(normalized)) {
+        throw new Error(`${property} must use HH:MM in 24-hour format`);
+    }
+
+    const [hour, minute] = normalized.split(":").map(Number);
+    return hour * 60 + minute;
+}
+
+function formatYubaClockTime(minutes: number): string {
+    return `${Math.floor(minutes / 60)
+        .toString()
+        .padStart(2, "0")}:${(minutes % 60).toString().padStart(2, "0")}`;
+}
+
+function getYubaLookupKey<T extends Record<string, number>>(lookup: T, value: number): keyof T | undefined {
+    return Object.entries(lookup).find(([, raw]) => raw === value)?.[0];
+}
+
+function serializeYubaBuffer(value: unknown): number[] | undefined {
+    if (Buffer.isBuffer(value)) return Array.from(value);
+    if (isObject(value) && value.type === "Buffer" && Array.isArray(value.data)) return value.data.map(Number);
+    return undefined;
+}
+
+function getYubaHeartbeatPackedState(value: unknown): bigint | undefined {
+    const bytes = serializeYubaBuffer(value);
+    if (!bytes) return;
+
+    for (let index = 0; index <= bytes.length - 10; index++) {
+        if (bytes[index] !== 0x78 || bytes[index + 1] !== Zcl.DataType.UINT64) continue;
+        const packed = Buffer.from(bytes.slice(index + 2, index + 10)).readBigUInt64LE();
+        return packed;
+    }
+}
+
+function parseYubaPackedValue(value: unknown): bigint | undefined {
+    if (typeof value === "bigint") return value;
+    if (typeof value === "number" && Number.isSafeInteger(value)) return BigInt(value);
+    if (typeof value === "string") {
+        try {
+            return BigInt(value);
+        } catch {
+            return;
+        }
+    }
+
+    const bytes = serializeYubaBuffer(value);
+    if (bytes?.length === 8) return Buffer.from(bytes).readBigUInt64BE();
+}
+
+function decodeYubaPackedState(value: unknown): KeyValue {
+    const packed = parseYubaPackedValue(value);
+    if (packed === undefined) return {};
+
+    const result: KeyValue = {};
+    const targetTemperature = Number((packed >> 48n) & 0xffffn);
+    const currentTemperature = Number((packed >> 32n) & 0xffffn);
+    const control = Number((packed >> 24n) & 0xffn);
+    const fanControl = Number((packed >> 16n) & 0xffn);
+
+    if (targetTemperature !== 0xffff) result.current_heating_setpoint = targetTemperature / 100;
+    if (currentTemperature !== 0xffff) result.local_temperature = currentTemperature / 100;
+
+    if (control !== 0xff) {
+        const powered = control >> 4 === 1;
+        const mode = getYubaLookupKey(YUBA_MODE_LOOKUP, control & 0x0f);
+        result.heater_power = powered;
+
+        if (!powered) {
+            result.operating_mode = "off";
+            result.system_mode = "off";
+            result.running_state = "idle";
+            result.swing_mode = "off";
+        } else if (mode !== undefined) {
+            result.operating_mode = mode;
+            result.system_mode = YUBA_SYSTEM_MODE_LOOKUP[mode];
+            result.running_state = mode === "warm" ? "heat" : "fan_only";
+        }
+    }
+
+    if (fanControl !== 0xff) {
+        const fanMode = getYubaLookupKey(YUBA_FAN_LOOKUP, fanControl >> 4);
+        const swing = fanControl & 0x0f;
+        if (fanMode !== undefined) result.fan_mode = fanMode;
+        if (swing === 0x0c || swing === 0x0d) result.swing_mode = swing === 0x0c ? "on" : "off";
+    }
+
+    return result;
+}
+
+async function readYubaAttributes(entity: Zh.Endpoint | Zh.Group, attributes: number[]): Promise<KeyValue> {
+    assertEndpoint(entity);
+    return await entity.read(YUBA_LUMI_CLUSTER, attributes as never, {manufacturerCode});
+}
+
+async function readYubaAttributeValue(entity: Zh.Endpoint | Zh.Group, attribute: number): Promise<unknown> {
+    const response = await readYubaAttributes(entity, [attribute]);
+    const value = response[attribute];
+    if (value === undefined) throw new Error(`Aqara Bathroom Heater T1 did not return attribute 0x${attribute.toString(16)}`);
+    return value;
+}
+
+async function readYubaPackedState(entity: Zh.Endpoint | Zh.Group): Promise<void> {
+    await readYubaAttributes(entity, [YUBA_ATTR_PACKED_STATE]);
+}
+
+async function writeYubaAttribute(entity: Zh.Endpoint | Zh.Group, attribute: number, value: unknown, type: Zcl.DataType): Promise<void> {
+    assertEndpoint(entity);
+    await entity.write(YUBA_LUMI_CLUSTER, {[attribute]: {value, type}}, {manufacturerCode, disableDefaultResponse: true});
+}
+
+async function writeYubaPackedState(entity: Zh.Endpoint | Zh.Group, value: bigint): Promise<void> {
+    await writeYubaAttribute(entity, YUBA_ATTR_PACKED_STATE, value, Zcl.DataType.UINT64);
+}
+
+function getYubaFanControl(value: bigint): number {
+    return Number((value >> 16n) & 0xffn);
+}
+
+async function getYubaSwingRaw(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta): Promise<number> {
+    const packed = parseYubaPackedValue(await readYubaAttributeValue(entity, YUBA_ATTR_PACKED_STATE));
+    if (packed !== undefined) {
+        const swing = getYubaFanControl(packed) & 0x0f;
+        if (swing === 0x0c || swing === 0x0d) return swing;
+    }
+
+    if (meta.state?.swing_mode === "on") return 0x0c;
+    if (meta.state?.swing_mode === "off") return 0x0d;
+    throw new Error("Cannot set fan_mode until swing_mode is known");
+}
+
+async function getYubaFanMode(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta): Promise<keyof typeof YUBA_FAN_LOOKUP> {
+    const packed = parseYubaPackedValue(await readYubaAttributeValue(entity, YUBA_ATTR_PACKED_STATE));
+    if (packed !== undefined) {
+        const fanMode = getYubaLookupKey(YUBA_FAN_LOOKUP, getYubaFanControl(packed) >> 4);
+        if (fanMode !== undefined) return fanMode;
+    }
+
+    const stateFanMode = String(meta.state?.fan_mode ?? "");
+    if (stateFanMode in YUBA_FAN_LOOKUP) return stateFanMode as keyof typeof YUBA_FAN_LOOKUP;
+    throw new Error("Cannot set swing_mode until fan_mode is known");
+}
+
+async function safeYubaRead(endpoint: Zh.Endpoint, cluster: string, attributes: Array<string | number>, options?: KeyValue): Promise<void> {
+    try {
+        await endpoint.read(cluster, attributes as never, options);
+    } catch (error) {
+        const details = error instanceof Error ? error.message : String(error);
+        logger.debug(`Aqara Bathroom Heater T1 initialization read failed on ${cluster}: ${details}`, NS);
+    }
+}
+
+function createLumiBathroomHeaterT1(): ModernExtend {
+    const fromThermostat = {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => (msg.data.localTemp === undefined ? {} : {local_temperature: msg.data.localTemp / 100}),
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+    const fromYuba = {
+        cluster: YUBA_LUMI_CLUSTER,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            const data = msg.data as KeyValue;
+            const result: KeyValue = {};
+
+            if (data[YUBA_ATTR_CONSTANT_TEMPERATURE_MODE] !== undefined) {
+                result.constant_temperature_mode = Number(data[YUBA_ATTR_CONSTANT_TEMPERATURE_MODE]) === 1 ? "ON" : "OFF";
+            }
+            if (data[YUBA_ATTR_MUTE_PROMPT_TONE] !== undefined) {
+                result.mute_prompt_tone = Number(data[YUBA_ATTR_MUTE_PROMPT_TONE]) === 1 ? "ON" : "OFF";
+            }
+            if (data[YUBA_ATTR_MUTE_PROMPT_TIME] !== undefined) {
+                const schedule = Number(data[YUBA_ATTR_MUTE_PROMPT_TIME]) >>> 0;
+                const startMinutes = schedule & 0xffff;
+                const endMinutes = (schedule >>> 16) & 0xffff;
+                if (startMinutes < 1440 && endMinutes < 1440) {
+                    result.mute_prompt_start_time = formatYubaClockTime(startMinutes);
+                    result.mute_prompt_end_time = formatYubaClockTime(endMinutes);
+                }
+            }
+            if (data[YUBA_ATTR_NIGHT_LIGHT] !== undefined) {
+                result.night_light_mode = (Number(data[YUBA_ATTR_NIGHT_LIGHT]) & 1) === 0 ? "ON" : "OFF";
+            }
+
+            const packed = data[YUBA_ATTR_PACKED_STATE] ?? getYubaHeartbeatPackedState(data[0x00f7]);
+            return packed === undefined ? result : {...result, ...decodeYubaPackedState(packed)};
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>;
+
+    const targetTemperature = {
+        key: ["current_heating_setpoint"],
+        convertSet: async (entity, key, value) => {
+            assertNumber(value, key);
+            if (value < 16 || value > 45) throw new Error("current_heating_setpoint must be between 16 and 45");
+            const encoded = BigInt(Math.round(value * 100));
+            await writeYubaPackedState(entity, (encoded << 48n) | 0x0000ffffffffffffn);
+            return {state: {current_heating_setpoint: value}};
+        },
+        convertGet: readYubaPackedState,
+    } satisfies Tz.Converter;
+
+    const setOperatingMode = async (entity: Zh.Endpoint | Zh.Group, mode: string): Promise<void> => {
+        if (mode === "off") {
+            await writeYubaPackedState(entity, 0xffffffff0ffffffcn);
+            return;
+        }
+
+        if (!(mode in YUBA_MODE_LOOKUP)) throw new Error(`Unsupported operating_mode: ${mode}`);
+        const control = 0x10 | YUBA_MODE_LOOKUP[mode as keyof typeof YUBA_MODE_LOOKUP];
+        await writeYubaPackedState(entity, 0xffffffff00ffffffn | (BigInt(control) << 24n));
+    };
+
+    const operatingMode = {
+        key: ["operating_mode"],
+        convertSet: async (entity, key, value) => {
+            assertString(value, key);
+            await setOperatingMode(entity, value);
+            return {state: {operating_mode: value}};
+        },
+        convertGet: readYubaPackedState,
+    } satisfies Tz.Converter;
+
+    const systemMode = {
+        key: ["system_mode"],
+        convertSet: async (entity, key, value) => {
+            assertString(value, key);
+            const operatingMode =
+                value === "off" ? "off" : YUBA_SYSTEM_MODE_TO_OPERATING_MODE[value as keyof typeof YUBA_SYSTEM_MODE_TO_OPERATING_MODE];
+            if (operatingMode === undefined) throw new Error(`Unsupported system_mode: ${value}`);
+            await setOperatingMode(entity, operatingMode);
+            return {state: {system_mode: value}};
+        },
+        convertGet: readYubaPackedState,
+    } satisfies Tz.Converter;
+
+    const fanMode = {
+        key: ["fan_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value, key);
+            if (!(value in YUBA_FAN_LOOKUP)) throw new Error(`Unsupported fan_mode: ${value}`);
+            const fan = value as keyof typeof YUBA_FAN_LOOKUP;
+            const swing = await getYubaSwingRaw(entity, meta);
+            const fanControl = (YUBA_FAN_LOOKUP[fan] << 4) | swing;
+            const packed = 0xffffffffff000000n | (BigInt(fanControl) << 16n) | BigInt(YUBA_FAN_STATE_LOOKUP[fan]);
+            await writeYubaPackedState(entity, packed);
+            return {state: {fan_mode: value}};
+        },
+        convertGet: readYubaPackedState,
+    } satisfies Tz.Converter;
+
+    const swingMode = {
+        key: ["swing_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            assertString(value, key);
+            if (value !== "on" && value !== "off") throw new Error(`Unsupported swing_mode: ${value}`);
+            const fan = await getYubaFanMode(entity, meta);
+            const swing = value === "on" ? 0x0c : 0x0d;
+            const fanControl = (YUBA_FAN_LOOKUP[fan] << 4) | swing;
+            const packed = 0xffffffffff000000n | (BigInt(fanControl) << 16n) | BigInt(YUBA_FAN_STATE_LOOKUP[fan]);
+            await writeYubaPackedState(entity, packed);
+            return {state: {swing_mode: value}};
+        },
+        convertGet: readYubaPackedState,
+    } satisfies Tz.Converter;
+
+    const heaterPower = {
+        key: ["heater_power"],
+        convertGet: readYubaPackedState,
+    } satisfies Tz.Converter;
+
+    const nightLightMode = {
+        key: ["night_light_mode"],
+        convertSet: async (entity, key, value) => {
+            const enabled = parseYubaEnabled(value, key);
+            const current = Number(await readYubaAttributeValue(entity, YUBA_ATTR_NIGHT_LIGHT));
+            const next = enabled ? current & ~1 : current | 1;
+            await writeYubaAttribute(entity, YUBA_ATTR_NIGHT_LIGHT, next, Zcl.DataType.UINT32);
+            return {state: {night_light_mode: enabled ? "ON" : "OFF"}};
+        },
+        convertGet: async (entity) => {
+            await readYubaAttributes(entity, [YUBA_ATTR_NIGHT_LIGHT]);
+        },
+    } satisfies Tz.Converter;
+
+    const mutePrompt = {
+        key: ["mute_prompt_tone", "mute_prompt_start_time", "mute_prompt_end_time"],
+        convertSet: async (entity, key, value) => {
+            if (key === "mute_prompt_tone") {
+                const enabled = parseYubaEnabled(value, key);
+                await writeYubaAttribute(entity, YUBA_ATTR_MUTE_PROMPT_TONE, enabled ? 1 : 0, Zcl.DataType.UINT8);
+                return {state: {mute_prompt_tone: enabled ? "ON" : "OFF"}};
+            }
+
+            const current = Number(await readYubaAttributeValue(entity, YUBA_ATTR_MUTE_PROMPT_TIME)) >>> 0;
+            const minutes = parseYubaClockTime(value, key);
+            const schedule = key === "mute_prompt_start_time" ? (current & 0xffff0000) | minutes : (minutes << 16) | (current & 0xffff);
+            await writeYubaAttribute(entity, YUBA_ATTR_MUTE_PROMPT_TIME, schedule >>> 0, Zcl.DataType.UINT32);
+            return {state: {[key]: formatYubaClockTime(minutes)}};
+        },
+        convertGet: async (entity, key) => {
+            await readYubaAttributes(entity, [key === "mute_prompt_tone" ? YUBA_ATTR_MUTE_PROMPT_TONE : YUBA_ATTR_MUTE_PROMPT_TIME]);
+        },
+    } satisfies Tz.Converter;
+
+    const constantTemperatureMode = {
+        key: ["constant_temperature_mode"],
+        convertSet: async (entity, key, value) => {
+            const enabled = parseYubaEnabled(value, key);
+            await writeYubaAttribute(entity, YUBA_ATTR_CONSTANT_TEMPERATURE_MODE, enabled ? 1 : 0, Zcl.DataType.UINT8);
+            return {state: {constant_temperature_mode: enabled ? "ON" : "OFF"}};
+        },
+        convertGet: async (entity) => {
+            await readYubaAttributes(entity, [YUBA_ATTR_CONSTANT_TEMPERATURE_MODE]);
+        },
+    } satisfies Tz.Converter;
+
+    const currentTemperature = {
+        key: ["local_temperature"],
+        convertGet: async (entity) => {
+            assertEndpoint(entity);
+            await entity.read("hvacThermostat", ["localTemp"]);
+        },
+    } satisfies Tz.Converter;
+
+    return {
+        fromZigbee: [fromThermostat, fromYuba],
+        toZigbee: [
+            targetTemperature,
+            operatingMode,
+            systemMode,
+            fanMode,
+            swingMode,
+            heaterPower,
+            nightLightMode,
+            mutePrompt,
+            constantTemperatureMode,
+            currentTemperature,
+        ],
+        exposes: [
+            e
+                .climate()
+                .withLocalTemperature(ea.STATE_GET)
+                .withSetpoint("current_heating_setpoint", 16, 45, 1, ea.ALL)
+                .withSystemMode(["off", "heat", "dry", "fan_only"], ea.ALL)
+                .withRunningState(["idle", "heat", "fan_only"], ea.STATE)
+                .withFanMode(["low", "medium", "high"], ea.ALL)
+                .withSwingMode(["off", "on"], ea.ALL)
+                .withDescription("Aqara bathroom heater climate controls"),
+            e.binary("heater_power", ea.STATE_GET, true, false).withDescription("Bathroom heater power"),
+            e.enum("operating_mode", ea.ALL, ["off", ...Object.keys(YUBA_MODE_LOOKUP)]).withDescription("Bathroom heater operating mode"),
+            e.binary("night_light_mode", ea.ALL, "ON", "OFF").withDescription("Enable scheduled night-light mode").withCategory("config"),
+            e.binary("mute_prompt_tone", ea.ALL, "ON", "OFF").withDescription("Mute device operation prompt tones").withCategory("config"),
+            e.text("mute_prompt_start_time", ea.ALL).withDescription("Prompt-tone mute start time in HH:MM format").withCategory("config"),
+            e.text("mute_prompt_end_time", ea.ALL).withDescription("Prompt-tone mute end time in HH:MM format").withCategory("config"),
+            e
+                .binary("constant_temperature_mode", ea.ALL, "ON", "OFF")
+                .withDescription("Automatically regulate warm-air speed at the target temperature")
+                .withCategory("config"),
+        ],
+        configure: [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                await safeYubaRead(
+                    endpoint,
+                    YUBA_LUMI_CLUSTER,
+                    [
+                        YUBA_ATTR_PACKED_STATE,
+                        YUBA_ATTR_MUTE_PROMPT_TONE,
+                        YUBA_ATTR_MUTE_PROMPT_TIME,
+                        YUBA_ATTR_CONSTANT_TEMPERATURE_MODE,
+                        YUBA_ATTR_NIGHT_LIGHT,
+                    ],
+                    {manufacturerCode},
+                );
+                await safeYubaRead(endpoint, "hvacThermostat", ["localTemp"]);
+            },
+        ],
+        isModernExtend: true,
+    };
+}
 
 const W600_NS = "zhc:aqara_w600";
 const W600_LUMI_CLUSTER = "manuSpecificLumi";

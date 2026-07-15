@@ -68,6 +68,7 @@ const {
     w600Thermostat,
     w600ValvePosition,
     w600WeeklySchedule,
+    lumiBathroomHeaterT1,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
@@ -159,6 +160,19 @@ function fp310DetectionRange(): ModernExtend {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["lumi.bhf_light.acn001"],
+        model: "ZNYB01LM",
+        vendor: "Aqara",
+        description: "Smart bathroom heater T1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.identify(),
+            m.light({effect: false, powerOnBehavior: false, colorTemp: {range: [153, 370]}}),
+            m.ignoreClusterReport({cluster: "hvacFanCtrl"}),
+            lumiBathroomHeaterT1(),
+        ],
+    },
     {
         zigbeeModel: ["lumi.flood.acn001"],
         model: "SJCGQ13LM",
