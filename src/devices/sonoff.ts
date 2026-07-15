@@ -23,7 +23,19 @@ import {
     zclArrayValueToBytes,
 } from "../lib/sonoff";
 import * as tuya from "../lib/tuya";
-import type {Configure, DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
+import type {
+    Configure,
+    DefinitionExposesFunction,
+    DefinitionWithExtend,
+    Expose,
+    Fz,
+    KeyValue,
+    KeyValueAny,
+    ModernExtend,
+    OnEvent,
+    Tz,
+    Zh,
+} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const {ewelinkAction, ewelinkBattery} = ewelinkModernExtend;
@@ -259,6 +271,7 @@ interface SonoffSwvzn {
         seasonalWateringAdjustment: number[];
         irrigationScheduleStatus: number[];
         valveAlarmSettings: number[];
+        unitOfWaterFlow: number;
     };
     commands: {
         readRecord: {data: number[]};
@@ -271,6 +284,81 @@ interface SonoffSwvzn {
         irrigationPlanRemovedReport?: {data: number[]};
     };
 }
+
+type SWVZNEWaterFlowUnit = "liter" | "us_gallon" | "imperial_gallon";
+
+// Legacy 0x501D/0x501F/cmd 0x06/0x09 amount unit mapping: 0 = US gallon, 1 = liter
+const SWVZNELegacyIrrigationAmountUnitByCode: Record<number, SWVZNEWaterFlowUnit> = {
+    0: "us_gallon",
+    1: "liter",
+};
+const SWVZNELegacyIrrigationAmountUnitCodeByName: Record<Exclude<SWVZNEWaterFlowUnit, "imperial_gallon">, number> = {
+    us_gallon: 0,
+    liter: 1,
+};
+// Unified 0x5021 UnitOfWaterFlow mapping: 0 = liter, 1 = US gallon, 2 = imperial gallon
+const SWVZNEUnifiedWaterFlowUnitByCode: Record<number, SWVZNEWaterFlowUnit> = {
+    0: "liter",
+    1: "us_gallon",
+    2: "imperial_gallon",
+};
+const SWVZNEUnifiedWaterFlowUnitCodeByName: Record<SWVZNEWaterFlowUnit, number> = {
+    liter: 0,
+    us_gallon: 1,
+    imperial_gallon: 2,
+};
+// Unified amount unit mapping used by 0x501D/0x501F/cmd 0x06/0x09: 0 = US gallon, 1 = liter, 2 = imperial gallon
+const SWVZNEUnifiedIrrigationAmountUnitByCode: Record<number, SWVZNEWaterFlowUnit> = {
+    0: "us_gallon",
+    1: "liter",
+    2: "imperial_gallon",
+};
+const SWVZNEUnifiedIrrigationAmountUnitCodeByName: Record<SWVZNEWaterFlowUnit, number> = {
+    us_gallon: 0,
+    liter: 1,
+    imperial_gallon: 2,
+};
+const SWVZNELitersPerWaterFlowUnit: Record<SWVZNEWaterFlowUnit, number> = {
+    liter: 1,
+    us_gallon: 3.785411784,
+    imperial_gallon: 4.54609,
+};
+
+// Single-channel SWV-ZF* with flow meter supports unified imperial gallon from 1.1.0, while dual-channel SWV-ZF2 supports it from 1.0.9
+const SWVZNEFirmwareSupportsUnifiedImperialGallon = (device?: Zh.Device): boolean => {
+    if (!device?.softwareBuildID) return false;
+    const currentParts = device.softwareBuildID.split(".").map((part) => Number(part));
+    const targetParts = (device.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0").split(".").map((part) => Number(part));
+    const length = Math.max(currentParts.length, targetParts.length);
+    for (let i = 0; i < length; i++) {
+        const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
+        const targetPart = Number.isFinite(targetParts[i]) ? targetParts[i] : 0;
+        if (currentPart > targetPart) return true;
+        if (currentPart < targetPart) return false;
+    }
+    return true;
+};
+
+const SWVZNENormalizeWaterFlowUnit = (value: unknown): SWVZNEWaterFlowUnit | undefined => {
+    if (value === "gallon" || value === "US gallon" || value === "us_gallon") return "us_gallon";
+    if (value === "liter" || value === "imperial_gallon") return value;
+    return undefined;
+};
+
+const SWVZNEIrrigationAmountUnitFromDeviceCode = (code: number, device?: Zh.Device): SWVZNEWaterFlowUnit | undefined => {
+    if (SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) {
+        return SWVZNEUnifiedIrrigationAmountUnitByCode[code];
+    }
+    return SWVZNELegacyIrrigationAmountUnitByCode[code];
+};
+
+const SWVZNEIrrigationAmountUnitToDeviceCode = (unit: unknown, device?: Zh.Device): number | undefined => {
+    const normalizedUnit = SWVZNENormalizeWaterFlowUnit(unit);
+    if (!normalizedUnit) return undefined;
+    if (SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) return SWVZNEUnifiedIrrigationAmountUnitCodeByName[normalizedUnit];
+    if (normalizedUnit === "imperial_gallon") return undefined;
+    return SWVZNELegacyIrrigationAmountUnitCodeByName[normalizedUnit];
+};
 
 interface SonoffSnzb02ul {
     attributes: {
@@ -3184,21 +3272,28 @@ const sonoffExtend = {
         };
     },
     manualDefaultSettings: (hasFlowMeter: boolean): ModernExtend => {
-        const exposes = e
-            .composite("manual_default_settings", "manual_default_settings", ea.ALL)
-            .withDescription("Single irrigation settings")
-            .withFeature(
-                e.numeric("irrigation_duration", ea.ALL).withValueMin(1).withValueMax(719).withUnit("min").withDescription("Irrigation duration"),
-            );
-        if (hasFlowMeter) {
-            exposes
-                .withFeature(e.enum("irrigation_mode", ea.ALL, ["duration", "capacity"]).withDescription("Irrigation mode: duration or capacity"))
-                .withFeature(e.enum("irrigation_amount_unit", ea.ALL, ["US gallon", "liter"]).withDescription("Capacity unit"))
-                .withFeature(e.numeric("irrigation_amount", ea.ALL).withValueMin(0).withValueMax(10000).withDescription("Irrigation volume"))
+        const exposes: DefinitionExposesFunction = (device) => {
+            const expose = e
+                .composite("manual_default_settings", "manual_default_settings", ea.ALL)
+                .withDescription("Single irrigation settings")
                 .withFeature(
-                    e.numeric("fail_safe", ea.ALL).withValueMin(0).withValueMax(719).withUnit("min").withDescription("Safety protection timeout"),
+                    e.numeric("irrigation_duration", ea.ALL).withValueMin(1).withValueMax(719).withUnit("min").withDescription("Irrigation duration"),
                 );
-        }
+            if (hasFlowMeter) {
+                expose.withFeature(
+                    e.enum("irrigation_mode", ea.ALL, ["duration", "capacity"]).withDescription("Irrigation mode: duration or capacity"),
+                );
+                if (!(utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device))) {
+                    expose.withFeature(e.enum("irrigation_amount_unit", ea.ALL, ["us_gallon", "liter"]).withDescription("Capacity unit"));
+                }
+                expose
+                    .withFeature(e.numeric("irrigation_amount", ea.ALL).withValueMin(0).withValueMax(10000).withDescription("Irrigation volume"))
+                    .withFeature(
+                        e.numeric("fail_safe", ea.ALL).withValueMin(0).withValueMax(719).withUnit("min").withDescription("Safety protection timeout"),
+                    );
+            }
+            return [expose];
+        };
 
         const modeMap: {[key: string]: number} = {
             duration: 0,
@@ -3234,11 +3329,25 @@ const sonoffExtend = {
 
                     if (hasFlowMeter) {
                         manualDefaultSettings.irrigation_mode = modeMapReverse[mode] ?? "duration";
-                        manualDefaultSettings.irrigation_amount_unit = capacityUnit === 0 ? "US gallon" : "liter";
-                        manualDefaultSettings.irrigation_amount = irrigationVolume;
+                        const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(capacityUnit, meta.device);
+                        if (irrigationAmountUnit) {
+                            manualDefaultSettings.irrigation_amount_unit = irrigationAmountUnit;
+                        }
+                        const waterFlowUnit = SWVZNENormalizeWaterFlowUnit(meta.state.water_flow_unit);
+                        const irrigationAmountLiters = irrigationAmountUnit && irrigationVolume * SWVZNELitersPerWaterFlowUnit[irrigationAmountUnit];
+                        manualDefaultSettings.irrigation_amount =
+                            irrigationAmountLiters !== undefined && waterFlowUnit
+                                ? Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[waterFlowUnit])
+                                : irrigationVolume;
+                        if (SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device) && irrigationAmountLiters !== undefined) {
+                            manualDefaultSettings.irrigation_amount_real_liter = irrigationAmountLiters;
+                        }
                         manualDefaultSettings.fail_safe = safetyTimeoutLimit;
                     }
 
+                    if (SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
+                        delete manualDefaultSettings.irrigation_amount_unit;
+                    }
                     return {
                         manual_default_settings: manualDefaultSettings,
                     };
@@ -3256,9 +3365,18 @@ const sonoffExtend = {
                         logger.error("manual_default_settings invalid irrigation_mode, expected one of: duration, capacity.", NS);
                         return;
                     }
-                    if (hasFlowMeter && value.irrigation_amount_unit !== "US gallon" && value.irrigation_amount_unit !== "liter") {
-                        logger.error("manual_default_settings invalid irrigation_amount_unit, expected one of: US gallon, liter.", NS);
-                        return;
+                    let capacityUnit = SWVZNELegacyIrrigationAmountUnitCodeByName.liter;
+                    if (hasFlowMeter) {
+                        let unit = value.irrigation_amount_unit;
+                        if (unit === undefined && SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
+                            unit = meta.state.water_flow_unit;
+                        }
+                        const parsedCapacityUnit = SWVZNEIrrigationAmountUnitToDeviceCode(unit ?? "liter", meta.device);
+                        if (parsedCapacityUnit === undefined) {
+                            logger.error("manual_default_settings invalid irrigation_amount_unit, expected one of: us_gallon, liter.", NS);
+                            return;
+                        }
+                        capacityUnit = parsedCapacityUnit;
                     }
 
                     const parseRequiredInt = (fieldName: string): number | undefined => {
@@ -3279,7 +3397,6 @@ const sonoffExtend = {
                     }
 
                     const mode = hasFlowMeter ? modeMap[value.irrigation_mode] : modeMap.duration;
-                    const capacityUnit = hasFlowMeter ? (value.irrigation_amount_unit === "US gallon" ? 0 : 1) : 1;
 
                     const array = new Uint8Array(12);
                     array[0] = mode;
@@ -3309,11 +3426,15 @@ const sonoffExtend = {
                         utils.getOptions(meta.mapped, entity),
                     );
 
-                    return {
-                        state: {
-                            [key]: value,
-                        },
-                    };
+                    const state = {...value};
+                    if (SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
+                        const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(capacityUnit, meta.device);
+                        if (hasFlowMeter && irrigationAmountUnit) {
+                            state.irrigation_amount_real_liter = irrigationVolume * SWVZNELitersPerWaterFlowUnit[irrigationAmountUnit];
+                        }
+                        delete state.irrigation_amount_unit;
+                    }
+                    return {state: {manual_default_settings: state}};
                 },
                 convertGet: async (entity, key, meta) => {
                     await entity.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["manualDefaultSettings"]);
@@ -3414,31 +3535,37 @@ const sonoffExtend = {
         };
     },
     irrigationScheduleStatus: (hasFlowMeter: boolean, endpointNames?: string[]): ModernExtend => {
-        const baseExposes = e
-            .composite("irrigation_schedule_status", "irrigation_schedule_status", ea.STATE_GET)
-            .withDescription("Irrigation schedule execution status")
-            .withFeature(e.enum("schedule_status", ea.STATE, ["start", "end", "running", "standby"]).withDescription("Schedule status"))
-            .withFeature(e.numeric("schedule_index", ea.STATE).withDescription("Schedule index"))
-            .withFeature(e.enum("schedule_type", ea.STATE, ["automatic", "manual"]).withDescription("Schedule type"))
-            .withFeature(
-                e
-                    .enum(
-                        "irrigation_mode",
-                        ea.STATE,
-                        hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
-                    )
-                    .withDescription("Irrigation mode"),
-            )
-            .withFeature(e.text("start_time", ea.STATE).withDescription("Schedule start time"))
-            .withFeature(e.text("expected_end_time", ea.STATE).withDescription("Expected end time"))
-            .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time"));
-        if (hasFlowMeter) {
-            baseExposes
-                .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]).withDescription("Irrigation amount unit"))
-                .withFeature(e.numeric("expected_irrigation_amount", ea.STATE).withDescription("Expected irrigation amount"))
-                .withFeature(e.numeric("actual_irrigation_amount", ea.STATE).withDescription("Actual irrigation amount"));
-        }
-        const exposes = exposeCompositeEndpoints(baseExposes, endpointNames);
+        const expose: DefinitionExposesFunction = (device) => {
+            const baseExpose = e
+                .composite("irrigation_schedule_status", "irrigation_schedule_status", ea.STATE_GET)
+                .withDescription("Irrigation schedule execution status")
+                .withFeature(e.enum("schedule_status", ea.STATE, ["start", "end", "running", "standby"]).withDescription("Schedule status"))
+                .withFeature(e.numeric("schedule_index", ea.STATE).withDescription("Schedule index"))
+                .withFeature(e.enum("schedule_type", ea.STATE, ["automatic", "manual"]).withDescription("Schedule type"))
+                .withFeature(
+                    e
+                        .enum(
+                            "irrigation_mode",
+                            ea.STATE,
+                            hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                        )
+                        .withDescription("Irrigation mode"),
+                )
+                .withFeature(e.text("start_time", ea.STATE).withDescription("Schedule start time"))
+                .withFeature(e.text("expected_end_time", ea.STATE).withDescription("Expected end time"))
+                .withFeature(e.text("actual_end_time", ea.STATE).withDescription("Actual end time"));
+            if (hasFlowMeter) {
+                const unitValues =
+                    utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device)
+                        ? ["us_gallon", "liter", "imperial_gallon"]
+                        : ["us_gallon", "liter"];
+                baseExpose.withFeature(e.enum("irrigation_amount_unit", ea.STATE, unitValues).withDescription("Irrigation amount unit"));
+                baseExpose
+                    .withFeature(e.numeric("expected_irrigation_amount", ea.STATE).withDescription("Expected irrigation amount"))
+                    .withFeature(e.numeric("actual_irrigation_amount", ea.STATE).withDescription("Actual irrigation amount"));
+            }
+            return exposeCompositeEndpoints(baseExpose, endpointNames);
+        };
 
         const scheduleStatusMap = {
             start: 0x00,
@@ -3503,6 +3630,7 @@ const sonoffExtend = {
                         const expectedEndTime = (array[8] << 24) | (array[9] << 16) | (array[10] << 8) | array[11];
                         const volumeUnit = array[12];
                         const expectedVolume = (array[13] << 8) | array[14];
+                        const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(volumeUnit, meta.device);
 
                         return {
                             [property]: {
@@ -3519,7 +3647,7 @@ const sonoffExtend = {
                                 actual_end_time: null,
                                 ...(hasFlowMeter
                                     ? {
-                                          irrigation_amount_unit: volumeUnit === 0 ? "US gallon" : "liter",
+                                          ...(irrigationAmountUnit ? {irrigation_amount_unit: irrigationAmountUnit} : {}),
                                           expected_irrigation_amount: expectedVolume,
                                           actual_irrigation_amount: null,
                                       }
@@ -3542,6 +3670,7 @@ const sonoffExtend = {
                         const volumeUnit = array[16];
                         const expectedVolume = (array[17] << 8) | array[18];
                         const actualVolume = (array[19] << 8) | array[20];
+                        const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(volumeUnit, meta.device);
 
                         return {
                             [property]: {
@@ -3558,7 +3687,7 @@ const sonoffExtend = {
                                 actual_end_time: toIsoString(actualEndTime),
                                 ...(hasFlowMeter
                                     ? {
-                                          irrigation_amount_unit: volumeUnit === 0 ? "US gallon" : "liter",
+                                          ...(irrigationAmountUnit ? {irrigation_amount_unit: irrigationAmountUnit} : {}),
                                           expected_irrigation_amount: expectedVolume,
                                           actual_irrigation_amount: actualVolume,
                                       }
@@ -3583,7 +3712,7 @@ const sonoffExtend = {
         ];
 
         return {
-            exposes,
+            exposes: [expose],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -3692,6 +3821,115 @@ const sonoffExtend = {
 
         return {
             exposes: [exposes],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
+    waterFlowUnit: (): ModernExtend => {
+        const expose: DefinitionExposesFunction = (device) =>
+            utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device)
+                ? [
+                      e
+                          .enum("water_flow_unit", ea.ALL, ["liter", "us_gallon", "imperial_gallon"])
+                          .withDescription("Unified water flow unit")
+                          .withCategory("config"),
+                  ]
+                : [];
+
+        const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "customClusterEwelink",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.unitOfWaterFlow === undefined) return;
+                    const value = msg.data.unitOfWaterFlow;
+                    utils.assertNumber(value);
+                    const waterFlowUnit = SWVZNEUnifiedWaterFlowUnitByCode[value];
+                    if (!waterFlowUnit) return;
+                    const settings = meta.state.manual_default_settings;
+                    let manualDefaultSettings: KeyValue | undefined;
+                    if (utils.isObject(settings) && typeof settings.irrigation_amount === "number") {
+                        const sourceUnit = SWVZNENormalizeWaterFlowUnit(settings.irrigation_amount_unit ?? meta.state.water_flow_unit);
+                        if (sourceUnit && sourceUnit !== waterFlowUnit) {
+                            const irrigationAmountLiters =
+                                typeof settings.irrigation_amount_real_liter === "number"
+                                    ? settings.irrigation_amount_real_liter
+                                    : settings.irrigation_amount * SWVZNELitersPerWaterFlowUnit[sourceUnit];
+                            manualDefaultSettings = {
+                                ...settings,
+                                irrigation_amount: Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[waterFlowUnit]),
+                                irrigation_amount_real_liter: irrigationAmountLiters,
+                            };
+                            delete manualDefaultSettings.irrigation_amount_unit;
+                        }
+                    }
+                    return {
+                        water_flow_unit: waterFlowUnit,
+                        ...(manualDefaultSettings ? {manual_default_settings: manualDefaultSettings} : {}),
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["water_flow_unit"],
+                convertSet: async (entity, key, value, meta) => {
+                    const device = meta.device;
+                    if (!device) {
+                        logger.error("water_flow_unit cannot be set: meta.device is undefined", NS);
+                        return;
+                    }
+                    if (!SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) {
+                        const minVersion = device.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0";
+                        logger.warning(`water_flow_unit is only supported by SWV firmware >= ${minVersion}, skip writing unitOfWaterFlow.`, NS);
+                        return;
+                    }
+                    const normalizedUnit = SWVZNENormalizeWaterFlowUnit(value);
+                    if (!normalizedUnit) {
+                        logger.error("water_flow_unit invalid value, expected one of: liter, us_gallon, imperial_gallon.", NS);
+                        return;
+                    }
+                    const waterFlowUnitCode = SWVZNEUnifiedWaterFlowUnitCodeByName[normalizedUnit];
+                    await entity.write<"customClusterEwelink", SonoffSwvzn>(
+                        "customClusterEwelink",
+                        {unitOfWaterFlow: waterFlowUnitCode},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    const settings = meta.state.manual_default_settings;
+                    let manualDefaultSettings: KeyValue | undefined;
+                    if (utils.isObject(settings) && typeof settings.irrigation_amount === "number") {
+                        const sourceUnit = SWVZNENormalizeWaterFlowUnit(settings.irrigation_amount_unit ?? meta.state.water_flow_unit);
+                        if (sourceUnit && sourceUnit !== normalizedUnit) {
+                            const irrigationAmountLiters =
+                                typeof settings.irrigation_amount_real_liter === "number"
+                                    ? settings.irrigation_amount_real_liter
+                                    : settings.irrigation_amount * SWVZNELitersPerWaterFlowUnit[sourceUnit];
+                            manualDefaultSettings = {
+                                ...settings,
+                                irrigation_amount: Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[normalizedUnit]),
+                                irrigation_amount_real_liter: irrigationAmountLiters,
+                            };
+                            delete manualDefaultSettings.irrigation_amount_unit;
+                        }
+                    }
+                    return {
+                        state: {
+                            water_flow_unit: normalizedUnit,
+                            ...(manualDefaultSettings ? {manual_default_settings: manualDefaultSettings} : {}),
+                        },
+                    };
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (!SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) return;
+                    await entity.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["unitOfWaterFlow"]);
+                },
+            },
+        ];
+
+        return {
+            exposes: [expose],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -4196,14 +4434,6 @@ const sonoffExtend = {
             capacity: 1,
             duration_with_interval: 2,
         };
-        const irrigationAmountUnitMapping: Record<number, "US gallon" | "liter"> = {
-            0: "US gallon",
-            1: "liter",
-        };
-        const irrigationAmountUnitMappingReverse = {
-            "US gallon": 0,
-            liter: 1,
-        };
         const loopTypeWeekDayBitMapping = {
             sunday: 0b0000001,
             monday: 0b0000010,
@@ -4228,96 +4458,101 @@ const sonoffExtend = {
             saturday: (mask & loopTypeWeekDayBitMapping.saturday) > 0,
         });
 
-        const irrigationPlanSettings = e
-            .composite("irrigation_plan_settings", "irrigation_plan_settings", ea.STATE_SET)
-            .withDescription("Set irrigation plan")
-            .withFeature(e.numeric("plan_index", ea.SET).withValueMin(0).withValueMax(5).withDescription("Plan index"))
-            .withFeature(e.binary("enable_state", ea.SET, true, false))
-            .withFeature(e.enum("loop_type_mode", ea.SET, ["odd_days", "even_days", "day_interval", "weekdays"]))
-            .withFeature(
-                e
-                    .numeric("loop_type_interval_days", ea.SET)
-                    .withValueMin(1)
-                    .withValueMax(30)
-                    .withDescription("Only effective when loop_type_mode is day_interval"),
-            )
-            .withFeature(
-                e
-                    .composite("loop_type_week_days", "loop_type_week_days", ea.SET)
-                    .withDescription("Only effective when loop_type_mode is weekdays")
-                    .withFeature(e.binary("sunday", ea.SET, true, false))
-                    .withFeature(e.binary("monday", ea.SET, true, false))
-                    .withFeature(e.binary("tuesday", ea.SET, true, false))
-                    .withFeature(e.binary("wednesday", ea.SET, true, false))
-                    .withFeature(e.binary("thursday", ea.SET, true, false))
-                    .withFeature(e.binary("friday", ea.SET, true, false))
-                    .withFeature(e.binary("saturday", ea.SET, true, false)),
-            )
-            .withFeature(e.text("enable_date", ea.SET).withDescription("Enable date in local YYYY-MM-DD format."))
-            .withFeature(e.text("start_time", ea.SET).withDescription("Start time in local HH:mm format (24-hour, zero-padded)."))
-            .withFeature(
-                e.enum(
-                    "irrigation_mode",
-                    ea.SET,
-                    hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
-                ),
-            )
-            .withFeature(e.numeric("irrigation_total_duration", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"))
-            .withFeature(e.numeric("irrigation_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"))
-            .withFeature(e.numeric("interval_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"));
-        if (hasFlowMeter) {
-            irrigationPlanSettings
-                .withFeature(e.enum("irrigation_amount_unit", ea.SET, ["US gallon", "liter"]))
-                .withFeature(e.numeric("irrigation_amount", ea.SET).withValueMin(1).withValueMax(10000))
-                .withFeature(e.numeric("fail_safe", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"));
-        }
-        irrigationPlanSettings.withFeature(
-            e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
-        );
+        const expose: DefinitionExposesFunction = (device) => {
+            const irrigationPlanSettings = e
+                .composite("irrigation_plan_settings", "irrigation_plan_settings", ea.STATE_SET)
+                .withDescription("Set irrigation plan")
+                .withFeature(e.numeric("plan_index", ea.SET).withValueMin(0).withValueMax(5).withDescription("Plan index"))
+                .withFeature(e.binary("enable_state", ea.SET, true, false))
+                .withFeature(e.enum("loop_type_mode", ea.SET, ["odd_days", "even_days", "day_interval", "weekdays"]))
+                .withFeature(
+                    e
+                        .numeric("loop_type_interval_days", ea.SET)
+                        .withValueMin(1)
+                        .withValueMax(30)
+                        .withDescription("Only effective when loop_type_mode is day_interval"),
+                )
+                .withFeature(
+                    e
+                        .composite("loop_type_week_days", "loop_type_week_days", ea.SET)
+                        .withDescription("Only effective when loop_type_mode is weekdays")
+                        .withFeature(e.binary("sunday", ea.SET, true, false))
+                        .withFeature(e.binary("monday", ea.SET, true, false))
+                        .withFeature(e.binary("tuesday", ea.SET, true, false))
+                        .withFeature(e.binary("wednesday", ea.SET, true, false))
+                        .withFeature(e.binary("thursday", ea.SET, true, false))
+                        .withFeature(e.binary("friday", ea.SET, true, false))
+                        .withFeature(e.binary("saturday", ea.SET, true, false)),
+                )
+                .withFeature(e.text("enable_date", ea.SET).withDescription("Enable date in local YYYY-MM-DD format."))
+                .withFeature(e.text("start_time", ea.SET).withDescription("Start time in local HH:mm format (24-hour, zero-padded)."))
+                .withFeature(
+                    e.enum(
+                        "irrigation_mode",
+                        ea.SET,
+                        hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                    ),
+                )
+                .withFeature(e.numeric("irrigation_total_duration", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"))
+                .withFeature(e.numeric("irrigation_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"))
+                .withFeature(e.numeric("interval_duration", ea.SET).withValueMin(1).withValueMax(60).withUnit("min"));
+            if (hasFlowMeter) {
+                if (!(utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device))) {
+                    irrigationPlanSettings.withFeature(e.enum("irrigation_amount_unit", ea.SET, ["us_gallon", "liter"]));
+                }
+                irrigationPlanSettings
+                    .withFeature(e.numeric("irrigation_amount", ea.SET).withValueMin(1).withValueMax(10000))
+                    .withFeature(e.numeric("fail_safe", ea.SET).withValueMin(0).withValueMax(719).withUnit("min"));
+            }
+            irrigationPlanSettings.withFeature(
+                e.text("create_datetime", ea.SET).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+            );
 
-        const irrigationPlanReport = e
-            .composite("irrigation_plan_report", "irrigation_plan_report", ea.STATE)
-            .withDescription("Irrigation plan report")
-            .withFeature(e.numeric("plan_index", ea.STATE))
-            .withFeature(e.binary("enable_state", ea.STATE, true, false))
-            .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
-            .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
-            .withFeature(
-                e
-                    .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
-                    .withDescription("Effective when loop_type_mode is weekdays")
-                    .withFeature(e.binary("sunday", ea.STATE, true, false))
-                    .withFeature(e.binary("monday", ea.STATE, true, false))
-                    .withFeature(e.binary("tuesday", ea.STATE, true, false))
-                    .withFeature(e.binary("wednesday", ea.STATE, true, false))
-                    .withFeature(e.binary("thursday", ea.STATE, true, false))
-                    .withFeature(e.binary("friday", ea.STATE, true, false))
-                    .withFeature(e.binary("saturday", ea.STATE, true, false)),
-            )
-            .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
-            .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
-            .withFeature(
-                e.enum(
-                    "irrigation_mode",
-                    ea.STATE,
-                    hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
-                ),
-            )
-            .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
-            .withFeature(e.numeric("irrigation_duration", ea.STATE))
-            .withFeature(e.numeric("interval_duration", ea.STATE));
-        if (hasFlowMeter) {
-            irrigationPlanReport
-                .withFeature(e.enum("irrigation_amount_unit", ea.STATE, ["US gallon", "liter"]))
-                .withFeature(e.numeric("irrigation_amount", ea.STATE))
-                .withFeature(e.numeric("fail_safe", ea.STATE));
-        }
-        irrigationPlanReport.withFeature(
-            e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
-        );
+            const irrigationPlanReport = e
+                .composite("irrigation_plan_report", "irrigation_plan_report", ea.STATE)
+                .withDescription("Irrigation plan report")
+                .withFeature(e.numeric("plan_index", ea.STATE))
+                .withFeature(e.binary("enable_state", ea.STATE, true, false))
+                .withFeature(e.enum("loop_type_mode", ea.STATE, ["odd_days", "even_days", "day_interval", "weekdays"]))
+                .withFeature(e.numeric("loop_type_interval_days", ea.STATE).withDescription("Effective when loop_type_mode is day_interval"))
+                .withFeature(
+                    e
+                        .composite("loop_type_week_days", "loop_type_week_days", ea.STATE)
+                        .withDescription("Effective when loop_type_mode is weekdays")
+                        .withFeature(e.binary("sunday", ea.STATE, true, false))
+                        .withFeature(e.binary("monday", ea.STATE, true, false))
+                        .withFeature(e.binary("tuesday", ea.STATE, true, false))
+                        .withFeature(e.binary("wednesday", ea.STATE, true, false))
+                        .withFeature(e.binary("thursday", ea.STATE, true, false))
+                        .withFeature(e.binary("friday", ea.STATE, true, false))
+                        .withFeature(e.binary("saturday", ea.STATE, true, false)),
+                )
+                .withFeature(e.text("enable_date", ea.STATE).withDescription("Enable date in local YYYY-MM-DD format (local day start)"))
+                .withFeature(e.text("start_time", ea.STATE).withDescription("Start time in local HH:mm format (24-hour)"))
+                .withFeature(
+                    e.enum(
+                        "irrigation_mode",
+                        ea.STATE,
+                        hasFlowMeter ? ["duration", "capacity", "duration_with_interval"] : ["duration", "duration_with_interval"],
+                    ),
+                )
+                .withFeature(e.numeric("irrigation_total_duration", ea.STATE))
+                .withFeature(e.numeric("irrigation_duration", ea.STATE))
+                .withFeature(e.numeric("interval_duration", ea.STATE));
+            if (hasFlowMeter) {
+                const unitValues =
+                    utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device)
+                        ? ["us_gallon", "liter", "imperial_gallon"]
+                        : ["us_gallon", "liter"];
+                irrigationPlanReport.withFeature(e.enum("irrigation_amount_unit", ea.STATE, unitValues));
+                irrigationPlanReport.withFeature(e.numeric("irrigation_amount", ea.STATE)).withFeature(e.numeric("fail_safe", ea.STATE));
+            }
+            irrigationPlanReport.withFeature(
+                e.text("create_datetime", ea.STATE).withDescription("Create datetime in ISO format with timezone (e.g. YYYY-MM-DDTHH:mm:ss+08:00)"),
+            );
 
-        const baseExposes = [irrigationPlanSettings, irrigationPlanReport];
-        const allExposes = baseExposes.flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+            return [irrigationPlanSettings, irrigationPlanReport].flatMap((expose) => exposeCompositeEndpoints(expose, endpointNames));
+        };
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["raw"]>[] = [
             {
@@ -4400,7 +4635,7 @@ const sonoffExtend = {
                         offset += 2;
 
                         // Irrigation amount unit
-                        const irrigationAmountUnit = payload.readUInt8(offset);
+                        const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(payload.readUInt8(offset), meta.device);
                         offset += 1;
 
                         // Irrigation amount
@@ -4415,36 +4650,36 @@ const sonoffExtend = {
                         const createDatetimeDevice = payload.readUInt32BE(offset);
                         const createDatetimeISO = formatUtcSecondsToIsoWithOffset(createDatetimeDevice, offsetSeconds);
 
-                        return {
-                            [property]: {
-                                plan_index: planIndex,
-                                enable_state: enableState === 1,
-                                loop_type_mode: loopTypeModeMapping[loopTypeMode],
-                                loop_type_interval_days: loopTypeMode === loopTypeModeMappingReverse.day_interval ? loopTypeValue : 0,
-                                loop_type_week_days:
-                                    loopTypeMode === loopTypeModeMappingReverse.weekdays
-                                        ? decodeLoopTypeWeekDays(loopTypeValue)
-                                        : decodeLoopTypeWeekDays(0),
-                                enable_date: enableDate,
-                                start_time: startTime,
-                                irrigation_mode: hasFlowMeter
-                                    ? (irrigationModeMapping[irrigationMode] ?? "duration")
-                                    : irrigationModeMapping[irrigationMode] === "duration_with_interval"
-                                      ? "duration_with_interval"
-                                      : "duration",
-                                irrigation_total_duration: irrigationTotalDuration,
-                                irrigation_duration: irrigationDuration,
-                                interval_duration: intervalDuration,
-                                ...(hasFlowMeter
-                                    ? {
-                                          irrigation_amount_unit: irrigationAmountUnitMapping[irrigationAmountUnit],
-                                          irrigation_amount: irrigationAmount,
-                                          fail_safe: failSafe,
-                                      }
-                                    : {}),
-                                create_datetime: createDatetimeISO,
-                            },
+                        const plan: KeyValue = {
+                            plan_index: planIndex,
+                            enable_state: enableState === 1,
+                            loop_type_mode: loopTypeModeMapping[loopTypeMode],
+                            loop_type_interval_days: loopTypeMode === loopTypeModeMappingReverse.day_interval ? loopTypeValue : 0,
+                            loop_type_week_days:
+                                loopTypeMode === loopTypeModeMappingReverse.weekdays
+                                    ? decodeLoopTypeWeekDays(loopTypeValue)
+                                    : decodeLoopTypeWeekDays(0),
+                            enable_date: enableDate,
+                            start_time: startTime,
+                            irrigation_mode: hasFlowMeter
+                                ? (irrigationModeMapping[irrigationMode] ?? "duration")
+                                : irrigationModeMapping[irrigationMode] === "duration_with_interval"
+                                  ? "duration_with_interval"
+                                  : "duration",
+                            irrigation_total_duration: irrigationTotalDuration,
+                            irrigation_duration: irrigationDuration,
+                            interval_duration: intervalDuration,
+                            ...(hasFlowMeter
+                                ? {
+                                      ...(irrigationAmountUnit ? {irrigation_amount_unit: irrigationAmountUnit} : {}),
+                                      irrigation_amount: irrigationAmount,
+                                      fail_safe: failSafe,
+                                  }
+                                : {}),
+                            create_datetime: createDatetimeISO,
                         };
+
+                        return {[property]: plan};
                     }
                 },
             },
@@ -4595,13 +4830,15 @@ const sonoffExtend = {
                     payloadValue[i++] = intervalDuration & 0xff;
 
                     // Irrigation amount unit
-                    const irrigationAmountUnitKey = hasFlowMeter
-                        ? typeof value.irrigation_amount_unit === "string"
-                            ? (value.irrigation_amount_unit as keyof typeof irrigationAmountUnitMappingReverse)
-                            : "US gallon"
-                        : "liter";
-                    const irrigationAmountUnitCode =
-                        irrigationAmountUnitMappingReverse[irrigationAmountUnitKey] ?? irrigationAmountUnitMappingReverse.liter;
+                    let irrigationAmountUnit = hasFlowMeter ? value.irrigation_amount_unit : "liter";
+                    if (hasFlowMeter && irrigationAmountUnit === undefined && SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
+                        irrigationAmountUnit = meta.state.water_flow_unit;
+                    }
+                    const irrigationAmountUnitCode = SWVZNEIrrigationAmountUnitToDeviceCode(irrigationAmountUnit ?? "liter", meta.device);
+                    if (irrigationAmountUnitCode === undefined) {
+                        logger.error("irrigation_plan_settings invalid irrigation_amount_unit, expected one of: us_gallon, liter.", NS);
+                        return;
+                    }
                     payloadValue[i++] = irrigationAmountUnitCode & 0xff;
 
                     // Irrigation amount
@@ -4655,13 +4892,17 @@ const sonoffExtend = {
                             defaultResponseOptions,
                         );
 
-                    return {state: {[key]: value}};
+                    const state = {...value};
+                    if (SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
+                        delete state.irrigation_amount_unit;
+                    }
+                    return {state: {[key]: state}};
                 },
             },
         ];
 
         return {
-            exposes: allExposes,
+            exposes: [expose],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -8212,6 +8453,7 @@ export const definitions: DefinitionWithExtend[] = [
                     seasonalWateringAdjustment: {name: "seasonalWateringAdjustment", ID: 0x501e, type: Zcl.DataType.ARRAY, write: true},
                     irrigationScheduleStatus: {name: "irrigationScheduleStatus", ID: 0x501f, type: Zcl.DataType.ARRAY},
                     valveAlarmSettings: {name: "valveAlarmSettings", ID: 0x5020, type: Zcl.DataType.ARRAY, write: true},
+                    unitOfWaterFlow: {name: "unitOfWaterFlow", ID: 0x5021, type: Zcl.DataType.UINT8, write: true},
                 },
                 commands: {
                     readRecord: {name: "readRecord", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -8257,6 +8499,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             sonoffExtend.valveAbnormalState(),
+            sonoffExtend.waterFlowUnit(),
             sonoffExtend.manualDefaultSettings(true),
             sonoffExtend.irrigationPlanSettingsAndReport(true),
             sonoffExtend.irrigationPlanRemove(),
@@ -8314,6 +8557,11 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.read("genOnOff", ["onOff"]).catch((error) => {
                     logger.warning(`SWV-ZN read genOnOff.onOff failed: ${error}`, NS);
                 });
+                if (SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) {
+                    await endpoint.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["unitOfWaterFlow"]).catch((error) => {
+                        logger.warning(`SWV-ZN read customClusterEwelink.unitOfWaterFlow failed: ${error}`, NS);
+                    });
+                }
             }
         },
     },
@@ -8339,6 +8587,7 @@ export const definitions: DefinitionWithExtend[] = [
                     seasonalWateringAdjustment: {name: "seasonalWateringAdjustment", ID: 0x501e, type: Zcl.DataType.ARRAY, write: true},
                     irrigationScheduleStatus: {name: "irrigationScheduleStatus", ID: 0x501f, type: Zcl.DataType.ARRAY},
                     valveAlarmSettings: {name: "valveAlarmSettings", ID: 0x5020, type: Zcl.DataType.ARRAY, write: true},
+                    unitOfWaterFlow: {name: "unitOfWaterFlow", ID: 0x5021, type: Zcl.DataType.UINT8, write: true},
                 },
                 commands: {
                     readRecord: {name: "readRecord", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -8391,6 +8640,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             sonoffExtend.valveAbnormalState(true),
+            sonoffExtend.waterFlowUnit(),
             sonoffExtend.manualDefaultSettings(true),
             sonoffExtend.irrigationPlanSettingsAndReport(true, ["1", "2"]),
             sonoffExtend.irrigationPlanRemove(["1", "2"]),
@@ -8461,6 +8711,11 @@ export const definitions: DefinitionWithExtend[] = [
                 await endpoint.read("customClusterEwelink", [0x500c]).catch((error) => {
                     logger.warning(`SWV-ZF2 read customClusterEwelink(valveAbnormalState) failed: ${error}`, NS);
                 });
+                if (SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) {
+                    await endpoint.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["unitOfWaterFlow"]).catch((error) => {
+                        logger.warning(`SWV-ZF2 read customClusterEwelink.unitOfWaterFlow failed: ${error}`, NS);
+                    });
+                }
             }
         },
     },
