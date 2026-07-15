@@ -2,6 +2,7 @@ import type {Mock} from "vitest";
 import {beforeEach, describe, expect, it, vi} from "vitest";
 import type {Models as ZHModels} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
+import * as globalStore from "../src/lib/store";
 import type {Definition, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
@@ -634,13 +635,17 @@ describe("Sonoff SNZB-02DR2", () => {
 
 describe("Sonoff SWV-ZFE", () => {
     let device: Definition;
+    let zigbeeDevice: ZHModels.Device;
     let endpoint: ZHModels.Endpoint;
     let writeFn: Mock;
     let commandFn: Mock;
     let meta: Tz.Meta;
+    let fzMeta: Fz.Meta;
 
     beforeEach(async () => {
-        device = await findByDevice(mockDevice({modelID: "SWV-ZFE", endpoints: [{ID: 1}]}));
+        globalStore.clear();
+        zigbeeDevice = mockDevice({modelID: "SWV-ZFE", endpoints: [{ID: 1}]});
+        device = await findByDevice(zigbeeDevice);
 
         writeFn = vi.fn();
         commandFn = vi.fn();
@@ -708,6 +713,76 @@ describe("Sonoff SWV-ZFE", () => {
             publish: null,
             endpoint_name: null,
         };
+        fzMeta = {
+            state: {},
+            device: zigbeeDevice,
+            deviceExposesChanged: null,
+        };
+    });
+
+    const makeIrrigationPlanReportFrame = (planIndex: number, startMinutes: number, irrigationDuration: number): Buffer => {
+        const payload = Buffer.alloc(28);
+        let offset = 0;
+        payload.writeUInt8(planIndex, offset++);
+        payload.writeUInt8(1, offset++);
+        payload.writeUInt16BE(0x0305, offset);
+        offset += 2;
+        payload.writeUInt32BE(835574400, offset);
+        offset += 4;
+        payload.writeUInt8(0, offset++);
+        payload.writeUInt32BE(startMinutes * 60, offset);
+        offset += 4;
+        payload.writeUInt16BE(20, offset);
+        offset += 2;
+        payload.writeUInt16BE(irrigationDuration, offset);
+        offset += 2;
+        payload.writeUInt16BE(3, offset);
+        offset += 2;
+        payload.writeUInt8(1, offset++);
+        payload.writeUInt16BE(50, offset);
+        offset += 2;
+        payload.writeUInt16BE(30, offset);
+        offset += 2;
+        payload.writeUInt32BE(1782023400, offset);
+
+        return Buffer.concat([Buffer.from([0x18, 0x00, 0x09]), payload]);
+    };
+
+    const convertRawIrrigationPlanReport = (frame: Buffer) => {
+        const msg: Fz.Message<"customClusterEwelink", undefined, "raw"> = {
+            data: frame,
+            endpoint: {ID: 1} as ZHModels.Endpoint,
+            device: zigbeeDevice,
+            meta: {},
+            groupID: null,
+            type: "raw",
+            cluster: "customClusterEwelink",
+            linkquality: 0,
+        };
+
+        for (const converter of device.fromZigbee.filter(
+            (candidate) => candidate.cluster === "customClusterEwelink" && candidate.type.includes("raw"),
+        )) {
+            const result = converter.convert(device, msg, null, null, fzMeta);
+            if (result) return result;
+        }
+    };
+
+    describe("fromZigbee", () => {
+        it("retains irrigation plan reports by plan index", () => {
+            const first = convertRawIrrigationPlanReport(makeIrrigationPlanReportFrame(0, 6 * 60 + 30, 9));
+            const second = convertRawIrrigationPlanReport(makeIrrigationPlanReportFrame(2, 9 * 60 + 20, 2));
+
+            expect(first).toMatchObject({
+                irrigation_plan_report: {plan_index: 0, start_time: "06:30", irrigation_duration: 9},
+                irrigation_plan_report_0: {plan_index: 0, start_time: "06:30", irrigation_duration: 9},
+            });
+            expect(second).toMatchObject({
+                irrigation_plan_report: {plan_index: 2, start_time: "09:20", irrigation_duration: 2},
+                irrigation_plan_report_0: {plan_index: 0, start_time: "06:30", irrigation_duration: 9},
+                irrigation_plan_report_2: {plan_index: 2, start_time: "09:20", irrigation_duration: 2},
+            });
+        });
     });
 
     describe("toZigbee", () => {
