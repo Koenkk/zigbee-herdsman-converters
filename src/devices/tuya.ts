@@ -2245,8 +2245,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Ultrasonic water meter valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-         whiteLabel: [tuya.whitelabel("ZPMETER", "214C", "Ultrasonic water meter valve", ["_TZE200_vuwtqx0t"])]
-         whiteLabel: [tuya.whitelabel("ZPMETER", "214C", "Ultrasonic water meter valve", ["_TZE204_vuwtqx0t"])]
+         whiteLabel: [tuya.whitelabel("ZPMETER", "214C", "Ultrasonic water meter valve", ["_TZE200_vuwtqx0t", "_TZE204_vuwtqx0t"])],
         exposes: [
             e.switch().setAccess("state", ea.STATE_SET),
             e.numeric("water_consumed", ea.STATE).withUnit("L").withDescription("Total water consumption").withValueMin(0).withValueStep(0.001),
