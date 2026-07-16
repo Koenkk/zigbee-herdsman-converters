@@ -3300,10 +3300,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumiZigbeeOTA(),
             lumiLight({
-                colorTemp: true,
                 color: false,
+                colorTemp: true,
+                colorTempRange: [166, 370],
                 powerOutageMemory: "enum",
-                levelConfig: {features: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level"]},
+                levelConfig: {features: ["on_transition_time", "off_transition_time", "on_level"]},
             }),
             m.numeric({
                 name: "min_brightness",
