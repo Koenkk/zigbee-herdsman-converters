@@ -3618,6 +3618,7 @@ export const definitions: DefinitionWithExtend[] = [
             );
             await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
         },
+        version: "0.0.1",
         extend: [
             m.battery(),
             m.occupancy({reportingConfig: {min: 1, max: 0, change: 0}}),
