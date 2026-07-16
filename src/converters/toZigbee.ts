@@ -667,6 +667,7 @@ export const squawk: Tz.Converter = {
 };
 export const cover_state: Tz.Converter = {
     key: ["state"],
+    options: [exposes.options.invert_state()],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {
             open: "upOpen" as const,
@@ -675,19 +676,31 @@ export const cover_state: Tz.Converter = {
             on: "upOpen" as const,
             off: "downClose" as const,
         };
+        const invertedLookup = {
+            open: "downClose" as const,
+            close: "upOpen" as const,
+            stop: "stop" as const,
+            on: "downClose" as const,
+            off: "upOpen" as const,
+        };
         utils.assertString(value, key);
-        await entity.command("closuresWindowCovering", utils.getFromLookup(value.toLowerCase(), lookup), {}, utils.getOptions(meta.mapped, entity));
+        const commandLookup = meta.options.invert_state ? invertedLookup : lookup;
+        await entity.command(
+            "closuresWindowCovering",
+            utils.getFromLookup(value.toLowerCase(), commandLookup),
+            {},
+            utils.getOptions(meta.mapped, entity),
+        );
     },
 };
 export const cover_position_tilt: Tz.Converter = {
     key: ["position", "tilt"],
-    options: [exposes.options.invert_cover(), exposes.options.cover_position_tilt_disable_report()],
+    options: [exposes.options.invert_position(), exposes.options.invert_cover(), exposes.options.cover_position_tilt_disable_report()],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value, key);
         const isPosition = key === "position";
-        const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover);
+        const invertPosition = meta.options.invert_position ?? meta.options.invert_cover;
+        const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false) ? !invertPosition : invertPosition);
         const disableReport = utils.getMetaValue(entity, meta.mapped, "coverPositionTiltDisableReport", "allEqual", false)
             ? !meta.options.cover_position_tilt_disable_report
             : meta.options.cover_position_tilt_disable_report;
