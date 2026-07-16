@@ -11,7 +11,7 @@ import type {
 } from "./constants";
 import {thermostatSetpointChangeSource} from "./constants";
 import type {Access, LevelConfigFeatures, Range} from "./types";
-import {getLabelFromName} from "./utils";
+import {formatLabel} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
 export interface HomeAssistant {
@@ -192,10 +192,10 @@ export class Binary extends Base {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     value_toggle?: string;
 
-    constructor(name: string, access: number, valueOn: string | boolean, valueOff: string | boolean) {
+    constructor(name: string, access: number, valueOn: string | boolean, valueOff: string | boolean, label?: string) {
         super();
         this.name = name;
-        this.label = getLabelFromName(name);
+        this.label = formatLabel(label ?? name);
         this.property = name;
         this.access = access;
         this.value_on = valueOn;
@@ -225,10 +225,10 @@ export class List extends Base {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     length_max?: number;
 
-    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text | Enum) {
+    constructor(name: string, access: number, itemType: Numeric | Binary | Composite | Text | Enum, label?: string) {
         super();
         this.name = name;
-        this.label = getLabelFromName(name);
+        this.label = formatLabel(label ?? name);
         this.property = name;
         this.access = access;
         this.item_type = itemType;
@@ -266,10 +266,10 @@ export class Numeric extends Base {
     value_step?: number;
     presets?: {name: string; value: number | string; description: string}[];
 
-    constructor(name: string, access: number) {
+    constructor(name: string, access: number, label?: string) {
         super();
         this.name = name;
-        this.label = getLabelFromName(name);
+        this.label = formatLabel(label ?? name);
         this.property = name;
         this.access = access;
     }
@@ -319,10 +319,10 @@ export class Enum extends Base {
     property = "";
     values: (string | number)[];
 
-    constructor(name: string, access: number, values: (string | number)[]) {
+    constructor(name: string, access: number, values: (string | number)[], label?: string) {
         super();
         this.name = name;
-        this.label = getLabelFromName(name);
+        this.label = formatLabel(label ?? name);
         this.property = name;
         this.access = access;
         this.values = values;
@@ -339,10 +339,10 @@ export class Text extends Base {
     type = "text" as const;
     property = "";
 
-    constructor(name: string, access: number) {
+    constructor(name: string, access: number, label?: string) {
         super();
         this.name = name;
-        this.label = getLabelFromName(name);
+        this.label = formatLabel(label ?? name);
         this.property = name;
         this.access = access;
     }
@@ -359,11 +359,11 @@ export class Composite extends Base {
     property = "";
     features: Feature[] = [];
 
-    constructor(name: string, property: string, access: number) {
+    constructor(name: string, property: string, access: number, label?: string) {
         super();
         this.property = property;
         this.name = name;
-        this.label = getLabelFromName(name);
+        this.label = formatLabel(label ?? name);
         this.access = access;
     }
 
@@ -841,16 +841,12 @@ export const options = {
             .withDescription(
                 `Number of digits after decimal point for ${name}, takes into effect on next report of device. This option can only decrease the precision, not increase it.`,
             ),
-    invert_position: () =>
-        new Binary("invert_position", access.SET, true, false).withDescription(
+    invert_cover: () =>
+        new Binary("invert_cover", access.SET, true, false, "Invert cover position").withDescription(
             "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
         ),
-    invert_cover: () =>
-        new Binary("invert_cover", access.SET, true, false).withDescription(
-            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false) (deprecated, use invert_position).",
-        ),
-    invert_state: () =>
-        new Binary("invert_state", access.SET, true, false).withDescription(
+    invert_cover_state: () =>
+        new Binary("invert_cover_state", access.SET, true, false).withDescription(
             "Inverts the cover state (open/close), independent of the position (default false).",
         ),
     illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),

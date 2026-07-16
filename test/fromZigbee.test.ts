@@ -285,28 +285,18 @@ describe("converters/fromZigbee", () => {
             expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
         });
 
-        it("invert_position flips the position but leaves state derived from the raw value", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_position: true});
-            expect(payload).toStrictEqual({position: 100, state: "CLOSE"});
-        });
-
-        it("legacy invert_cover behaves the same as invert_position", () => {
+        it("invert_cover flips the position but leaves state derived from the raw value", () => {
             const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover: true});
             expect(payload).toStrictEqual({position: 100, state: "CLOSE"});
         });
 
-        it("invert_position takes precedence over invert_cover when both are set", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_position: false, invert_cover: true});
-            expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
-        });
-
-        it("invert_state flips only the OPEN/CLOSE label, not the position", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_state: true});
+        it("invert_cover_state flips only the OPEN/CLOSE label, not the position", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover_state: true});
             expect(payload).toStrictEqual({position: 0, state: "OPEN"});
         });
 
-        it("invert_position and invert_state combine independently", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_position: true, invert_state: true});
+        it("invert_cover and invert_cover_state combine independently", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover: true, invert_cover_state: true});
             expect(payload).toStrictEqual({position: 100, state: "OPEN"});
         });
 
@@ -315,8 +305,8 @@ describe("converters/fromZigbee", () => {
             expect(payload).toStrictEqual({position: 100, state: "OPEN"});
         });
 
-        it("invert_state on a coverInverted device flips state back", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {invert_state: true});
+        it("invert_cover_state on a coverInverted device flips state back", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {invert_cover_state: true});
             expect(payload).toStrictEqual({position: 100, state: "CLOSE"});
         });
 
@@ -325,8 +315,8 @@ describe("converters/fromZigbee", () => {
             expect(payload).toStrictEqual({tilt: 100, state: "OPEN"});
         });
 
-        it("invert_state also flips tilt-derived state", () => {
-            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {invert_state: true});
+        it("invert_cover_state also flips tilt-derived state", () => {
+            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {invert_cover_state: true});
             expect(payload).toStrictEqual({tilt: 100, state: "CLOSE"});
         });
 

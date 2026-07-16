@@ -387,7 +387,7 @@ export function toCamelCase(value: KeyValueAny | string) {
     return value.replace(/_([a-z])/g, (x, y) => y.toUpperCase());
 }
 
-export function getLabelFromName(name: string) {
+export function formatLabel(name: string) {
     const label = name.replace(/_/g, " ");
     return label.length === 0 ? label : label[0].toUpperCase() + label.slice(1);
 }
