@@ -6305,14 +6305,16 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.light_brightness(),
 
-            e.numeric("brightness_min", ea.STATE_SET)
+            e
+                .numeric("brightness_min", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
                 .withDescription("Minimum brightness limit"),
 
-            e.numeric("brightness_max", ea.STATE_SET)
+            e
+                .numeric("brightness_max", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(100)
                 .withValueStep(1)
@@ -6321,7 +6323,8 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of connected light load"),
 
-            e.power_on_behavior(["off", "on", "previous"])
+            e
+                .power_on_behavior(["off", "on", "previous"])
                 .withAccess(ea.STATE_SET)
                 .withDescription("Controls the behavior when the device is powered on after power loss"),
 
@@ -6329,7 +6332,8 @@ export const definitions: DefinitionWithExtend[] = [
 
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Turns the button backlight on or off"),
 
-            e.numeric("countdown", ea.STATE_SET)
+            e
+                .numeric("countdown", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(86400)
                 .withValueStep(1)
