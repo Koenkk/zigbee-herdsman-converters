@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, test, vi} from "vitest";
 import * as zhc from "../src";
-import type {Tz} from "../src/lib/types";
+import type {KeyValue, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("toZigbee converters", () => {
@@ -362,6 +362,105 @@ describe("toZigbee converters", () => {
                 {movemode: 1, rate: 25, minimum: 0, maximum: 600, optionsMask: 0, optionsOverride: 0},
                 {},
             );
+        });
+    });
+
+    describe("cover_state", () => {
+        let device: ReturnType<typeof mockDevice>;
+
+        beforeEach(() => {
+            device = mockDevice({modelID: "test_cover", endpoints: [{ID: 1}]});
+        });
+
+        const makeMeta = (options: KeyValue = {}): Tz.Meta => ({
+            state: {},
+            device,
+            message: null,
+            // @ts-expect-error mock
+            mapped: {meta: {}},
+            options,
+            publish: null,
+            endpoint_name: null,
+        });
+
+        test("sends upOpen for open and downClose for close by default", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "open", makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+        });
+
+        test("invert_state swaps open and close commands", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({invert_state: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta({invert_state: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+        });
+
+        test("stop is unaffected by invert_state", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "stop", makeMeta({invert_state: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
+        });
+    });
+
+    describe("cover_position_tilt", () => {
+        let device: ReturnType<typeof mockDevice>;
+
+        beforeEach(() => {
+            device = mockDevice({modelID: "test_cover", endpoints: [{ID: 1}]});
+        });
+
+        const makeMeta = (options: KeyValue = {}, mappedMeta: KeyValue = {}): Tz.Meta => ({
+            state: {},
+            device,
+            message: null,
+            // @ts-expect-error mock
+            mapped: {meta: mappedMeta},
+            options,
+            publish: null,
+            endpoint_name: null,
+        });
+
+        test("sends the inverted percentage by default (position 100 -> device value 0)", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            const result = await converter.convertSet(device.endpoints[0], "position", 100, makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 0}, {});
+            expect(result).toStrictEqual({state: {position: 100}});
+        });
+
+        test("invert_position sends the value through unchanged", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({invert_position: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 100}, {});
+        });
+
+        test("legacy invert_cover behaves the same as invert_position", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({invert_cover: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 100}, {});
+        });
+
+        test("device-level coverInverted meta combines with invert_position", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToLiftPercentage", {percentageliftvalue: 100}, {});
+        });
+
+        test("tilt uses goToTiltPercentage", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            await converter.convertSet(device.endpoints[0], "tilt", 30, makeMeta());
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "goToTiltPercentage", {percentagetiltvalue: 70}, {});
+        });
+
+        test("cover_position_tilt_disable_report suppresses the optimistic state", async () => {
+            const converter = zhc.toZigbee.cover_position_tilt;
+            const result = await converter.convertSet(device.endpoints[0], "position", 100, makeMeta({cover_position_tilt_disable_report: true}));
+            expect(result).toBeUndefined();
         });
     });
 
