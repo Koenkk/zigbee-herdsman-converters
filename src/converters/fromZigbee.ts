@@ -1427,7 +1427,7 @@ export const command_move_to_level: Fz.Converter<"genLevelCtrl", undefined, ["co
         const payload: KeyValueAny = {
             action: postfixWithEndpointName("brightness_move_to_level", msg, model, meta),
             action_level: msg.data.level,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
 
@@ -1489,7 +1489,7 @@ export const command_step: Fz.Converter<"genLevelCtrl", undefined, ["commandStep
         const payload: KeyValueAny = {
             action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
 
@@ -1559,7 +1559,7 @@ export const command_step_color_temperature: Fz.Converter<"lightingColorCtrl", u
         };
 
         if (msg.data.transtime !== undefined) {
-            payload.action_transition_time = msg.data.transtime / 100;
+            payload.action_transition_time = msg.data.transtime / 10;
         }
 
         addActionGroup(payload, msg, model);
@@ -1608,7 +1608,7 @@ export const command_step_hue: Fz.Converter<"lightingColorCtrl", undefined, ["co
         const payload = {
             action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
         return payload;
@@ -1623,7 +1623,7 @@ export const command_step_saturation: Fz.Converter<"lightingColorCtrl", undefine
         const payload = {
             action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
         return payload;
@@ -1724,7 +1724,7 @@ export const command_move_to_hue: Fz.Converter<"lightingColorCtrl", undefined, "
         const payload = {
             action: postfixWithEndpointName("move_to_hue", msg, model, meta),
             action_hue: msg.data.hue,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
             action_direction: msg.data.direction === 0 ? "decrement" : "increment",
         };
         addActionGroup(payload, msg, model);

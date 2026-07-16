@@ -276,7 +276,7 @@ describe("converters/fromZigbee", () => {
             expect(payload.action).toBe("color_temperature_step_up");
             expect(payload.action_step_size).toBe(5);
             expect(payload.action_color_temperature_delta).toBe(5);
-            expect(payload.action_transition_time).toBe(1);
+            expect(payload.action_transition_time).toBe(10);
         });
 
         it("emits negative action_color_temperature_delta when stepping down", () => {
@@ -291,7 +291,7 @@ describe("converters/fromZigbee", () => {
             expect(payload.action).toBe("color_temperature_step_down");
             expect(payload.action_step_size).toBe(10);
             expect(payload.action_color_temperature_delta).toBe(-10);
-            expect(payload.action_transition_time).toBe(0.5);
+            expect(payload.action_transition_time).toBe(5);
         });
 
         it("does not include action_transition_time when transtime is undefined", () => {

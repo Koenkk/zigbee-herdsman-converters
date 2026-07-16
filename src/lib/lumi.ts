@@ -47,6 +47,8 @@ const NS = "zhc:lumi";
 const e = exposes.presets;
 const ea = exposes.access;
 const ZNCLBL01LM_RUNNING_STORE_KEY = "ZNCLBL01LM_running";
+const ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY = "ZNCLBL01LM_terminal_position";
+const ZNCLBL01LM_TERMINAL_TARGET_POSITION_STORE_KEY = "ZNCLBL01LM_terminal_target_position";
 
 declare type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
@@ -876,7 +878,9 @@ export const numericAttributes2Payload = async (
             case "1055":
                 if (["ZNCLBL01LM"].includes(model.model)) {
                     assertNumber(value);
-                    payload.target_position = options.invert_cover ? 100 - value : value;
+                    const targetPosition = options.invert_cover ? 100 - value : value;
+                    rememberZNCLBL01LMTerminalTargetPosition(targetPosition, model, msg.endpoint, false);
+                    payload.target_position = normalizeZNCLBL01LMTerminalPosition(targetPosition, model, msg.endpoint);
                 }
                 break;
             case "1056":
@@ -896,6 +900,9 @@ export const numericAttributes2Payload = async (
                     assertNumber(value);
                     payload.running = value < 2;
                     globalStore.putValue(msg.endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, payload.running);
+                    if (payload.running) {
+                        globalStore.clearValue(msg.endpoint, ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY);
+                    }
 
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/11911
                     if (!payload.running && previousRunning !== false) {
@@ -994,6 +1001,52 @@ export const numericAttributes2Payload = async (
 
     return payload;
 };
+
+function normalizeZNCLBL01LMTerminalPosition(position: number, model: Definition, endpoint: Zh.Endpoint | Zh.Group): number {
+    if (!["ZNCLBL01LM"].includes(model.model)) {
+        return position;
+    }
+
+    if (position === 0 || position === 100) {
+        globalStore.putValue(endpoint, ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY, position);
+        return position;
+    }
+
+    if (globalStore.getValue(endpoint, ZNCLBL01LM_RUNNING_STORE_KEY, undefined) !== false) {
+        return position;
+    }
+
+    const terminalPosition =
+        globalStore.getValue(endpoint, ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY, undefined) ??
+        globalStore.getValue(endpoint, ZNCLBL01LM_TERMINAL_TARGET_POSITION_STORE_KEY, undefined);
+    if (terminalPosition === 100 && position >= 98 && position < 100) {
+        return 100;
+    }
+    if (terminalPosition === 0 && position > 0 && position <= 2) {
+        return 0;
+    }
+
+    return position;
+}
+
+function rememberZNCLBL01LMTerminalTargetPosition(
+    position: number,
+    model: Definition,
+    endpoint: Zh.Endpoint | Zh.Group,
+    clearNonTerminal: boolean,
+): void {
+    if (!["ZNCLBL01LM"].includes(model.model)) {
+        return;
+    }
+
+    if (position === 0 || position === 100) {
+        globalStore.clearValue(endpoint, ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY);
+        globalStore.putValue(endpoint, ZNCLBL01LM_TERMINAL_TARGET_POSITION_STORE_KEY, position);
+    } else if (clearNonTerminal) {
+        globalStore.clearValue(endpoint, ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY);
+        globalStore.clearValue(endpoint, ZNCLBL01LM_TERMINAL_TARGET_POSITION_STORE_KEY);
+    }
+}
 
 const numericAttributes2Lookup = (model: Definition, dataObject: KeyValue) => {
     let result: KeyValue = {};
@@ -6698,7 +6751,7 @@ export const fromZigbee = {
             const invert = model.meta?.coverInverted ? !options.invert_cover : options.invert_cover;
             if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage <= 100) {
                 const value = msg.data.currentPositionLiftPercentage;
-                const position = invert ? 100 - value : value;
+                const position = normalizeZNCLBL01LMTerminalPosition(invert ? 100 - value : value, model, msg.endpoint);
                 const state = invert ? (position > 0 ? "CLOSE" : "OPEN") : position > 0 ? "OPEN" : "CLOSE";
                 result[postfixWithEndpointName("position", msg, model, meta)] = position;
                 result[postfixWithEndpointName("state", msg, model, meta)] = state;
@@ -8859,6 +8912,10 @@ export const toZigbee = {
                     value = getFromLookup(value, lookup);
                 }
                 assertNumber(value);
+                const targetPosition = value;
+                if (["ZNCLBL01LM"].includes(meta.mapped.model)) {
+                    rememberZNCLBL01LMTerminalTargetPosition(targetPosition, meta.mapped, entity, true);
+                }
                 value = meta.options.invert_cover ? 100 - value : value;
 
                 if (["ZNCLBL01LM"].includes(meta.mapped.model)) {

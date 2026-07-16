@@ -1960,7 +1960,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Weather station",
         extend: [
-            m.battery(),
+            m.battery({voltage: true}),
             m.illuminance(),
             m.temperature(),
             m.pressure(),

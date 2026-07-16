@@ -38,7 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["HZC Electric motion sensor"],
+        fingerprint: [{modelID: "MotionSensor-ZB3.0", manufacturerName: "Shyugj"}],
         model: "S902M-ZG",
         vendor: "HZC Electric",
         description: "Motion sensor",
