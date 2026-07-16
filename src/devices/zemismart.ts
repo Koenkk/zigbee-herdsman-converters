@@ -985,7 +985,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi", "_TZE28C1000000_xvywzhmi"]),
         model: "ZMS-208US-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
