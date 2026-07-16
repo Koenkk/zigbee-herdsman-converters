@@ -982,9 +982,7 @@ const heimanExtend = {
         };
     },
     iasWarningDeviceMute: (): ModernExtend => {
-        const exposes = utils.exposeEndpoints(
-            e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("Silence the alarm temporarily"),
-        );
+        const exposes = utils.exposeEndpoints(e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("Silence the alarm temporarily"));
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["temporary_mute"],
