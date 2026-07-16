@@ -889,7 +889,7 @@ const heimanExtend = {
         };
     },
     iasZoneInitiateTestMode: (): ModernExtend => {
-        const exposes = utils.exposeEndpoints(e.enum("trigger_selftest", ea.SET, ["test"]).withDescription("Trigger smoke alarm self-check test."));
+        const exposes = utils.exposeEndpoints(e.enum("trigger_selftest", ea.SET, ["test"]).withDescription("Trigger alarm self-check."));
         const toZigbee: Tz.Converter[] = [
             {
                 key: ["trigger_selftest"],
@@ -983,7 +983,7 @@ const heimanExtend = {
     },
     iasWarningDeviceMute: (): ModernExtend => {
         const exposes = utils.exposeEndpoints(
-            e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
+            e.enum("temporary_mute", ea.SET, ["mute"]).withDescription("Silence the alarm temporarily"),
         );
         const toZigbee: Tz.Converter[] = [
             {
