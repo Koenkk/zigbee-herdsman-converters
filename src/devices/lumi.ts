@@ -83,9 +83,11 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
     for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
         const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
         await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
-        // Set report max to 0 to prevent stale actions being published
+        // Disable reporting for presentValue (max=0xFFFF = "shall not issue reports", ZCL).
+        // Button presses are firmware-generated unsolicited reports and keep working;
+        // an active reporting entry caused the hourly stale action replays.
         // https://github.com/Koenkk/zigbee2mqtt/issues/32059
-        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 0, 1));
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 65535, 1));
         // Initialize Aqara's per-button multi-click setting on startup.
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
@@ -5217,7 +5219,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             },
         },
-        version: "0.0.1",
+        version: "0.0.2",
         configure: configureAqaraH2EuShutterSwitch,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
