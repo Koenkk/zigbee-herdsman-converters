@@ -4161,12 +4161,6 @@ async function safeYubaRead(endpoint: Zh.Endpoint, cluster: string, attributes: 
 }
 
 function createLumiBathroomHeaterT1(): ModernExtend {
-    const fromThermostat = {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg) => (msg.data.localTemp === undefined ? {} : {local_temperature: msg.data.localTemp / 100}),
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
-
     const fromYuba = {
         cluster: YUBA_LUMI_CLUSTER,
         type: ["attributeReport", "readResponse"],
@@ -4327,14 +4321,11 @@ function createLumiBathroomHeaterT1(): ModernExtend {
 
     const currentTemperature = {
         key: ["local_temperature"],
-        convertGet: async (entity) => {
-            assertEndpoint(entity);
-            await entity.read("hvacThermostat", ["localTemp"]);
-        },
+        convertGet: readYubaPackedState,
     } satisfies Tz.Converter;
 
     return {
-        fromZigbee: [fromThermostat, fromYuba],
+        fromZigbee: [fromYuba],
         toZigbee: [
             targetTemperature,
             operatingMode,
@@ -4383,7 +4374,6 @@ function createLumiBathroomHeaterT1(): ModernExtend {
                     ],
                     {manufacturerCode},
                 );
-                await safeYubaRead(endpoint, "hvacThermostat", ["localTemp"]);
             },
         ],
         isModernExtend: true,

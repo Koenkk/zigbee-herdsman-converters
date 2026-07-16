@@ -223,12 +223,19 @@ describe("lib/lumi", () => {
             );
         });
 
-        it("reads private and thermostat state during configuration", async () => {
+        it("reads current temperature from the packed state", async () => {
+            const {endpoint, meta} = createContext();
+            await getToZigbee("local_temperature").convertGet?.(endpoint, "local_temperature", meta);
+
+            expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [591], {manufacturerCode: 0x115f});
+        });
+
+        it("reads private state during configuration", async () => {
             const {device, endpoint} = createContext();
             await extend.configure?.[0](device, endpoint, definition);
 
-            expect(endpoint.read).toHaveBeenNthCalledWith(1, "manuSpecificLumi", [591, 598, 599, 702, 1304], {manufacturerCode: 0x115f});
-            expect(endpoint.read).toHaveBeenNthCalledWith(2, "hvacThermostat", ["localTemp"], undefined);
+            expect(endpoint.read).toHaveBeenCalledTimes(1);
+            expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [591, 598, 599, 702, 1304], {manufacturerCode: 0x115f});
         });
     });
 

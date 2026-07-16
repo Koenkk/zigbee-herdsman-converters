@@ -167,6 +167,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart bathroom heater T1",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
             m.identify(),
             m.light({effect: false, powerOnBehavior: false, colorTemp: {range: [153, 370]}}),
             m.ignoreClusterReport({cluster: "hvacFanCtrl"}),
