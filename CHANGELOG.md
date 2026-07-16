@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.83.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.82.0...v26.83.0) (2026-07-16)
+
+
+### Features
+
+* **add:** TO-DM-W/B ([#12700](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12700)) ([dd1eb30](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd1eb3080c2eab0d344a4c1be90c63ded83e4e48))
+* **add:** ZNYB01LM ([#12695](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12695)) ([8e32425](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8e324255867fda94d83719f8deeaac98aa613dbf))
+* Shelly WS90: expose solar capacitor voltage ([#12659](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12659)) ([4aa1d29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4aa1d2901f7a75b74a87248ea061f044e4fc0ac2))
+
+
+### Bug Fixes
+
+* Aqara DS-K02D/DS-K02E: fix ghost events ([#12704](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12704)) ([96f3cd8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/96f3cd845dea7aa041d03a1c1608ad28cde75a80))
+* Aqara T3: improve definition ([#12699](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12699)) ([200e467](https://github.com/Koenkk/zigbee-herdsman-converters/commit/200e467188102479a42c9ca94a9ae06f08dddc17))
+* **detect:** Detect `_TZ3000_w0qqde0g` as Nous A1Z ([#12698](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12698)) ([d251f07](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d251f07c0094d606310c300497a99b4d93fa960f))
+* **detect:** Detect `_TZE28C1000000_68utemio` as Tuya TS0601_dimmer_1_gang_1 ([#12702](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12702)) ([48f32aa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/48f32aabf7d9262e56ceca9fe2a97c2721e55a2f))
+* **detect:** Detect `_TZE28C1000000_xvywzhmi` as Zemismart ZN-USC1U-HT ([#12703](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12703)) ([bc1072c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bc1072ce86baae33884bf6d6ddb3b27807041837))
+* **detect:** Detect Shyugj MotionSensor-ZB3.0 as HZC Electric S902M-ZG ([#12696](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12696)) ([67eb45c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/67eb45cac076ffacc986dd1c15fe8d999a9e54ec))
+* EGLO 900878: add whitelabel of 900024/12253 ([#12701](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12701)) ([d97139b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d97139be5828dfbb67d378e9dca1bd29c7cba9b3))
+* HEIMAN M1-PE : optimize reporting config ([#12648](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12648)) ([1c62652](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c626520ef643f0656bf407baaceaff0cc6adf4c))
+
 ## [26.82.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.81.0...v26.82.0) (2026-07-15)
 
 
