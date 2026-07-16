@@ -200,6 +200,30 @@ const storeLocal = {
 };
 
 const convLocal = {
+    novaDigitalToDmBrightness: {
+        from: (value: unknown) => {
+            const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
+            return Math.round(((clamped - 10) * 254) / 990);
+        },
+
+        to: (value: unknown) => {
+            const clamped = Math.max(0, Math.min(254, Number(value) || 0));
+            return Math.round(10 + (clamped * 990) / 254);
+        },
+    },
+
+    novaDigitalToDmBrightnessPercent: {
+        from: (value: unknown) => {
+            const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
+            return Math.round(clamped / 10);
+        },
+
+        to: (value: unknown) => {
+            const clamped = Math.max(1, Math.min(100, Number(value) || 1));
+            return Math.round(clamped * 10);
+        },
+    },
+
     novaDigitalToWkInching: {
         from: (value: unknown) => {
             const buffer = Buffer.isBuffer(value)
@@ -6269,6 +6293,89 @@ export const definitions: DefinitionWithExtend[] = [
                         high: tuya.enum(3),
                     }),
                 ],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5yah8qx4"]),
+        model: "TO-DM-W/B",
+        vendor: "Nova Digital",
+        description: "Topazio 1 gang Zigbee dimmer switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e.light_brightness(),
+
+            e
+                .numeric("brightness_min", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Minimum brightness limit"),
+
+            e
+                .numeric("brightness_max", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Maximum brightness limit"),
+
+            e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of connected light load"),
+
+            e
+                .power_on_behavior(["off", "on", "previous"])
+                .withAccess(ea.STATE_SET)
+                .withDescription("Controls the behavior when the device is powered on after power loss"),
+
+            e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Controls the indicator LED mode"),
+
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Turns the button backlight on or off"),
+
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(86400)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Countdown timer"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+
+                [2, "brightness", convLocal.novaDigitalToDmBrightness],
+
+                [3, "brightness_min", convLocal.novaDigitalToDmBrightnessPercent],
+
+                [
+                    4,
+                    "light_type",
+                    tuya.valueConverterBasic.lookup({
+                        led: tuya.enum(0),
+                        incandescent: tuya.enum(1),
+                        halogen: tuya.enum(2),
+                    }),
+                ],
+
+                [5, "brightness_max", convLocal.novaDigitalToDmBrightnessPercent],
+
+                [6, "countdown", tuya.valueConverter.raw],
+
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [
+                    21,
+                    "indicator_mode",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        pos: tuya.enum(2),
+                    }),
+                ],
+
+                [26, "backlight_switch", tuya.valueConverter.onOff],
             ],
         },
     },
