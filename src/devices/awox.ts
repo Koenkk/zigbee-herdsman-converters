@@ -400,6 +400,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
+        zigbeeModel: ['EZMB-RGB-W-I2C'],
+        model: 'EZMB-RGB-W-I2C',
+        vendor: 'AwoX',
+        description: 'Awox / Eglo Smart lamp E27 Globe G95 Mat RGB 3000K 7W',
+        extend: [m.deviceEndpoints({"endpoints":{"1":1,"3":3}}), m.light({"colorTemp":{"range":[333,333]},"color":{"modes":["xy","hs"],"enhancedHue":true}}), m.commandsOnOff(), m.commandsLevelCtrl(), m.commandsColorCtrl()],
+    };
+
+    {
         fingerprint: [
             {
                 type: "Router",
