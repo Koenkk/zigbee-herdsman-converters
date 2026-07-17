@@ -633,6 +633,7 @@ export const fzZosung = {
                     learned_ir_timings: {
                         modulation: 38000,
                         timings: learnedTimings,
+                        timestamp: Date.now(),
                     },
                 };
             }
