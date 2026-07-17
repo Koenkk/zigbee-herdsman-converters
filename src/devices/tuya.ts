@@ -14423,7 +14423,7 @@ export const definitions: DefinitionWithExtend[] = [
             fzZosung.zosung_send_ir_code_05,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send()],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send(), ez.ir_emitter()],
         whiteLabel: [
             tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl", "_TZ3290_gnl5a6a5xvql7c2a"]),
             tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree"]),
@@ -27993,6 +27993,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "The IR code to send by device (Support SmartIR IR code library. IR remote Firmware ID must be Firmware ID>01062026)",
                 ),
+            ez.ir_emitter().withDescription("IR emitter feature. IR remote Firmware ID must be Firmware ID>01062026)"),
             e.enum("switch1_on", ea.STATE_SET, ["study", "registered", "unregistered"]).withDescription("Switch 1 on IR code Study and Study status"),
             e
                 .enum("switch1_off", ea.STATE_SET, ["study", "registered", "unregistered"])
