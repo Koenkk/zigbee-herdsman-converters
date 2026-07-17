@@ -1366,7 +1366,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
