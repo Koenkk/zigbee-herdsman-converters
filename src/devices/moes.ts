@@ -1196,6 +1196,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_ubuikmgo"]),
+        model: "ZSS-QT-LTH-C",
+        vendor: "Moes",
+        description: "Smart 3-in-1 brightness, temperature and humidity sensor",
+        configure: tuya.configureMagicPacket,
+        extend: [m.battery(), m.temperature(), m.humidity(), m.illuminance()],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fhn3negr"]),
         model: "SH4-ZB",
         vendor: "Moes",
