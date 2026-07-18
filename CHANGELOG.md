@@ -1,5 +1,20 @@
 # Changelog
 
+## [26.84.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.83.0...v26.84.0) (2026-07-18)
+
+
+### Features
+
+* **add:** CCT-I ([#12712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12712)) ([f50539f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f50539f76653793f2865079789e27ea89357d2b2))
+* **add:** TP-WGZBA ([#12705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12705)) ([857b57c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/857b57cbae1c74c345197666a5060a69389d5fa6))
+* **add:** ZSS-QT-LTH-C ([#12714](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12714)) ([e19205f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e19205faf59ced7422f80645531ae1115c18d235))
+
+
+### Bug Fixes
+
+* Allow schema and type override for Home Assistant infrared discovery type ([#12708](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12708)) ([a12ecc1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a12ecc1de83435eeec5dbc83efe8a63be38c3186))
+* BTicino F20T60A and FC80GCS: remove unused converters ([#12715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12715)) ([2a8c668](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a8c668f6dbb8be08a177c91a26f4b01068999cf))
+
 ## [26.83.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.82.0...v26.83.0) (2026-07-16)
 
 
