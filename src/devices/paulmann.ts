@@ -36,6 +36,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT-I",
         vendor: "Paulmann",
         description: "Tunable white light controller with integrated motion sensor (tested with Skyla 948.64)",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
