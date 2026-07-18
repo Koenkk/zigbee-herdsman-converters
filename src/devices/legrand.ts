@@ -514,7 +514,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIN power consumption module",
         whiteLabel: [
             {vendor: "Legrand", description: "DIN power consumption module", model: "412172", fingerprint: [{modelID: " Smart shedder module"}]},
-            {vendor: "BTicino", description: "DIN power consumption module", model: "FC80GCS", fingerprint: [{modelID: " Smart shedder module"}]},
+            {vendor: "BTicino", description: "DIN power consumption module", model: "FC80GCS", whiteLabelOf: "412172"},
             {vendor: "BTicino", description: "DIN power consumption module", model: "F20T60A"},
         ],
         ota: true,
