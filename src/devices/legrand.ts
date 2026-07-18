@@ -769,6 +769,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "067797",
         vendor: "Legrand",
         description: "Dimmer switch with neutral",
+        whiteLabel: [{vendor: "Legrand", model: "600090A"}],
         ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
