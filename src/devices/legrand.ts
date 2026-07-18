@@ -515,6 +515,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             {vendor: "Legrand", description: "DIN power consumption module", model: "412172", fingerprint: [{modelID: " Smart shedder module"}]},
             {vendor: "BTicino", description: "DIN power consumption module", model: "FC80GCS", fingerprint: [{modelID: " Smart shedder module"}]},
+            {vendor: "BTicino", description: "DIN power consumption module", model: "F20T60A"},
         ],
         ota: true,
         fromZigbee: [fz.identify, fz.metering, fz.electrical_measurement, fzLegrand.power_alarm, fzLegrand.cluster_fc01],
