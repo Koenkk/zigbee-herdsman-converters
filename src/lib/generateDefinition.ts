@@ -384,21 +384,13 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             endpointName = endpoint.ID.toString();
         }
 
-        const name = await getClusterAttributeValue(
-            endpoint,
-            "genBinaryInput",
-            "description",
-            endpointName ? "binary_input" : `binary_input_${endpoint.ID}`,
-        );
-        let label: string | undefined;
+        const label = await getClusterAttributeValue(endpoint, "genBinaryInput", "description", undefined);
 
-        if (name !== "binary_input" && name !== `binary_input_${endpoint.ID}`) {
-            label = name;
-        }
+        const name = endpointName ? "binary_input" : `binary_input_${endpoint.ID}`;
 
-        const description = `Binary Input ${name} on endpoint ${endpoint.ID}`;
+        const description = `Binary Input ${label ?? name} on endpoint ${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryInput"> = {
-            name: name.replace(/\s+/g, "_").toLowerCase(),
+            name: name,
             label,
             cluster: "genBinaryInput",
             attribute: "presentValue",
@@ -424,21 +416,13 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             endpointName = endpoint.ID.toString();
         }
 
-        const name = await getClusterAttributeValue(
-            endpoint,
-            "genBinaryOutput",
-            "description",
-            endpointName ? "binary_output" : `binary_output_${endpoint.ID}`,
-        );
-        let label: string | undefined;
+        const label = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
 
-        if (name !== "binary_output" && name !== `binary_output_${endpoint.ID}`) {
-            label = name;
-        }
+        const name = endpointName ? "binary_output" : `binary_output_${endpoint.ID}`;
 
-        const description = `Binary Output ${name} on endpoint ${endpoint.ID}`;
+        const description = `Binary Output ${label ?? name} on endpoint ${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryOutput"> = {
-            name: name.replace(/\s+/g, "_").toLowerCase(),
+            name: name,
             label,
             cluster: "genBinaryOutput",
             attribute: "presentValue",
@@ -474,6 +458,30 @@ function getUnitfromApplicationType(applicationType: number): string | undefined
         12: undefined, // Count
         13: "kJ/kg", // Enthalpy_KJoules_Per_Kg
         14: "s", // Time_Seconds
+    };
+
+    return applicationTypeMap[type];
+}
+
+function getNamefromApplicationType(applicationType: number): string | undefined {
+    // Map of applicationType to unit strings. Only take type ( Bits 16 to 23 ) into account.
+    const type = (applicationType >> 16) & 0xff;
+    const applicationTypeMap: {[key: number]: string} = {
+        0: "temperature", // Temp_Degrees_C
+        1: "humidity", // Relative_Humidity_Percent
+        2: "pressure", // Pressure_Pascal
+        3: "flow", // Flow_Liters_Per_Sec
+        4: undefined, // Percentage
+        5: undefined, // Parts_Per_Million
+        6: undefined, // Rotational_Speed_RPM
+        7: "current", // Current_Amps
+        8: "ac_frequency", // Frequency_Hz
+        9: "power", // Power_Watts
+        10: "power", // Power_Kilo_Watts
+        11: "energy", // Energy_Kilo_Watt_Hours
+        12: undefined, // Count
+        13: undefined, // Enthalpy_KJoules_Per_Kg
+        14: "duration", // Time_Seconds
     };
 
     return applicationTypeMap[type];
@@ -749,25 +757,21 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             endpointNames = [endpoint.ID.toString()];
         }
 
-        const name = await getClusterAttributeValue(
-            endpoint,
-            "genAnalogInput",
-            "description",
-            endpointNames ? "analog_input" : `analog_input_${endpoint.ID}`,
-        );
-        let label: string | undefined;
+        const label = await getClusterAttributeValue(endpoint, "genAnalogInput", "description", undefined);
 
-        if (name !== "analog_input" && name !== `analog_input_${endpoint.ID}`) {
-            label = name;
-        }
-
-        const description = `Analog Input ${name} on endpoint ${endpoint.ID}`;
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogInput", "applicationType", undefined);
         let unit: string | undefined;
+        let name: string | undefined;
+
+        logger.info(`apptype ${applicationType}`, NS);
 
         if (applicationType !== undefined) {
+            name = getNamefromApplicationType(applicationType);
             unit = getUnitfromApplicationType(applicationType);
         }
+        logger.info(`name ${name}`, NS);
+
+        name = name ?? (endpointNames ? "analog_input" : `analog_input_${endpoint.ID}`);
 
         if (unit === undefined) {
             const bacnet_unit = await getClusterAttributeValue(endpoint, "genAnalogInput", "engineeringUnits", undefined);
@@ -776,8 +780,10 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             }
         }
 
+        const description = `Analog Input ${label ?? name} on endpoint ${endpoint.ID}`;
+
         const args: m.NumericArgs<"genAnalogInput"> = {
-            name: name.replace(/\s+/g, "_").toLowerCase(),
+            name: name,
             label,
             valueMin: await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined),
             valueMax: await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined),
@@ -805,25 +811,18 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             endpointNames = [endpoint.ID.toString()];
         }
 
-        const name = await getClusterAttributeValue(
-            endpoint,
-            "genAnalogOutput",
-            "description",
-            endpointNames ? "analog_output" : `analog_output_${endpoint.ID}`,
-        );
-        let label: string | undefined;
+        const label = await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", undefined);
 
-        if (name !== "analog_output" && name !== `analog_output_${endpoint.ID}`) {
-            label = name;
-        }
-
-        const description = `Analog Output ${name} on endpoint ${endpoint.ID}`;
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogOutput", "applicationType", undefined);
         let unit: string | undefined;
+        let name: string | undefined;
 
         if (applicationType !== undefined) {
+            name = getNamefromApplicationType(applicationType);
             unit = getUnitfromApplicationType(applicationType);
         }
+
+        name = name ?? (endpointNames ? "analog_output" : `analog_output_${endpoint.ID}`);
 
         if (unit === undefined) {
             const bacnet_unit = await getClusterAttributeValue(endpoint, "genAnalogOutput", "engineeringUnits", undefined);
@@ -831,6 +830,8 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
                 unit = getUnitfromBACnetUnit(bacnet_unit);
             }
         }
+
+        const description = `Analog Output ${label ?? name} on endpoint ${endpoint.ID}`;
 
         const args: m.NumericArgs<"genAnalogOutput"> = {
             name: name.replace(/\s+/g, "_").toLowerCase(),

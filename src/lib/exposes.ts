@@ -34,6 +34,7 @@ export class Base {
     features?: Feature[];
     category?: "config" | "diagnostic";
     homeassistant?: HomeAssistant;
+    labelIsCustom?: boolean;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -68,6 +69,7 @@ export class Base {
 
     withLabel(label: string) {
         this.label = label;
+        this.labelIsCustom = true;
         return this;
     }
 

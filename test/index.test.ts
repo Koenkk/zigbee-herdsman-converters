@@ -436,6 +436,7 @@ describe("ZHC", () => {
                     property: "color_rgb",
                     name: "color_xy",
                     label: "Color (X/Y)",
+                    labelIsCustom: true,
                     description: "Color of this light in the CIE 1931 color space (x/y)",
                     access: 7,
                     features: [
