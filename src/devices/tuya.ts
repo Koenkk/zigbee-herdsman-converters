@@ -8399,54 +8399,53 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    fingerprint: [
-        {
-            modelID: 'TS0601',
-            manufacturerName: '_TZE200_rgeapp2c',
-        },
-    ],
-    model: 'TS0601_TZE200_rgeapp2c',
-    vendor: 'Tuya',
-    description: 'Semicom Tuya touch panel: 2 switches + 2 shutters',
-    //fromZigbee: [tuya.fz.datapoints],
-    //toZigbee: [tuya.tz.datapoints],
-    //onEvent: tuya.onEventSetTime,
-    //configure: tuya.configureMagicPacket,
-    options: [exposes.options.invert_cover()],
-    exposes: [
-        // Expose Switches to Home Assistant
-        e.switch().withEndpoint('s1'),
-        e.switch().withEndpoint('s2'),
-        // Expose Shutters/Covers to Home Assistant
-        e.cover_position().withEndpoint('c1').setAccess('position', ea.STATE_SET),
-        e.cover_position().withEndpoint('c2').setAccess('position', ea.STATE_SET),
-        
-        // Declare the state already published, so HA creates a sensor for it
-        e.enum('state', ea.STATE, ['OPEN', 'STOP', 'CLOSE']).withEndpoint('c1'),
-        e.enum('state', ea.STATE, ['OPEN', 'STOP', 'CLOSE']).withEndpoint('c2'),
-    ],
-    endpoint: (device) => {
-        return {'s1': 1, 's2': 1, 'c1': 1, 'c2': 1};
-    },
-    meta: {
-        multiEndpoint: true,
-        tuyaDatapoints: [
-            // --- LIGHTS / SWITCHES ---
-            [101, 'state_s1', tuya.valueConverter.onOff],
-            [102, 'state_s2', tuya.valueConverter.onOff],
-            
-            // --- SHUTTERS / COVERS ---
-            // Cover 1 (DP 1 for state/control, DP 2 for position)
-            [1, 'state_c1', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
-            [2, 'position_c1', tuya.valueConverter.coverPosition],
-            
-            // Cover 2 (DP 4 for state/control, DP 5 for position)
-            [4, 'state_c2', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
-            [5, 'position_c2', tuya.valueConverter.coverPosition],
-            
+        fingerprint: [
+            {
+                modelID: "TS0601",
+                manufacturerName: "_TZE200_rgeapp2c",
+            },
         ],
+        model: "TS0601_TZE200_rgeapp2c",
+        vendor: "Tuya",
+        description: "Semicom Tuya touch panel: 2 switches + 2 shutters",
+        //fromZigbee: [tuya.fz.datapoints],
+        //toZigbee: [tuya.tz.datapoints],
+        //onEvent: tuya.onEventSetTime,
+        //configure: tuya.configureMagicPacket,
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            // Expose Switches to Home Assistant
+            e.switch().withEndpoint("s1"),
+            e.switch().withEndpoint("s2"),
+            // Expose Shutters/Covers to Home Assistant
+            e.cover_position().withEndpoint("c1").setAccess("position", ea.STATE_SET),
+            e.cover_position().withEndpoint("c2").setAccess("position", ea.STATE_SET),
+
+            // Declare the state already published, so HA creates a sensor for it
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c1"),
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c2"),
+        ],
+        endpoint: (device) => {
+            return {s1: 1, s2: 1, c1: 1, c2: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                // --- LIGHTS / SWITCHES ---
+                [101, "state_s1", tuya.valueConverter.onOff],
+                [102, "state_s2", tuya.valueConverter.onOff],
+
+                // --- SHUTTERS / COVERS ---
+                // Cover 1 (DP 1 for state/control, DP 2 for position)
+                [1, "state_c1", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position_c1", tuya.valueConverter.coverPosition],
+
+                // Cover 2 (DP 4 for state/control, DP 5 for position)
+                [4, "state_c2", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [5, "position_c2", tuya.valueConverter.coverPosition],
+            ],
+        },
     },
-},
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE204_r0jdjrvi",
