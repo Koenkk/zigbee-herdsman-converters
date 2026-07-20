@@ -521,3 +521,76 @@ describe("Shelly Presence Gen4", () => {
         expect(occupancyEndpoints(definition, device)).toStrictEqual(["1", "2", "3"]);
     });
 });
+
+// Endpoint layouts below are the ones real devices report (read off a live installation), not
+// invented ones - the whole point of these tests is what happens when hardware differs.
+describe("Shelly Gen4 settings the device cannot report", () => {
+    const exposesOf = async (device: ReturnType<typeof mockDevice>) => {
+        const definition = await findByDevice(device);
+        return typeof definition.exposes === "function" ? (definition.exposes as DefinitionExposesFunction)(device, {}) : definition.exposes;
+    };
+
+    const mockPowerStrip = () =>
+        mockDevice({
+            modelID: "Power Strip",
+            manufacturerName: "Shelly",
+            endpoints: [
+                ...Array.from({length: 4}, (_, index) => ({ID: index + 1, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: []})),
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+            ],
+        });
+
+    // The RPC cluster cannot answer a read, so none of these has a convertGet at all. Announcing
+    // GET offers the user a refresh that can never do anything - not even once the firmware is fixed.
+    it("does not announce a read for power strip settings that have no read converter", async () => {
+        const device = mockPowerStrip();
+        const definition = await findByDevice(device);
+        const exposes = await exposesOf(device);
+
+        for (const name of ["led_colors", "led_night_mode", "buttons_enabled"]) {
+            const expose = exposes.find((e) => e.name === name);
+            expect(expose, `${name} is missing`).toBeDefined();
+            expect(definition.toZigbee.find((c) => c.key?.includes(name))?.convertGet, `${name} unexpectedly has a convertGet`).toBeUndefined();
+            expect(expose.access & 0b100, `${name} must not announce GET`).toBe(0);
+        }
+    });
+
+    // A configuration value that silently means something else than the user assumes is worse than
+    // none at all: what is shown is the last value written from here, never a reading.
+    it("tells the user that power strip settings cannot be read back", async () => {
+        const exposes = await exposesOf(mockPowerStrip());
+
+        for (const name of ["led_mode", "led_colors", "led_power_brightness", "led_night_mode", "buttons_enabled"]) {
+            const expose = exposes.find((e) => e.name === name);
+            expect(expose, `${name} is missing`).toBeDefined();
+            expect(expose.description ?? "", `${name} does not mention that it cannot be read back`).toContain("cannot report");
+        }
+    });
+
+    const mockOnePM = (withSwitchInput: boolean) =>
+        mockDevice({
+            modelID: "Mini1PM",
+            manufacturerName: "Shelly",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                ...(withSwitchInput ? [{ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]}] : []),
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+            ],
+        });
+
+    // A 1PM Mini only reports the switch input endpoint when an input is actually wired. Without it
+    // the setting has nothing to address, and a state that can never hold a value is worse than none.
+    it("exposes no switch_type on a 1PM Mini that has no switch input endpoint", async () => {
+        const names = (await exposesOf(mockOnePM(false))).map((e) => e.name);
+
+        expect(names).not.toContain("switch_type");
+    });
+
+    it("exposes switch_type on a 1PM Mini that has a switch input endpoint", async () => {
+        const exposes = await exposesOf(mockOnePM(true));
+        const switchType = exposes.find((e) => e.name === "switch_type");
+
+        expect(switchType).toBeDefined();
+        expect(switchType.endpoint).toBe("sw1");
+    });
+});
