@@ -805,7 +805,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["POK018"],
         model: "POK018",
         vendor: "PushOk Hardware",
-        description: "Battery powered Zigbee MP3 player",
+        description: "Battery powered loudspeaker",
         extend: [
             m.enumLookup({
                 name: "status",
