@@ -14,6 +14,12 @@ const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
 const SHELLY_PRESENCE_MAX_ZONES = 10;
 const SHELLY_RPC_DATA_READ_TIMEOUT = 10000;
+// The RPC cluster cannot deliver a response over Zigbee: the device acknowledges a read of the
+// Data attribute but never sends the Read Attributes Response. Shelly confirmed this as a known
+// firmware limitation and it is still present in firmware 2.0.0, so everything that would read
+// through the RPC cluster is disabled - it would only produce empty values and a timeout per
+// attempt. Flip this once a firmware answers again.
+const SHELLY_RPC_CAN_READ = false;
 
 const NS = "zhc:shelly";
 
@@ -593,6 +599,7 @@ const shellyModernExtend = {
         };
 
         const getShellySwitchConfig = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<KeyValue | undefined> => {
+            if (!SHELLY_RPC_CAN_READ) return undefined;
             const response = await rpcRequest(endpoint, "Switch.GetConfig", {id});
             const result = response?.result ?? response?.params ?? response;
             if (!result) return undefined;
@@ -928,7 +935,7 @@ const shellyModernExtend = {
                 }
             });
         }
-        if (featureCoverTiltAuto) {
+        if (featureCoverTiltAuto && SHELLY_RPC_CAN_READ) {
             configure.push(async (device) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
                 if (!ep) return;
@@ -1000,6 +1007,11 @@ const shellyModernExtend = {
             return result;
         };
         const readWifiStateViaRpc = async (endpoint: Zh.Endpoint): Promise<KeyValue | undefined> => {
+            // Reading through the RPC cluster only gains the untruncated SSID here, and the firmware
+            // cannot answer an RPC read at all - it would just cost two timeouts before the setup
+            // cluster, which does answer, gets its turn. The reported SSID is completed from the
+            // cached one anyway.
+            if (!SHELLY_RPC_CAN_READ) return undefined;
             const config = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetConfig"));
             const status = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetStatus"));
             const state: KeyValue = {};
