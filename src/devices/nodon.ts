@@ -351,7 +351,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        endpoint: (device) => ({default: 1}),
+        extend: [m.identify(), m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("genOnOff", endpoint);
+        },
         ota: true,
     },
     {
@@ -367,12 +372,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
+        endpoint: (device) => ({default: 1}),
         extend: [
+            m.identify(),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchTypeOnOff(),
         ],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("genOnOff", endpoint);
+        },
         ota: true,
     },
     {
@@ -381,11 +392,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Lighting relay switch",
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.identify(),
+            m.deviceEndpoints({endpoints: {default: 1, l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
         ],
+        configure: async (device) => {
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            await ep1.bind("genOnOff", ep1);
+            await ep2.bind("genOnOff", ep2);
+        },
         ota: true,
     },
     {
