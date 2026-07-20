@@ -8446,7 +8446,7 @@ export const definitions: DefinitionWithExtend[] = [
             
         ],
     },
-};
+},
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE204_r0jdjrvi",
