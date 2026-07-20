@@ -8412,6 +8412,7 @@ export const definitions: DefinitionWithExtend[] = [
         //toZigbee: [tuya.tz.datapoints],
         //onEvent: tuya.onEventSetTime,
         //configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
             // Expose Switches to Home Assistant
