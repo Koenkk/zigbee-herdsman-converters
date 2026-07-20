@@ -561,7 +561,14 @@ const shellyModernExtend = {
         const featureDev = features.includes("Dev");
         const featurePowerstripUI = features.includes("PowerstripUI");
         const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
-        const featureTwoPMInputMode = features.includes("2PMInputMode");
+        // The two 2PM variants put their switch inputs on different endpoints: the cover on 2 and 3,
+        // the switch-mode device on 3 and 4, because there 1 and 2 are its two relays. A single
+        // shared mapping cannot serve both - it would read the second relay as the first input.
+        const twoPMInputEndpoints = features.includes("2PMCoverInputMode")
+            ? {sw1: 2, sw2: 3}
+            : features.includes("2PMSwitchInputMode")
+              ? {sw1: 3, sw2: 4}
+              : undefined;
         const featureOnePMInputMode = features.includes("1PMInputMode");
         const featureCoverTiltAuto = features.includes("CoverTiltAuto");
         const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
@@ -874,11 +881,11 @@ const shellyModernExtend = {
                 },
             });
         }
-        if (featureTwoPMInputMode) {
+        if (twoPMInputEndpoints) {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
-                return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2, sw2: 3})).map((endpoint) =>
+                return Object.keys(shellySwitchInputEndpoints(device, twoPMInputEndpoints)).map((endpoint) =>
                     e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
                 );
             });
@@ -1851,7 +1858,7 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({sw1: 2, sw2: 3}),
             shellyModernExtend.shellyWindowCovering(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode", "CoverTiltAuto"]),
+            shellyModernExtend.shellyRPCSetup(["2PMCoverInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1924,7 +1931,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
+            shellyModernExtend.shellyRPCSetup(["2PMSwitchInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {

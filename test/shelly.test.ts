@@ -334,3 +334,88 @@ describe("Shelly Gen4 settings the device cannot report", () => {
         expect(switchType.endpoint).toBe("sw1");
     });
 });
+
+// The two 2PM variants place their switch inputs on different endpoints: the cover has them on 2
+// and 3, the switch-mode device on 3 and 4, because 1 and 2 are its two relays. Endpoint layouts
+// below are taken from the definitions' own fingerprints.
+describe("Shelly 2PM Gen4 switch input endpoints", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+
+    // Two relays, no switch inputs wired - the layout a switch-mode 2PM reports on its own.
+    const mockSwitchWithoutInputs = () =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const mockSwitchWithInputs = () =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 5, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const mockCoverWithInputs = () =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const exposeNames = async (device: ReturnType<typeof mockDevice>) => {
+        const definition = await findByDevice(device);
+        const exposes = typeof definition.exposes === "function" ? (definition.exposes as DefinitionExposesFunction)(device, {}) : definition.exposes;
+        return {model: definition.model, names: exposes.map((e) => `${e.name}${e.endpoint ? `_${e.endpoint}` : ""}`)};
+    };
+
+    // Endpoints 1 and 2 are the relays here. Reading them as switch inputs invents an input the
+    // device does not have.
+    it("offers no switch input mode on a switch-mode 2PM whose inputs are not wired", async () => {
+        const {model, names} = await exposeNames(mockSwitchWithoutInputs());
+
+        expect(model).toBe("S4SW-002P16EU-SWITCH");
+        expect(names.filter((name) => name.startsWith("switch_mode"))).toStrictEqual([]);
+    });
+
+    // Guard, not proof: with both inputs wired the two mappings happen to produce the same endpoint
+    // names even while pointing at different endpoints. It only keeps the wired case from breaking
+    // while the unwired one above is fixed.
+    it("keeps both switch inputs exposed on a switch-mode 2PM that has them wired", async () => {
+        const {model, names} = await exposeNames(mockSwitchWithInputs());
+
+        expect(model).toBe("S4SW-002P16EU-SWITCH");
+        expect(names).toContain("switch_type_sw1");
+        expect(names).toContain("switch_type_sw2");
+        expect(names).toContain("switch_mode_sw1");
+        expect(names).toContain("switch_mode_sw2");
+    });
+
+    it("keeps the cover-mode 2PM on its own input endpoints", async () => {
+        const {model, names} = await exposeNames(mockCoverWithInputs());
+
+        expect(model).toBe("S4SW-002P16EU-COVER");
+        expect(names).toContain("switch_mode_sw1");
+        expect(names).toContain("switch_mode_sw2");
+    });
+});
