@@ -8,6 +8,14 @@ const getFeatureNames = (expose: Expose): string[] => {
     return "features" in expose && expose.features ? expose.features.map((feature) => feature.name) : [];
 };
 
+// The Shelly RPC protocol may split a single JSON command across multiple `data` writes.
+// Reassemble every shellyRPCCluster data write into the full command string for assertions.
+const sentRpcData = (endpoint: {write: ReturnType<typeof vi.fn>}): string =>
+    endpoint.write.mock.calls
+        .filter((call) => call[0] === "shellyRPCCluster" && typeof (call[1] as {data?: unknown})?.data === "string")
+        .map((call) => (call[1] as {data: string}).data)
+        .join("");
+
 describe("Shelly 2PM Gen4 cover mode", () => {
     const mockShelly2PMCover = (read?: ReturnType<typeof vi.fn>) =>
         mockDevice({
@@ -136,6 +144,21 @@ describe("Shelly Wi-Fi setup", () => {
             ],
         });
 
+    // Reading the Wi-Fi state through the RPC cluster only gains the untruncated SSID, and the
+    // firmware cannot answer an RPC read over Zigbee at all. Every attempt costs two timeouts
+    // before the setup cluster - which does answer - gets its turn, on every Gen4 device.
+    it("reads the Wi-Fi state through the setup cluster without trying RPC first", async () => {
+        const device = mockShelly2PMCover();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key?.includes("wifi_config")) as Tz.Converter;
+        const publish = vi.fn();
+
+        await converter.convertGet?.(device.getEndpoint(1), "wifi_config", {device, message: {}, publish} as never);
+
+        expect(sentRpcData(device.getEndpoint(239) as never)).toBe("");
+        expect(device.getEndpoint(239).read).toHaveBeenCalledWith("shellyWiFiSetupCluster", expect.any(Array), expect.any(Object));
+    });
+
     it("uses the cached full Shelly Wi-Fi SSID when the setup cluster reports a shortened name", async () => {
         const device = mockShelly2PMCover();
         const definition = await findByDevice(device);
@@ -214,7 +237,10 @@ describe("Shelly Presence Gen4", () => {
             .map((expose) => expose.endpoint);
     };
 
-    it("falls back to all possible zone endpoints until the device config is read", async () => {
+    // The occupancy endpoints are the tracked PEOPLE, not zones - the device reports each detected
+    // person on its own endpoint. They must never depend on a zone count, or a second person is
+    // silently dropped. Shelly's own definition exposes all ten unconditionally.
+    it("exposes an occupancy endpoint for every person the device can track", async () => {
         const device = mockShellyPresence();
         const definition = await findByDevice(device);
 
@@ -222,43 +248,308 @@ describe("Shelly Presence Gen4", () => {
         expect(occupancyEndpoints(definition, device)).toStrictEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
     });
 
-    it("uses the persisted PresenceZone count for occupancy exposes", async () => {
+    it("keeps every occupancy endpoint even when only one zone is known", async () => {
+        const device = mockShellyPresence();
+        device.meta.presence_zone_count = 1;
+        const definition = await findByDevice(device);
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        const names = exposes(device, {}).map((expose) => `${expose.name}_${expose.endpoint}`);
+
+        expect(occupancyEndpoints(definition, device)).toHaveLength(10);
+        // The zone delays follow the zone, not the tracked people.
+        expect(names).toContain("presence_delay_1");
+        expect(names).not.toContain("presence_delay_2");
+    });
+
+    it("exposes presence_delay and absence_delay for each detected zone", async () => {
         const device = mockShellyPresence();
         device.meta.presence_zone_count = 2;
         const definition = await findByDevice(device);
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        const names = exposes(device, {}).map((expose) => `${expose.name}_${expose.endpoint}`);
 
-        expect(occupancyEndpoints(definition, device)).toStrictEqual(["1", "2"]);
+        expect(names).toEqual(expect.arrayContaining(["presence_delay_1", "absence_delay_1", "presence_delay_2", "absence_delay_2"]));
+        expect(names).not.toContain("presence_delay_3");
     });
 
-    it("persists the PresenceZone count from Shelly.GetConfig during configure", async () => {
-        const response = JSON.stringify({
-            id: 1,
-            result: {
-                presence: {main_zone: "presencezone:200"},
-                "presencezone:200": {id: 200, name: "Room"},
-                "presencezone:201": {id: 201, name: "Desk"},
-                "presencezone:202": {id: 202, name: "Door"},
-            },
-        });
-        const read = vi.fn((cluster: string, attributes: string[]) => {
-            if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) return Promise.resolve({rxCtl: response.length});
-            if (cluster === "shellyRPCCluster" && attributes.includes("data")) return Promise.resolve({data: response});
-            return Promise.resolve({});
-        });
-        const device = mockShellyPresence(read);
-        const save = vi.spyOn(device, "save").mockImplementation(() => {});
+    it("writes PresenceZone.SetConfig to the mapped zone id when setting a delay", async () => {
+        const device = mockShellyPresence();
+        device.meta.presence_zone_ids = [200, 201, 202];
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("presence_delay")) as Tz.Converter;
+
+        const result = await converter.convertSet?.(device.getEndpoint(2), "presence_delay", 45, {
+            endpoint_name: "2",
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        const command = sentRpcData(device.getEndpoint(239) as never);
+        expect(command).toContain('"method":"PresenceZone.SetConfig"');
+        expect(command).toContain('"id":201');
+        expect(command).toContain('"presence_thr":45');
+        expect(result).toStrictEqual({state: {presence_delay: 45}});
+    });
+
+    // The firmware cannot answer an RPC read over Zigbee, so nothing configured through the RPC
+    // cluster may offer one. A device query walks every converter that has a convertGet regardless
+    // of the access flags, so the read has to be gone, not just marked unavailable.
+    it("offers no RPC-backed reads at all", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const rpcKeys = ["presence_delay", "absence_delay", "eco_mode", "mounting", "detection", "leds", "tuning"];
+
+        for (const key of rpcKeys) {
+            const converter = definition.toZigbee.find((c) => c.key?.includes(key)) as Tz.Converter;
+            expect(converter, `no converter for ${key}`).toBeDefined();
+            expect(converter.convertGet, `${key} must not be readable`).toBeUndefined();
+        }
+
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        for (const expose of exposes(device, {})) {
+            if (!expose.name || !rpcKeys.includes(expose.name)) continue;
+            // settable and shown, but never fetched from the device
+            expect(expose.access & 0b100, `${expose.name} must not announce GET`).toBe(0);
+            expect(expose.access & 0b010, `${expose.name} must stay settable`).toBe(0b010);
+        }
+    });
+
+    it("does not read the zone back after writing a delay", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("presence_delay")) as Tz.Converter;
+
+        const result = await converter.convertSet?.(device.getEndpoint(1), "presence_delay", 45, {
+            endpoint_name: "1",
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        const command = sentRpcData(device.getEndpoint(239) as never);
+        expect(command).toContain('"method":"PresenceZone.SetConfig"');
+        expect(command).not.toContain("GetConfig");
+        expect(result).toStrictEqual({state: {presence_delay: 45}});
+    });
+
+    it("does not read the sensor back after writing a group", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("detection")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(1), "detection", {sensitivity: "high"}, {message: {}, state: {}, device} as never);
+
+        const command = sentRpcData(device.getEndpoint(239) as never);
+        expect(command).toContain('"method":"Presence.SetConfig"');
+        expect(command).not.toContain("GetConfig");
+    });
+
+    it("makes no discovery attempt while the firmware cannot answer reads", async () => {
+        const device = mockShellyPresence();
         const definition = await findByDevice(device);
 
         await definition.configure?.(device, mockShellyPresence().getEndpoint(1), definition);
 
-        expect(device.meta.presence_zone_count).toBe(3);
-        expect(save).toHaveBeenCalledTimes(1);
-        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
-            "shellyRPCCluster",
-            {data: expect.stringContaining("Shelly.GetConfig")},
-            expect.any(Object),
-        );
-        expect(occupancyEndpoints(definition, device)).toStrictEqual(["1", "2", "3"]);
+        expect(sentRpcData(device.getEndpoint(239) as never)).toBe("");
+    });
+
+    // Zone ids can only be learned through an RPC read, and the firmware cannot answer those over
+    // Zigbee. A factory device has exactly one zone, so the main zone id has to carry the write.
+    it("writes to the main zone id when no zone ids could be discovered", async () => {
+        const device = mockShellyPresence();
+        expect(device.meta.presence_zone_ids).toBeUndefined();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("absence_delay")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(1), "absence_delay", 90, {
+            endpoint_name: "1",
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        const command = sentRpcData(device.getEndpoint(239) as never);
+        expect(command).toContain('"method":"PresenceZone.SetConfig"');
+        expect(command).toContain('"id":200');
+        expect(command).toContain('"absence_thr":90');
+    });
+
+    it("clamps out-of-range delays to the 0-3600 second bounds", async () => {
+        const device = mockShellyPresence();
+        device.meta.presence_zone_ids = [200];
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("absence_delay")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(1), "absence_delay", 99999, {endpoint_name: "1", message: {}, state: {}, device} as never);
+
+        expect(sentRpcData(device.getEndpoint(239) as never)).toContain('"absence_thr":3600');
+    });
+
+    // A group travels in ONE command, and only the values actually given are sent.
+    it("writes a whole group in a single Presence.SetConfig and sends only what was given", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("detection")) as Tz.Converter;
+
+        const result = await converter.convertSet?.(device.getEndpoint(1), "detection", {sensitivity: "high", tracked_objects: 4}, {
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        const command = sentRpcData(device.getEndpoint(239) as never);
+        expect(command.split('"method":"Presence.SetConfig"').length - 1).toBe(1);
+        expect(command).toContain('"sensitivity":"high"');
+        expect(command).toContain('"num_tracks":4');
+        expect(command).not.toContain("zmin");
+        expect(result).toStrictEqual({state: {detection: {sensitivity: "high", tracked_objects: 4}}});
+    });
+
+    // The settings are grouped so a consuming integration shows folders instead of two dozen
+    // values side by side; the ranges are the ones the device enforces itself.
+    it("groups the sensor settings and keeps the device's own ranges", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        const groups = new Map(exposes(device, {}).map((expose) => [expose.name, expose]));
+        const featureOf = (group: string, name: string) => (groups.get(group) as {features?: Expose[]})?.features?.find((f) => f.name === name);
+
+        expect([...groups.keys()]).toEqual(expect.arrayContaining(["mounting", "detection", "leds", "tuning"]));
+        expect(featureOf("mounting", "installation_height")).toMatchObject({value_min: 0, value_max: 5, unit: "m"});
+        expect(featureOf("mounting", "sensor_position")).toMatchObject({values: ["center", "left", "right"]});
+        expect(featureOf("detection", "maximum_range")).toMatchObject({value_min: 0, value_max: 5, unit: "m"});
+        expect(featureOf("detection", "tracked_objects")).toMatchObject({value_min: 1, value_max: 10});
+        expect(featureOf("detection", "radar_power")).toMatchObject({values: ["low", "medium", "high"]});
+        expect(featureOf("leds", "brightness")).toMatchObject({value_min: 0, value_max: 100, unit: "%"});
+        expect(featureOf("leds", "night_mode")).toMatchObject({type: "binary"});
+        expect(featureOf("tuning", "detection_points")).toMatchObject({value_min: 10, value_max: 100});
+        expect(featureOf("tuning", "velocity_threshold")).toMatchObject({value_min: 0, value_max: 1});
+        expect(featureOf("tuning", "snr_threshold")).toMatchObject({value_min: 10, value_max: 100});
+        expect(featureOf("tuning", "maximum_velocity_difference")).toMatchObject({value_min: 1, value_max: 50});
+        expect(featureOf("tuning", "motion_activation_threshold")).toMatchObject({value_min: 1, value_max: 100});
+        expect(featureOf("tuning", "tracking_loss_threshold")).toMatchObject({value_min: 1, value_max: 1000});
+        expect(featureOf("tuning", "stillness_timeout_threshold")).toMatchObject({value_min: 1, value_max: 65535});
+    });
+
+    it("merges several deeply nested thresholds into one nested config", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("tuning")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(1), "tuning", {stillness_timeout_threshold: 900, motion_activation_threshold: 2}, {
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        expect(sentRpcData(device.getEndpoint(239) as never)).toContain('"state":{"det_act_thr":2,"sleep_free_thr":900}');
+    });
+
+    // The device reports 'custom' once the fine-tuning values deviate from a preset, but only
+    // accepts the three presets on write. Listing it keeps the reported state a valid value.
+    it("lists the reported custom sensitivity but refuses to write it", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        const detection = exposes(device, {}).find((expose) => expose.name === "detection") as {features?: Expose[]};
+        const converter = definition.toZigbee.find((c) => c.key.includes("detection")) as Tz.Converter;
+
+        expect(detection.features?.find((f) => f.name === "sensitivity")).toMatchObject({
+            values: ["low", "medium", "high", "custom"],
+        });
+        await expect(
+            converter.convertSet?.(device.getEndpoint(1), "detection", {sensitivity: "custom"}, {message: {}, state: {}, device} as never),
+        ).rejects.toThrow(/custom/i);
+    });
+
+    // Discovered ids stay authoritative where they exist; the main-zone fallback only fills the gap.
+    it("prefers a discovered zone id over the main zone fallback", async () => {
+        const device = mockShellyPresence();
+        device.meta.presence_zone_ids = [207];
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("presence_delay")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(1), "presence_delay", 10, {
+            endpoint_name: "1",
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        expect(sentRpcData(device.getEndpoint(239) as never)).toContain('"id":207');
+    });
+
+    it("exposes an eco_mode switch", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const exposes = definition.exposes as DefinitionExposesFunction;
+        const names = exposes(device, {}).map((expose) => expose.name);
+        expect(names).toContain("eco_mode");
+    });
+
+    it("writes Sys.SetConfig when eco_mode is set", async () => {
+        const device = mockShellyPresence();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key.includes("eco_mode")) as Tz.Converter;
+
+        const result = await converter.convertSet?.(device.getEndpoint(239), "eco_mode", true, {message: {}, state: {}, device} as never);
+
+        const command = sentRpcData(device.getEndpoint(239) as never);
+        expect(command).toContain('"method":"Sys.SetConfig"');
+        expect(command).toContain('"eco_mode":true');
+        expect(result).toStrictEqual({state: {eco_mode: true}});
+    });
+
+    // Reporting has to reach every tracked-person endpoint. Configuring only the first one is what
+    // the device did before, and it makes a second person arrive nowhere.
+    it("configures occupancy reporting on every tracked-person endpoint", async () => {
+        const device = mockShellyPresence();
+        const coordinator = mockShellyPresence().getEndpoint(1);
+        const definition = await findByDevice(device);
+
+        await definition.configure?.(device, coordinator, definition);
+
+        for (const endpointName of ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]) {
+            expect(device.getEndpoint(Number(endpointName)).configureReporting).toHaveBeenCalledWith("msOccupancySensing", expect.anything());
+        }
+    });
+
+    // A sleeping or unreachable endpoint makes the coordinator report a delivery failure. That must
+    // not abort configure, or one bad endpoint costs the device its whole occupancy reporting.
+    it("keeps configuring the remaining endpoints when one of them fails", async () => {
+        const device = mockShellyPresence();
+        const coordinator = mockShellyPresence().getEndpoint(1);
+        const definition = await findByDevice(device);
+        vi.mocked(device.getEndpoint(3).configureReporting).mockRejectedValueOnce(new Error("Delivery failed for '6137'"));
+
+        await definition.configure?.(device, coordinator, definition);
+
+        expect(device.getEndpoint(10).configureReporting).toHaveBeenCalledWith("msOccupancySensing", expect.anything());
+    });
+
+    it("retries a delay write when the first RPC send fails", async () => {
+        const device = mockShellyPresence();
+        device.meta.presence_zone_ids = [200];
+        const definition = await findByDevice(device);
+        const ep = device.getEndpoint(239) as unknown as {write: ReturnType<typeof vi.fn>};
+        let attempts = 0;
+        ep.write = vi.fn(() => {
+            attempts++;
+            if (attempts === 1) return Promise.reject(new Error("Send command failed: timed out"));
+            return Promise.resolve({});
+        });
+        const converter = definition.toZigbee.find((c) => c.key.includes("presence_delay")) as Tz.Converter;
+
+        const result = await converter.convertSet?.(device.getEndpoint(1), "presence_delay", 30, {
+            endpoint_name: "1",
+            message: {},
+            state: {},
+            device,
+        } as never);
+
+        expect(attempts).toBeGreaterThan(1);
+        expect(result).toStrictEqual({state: {presence_delay: 30}});
     });
 });
 
