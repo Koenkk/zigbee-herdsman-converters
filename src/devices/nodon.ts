@@ -295,10 +295,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDO-4-1-00",
         vendor: "NodOn",
         description: "Door & window opening sensor",
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact()],
-        extend: [m.battery({voltageReporting: true})],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"], zoneStatusReporting: {max: constants.repInterval.HOUR}}),
+        ],
         ota: true,
     },
     {
