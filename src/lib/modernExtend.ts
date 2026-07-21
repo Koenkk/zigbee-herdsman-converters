@@ -1663,7 +1663,7 @@ export interface IasArgs {
     zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
     keepAliveTimeout?: (device: Device) => number;
-    zoneStatusReporting?: boolean;
+    zoneStatusReporting?: boolean | Partial<ReportingConfigWithoutAttribute>;
     description?: string;
     invertAlarm?: true;
     manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
@@ -1814,9 +1814,12 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     let configure: Configure[];
     if (args.zoneStatusReporting) {
+        const zoneStatusReportingConfig = isObject(args.zoneStatusReporting) ? args.zoneStatusReporting : {};
         configure = [
             async (device, coordinatorEndpoint) => {
-                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [{attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0}]);
+                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [
+                    {attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0, ...zoneStatusReportingConfig},
+                ]);
             },
         ];
     }
