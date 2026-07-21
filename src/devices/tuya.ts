@@ -8399,19 +8399,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [
-            {
-                modelID: "TS0601",
-                manufacturerName: "_TZE200_rgeapp2c",
-            },
-        ],
-        model: "TS0601_TZE200_rgeapp2c",
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rgeapp2c"]),
+        model: "_TZE200_rgeapp2c",
         vendor: "Tuya",
-        description: "Semicom Tuya touch panel: 2 switches + 2 shutters",
-        //fromZigbee: [tuya.fz.datapoints],
-        //toZigbee: [tuya.tz.datapoints],
-        //onEvent: tuya.onEventSetTime,
-        //configure: tuya.configureMagicPacket,
+        description: "Semicom touch panel: 2 switches + 2 shutters",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
