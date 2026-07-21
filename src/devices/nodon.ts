@@ -307,13 +307,34 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Energy monitoring sensor",
         extend: [
+            m.identify(),
             m.electricityMeter({
-                acFrequency: true,
+                // A forced object's `change` is not auto-scaled by the multiplier/divisor (unlike
+                // the default change) — values below are already raw ZCL units. Factors measured
+                // on physical devices: acPowerMultiplier/Divisor=1/1, acCurrentMultiplier/Divisor=1/100,
+                // acVoltageMultiplier/Divisor=1/100, acFrequencyMultiplier/Divisor=1/100.
+                voltage: {min: 30, max: 3600, change: 2300}, // 23 V
+                current: {min: 10, max: 3600, change: 100}, // 1 A
+                power: {min: 10, max: 3600, change: 250}, // 250 W
+                acFrequency: {min: 30, max: 3600, change: 500}, // 5 Hz
+                producedEnergy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                energy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                apparentPower: {min: 10, max: 3600, change: 250}, // 250 VA, shares activePower's factor
                 powerFactor: true,
-                producedEnergy: true,
             }),
         ],
-        exposes: [e.power_apparent()],
+        toZigbee: [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, _key, _value, _meta) => {
+                    // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
+                    // Network membership, bindings and configureReporting are not affected (ZCL spec).
+                    await entity.command("genBasic", "resetFactDefault", {});
+                    return {state: {}};
+                },
+            },
+        ],
+        exposes: [e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config")],
         ota: true,
     },
     {
