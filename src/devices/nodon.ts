@@ -306,10 +306,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.identify(),
             m.electricityMeter({
-                acFrequency: true,
+                // A forced object's `change` is not auto-scaled by the multiplier/divisor (unlike
+                // the default change) — values below are already raw ZCL units. Factors measured
+                // on physical devices: acPowerMultiplier/Divisor=1/1, acCurrentMultiplier/Divisor=1/100,
+                // acVoltageMultiplier/Divisor=1/100, acFrequencyMultiplier/Divisor=1/100.
+                voltage: {min: 30, max: 3600, change: 2300}, // 23 V
+                current: {min: 10, max: 3600, change: 100}, // 1 A
+                power: {min: 10, max: 3600, change: 250}, // 250 W
+                acFrequency: {min: 30, max: 3600, change: 500}, // 5 Hz
+                producedEnergy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                energy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                apparentPower: {min: 10, max: 3600, change: 250}, // 250 VA, shares activePower's factor
                 powerFactor: true,
-                producedEnergy: true,
-                configureReporting: false,
             }),
         ],
         toZigbee: [
@@ -323,47 +331,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             },
         ],
-        exposes: [
-            e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config"),
-            e.power_apparent(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-
-            // Explicit bind — not done by m.electricityMeter because configureReporting: false
-            await endpoint.bind("haElectricalMeasurement", coordinatorEndpoint);
-            await endpoint.bind("seMetering", coordinatorEndpoint);
-
-            await endpoint.read("haElectricalMeasurement", [
-                "acVoltageMultiplier",
-                "acVoltageDivisor",
-                "acCurrentMultiplier",
-                "acCurrentDivisor",
-                "acPowerMultiplier",
-                "acPowerDivisor",
-                "acFrequencyMultiplier",
-                "acFrequencyDivisor",
-            ]);
-            await endpoint.read("seMetering", ["multiplier", "divisor"]);
-
-            // Split into batches of ≤5 to stay within the ~85-byte ZCL frame limit
-            await endpoint.configureReporting("haElectricalMeasurement", [
-                {attribute: "acFrequency", minimumReportInterval: 30, maximumReportInterval: 3600, reportableChange: 500}, // 5 Hz
-                {attribute: "rmsVoltage", minimumReportInterval: 30, maximumReportInterval: 3600, reportableChange: 2300}, // 23 V
-                {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 100}, // 1 A
-                {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 250}, // 250 W
-                {attribute: "apparentPower", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 250}, // 250 VA
-            ]);
-            await endpoint.configureReporting("haElectricalMeasurement", [
-                {attribute: "powerFactor", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 20}, // 0.20
-            ]);
-            await endpoint.configureReporting("seMetering", [
-                {attribute: "currentSummDelivered", minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
-            ]);
-            await endpoint.configureReporting("seMetering", [
-                {attribute: "currentSummReceived", minimumReportInterval: 300, maximumReportInterval: 3600, reportableChange: 100}, // 0.1 kWh
-            ]);
-        },
+        exposes: [e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config")],
         ota: true,
     },
     {
