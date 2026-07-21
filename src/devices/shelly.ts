@@ -14,6 +14,12 @@ const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
 const SHELLY_PRESENCE_MAX_ZONES = 10;
 const SHELLY_RPC_DATA_READ_TIMEOUT = 10000;
+// The RPC cluster cannot deliver a response over Zigbee: the device acknowledges a read of the
+// Data attribute but never sends the Read Attributes Response. Shelly confirmed this as a known
+// firmware limitation and it is still present in firmware 2.0.0, so everything that would read
+// through the RPC cluster is disabled - it would only produce empty values and a timeout per
+// attempt. Flip this once a firmware answers again.
+const SHELLY_RPC_CAN_READ = false;
 
 const NS = "zhc:shelly";
 
@@ -593,6 +599,7 @@ const shellyModernExtend = {
         };
 
         const getShellySwitchConfig = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<KeyValue | undefined> => {
+            if (!SHELLY_RPC_CAN_READ) return undefined;
             const response = await rpcRequest(endpoint, "Switch.GetConfig", {id});
             const result = response?.result ?? response?.params ?? response;
             if (!result) return undefined;
@@ -623,14 +630,19 @@ const shellyModernExtend = {
             e.text("rpc_rxctl", ea.STATE_GET).withLabel("RxCtl").withDescription("RX bytes available").withCategory("diagnostic"),
             e.text("rpc_data", ea.STATE_GET).withLabel("Data").withDescription("RX Data").withCategory("diagnostic"),
         ];
+        // The device applies these but cannot report any of them back over Zigbee, so what a value
+        // shows is what was last written from here - never a reading off the device. Say so on every
+        // one of them: a configuration field that quietly means something else than the user assumes
+        // is worse than no field at all.
+        const WRITE_ONLY = "The device cannot report this back over Zigbee, so it shows what was last set from here";
         const exposesPowerstripUI: Expose[] = [
             e
                 .enum("led_mode", ea.STATE_SET, ["off", "switch", "power"])
                 .withLabel("LED Mode")
-                .withDescription("Controls the behaviour of the LED rings around the sockets")
+                .withDescription(`Controls the behaviour of the LED rings around the sockets. ${WRITE_ONLY}`)
                 .withCategory("config"),
             e
-                .composite("led_colors", "led_colors", ea.ALL)
+                .composite("led_colors", "led_colors", ea.STATE_SET)
                 .withFeature(featurePercentage("on_r", "Red (on)"))
                 .withFeature(featurePercentage("on_g", "Green (on)"))
                 .withFeature(featurePercentage("on_b", "Blue (on)"))
@@ -640,24 +652,28 @@ const shellyModernExtend = {
                 .withFeature(featurePercentage("off_b", "Blue (off)"))
                 .withFeature(featurePercentage("off_brightness", "Brightness (off)"))
                 .withLabel("LED colors in 'switch' mode")
+                .withDescription(`Colors of the LED rings while the LED mode is 'switch'. ${WRITE_ONLY}`)
                 .withCategory("config"),
-            featurePercentage("led_power_brightness", "LED brightness in 'power' mode").withCategory("config"),
+            featurePercentage("led_power_brightness", "LED brightness in 'power' mode")
+                .withDescription(`Brightness of the LED rings while the LED mode is 'power'. ${WRITE_ONLY}`)
+                .withCategory("config"),
             e
-                .composite("led_night_mode", "led_night_mode", ea.ALL)
+                .composite("led_night_mode", "led_night_mode", ea.STATE_SET)
                 .withFeature(e.binary("enable", ea.STATE_SET, true, false))
                 .withFeature(featurePercentage("brightness", "Brightness"))
                 .withFeature(e.text("from", ea.STATE_SET).withLabel("Active from").withDescription("hh:mm"))
                 .withFeature(e.text("until", ea.STATE_SET).withLabel("Active until").withDescription("hh:mm"))
                 .withLabel("LED night mode")
-                .withDescription("Adjust LED brightness during night time")
+                .withDescription(`Adjust LED brightness during night time. ${WRITE_ONLY}`)
                 .withCategory("config"),
             e
-                .composite("buttons_enabled", "buttons_enabled", ea.ALL)
+                .composite("buttons_enabled", "buttons_enabled", ea.STATE_SET)
                 .withFeature(featureButtonEnabled(0))
                 .withFeature(featureButtonEnabled(1))
                 .withFeature(featureButtonEnabled(2))
                 .withFeature(featureButtonEnabled(3))
                 .withLabel("Buttons enabled")
+                .withDescription(`Whether each socket button switches its own socket or is detached. ${WRITE_ONLY}`)
                 .withCategory("config"),
         ];
 
@@ -928,7 +944,7 @@ const shellyModernExtend = {
                 }
             });
         }
-        if (featureCoverTiltAuto) {
+        if (featureCoverTiltAuto && SHELLY_RPC_CAN_READ) {
             configure.push(async (device) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
                 if (!ep) return;
@@ -1000,6 +1016,11 @@ const shellyModernExtend = {
             return result;
         };
         const readWifiStateViaRpc = async (endpoint: Zh.Endpoint): Promise<KeyValue | undefined> => {
+            // Reading through the RPC cluster only gains the untruncated SSID here, and the firmware
+            // cannot answer an RPC read at all - it would just cost two timeouts before the setup
+            // cluster, which does answer, gets its turn. The reported SSID is completed from the
+            // cached one anyway.
+            if (!SHELLY_RPC_CAN_READ) return undefined;
             const config = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetConfig"));
             const status = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetStatus"));
             const state: KeyValue = {};
@@ -1624,9 +1645,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
             m.deviceEndpoints({endpoints: {sw1: 2}}),
@@ -1652,9 +1676,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
             m.deviceEndpoints({endpoints: {sw1: 2}}),
@@ -1680,9 +1707,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
             m.deviceEndpoints({endpoints: {sw1: 2}}),
@@ -1710,9 +1740,12 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
             m.deviceEndpoints({endpoints: {sw1: 2}}),

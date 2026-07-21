@@ -97,28 +97,6 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         expect(state).toStrictEqual({switch_type_sw1: "toggle"});
     });
 
-    it("reads two-channel switch mode through the Shelly RPC endpoint", async () => {
-        const response = JSON.stringify({id: 1, result: {id: 1, in_mode: "detached"}});
-        const read = vi.fn().mockResolvedValueOnce({rxCtl: response.length}).mockResolvedValueOnce({data: response});
-        const device = mockShelly2PMCoverWithInputs(read);
-        const definition = await findByDevice(device);
-        const converter = definition.toZigbee.find((converter) => converter.key.includes("switch_mode")) as Tz.Converter;
-        const publish = vi.fn();
-
-        await converter.convertGet?.(device.getEndpoint(3), "switch_mode", {endpoint_name: "sw2", message: {}, publish} as never);
-
-        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
-            "shellyRPCCluster",
-            {data: expect.stringContaining("Switch.GetConfig")},
-            expect.any(Object),
-        );
-        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["rxCtl"], expect.any(Object));
-        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["data"], expect.any(Object));
-        expect(device.getEndpoint(3).write).not.toHaveBeenCalled();
-        expect(device.getEndpoint(3).read).not.toHaveBeenCalled();
-        expect(publish).toHaveBeenCalledWith({switch_mode_sw2: "detached"});
-    });
-
     it("keeps tilt controls visible by default and allows explicit opt-out", async () => {
         const device = mockShelly2PMCover();
         const definition = await findByDevice(device);
@@ -143,91 +121,6 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         expect(getFeatureNames(tiltCover)).toContain("tilt");
         expect(getFeatureNames(autoDetectedTiltCover)).toContain("tilt");
         expect(definition.options?.some((option) => option.name === "cover_tilt_enabled")).toBe(true);
-    });
-
-    it("persists Shelly slat control from Cover.GetConfig during configure", async () => {
-        const response = JSON.stringify({id: 1, result: {id: 0, slat: {enable: true}}});
-        const read = vi
-            .fn()
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: response.length})
-            .mockResolvedValueOnce({data: response});
-        const device = mockShelly2PMCover(read);
-        const save = vi.spyOn(device, "save").mockImplementation(() => {});
-        const definition = await findByDevice(device);
-
-        await definition.configure?.(device, mockShelly2PMCover().getEndpoint(1), definition);
-
-        expect(device.meta.cover_tilt_enabled).toBe(true);
-        expect(save).toHaveBeenCalledTimes(1);
-        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["rxCtl"], expect.any(Object));
-        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["data"], expect.any(Object));
-        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
-            "shellyRPCCluster",
-            {data: expect.stringContaining("Cover.GetConfig")},
-            expect.any(Object),
-        );
-    });
-
-    it("persists Shelly slat control from Cover.GetConfig params during configure", async () => {
-        const response = JSON.stringify({id: 1, params: {id: 0, slat: {enable: true}}});
-        const read = vi
-            .fn()
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: response.length})
-            .mockResolvedValueOnce({data: response});
-        const device = mockShelly2PMCover(read);
-        const save = vi.spyOn(device, "save").mockImplementation(() => {});
-        const definition = await findByDevice(device);
-
-        await definition.configure?.(device, mockShelly2PMCover().getEndpoint(1), definition);
-
-        expect(device.meta.cover_tilt_enabled).toBe(true);
-        expect(save).toHaveBeenCalledTimes(1);
-    });
-
-    it("overwrites stale persisted slat control from Cover.GetConfig during configure", async () => {
-        const response = JSON.stringify({id: 1, result: {id: 0, slat: {enable: false}}});
-        const read = vi
-            .fn()
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: response.length})
-            .mockResolvedValueOnce({data: response});
-        const device = mockShelly2PMCover(read);
-        device.meta.cover_tilt_enabled = true;
-        const save = vi.spyOn(device, "save").mockImplementation(() => {});
-        const definition = await findByDevice(device);
-
-        await definition.configure?.(device, mockShelly2PMCover().getEndpoint(1), definition);
-
-        expect(device.meta.cover_tilt_enabled).toBe(false);
-        expect(save).toHaveBeenCalledTimes(1);
-        const exposes = definition.exposes as DefinitionExposesFunction;
-        const cover = exposes(device, {cover_tilt_enabled: "auto"}).find((expose) => expose.type === "cover");
-        assert(cover);
-        expect(getFeatureNames(cover)).not.toContain("tilt");
-    });
-
-    it("leaves persisted slat control unchanged when Cover.GetConfig has no boolean slat flag", async () => {
-        const response = JSON.stringify({id: 1, result: {id: 0}});
-        const read = vi
-            .fn()
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: 0})
-            .mockResolvedValueOnce({rxCtl: response.length})
-            .mockResolvedValueOnce({data: response});
-        const device = mockShelly2PMCover(read);
-        device.meta.cover_tilt_enabled = true;
-        const save = vi.spyOn(device, "save").mockImplementation(() => {});
-        const definition = await findByDevice(device);
-
-        await definition.configure?.(device, mockShelly2PMCover().getEndpoint(1), definition);
-
-        expect(device.meta.cover_tilt_enabled).toBe(true);
-        expect(save).not.toHaveBeenCalled();
     });
 });
 
@@ -269,159 +162,6 @@ describe("Shelly Wi-Fi setup", () => {
             },
         });
         expect(definition.options?.some((option) => option.name === "shelly_wifi_ssid")).toBe(true);
-    });
-
-    it("publishes full Shelly Wi-Fi config through RPC before falling back to setup-cluster reads", async () => {
-        const configResponse = JSON.stringify({
-            id: 1,
-            result: {
-                sta: {
-                    enable: true,
-                    ssid: "The Internet of Shitty Things",
-                    ipv4mode: "dhcp",
-                    ip: null,
-                    netmask: null,
-                    gw: null,
-                    nameserver: null,
-                },
-            },
-        });
-        const statusResponse = JSON.stringify({
-            id: 1,
-            result: {
-                status: "got ip",
-                sta_ip: "192.168.1.230",
-                ssid: "The Internet of Shitty Things",
-            },
-        });
-        const responses = [configResponse, statusResponse];
-        let responseIndex = 0;
-        let currentResponse = "";
-        const read = vi.fn((cluster: string, attributes: string[]) => {
-            if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) {
-                currentResponse = responses[responseIndex++];
-                return Promise.resolve({rxCtl: currentResponse.length});
-            }
-            if (cluster === "shellyRPCCluster" && attributes.includes("data")) return Promise.resolve({data: currentResponse});
-            return Promise.resolve({});
-        });
-        const publish = vi.fn();
-        const device = mockShelly2PMCover(read);
-        const definition = await findByDevice(device);
-        const converter = definition.toZigbee?.find((c) => c.key.includes("wifi_config"));
-        assert(converter?.convertGet);
-
-        await converter.convertGet(device.getEndpoint(239), "wifi_config", {
-            device,
-            state: {},
-            publish,
-        } as unknown as Tz.Meta);
-
-        expect(publish).toHaveBeenCalledWith({
-            dhcp_enabled: true,
-            ip_address: "192.168.1.230",
-            wifi_config: {
-                enabled: true,
-                ssid: "The Internet of Shitty Things",
-            },
-            wifi_status: "got ip",
-        });
-        expect(device.meta.shelly_wifi_ssid).toBe("The Internet of Shitty Things");
-        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
-            "shellyRPCCluster",
-            {data: expect.stringContaining("Wifi.GetConfig")},
-            expect.any(Object),
-        );
-        expect(device.getEndpoint(239).write).toHaveBeenCalledWith(
-            "shellyRPCCluster",
-            {data: expect.stringContaining("Wifi.GetStatus")},
-            expect.any(Object),
-        );
-        expect(read).not.toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
-    });
-
-    it("uses a long Shelly RPC data read timeout so delayed chunks do not advance unread", async () => {
-        const configResponse = JSON.stringify({
-            id: 1,
-            result: {
-                sta: {
-                    enable: true,
-                    ssid: "The Internet of Shitty Things",
-                    ipv4mode: "dhcp",
-                },
-            },
-        });
-        const statusResponse = JSON.stringify({
-            id: 1,
-            result: {
-                status: "got ip",
-                sta_ip: "192.168.1.230",
-            },
-        });
-        const responses = [configResponse, statusResponse];
-        let currentResponse = "";
-        let chunks: string[] = [];
-        const read = vi.fn((cluster: string, attributes: string[]) => {
-            if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) {
-                currentResponse = responses.shift() ?? "";
-                chunks = [currentResponse.slice(0, 20), currentResponse.slice(20)];
-                return Promise.resolve({rxCtl: currentResponse.length});
-            }
-            if (cluster === "shellyRPCCluster" && attributes.includes("data")) {
-                return Promise.resolve({data: chunks.shift()});
-            }
-            return Promise.resolve({});
-        });
-        const publish = vi.fn();
-        const device = mockShelly2PMCover(read);
-        const definition = await findByDevice(device);
-        const converter = definition.toZigbee?.find((c) => c.key.includes("wifi_config"));
-        assert(converter?.convertGet);
-
-        await converter.convertGet(device.getEndpoint(239), "wifi_config", {
-            device,
-            state: {},
-            publish,
-        } as unknown as Tz.Meta);
-
-        expect(publish).toHaveBeenCalledWith({
-            dhcp_enabled: true,
-            ip_address: "192.168.1.230",
-            wifi_config: {
-                enabled: true,
-                ssid: "The Internet of Shitty Things",
-            },
-            wifi_status: "got ip",
-        });
-        expect(read).toHaveBeenCalledWith("shellyRPCCluster", ["data"], expect.objectContaining({timeout: 10000}));
-        expect(read.mock.calls.filter(([cluster, attributes]) => cluster === "shellyRPCCluster" && attributes.includes("data"))).toHaveLength(4);
-        expect(read).not.toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
-    });
-
-    it("publishes the configured full Shelly Wi-Fi SSID when RPC readback fails", async () => {
-        const read = vi.fn((cluster: string, attributes: string[]) => {
-            if (cluster === "shellyRPCCluster" && attributes.includes("rxCtl")) throw new Error("RPC unavailable");
-            return Promise.resolve({});
-        });
-        const publish = vi.fn();
-        const device = mockShelly2PMCover(read);
-        const definition = await findByDevice(device);
-        const converter = definition.toZigbee?.find((c) => c.key.includes("wifi_config"));
-        assert(converter?.convertGet);
-
-        await converter.convertGet(device.getEndpoint(239), "wifi_config", {
-            device,
-            options: {shelly_wifi_ssid: "The Internet of Shitty Things"},
-            state: {},
-            publish,
-        } as unknown as Tz.Meta);
-
-        expect(publish).toHaveBeenCalledWith({
-            wifi_config: {
-                ssid: "The Internet of Shitty Things",
-            },
-        });
-        expect(read).not.toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
     });
 
     it("does not fail a get when both Shelly Wi-Fi readback paths are unavailable", async () => {
@@ -519,5 +259,78 @@ describe("Shelly Presence Gen4", () => {
             expect.any(Object),
         );
         expect(occupancyEndpoints(definition, device)).toStrictEqual(["1", "2", "3"]);
+    });
+});
+
+// Endpoint layouts below are the ones real devices report (read off a live installation), not
+// invented ones - the whole point of these tests is what happens when hardware differs.
+describe("Shelly Gen4 settings the device cannot report", () => {
+    const exposesOf = async (device: ReturnType<typeof mockDevice>) => {
+        const definition = await findByDevice(device);
+        return typeof definition.exposes === "function" ? (definition.exposes as DefinitionExposesFunction)(device, {}) : definition.exposes;
+    };
+
+    const mockPowerStrip = () =>
+        mockDevice({
+            modelID: "Power Strip",
+            manufacturerName: "Shelly",
+            endpoints: [
+                ...Array.from({length: 4}, (_, index) => ({ID: index + 1, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: []})),
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+            ],
+        });
+
+    // The RPC cluster cannot answer a read, so none of these has a convertGet at all. Announcing
+    // GET offers the user a refresh that can never do anything - not even once the firmware is fixed.
+    it("does not announce a read for power strip settings that have no read converter", async () => {
+        const device = mockPowerStrip();
+        const definition = await findByDevice(device);
+        const exposes = await exposesOf(device);
+
+        for (const name of ["led_colors", "led_night_mode", "buttons_enabled"]) {
+            const expose = exposes.find((e) => e.name === name);
+            expect(expose, `${name} is missing`).toBeDefined();
+            expect(definition.toZigbee.find((c) => c.key?.includes(name))?.convertGet, `${name} unexpectedly has a convertGet`).toBeUndefined();
+            expect(expose.access & 0b100, `${name} must not announce GET`).toBe(0);
+        }
+    });
+
+    // A configuration value that silently means something else than the user assumes is worse than
+    // none at all: what is shown is the last value written from here, never a reading.
+    it("tells the user that power strip settings cannot be read back", async () => {
+        const exposes = await exposesOf(mockPowerStrip());
+
+        for (const name of ["led_mode", "led_colors", "led_power_brightness", "led_night_mode", "buttons_enabled"]) {
+            const expose = exposes.find((e) => e.name === name);
+            expect(expose, `${name} is missing`).toBeDefined();
+            expect(expose.description ?? "", `${name} does not mention that it cannot be read back`).toContain("cannot report");
+        }
+    });
+
+    const mockOnePM = (withSwitchInput: boolean) =>
+        mockDevice({
+            modelID: "Mini1PM",
+            manufacturerName: "Shelly",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                ...(withSwitchInput ? [{ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]}] : []),
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+            ],
+        });
+
+    // A 1PM Mini only reports the switch input endpoint when an input is actually wired. Without it
+    // the setting has nothing to address, and a state that can never hold a value is worse than none.
+    it("exposes no switch_type on a 1PM Mini that has no switch input endpoint", async () => {
+        const names = (await exposesOf(mockOnePM(false))).map((e) => e.name);
+
+        expect(names).not.toContain("switch_type");
+    });
+
+    it("exposes switch_type on a 1PM Mini that has a switch input endpoint", async () => {
+        const exposes = await exposesOf(mockOnePM(true));
+        const switchType = exposes.find((e) => e.name === "switch_type");
+
+        expect(switchType).toBeDefined();
+        expect(switchType.endpoint).toBe("sw1");
     });
 });
