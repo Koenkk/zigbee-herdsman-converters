@@ -1769,7 +1769,7 @@ export const identify: Fz.Converter<"genIdentify", undefined, ["attributeReport"
 export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
-    options: [exposes.options.invert_cover()],
+    options: [exposes.options.invert_cover(), exposes.options.invert_cover_state()],
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         // Zigbee officially expects 'open' to be 0 and 'closed' to be 100 whereas
@@ -1777,13 +1777,14 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
         // For zigbee-herdsman-converters: open = 100, close = 0
         // ubisys J1 will report 255 if lift or tilt positions are not known, so skip that.
         const metaInvert = model.meta?.coverInverted;
-        const invert = metaInvert ? !options.invert_cover : options.invert_cover;
+        const invertPosition = metaInvert ? !options.invert_cover : options.invert_cover;
+        const invertState = metaInvert ? !options.invert_cover_state : options.invert_cover_state;
         const coverStateFromTilt = model.meta?.coverStateFromTilt;
         if (msg.data.currentPositionLiftPercentage !== undefined && msg.data.currentPositionLiftPercentage <= 100) {
             const value = msg.data.currentPositionLiftPercentage;
-            result[postfixWithEndpointName("position", msg, model, meta)] = invert ? value : 100 - value;
+            result[postfixWithEndpointName("position", msg, model, meta)] = invertPosition ? value : 100 - value;
             if (!coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invertState
                     ? value === 0
                         ? "CLOSE"
                         : "OPEN"
@@ -1794,9 +1795,9 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
         }
         if (msg.data.currentPositionTiltPercentage !== undefined && msg.data.currentPositionTiltPercentage <= 100) {
             const value = msg.data.currentPositionTiltPercentage;
-            result[postfixWithEndpointName("tilt", msg, model, meta)] = invert ? value : 100 - value;
+            result[postfixWithEndpointName("tilt", msg, model, meta)] = invertPosition ? value : 100 - value;
             if (coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invertState
                     ? value === 100
                         ? "OPEN"
                         : "CLOSE"

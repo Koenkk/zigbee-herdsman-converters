@@ -34,6 +34,7 @@ export class Base {
     features?: Feature[];
     category?: "config" | "diagnostic";
     homeassistant?: HomeAssistant;
+    legacyNames?: string[];
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -87,6 +88,11 @@ export class Base {
         return this;
     }
 
+    withLegacyNames(...names: string[]) {
+        this.legacyNames = names;
+        return this;
+    }
+
     validateCategory() {
         switch (this.category) {
             case "config":
@@ -136,6 +142,7 @@ export class Base {
         }
         target.category = this.category;
         target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
+        target.legacyNames = this.legacyNames ? [...this.legacyNames] : undefined;
     }
 }
 
@@ -843,8 +850,12 @@ export const options = {
                 `Number of digits after decimal point for ${name}, takes into effect on next report of device. This option can only decrease the precision, not increase it.`,
             ),
     invert_cover: () =>
-        new Binary("invert_cover", access.SET, true, false).withDescription(
-            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
+        new Binary("invert_cover", access.SET, true, false)
+            .withLabel("Invert cover position")
+            .withDescription("Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false)."),
+    invert_cover_state: () =>
+        new Binary("invert_cover_state", access.SET, true, false).withDescription(
+            "Inverts the cover state (open/close), independent of the position (default false).",
         ),
     illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),
     color_sync: () =>
