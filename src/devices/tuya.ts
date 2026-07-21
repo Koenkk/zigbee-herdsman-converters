@@ -11100,10 +11100,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab", "_TZE284_aoah6bv8"]),
         model: "TS0601_smoke_co",
         vendor: "Tuya",
         description: "Dual smoke CO sensor",
+        whiteLabel: [tuya.whitelabel("Moes", "JKD-513COM-Z", "Dual smoke & CO alarm", ["_TZE284_aoah6bv8"])],
         exposes: [
             e.smoke(),
             e
