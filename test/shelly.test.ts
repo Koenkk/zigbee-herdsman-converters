@@ -709,6 +709,24 @@ describe("Shelly 2PM Gen4 switch input endpoints", () => {
         expect(names).toContain("switch_mode_sw1");
         expect(names).toContain("switch_mode_sw2");
     });
+
+    // switch_mode travels over the RPC cluster, which the firmware cannot answer over Zigbee:
+    // announcing GET offers a refresh that can never do anything, and a device query walks every
+    // converter that has a convertGet - so the read has to be gone and the expose has to say so.
+    it("marks switch_mode write-only and offers no read", async () => {
+        const device = mockSwitchWithInputs();
+        const definition = await findByDevice(device);
+        const exposes = (definition.exposes as DefinitionExposesFunction)(device, {});
+
+        for (const endpoint of ["sw1", "sw2"]) {
+            const expose = exposes.find((e) => e.name === "switch_mode" && e.endpoint === endpoint);
+            expect(expose, `switch_mode_${endpoint} is missing`).toBeDefined();
+            expect(expose.access & 0b100, `switch_mode_${endpoint} must not announce GET`).toBe(0);
+            expect(expose.access & 0b010, `switch_mode_${endpoint} must stay settable`).toBe(0b010);
+            expect(expose.description ?? "").toContain("cannot report");
+        }
+        expect(definition.toZigbee.find((c) => c.key?.includes("switch_mode"))?.convertGet).toBeUndefined();
+    });
 });
 
 // The input action events must follow the definition's endpoint map, like switch_type/switch_mode
