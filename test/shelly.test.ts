@@ -758,4 +758,36 @@ describe("Shelly WS90 rain rate", () => {
         vi.setSystemTime(new Date("2026-07-22T10:06:00Z"));
         expect(report(500).rain_rate).toBe(300); // +40 mm in 2 min since the reset
     });
+
+    // The station reports the ZCL non-value marker (all bits set) when a reading is unavailable -
+    // a gustSpeed of 0xffff was published as 6553.5 m/s (Koenkk/zigbee2mqtt#31048). Markers must
+    // contribute nothing, neither as a measurement nor to the calculated values.
+    it("discards the non-value markers instead of publishing them as measurements", async () => {
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const convertAll = (cluster: string, data: Record<string, unknown>) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === cluster)
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                                vi.fn(),
+                                {},
+                                meta,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+
+        expect(convertAll("shellyWS90Wind", {gustSpeed: 0xffff}).gust_speed).toBeUndefined();
+        expect(convertAll("shellyWS90Wind", {windSpeed: 0xffff}).wind_speed).toBeUndefined();
+        expect(convertAll("shellyWS90UV", {uvIndex: 0xff}).uv_index).toBeUndefined();
+        expect(convertAll("shellyWS90Rain", {precipitation: 0xffffff}).precipitation).toBeUndefined();
+        // A real reading still scales as before.
+        expect(convertAll("shellyWS90Wind", {windSpeed: 123}).wind_speed).toBe(12.3);
+    });
 });
