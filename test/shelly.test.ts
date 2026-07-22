@@ -1016,6 +1016,12 @@ describe("Shelly RPC hygiene", () => {
             ],
         });
 
+    it("registers no RPC diagnostics converter without the Dev feature", async () => {
+        const definition = await findByDevice(mockPresence("0x000000000000f101"));
+
+        expect(definition.fromZigbee.some((c) => c.cluster === "shellyRPCCluster")).toBe(false);
+    });
+
     it("does not serialize RPC writes of different devices against each other", async () => {
         const deviceA = mockPresence("0x000000000000f102");
         const deviceB = mockPresence("0x000000000000f103");

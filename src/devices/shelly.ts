@@ -1032,7 +1032,12 @@ const shellyModernExtend = {
                 .withCategory("config"),
         ];
 
-        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
+        // The RPC receive accumulator only serves the Dev diagnostics: nothing but their reads can
+        // produce shellyRPCCluster responses (the firmware answers no RPC read, see
+        // SHELLY_RPC_CAN_READ), and registering it unconditionally would publish the undeclared
+        // rpc_rxctl/rpc_data state keys on devices that expose no such fields.
+        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [];
+        const fromZigbeeDev: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: "shellyRPCCluster",
                 type: ["attributeReport", "readResponse"],
@@ -1194,6 +1199,7 @@ const shellyModernExtend = {
 
         if (featureDev) {
             exposes.push(...exposesDev);
+            fromZigbee.push(...fromZigbeeDev);
             toZigbee.push(...toZigbeeDev);
         }
         if (featurePowerstripUI) {
@@ -1544,9 +1550,6 @@ const shellyModernExtend = {
                 );
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
-                if (meta) {
-                    published = true;
-                }
             } catch (e) {
                 logger.warning(`Failed to read Wi-Fi state through Shelly setup cluster; leaving previous state unchanged: ${e}`, NS);
             }
@@ -2055,7 +2058,7 @@ const fzLocal = {
         cluster: "genOnOffSwitchCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            if (!Object.hasOwn(msg.data, "switchType")) return;
             const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
             return {[property]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
@@ -2778,12 +2781,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.alarmMask !== undefined) {
-                        const alarmMask = msg.data.alarmMask;
-                        result.calibration_ok = !((alarmMask & (1 << 2)) > 0);
-                    }
-                    return result;
+                    if (msg.data.alarmMask === undefined) return;
+                    return {calibration_ok: !((msg.data.alarmMask & (1 << 2)) > 0)};
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
