@@ -1915,6 +1915,7 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandToggle"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(msg.endpoint.ID, {1: "single", 2: "double", 3: "triple"});
             return {action: event};
         },
@@ -1924,6 +1925,7 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
             return {action: event};
         },
@@ -1933,6 +1935,7 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
@@ -1951,6 +1954,7 @@ const fzLocal = {
         cluster: "genLevelCtrl",
         type: ["commandStep"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.stepmode}`, {
                 "1_0": "1_hold",
                 "1_1": "2_hold",
@@ -1965,6 +1969,7 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
                 "1_1": "1_double",
                 "2_1": "2_double",
