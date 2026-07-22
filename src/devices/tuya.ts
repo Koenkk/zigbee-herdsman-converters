@@ -3861,6 +3861,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_rgpqqmbj",
             "_TZ3000_8nyaanzb",
             "_TZ3000_iy2c3n6p",
+            "_TZ3000_46vasa5h",
             "_TZ3000_qlmnxmac",
             "_TZ3000_sgb0xhwn",
             "_TZ3210_ph1joc22",
@@ -3884,6 +3885,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_rgpqqmbj",
                 "_TZ3000_8nyaanzb",
                 "_TZ3000_iy2c3n6p",
+                "_TZ3000_46vasa5h",
                 "_TZ3000_46vasa5h",
             ]),
             tuya.whitelabel("Nova Digital", "NT-S2", "2 gang socket outlet BR", ["_TZ3000_sgb0xhwn", "_TZ3210_sgb0xhwn"]),
@@ -8397,6 +8399,46 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rgeapp2c"]),
+        model: "_TZE200_rgeapp2c",
+        vendor: "Tuya",
+        description: "Semicom touch panel: 2 switches + 2 shutters",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            // Expose Switches to Home Assistant
+            e.switch().withEndpoint("s1"),
+            e.switch().withEndpoint("s2"),
+            // Expose Shutters/Covers to Home Assistant
+            e.cover_position().withEndpoint("c1").setAccess("position", ea.STATE_SET),
+            e.cover_position().withEndpoint("c2").setAccess("position", ea.STATE_SET),
+
+            // Declare the state already published, so HA creates a sensor for it
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c1"),
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c2"),
+        ],
+        endpoint: (device) => {
+            return {s1: 1, s2: 1, c1: 1, c2: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                // --- LIGHTS / SWITCHES ---
+                [101, "state_s1", tuya.valueConverter.onOff],
+                [102, "state_s2", tuya.valueConverter.onOff],
+
+                // --- SHUTTERS / COVERS ---
+                // Cover 1 (DP 1 for state/control, DP 2 for position)
+                [1, "state_c1", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position_c1", tuya.valueConverter.coverPosition],
+
+                // Cover 2 (DP 4 for state/control, DP 5 for position)
+                [4, "state_c2", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [5, "position_c2", tuya.valueConverter.coverPosition],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE204_r0jdjrvi",
             "_TZE200_g5xqosu7",
@@ -9425,7 +9467,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hodyryli"]),
         model: "ZT08",
-        vendor: "TuYa",
+        vendor: "Tuya",
         description: "Weather station with clock, internal/external temperature and humidity",
         fromZigbee: [tuya.fz.datapoints, fzLocal.zt08ClockSync],
         toZigbee: [tuya.tz.datapoints],
@@ -11098,10 +11140,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6ycgarab", "_TZE284_aoah6bv8"]),
         model: "TS0601_smoke_co",
         vendor: "Tuya",
         description: "Dual smoke CO sensor",
+        whiteLabel: [tuya.whitelabel("Moes", "JKD-513COM-Z", "Dual smoke & CO alarm", ["_TZE284_aoah6bv8"])],
         exposes: [
             e.smoke(),
             e
@@ -14423,7 +14466,7 @@ export const definitions: DefinitionWithExtend[] = [
             fzZosung.zosung_send_ir_code_05,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send()],
+        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send(), ez.ir_emitter()],
         whiteLabel: [
             tuya.whitelabel("Tuya", "UFO-R4Z", "Universal smart IR remote control", ["_TZ3290_rlkmy85q4pzoxobl", "_TZ3290_gnl5a6a5xvql7c2a"]),
             tuya.whitelabel("QA", "QAIRZPRO", "Infrared hub pro", ["_TZ3290_jxvzqatwgsaqzx1u", "_TZ3290_lypnqvlem5eq1ree"]),
@@ -18394,12 +18437,17 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                     },
                 ],
-                [2, "move_sensitivity", tuya.valueConverter.raw],
+                // Firmware periodically reports sensitivity as 0 even when a valid value is stored;
+                // dropping the 0 on read keeps the entity at its last good state, prevents Z2M from
+                // caching/writing-back 0 to the device, and silences the mqtt.number validation flood
+                // (range 1.0-10.0). See zigbee2mqtt#24049, #26672, #27357. Replaces the silent loss
+                // introduced by the min(0)->min(1) tightening in PR #8674.
+                [2, "move_sensitivity", {from: (v: number) => (v === 0 ? undefined : v), to: (v: number) => v}],
                 [3, "detection_distance_min", tuya.valueConverter.divideBy100],
                 [4, "detection_distance_max", tuya.valueConverter.divideBy100],
                 [9, "distance", tuya.valueConverter.divideBy10],
                 [101, "find_switch", tuya.valueConverter.onOff],
-                [102, "presence_sensitivity", tuya.valueConverter.raw],
+                [102, "presence_sensitivity", {from: (v: number) => (v === 0 ? undefined : v), to: (v: number) => v}],
                 [103, "illuminance", tuya.valueConverter.raw],
                 [105, "presence_timeout", tuya.valueConverter.raw],
             ],
@@ -27993,6 +28041,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "The IR code to send by device (Support SmartIR IR code library. IR remote Firmware ID must be Firmware ID>01062026)",
                 ),
+            ez.ir_emitter().withDescription("IR emitter feature. IR remote Firmware ID must be Firmware ID>01062026)"),
             e.enum("switch1_on", ea.STATE_SET, ["study", "registered", "unregistered"]).withDescription("Switch 1 on IR code Study and Study status"),
             e
                 .enum("switch1_off", ea.STATE_SET, ["study", "registered", "unregistered"])

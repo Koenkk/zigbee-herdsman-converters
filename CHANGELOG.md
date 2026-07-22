@@ -1,5 +1,39 @@
 # Changelog
 
+## [26.85.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.84.0...v26.85.0) (2026-07-20)
+
+
+### Features
+
+* **add:** eMotion Air ([#12719](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12719)) ([f5f9344](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f5f9344998f78357548ad5028b76435b678d5c41))
+* **add:** EZMB-RGB-TW-I2C ([#12722](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12722)) ([3e08b36](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3e08b3695abe5790ac16a690a956e10f19db43f3))
+* **add:** POK018 ([#12728](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12728)) ([146f110](https://github.com/Koenkk/zigbee-herdsman-converters/commit/146f1108511f4072f6e3a9cfdb7acc03d0943a3e))
+* SONOFF SONOFF SNZB-02B/02M/02UL: add dewpoint and VPD ([#12727](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12727)) ([5b0829e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5b0829eb719abdfeef8b87e116f80e6ca1766cb6))
+
+
+### Bug Fixes
+
+* Add Legrand 600090A white-label ([#12718](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12718)) ([1c35a35](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c35a35dfe09259e9a413e14c92a550e8aaab4b7))
+* **detect:** Detect `_TZ3000_46vasa5h` as Tuya TS011F_2_gang_wall ([#12724](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12724)) ([a2219c1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2219c1efe9ca2b654798e95cd5b7337f9103bac))
+* **detect:** Detect `SLZB-06Mg26U` as SMLIGHT SLZB-06M ([#12721](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12721)) ([112968b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/112968b2408580b935fdd31ed85e8ad6360d221b))
+* **ignore:** bump actions/setup-node from 6 to 7 ([#12725](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12725)) ([888c855](https://github.com/Koenkk/zigbee-herdsman-converters/commit/888c8553ee008461d3c63404561ea6e37cf0ac40))
+* SONOF MINI-ZBRBS: fix configure failing ([#12711](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12711)) ([da2f87a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/da2f87a061ac8a9c7ad2b6ecea24154638e172cf))
+
+## [26.84.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.83.0...v26.84.0) (2026-07-18)
+
+
+### Features
+
+* **add:** CCT-I ([#12712](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12712)) ([f50539f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f50539f76653793f2865079789e27ea89357d2b2))
+* **add:** TP-WGZBA ([#12705](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12705)) ([857b57c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/857b57cbae1c74c345197666a5060a69389d5fa6))
+* **add:** ZSS-QT-LTH-C ([#12714](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12714)) ([e19205f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e19205faf59ced7422f80645531ae1115c18d235))
+
+
+### Bug Fixes
+
+* Allow schema and type override for Home Assistant infrared discovery type ([#12708](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12708)) ([a12ecc1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a12ecc1de83435eeec5dbc83efe8a63be38c3186))
+* BTicino F20T60A and FC80GCS: remove unused converters ([#12715](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12715)) ([2a8c668](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2a8c668f6dbb8be08a177c91a26f4b01068999cf))
+
 ## [26.83.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.82.0...v26.83.0) (2026-07-16)
 
 

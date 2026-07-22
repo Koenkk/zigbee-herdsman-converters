@@ -374,6 +374,44 @@ interface SonoffSnzb02ul {
     commandResponses: never;
 }
 
+type SonoffStructElement = {elmType: number; elmVal: unknown};
+type SonoffStructValue = SonoffStructElement[];
+
+interface SonoffTpWgzba {
+    attributes: {
+        childLock: number;
+        btPairingBroadcastReq: number;
+        openWindow: number;
+        frostProtectionTemperature: number;
+        temporaryMode: number;
+        temporaryModeTime: number;
+        temporaryModeTemp: number;
+        weeklyScheduleActiveNum: number;
+        hvacMessageNotification: number[];
+        temperatureControlThreshold: SonoffStructValue;
+        radarSensitivityLevel: number;
+        radarDoNotDisturbEnable: number;
+        radarDoNotDisturbPeriod: SonoffStructValue;
+        screenWorkingBrightness: number;
+        screenStandbyBrightness: number;
+        screenNightStandbyBrightness: number;
+        screenNightModeEnable: number;
+        screenNightModePeriod: SonoffStructValue;
+        relayOutputType: number;
+        remoteAttributeLinkage: number[];
+        currentNtcTemperature: number;
+        overheatProtectionTemperature: number;
+        overheatProtectionEnable: number;
+        radarEnable: number;
+    };
+    commands: {
+        setTemporaryMode: {data: number[]};
+        readTemperatureControlHistory: {data: number[]};
+        scheduleGroup: {data: number[]};
+    };
+    commandResponses: never;
+}
+
 // SWV-ZN/ZF history response type
 type SonoffSwvHistoryRecord = {
     channel?: string;
@@ -460,6 +498,53 @@ const sonoffTrvzbtFaultCodeLookup = {
 const sonoffTrvzbtKnownFaultCodeMask = Object.keys(sonoffTrvzbtFaultCodeLookup).reduce((mask, bit) => mask | (1 << Number(bit)), 0);
 const sonoffTrvzbtTemperatureControlHistoryValueOffset = 9;
 const sonoffTrvzbtTemperatureControlHistoryCacheTimeoutMs = 30 * 1000;
+const sonoffTpWgzbaScheduleGroupLookup = {"1": 0, "2": 1, "3": 2} as const;
+const sonoffTpWgzbaScheduleGroupInternalRange = {min: 0, max: 2};
+const sonoffTpWgzbaTargetTemperatureRange = {min: 5, max: 30, step: 0.5};
+const sonoffTpWgzbaFrostProtectionTemperatureRange = {min: 5, max: 15, step: 0.5};
+const sonoffTpWgzbaLocalTemperatureCalibrationRange = {min: -10, max: 10, step: 0.2};
+const sonoffTpWgzbaTemperatureScale = 100;
+const sonoffTpWgzbaRelayOutputLookup = {normally_open_no: 0, normally_closed_nc: 1} as const;
+const sonoffTpWgzbaBrightnessRange = {min: 0, max: 8, step: 1};
+const sonoffTpWgzbaHysteresisLowRange = {min: -2.6, max: -0.2, step: 0.2};
+const sonoffTpWgzbaHysteresisHighRange = {min: 0, max: 2.6, step: 0.2};
+const sonoffTpWgzbaExternalTemperatureInputRange = {min: 0.0, max: 99.9, step: 0.1, precision: 1};
+const sonoffTpWgzbaTemperatureSensorSelectLookup = {internal: 0, external: 1, external_2: 2, external_3: 3} as const;
+type SonoffTpWgzbaTemperatureSensorSelect = keyof typeof sonoffTpWgzbaTemperatureSensorSelectLookup;
+const sonoffTpWgzbaTemperatureSensorSelectValues = Object.keys(sonoffTpWgzbaTemperatureSensorSelectLookup) as SonoffTpWgzbaTemperatureSensorSelect[];
+const sonoffTpWgzbaDefaultTemperatureSensorSelect: SonoffTpWgzbaTemperatureSensorSelect = "external";
+const sonoffTpWgzbaTemporaryCommandModeLookup = {boost: 1, timer: 2} as const;
+const sonoffTpWgzbaTemporaryAttributeModeLookup = {boost: 0, timer: 1} as const;
+const sonoffTpWgzbaTemporaryModeStatusLookup = {
+    0: "success",
+    1: "fail",
+    2: "invalid_mode",
+    3: "invalid_duration",
+    4: "invalid_temperature",
+    5: "busy",
+} as const;
+const sonoffTpWgzbaNtcTemperatureStatusLookup = {
+    32768: "invalid_unknown",
+    33024: "not_connected",
+    33280: "short_circuit",
+    33536: "adc_invalid",
+} as const;
+const sonoffTpWgzbaNtcTemperatureMinimumRaw = -27315;
+const sonoffTpWgzbaOverheatProtectionTemperatureRange = {min: 20, max: 50, step: 0.5};
+const sonoffTpWgzbaTemperatureControlHistoryValueOffset = 9;
+const sonoffTpWgzbaTemperatureControlHistoryCacheTimeoutMs = 30 * 1000;
+
+const formatSonoffTpWgzbaNtcTemperature = (value: unknown): string => {
+    utils.assertNumber(value, "currentNtcTemperature");
+    const rawValue = value & 0xffff;
+    const status = sonoffTpWgzbaNtcTemperatureStatusLookup[rawValue as keyof typeof sonoffTpWgzbaNtcTemperatureStatusLookup];
+    if (status !== undefined) return status;
+
+    const signedValue = rawValue >= 0x8000 ? rawValue - 0x10000 : rawValue;
+    if (signedValue < sonoffTpWgzbaNtcTemperatureMinimumRaw) return sonoffTpWgzbaNtcTemperatureStatusLookup[32768];
+
+    return `${(signedValue / sonoffTpWgzbaTemperatureScale).toFixed(2)} °C`;
+};
 
 type SonoffTrvzbtTemperatureControlHistoryType = "day" | "month" | "half_year";
 
@@ -498,6 +583,10 @@ const sonoffTrvzbtScheduleActiveNumCache = new Map<string, number>();
 const sonoffTrvzbtScheduleSelectedNumCache = new Map<string, number>();
 const sonoffTrvzbtTemperatureControlHistoryReqCache: Record<string, Record<number, SonoffTrvzbtTemperatureControlHistoryRequest>> = {};
 const sonoffTrvzbtTemperatureControlHistoryRespCache: Record<string, SonoffTrvzbtTemperatureControlHistoryState> = {};
+const sonoffTpWgzbaScheduleActiveNumCache = new Map<string, number>();
+const sonoffTpWgzbaScheduleSelectedNumCache = new Map<string, number>();
+const sonoffTpWgzbaTemperatureControlHistoryReqCache: Record<string, Record<number, SonoffTrvzbtTemperatureControlHistoryRequest>> = {};
+const sonoffTpWgzbaTemperatureControlHistoryRespCache: Record<string, SonoffTrvzbtTemperatureControlHistoryState> = {};
 
 const getValidSonoffTrvzbtScheduleGroupNum = (value: unknown): number | undefined => {
     const scheduleGroup = Number(value);
@@ -780,7 +869,7 @@ const parseSonoffTrvzbtScheduleString = (scheduleValue: string, dayName: string)
     const rawTransitions = scheduleValue.trim().split(/\s+/).sort();
 
     if (rawTransitions.length > 12) {
-        throw new Error(`Invalid schedule for ${dayName}: days must have no more than 6 transitions`);
+        throw new Error(`Invalid schedule for ${dayName}: days must have no more than 12 transitions`);
     }
 
     const transitions: SonoffTrvzbtScheduleTransition[] = [];
@@ -867,6 +956,331 @@ const sendSonoffTrvzbtScheduleReadCommand = async (entity: Zh.Endpoint | Zh.Grou
     );
     await entity.command<"customSonoffTrvzbt", "scheduleGroup", SonoffTrvzbt>(
         "customSonoffTrvzbt",
+        "scheduleGroup",
+        {data: payload},
+        disableDefaultResponseOptions,
+    );
+};
+
+const getValidSonoffTpWgzbaScheduleGroupNum = (value: unknown): number | undefined => {
+    const scheduleGroup = Number(value);
+    if (
+        !Number.isInteger(scheduleGroup) ||
+        scheduleGroup < sonoffTpWgzbaScheduleGroupInternalRange.min ||
+        scheduleGroup > sonoffTpWgzbaScheduleGroupInternalRange.max
+    ) {
+        return;
+    }
+
+    return scheduleGroup;
+};
+
+const getValidSonoffTpWgzbaSchedulePublicGroup = (value: unknown): keyof typeof sonoffTpWgzbaScheduleGroupLookup | undefined => {
+    const scheduleGroup = String(value);
+    if (!(scheduleGroup in sonoffTpWgzbaScheduleGroupLookup)) return;
+
+    return scheduleGroup as keyof typeof sonoffTpWgzbaScheduleGroupLookup;
+};
+
+const assertSonoffTpWgzbaSchedulePublicGroup = (value: unknown, key: string): keyof typeof sonoffTpWgzbaScheduleGroupLookup => {
+    const scheduleGroup = getValidSonoffTpWgzbaSchedulePublicGroup(value);
+    if (scheduleGroup === undefined) {
+        throw new Error(`Invalid ${key}: expected one of ${Object.keys(sonoffTpWgzbaScheduleGroupLookup).join(", ")}, got ${value}`);
+    }
+
+    return scheduleGroup;
+};
+
+const toSonoffTpWgzbaSchedulePublicGroup = (scheduleGroup: number): string => `${scheduleGroup + 1}`;
+
+const toSonoffTpWgzbaScheduleInternalGroup = (scheduleGroup: keyof typeof sonoffTpWgzbaScheduleGroupLookup): number => {
+    return sonoffTpWgzbaScheduleGroupLookup[scheduleGroup];
+};
+
+const getSonoffTpWgzbaTemperatureControlHistoryCacheKey = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): string | undefined => {
+    return getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+};
+
+const getSonoffTpWgzbaTemperatureControlHistoryRespCacheKey = (cacheKey: string, subCmd: number): string => {
+    return `${cacheKey}:${subCmd}`;
+};
+
+const clearSonoffTpWgzbaTemperatureControlHistoryCache = (cacheKey: string, subCmd: number): void => {
+    delete sonoffTpWgzbaTemperatureControlHistoryRespCache[getSonoffTpWgzbaTemperatureControlHistoryRespCacheKey(cacheKey, subCmd)];
+    if (sonoffTpWgzbaTemperatureControlHistoryReqCache[cacheKey]) {
+        delete sonoffTpWgzbaTemperatureControlHistoryReqCache[cacheKey][subCmd];
+    }
+};
+
+const buildSonoffTpWgzbaTemperatureControlHistoryData = (
+    type: SonoffTrvzbtTemperatureControlHistoryType,
+    values: number[],
+    request: SonoffTrvzbtTemperatureControlHistoryRequest,
+): SonoffTrvzbtTemperatureControlHistoryDataPoint[] => {
+    const records: SonoffTrvzbtTemperatureControlHistoryDataPoint[] = [];
+    let intervalStartSec = request.startUTC;
+
+    for (const value of values) {
+        const intervalEndSec = getSonoffTrvzbtTemperatureControlHistoryIntervalEnd(type, intervalStartSec, request.displayOffsetSeconds);
+        if (!Number.isNaN(value)) {
+            records.push({
+                value,
+                startTime: formatUtcSecondsToIsoWithOffset(intervalStartSec, request.displayOffsetSeconds),
+                endTime: formatUtcSecondsToIsoWithOffset(intervalEndSec, request.displayOffsetSeconds),
+            });
+        }
+        intervalStartSec = intervalEndSec;
+    }
+
+    return records;
+};
+
+const buildSonoffTpWgzbaTemperatureControlHistoryResult = (
+    request: SonoffTrvzbtTemperatureControlHistoryRequest,
+    state: SonoffTrvzbtTemperatureControlHistoryState,
+) => {
+    const packets = Object.values(state.packets).sort((a, b) => a.current - b.current);
+    const valuesByDataType: Record<number, number[]> = {};
+
+    for (const historyPacket of packets) {
+        valuesByDataType[historyPacket.dataType] ??= [];
+        valuesByDataType[historyPacket.dataType].push(...historyPacket.values);
+    }
+
+    return {
+        type: request.type,
+        time_range: request.timeRange,
+        temperature_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTpWgzbaTemperatureControlHistoryData(request.type, valuesByDataType[0x00] ?? [], request),
+        ),
+        heat_percentage_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTpWgzbaTemperatureControlHistoryData(request.type, valuesByDataType[0x01] ?? [], request),
+        ),
+        target_temperature_data: formatSonoffTrvzbtTemperatureControlHistoryOutputData(
+            buildSonoffTpWgzbaTemperatureControlHistoryData(request.type, valuesByDataType[0x02] ?? [], request),
+        ),
+    };
+};
+
+const cacheSonoffTpWgzbaScheduleActiveNum = (activeNum: number, endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): void => {
+    const cacheKey = getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+    if (cacheKey) {
+        sonoffTpWgzbaScheduleActiveNumCache.set(cacheKey, activeNum);
+    }
+};
+
+const cacheSonoffTpWgzbaScheduleSelectedNum = (selectedNum: number, endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): void => {
+    const cacheKey = getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+    if (cacheKey) {
+        sonoffTpWgzbaScheduleSelectedNumCache.set(cacheKey, selectedNum);
+    }
+};
+
+const getCachedSonoffTpWgzbaScheduleActiveNum = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): number | undefined => {
+    const cacheKey = getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+
+    return cacheKey ? sonoffTpWgzbaScheduleActiveNumCache.get(cacheKey) : undefined;
+};
+
+const getCachedSonoffTpWgzbaScheduleSelectedNum = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): number | undefined => {
+    const cacheKey = getSonoffTrvzbtDeviceCacheKey(endpoint, device);
+
+    return cacheKey ? sonoffTpWgzbaScheduleSelectedNumCache.get(cacheKey) : undefined;
+};
+
+const getSonoffTpWgzbaScheduleSelectedNum = (endpoint?: Zh.Endpoint | null, device?: Zh.Device | null): number => {
+    return getCachedSonoffTpWgzbaScheduleSelectedNum(endpoint, device) ?? getCachedSonoffTpWgzbaScheduleActiveNum(endpoint, device) ?? 0;
+};
+
+const readSonoffTpWgzbaScheduleActiveNum = async (entity: Zh.Endpoint | Zh.Group, device: Zh.Device | undefined, reason: string): Promise<number> => {
+    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+
+    if (endpoint) {
+        try {
+            const readResult = await endpoint.read<"customSonoffTpWgzba", SonoffTpWgzba>("customSonoffTpWgzba", ["weeklyScheduleActiveNum"]);
+            const activeNum = getValidSonoffTpWgzbaScheduleGroupNum(readResult.weeklyScheduleActiveNum);
+            if (activeNum !== undefined) {
+                cacheSonoffTpWgzbaScheduleActiveNum(activeNum, endpoint, device);
+                logger.info(`TP-WGZBA ${reason}: active schedule group=${toSonoffTpWgzbaSchedulePublicGroup(activeNum)}`, NS);
+                return activeNum;
+            }
+
+            logger.warning(`TP-WGZBA ${reason}: invalid active schedule group=${readResult.weeklyScheduleActiveNum}`, NS);
+        } catch (error) {
+            logger.warning(`TP-WGZBA ${reason}: read active schedule group failed, ${error}`, NS);
+        }
+    }
+
+    return getCachedSonoffTpWgzbaScheduleActiveNum(endpoint, device) ?? 0;
+};
+
+const getSonoffTpWgzbaScheduleNumFromMessage = (
+    entity: Zh.Endpoint | Zh.Group,
+    device: Zh.Device | undefined,
+    message?: Record<string, unknown> | null,
+): number => {
+    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+    const selectedGroup = message?.schedule_group_to_edit;
+    if (selectedGroup !== undefined) {
+        const publicGroup = assertSonoffTpWgzbaSchedulePublicGroup(selectedGroup, "schedule_group_to_edit");
+        const selectedNum = toSonoffTpWgzbaScheduleInternalGroup(publicGroup);
+        cacheSonoffTpWgzbaScheduleSelectedNum(selectedNum, endpoint, device);
+        return selectedNum;
+    }
+
+    return getSonoffTpWgzbaScheduleSelectedNum(endpoint, device);
+};
+
+const shouldMirrorSonoffTpWgzbaSelectedSchedule = (
+    scheduleNum: number,
+    meta: Fz.Meta,
+    endpoint?: Zh.Endpoint | null,
+    device?: Zh.Device | null,
+): boolean => {
+    return scheduleNum === getSonoffTpWgzbaScheduleSelectedNum(endpoint, device ?? meta.device);
+};
+
+const getSonoffStructNumber = (value: unknown, index: number, elmType?: number): number | undefined => {
+    if (!Array.isArray(value)) return;
+
+    const element = value[index] as SonoffStructElement | undefined;
+    if (!element || (elmType !== undefined && element.elmType !== elmType)) return;
+    if (typeof element.elmVal !== "number") return;
+
+    return element.elmVal;
+};
+
+const buildSonoffStruct = (elmType: number, values: number[]): SonoffStructValue => {
+    return values.map((elmVal) => ({elmType, elmVal}));
+};
+
+const parseSonoffTpWgzbaTimeValue = (value: unknown, key: string): number => {
+    if (!utils.isString(value)) {
+        throw new Error(`Invalid ${key}: expected HH:mm`);
+    }
+
+    const matches = value.match(/^([01][0-9]|2[0-3]):([0-5][0-9])$/);
+    if (!matches) {
+        throw new Error(`Invalid ${key}: expected HH:mm between 00:00 and 23:59`);
+    }
+
+    return Number.parseInt(matches[1], 10) * 60 + Number.parseInt(matches[2], 10);
+};
+
+const formatSonoffTpWgzbaTimeValue = (value: number): string => {
+    const minutes = Math.max(0, Math.min(1439, value));
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+};
+
+const getSonoffTpWgzbaOutputBit = (value: unknown, key: string): number | undefined => {
+    if (value === undefined) return;
+    if (typeof value === "string" && value in sonoffTpWgzbaRelayOutputLookup) {
+        return sonoffTpWgzbaRelayOutputLookup[value as keyof typeof sonoffTpWgzbaRelayOutputLookup];
+    }
+
+    throw new Error(`Invalid ${key}: expected ${Object.keys(sonoffTpWgzbaRelayOutputLookup).join(" or ")}`);
+};
+
+const isSonoffTpWgzbaExternalTemperatureInput = (value: unknown): value is number => {
+    return (
+        utils.isNumber(value) &&
+        Number.isFinite(value) &&
+        value >= sonoffTpWgzbaExternalTemperatureInputRange.min &&
+        value <= sonoffTpWgzbaExternalTemperatureInputRange.max
+    );
+};
+
+const assertSonoffTpWgzbaExternalTemperatureInput = (value: unknown, key: string): number => {
+    if (!isSonoffTpWgzbaExternalTemperatureInput(value)) {
+        throw new Error(
+            `Invalid ${key}: expected number between ${sonoffTpWgzbaExternalTemperatureInputRange.min}-${sonoffTpWgzbaExternalTemperatureInputRange.max} °C (inclusive), got ${value}`,
+        );
+    }
+
+    return value;
+};
+
+const assertSonoffTpWgzbaTemperatureSensorSelect = (value: unknown, key: string): SonoffTpWgzbaTemperatureSensorSelect => {
+    if (!utils.isString(value) || !sonoffTpWgzbaTemperatureSensorSelectValues.includes(value as SonoffTpWgzbaTemperatureSensorSelect)) {
+        throw new Error(`Invalid ${key}: expected ${sonoffTpWgzbaTemperatureSensorSelectValues.join(", ")}, got ${value}`);
+    }
+
+    return value as SonoffTpWgzbaTemperatureSensorSelect;
+};
+
+const getSonoffTpWgzbaTemperatureSensorSelect = (status: number): SonoffTpWgzbaTemperatureSensorSelect | undefined => {
+    for (const sensorSelect of sonoffTpWgzbaTemperatureSensorSelectValues) {
+        if (sonoffTpWgzbaTemperatureSensorSelectLookup[sensorSelect] === status) return sensorSelect;
+    }
+};
+
+const sonoffTpWgzbaExternalTemperatureInputToRaw = (value: number): number => {
+    return Math.round(value * sonoffTpWgzbaTemperatureScale);
+};
+
+const sonoffTpWgzbaRemoteTemperatureRawToExternalInput = (value: number): number => {
+    return utils.precisionRound(value / sonoffTpWgzbaTemperatureScale, sonoffTpWgzbaExternalTemperatureInputRange.precision);
+};
+
+const parseSonoffTpWgzbaRemoteAttributeLinkage = (value: unknown): KeyValueAny | undefined => {
+    const bytes = zclArrayValueToBytes(value);
+    if (bytes === undefined) return;
+    const hasNoRemoteConfig = bytes.length >= 3 && bytes[0] === 0 && bytes.slice(3).every((byte) => byte === 0);
+    if (bytes.length > 0 && (bytes.every((byte) => byte === 0) || hasNoRemoteConfig)) return {temperature_sensor_select: "internal"};
+    if (bytes.length < 3) return;
+
+    const result: KeyValueAny = {};
+    const remoteCfgNum = bytes[0] ?? 0;
+    let offset = 3;
+    let parsed = 0;
+
+    while (offset + 1 < bytes.length && parsed < remoteCfgNum) {
+        const type = bytes[offset];
+        const length = bytes[offset + 1] ?? 0;
+        offset += 2;
+        const data = bytes.slice(offset, offset + length);
+        offset += length;
+        parsed++;
+
+        if (type !== 0x01 || length !== 0x03 || data.length !== 0x03) continue;
+
+        const temperatureSensorSelect = getSonoffTpWgzbaTemperatureSensorSelect(data[0] ?? -1);
+        if (temperatureSensorSelect === undefined) continue;
+
+        result.temperature_sensor_select = temperatureSensorSelect;
+        result.external_temperature_input = sonoffTpWgzbaRemoteTemperatureRawToExternalInput(Buffer.from(data.slice(1, 3)).readInt16LE(0));
+    }
+
+    return Object.keys(result).length > 0 ? result : undefined;
+};
+
+const buildSonoffTpWgzbaRemoteAttributeLinkage = (temperatureSensorStatus: number, remoteTemperature: number): Uint8Array => {
+    const payload = new Uint8Array(8);
+    payload[0] = 0x01;
+    payload[1] = 0x01;
+    payload[2] = 0x00;
+    payload[3] = 0x01;
+    payload[4] = 0x03;
+    payload[5] = temperatureSensorStatus;
+    const temp = Buffer.alloc(2);
+    temp.writeInt16LE(remoteTemperature, 0);
+    payload[6] = temp[0];
+    payload[7] = temp[1];
+
+    return payload;
+};
+
+const sendSonoffTpWgzbaScheduleReadCommand = async (entity: Zh.Endpoint | Zh.Group, scheduleNum: number, reason: string): Promise<void> => {
+    const payload = [0x01, 0x00, scheduleNum];
+    logger.info(
+        `TP-WGZBA ${reason} scheduleGroup group=${toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)} payload=${formatSonoffTrvzbtPayload(payload)}`,
+        NS,
+    );
+    await entity.command<"customSonoffTpWgzba", "scheduleGroup", SonoffTpWgzba>(
+        "customSonoffTpWgzba",
         "scheduleGroup",
         {data: payload},
         disableDefaultResponseOptions,
@@ -2438,6 +2852,947 @@ const sonoffExtend = {
         ];
 
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaTemperatureControlHistory: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const commandName = "readTemperatureControlHistory";
+        const typeLookup = {day: 0x00, month: 0x01, half_year: 0x02} as const;
+        const typeBySubCommand = {0: "day", 1: "month", 2: "half_year"} as const;
+        const exposes = [
+            e
+                .composite("read_temperature_control_history", "read_temperature_control_history", ea.STATE_SET)
+                .withDescription("Read TP-WGZBA temperature control history.")
+                .withFeature(e.enum("type", ea.SET, Object.keys(typeLookup)))
+                .withFeature(
+                    e
+                        .composite("time_range", "time_range", ea.SET)
+                        .withFeature(e.text("start", ea.SET).withDescription("Start time in ISO format with timezone."))
+                        .withFeature(e.text("end", ea.SET).withDescription("End time in ISO format with timezone.")),
+                ),
+            e.text("temperature_control_history", ea.STATE).withDescription("Last decoded TP-WGZBA temperature control history response."),
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x0e) return;
+                    const payload = parsedRawCommand.payload;
+                    logger.info(`TP-WGZBA received temperature control history payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
+                    if (payload.length < 2) return;
+
+                    const subCmd = payload[0];
+                    const type = typeBySubCommand[subCmd as keyof typeof typeBySubCommand];
+                    if (!type) return;
+                    const status = payload[1];
+                    const cacheKey = getSonoffTpWgzbaTemperatureControlHistoryCacheKey(msg.endpoint, msg.device ?? meta?.device);
+                    const respCacheKey = cacheKey ? getSonoffTpWgzbaTemperatureControlHistoryRespCacheKey(cacheKey, subCmd) : undefined;
+
+                    if (status !== 0x00) {
+                        if (cacheKey) {
+                            clearSonoffTpWgzbaTemperatureControlHistoryCache(cacheKey, subCmd);
+                        }
+                        logger.error(`TP-WGZBA read temperature control history failed status=${status} subCmd=${subCmd}`, NS);
+                        return;
+                    }
+                    if (payload.length < sonoffTpWgzbaTemperatureControlHistoryValueOffset) return;
+                    if (!cacheKey || !respCacheKey) {
+                        logger.error(
+                            `TP-WGZBA missing temperature control history request context for subCmd=${subCmd}; it may have timed out, please try again`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const now = Date.now();
+                    const request = sonoffTpWgzbaTemperatureControlHistoryReqCache[cacheKey]?.[subCmd];
+                    if (request && now - request.updatedAt > sonoffTpWgzbaTemperatureControlHistoryCacheTimeoutMs) {
+                        clearSonoffTpWgzbaTemperatureControlHistoryCache(cacheKey, subCmd);
+                    }
+                    const currentRequest = sonoffTpWgzbaTemperatureControlHistoryReqCache[cacheKey]?.[subCmd];
+                    if (!currentRequest) {
+                        logger.error(
+                            `TP-WGZBA missing temperature control history request context for subCmd=${subCmd}; it may have timed out, please try again`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    const total = payload.readUInt16LE(2);
+                    const current = payload.readUInt16LE(4);
+                    const dataType = payload[6];
+                    if (total === 0 || current >= total) {
+                        logger.error(`TP-WGZBA invalid temperature control history total=${total} current=${current} subCmd=${subCmd}`, NS);
+                        return;
+                    }
+                    currentRequest.updatedAt = now;
+
+                    const values: number[] = [];
+                    for (let offset = sonoffTpWgzbaTemperatureControlHistoryValueOffset; offset + 1 < payload.length; offset += 2) {
+                        const raw = payload.readInt16LE(offset);
+                        values.push(raw === -1 ? Number.NaN : raw / 10);
+                    }
+
+                    let state = sonoffTpWgzbaTemperatureControlHistoryRespCache[respCacheKey];
+                    if (!state || state.total !== total || now - state.updatedAt > sonoffTpWgzbaTemperatureControlHistoryCacheTimeoutMs) {
+                        state = {total, packets: {}, updatedAt: now};
+                        sonoffTpWgzbaTemperatureControlHistoryRespCache[respCacheKey] = state;
+                    }
+                    state.packets[current] = {current, dataType, values};
+                    state.updatedAt = now;
+
+                    if (!isSonoffTrvzbtTemperatureControlHistoryComplete(state)) {
+                        return;
+                    }
+
+                    const result = buildSonoffTpWgzbaTemperatureControlHistoryResult(currentRequest, state);
+                    clearSonoffTpWgzbaTemperatureControlHistoryCache(cacheKey, subCmd);
+                    logger.info(`TP-WGZBA parsed temperature control history ${JSON.stringify(result)}`, NS);
+                    return {temperature_control_history: result};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["read_temperature_control_history"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const type = String(value.type) as keyof typeof typeLookup;
+                    const subCmd = typeLookup[type];
+                    if (subCmd === undefined) {
+                        throw new Error(`Invalid ${key}.type: expected day, month or half_year`);
+                    }
+                    const timeRange = utils.isObject(value.time_range) ? value.time_range : undefined;
+                    const timeStart = utils.isString(timeRange?.start) ? timeRange.start : undefined;
+                    const timeEnd = utils.isString(timeRange?.end) ? timeRange.end : undefined;
+                    if (!timeStart || !timeEnd) {
+                        throw new Error(`Invalid ${key}: time_range.start and time_range.end are required ISO datetimes with timezone`);
+                    }
+
+                    const startUtcSec = parseIsoWithOffsetToUtcSeconds(timeStart);
+                    const endUtcSec = parseIsoWithOffsetToUtcSeconds(timeEnd);
+                    if (startUtcSec === undefined || endUtcSec === undefined) {
+                        throw new Error(`Invalid ${key}: expected ISO 8601 datetimes with timezone offset`);
+                    }
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const startDeviceSec = utcToDeviceLocal2000Seconds(startUtcSec, offsetSeconds);
+                    const endDeviceSec = utcToDeviceLocal2000Seconds(endUtcSec, offsetSeconds);
+                    if (startDeviceSec < 0 || startDeviceSec > 0xffffffff || endDeviceSec < 0 || endDeviceSec > 0xffffffff) {
+                        throw new Error(`Invalid ${key}: converted device time is out of range`);
+                    }
+                    if (endDeviceSec < startDeviceSec) {
+                        throw new Error(`Invalid ${key}: time_range.end earlier than time_range.start`);
+                    }
+                    const displayOffsetSeconds = getSonoffTrvzbtTemperatureControlHistoryDisplayOffsetSeconds(timeStart) ?? offsetSeconds;
+
+                    const payload = Buffer.alloc(11);
+                    payload[0] = subCmd;
+                    payload.writeUInt32LE(startDeviceSec, 1);
+                    payload.writeUInt32LE(endDeviceSec, 5);
+                    payload.writeUInt16LE(0xffff, 9);
+                    const cacheKey = getSonoffTpWgzbaTemperatureControlHistoryCacheKey(entity as Zh.Endpoint, meta?.device);
+                    if (cacheKey) {
+                        sonoffTpWgzbaTemperatureControlHistoryReqCache[cacheKey] ??= {};
+                        sonoffTpWgzbaTemperatureControlHistoryReqCache[cacheKey][subCmd] = {
+                            type,
+                            startDevice: startDeviceSec,
+                            endDevice: endDeviceSec,
+                            startUTC: startUtcSec,
+                            endUTC: endUtcSec,
+                            displayOffsetSeconds,
+                            offsetSeconds,
+                            timeRange: {start: timeStart, end: timeEnd},
+                            updatedAt: Date.now(),
+                        };
+                        delete sonoffTpWgzbaTemperatureControlHistoryRespCache[
+                            getSonoffTpWgzbaTemperatureControlHistoryRespCacheKey(cacheKey, subCmd)
+                        ];
+                    }
+                    logger.info(
+                        `TP-WGZBA send temperature control history read type=${type} timeStart=${timeStart} timeEnd=${timeEnd} deviceStart=${startDeviceSec} deviceEnd=${endDeviceSec} payload=${formatSonoffTrvzbtPayload(payload)}`,
+                        NS,
+                    );
+                    await entity.command<typeof clusterName, typeof commandName, SonoffTpWgzba>(
+                        clusterName,
+                        commandName,
+                        {data: Array.from(payload)},
+                        disableDefaultResponseOptions,
+                    );
+                    return {state: {[key]: {type, time_range: {start: timeStart, end: timeEnd}}}};
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaWeeklySchedule: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const commandName = "scheduleGroup";
+        const activeGroupKey = "schedule_active_group";
+        const selectedGroupKey = "schedule_group_to_edit";
+        const scheduleDescription =
+            'The preset heating schedule to use when the system mode is set to "auto". ' +
+            "Up to 12 transitions can be defined per day, where a transition is expressed in the format 'HH:mm/temperature'. " +
+            "The first transition for each day must start at 00:00 and the valid temperature range is 5-30°C.";
+
+        const scheduleKeysFromMessage = (message?: Record<string, unknown> | null): string[] => {
+            return message
+                ? Object.keys(message).filter(
+                      (key) =>
+                          key.startsWith("weekly_schedule_") &&
+                          sonoffTrvzbtScheduleDays.includes(key.replace("weekly_schedule_", "") as SonoffTrvzbtScheduleDayName),
+                  )
+                : [];
+        };
+
+        const exposes = [
+            e
+                .enum(activeGroupKey, ea.ALL, Object.keys(sonoffTpWgzbaScheduleGroupLookup))
+                .withCategory("config")
+                .withDescription("The schedule group currently used in Auto mode."),
+            e
+                .enum(selectedGroupKey, ea.ALL, Object.keys(sonoffTpWgzbaScheduleGroupLookup))
+                .withCategory("config")
+                .withDescription("Select the schedule group to view or edit."),
+            ...sonoffTrvzbtScheduleDays.map((day) =>
+                e.text(`weekly_schedule_${day}`, ea.ALL).withCategory("config").withDescription(scheduleDescription),
+            ),
+        ];
+
+        const sendScheduleCommand = async (
+            entity: Parameters<Tz.Converter["convertSet"]>[0],
+            scheduleNum: number,
+            dayofweek: number,
+            transitions: SonoffTrvzbtScheduleTransition[],
+        ) => {
+            const payload = buildSonoffTrvzbtSchedulePayload(scheduleNum, dayofweek, transitions);
+            logger.info(
+                `TP-WGZBA send scheduleGroup group=${toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)} dayofweek=0x${dayofweek.toString(16).padStart(2, "0")} transitions=${JSON.stringify(transitions)} payload=${formatSonoffTrvzbtPayload(payload)}`,
+                NS,
+            );
+            await entity.command<typeof clusterName, typeof commandName, SonoffTpWgzba>(
+                clusterName,
+                commandName,
+                {data: payload},
+                disableDefaultResponseOptions,
+            );
+        };
+
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.weeklyScheduleActiveNum === undefined) return;
+                    const activeNum = getValidSonoffTpWgzbaScheduleGroupNum(msg.data.weeklyScheduleActiveNum);
+                    if (activeNum === undefined) {
+                        logger.warning(`TP-WGZBA received invalid weeklyScheduleActiveNum=${msg.data.weeklyScheduleActiveNum}`, NS);
+                        return;
+                    }
+
+                    cacheSonoffTpWgzbaScheduleActiveNum(activeNum, msg.endpoint, msg.device);
+                    const publicGroup = toSonoffTpWgzbaSchedulePublicGroup(activeNum);
+                    logger.info(`TP-WGZBA received weeklyScheduleActiveNum=${publicGroup}`, NS);
+
+                    const result: KeyValueAny = {[activeGroupKey]: publicGroup};
+                    if (getCachedSonoffTpWgzbaScheduleSelectedNum(msg.endpoint, msg.device) === undefined) {
+                        cacheSonoffTpWgzbaScheduleSelectedNum(activeNum, msg.endpoint, msg.device);
+                        result[selectedGroupKey] = publicGroup;
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>,
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x13) return;
+
+                    const payload = parsedRawCommand.payload;
+                    logger.info(`TP-WGZBA received scheduleGroup payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
+                    if (payload.length < 4 || payload[0] !== 0x01) return;
+                    const readOrWrite = payload[1];
+                    const scheduleNum = getValidSonoffTpWgzbaScheduleGroupNum(payload[2]);
+                    if (scheduleNum === undefined) return;
+
+                    if (readOrWrite === 0x01) {
+                        const status = payload[3];
+                        logger.info(
+                            `TP-WGZBA parsed scheduleGroup write response group=${toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)} rawStatus=0x${status.toString(16).padStart(2, "0")}`,
+                            NS,
+                        );
+                        return;
+                    }
+
+                    if (readOrWrite !== 0x00 || payload.length < 6) return;
+                    const numoftrans = payload[3];
+                    const dayofweek = payload[4];
+                    const mode = payload[5];
+                    const hasHeatSetpoint = (mode & 0x01) !== 0;
+                    const hasCoolSetpoint = (mode & 0x02) !== 0;
+                    let offset = 6;
+                    const transitions: SonoffTrvzbtScheduleTransition[] = [];
+
+                    for (let i = 0; i < numoftrans; i++) {
+                        if (offset + 2 > payload.length) return;
+                        const transitionTime = payload.readUInt16LE(offset);
+                        offset += 2;
+
+                        let heatSetpoint = 0;
+                        if (hasHeatSetpoint) {
+                            if (offset + 2 > payload.length) return;
+                            heatSetpoint = payload.readInt16LE(offset);
+                            offset += 2;
+                        }
+                        if (hasCoolSetpoint) {
+                            if (offset + 2 > payload.length) return;
+                            offset += 2;
+                        }
+
+                        transitions.push({transitionTime, heatSetpoint});
+                    }
+
+                    const schedule = formatSonoffTrvzbtScheduleTransitions(transitions);
+                    logger.info(
+                        `TP-WGZBA parsed scheduleGroup read response group=${toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)} dayofweek=0x${dayofweek.toString(16).padStart(2, "0")} mode=0x${mode.toString(16).padStart(2, "0")} transitions=${JSON.stringify(transitions)} schedule=${schedule}`,
+                        NS,
+                    );
+                    if (!shouldMirrorSonoffTpWgzbaSelectedSchedule(scheduleNum, meta, msg.endpoint, msg.device)) return;
+
+                    cacheSonoffTpWgzbaScheduleSelectedNum(scheduleNum, msg.endpoint, msg.device);
+                    const result: KeyValueAny = {[selectedGroupKey]: toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)};
+                    for (const day of getSonoffTrvzbtScheduleDayNames(dayofweek)) {
+                        result[`weekly_schedule_${day}`] = schedule;
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffTpWgzba, ["raw"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [activeGroupKey],
+                convertSet: async (entity, key, value, meta) => {
+                    const publicGroup = assertSonoffTpWgzbaSchedulePublicGroup(value, key);
+                    const scheduleNum = toSonoffTpWgzbaScheduleInternalGroup(publicGroup);
+                    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+
+                    cacheSonoffTpWgzbaScheduleActiveNum(scheduleNum, endpoint, meta.device);
+                    await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, {weeklyScheduleActiveNum: scheduleNum}, undefined);
+
+                    return {state: {[key]: publicGroup}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, ["weeklyScheduleActiveNum"]);
+                },
+            },
+            {
+                key: [selectedGroupKey],
+                convertSet: async (entity, key, value, meta) => {
+                    const publicGroup = assertSonoffTpWgzbaSchedulePublicGroup(value, key);
+                    const scheduleNum = toSonoffTpWgzbaScheduleInternalGroup(publicGroup);
+                    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+                    cacheSonoffTpWgzbaScheduleSelectedNum(scheduleNum, endpoint, meta.device);
+
+                    const message = meta.message as Record<string, unknown> | null;
+                    if (scheduleKeysFromMessage(message).length === 0) {
+                        await sendSonoffTpWgzbaScheduleReadCommand(entity, scheduleNum, "read selected group");
+                    }
+
+                    return {state: {[key]: publicGroup}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+                    await sendSonoffTpWgzbaScheduleReadCommand(
+                        entity,
+                        getSonoffTpWgzbaScheduleSelectedNum(endpoint, meta.device),
+                        "read selected group",
+                    );
+                },
+            },
+            {
+                key: sonoffTrvzbtScheduleDays.map((day) => `weekly_schedule_${day}`),
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value, key);
+                    const message = meta.message as Record<string, unknown> | null;
+                    const scheduleNum = getSonoffTpWgzbaScheduleNumFromMessage(entity, meta.device, message);
+                    const scheduleKeys = scheduleKeysFromMessage(message);
+
+                    if (scheduleKeys.length <= 1) {
+                        const dayName = key.replace("weekly_schedule_", "") as SonoffTrvzbtScheduleDayName;
+                        const parsed = parseSonoffTrvzbtScheduleString(value, dayName);
+                        await sendScheduleCommand(entity, scheduleNum, 1 << getSonoffTrvzbtDayBit(dayName), parsed.transitions);
+                        return {state: {[key]: value, [selectedGroupKey]: toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)}};
+                    }
+
+                    const scheduleGroups = new Map<string, SonoffTrvzbtScheduleDayName[]>();
+                    for (const scheduleKey of scheduleKeys) {
+                        const dayName = scheduleKey.replace("weekly_schedule_", "") as SonoffTrvzbtScheduleDayName;
+                        const schedule = message[scheduleKey] as string;
+                        utils.assertString(schedule, scheduleKey);
+                        scheduleGroups.set(schedule, [...(scheduleGroups.get(schedule) ?? []), dayName]);
+                    }
+
+                    const stateUpdates: Record<string, string> = {[selectedGroupKey]: toSonoffTpWgzbaSchedulePublicGroup(scheduleNum)};
+                    for (const [schedule, daysWithSchedule] of scheduleGroups) {
+                        const parsed = parseSonoffTrvzbtScheduleString(schedule, daysWithSchedule.join(", "));
+                        let dayofweek = 0;
+                        for (const dayName of daysWithSchedule) {
+                            dayofweek |= 1 << getSonoffTrvzbtDayBit(dayName);
+                            stateUpdates[`weekly_schedule_${dayName}`] = schedule;
+                        }
+                        await sendScheduleCommand(entity, scheduleNum, dayofweek, parsed.transitions);
+                    }
+
+                    return {state: stateUpdates};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = "read" in entity && typeof entity.read === "function" ? (entity as Zh.Endpoint) : undefined;
+                    await sendSonoffTpWgzbaScheduleReadCommand(entity, getSonoffTpWgzbaScheduleSelectedNum(endpoint, meta.device), "send read");
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaReadScheduleOnConfigure: (): ModernExtend => {
+        const configure: Configure[] = [
+            async (device) => {
+                const endpoint = device.getEndpoint(1);
+                if (!endpoint) return;
+
+                const activeScheduleGroupId = await readSonoffTpWgzbaScheduleActiveNum(endpoint, device, "configure");
+                await sendSonoffTpWgzbaScheduleReadCommand(endpoint, activeScheduleGroupId, "configure read");
+            },
+        ];
+
+        return {configure, isModernExtend: true};
+    },
+    tpWgzbaRemoteTemperatureSource: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const temperatureSensorSelectKey = "temperature_sensor_select";
+        const externalTemperatureInputKey = "external_temperature_input";
+        const exposes = [
+            e
+                .enum(temperatureSensorSelectKey, ea.ALL, sonoffTpWgzbaTemperatureSensorSelectValues)
+                .withLabel("Temperature sensor")
+                .withDescription(
+                    "Whether to use the value of the internal temperature sensor or an external temperature sensor for the perceived local temperature. Using an external sensor does not require local temperature calibration.",
+                ),
+            e
+                .numeric(externalTemperatureInputKey, ea.ALL)
+                .withLabel("External temperature")
+                .withValueMin(sonoffTpWgzbaExternalTemperatureInputRange.min)
+                .withValueMax(sonoffTpWgzbaExternalTemperatureInputRange.max)
+                .withValueStep(sonoffTpWgzbaExternalTemperatureInputRange.step)
+                .withUnit("°C")
+                .withCategory("config")
+                .withDescription(
+                    "The value of an external temperature sensor. Note: synchronisation of this value with the external temperature sensor needs to happen outside of Zigbee2MQTT.",
+                ),
+        ];
+
+        const writeRemoteAttributeLinkage = async (
+            entity: Zh.Endpoint | Zh.Group,
+            temperatureSensorSelect: SonoffTpWgzbaTemperatureSensorSelect,
+            externalTemperatureInput: number,
+        ): Promise<void> => {
+            const payload = buildSonoffTpWgzbaRemoteAttributeLinkage(
+                sonoffTpWgzbaTemperatureSensorSelectLookup[temperatureSensorSelect],
+                sonoffTpWgzbaExternalTemperatureInputToRaw(externalTemperatureInput),
+            );
+            await entity.write(
+                clusterName,
+                {
+                    [0x601e]: {
+                        value: {
+                            elementType: Zcl.DataType.UINT8,
+                            elements: payload,
+                        },
+                        type: Zcl.DataType.ARRAY,
+                    },
+                },
+                undefined,
+            );
+        };
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.remoteAttributeLinkage === undefined) return;
+
+                    return parseSonoffTpWgzbaRemoteAttributeLinkage(msg.data.remoteAttributeLinkage);
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [temperatureSensorSelectKey, externalTemperatureInputKey],
+                convertSet: async (entity, key, value, meta) => {
+                    const state = meta.state ?? {};
+                    const cachedExternalTemperatureInput = state[externalTemperatureInputKey];
+                    const cachedTemperatureSensorSelect = state[temperatureSensorSelectKey];
+                    let temperatureSensorSelect =
+                        cachedTemperatureSensorSelect === undefined
+                            ? sonoffTpWgzbaDefaultTemperatureSensorSelect
+                            : assertSonoffTpWgzbaTemperatureSensorSelect(cachedTemperatureSensorSelect, temperatureSensorSelectKey);
+                    let externalTemperatureInput = isSonoffTpWgzbaExternalTemperatureInput(cachedExternalTemperatureInput)
+                        ? cachedExternalTemperatureInput
+                        : undefined;
+
+                    if (key === externalTemperatureInputKey) {
+                        externalTemperatureInput = assertSonoffTpWgzbaExternalTemperatureInput(value, key);
+                    } else if (key === temperatureSensorSelectKey) {
+                        temperatureSensorSelect = assertSonoffTpWgzbaTemperatureSensorSelect(value, key);
+                        if (externalTemperatureInput === undefined) {
+                            if (temperatureSensorSelect !== "internal") {
+                                throw new Error(
+                                    `Invalid ${key}: external_temperature_input must be set before non-internal temperature_sensor_select`,
+                                );
+                            }
+                            externalTemperatureInput = 0;
+                        }
+                    } else {
+                        throw new Error(`Unsupported TP-WGZBA remote temperature source key: ${key}`);
+                    }
+
+                    await writeRemoteAttributeLinkage(entity, temperatureSensorSelect, externalTemperatureInput);
+
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, ["remoteAttributeLinkage"]);
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaTemperatureHysteresis: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const key = "temperature_hysteresis";
+        const lowKey = "low_threshold";
+        const highKey = "high_threshold";
+        const exposes = [
+            e
+                .composite(key, key, ea.ALL)
+                .withCategory("config")
+                .withDescription("Temperature hysteresis thresholds.")
+                .withFeature(
+                    e
+                        .numeric(lowKey, ea.ALL)
+                        .withLabel("Minimum heating start threshold")
+                        .withUnit("°C")
+                        .withValueMin(sonoffTpWgzbaHysteresisLowRange.min)
+                        .withValueMax(sonoffTpWgzbaHysteresisLowRange.max)
+                        .withValueStep(sonoffTpWgzbaHysteresisLowRange.step)
+                        .withDescription("Heating starts when the room temperature falls below the target temperature plus this offset."),
+                )
+                .withFeature(
+                    e
+                        .numeric(highKey, ea.ALL)
+                        .withLabel("Maximum heating stop threshold")
+                        .withUnit("°C")
+                        .withValueMin(sonoffTpWgzbaHysteresisHighRange.min)
+                        .withValueMax(sonoffTpWgzbaHysteresisHighRange.max)
+                        .withValueStep(sonoffTpWgzbaHysteresisHighRange.step)
+                        .withDescription("Heating stops when the room temperature rises above the target temperature plus this offset."),
+                ),
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    const value = msg.data.temperatureControlThreshold;
+                    if (value === undefined) return;
+                    const low = getSonoffStructNumber(value, 0, Zcl.DataType.INT16);
+                    const high = getSonoffStructNumber(value, 1, Zcl.DataType.INT16);
+                    if (low === undefined || high === undefined) return;
+
+                    return {[key]: {[lowKey]: low / 100, [highKey]: high / 100}};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [key],
+                convertSet: async (entity, key, value) => {
+                    utils.assertObject(value, key);
+                    utils.assertNumber(value[lowKey], `${key}.${lowKey}`);
+                    utils.assertNumber(value[highKey], `${key}.${highKey}`);
+                    await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, {
+                        temperatureControlThreshold: buildSonoffStruct(Zcl.DataType.INT16, [
+                            Math.round(value[lowKey] * 100),
+                            Math.round(value[highKey] * 100),
+                        ]),
+                    });
+                    return {state: {[key]: {[lowKey]: value[lowKey], [highKey]: value[highKey]}}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, ["temperatureControlThreshold"]);
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaTimePeriod: (
+        key: "radar_do_not_disturb_period" | "night_mode_period",
+        attribute: "radarDoNotDisturbPeriod" | "screenNightModePeriod",
+        description: string,
+    ): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const exposes = [
+            e
+                .composite(key, key, ea.ALL)
+                .withCategory("config")
+                .withDescription(description)
+                .withFeature(e.text("start", ea.ALL).withDescription("Start time in HH:mm."))
+                .withFeature(e.text("end", ea.ALL).withDescription("End time in HH:mm.")),
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    const value = msg.data[attribute];
+                    if (value === undefined) return;
+                    const start = getSonoffStructNumber(value, 0, Zcl.DataType.UINT16);
+                    const end = getSonoffStructNumber(value, 1, Zcl.DataType.UINT16);
+                    if (start === undefined || end === undefined) return;
+
+                    return {[key]: {start: formatSonoffTpWgzbaTimeValue(start), end: formatSonoffTpWgzbaTimeValue(end)}};
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [key],
+                convertSet: async (entity, key, value) => {
+                    utils.assertObject(value, key);
+                    const start = parseSonoffTpWgzbaTimeValue(value.start, `${key}.start`);
+                    const end = parseSonoffTpWgzbaTimeValue(value.end, `${key}.end`);
+                    const period = buildSonoffStruct(Zcl.DataType.UINT16, [start, end]);
+                    const payload = attribute === "radarDoNotDisturbPeriod" ? {radarDoNotDisturbPeriod: period} : {screenNightModePeriod: period};
+                    await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, payload);
+                    return {state: {[key]: {start: value.start, end: value.end}}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, [attribute]);
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaRelayOutput: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const underfloorKey = "hydronic_underfloor_heating_relay_output";
+        const boilerKey = "boiler_dry_contact_output";
+        const relayOutputKeys = Object.keys(sonoffTpWgzbaRelayOutputLookup);
+        const relayOutputValueForBit = (bit: number): string => {
+            const key = utils.getFromLookupByValue(bit, sonoffTpWgzbaRelayOutputLookup);
+            return key ?? "normally_open_no";
+        };
+        const exposes = [
+            e
+                .enum(underfloorKey, ea.ALL, relayOutputKeys)
+                .withCategory("config")
+                .withDescription(
+                    "Select how the 3 A relay operates. Normally open (NO): The output is powered during heating and unpowered when heating stops. Normally closed (NC): The output is unpowered during heating and powered when heating stops.",
+                ),
+            e
+                .enum(boilerKey, ea.ALL, relayOutputKeys)
+                .withCategory("config")
+                .withDescription(
+                    "Select how the boiler dry-contact relay operates. Normally open (NO): The contact closes during heating and opens when heating stops. Normally closed (NC): The contact opens during heating and closes when heating stops.",
+                ),
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.relayOutputType === undefined) return;
+                    utils.assertNumber(msg.data.relayOutputType);
+                    return {
+                        [underfloorKey]: relayOutputValueForBit(msg.data.relayOutputType & 0x01),
+                        [boilerKey]: relayOutputValueForBit((msg.data.relayOutputType >> 1) & 0x01),
+                    };
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [underfloorKey, boilerKey],
+                convertSet: async (entity, key, value, meta) => {
+                    const selectedBit = getSonoffTpWgzbaOutputBit(value, key);
+                    const currentUnderfloorBit = getSonoffTpWgzbaOutputBit(meta.state?.[underfloorKey], underfloorKey) ?? 0;
+                    const currentBoilerBit = getSonoffTpWgzbaOutputBit(meta.state?.[boilerKey], boilerKey) ?? 0;
+                    const underfloorBit = key === underfloorKey ? selectedBit : currentUnderfloorBit;
+                    const boilerBit = key === boilerKey ? selectedBit : currentBoilerBit;
+                    const relayOutputType = (underfloorBit ?? 0) | ((boilerBit ?? 0) << 1);
+
+                    await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, {relayOutputType}, undefined);
+                    return {state: {[key]: value}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, ["relayOutputType"]);
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaTemporaryMode: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const commandName = "setTemporaryMode";
+        const key = "temporary_mode";
+        const exposes = [
+            e
+                .composite(key, key, ea.ALL)
+                .withCategory("config")
+                .withDescription("Temporary temperature mode settings.")
+                .withFeature(
+                    e
+                        .enum("mode", ea.ALL, Object.keys(sonoffTpWgzbaTemporaryCommandModeLookup))
+                        .withDescription(
+                            "Boost Mode: Runs the heating at the maximum set temperature for a user-defined duration to quickly warm the room.Timer Mode: Runs the heating at a user-defined temperature for a specified duration. When the timer ends, the thermostat returns to its previous mode and set temperature.",
+                        ),
+                )
+                .withFeature(
+                    e
+                        .numeric("duration", ea.ALL)
+                        .withValueMin(0)
+                        .withValueMax(1440)
+                        .withValueStep(5)
+                        .withUnit("minutes")
+                        .withDescription(
+                            "Boost Mode: Runs the heating at the maximum set temperature for up to 180 minutes.Timer Mode: Runs the heating at a custom temperature for a specified duration of up to 24 hours.",
+                        ),
+                )
+                .withFeature(
+                    e
+                        .numeric("target_temperature", ea.ALL)
+                        .withValueMin(sonoffTpWgzbaTargetTemperatureRange.min)
+                        .withValueMax(sonoffTpWgzbaTargetTemperatureRange.max)
+                        .withValueStep(sonoffTpWgzbaTargetTemperatureRange.step)
+                        .withUnit("°C")
+                        .withDescription("In timer mode,the temperature can be set to 5-30°C."),
+                ),
+        ];
+
+        const isValidTargetTemperature = (value: unknown): value is number => {
+            return typeof value === "number" && value >= sonoffTpWgzbaTargetTemperatureRange.min && value <= sonoffTpWgzbaTargetTemperatureRange.max;
+        };
+
+        const fromZigbee = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (
+                        msg.data.temporaryMode === undefined &&
+                        msg.data.temporaryModeTime === undefined &&
+                        msg.data.temporaryModeTemp === undefined
+                    ) {
+                        return;
+                    }
+
+                    const temporaryMode: KeyValueAny = utils.isObject(meta.state.temporary_mode) ? {...meta.state.temporary_mode} : {};
+                    if (msg.data.temporaryMode !== undefined) {
+                        temporaryMode.mode = utils.getFromLookupByValue(msg.data.temporaryMode, sonoffTpWgzbaTemporaryAttributeModeLookup, null);
+                        if (temporaryMode.mode === "boost") {
+                            delete temporaryMode.target_temperature;
+                        }
+                    }
+                    if (msg.data.temporaryModeTime !== undefined) {
+                        utils.assertNumber(msg.data.temporaryModeTime);
+                        temporaryMode.duration = msg.data.temporaryModeTime / 60;
+                    }
+                    if (msg.data.temporaryModeTemp !== undefined) {
+                        utils.assertNumber(msg.data.temporaryModeTemp);
+                        const targetTemperature = msg.data.temporaryModeTemp / sonoffTpWgzbaTemperatureScale;
+                        if (temporaryMode.mode !== "boost" && isValidTargetTemperature(targetTemperature)) {
+                            temporaryMode.target_temperature = targetTemperature;
+                        } else {
+                            delete temporaryMode.target_temperature;
+                        }
+                    }
+
+                    return {[key]: temporaryMode};
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>,
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (parsedRawCommand?.commandId !== 0x11) return;
+                    const payload = parsedRawCommand.payload;
+                    if (payload.length < 6) return;
+                    const status = payload[0];
+                    const statusText =
+                        sonoffTpWgzbaTemporaryModeStatusLookup[status as keyof typeof sonoffTpWgzbaTemporaryModeStatusLookup] ?? "unknown";
+                    logger.info(`TP-WGZBA temporary mode response status=${statusText} payload=${formatSonoffTrvzbtPayload(payload)}`, NS);
+                    if (status !== 0x00) return;
+
+                    const temporaryMode: KeyValueAny = utils.isObject(meta.state.temporary_mode) ? {...meta.state.temporary_mode} : {};
+                    temporaryMode.mode = utils.getFromLookupByValue(payload[1], sonoffTpWgzbaTemporaryCommandModeLookup, null);
+                    temporaryMode.duration = payload.readUInt32LE(2) / 60;
+                    if (temporaryMode.mode === "boost") {
+                        delete temporaryMode.target_temperature;
+                    }
+                    return {[key]: temporaryMode};
+                },
+            } satisfies Fz.Converter<typeof clusterName, SonoffTpWgzba, ["raw"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [key],
+                convertSet: async (entity, key, value) => {
+                    utils.assertObject(value, key);
+                    utils.assertString(value.mode, `${key}.mode`);
+                    const mode = value.mode as keyof typeof sonoffTpWgzbaTemporaryCommandModeLookup;
+                    const temporaryMode = sonoffTpWgzbaTemporaryCommandModeLookup[mode];
+                    if (temporaryMode === undefined) {
+                        throw new Error(`Invalid ${key}.mode: expected off, boost or timer`);
+                    }
+
+                    let durationSeconds = 0;
+                    let targetTemperature: number | undefined;
+
+                    utils.assertNumber(value.duration, `${key}.duration`);
+                    const maxDuration = mode === "boost" ? 180 : 1440;
+                    if (value.duration < 0 || value.duration > maxDuration) {
+                        throw new Error(`Invalid ${key}.duration: expected value between 0-${maxDuration} (inclusive), got ${value.duration}`);
+                    }
+
+                    if (mode === "boost") {
+                        targetTemperature = targetTemperature = Math.round(30 * sonoffTpWgzbaTemperatureScale);
+                    }
+
+                    if (mode === "timer") {
+                        utils.assertNumber(value.target_temperature, `${key}.target_temperature`);
+                        if (!isValidTargetTemperature(value.target_temperature)) {
+                            throw new Error(
+                                `Invalid ${key}.target_temperature: expected value between ${sonoffTpWgzbaTargetTemperatureRange.min}-${sonoffTpWgzbaTargetTemperatureRange.max} (inclusive), got ${value.target_temperature}`,
+                            );
+                        }
+                        targetTemperature = Math.round(value.target_temperature * sonoffTpWgzbaTemperatureScale);
+                    }
+
+                    durationSeconds = Math.round(value.duration * 60);
+
+                    const payload = Buffer.alloc(targetTemperature === undefined ? 5 : 7);
+                    payload[0] = temporaryMode;
+                    payload.writeUInt32LE(durationSeconds, 1);
+                    if (targetTemperature !== undefined) {
+                        payload.writeInt16LE(targetTemperature, 5);
+                    }
+                    await entity.command<typeof clusterName, typeof commandName, SonoffTpWgzba>(
+                        clusterName,
+                        commandName,
+                        {data: Array.from(payload)},
+                        disableDefaultResponseOptions,
+                    );
+
+                    const state: KeyValueAny = {mode};
+                    state.duration = value.duration;
+                    if (mode !== "boost") {
+                        state.target_temperature = value.target_temperature;
+                    }
+                    return {state: {[key]: state}};
+                },
+                convertGet: async (entity) => {
+                    await entity.command<typeof clusterName, typeof commandName, SonoffTpWgzba>(
+                        clusterName,
+                        commandName,
+                        {data: [0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]},
+                        disableDefaultResponseOptions,
+                    );
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    tpWgzbaHvacNotification: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const exposes = [
+            e.binary("open_window_detected", ea.STATE, true, false).withDescription("Indicates whether open window detection was triggered."),
+        ];
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.hvacMessageNotification === undefined) return;
+                    const data = Buffer.from(Array.from(msg.data.hvacMessageNotification));
+                    if (data.length < 3 || data[0] !== 0x00 || data[1] < 1) return;
+                    return {open_window_detected: data[2] === 0x01};
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee: [], isModernExtend: true};
+    },
+    tpWgzbaFactoryReset: (): ModernExtend => {
+        const key = "factory_reset";
+        const exposes = e
+            .enum(key, ea.SET, ["reset"])
+            .withCategory("config")
+            .withDescription("Resetting the device will restore its factory settings and erase all device data. Please proceed with caution.");
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [key],
+                convertSet: async (entity, key, value) => {
+                    utils.validateValue(value, ["reset"]);
+                    await entity.command("genBasic", "resetFactDefault", {}, disableDefaultResponseOptions);
+                },
+            },
+        ];
+
+        return {exposes: [exposes], toZigbee, isModernExtend: true};
+    },
+    tpWgzbaNtcTemperature: (): ModernExtend => {
+        const clusterName = "customSonoffTpWgzba";
+        const key = "ntc_temperature";
+        const exposes = e
+            .text(key, ea.STATE)
+            .withLabel("NTC temperature")
+            .withCategory("diagnostic")
+            .withDescription("Current external NTC temperature or sensor status.");
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data.currentNtcTemperature === undefined) return;
+                    return {[key]: formatSonoffTpWgzbaNtcTemperature(msg.data.currentNtcTemperature)};
+                },
+            },
+        ];
+
+        return {exposes: [exposes], fromZigbee, isModernExtend: true};
     },
     cyclicTimedIrrigation: (): ModernExtend => {
         const exposes = e
@@ -5772,6 +7127,50 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+
+    temperatureHumidityCalculatedValues(): ModernExtend {
+        const calculate = (temperature: number, humidity: number): KeyValue => {
+            const saturatedVaporPressure = 0.61078 * Math.exp((17.27 * temperature) / (temperature + 237.3));
+            const actualVaporPressure = (humidity / 100) * saturatedVaporPressure;
+            const vpd = utils.precisionRound(saturatedVaporPressure - actualVaporPressure, 2);
+
+            if (humidity <= 0) {
+                return {vpd};
+            }
+
+            const alpha = (17.27 * temperature) / (temperature + 237.7) + Math.log(humidity / 100);
+            const dewPoint = utils.precisionRound((237.7 * alpha) / (17.27 - alpha), 1);
+            return {dew_point: dewPoint, vpd};
+        };
+        const exposes: Expose[] = [
+            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
+            e.numeric("vpd", ea.STATE).withUnit("kPa").withDescription("Calculated vapor pressure deficit"),
+        ];
+        const fromZigbee: Fz.Converter<"msTemperatureMeasurement" | "msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "msTemperatureMeasurement",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.measuredValue === undefined || !utils.isNumber(meta.state.humidity)) return;
+                    return calculate(msg.data.measuredValue / 100, meta.state.humidity);
+                },
+            },
+            {
+                cluster: "msRelativeHumidity",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.measuredValue === undefined || !utils.isNumber(meta.state.temperature)) return;
+                    return calculate(meta.state.temperature, msg.data.measuredValue / 100);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -7345,6 +8744,266 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["TP-WGZBA"],
+        model: "TP-WGZBA",
+        vendor: "SONOFF",
+        description: "Zigbee thermostat panel",
+        exposes: [
+            e
+                .climate()
+                .withSetpoint(
+                    "occupied_heating_setpoint",
+                    sonoffTpWgzbaTargetTemperatureRange.min,
+                    sonoffTpWgzbaTargetTemperatureRange.max,
+                    sonoffTpWgzbaTargetTemperatureRange.step,
+                )
+                .withLocalTemperature()
+                .withLocalTemperatureCalibration(
+                    sonoffTpWgzbaLocalTemperatureCalibrationRange.min,
+                    sonoffTpWgzbaLocalTemperatureCalibrationRange.max,
+                    sonoffTpWgzbaLocalTemperatureCalibrationRange.step,
+                )
+                .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
+                .withRunningState(["idle", "heat"], ea.STATE_GET),
+        ],
+        fromZigbee: [fz.thermostat],
+        toZigbee: [
+            tz.thermostat_local_temperature,
+            tz.thermostat_local_temperature_calibration,
+            tz.thermostat_occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_running_state,
+        ],
+        extend: [
+            m.customLocalTemperatureCalibrationRange({
+                min: sonoffTpWgzbaLocalTemperatureCalibrationRange.min,
+                max: sonoffTpWgzbaLocalTemperatureCalibrationRange.max,
+            }),
+            m.deviceAddCustomCluster("customSonoffTpWgzba", {
+                name: "customSonoffTpWgzba",
+                ID: 0xfc11,
+                attributes: {
+                    childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
+                    btPairingBroadcastReq: {name: "btPairingBroadcastReq", ID: 0x0029, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    openWindow: {name: "openWindow", ID: 0x6000, type: Zcl.DataType.BOOLEAN, write: true},
+                    frostProtectionTemperature: {name: "frostProtectionTemperature", ID: 0x6002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    temporaryMode: {name: "temporaryMode", ID: 0x6014, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    temporaryModeTime: {name: "temporaryModeTime", ID: 0x6015, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+                    temporaryModeTemp: {name: "temporaryModeTemp", ID: 0x6016, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    weeklyScheduleActiveNum: {name: "weeklyScheduleActiveNum", ID: 0x601d, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    hvacMessageNotification: {name: "hvacMessageNotification", ID: 0x6030, type: Zcl.DataType.ARRAY},
+                    temperatureControlThreshold: {name: "temperatureControlThreshold", ID: 0x601f, type: Zcl.DataType.STRUCT, write: true},
+                    radarSensitivityLevel: {name: "radarSensitivityLevel", ID: 0x6020, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    radarDoNotDisturbEnable: {name: "radarDoNotDisturbEnable", ID: 0x6021, type: Zcl.DataType.BOOLEAN, write: true},
+                    radarDoNotDisturbPeriod: {name: "radarDoNotDisturbPeriod", ID: 0x6022, type: Zcl.DataType.STRUCT, write: true},
+                    screenWorkingBrightness: {name: "screenWorkingBrightness", ID: 0x6023, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    screenStandbyBrightness: {name: "screenStandbyBrightness", ID: 0x6024, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    screenNightStandbyBrightness: {
+                        name: "screenNightStandbyBrightness",
+                        ID: 0x6025,
+                        type: Zcl.DataType.UINT8,
+                        write: true,
+                        max: 0xff,
+                    },
+                    screenNightModeEnable: {name: "screenNightModeEnable", ID: 0x6026, type: Zcl.DataType.BOOLEAN, write: true},
+                    screenNightModePeriod: {name: "screenNightModePeriod", ID: 0x6027, type: Zcl.DataType.STRUCT, write: true},
+                    relayOutputType: {name: "relayOutputType", ID: 0x6028, type: Zcl.DataType.BITMAP8, write: true, max: 0xff},
+                    remoteAttributeLinkage: {name: "remoteAttributeLinkage", ID: 0x601e, type: Zcl.DataType.ARRAY, write: true},
+                    currentNtcTemperature: {name: "currentNtcTemperature", ID: 0x6031, type: Zcl.DataType.INT16, min: -32768},
+                    overheatProtectionTemperature: {
+                        name: "overheatProtectionTemperature",
+                        ID: 0x6032,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                        min: -32768,
+                    },
+                    overheatProtectionEnable: {name: "overheatProtectionEnable", ID: 0x6034, type: Zcl.DataType.BOOLEAN, write: true},
+                    radarEnable: {name: "radarEnable", ID: 0x6035, type: Zcl.DataType.BOOLEAN, write: true},
+                },
+                commands: {
+                    setTemporaryMode: {name: "setTemporaryMode", ID: 0x11, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    readTemperatureControlHistory: {
+                        name: "readTemperatureControlHistory",
+                        ID: 0x0e,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                    scheduleGroup: {name: "scheduleGroup", ID: 0x13, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                },
+                commandsResponse: {},
+            }),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "child_lock",
+                cluster: "customSonoffTpWgzba",
+                attribute: "childLock",
+                entityCategory: "config",
+                description: "Enables/disables physical input on the device",
+                valueOn: ["LOCK", 0x01],
+                valueOff: ["UNLOCK", 0x00],
+            }),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "open_window",
+                cluster: "customSonoffTpWgzba",
+                attribute: "openWindow",
+                entityCategory: "config",
+                description: "Automatically stops heating when the room temperature drops by more than 1.5°C within 5 minutes.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            sonoffExtend.tpWgzbaHvacNotification(),
+            m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "frost_protection_temperature",
+                cluster: "customSonoffTpWgzba",
+                attribute: "frostProtectionTemperature",
+                entityCategory: "config",
+                description: "The minimum room temperature at which heating automatically turns on in Off mode to prevent pipes from freezing.",
+                valueMin: sonoffTpWgzbaFrostProtectionTemperatureRange.min,
+                valueMax: sonoffTpWgzbaFrostProtectionTemperatureRange.max,
+                valueStep: sonoffTpWgzbaFrostProtectionTemperatureRange.step,
+                unit: "°C",
+                scale: 100,
+            }),
+            sonoffExtend.tpWgzbaWeeklySchedule(),
+            sonoffExtend.tpWgzbaReadScheduleOnConfigure(),
+            sonoffExtend.tpWgzbaTemporaryMode(),
+            sonoffExtend.tpWgzbaRemoteTemperatureSource(),
+            sonoffExtend.tpWgzbaTemperatureHysteresis(),
+            sonoffExtend.tpWgzbaRelayOutput(),
+            sonoffExtend.tpWgzbaNtcTemperature(),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "ntc_overheat_protection",
+                label: "NTC overheat protection",
+                cluster: "customSonoffTpWgzba",
+                attribute: "overheatProtectionEnable",
+                entityCategory: "config",
+                description: "Enable or disable NTC overheat protection.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "ntc_overheat_protection_temperature",
+                label: "NTC overheat protection temperature",
+                cluster: "customSonoffTpWgzba",
+                attribute: "overheatProtectionTemperature",
+                entityCategory: "config",
+                description: "Temperature threshold at which NTC overheat protection is triggered.",
+                valueMin: sonoffTpWgzbaOverheatProtectionTemperatureRange.min,
+                valueMax: sonoffTpWgzbaOverheatProtectionTemperatureRange.max,
+                valueStep: sonoffTpWgzbaOverheatProtectionTemperatureRange.step,
+                unit: "°C",
+                scale: sonoffTpWgzbaTemperatureScale,
+            }),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "radar_detection",
+                cluster: "customSonoffTpWgzba",
+                attribute: "radarEnable",
+                entityCategory: "config",
+                description: "Enable or disable radar presence detection.",
+                valueOn: ["enable", 0x01],
+                valueOff: ["disable", 0x00],
+            }),
+            m.enumLookup<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "radar_sensitivity",
+                lookup: {low: 0, medium: 1, high: 2},
+                cluster: "customSonoffTpWgzba",
+                attribute: "radarSensitivityLevel",
+                entityCategory: "config",
+                description: "Radar detection sensitivity.",
+            }),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "radar_do_not_disturb",
+                cluster: "customSonoffTpWgzba",
+                attribute: "radarDoNotDisturbEnable",
+                entityCategory: "config",
+                description: "Do not wake the screen automatically when presence is detected during the configured period.",
+                valueOn: ["enable", 0x01],
+                valueOff: ["disable", 0x00],
+            }),
+            sonoffExtend.tpWgzbaTimePeriod(
+                "radar_do_not_disturb_period",
+                "radarDoNotDisturbPeriod",
+                "During the scheduled period, presence detection will not wake the screen automatically.",
+            ),
+            m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "standby_brightness",
+                cluster: "customSonoffTpWgzba",
+                attribute: "screenStandbyBrightness",
+                entityCategory: "config",
+                description: "Screen brightness when the device is idle.",
+                valueMin: sonoffTpWgzbaBrightnessRange.min,
+                valueMax: sonoffTpWgzbaBrightnessRange.max,
+                valueStep: sonoffTpWgzbaBrightnessRange.step,
+            }),
+            m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "active_brightness",
+                cluster: "customSonoffTpWgzba",
+                attribute: "screenWorkingBrightness",
+                entityCategory: "config",
+                description: "Screen brightness when the device is active.",
+                valueMin: sonoffTpWgzbaBrightnessRange.min,
+                valueMax: sonoffTpWgzbaBrightnessRange.max,
+                valueStep: sonoffTpWgzbaBrightnessRange.step,
+            }),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "night_mode",
+                cluster: "customSonoffTpWgzba",
+                attribute: "screenNightModeEnable",
+                entityCategory: "config",
+                description: "Reduce screen brightness during the scheduled period.",
+                valueOn: ["enable", 0x01],
+                valueOff: ["disable", 0x00],
+            }),
+            sonoffExtend.tpWgzbaTimePeriod("night_mode_period", "screenNightModePeriod", "Period during which night mode brightness is used."),
+            m.numeric<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "night_brightness",
+                cluster: "customSonoffTpWgzba",
+                attribute: "screenNightStandbyBrightness",
+                entityCategory: "config",
+                description: "Adjusts the screen brightness when the device is in standby during the scheduled period.",
+                valueMin: sonoffTpWgzbaBrightnessRange.min,
+                valueMax: sonoffTpWgzbaBrightnessRange.max,
+                valueStep: sonoffTpWgzbaBrightnessRange.step,
+            }),
+            m.binary<"customSonoffTpWgzba", SonoffTpWgzba>({
+                name: "bluetooth_pairing",
+                cluster: "customSonoffTpWgzba",
+                attribute: "btPairingBroadcastReq",
+                entityCategory: "config",
+                description: "Start or stop Bluetooth pairing broadcast.",
+                valueOn: ["start", 0x01],
+                valueOff: ["stop", 0x00],
+            }),
+            sonoffExtend.tpWgzbaTemperatureControlHistory(),
+            sonoffExtend.tpWgzbaFactoryReset(),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
+            // await reporting.thermostatTemperature(endpoint);
+            await endpoint.read("hvacThermostat", ["localTemperatureCalibration"]);
+            const customAttributes = [
+                0x0000, 0x0029, 0x6000, 0x6002, 0x6014, 0x6015, 0x6016, 0x601d, 0x601f, 0x6020, 0x6021, 0x6022, 0x6023, 0x6024, 0x6025, 0x6026,
+                0x6027, 0x6028, 0x601e, 0x6031, 0x6032, 0x6034, 0x6035,
+            ];
+            const readCustomAttributes = async (attributes: number[]) => {
+                try {
+                    await endpoint.read(0xfc11, attributes);
+                } catch (error) {
+                    if (attributes.length === 1) {
+                        logger.error(`TP-WGZBA failed to read private attribute 0x${attributes[0].toString(16)}: ${error}`, NS);
+                        return;
+                    }
+                    for (const attribute of attributes) {
+                        await readCustomAttributes([attribute]);
+                    }
+                }
+            };
+            for (let i = 0; i < customAttributes.length; i += 4) {
+                await readCustomAttributes(customAttributes.slice(i, i + 4));
+            }
+        },
+    },
+    {
         zigbeeModel: ["S60ZBTPF"],
         model: "S60ZBTPF",
         vendor: "SONOFF",
@@ -8089,11 +9748,19 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
-                "customClusterEwelink",
-                ["radioPower", 0x0016, 0x5012, 0x5013],
-                defaultResponseOptions,
-            );
+            try {
+                await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                    "customClusterEwelink",
+                    ["radioPower", 0x0016, 0x5012, 0x5013],
+                    defaultResponseOptions,
+                );
+            } catch (e) {
+                // Some MINI-ZBRBS units/firmware reject this read with ZCL status
+                // UNSUP_CLUSTER (195), even though writing motorTravelCalibrationAction
+                // on the same cluster works fine. Don't let this block the rest of
+                // device configuration (binding/reporting set up by m.windowCovering()).
+                logger.error(`Configure failed: ${e}`, NS);
+            }
         },
     },
     {
@@ -8843,6 +10510,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
             m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
+            sonoffExtend.temperatureHumidityCalculatedValues(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
 
             // attributes
@@ -8909,6 +10577,7 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
             }),
+            sonoffExtend.temperatureHumidityCalculatedValues(),
             m.numeric<"customClusterEwelink", SonoffSnzb02m>({
                 name: "temperature_calibration",
                 cluster: "customClusterEwelink",
@@ -9923,6 +11592,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature({valueMin: 0, valueMax: 50}),
             m.humidity({valueMin: 5, valueMax: 95}),
+            sonoffExtend.temperatureHumidityCalculatedValues(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
                 name: "comfort_temperature_min",
