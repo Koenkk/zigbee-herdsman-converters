@@ -812,6 +812,25 @@ describe("Shelly 2PM Gen4 switch input events", () => {
         expect(await convertCommand(device, 4, "commandOn", {}, 7)).toBeUndefined();
     });
 
+    // The single-channel devices route through the same map-based resolver: with a wired input
+    // the filtered map names sw1 -> endpoint 2, so the events keep arriving exactly as before.
+    it("keeps single-channel input events working when the input is wired", async () => {
+        const device = mockDevice({
+            modelID: "Mini1PM",
+            manufacturerName: "Shelly",
+            ieeeAddr: "0x000000000000e106",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+        expect((await findByDevice(device)).model).toBe("S4SW-001P8EU");
+
+        expect(await convertCommand(device, 2, "commandOn", {}, 8)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 2, "commandRecall", {sceneid: 4}, 9)).toStrictEqual({action: "input_1_hold"});
+    });
+
     it("publishes a repeated transaction only once", async () => {
         const device = mockSwitch("0x000000000000e104");
 
