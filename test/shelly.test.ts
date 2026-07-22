@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import type {DefinitionExposesFunction, Expose, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -708,5 +708,295 @@ describe("Shelly 2PM Gen4 switch input endpoints", () => {
         expect(model).toBe("S4SW-002P16EU-COVER");
         expect(names).toContain("switch_mode_sw1");
         expect(names).toContain("switch_mode_sw2");
+    });
+
+    // switch_mode travels over the RPC cluster, which the firmware cannot answer over Zigbee:
+    // announcing GET offers a refresh that can never do anything, and a device query walks every
+    // converter that has a convertGet - so the read has to be gone and the expose has to say so.
+    it("marks switch_mode write-only and offers no read", async () => {
+        const device = mockSwitchWithInputs();
+        const definition = await findByDevice(device);
+        const exposes = (definition.exposes as DefinitionExposesFunction)(device, {});
+
+        for (const endpoint of ["sw1", "sw2"]) {
+            const expose = exposes.find((e) => e.name === "switch_mode" && e.endpoint === endpoint);
+            expect(expose, `switch_mode_${endpoint} is missing`).toBeDefined();
+            expect(expose.access & 0b100, `switch_mode_${endpoint} must not announce GET`).toBe(0);
+            expect(expose.access & 0b010, `switch_mode_${endpoint} must stay settable`).toBe(0b010);
+            expect(expose.description ?? "").toContain("cannot report");
+        }
+        expect(definition.toZigbee.find((c) => c.key?.includes("switch_mode"))?.convertGet).toBeUndefined();
+    });
+});
+
+// The input action events must follow the definition's endpoint map, like switch_type/switch_mode
+// already do: the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode device on 3/4.
+// A fixed endpoint lookup made cover input 1 throw and reported cover input 2 as input 1.
+describe("Shelly 2PM Gen4 switch input events", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+
+    const mockCover = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const mockSwitch = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 5, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const convertCommand = async (
+        device: ReturnType<typeof mockDevice>,
+        endpointId: number,
+        type: string,
+        data: Record<string, unknown>,
+        sequence: number,
+    ) => {
+        const definition = await findByDevice(device);
+        const cluster = type === "commandRecall" ? "genScenes" : "genOnOff";
+        const converter = definition.fromZigbee.find(
+            (c) => c.cluster === cluster && (Array.isArray(c.type) ? c.type.includes(type) : c.type === type),
+        ) as Fz.Converter;
+        return converter.convert(
+            definition,
+            {data, endpoint: device.getEndpoint(endpointId), device, type, meta: {zclTransactionSequenceNumber: sequence}} as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps cover input 1 (endpoint 2) and input 2 (endpoint 3) to their own actions", async () => {
+        const device = mockCover("0x000000000000e101");
+        expect((await findByDevice(device)).model).toBe("S4SW-002P16EU-COVER");
+
+        expect(await convertCommand(device, 2, "commandOn", {}, 1)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 3, "commandOn", {}, 2)).toStrictEqual({action: "input_2_on"});
+        expect(await convertCommand(device, 2, "commandRecall", {sceneid: 2}, 3)).toStrictEqual({action: "input_1_double"});
+        expect(await convertCommand(device, 3, "commandRecall", {sceneid: 11}, 4)).toStrictEqual({action: "input_2_hold"});
+    });
+
+    it("keeps the switch-mode inputs on endpoints 3 and 4", async () => {
+        const device = mockSwitch("0x000000000000e102");
+        expect((await findByDevice(device)).model).toBe("S4SW-002P16EU-SWITCH");
+
+        expect(await convertCommand(device, 3, "commandOff", {}, 5)).toStrictEqual({action: "input_1_off"});
+        expect(await convertCommand(device, 4, "commandToggle", {}, 6)).toStrictEqual({action: "input_2_toggle"});
+    });
+
+    it("ignores commands from endpoints that are no switch input instead of throwing", async () => {
+        const device = mockCover("0x000000000000e103");
+
+        expect(await convertCommand(device, 4, "commandOn", {}, 7)).toBeUndefined();
+    });
+
+    // The single-channel devices route through the same map-based resolver: with a wired input
+    // the filtered map names sw1 -> endpoint 2, so the events keep arriving exactly as before.
+    it("keeps single-channel input events working when the input is wired", async () => {
+        const device = mockDevice({
+            modelID: "Mini1PM",
+            manufacturerName: "Shelly",
+            ieeeAddr: "0x000000000000e106",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+        expect((await findByDevice(device)).model).toBe("S4SW-001P8EU");
+
+        expect(await convertCommand(device, 2, "commandOn", {}, 8)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 2, "commandRecall", {sceneid: 4}, 9)).toStrictEqual({action: "input_1_hold"});
+    });
+
+    it("publishes a repeated transaction only once", async () => {
+        const device = mockSwitch("0x000000000000e104");
+
+        expect(await convertCommand(device, 3, "commandOn", {}, 42)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 3, "commandOn", {}, 42)).toBeUndefined();
+    });
+});
+
+// The genOnOff/genScenes bindings and the switchType read in configure were added to these
+// definitions after their devices shipped. Without a version bump the application never
+// re-configures already paired devices, so their input events silently never arrive - the
+// BLU remotes bumped to 0.0.2 for exactly this kind of binding fix.
+describe("Shelly Gen4 switch definitions carry the re-configure version bump", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+    const SINGLE_CHANNEL = [{ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6], outputClusterIDs: [25]}, ...RPC_ENDPOINTS];
+    const cases: [string, ReturnType<typeof mockDevice>][] = [
+        ["S4SW-001X8EU", mockDevice({modelID: "Mini1", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001X16EU", mockDevice({modelID: "1", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001P8EU", mockDevice({modelID: "Mini1PM", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001P16EU", mockDevice({modelID: "1PM", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        [
+            "S4SW-002P16EU-COVER",
+            mockDevice({
+                modelID: "2PM",
+                manufacturerName: "Shelly",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: []}, ...RPC_ENDPOINTS],
+            }),
+        ],
+        [
+            "S4SW-002P16EU-SWITCH",
+            mockDevice({
+                modelID: "2PM",
+                manufacturerName: "Shelly",
+                ieeeAddr: "0x000000000000e105",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                    {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                    ...RPC_ENDPOINTS,
+                ],
+            }),
+        ],
+    ];
+
+    it.each(cases)("%s", async (expectedModel, device) => {
+        const definition = await findByDevice(device);
+        expect(definition.model).toBe(expectedModel);
+        expect(definition.configure).toBeDefined();
+        expect(definition.version).toBe("0.0.1");
+    });
+});
+
+describe("Shelly WS90 rain rate", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    const mockWS90 = () =>
+        mockDevice({
+            modelID: "Ecowitt WS90",
+            manufacturerName: "Shelly",
+            endpoints: [{ID: 1, profileID: 260, deviceID: 12, inputClusterIDs: [0, 1, 3, 0x400, 0x402, 0x403, 0x405], outputClusterIDs: []}],
+        });
+
+    // The precipitation counter is cumulative. After a reset (battery change, restart) the stored
+    // history must be rebased on the new counter value - otherwise the delta stays negative and
+    // the rate reports 0 until the new counter overtakes the old one, which can take months.
+    it("recovers the rain rate after the cumulative counter resets", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-07-22T10:00:00Z"));
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        expect(definition.model).toBe("WS90");
+        const rainConverters = definition.fromZigbee.filter((c) => c.cluster === "shellyWS90Rain");
+        expect(rainConverters.length).toBeGreaterThan(0);
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const report = (raw: number) =>
+            Object.assign(
+                {},
+                ...rainConverters.map(
+                    (c) =>
+                        (c as Fz.Converter).convert(
+                            definition,
+                            {data: {precipitation: raw}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                            vi.fn(),
+                            {},
+                            meta,
+                        ) ?? {},
+                ),
+            ) as Record<string, unknown>;
+
+        expect(report(5000).rain_rate).toBe(0); // 500 mm - initial sample
+        vi.setSystemTime(new Date("2026-07-22T10:02:00Z"));
+        expect(report(6000).rain_rate).toBe(300); // +100 mm in 2 min, capped at 300 mm/h
+        vi.setSystemTime(new Date("2026-07-22T10:04:00Z"));
+        expect(report(100).rain_rate).toBe(0); // counter reset to 10 mm - history is rebased
+        vi.setSystemTime(new Date("2026-07-22T10:06:00Z"));
+        expect(report(500).rain_rate).toBe(300); // +40 mm in 2 min since the reset
+    });
+
+    // The station reports as often as every 10 seconds and every save writes the whole device
+    // database to disk. The calculated-value converters used to save on every single report
+    // (twice on rain reports); persist at most once a minute instead.
+    it("persists the device meta at most once a minute", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const save = vi.spyOn(device, "save");
+        const wind = definition.fromZigbee.filter((c) => c.cluster === "shellyWS90Wind");
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const report = (windSpeed: number) => {
+            for (const c of wind) {
+                (c as Fz.Converter).convert(
+                    definition,
+                    {data: {windSpeed}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                    vi.fn(),
+                    {},
+                    meta,
+                );
+            }
+        };
+
+        report(10);
+        vi.setSystemTime(new Date("2026-07-22T12:00:10Z"));
+        report(20);
+        vi.setSystemTime(new Date("2026-07-22T12:00:20Z"));
+        report(30);
+        expect(save).toHaveBeenCalledTimes(1);
+
+        vi.setSystemTime(new Date("2026-07-22T12:01:01Z"));
+        report(40);
+        expect(save).toHaveBeenCalledTimes(2);
+    });
+
+    // The station reports the ZCL non-value marker (all bits set) when a reading is unavailable -
+    // a gustSpeed of 0xffff was published as 6553.5 m/s (Koenkk/zigbee2mqtt#31048). Markers must
+    // contribute nothing, neither as a measurement nor to the calculated values.
+    it("discards the non-value markers instead of publishing them as measurements", async () => {
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const convertAll = (cluster: string, data: Record<string, unknown>) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === cluster)
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                                vi.fn(),
+                                {},
+                                meta,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+
+        expect(convertAll("shellyWS90Wind", {gustSpeed: 0xffff}).gust_speed).toBeUndefined();
+        expect(convertAll("shellyWS90Wind", {windSpeed: 0xffff}).wind_speed).toBeUndefined();
+        expect(convertAll("shellyWS90UV", {uvIndex: 0xff}).uv_index).toBeUndefined();
+        expect(convertAll("shellyWS90Rain", {precipitation: 0xffffff}).precipitation).toBeUndefined();
+        // A real reading still scales as before.
+        expect(convertAll("shellyWS90Wind", {windSpeed: 123}).wind_speed).toBe(12.3);
     });
 });
