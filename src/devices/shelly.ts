@@ -562,7 +562,13 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const precipDelta = precipitation - history.value;
 
     if (timeDeltaMs < 60000) return null;
-    if (precipDelta < 0) return 0;
+    if (precipDelta < 0) {
+        // The cumulative counter was reset (battery change, restart). Rebase the history on the
+        // new counter - otherwise the delta stays negative and the rate reports 0 until the new
+        // counter overtakes the old value, which for a cumulative rain counter can take months.
+        meta.precipHistory = {value: precipitation, time: now};
+        return 0;
+    }
 
     meta.precipHistory = {value: precipitation, time: now};
 

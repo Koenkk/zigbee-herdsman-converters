@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import type {DefinitionExposesFunction, Expose, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -708,5 +708,54 @@ describe("Shelly 2PM Gen4 switch input endpoints", () => {
         expect(model).toBe("S4SW-002P16EU-COVER");
         expect(names).toContain("switch_mode_sw1");
         expect(names).toContain("switch_mode_sw2");
+    });
+});
+
+describe("Shelly WS90 rain rate", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    const mockWS90 = () =>
+        mockDevice({
+            modelID: "Ecowitt WS90",
+            manufacturerName: "Shelly",
+            endpoints: [{ID: 1, profileID: 260, deviceID: 12, inputClusterIDs: [0, 1, 3, 0x400, 0x402, 0x403, 0x405], outputClusterIDs: []}],
+        });
+
+    // The precipitation counter is cumulative. After a reset (battery change, restart) the stored
+    // history must be rebased on the new counter value - otherwise the delta stays negative and
+    // the rate reports 0 until the new counter overtakes the old one, which can take months.
+    it("recovers the rain rate after the cumulative counter resets", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-07-22T10:00:00Z"));
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        expect(definition.model).toBe("WS90");
+        const rainConverters = definition.fromZigbee.filter((c) => c.cluster === "shellyWS90Rain");
+        expect(rainConverters.length).toBeGreaterThan(0);
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const report = (raw: number) =>
+            Object.assign(
+                {},
+                ...rainConverters.map(
+                    (c) =>
+                        (c as Fz.Converter).convert(
+                            definition,
+                            {data: {precipitation: raw}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                            vi.fn(),
+                            {},
+                            meta,
+                        ) ?? {},
+                ),
+            ) as Record<string, unknown>;
+
+        expect(report(5000).rain_rate).toBe(0); // 500 mm - initial sample
+        vi.setSystemTime(new Date("2026-07-22T10:02:00Z"));
+        expect(report(6000).rain_rate).toBe(300); // +100 mm in 2 min, capped at 300 mm/h
+        vi.setSystemTime(new Date("2026-07-22T10:04:00Z"));
+        expect(report(100).rain_rate).toBe(0); // counter reset to 10 mm - history is rebased
+        vi.setSystemTime(new Date("2026-07-22T10:06:00Z"));
+        expect(report(500).rain_rate).toBe(300); // +40 mm in 2 min since the reset
     });
 });
