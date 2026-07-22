@@ -2091,6 +2091,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1 Mini Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2127,6 +2131,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1 Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2163,6 +2171,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2201,6 +2213,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1PM Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2294,6 +2310,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Cover mode)",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
@@ -2365,6 +2385,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [

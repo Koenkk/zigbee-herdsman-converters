@@ -819,3 +819,49 @@ describe("Shelly 2PM Gen4 switch input events", () => {
         expect(await convertCommand(device, 3, "commandOn", {}, 42)).toBeUndefined();
     });
 });
+
+// The genOnOff/genScenes bindings and the switchType read in configure were added to these
+// definitions after their devices shipped. Without a version bump the application never
+// re-configures already paired devices, so their input events silently never arrive - the
+// BLU remotes bumped to 0.0.2 for exactly this kind of binding fix.
+describe("Shelly Gen4 switch definitions carry the re-configure version bump", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+    const SINGLE_CHANNEL = [{ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6], outputClusterIDs: [25]}, ...RPC_ENDPOINTS];
+    const cases: [string, ReturnType<typeof mockDevice>][] = [
+        ["S4SW-001X8EU", mockDevice({modelID: "Mini1", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001X16EU", mockDevice({modelID: "1", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001P8EU", mockDevice({modelID: "Mini1PM", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001P16EU", mockDevice({modelID: "1PM", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        [
+            "S4SW-002P16EU-COVER",
+            mockDevice({
+                modelID: "2PM",
+                manufacturerName: "Shelly",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: []}, ...RPC_ENDPOINTS],
+            }),
+        ],
+        [
+            "S4SW-002P16EU-SWITCH",
+            mockDevice({
+                modelID: "2PM",
+                manufacturerName: "Shelly",
+                ieeeAddr: "0x000000000000e105",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                    {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                    ...RPC_ENDPOINTS,
+                ],
+            }),
+        ],
+    ];
+
+    it.each(cases)("%s", async (expectedModel, device) => {
+        const definition = await findByDevice(device);
+        expect(definition.model).toBe(expectedModel);
+        expect(definition.configure).toBeDefined();
+        expect(definition.version).toBe("0.0.1");
+    });
+});
