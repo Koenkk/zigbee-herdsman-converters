@@ -4,7 +4,19 @@ import type {Feature} from "../lib/exposes";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, DefinitionExposesFunction, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {
+    Configure,
+    Definition,
+    DefinitionExposesFunction,
+    DefinitionWithExtend,
+    DummyDevice,
+    Expose,
+    Fz,
+    KeyValue,
+    ModernExtend,
+    Tz,
+    Zh,
+} from "../lib/types";
 import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
@@ -938,20 +950,6 @@ const shellyModernExtend = {
             return endpoint;
         };
 
-        const getShellySwitchConfig = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<KeyValue | undefined> => {
-            if (!SHELLY_RPC_CAN_READ) return undefined;
-            const response = await rpcRequest(endpoint, "Switch.GetConfig", {id});
-            const result = response?.result ?? response?.params ?? response;
-            if (!result) return undefined;
-            assertObject<KeyValue>(result);
-            return result;
-        };
-
-        const getShellySwitchMode = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<string | undefined> => {
-            const config = await getShellySwitchConfig(endpoint, id);
-            return typeof config?.in_mode === "string" ? config.in_mode : undefined;
-        };
-
         // Maps a per-zone endpoint name ("1".."N") to the device's RPC PresenceZone id. This
         // numbering counts zones and is unrelated to the occupancy endpoints, which count tracked
         // people - presence_delay_1 is the first zone, occupancy_1 is the first person.
@@ -1229,12 +1227,19 @@ const shellyModernExtend = {
                 },
             });
         }
+        // switch_mode travels over the RPC cluster, which the firmware cannot answer over Zigbee
+        // (see SHELLY_RPC_CAN_READ): no convertGet - a device query walks every converter that has
+        // one regardless of the access flags - and the exposes say so instead of announcing GET.
         if (twoPMInputEndpoints) {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, twoPMInputEndpoints)).map((endpoint) =>
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint(endpoint),
                 );
             });
             toZigbee.push({
@@ -1245,25 +1250,6 @@ const shellyModernExtend = {
                     await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
-                convertGet: async (entity, key, meta) => {
-                    const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
-                    const ep = getRPCEndpoint(entity);
-                    const mode = await getShellySwitchMode(ep, switchId);
-                    if (mode) {
-                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
-                    }
-                },
-            });
-            configure.push(async (device) => {
-                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
-                if (!ep) return;
-                try {
-                    for (const id of [0, 1]) {
-                        await getShellySwitchConfig(ep, id);
-                    }
-                } catch (e) {
-                    logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
-                }
             });
         }
         if (featureOnePMInputMode) {
@@ -1271,7 +1257,11 @@ const shellyModernExtend = {
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2})).map((endpoint) =>
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint(endpoint),
                 );
             });
             toZigbee.push({
@@ -1281,22 +1271,6 @@ const shellyModernExtend = {
                     await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
-                convertGet: async (entity, key, meta) => {
-                    const ep = getRPCEndpoint(entity);
-                    const mode = await getShellySwitchMode(ep, 0);
-                    if (mode) {
-                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
-                    }
-                },
-            });
-            configure.push(async (device) => {
-                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
-                if (!ep) return;
-                try {
-                    await getShellySwitchConfig(ep, 0);
-                } catch (e) {
-                    logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
-                }
             });
         }
         if (featureCoverTiltAuto && SHELLY_RPC_CAN_READ) {
@@ -1907,11 +1881,23 @@ const handlePosition = e
     .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
     .withDescription("Handle position: closed, tilted (partly open), or open");
 
+// Resolves which switch input (1 or 2) sent a message, from the definition's own endpoint map:
+// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4 and the
+// single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from any
+// other endpoint return undefined and must be ignored, not mislabeled as input 1.
+const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint: Zh.Endpoint}): number | undefined => {
+    const endpoints = model.endpoint?.(msg.device) ?? {};
+    if (endpoints.sw1 === msg.endpoint.ID) return 1;
+    if (endpoints.sw2 === msg.endpoint.ID) return 2;
+    return undefined;
+};
+
 const fzLocal = {
     one_button_events: {
         cluster: "genOnOff",
         type: ["commandToggle"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(msg.endpoint.ID, {1: "single", 2: "double", 3: "triple"});
             return {action: event};
         },
@@ -1921,6 +1907,7 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
             return {action: event};
         },
@@ -1930,6 +1917,7 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
@@ -1948,6 +1936,7 @@ const fzLocal = {
         cluster: "genLevelCtrl",
         type: ["commandStep"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.stepmode}`, {
                 "1_0": "1_hold",
                 "1_1": "2_hold",
@@ -1962,6 +1951,7 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
                 "1_1": "1_double",
                 "2_1": "2_double",
@@ -1992,19 +1982,18 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
+    // The input numbering comes from the definition's endpoint map (see shellyInputNumber): a
+    // fixed endpoint lookup broke the cover-mode 2PM, whose inputs live on endpoints 2/3 while
+    // the switch-mode device has them on 3/4 - input 1 threw and input 2 was reported as input 1.
     two_switch_inputs_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
-            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
-                "3_commandOn": "input_1_on",
-                "3_commandOff": "input_1_off",
-                "3_commandToggle": "input_1_toggle",
-                "4_commandOn": "input_2_on",
-                "4_commandOff": "input_2_off",
-                "4_commandToggle": "input_2_toggle",
-            });
-            return {action: event};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const input = shellyInputNumber(model, msg);
+            if (input === undefined) return;
+            const event = utils.getFromLookup(msg.type, {commandOn: "on", commandOff: "off", commandToggle: "toggle"});
+            return {action: `input_${input}_${event}`};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
@@ -2012,21 +2001,18 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
-            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
-                "3_1": "input_1_single",
-                "4_1": "input_2_single",
-                "3_2": "input_1_double",
-                "4_2": "input_2_double",
-                "3_3": "input_1_triple",
-                "4_3": "input_2_triple",
-                "3_4": "input_1_hold",
-                "4_4": "input_2_hold",
-                "3_5": "input_1_toggle",
-                "4_5": "input_2_toggle",
-                "3_11": "input_1_hold",
-                "4_11": "input_2_hold",
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const input = shellyInputNumber(model, msg);
+            if (input === undefined) return;
+            const event = utils.getFromLookup(`${msg.data.sceneid}`, {
+                "1": "single",
+                "2": "double",
+                "3": "triple",
+                "4": "hold",
+                "5": "toggle",
+                "11": "hold",
             });
-            return {action: event};
+            return {action: `input_${input}_${event}`};
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
@@ -2034,7 +2020,8 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID !== 2) return {};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (shellyInputNumber(model, msg) !== 1) return;
             const event = utils.getFromLookup(msg.type, {
                 commandOn: "input_1_on",
                 commandOff: "input_1_off",
@@ -2048,7 +2035,8 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID !== 2) return {};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (shellyInputNumber(model, msg) !== 1) return;
             const event = utils.getFromLookup(`${msg.data.sceneid}`, {
                 "1": "input_1_single",
                 "2": "input_1_double",
@@ -2123,6 +2111,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1 Mini Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2133,7 +2125,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
@@ -2154,6 +2151,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1 Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2164,7 +2165,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
@@ -2185,6 +2191,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2195,7 +2205,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
@@ -2218,6 +2233,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1PM Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         // The switch input endpoint only exists when an input is actually wired. Without it the
@@ -2228,7 +2247,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
@@ -2306,6 +2330,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Cover mode)",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
@@ -2377,6 +2405,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [

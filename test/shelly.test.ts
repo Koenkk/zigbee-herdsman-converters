@@ -709,6 +709,180 @@ describe("Shelly 2PM Gen4 switch input endpoints", () => {
         expect(names).toContain("switch_mode_sw1");
         expect(names).toContain("switch_mode_sw2");
     });
+
+    // switch_mode travels over the RPC cluster, which the firmware cannot answer over Zigbee:
+    // announcing GET offers a refresh that can never do anything, and a device query walks every
+    // converter that has a convertGet - so the read has to be gone and the expose has to say so.
+    it("marks switch_mode write-only and offers no read", async () => {
+        const device = mockSwitchWithInputs();
+        const definition = await findByDevice(device);
+        const exposes = (definition.exposes as DefinitionExposesFunction)(device, {});
+
+        for (const endpoint of ["sw1", "sw2"]) {
+            const expose = exposes.find((e) => e.name === "switch_mode" && e.endpoint === endpoint);
+            expect(expose, `switch_mode_${endpoint} is missing`).toBeDefined();
+            expect(expose.access & 0b100, `switch_mode_${endpoint} must not announce GET`).toBe(0);
+            expect(expose.access & 0b010, `switch_mode_${endpoint} must stay settable`).toBe(0b010);
+            expect(expose.description ?? "").toContain("cannot report");
+        }
+        expect(definition.toZigbee.find((c) => c.key?.includes("switch_mode"))?.convertGet).toBeUndefined();
+    });
+});
+
+// The input action events must follow the definition's endpoint map, like switch_type/switch_mode
+// already do: the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode device on 3/4.
+// A fixed endpoint lookup made cover input 1 throw and reported cover input 2 as input 1.
+describe("Shelly 2PM Gen4 switch input events", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+
+    const mockCover = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const mockSwitch = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 5, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const convertCommand = async (
+        device: ReturnType<typeof mockDevice>,
+        endpointId: number,
+        type: string,
+        data: Record<string, unknown>,
+        sequence: number,
+    ) => {
+        const definition = await findByDevice(device);
+        const cluster = type === "commandRecall" ? "genScenes" : "genOnOff";
+        const converter = definition.fromZigbee.find(
+            (c) => c.cluster === cluster && (Array.isArray(c.type) ? c.type.includes(type) : c.type === type),
+        ) as Fz.Converter;
+        return converter.convert(
+            definition,
+            {data, endpoint: device.getEndpoint(endpointId), device, type, meta: {zclTransactionSequenceNumber: sequence}} as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps cover input 1 (endpoint 2) and input 2 (endpoint 3) to their own actions", async () => {
+        const device = mockCover("0x000000000000e101");
+        expect((await findByDevice(device)).model).toBe("S4SW-002P16EU-COVER");
+
+        expect(await convertCommand(device, 2, "commandOn", {}, 1)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 3, "commandOn", {}, 2)).toStrictEqual({action: "input_2_on"});
+        expect(await convertCommand(device, 2, "commandRecall", {sceneid: 2}, 3)).toStrictEqual({action: "input_1_double"});
+        expect(await convertCommand(device, 3, "commandRecall", {sceneid: 11}, 4)).toStrictEqual({action: "input_2_hold"});
+    });
+
+    it("keeps the switch-mode inputs on endpoints 3 and 4", async () => {
+        const device = mockSwitch("0x000000000000e102");
+        expect((await findByDevice(device)).model).toBe("S4SW-002P16EU-SWITCH");
+
+        expect(await convertCommand(device, 3, "commandOff", {}, 5)).toStrictEqual({action: "input_1_off"});
+        expect(await convertCommand(device, 4, "commandToggle", {}, 6)).toStrictEqual({action: "input_2_toggle"});
+    });
+
+    it("ignores commands from endpoints that are no switch input instead of throwing", async () => {
+        const device = mockCover("0x000000000000e103");
+
+        expect(await convertCommand(device, 4, "commandOn", {}, 7)).toBeUndefined();
+    });
+
+    // The single-channel devices route through the same map-based resolver: with a wired input
+    // the filtered map names sw1 -> endpoint 2, so the events keep arriving exactly as before.
+    it("keeps single-channel input events working when the input is wired", async () => {
+        const device = mockDevice({
+            modelID: "Mini1PM",
+            manufacturerName: "Shelly",
+            ieeeAddr: "0x000000000000e106",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+        expect((await findByDevice(device)).model).toBe("S4SW-001P8EU");
+
+        expect(await convertCommand(device, 2, "commandOn", {}, 8)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 2, "commandRecall", {sceneid: 4}, 9)).toStrictEqual({action: "input_1_hold"});
+    });
+
+    it("publishes a repeated transaction only once", async () => {
+        const device = mockSwitch("0x000000000000e104");
+
+        expect(await convertCommand(device, 3, "commandOn", {}, 42)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 3, "commandOn", {}, 42)).toBeUndefined();
+    });
+});
+
+// The genOnOff/genScenes bindings and the switchType read in configure were added to these
+// definitions after their devices shipped. Without a version bump the application never
+// re-configures already paired devices, so their input events silently never arrive - the
+// BLU remotes bumped to 0.0.2 for exactly this kind of binding fix.
+describe("Shelly Gen4 switch definitions carry the re-configure version bump", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+    const SINGLE_CHANNEL = [{ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6], outputClusterIDs: [25]}, ...RPC_ENDPOINTS];
+    const cases: [string, ReturnType<typeof mockDevice>][] = [
+        ["S4SW-001X8EU", mockDevice({modelID: "Mini1", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001X16EU", mockDevice({modelID: "1", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001P8EU", mockDevice({modelID: "Mini1PM", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        ["S4SW-001P16EU", mockDevice({modelID: "1PM", manufacturerName: "Shelly", endpoints: SINGLE_CHANNEL})],
+        [
+            "S4SW-002P16EU-COVER",
+            mockDevice({
+                modelID: "2PM",
+                manufacturerName: "Shelly",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: []}, ...RPC_ENDPOINTS],
+            }),
+        ],
+        [
+            "S4SW-002P16EU-SWITCH",
+            mockDevice({
+                modelID: "2PM",
+                manufacturerName: "Shelly",
+                ieeeAddr: "0x000000000000e105",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                    {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                    ...RPC_ENDPOINTS,
+                ],
+            }),
+        ],
+    ];
+
+    it.each(cases)("%s", async (expectedModel, device) => {
+        const definition = await findByDevice(device);
+        expect(definition.model).toBe(expectedModel);
+        expect(definition.configure).toBeDefined();
+        expect(definition.version).toBe("0.0.1");
+    });
 });
 
 describe("Shelly WS90 rain rate", () => {
