@@ -206,7 +206,9 @@ const futurehomeExtend = {
 
                         const now = new Date();
                         const storeKey = `charging_session_${meta.device.ieeeAddr}`;
-                        let sessionData = (meta.device.getMeta("globalStore") ?? {}) as {[key: string]: {isCharging: boolean; startTime?: string; endTime?: string}};
+                        const sessionData = (meta.device.getMeta("globalStore") ?? {}) as {
+                            [key: string]: {isCharging: boolean; startTime?: string; endTime?: string};
+                        };
 
                         if (!sessionData[storeKey]) {
                             sessionData[storeKey] = {isCharging: false};
@@ -242,12 +244,8 @@ const futurehomeExtend = {
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
             exposes: [
-                exposes
-                    .string("charging_start_datetime", ea.STATE)
-                    .withDescription("Date and time when charging started (ISO 8601 format)"),
-                exposes
-                    .string("charging_end_datetime", ea.STATE)
-                    .withDescription("Date and time when charging ended (ISO 8601 format)"),
+                exposes.string("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
+                exposes.string("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
             ],
         };
     },
