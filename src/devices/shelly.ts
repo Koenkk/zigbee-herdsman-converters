@@ -467,6 +467,7 @@ interface WS90Meta {
     state?: {[key: string]: number | boolean};
     precipHistory?: {value: number; time: number};
     pressureHistory?: {value: number; time: number};
+    lastSave?: number;
 }
 
 /**
@@ -562,7 +563,13 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const precipDelta = precipitation - history.value;
 
     if (timeDeltaMs < 60000) return null;
-    if (precipDelta < 0) return 0;
+    if (precipDelta < 0) {
+        // The cumulative counter was reset (battery change, restart). Rebase the history on the
+        // new counter - otherwise the delta stays negative and the rate reports 0 until the new
+        // counter overtakes the old value, which for a cumulative rain counter can take months.
+        meta.precipHistory = {value: precipitation, time: now};
+        return 0;
+    }
 
     meta.precipHistory = {value: precipitation, time: now};
 
@@ -644,6 +651,15 @@ function calculateWeatherCondition(state: {[key: string]: number | boolean | und
 }
 
 /**
+ * The station reports the ZCL non-value marker (all bits set for the attribute type) when a
+ * reading is unavailable - a gustSpeed of 0xffff was published as 6553.5 m/s and fed into the
+ * calculations (https://github.com/Koenkk/zigbee2mqtt/issues/31048). Scale a raw value only
+ * when it is a real reading, otherwise contribute nothing.
+ */
+const ws90Scaled = (name: string, raw: unknown, invalid: number): {[key: string]: number} | undefined =>
+    typeof raw === "number" && raw !== invalid ? {[name]: raw / 10} : undefined;
+
+/**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
 function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
@@ -694,8 +710,14 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
     const condition = calculateWeatherCondition(state);
     if (condition !== null) result.weather_condition = condition;
 
-    // Save device meta to persist across restarts
-    device.save();
+    // Persist across restarts - but not on every report: the station reports as often as
+    // every 10 seconds, and each save writes the whole device database to disk. The histories
+    // only advance on the minute scale, so a crash loses at most a minute of history progress.
+    const now = Date.now();
+    if (meta.lastSave === undefined || now - meta.lastSave >= 60000) {
+        meta.lastSave = now;
+        device.save();
+    }
 
     return result;
 }
@@ -1778,10 +1800,9 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    if (data.uvIndex !== undefined) {
-                        const uv_index = (data.uvIndex as number) / 10;
-                        const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
-                        return calculated;
+                    const payload = ws90Scaled("uv_index", data.uvIndex, 0xff);
+                    if (payload) {
+                        return updateWS90CalculatedValues(msg.device, payload);
                     }
                 },
             },
@@ -1790,10 +1811,11 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: {[key: string]: number} = {};
-                    if (data.windSpeed !== undefined) payload.wind_speed = (data.windSpeed as number) / 10;
-                    if (data.windDirection !== undefined) payload.wind_direction = (data.windDirection as number) / 10;
-                    if (data.gustSpeed !== undefined) payload.gust_speed = (data.gustSpeed as number) / 10;
+                    const payload: {[key: string]: number} = {
+                        ...(ws90Scaled("wind_speed", data.windSpeed, 0xffff) ?? {}),
+                        ...(ws90Scaled("wind_direction", data.windDirection, 0xffff) ?? {}),
+                        ...(ws90Scaled("gust_speed", data.gustSpeed, 0xffff) ?? {}),
+                    };
                     const calculated = updateWS90CalculatedValues(msg.device, payload);
                     return calculated;
                 },
@@ -1803,11 +1825,10 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: {[key: string]: number | boolean} = {};
+                    const payload: {[key: string]: number | boolean} = {
+                        ...(ws90Scaled("precipitation", data.precipitation, 0xffffff) ?? {}),
+                    };
                     if (data.rainStatus !== undefined) payload.rain_status = Boolean(data.rainStatus);
-                    if (data.precipitation !== undefined) {
-                        payload.precipitation = (data.precipitation as number) / 10;
-                    }
 
                     // Calculate rain_rate (it's a calculated value, not a base sensor value)
                     const ws90Meta = getWS90Meta(msg.device);
@@ -1821,7 +1842,6 @@ const shellyModernExtend = {
                     // Include rain_rate in calculated values
                     calculated.rain_rate = rain_rate;
 
-                    msg.device.save();
                     return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
@@ -2485,6 +2505,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "wind_speed",
                 cluster: "shellyWS90Wind",
                 attribute: "windSpeed",
+                fzConvert: (model, msg) => ws90Scaled("wind_speed", msg.data.windSpeed, 0xffff),
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2497,6 +2518,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "wind_direction",
                 cluster: "shellyWS90Wind",
                 attribute: "windDirection",
+                fzConvert: (model, msg) => ws90Scaled("wind_direction", msg.data.windDirection, 0xffff),
                 valueMin: 0,
                 valueMax: 360,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2509,6 +2531,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "gust_speed",
                 cluster: "shellyWS90Wind",
                 attribute: "gustSpeed",
+                fzConvert: (model, msg) => ws90Scaled("gust_speed", msg.data.gustSpeed, 0xffff),
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2531,6 +2554,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uv_index",
                 cluster: "shellyWS90UV",
                 attribute: "uvIndex",
+                fzConvert: (model, msg) => ws90Scaled("uv_index", msg.data.uvIndex, 0xff),
                 valueMin: 0,
                 valueMax: 11,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2563,6 +2587,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "precipitation",
                 cluster: "shellyWS90Rain",
                 attribute: "precipitation",
+                fzConvert: (model, msg) => ws90Scaled("precipitation", msg.data.precipitation, 0xffffff),
                 valueMin: 0,
                 valueMax: 100000,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},

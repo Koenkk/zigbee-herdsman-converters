@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import type {DefinitionExposesFunction, Expose, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -708,5 +708,121 @@ describe("Shelly 2PM Gen4 switch input endpoints", () => {
         expect(model).toBe("S4SW-002P16EU-COVER");
         expect(names).toContain("switch_mode_sw1");
         expect(names).toContain("switch_mode_sw2");
+    });
+});
+
+describe("Shelly WS90 rain rate", () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    const mockWS90 = () =>
+        mockDevice({
+            modelID: "Ecowitt WS90",
+            manufacturerName: "Shelly",
+            endpoints: [{ID: 1, profileID: 260, deviceID: 12, inputClusterIDs: [0, 1, 3, 0x400, 0x402, 0x403, 0x405], outputClusterIDs: []}],
+        });
+
+    // The precipitation counter is cumulative. After a reset (battery change, restart) the stored
+    // history must be rebased on the new counter value - otherwise the delta stays negative and
+    // the rate reports 0 until the new counter overtakes the old one, which can take months.
+    it("recovers the rain rate after the cumulative counter resets", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-07-22T10:00:00Z"));
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        expect(definition.model).toBe("WS90");
+        const rainConverters = definition.fromZigbee.filter((c) => c.cluster === "shellyWS90Rain");
+        expect(rainConverters.length).toBeGreaterThan(0);
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const report = (raw: number) =>
+            Object.assign(
+                {},
+                ...rainConverters.map(
+                    (c) =>
+                        (c as Fz.Converter).convert(
+                            definition,
+                            {data: {precipitation: raw}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                            vi.fn(),
+                            {},
+                            meta,
+                        ) ?? {},
+                ),
+            ) as Record<string, unknown>;
+
+        expect(report(5000).rain_rate).toBe(0); // 500 mm - initial sample
+        vi.setSystemTime(new Date("2026-07-22T10:02:00Z"));
+        expect(report(6000).rain_rate).toBe(300); // +100 mm in 2 min, capped at 300 mm/h
+        vi.setSystemTime(new Date("2026-07-22T10:04:00Z"));
+        expect(report(100).rain_rate).toBe(0); // counter reset to 10 mm - history is rebased
+        vi.setSystemTime(new Date("2026-07-22T10:06:00Z"));
+        expect(report(500).rain_rate).toBe(300); // +40 mm in 2 min since the reset
+    });
+
+    // The station reports as often as every 10 seconds and every save writes the whole device
+    // database to disk. The calculated-value converters used to save on every single report
+    // (twice on rain reports); persist at most once a minute instead.
+    it("persists the device meta at most once a minute", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const save = vi.spyOn(device, "save");
+        const wind = definition.fromZigbee.filter((c) => c.cluster === "shellyWS90Wind");
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const report = (windSpeed: number) => {
+            for (const c of wind) {
+                (c as Fz.Converter).convert(
+                    definition,
+                    {data: {windSpeed}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                    vi.fn(),
+                    {},
+                    meta,
+                );
+            }
+        };
+
+        report(10);
+        vi.setSystemTime(new Date("2026-07-22T12:00:10Z"));
+        report(20);
+        vi.setSystemTime(new Date("2026-07-22T12:00:20Z"));
+        report(30);
+        expect(save).toHaveBeenCalledTimes(1);
+
+        vi.setSystemTime(new Date("2026-07-22T12:01:01Z"));
+        report(40);
+        expect(save).toHaveBeenCalledTimes(2);
+    });
+
+    // The station reports the ZCL non-value marker (all bits set) when a reading is unavailable -
+    // a gustSpeed of 0xffff was published as 6553.5 m/s (Koenkk/zigbee2mqtt#31048). Markers must
+    // contribute nothing, neither as a measurement nor to the calculated values.
+    it("discards the non-value markers instead of publishing them as measurements", async () => {
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const convertAll = (cluster: string, data: Record<string, unknown>) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === cluster)
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                                vi.fn(),
+                                {},
+                                meta,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+
+        expect(convertAll("shellyWS90Wind", {gustSpeed: 0xffff}).gust_speed).toBeUndefined();
+        expect(convertAll("shellyWS90Wind", {windSpeed: 0xffff}).wind_speed).toBeUndefined();
+        expect(convertAll("shellyWS90UV", {uvIndex: 0xff}).uv_index).toBeUndefined();
+        expect(convertAll("shellyWS90Rain", {precipitation: 0xffffff}).precipitation).toBeUndefined();
+        // A real reading still scales as before.
+        expect(convertAll("shellyWS90Wind", {windSpeed: 123}).wind_speed).toBe(12.3);
     });
 });
