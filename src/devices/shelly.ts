@@ -398,19 +398,21 @@ interface ShellyLightLevel {
     commandResponses: never;
 }
 
-let shellyRpcSending = false;
+// Since RPC messages require multiple writes to complete, requests to the SAME device must not
+// interleave. Different devices are independent though - a network with many Gen4 devices must
+// not queue every RPC transaction behind one global lock.
+const shellyRpcBusy = new Set<string>();
 
-const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
-    // Since RPC messages require multiple writes to complete, we have to make sure
-    // we're not interleaving request/response transactions accidentally.
-    while (shellyRpcSending) {
+const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
+    const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
+    while (shellyRpcBusy.has(key)) {
         await sleep(200);
     }
+    shellyRpcBusy.add(key);
     try {
-        shellyRpcSending = true;
         return await callback();
     } finally {
-        shellyRpcSending = false;
+        shellyRpcBusy.delete(key);
     }
 };
 
@@ -433,7 +435,7 @@ const shellyRpcSendRawUnlocked = async (endpoint: Zh.Endpoint | Zh.Group, messag
 };
 
 const shellyRpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) =>
-    shellyRpcLock(async () => await shellyRpcSendRawUnlocked(endpoint, message));
+    shellyRpcLock(endpoint, async () => await shellyRpcSendRawUnlocked(endpoint, message));
 
 const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
     const command = {
@@ -445,7 +447,7 @@ const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, p
 };
 
 const shellyRpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
-    return await shellyRpcLock(async () => {
+    return await shellyRpcLock(endpoint, async () => {
         const command = {
             id: 1,
             method: method,
@@ -1030,7 +1032,12 @@ const shellyModernExtend = {
                 .withCategory("config"),
         ];
 
-        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
+        // The RPC receive accumulator only serves the Dev diagnostics: nothing but their reads can
+        // produce shellyRPCCluster responses (the firmware answers no RPC read, see
+        // SHELLY_RPC_CAN_READ), and registering it unconditionally would publish the undeclared
+        // rpc_rxctl/rpc_data state keys on devices that expose no such fields.
+        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [];
+        const fromZigbeeDev: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: "shellyRPCCluster",
                 type: ["attributeReport", "readResponse"],
@@ -1192,6 +1199,7 @@ const shellyModernExtend = {
 
         if (featureDev) {
             exposes.push(...exposesDev);
+            fromZigbee.push(...fromZigbeeDev);
             toZigbee.push(...toZigbeeDev);
         }
         if (featurePowerstripUI) {
@@ -1542,9 +1550,6 @@ const shellyModernExtend = {
                 );
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
-                if (meta) {
-                    published = true;
-                }
             } catch (e) {
                 logger.warning(`Failed to read Wi-Fi state through Shelly setup cluster; leaving previous state unchanged: ${e}`, NS);
             }
@@ -2053,7 +2058,7 @@ const fzLocal = {
         cluster: "genOnOffSwitchCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            if (!Object.hasOwn(msg.data, "switchType")) return;
             const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
             return {[property]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
@@ -2776,12 +2781,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.alarmMask !== undefined) {
-                        const alarmMask = msg.data.alarmMask;
-                        result.calibration_ok = !((alarmMask & (1 << 2)) > 0);
-                    }
-                    return result;
+                    if (msg.data.alarmMask === undefined) return;
+                    return {calibration_ok: !((msg.data.alarmMask & (1 << 2)) > 0)};
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
