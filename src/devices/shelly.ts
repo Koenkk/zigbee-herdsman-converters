@@ -2113,7 +2113,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
@@ -2144,7 +2149,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
@@ -2175,7 +2185,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
@@ -2208,7 +2223,12 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
