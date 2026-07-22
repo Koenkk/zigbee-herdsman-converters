@@ -189,6 +189,68 @@ const futurehomeExtend = {
             ],
         };
     },
+    chargerSessionTimings: (): ModernExtend => {
+        return {
+            isModernExtend: true,
+            fromZigbee: [
+                {
+                    cluster: "haApplianceControl",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const result: KeyValue = {};
+                        const status = msg.data?.status;
+
+                        if (status === undefined || status === null) {
+                            return result;
+                        }
+
+                        const now = new Date();
+                        const storeKey = `charging_session_${meta.device.ieeeAddr}`;
+                        let sessionData = (meta.device.getMeta("globalStore") ?? {}) as {[key: string]: {isCharging: boolean; startTime?: string; endTime?: string}};
+
+                        if (!sessionData[storeKey]) {
+                            sessionData[storeKey] = {isCharging: false};
+                        }
+
+                        const currentSession = sessionData[storeKey];
+                        const isNowCharging = status === 0x02; // plugged_in_charging
+                        const wasCharging = currentSession.isCharging;
+
+                        // Charging started
+                        if (isNowCharging && !wasCharging) {
+                            currentSession.startTime = now.toISOString();
+                            currentSession.isCharging = true;
+                            result.charging_start_datetime = currentSession.startTime;
+                        }
+
+                        // Charging ended (status is neither 0x02 nor 0x03)
+                        if (!isNowCharging && wasCharging && status !== 0x03) {
+                            currentSession.endTime = now.toISOString();
+                            currentSession.isCharging = false;
+                            result.charging_end_datetime = currentSession.endTime;
+                        }
+
+                        // Paused (status 0x03) - keep isCharging as true to wait for actual end
+                        if (status === 0x03 && wasCharging) {
+                            currentSession.isCharging = true;
+                        }
+
+                        meta.device.setMeta("globalStore", sessionData);
+
+                        return result;
+                    },
+                } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
+            ],
+            exposes: [
+                exposes
+                    .string("charging_start_datetime", ea.STATE)
+                    .withDescription("Date and time when charging started (ISO 8601 format)"),
+                exposes
+                    .string("charging_end_datetime", ea.STATE)
+                    .withDescription("Date and time when charging ended (ISO 8601 format)"),
+            ],
+        };
+    },
     previousSessionEnergy: (): ModernExtend => {
         return {
             isModernExtend: true,
@@ -424,6 +486,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             futurehomeExtend.chargerStatus(),
             futurehomeExtend.charging(),
+            futurehomeExtend.chargerSessionTimings(),
             m.binary({
                 name: "cable_locked",
                 cluster: "closuresDoorLock",
