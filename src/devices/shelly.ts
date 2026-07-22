@@ -4,7 +4,19 @@ import type {Feature} from "../lib/exposes";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, DefinitionExposesFunction, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {
+    Configure,
+    Definition,
+    DefinitionExposesFunction,
+    DefinitionWithExtend,
+    DummyDevice,
+    Expose,
+    Fz,
+    KeyValue,
+    ModernExtend,
+    Tz,
+    Zh,
+} from "../lib/types";
 import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
@@ -1887,6 +1899,17 @@ const handlePosition = e
     .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
     .withDescription("Handle position: closed, tilted (partly open), or open");
 
+// Resolves which switch input (1 or 2) sent a message, from the definition's own endpoint map:
+// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4 and the
+// single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from any
+// other endpoint return undefined and must be ignored, not mislabeled as input 1.
+const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint: Zh.Endpoint}): number | undefined => {
+    const endpoints = model.endpoint?.(msg.device) ?? {};
+    if (endpoints.sw1 === msg.endpoint.ID) return 1;
+    if (endpoints.sw2 === msg.endpoint.ID) return 2;
+    return undefined;
+};
+
 const fzLocal = {
     one_button_events: {
         cluster: "genOnOff",
@@ -1972,19 +1995,18 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
+    // The input numbering comes from the definition's endpoint map (see shellyInputNumber): a
+    // fixed endpoint lookup broke the cover-mode 2PM, whose inputs live on endpoints 2/3 while
+    // the switch-mode device has them on 3/4 - input 1 threw and input 2 was reported as input 1.
     two_switch_inputs_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
-            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
-                "3_commandOn": "input_1_on",
-                "3_commandOff": "input_1_off",
-                "3_commandToggle": "input_1_toggle",
-                "4_commandOn": "input_2_on",
-                "4_commandOff": "input_2_off",
-                "4_commandToggle": "input_2_toggle",
-            });
-            return {action: event};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const input = shellyInputNumber(model, msg);
+            if (input === undefined) return;
+            const event = utils.getFromLookup(msg.type, {commandOn: "on", commandOff: "off", commandToggle: "toggle"});
+            return {action: `input_${input}_${event}`};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
@@ -1992,21 +2014,18 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
-            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
-                "3_1": "input_1_single",
-                "4_1": "input_2_single",
-                "3_2": "input_1_double",
-                "4_2": "input_2_double",
-                "3_3": "input_1_triple",
-                "4_3": "input_2_triple",
-                "3_4": "input_1_hold",
-                "4_4": "input_2_hold",
-                "3_5": "input_1_toggle",
-                "4_5": "input_2_toggle",
-                "3_11": "input_1_hold",
-                "4_11": "input_2_hold",
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const input = shellyInputNumber(model, msg);
+            if (input === undefined) return;
+            const event = utils.getFromLookup(`${msg.data.sceneid}`, {
+                "1": "single",
+                "2": "double",
+                "3": "triple",
+                "4": "hold",
+                "5": "toggle",
+                "11": "hold",
             });
-            return {action: event};
+            return {action: `input_${input}_${event}`};
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
@@ -2014,7 +2033,8 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID !== 2) return {};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (shellyInputNumber(model, msg) !== 1) return;
             const event = utils.getFromLookup(msg.type, {
                 commandOn: "input_1_on",
                 commandOff: "input_1_off",
@@ -2028,7 +2048,8 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID !== 2) return {};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (shellyInputNumber(model, msg) !== 1) return;
             const event = utils.getFromLookup(`${msg.data.sceneid}`, {
                 "1": "input_1_single",
                 "2": "input_1_double",

@@ -710,3 +710,94 @@ describe("Shelly 2PM Gen4 switch input endpoints", () => {
         expect(names).toContain("switch_mode_sw2");
     });
 });
+
+// The input action events must follow the definition's endpoint map, like switch_type/switch_mode
+// already do: the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode device on 3/4.
+// A fixed endpoint lookup made cover input 1 throw and reported cover input 2 as input 1.
+describe("Shelly 2PM Gen4 switch input events", () => {
+    const RPC_ENDPOINTS = [
+        {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+        {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+    ];
+
+    const mockCover = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 514, inputClusterIDs: [0, 3, 4, 5, 258], outputClusterIDs: [25]},
+                {ID: 2, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const mockSwitch = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "2PM",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6, 2820, 1794], outputClusterIDs: [25]},
+                {ID: 2, profileID: 260, deviceID: 266, inputClusterIDs: [4, 5, 6, 2820, 1794], outputClusterIDs: []},
+                {ID: 3, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 4, inputClusterIDs: [7], outputClusterIDs: [3, 4, 5, 6]},
+                {ID: 5, inputClusterIDs: [], outputClusterIDs: [3, 4, 6, 8, 258]},
+                ...RPC_ENDPOINTS,
+            ],
+        });
+
+    const convertCommand = async (
+        device: ReturnType<typeof mockDevice>,
+        endpointId: number,
+        type: string,
+        data: Record<string, unknown>,
+        sequence: number,
+    ) => {
+        const definition = await findByDevice(device);
+        const cluster = type === "commandRecall" ? "genScenes" : "genOnOff";
+        const converter = definition.fromZigbee.find(
+            (c) => c.cluster === cluster && (Array.isArray(c.type) ? c.type.includes(type) : c.type === type),
+        ) as Fz.Converter;
+        return converter.convert(
+            definition,
+            {data, endpoint: device.getEndpoint(endpointId), device, type, meta: {zclTransactionSequenceNumber: sequence}} as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps cover input 1 (endpoint 2) and input 2 (endpoint 3) to their own actions", async () => {
+        const device = mockCover("0x000000000000e101");
+        expect((await findByDevice(device)).model).toBe("S4SW-002P16EU-COVER");
+
+        expect(await convertCommand(device, 2, "commandOn", {}, 1)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 3, "commandOn", {}, 2)).toStrictEqual({action: "input_2_on"});
+        expect(await convertCommand(device, 2, "commandRecall", {sceneid: 2}, 3)).toStrictEqual({action: "input_1_double"});
+        expect(await convertCommand(device, 3, "commandRecall", {sceneid: 11}, 4)).toStrictEqual({action: "input_2_hold"});
+    });
+
+    it("keeps the switch-mode inputs on endpoints 3 and 4", async () => {
+        const device = mockSwitch("0x000000000000e102");
+        expect((await findByDevice(device)).model).toBe("S4SW-002P16EU-SWITCH");
+
+        expect(await convertCommand(device, 3, "commandOff", {}, 5)).toStrictEqual({action: "input_1_off"});
+        expect(await convertCommand(device, 4, "commandToggle", {}, 6)).toStrictEqual({action: "input_2_toggle"});
+    });
+
+    it("ignores commands from endpoints that are no switch input instead of throwing", async () => {
+        const device = mockCover("0x000000000000e103");
+
+        expect(await convertCommand(device, 4, "commandOn", {}, 7)).toBeUndefined();
+    });
+
+    it("publishes a repeated transaction only once", async () => {
+        const device = mockSwitch("0x000000000000e104");
+
+        expect(await convertCommand(device, 3, "commandOn", {}, 42)).toStrictEqual({action: "input_1_on"});
+        expect(await convertCommand(device, 3, "commandOn", {}, 42)).toBeUndefined();
+    });
+});
