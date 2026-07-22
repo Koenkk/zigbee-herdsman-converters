@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import {afterEach, describe, expect, it, vi} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
 import type {DefinitionExposesFunction, Expose, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -210,6 +211,90 @@ describe("Shelly Wi-Fi setup", () => {
         expect(device.getEndpoint(239).write).toHaveBeenCalledWith("shellyWiFiSetupCluster", {actionCode: 0}, expect.any(Object));
         expect(read).toHaveBeenCalledWith("shellyWiFiSetupCluster", ["status", "ip", "enabled", "dhcp", "ssid"], expect.any(Object));
         expect(publish).not.toHaveBeenCalled();
+    });
+
+    // Every staged attribute is applied by actionCode 1, so only the fields actually given may
+    // travel: a payload of only {enabled} used to wipe the stored credentials, and one of only
+    // {ssid, password} silently disabled Wi-Fi (#12617).
+    const wifiWrites = (device: ReturnType<typeof mockDevice>) =>
+        vi
+            .mocked(device.getEndpoint(239).write)
+            .mock.calls.filter((call) => call[0] === "shellyWiFiSetupCluster")
+            .map((call) => call[1] as Record<string, unknown>);
+
+    const wifiSet = async (device: ReturnType<typeof mockDevice>, payload: Record<string, unknown>) => {
+        // deviceAddCustomCluster registers this during onEvent/configure on a real device; the
+        // mock runs neither, and determineEndpoint needs the cluster to resolve the endpoint.
+        device.addCustomCluster("shellyWiFiSetupCluster", {
+            ID: 0xfc02,
+            manufacturerCode: Zcl.ManufacturerCode.SHELLY,
+            attributes: {
+                status: {ID: 0x0000, type: Zcl.DataType.CHAR_STR},
+                ip: {ID: 0x0001, type: Zcl.DataType.CHAR_STR},
+                actionCode: {ID: 0x0002, type: Zcl.DataType.UINT8},
+                dhcp: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+                enabled: {ID: 0x0004, type: Zcl.DataType.BOOLEAN},
+                ssid: {ID: 0x0005, type: Zcl.DataType.CHAR_STR},
+                password: {ID: 0x0006, type: Zcl.DataType.CHAR_STR},
+                staticIp: {ID: 0x0007, type: Zcl.DataType.CHAR_STR},
+                netMask: {ID: 0x0008, type: Zcl.DataType.CHAR_STR},
+                gateway: {ID: 0x0009, type: Zcl.DataType.CHAR_STR},
+                nameServer: {ID: 0x000a, type: Zcl.DataType.CHAR_STR},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key?.includes("wifi_config")) as Tz.Converter;
+        return converter.convertSet?.(device.getEndpoint(239), "wifi_config", payload, {device, message: {}, state: {}} as never);
+    };
+
+    it("toggling only enabled does not touch the stored credentials", async () => {
+        const device = mockShelly2PMCover();
+
+        const result = await wifiSet(device, {enabled: false});
+
+        expect(wifiWrites(device)).toStrictEqual([{enabled: false}, {actionCode: 1}]);
+        expect(result).toStrictEqual({state: {wifi_config: {enabled: false}}});
+    });
+
+    it("setting only credentials does not silently disable Wi-Fi", async () => {
+        const device = mockShelly2PMCover();
+
+        await wifiSet(device, {ssid: "TestNet", password: "secret"});
+
+        expect(wifiWrites(device)).toStrictEqual([{ssid: "TestNet"}, {password: "secret"}, {actionCode: 1}]);
+    });
+
+    it("a full set still writes every group", async () => {
+        const device = mockShelly2PMCover();
+
+        await wifiSet(device, {
+            enabled: true,
+            ssid: "TestNet",
+            password: "secret",
+            static_ip: "10.0.0.2",
+            net_mask: "255.255.255.0",
+            gateway: "10.0.0.1",
+            name_server: "10.0.0.1",
+        });
+
+        expect(wifiWrites(device)).toStrictEqual([
+            {enabled: true, ssid: "TestNet"},
+            {password: "secret"},
+            {staticIp: "10.0.0.2", netMask: "255.255.255.0"},
+            {gateway: "10.0.0.1", nameServer: "10.0.0.1"},
+            {actionCode: 1},
+        ]);
+    });
+
+    it("an empty payload writes nothing, not even the apply", async () => {
+        const device = mockShelly2PMCover();
+
+        const result = await wifiSet(device, {});
+
+        expect(wifiWrites(device)).toStrictEqual([]);
+        expect(result).toBeUndefined();
     });
 });
 
