@@ -1000,3 +1000,44 @@ describe("Shelly WS90 rain rate", () => {
         expect(convertAll("shellyWS90Wind", {windSpeed: 123}).wind_speed).toBe(12.3);
     });
 });
+
+// Hygiene guarantees: the RPC diagnostics converter only exists with the Dev feature, and the
+// per-device RPC lock must not serialize different devices against each other.
+describe("Shelly RPC hygiene", () => {
+    const mockPresence = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "Presence",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                ...Array.from({length: 10}, (_, index) => ({ID: index + 1, inputClusterIDs: [0, 3, 1030, 0xfc21], outputClusterIDs: []})),
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+            ],
+        });
+
+    it("does not serialize RPC writes of different devices against each other", async () => {
+        const deviceA = mockPresence("0x000000000000f102");
+        const deviceB = mockPresence("0x000000000000f103");
+        const definition = await findByDevice(deviceA);
+        const converter = definition.toZigbee.find((c) => c.key?.includes("eco_mode")) as Tz.Converter;
+
+        // Device A's transaction hangs on its FIRST write and holds A's lock; the remaining
+        // chunk writes after the release fall back to the default resolving mock.
+        let releaseA: (value: Record<string, unknown>) => void = () => {};
+        vi.mocked(deviceA.getEndpoint(239).write).mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    releaseA = resolve;
+                }),
+        );
+        const pendingA = converter.convertSet?.(deviceA.getEndpoint(239), "eco_mode", true, {device: deviceA, message: {}, state: {}} as never);
+
+        // Device B must complete although A is still holding its own lock.
+        const resultB = await converter.convertSet?.(deviceB.getEndpoint(239), "eco_mode", true, {device: deviceB, message: {}, state: {}} as never);
+        expect(resultB).toStrictEqual({state: {eco_mode: true}});
+
+        releaseA({});
+        await pendingA;
+    });
+});

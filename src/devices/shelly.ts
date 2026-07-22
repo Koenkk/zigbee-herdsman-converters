@@ -398,19 +398,21 @@ interface ShellyLightLevel {
     commandResponses: never;
 }
 
-let shellyRpcSending = false;
+// Since RPC messages require multiple writes to complete, requests to the SAME device must not
+// interleave. Different devices are independent though - a network with many Gen4 devices must
+// not queue every RPC transaction behind one global lock.
+const shellyRpcBusy = new Set<string>();
 
-const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
-    // Since RPC messages require multiple writes to complete, we have to make sure
-    // we're not interleaving request/response transactions accidentally.
-    while (shellyRpcSending) {
+const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
+    const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
+    while (shellyRpcBusy.has(key)) {
         await sleep(200);
     }
+    shellyRpcBusy.add(key);
     try {
-        shellyRpcSending = true;
         return await callback();
     } finally {
-        shellyRpcSending = false;
+        shellyRpcBusy.delete(key);
     }
 };
 
@@ -433,7 +435,7 @@ const shellyRpcSendRawUnlocked = async (endpoint: Zh.Endpoint | Zh.Group, messag
 };
 
 const shellyRpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) =>
-    shellyRpcLock(async () => await shellyRpcSendRawUnlocked(endpoint, message));
+    shellyRpcLock(endpoint, async () => await shellyRpcSendRawUnlocked(endpoint, message));
 
 const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
     const command = {
@@ -445,7 +447,7 @@ const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, p
 };
 
 const shellyRpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
-    return await shellyRpcLock(async () => {
+    return await shellyRpcLock(endpoint, async () => {
         const command = {
             id: 1,
             method: method,
