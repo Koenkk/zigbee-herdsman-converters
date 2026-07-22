@@ -759,6 +759,41 @@ describe("Shelly WS90 rain rate", () => {
         expect(report(500).rain_rate).toBe(300); // +40 mm in 2 min since the reset
     });
 
+    // The station reports as often as every 10 seconds and every save writes the whole device
+    // database to disk. The calculated-value converters used to save on every single report
+    // (twice on rain reports); persist at most once a minute instead.
+    it("persists the device meta at most once a minute", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-07-22T12:00:00Z"));
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const save = vi.spyOn(device, "save");
+        const wind = definition.fromZigbee.filter((c) => c.cluster === "shellyWS90Wind");
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+        const report = (windSpeed: number) => {
+            for (const c of wind) {
+                (c as Fz.Converter).convert(
+                    definition,
+                    {data: {windSpeed}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
+                    vi.fn(),
+                    {},
+                    meta,
+                );
+            }
+        };
+
+        report(10);
+        vi.setSystemTime(new Date("2026-07-22T12:00:10Z"));
+        report(20);
+        vi.setSystemTime(new Date("2026-07-22T12:00:20Z"));
+        report(30);
+        expect(save).toHaveBeenCalledTimes(1);
+
+        vi.setSystemTime(new Date("2026-07-22T12:01:01Z"));
+        report(40);
+        expect(save).toHaveBeenCalledTimes(2);
+    });
+
     // The station reports the ZCL non-value marker (all bits set) when a reading is unavailable -
     // a gustSpeed of 0xffff was published as 6553.5 m/s (Koenkk/zigbee2mqtt#31048). Markers must
     // contribute nothing, neither as a measurement nor to the calculated values.

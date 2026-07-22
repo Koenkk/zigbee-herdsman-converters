@@ -467,6 +467,7 @@ interface WS90Meta {
     state?: {[key: string]: number | boolean};
     precipHistory?: {value: number; time: number};
     pressureHistory?: {value: number; time: number};
+    lastSave?: number;
 }
 
 /**
@@ -709,8 +710,14 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
     const condition = calculateWeatherCondition(state);
     if (condition !== null) result.weather_condition = condition;
 
-    // Save device meta to persist across restarts
-    device.save();
+    // Persist across restarts - but not on every report: the station reports as often as
+    // every 10 seconds, and each save writes the whole device database to disk. The histories
+    // only advance on the minute scale, so a crash loses at most a minute of history progress.
+    const now = Date.now();
+    if (meta.lastSave === undefined || now - meta.lastSave >= 60000) {
+        meta.lastSave = now;
+        device.save();
+    }
 
     return result;
 }
@@ -1835,7 +1842,6 @@ const shellyModernExtend = {
                     // Include rain_rate in calculated values
                     calculated.rain_rate = rain_rate;
 
-                    msg.device.save();
                     return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
