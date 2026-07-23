@@ -1,7 +1,7 @@
 import {Zcl} from 'zigbee-herdsman';
 import * as exposes from '../lib/exposes';
 import * as m from '../lib/modernExtend';
-import type {DefinitionWithExtend, Fz, Tz} from '../lib/types';
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz, Zh} from '../lib/types';
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -41,10 +41,10 @@ const tzGewiss: Tz.Converter = {
     },
 };
 
-const fzWc: Fz.Converter = {
+const fzWc = {
     cluster: 'closuresWindowCovering',
     type: ['attributeReport', 'readResponse'],
-    convert: (model, msg) => {
+    convert: (model: unknown, msg: Fz.Message) => {
         const r: Record<string, unknown> = {};
         if (msg.data[0x0101] !== undefined) r.opening_time = msg.data[0x0101];
         if (msg.data[0x0102] !== undefined) r.closing_time = msg.data[0x0102];
@@ -53,10 +53,10 @@ const fzWc: Fz.Converter = {
     },
 };
 
-const fzLed: Fz.Converter = {
+const fzLed = {
     cluster: 'gewissLed',
     type: ['attributeReport', 'readResponse'],
-    convert: (model, msg) => {
+    convert: (model: unknown, msg: Fz.Message) => {
         const r: Record<string, unknown> = {};
         if (msg.data[0x0001] !== undefined) r.led_standby_brightness = byteToPct(msg.data[0x0001]);
         if (msg.data[0x0003] !== undefined) r.led_moving_brightness = byteToPct(msg.data[0x0003]);
@@ -64,7 +64,7 @@ const fzLed: Fz.Converter = {
     },
 };
 
-const gewissShutterFeatures = {
+const gewissShutterFeatures: ModernExtend = {
     fromZigbee: [fzWc, fzLed],
     toZigbee: [tzGewiss],
     exposes: [
@@ -82,7 +82,7 @@ const gewissShutterFeatures = {
             .withDescription('LED brightness while moving (attr 0xfd79/0x0003)'),
     ],
     configure: [
-        async (device: any, coordinatorEndpoint: any) => {
+        async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {
                 try {
@@ -102,7 +102,7 @@ const gewissShutterFeatures = {
     isModernExtend: true,
 };
 
-const gewissSwitchLedFeature = {
+const gewissSwitchLedFeature: ModernExtend = {
     fromZigbee: [fzLed],
     toZigbee: [tzGewiss],
     exposes: [
