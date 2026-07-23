@@ -398,19 +398,21 @@ interface ShellyLightLevel {
     commandResponses: never;
 }
 
-let shellyRpcSending = false;
+// Since RPC messages require multiple writes to complete, requests to the SAME device must not
+// interleave. Different devices are independent though - a network with many Gen4 devices must
+// not queue every RPC transaction behind one global lock.
+const shellyRpcBusy = new Set<string>();
 
-const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
-    // Since RPC messages require multiple writes to complete, we have to make sure
-    // we're not interleaving request/response transactions accidentally.
-    while (shellyRpcSending) {
+const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
+    const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
+    while (shellyRpcBusy.has(key)) {
         await sleep(200);
     }
+    shellyRpcBusy.add(key);
     try {
-        shellyRpcSending = true;
         return await callback();
     } finally {
-        shellyRpcSending = false;
+        shellyRpcBusy.delete(key);
     }
 };
 
@@ -433,7 +435,7 @@ const shellyRpcSendRawUnlocked = async (endpoint: Zh.Endpoint | Zh.Group, messag
 };
 
 const shellyRpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) =>
-    shellyRpcLock(async () => await shellyRpcSendRawUnlocked(endpoint, message));
+    shellyRpcLock(endpoint, async () => await shellyRpcSendRawUnlocked(endpoint, message));
 
 const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
     const command = {
@@ -445,7 +447,7 @@ const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, p
 };
 
 const shellyRpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
-    return await shellyRpcLock(async () => {
+    return await shellyRpcLock(endpoint, async () => {
         const command = {
             id: 1,
             method: method,
@@ -1030,7 +1032,12 @@ const shellyModernExtend = {
                 .withCategory("config"),
         ];
 
-        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
+        // The RPC receive accumulator only serves the Dev diagnostics: nothing but their reads can
+        // produce shellyRPCCluster responses (the firmware answers no RPC read, see
+        // SHELLY_RPC_CAN_READ), and registering it unconditionally would publish the undeclared
+        // rpc_rxctl/rpc_data state keys on devices that expose no such fields.
+        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [];
+        const fromZigbeeDev: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: "shellyRPCCluster",
                 type: ["attributeReport", "readResponse"],
@@ -1192,6 +1199,7 @@ const shellyModernExtend = {
 
         if (featureDev) {
             exposes.push(...exposesDev);
+            fromZigbee.push(...fromZigbeeDev);
             toZigbee.push(...toZigbeeDev);
         }
         if (featurePowerstripUI) {
@@ -1542,9 +1550,6 @@ const shellyModernExtend = {
                 );
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
-                if (meta) {
-                    published = true;
-                }
             } catch (e) {
                 logger.warning(`Failed to read Wi-Fi state through Shelly setup cluster; leaving previous state unchanged: ${e}`, NS);
             }
@@ -1649,46 +1654,49 @@ const shellyModernExtend = {
                     assertObject<KeyValue>(value);
                     const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
 
-                    const attr1 = {
-                        enabled: value.enabled === true,
-                        ssid: value.ssid || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr1, SHELLY_OPTIONS);
+                    // Stage only the fields actually given: every staged attribute is applied by
+                    // actionCode 1, so an absent field must not travel as its empty default - a
+                    // payload of only {enabled} used to wipe the stored credentials, and one of
+                    // only {ssid, password} silently wrote enabled=false (#12617). The ssid and
+                    // password never travel empty: clearing credentials over Zigbee is exactly
+                    // the accident this fixes. The static network fields may travel empty on
+                    // purpose (clearing them when switching back to DHCP).
+                    const staged: Partial<ShellyWiFiSetup["attributes"]> = {};
+                    if (typeof value.enabled === "boolean") staged.enabled = value.enabled;
+                    if (typeof value.ssid === "string" && value.ssid !== "") staged.ssid = value.ssid;
+                    if (typeof value.password === "string" && value.password !== "") staged.password = value.password;
+                    if (typeof value.static_ip === "string") staged.staticIp = value.static_ip;
+                    if (typeof value.net_mask === "string") staged.netMask = value.net_mask;
+                    if (typeof value.gateway === "string") staged.gateway = value.gateway;
+                    if (typeof value.name_server === "string") staged.nameServer = value.name_server;
+                    if (Object.keys(staged).length === 0) return;
 
-                    const attr2 = {
-                        password: value.password || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr2, SHELLY_OPTIONS);
+                    // Keep the proven write grouping (small multi-attribute frames, password on
+                    // its own), but skip groups with nothing to write.
+                    const groups: Partial<ShellyWiFiSetup["attributes"]>[] = [
+                        {enabled: staged.enabled, ssid: staged.ssid},
+                        {password: staged.password},
+                        {staticIp: staged.staticIp, netMask: staged.netMask},
+                        {gateway: staged.gateway, nameServer: staged.nameServer},
+                    ];
+                    for (const group of groups) {
+                        const attrs = Object.fromEntries(Object.entries(group).filter(([, attrValue]) => attrValue !== undefined)) as Partial<
+                            ShellyWiFiSetup["attributes"]
+                        >;
+                        if (Object.keys(attrs).length === 0) continue;
+                        await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", attrs, SHELLY_OPTIONS);
+                    }
+                    await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 1}, SHELLY_OPTIONS);
 
-                    const attr3 = {
-                        staticIp: value.static_ip || "",
-                        netMask: value.net_mask || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr3, SHELLY_OPTIONS);
-
-                    const attr4 = {
-                        gateway: value.gateway || "",
-                        nameServer: value.name_server || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr4, SHELLY_OPTIONS);
-
-                    const attr5 = {
-                        actionCode: 1,
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr5, SHELLY_OPTIONS);
-
-                    return {
-                        state: {
-                            wifi_config: {
-                                enabled: attr1.enabled,
-                                ssid: attr1.ssid === "" ? undefined : attr1.ssid,
-                                static_ip: attr3.staticIp === "" ? undefined : attr3.staticIp,
-                                net_mask: attr3.netMask === "" ? undefined : attr3.netMask,
-                                gateway: attr4.gateway === "" ? undefined : attr4.gateway,
-                                name_server: attr4.nameServer === "" ? undefined : attr4.nameServer,
-                            },
-                        },
-                    };
+                    // Optimistic state: only what was written; the password stays write-only.
+                    const written: KeyValue = {};
+                    if (staged.enabled !== undefined) written.enabled = staged.enabled;
+                    if (staged.ssid !== undefined) written.ssid = staged.ssid;
+                    if (staged.staticIp !== undefined) written.static_ip = staged.staticIp;
+                    if (staged.netMask !== undefined) written.net_mask = staged.netMask;
+                    if (staged.gateway !== undefined) written.gateway = staged.gateway;
+                    if (staged.nameServer !== undefined) written.name_server = staged.nameServer;
+                    return {state: {wifi_config: written}};
                 },
             },
         ];
@@ -2053,7 +2061,7 @@ const fzLocal = {
         cluster: "genOnOffSwitchCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            if (!Object.hasOwn(msg.data, "switchType")) return;
             const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
             return {[property]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
@@ -2776,12 +2784,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.alarmMask !== undefined) {
-                        const alarmMask = msg.data.alarmMask;
-                        result.calibration_ok = !((alarmMask & (1 << 2)) > 0);
-                    }
-                    return result;
+                    if (msg.data.alarmMask === undefined) return;
+                    return {calibration_ok: !((msg.data.alarmMask & (1 << 2)) > 0)};
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
