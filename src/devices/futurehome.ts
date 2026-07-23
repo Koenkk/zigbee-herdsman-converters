@@ -1,6 +1,7 @@
 import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 
@@ -205,16 +206,17 @@ const futurehomeExtend = {
                         }
 
                         const now = new Date();
-                        const storeKey = `charging_session_${meta.device.ieeeAddr}`;
-                        const sessionData = (meta.device.getMeta("globalStore") ?? {}) as {
-                            [key: string]: {isCharging: boolean; startTime?: string; endTime?: string};
+                        const currentSession = globalStore.getValue(meta.device, "charging_session", {
+                            isCharging: false,
+                        }) as {
+                            isCharging: boolean;
+                            startTime?: string;
+                            endTime?: string;
+                            prevStartTime?: string;
+                            prevEndTime?: string;
+                            prevDuration?: number;
                         };
 
-                        if (!sessionData[storeKey]) {
-                            sessionData[storeKey] = {isCharging: false};
-                        }
-
-                        const currentSession = sessionData[storeKey];
                         const isNowCharging = status === 0x02; // plugged_in_charging
                         const wasCharging = currentSession.isCharging;
 
@@ -230,6 +232,20 @@ const futurehomeExtend = {
                             currentSession.endTime = now.toISOString();
                             currentSession.isCharging = false;
                             result.charging_end_datetime = currentSession.endTime;
+
+                            // Calculate and expose the previous session data
+                            if (currentSession.startTime) {
+                                const startMs = new Date(currentSession.startTime).getTime();
+                                const endMs = now.getTime();
+
+                                currentSession.prevStartTime = currentSession.startTime;
+                                currentSession.prevEndTime = currentSession.endTime;
+                                currentSession.prevDuration = Math.round((endMs - startMs) / 1000); // Duration in seconds
+
+                                result.previous_charging_start_datetime = currentSession.prevStartTime;
+                                result.previous_charging_end_datetime = currentSession.prevEndTime;
+                                result.previous_charging_duration = currentSession.prevDuration;
+                            }
                         }
 
                         // Paused (status 0x03) - keep isCharging as true to wait for actual end
@@ -237,15 +253,34 @@ const futurehomeExtend = {
                             currentSession.isCharging = true;
                         }
 
-                        meta.device.setMeta("globalStore", sessionData);
+                        // Expose current charging status
+                        result.is_charging = currentSession.isCharging;
+
+                        // Calculate ongoing duration if currently charging
+                        if (currentSession.isCharging && currentSession.startTime) {
+                            const startMs = new Date(currentSession.startTime).getTime();
+                            const nowMs = now.getTime();
+                            result.current_charging_duration = Math.round((nowMs - startMs) / 1000);
+                        }
+
+                        globalStore.putValue(meta.device, "charging_session", currentSession);
 
                         return result;
                     },
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
             exposes: [
-                exposes.string("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
-                exposes.string("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
+                exposes.text("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
+                exposes.text("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
+                exposes
+                    .text("previous_charging_start_datetime", ea.STATE)
+                    .withDescription("Date and time when previous charging session started (ISO 8601 format)"),
+                exposes
+                    .text("previous_charging_end_datetime", ea.STATE)
+                    .withDescription("Date and time when previous charging session ended (ISO 8601 format)"),
+                exposes.numeric("previous_charging_duration", ea.STATE).withDescription("Duration of the previous charging session").withUnit("s"),
+                exposes.binary("is_charging", ea.STATE, "true", "false").withDescription("Indicates if an active charging session is ongoing"),
+                exposes.numeric("current_charging_duration", ea.STATE).withDescription("Duration of the current charging session").withUnit("s"),
             ],
         };
     },
