@@ -8656,15 +8656,15 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_jlbsptkl"]),
-        model: "TS0601_1-Gang_switch_Presence_Sensor",
+        model: "_TZE28C1000000_jlbsptkl",
         vendor: "Tuya",
-        description: "Human Presence Sensor 1-Gang Smart Switch",
+        description: "Human sresence sensor 1-gang smart switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("presence_state", ea.STATE, ["none", "presence"]).withDescription("Presence Status"),
-            e.switch().withEndpoint("l1"),
+            e.switch(),
             e
-                .numeric("countdown_1", ea.STATE_SET)
+                .numeric("countdown", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(43200)
                 .withValueStep(1)
@@ -8685,8 +8685,8 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state_l1", tuya.valueConverter.onOff],
-                [7, "countdown_1", tuya.valueConverter.raw],
+                [1, "state", tuya.valueConverter.onOff],
+                [7, "countdown", tuya.valueConverter.raw],
                 [
                     14,
                     "relay_status",
@@ -8736,9 +8736,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_jaunkx9g"]),
-        model: "TS0601_2-Gang_switch_Presence_Sensor",
+        model: "_TZE28C1000000_jaunkx9g",
         vendor: "Tuya",
-        description: "Human Presence Sensor 2-Gang Smart Switch",
+        description: "Human presence sensor 2-gang smart switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.enum("presence_state", ea.STATE, ["none", "presence"]).withDescription("Presence Status"),
@@ -8834,16 +8834,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_usmqzgdm"]),
-        model: "TS0601_3-Gang_switch_Presence_Sensor",
+        model: "_TZE28C1000000_usmqzgdm",
         vendor: "Tuya",
-        description: "Human Presence Sensor 3-Gang Smart Switch",
-        extend: [
-            tuya.modernExtend.tuyaBase({
-                dp: true,
-            }),
-        ],
-        exposes: (device, options) => {
-            const exps = [
+        description: "Human presence sensor 3-gang smart switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
                 e.enum("presence_state", ea.STATE, ["none", "presence"]).withDescription("Presence Status"),
                 e.switch().withEndpoint("l1"),
                 e.switch().withEndpoint("l2"),
