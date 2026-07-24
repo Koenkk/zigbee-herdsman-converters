@@ -318,7 +318,7 @@ const convLocal = {
                 return result;
             },
         };
-    },
+    },302
 
     powerFactorPJ1203A: (channel: string) => {
         return {
@@ -21662,12 +21662,12 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         all: tuya.enum(1),
-                        ch1: tuya.enum(1),
-                        ch2: tuya.enum(2),
-                        ch3: tuya.enum(3),
-                        ch1_and_ch2: tuya.enum(4),
-                        ch2_and_ch3: tuya.enum(5),
-                        ch1_and_ch3: tuya.enum(6),
+                        ch1: tuya.enum(2),
+                        ch2: tuya.enum(3),
+                        ch3: tuya.enum(4),
+                        ch1_and_ch2: tuya.enum(5),
+                        ch2_and_ch3: tuya.enum(6),
+                        ch1_and_ch3: tuya.enum(7),
                     }),
                 ],
                 [
@@ -21676,12 +21676,12 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         all: tuya.enum(1),
-                        ch1: tuya.enum(1),
-                        ch2: tuya.enum(2),
-                        ch3: tuya.enum(3),
-                        ch1_and_ch2: tuya.enum(4),
-                        ch2_and_ch3: tuya.enum(5),
-                        ch1_and_ch3: tuya.enum(6),
+                        ch1: tuya.enum(2),
+                        ch2: tuya.enum(3),
+                        ch3: tuya.enum(4),
+                        ch1_and_ch2: tuya.enum(5),
+                        ch2_and_ch3: tuya.enum(6),
+                        ch1_and_ch3: tuya.enum(7),
                     }),
                 ],
             ],
