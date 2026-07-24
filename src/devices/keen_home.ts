@@ -60,7 +60,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const payload = [{ attribute: "currentLevel" as const, minimumReportInterval: 5, maximumReportInterval: 65534, reportableChange: 1 }];
+            const payload = [{attribute: "currentLevel" as const, minimumReportInterval: 5, maximumReportInterval: 65534, reportableChange: 1}];
             await endpoint.configureReporting("genLevelCtrl", payload);
             const binds = ["genLevelCtrl", "genPowerCfg", "msTemperatureMeasurement", "msPressureMeasurement"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
