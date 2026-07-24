@@ -7149,6 +7149,50 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+
+    temperatureHumidityCalculatedValues(): ModernExtend {
+        const calculate = (temperature: number, humidity: number): KeyValue => {
+            const saturatedVaporPressure = 0.61078 * Math.exp((17.27 * temperature) / (temperature + 237.3));
+            const actualVaporPressure = (humidity / 100) * saturatedVaporPressure;
+            const vpd = utils.precisionRound(saturatedVaporPressure - actualVaporPressure, 2);
+
+            if (humidity <= 0) {
+                return {vpd};
+            }
+
+            const alpha = (17.27 * temperature) / (temperature + 237.7) + Math.log(humidity / 100);
+            const dewPoint = utils.precisionRound((237.7 * alpha) / (17.27 - alpha), 1);
+            return {dew_point: dewPoint, vpd};
+        };
+        const exposes: Expose[] = [
+            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
+            e.numeric("vpd", ea.STATE).withUnit("kPa").withDescription("Calculated vapor pressure deficit"),
+        ];
+        const fromZigbee: Fz.Converter<"msTemperatureMeasurement" | "msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: "msTemperatureMeasurement",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.measuredValue === undefined || !utils.isNumber(meta.state.humidity)) return;
+                    return calculate(msg.data.measuredValue / 100, meta.state.humidity);
+                },
+            },
+            {
+                cluster: "msRelativeHumidity",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.measuredValue === undefined || !utils.isNumber(meta.state.temperature)) return;
+                    return calculate(meta.state.temperature, msg.data.measuredValue / 100);
+                },
+            },
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            isModernExtend: true,
+        };
+    },
     // Clear the stale battery state when the device reports that it is using external power.
     powerSupplyModeWithChangeBatteryState: (): ModernExtend => {
         const lookup = {battery: 0x00, external: 0x01};
@@ -10515,6 +10559,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
             m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
+            sonoffExtend.temperatureHumidityCalculatedValues(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
 
             // attributes
@@ -10581,6 +10626,7 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 2,
                 zigbeeCommandOptions: {manufacturerCode: 0x1286},
             }),
+            sonoffExtend.temperatureHumidityCalculatedValues(),
             m.numeric<"customClusterEwelink", SonoffSnzb02m>({
                 name: "temperature_calibration",
                 cluster: "customClusterEwelink",
@@ -11587,6 +11633,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery(),
             m.temperature({valueMin: 0, valueMax: 50}),
             m.humidity({valueMin: 5, valueMax: 95}),
+            sonoffExtend.temperatureHumidityCalculatedValues(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
                 name: "comfort_temperature_min",
