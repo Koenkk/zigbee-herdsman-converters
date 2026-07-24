@@ -7701,7 +7701,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
 
@@ -7952,7 +7952,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -8102,6 +8102,7 @@ export const definitions: DefinitionWithExtend[] = [
                 inchingSwitch: (m) => m === "_TZ3000_afgzktgb",
             }),
         ],
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -12050,6 +12051,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Mercator Ikuü", model: "SSW01"},
             tuya.whitelabel("Nous", "LZ3", "Smart water/gas valve", ["_TZ3000_abjodzas"]),
         ],
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
@@ -12375,6 +12377,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nova Digital", "SA-4", "Safira smart light switch - 4 gang", ["_TZ3000_iymfxdis"]),
             tuya.whitelabel("AVATTO", "ZBTS60-04", "4 gang switch module with backlight", ["_TZ3000_r9e2w7dn"]),
         ],
+        meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
