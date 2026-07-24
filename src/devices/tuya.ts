@@ -14103,10 +14103,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "rotate_right",
             ]),
             e.numeric("action_brightness_delta", ea.STATE).withValueMin(-255).withValueMax(255),
-            e.numeric("action_step_size", ea.STATE).withValueMin(0).withValueMax(255),
             e.numeric("action_color_temperature_delta", ea.STATE).withValueMin(-65535).withValueMax(65535),
-            e.numeric("action_transition_time", ea.STATE).withUnit("s"),
-            e.numeric("action_rate", ea.STATE).withValueMin(0).withValueMax(255),
+            e.action_step_size(),
+            e.action_transition_time(),
+            e.action_rate(),
             e.battery(),
             e
                 .enum("operation_mode", ea.ALL, ["command", "event"])
@@ -24494,7 +24494,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(4)
                 .withCategory("diagnostic")
                 .withDescription("Button number from last action"),
-            e.numeric("action_group", ea.STATE).withCategory("diagnostic").withDescription("Group ID from last action"),
+            e.action_group(),
             e.enum("bind_all_scene", ea.SET, ["bind"]).withCategory("config").withDescription("Bind all buttons to Scene mode (red LED)"),
             e.enum("bind_all_light", ea.SET, ["bind"]).withCategory("config").withDescription("Bind all buttons to Light mode (green LED)"),
             e.enum("bind_all_curtain", ea.SET, ["bind"]).withCategory("config").withDescription("Bind all buttons to Curtain mode (blue LED)"),
