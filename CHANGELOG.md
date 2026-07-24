@@ -1,5 +1,40 @@
 # Changelog
 
+## [26.86.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.85.0...v26.86.0) (2026-07-24)
+
+
+### Features
+
+* **add:** _TZE200_rgeapp2c ([#12734](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12734)) ([3c8f6c9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c8f6c9a591aa0b88996450da09be5880359c8a2))
+* **add:** _TZE28C1000000_jlbsptkl, _TZE28C1000000_jaunkx9g, _TZE28C1000000_usmqzgdm ([#12746](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12746)) ([ffa7dbc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ffa7dbc2cb0074b9964a39571686692ba6748c12))
+* **add:** 91-943-PRO-RGBCW ([#12742](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12742)) ([60617a0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/60617a0d17c0fb3ffef479613c7a3bc495dfa772))
+* **add:** RCL 241 T ([#12754](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12754)) ([57ac661](https://github.com/Koenkk/zigbee-herdsman-converters/commit/57ac661525d588d022703064772ccf564093d39d))
+* **add:** SEM-4-3-20 ([#12752](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12752)) ([7a5f92e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7a5f92e1b072760754520a74c57f095732112d37))
+* NodOn SDO-4-1-00:add configureReporting for ssIasZone/zoneStatus ([#12523](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12523)) ([641cf2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/641cf2c03de97b8ea348c97664815e18b0e495b6))
+* NodOn SEM-4-1-00: add energy reset, configureReporting and apparent power ([#12548](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12548)) ([f10edc6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f10edc64f0989eeaa99658630020eec2ca6d026a))
+* Shelly Presence Gen4 (S4SN-0U61X): full sensor and zone configuration ([#12733](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12733)) ([76dd299](https://github.com/Koenkk/zigbee-herdsman-converters/commit/76dd299671986caeeefe3b3513b43dc38d0fb512))
+* Third Reality 3RDS17BZ: expose `delay_open` ([#12758](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12758)) ([c1792cd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c1792cd1a4b86075c7134766c7b2796e4816ee5b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_htdm5hvw` as Nous P4Z ([#12753](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12753)) ([ca7c8ca](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ca7c8ca2127b720a29c8a8ba5cdd3b946721484d))
+* **detect:** Detect `_TZE284_aoah6bv8` as Moes JKD-513COM-Z ([#12741](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12741)) ([a3233b2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a3233b2835447410b4f9df41e9cf98f2cb80a3fc))
+* Fix vendor casing to prevent duplicates ([#12738](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12738)) ([866abbf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/866abbf0719ea2aa3fce791fec75ce42a603e6f8))
+* **ignore:** bump zigbee-herdsman from 10.6.2 to 10.6.3 in the minor-patch group across 1 directory ([#12745](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12745)) ([fea8422](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fea8422c5342f3ff5b14953c8eb025d349dd5707))
+* Improve infrared emitter description ([#12737](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12737)) ([df4f118](https://github.com/Koenkk/zigbee-herdsman-converters/commit/df4f118e29581b881dee549c20a7da3378fc9c70))
+* NodOn SIN-4-1-20/SIN-4-1-21/SIN-4-2-20: fix wired input, endpoint 242 and identify ([#12729](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12729)) ([a759fd7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a759fd78176a5f3608fb618d3c50872285cab067))
+* Shelly 2PM Gen4: switch input mode is mapped to the wrong endpoints in switch mode ([#12736](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12736)) ([e1f1501](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e1f15019076f095f47f083f0a5e406b825c6e400))
+* Shelly Gen4: harden switch and button input handling ([#12747](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12747)) ([6470e62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6470e629100dd7d347457eef4e06b187a7ba0d79))
+* Shelly Gen4: stop offering settings the device cannot report ([#12735](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12735)) ([b252b72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b252b729b437b05f1e92bcb8f34a5ee88fecf167))
+* Shelly Gen4: stop reading through the RPC cluster ([#12732](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12732)) ([53e8742](https://github.com/Koenkk/zigbee-herdsman-converters/commit/53e874207991a88e2c67674a779b3498d4e8a666))
+* Shelly Gen4: write only the given Wi-Fi fields ([#12749](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12749)) ([9d2700c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d2700cd176a75b6fde877500396404485305ecf))
+* Shelly WS90: discard non-value markers and recover the rain rate after a counter reset ([#12748](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12748)) ([39cb49c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39cb49c5a279b52445bd714387a9d67030eb2bda))
+* Shelly: do not serialize RPC transactions of different devices against each other ([#12750](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12750)) ([2d2f648](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d2f648ddc05f944dbb6aaf382ca529ddfea148e))
+* Tuya TS0601_floor_thermostat: fix date/time https://github.com/Koenkk/zigbee2mqtt/issues/32647 ([2984446](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2984446fb3c1e766f35b2c490fec87670d9549df))
+* Tuya ZY-M100-24GV3: drop bogus 0 sensitivity reads from device ([#12069](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12069)) ([3f17c21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3f17c216031fde14e00706802cf6d9d128ebccfe))
+* Yale SOLIS01: fix operation event decoding and battery scale; drop state derivation from ymc_action ([#12755](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12755)) ([961a5f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/961a5f28bd226af335f388e44ddeae6fa9f2c1e4))
+
 ## [26.85.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.84.0...v26.85.0) (2026-07-20)
 
 
