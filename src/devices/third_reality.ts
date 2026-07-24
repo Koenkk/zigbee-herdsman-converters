@@ -114,7 +114,6 @@ interface ThirdDoorSensor {
     commandResponses: never;
 }
 
-
 interface Third60gRadarSensor {
     attributes: {
         totalVolatileOrganicCompounds: number;
