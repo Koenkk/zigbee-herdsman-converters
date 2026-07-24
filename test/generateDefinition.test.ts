@@ -608,8 +608,8 @@ export default {
                 expect.objectContaining({cluster: "genBinaryOutput"}),
                 expect.objectContaining({cluster: "genAnalogOutput"}),
             ],
-            toZigbee: ["my_binary_name", "binary_output_10", "my_output_name"],
-            exposes: ["binary_output_10", "my_binary_name", "my_output_name"],
+            toZigbee: ["binary_input", "binary_output", "analog_out_temperature"],
+            exposes: ["analog_out_temperature", "binary_input", "binary_output"],
             bind: {10: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"]},
             read: {
                 10: [
@@ -660,8 +660,8 @@ export default {
             }),
             meta: {multiEndpoint: true},
             fromZigbee: [expect.objectContaining({cluster: "genAnalogInput"}), expect.objectContaining({cluster: "genAnalogInput"})],
-            toZigbee: ["my_custom_name", "analog_input"],
-            exposes: ["analog_input_11", "my_custom_name_10"],
+            toZigbee: ["analog_in_temperature", "analog_input"],
+            exposes: ["analog_in_temperature_10", "analog_input_11"],
             bind: {10: ["genAnalogInput"], 11: ["genAnalogInput"]},
             read: {
                 10: [["genAnalogInput", ["presentValue"]]],
