@@ -9805,11 +9805,19 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
-                "customClusterEwelink",
-                ["radioPower", 0x0016, 0x5012, 0x5013],
-                defaultResponseOptions,
-            );
+            try {
+                await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                    "customClusterEwelink",
+                    ["radioPower", 0x0016, 0x5012, 0x5013],
+                    defaultResponseOptions,
+                );
+            } catch (e) {
+                // Some MINI-ZBRBS units/firmware reject this read with ZCL status
+                // UNSUP_CLUSTER (195), even though writing motorTravelCalibrationAction
+                // on the same cluster works fine. Don't let this block the rest of
+                // device configuration (binding/reporting set up by m.windowCovering()).
+                logger.error(`Configure failed: ${e}`, NS);
+            }
         },
     },
     {

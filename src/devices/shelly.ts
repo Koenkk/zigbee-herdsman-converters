@@ -1,9 +1,22 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
+import type {Feature} from "../lib/exposes";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import type {Configure, DefinitionExposesFunction, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {
+    Configure,
+    Definition,
+    DefinitionExposesFunction,
+    DefinitionWithExtend,
+    DummyDevice,
+    Expose,
+    Fz,
+    KeyValue,
+    ModernExtend,
+    Tz,
+    Zh,
+} from "../lib/types";
 import * as utils from "../lib/utils";
 import {assertObject, determineEndpoint, sleep} from "../lib/utils";
 
@@ -13,7 +26,255 @@ const ea = exposes.access;
 const SHELLY_ENDPOINT_ID = 239;
 const SHELLY_OPTIONS = {profileId: ZSpec.CUSTOM_SHELLY_PROFILE_ID};
 const SHELLY_PRESENCE_MAX_ZONES = 10;
+// The device reports occupancy per tracked person, one endpoint each - not per zone. Shelly's own
+// definition exposes all ten unconditionally, and it has to stay that way: a second person only
+// shows up on the second endpoint, so gating these on anything would hide people.
+const SHELLY_PRESENCE_TARGET_ENDPOINTS = Array.from({length: 10}, (_, index) => String(index + 1));
 const SHELLY_RPC_DATA_READ_TIMEOUT = 10000;
+// The RPC cluster cannot deliver a response over Zigbee: the device acknowledges a read of the
+// Data attribute but never sends the Read Attributes Response. Shelly confirmed this as a known
+// firmware limitation and it is still present in firmware 2.0.0, so everything that would read
+// through the RPC cluster is disabled - it would only produce empty values and a timeout per
+// attempt. Flip this once a firmware answers again to restore zone discovery.
+const SHELLY_RPC_CAN_READ = false;
+// A device leaves the factory with one presence zone, and it carries this id.
+const SHELLY_PRESENCE_FIRST_ZONE_ID = 200;
+// Shelly.GetComponents answers in pages (7 components per page on a Presence Gen4); this bounds
+// the paging loop so a device reporting an inconsistent total cannot spin it forever.
+const SHELLY_COMPONENT_PAGE_LIMIT = 10;
+// A PresenceZone reports its thresholds as presence_thr/absence_thr, while the API documents them
+// as presence_delay/absence_delay. Keep the documented names - they say what the value means - for
+// the exposes and translate at the RPC boundary. PresenceZone.SetConfig discards unknown keys
+// without reporting an error, so a wrong name here fails silently: prefer whichever name the zone
+// config actually carries and fall back to the name observed on the device.
+const SHELLY_PRESENCE_ZONE_FIELDS: Record<string, string> = {
+    presence_delay: "presence_thr",
+    absence_delay: "absence_thr",
+};
+// The device reports this once the fine-tuning values no longer match one of the presets. It is
+// never accepted on write, but listing it keeps the reported state a value the enum knows.
+const SHELLY_PRESENCE_SENSITIVITY_CUSTOM = "custom";
+
+// Presence.SetConfig takes a single nested config object, so every sensor setting is described by
+// its path inside that object and handled by one shared converter. The ranges and value lists are
+// the ones the device enforces itself - it rejects anything outside them.
+interface ShellyPresenceSetting {
+    key: string;
+    path: readonly string[];
+    expose: () => Feature;
+}
+
+// The settings are grouped so a consuming integration can show them as folders instead of two dozen
+// values side by side - and because one group travels in a single Presence.SetConfig command.
+interface ShellyPresenceSettingGroup {
+    key: string;
+    label: string;
+    description: string;
+    settings: readonly ShellyPresenceSetting[];
+}
+
+// Merges a value at its path into a config object, so a whole group can be written in one command.
+const shellyMergeConfig = (config: KeyValue, path: readonly string[], value: unknown): void => {
+    let cursor = config;
+    for (const segment of path.slice(0, -1)) {
+        if (typeof cursor[segment] !== "object" || cursor[segment] === null) cursor[segment] = {};
+        cursor = cursor[segment] as KeyValue;
+    }
+    cursor[path[path.length - 1]] = value;
+};
+
+const num = (name: string, min: number, max: number, step: number, label: string, description: string, unit?: string) => {
+    const expose = e
+        .numeric(name, ea.STATE_SET)
+        .withValueMin(min)
+        .withValueMax(max)
+        .withValueStep(step)
+        .withLabel(label)
+        .withDescription(description);
+    return unit ? expose.withUnit(unit) : expose;
+};
+
+const SHELLY_PRESENCE_SETTING_GROUPS: readonly ShellyPresenceSettingGroup[] = [
+    {
+        key: "mounting",
+        label: "Mounting",
+        description:
+            "How and where the sensor is mounted. Write-only: the device cannot report these back over Zigbee, so they show what was last set from here",
+        settings: [
+            {
+                key: "installation_height",
+                path: ["sensor", "height"],
+                expose: () => num("installation_height", 0, 5, 0.1, "Installation height", "Height the sensor is mounted at", "m"),
+            },
+            {
+                key: "sensor_position",
+                path: ["sensor", "position"],
+                expose: () =>
+                    e
+                        .enum("sensor_position", ea.STATE_SET, ["center", "left", "right"])
+                        .withLabel("Sensor position")
+                        .withDescription("Where the sensor is mounted on the wall"),
+            },
+            {
+                key: "sensor_flipped",
+                path: ["sensor", "flipped"],
+                expose: () =>
+                    e
+                        .binary("sensor_flipped", ea.STATE_SET, true, false)
+                        .withLabel("Sensor flipped")
+                        .withDescription("Sensor is mounted rotated by 180 degrees"),
+            },
+        ],
+    },
+    {
+        key: "detection",
+        label: "Detection",
+        description:
+            "How the radar decides that someone is there. Write-only: the device cannot report these back over Zigbee, so they show what was last set from here",
+        settings: [
+            {
+                key: "sensitivity",
+                path: ["sensor", "sensitivity"],
+                expose: () =>
+                    e
+                        .enum("sensitivity", ea.STATE_SET, ["low", "medium", "high", SHELLY_PRESENCE_SENSITIVITY_CUSTOM])
+                        .withLabel("Sensitivity")
+                        .withDescription("Detection responsiveness. Reported as 'custom' while the fine-tuning values differ from a preset"),
+            },
+            {
+                key: "radar_power",
+                path: ["sensor", "power"],
+                expose: () =>
+                    e
+                        .enum("radar_power", ea.STATE_SET, ["low", "medium", "high"])
+                        .withLabel("Radar power")
+                        .withDescription("Transmit power of the radar sensor"),
+            },
+            {
+                key: "minimum_range",
+                path: ["zmin"],
+                expose: () => num("minimum_range", 0, 5, 0.1, "Minimum range", "Lower detection limit", "m"),
+            },
+            {
+                key: "maximum_range",
+                path: ["zmax"],
+                expose: () => num("maximum_range", 0, 5, 0.1, "Maximum range", "Upper detection limit", "m"),
+            },
+            {
+                key: "tracked_objects",
+                path: ["num_tracks"],
+                expose: () => num("tracked_objects", 1, 10, 1, "Tracked objects", "How many objects the sensor tracks at once"),
+            },
+        ],
+    },
+    {
+        key: "leds",
+        label: "LEDs",
+        description:
+            "Brightness of the status LEDs and their night mode. Write-only: the device cannot report these back over Zigbee, so they show what was last set from here",
+        settings: [
+            {
+                key: "brightness",
+                path: ["leds", "brightness"],
+                expose: () => num("brightness", 0, 100, 1, "Brightness", "Brightness of the status LEDs, 0 turns them off", "%"),
+            },
+            {
+                key: "night_mode",
+                path: ["leds", "night_mode", "enable"],
+                expose: () =>
+                    e
+                        .binary("night_mode", ea.STATE_SET, true, false)
+                        .withLabel("Night mode")
+                        .withDescription("Limit the LED brightness during the configured night hours"),
+            },
+            {
+                key: "night_mode_brightness",
+                path: ["leds", "night_mode", "brightness"],
+                expose: () => num("night_mode_brightness", 0, 100, 1, "Night mode brightness", "Brightness limit while night mode is active", "%"),
+            },
+        ],
+    },
+    {
+        key: "tuning",
+        label: "Fine-tuning",
+        description:
+            "Detection internals. Changing any of these makes the device report its sensitivity as 'custom'. Write-only: the device cannot report these back over Zigbee, so they show what was last set from here",
+        settings: [
+            {
+                key: "detection_points",
+                path: ["sensor", "points"],
+                expose: () => num("detection_points", 10, 100, 1, "Detection points", "Object recognition threshold"),
+            },
+            {
+                key: "velocity_threshold",
+                path: ["sensor", "velocity"],
+                expose: () => num("velocity_threshold", 0, 1, 0.01, "Velocity threshold", "Velocity threshold"),
+            },
+            {
+                key: "snr_threshold",
+                path: ["sensor", "snr"],
+                expose: () => num("snr_threshold", 10, 100, 1, "SNR threshold", "Signal-to-noise threshold"),
+            },
+            {
+                key: "maximum_velocity_difference",
+                path: ["sensor", "max_velocity"],
+                expose: () =>
+                    num(
+                        "maximum_velocity_difference",
+                        1,
+                        50,
+                        1,
+                        "Maximum velocity difference",
+                        "Largest velocity difference still treated as one object",
+                    ),
+            },
+            {
+                key: "motion_activation_threshold",
+                path: ["sensor", "state", "det_act_thr"],
+                expose: () =>
+                    num("motion_activation_threshold", 1, 100, 1, "Motion activation threshold", "How readily a detected object counts as active"),
+            },
+            {
+                key: "motion_release_threshold",
+                path: ["sensor", "state", "det_free_thr"],
+                expose: () =>
+                    num("motion_release_threshold", 1, 100, 1, "Motion release threshold", "How readily a detected object is released again"),
+            },
+            {
+                key: "tracking_loss_threshold",
+                path: ["sensor", "state", "act_free_thr"],
+                expose: () =>
+                    num(
+                        "tracking_loss_threshold",
+                        1,
+                        1000,
+                        1,
+                        "Tracking loss threshold",
+                        "How long an active object may be lost before it is released",
+                    ),
+            },
+            {
+                key: "stillness_tracking_threshold",
+                path: ["sensor", "state", "stat_free_thr"],
+                expose: () =>
+                    num("stillness_tracking_threshold", 1, 1000, 1, "Stillness tracking threshold", "How long a motionless object stays tracked"),
+            },
+            {
+                key: "stillness_timeout_threshold",
+                path: ["sensor", "state", "sleep_free_thr"],
+                expose: () =>
+                    num(
+                        "stillness_timeout_threshold",
+                        1,
+                        65535,
+                        1,
+                        "Stillness timeout threshold",
+                        "How long a sleeping object stays tracked before it is released",
+                    ),
+            },
+        ],
+    },
+];
 
 const NS = "zhc:shelly";
 
@@ -46,10 +307,17 @@ const shellyDeviceEndpoints = (endpoints: Record<string, number>): ModernExtend 
 });
 
 const shellyPresenceEndpointNames = (device: Zh.Device | DummyDevice): string[] => {
-    const count =
-        !utils.isDummyDevice(device) && typeof device.meta.presence_zone_count === "number"
-            ? Math.min(Math.max(Math.trunc(device.meta.presence_zone_count), 1), SHELLY_PRESENCE_MAX_ZONES)
-            : SHELLY_PRESENCE_MAX_ZONES;
+    // Without a device (documentation/expose generation) show what the hardware can do. On a real
+    // device use the discovered zone count, and before discovery assume the single main zone that
+    // every Presence Gen4 has: exposing all ten up front would create nine zones that never report
+    // and leave them orphaned once the real count shrinks the list.
+    let count = SHELLY_PRESENCE_MAX_ZONES;
+    if (!utils.isDummyDevice(device)) {
+        count =
+            typeof device.meta.presence_zone_count === "number"
+                ? Math.min(Math.max(Math.trunc(device.meta.presence_zone_count), 1), SHELLY_PRESENCE_MAX_ZONES)
+                : 1;
+    }
 
     return Array.from({length: count}, (_, index) => String(index + 1));
 };
@@ -130,19 +398,21 @@ interface ShellyLightLevel {
     commandResponses: never;
 }
 
-let shellyRpcSending = false;
+// Since RPC messages require multiple writes to complete, requests to the SAME device must not
+// interleave. Different devices are independent though - a network with many Gen4 devices must
+// not queue every RPC transaction behind one global lock.
+const shellyRpcBusy = new Set<string>();
 
-const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
-    // Since RPC messages require multiple writes to complete, we have to make sure
-    // we're not interleaving request/response transactions accidentally.
-    while (shellyRpcSending) {
+const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
+    const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
+    while (shellyRpcBusy.has(key)) {
         await sleep(200);
     }
+    shellyRpcBusy.add(key);
     try {
-        shellyRpcSending = true;
         return await callback();
     } finally {
-        shellyRpcSending = false;
+        shellyRpcBusy.delete(key);
     }
 };
 
@@ -165,7 +435,7 @@ const shellyRpcSendRawUnlocked = async (endpoint: Zh.Endpoint | Zh.Group, messag
 };
 
 const shellyRpcSendRaw = async (endpoint: Zh.Endpoint | Zh.Group, message: string) =>
-    shellyRpcLock(async () => await shellyRpcSendRawUnlocked(endpoint, message));
+    shellyRpcLock(endpoint, async () => await shellyRpcSendRawUnlocked(endpoint, message));
 
 const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined) => {
     const command = {
@@ -177,7 +447,7 @@ const shellyRpcSend = async (endpoint: Zh.Endpoint | Zh.Group, method: string, p
 };
 
 const shellyRpcRequest = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params: object = undefined): Promise<KeyValue | undefined> => {
-    return await shellyRpcLock(async () => {
+    return await shellyRpcLock(endpoint, async () => {
         const command = {
             id: 1,
             method: method,
@@ -211,6 +481,7 @@ interface WS90Meta {
     state?: {[key: string]: number | boolean};
     precipHistory?: {value: number; time: number};
     pressureHistory?: {value: number; time: number};
+    lastSave?: number;
 }
 
 /**
@@ -306,7 +577,13 @@ function calculateRainRate(meta: WS90Meta, precipitation: number | undefined): n
     const precipDelta = precipitation - history.value;
 
     if (timeDeltaMs < 60000) return null;
-    if (precipDelta < 0) return 0;
+    if (precipDelta < 0) {
+        // The cumulative counter was reset (battery change, restart). Rebase the history on the
+        // new counter - otherwise the delta stays negative and the rate reports 0 until the new
+        // counter overtakes the old value, which for a cumulative rain counter can take months.
+        meta.precipHistory = {value: precipitation, time: now};
+        return 0;
+    }
 
     meta.precipHistory = {value: precipitation, time: now};
 
@@ -388,6 +665,15 @@ function calculateWeatherCondition(state: {[key: string]: number | boolean | und
 }
 
 /**
+ * The station reports the ZCL non-value marker (all bits set for the attribute type) when a
+ * reading is unavailable - a gustSpeed of 0xffff was published as 6553.5 m/s and fed into the
+ * calculations (https://github.com/Koenkk/zigbee2mqtt/issues/31048). Scale a raw value only
+ * when it is a real reading, otherwise contribute nothing.
+ */
+const ws90Scaled = (name: string, raw: unknown, invalid: number): {[key: string]: number} | undefined =>
+    typeof raw === "number" && raw !== invalid ? {[name]: raw / 10} : undefined;
+
+/**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
 function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
@@ -438,8 +724,14 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
     const condition = calculateWeatherCondition(state);
     if (condition !== null) result.weather_condition = condition;
 
-    // Save device meta to persist across restarts
-    device.save();
+    // Persist across restarts - but not on every report: the station reports as often as
+    // every 10 seconds, and each save writes the whole device database to disk. The histories
+    // only advance on the minute scale, so a crash loses at most a minute of history progress.
+    const now = Date.now();
+    if (meta.lastSave === undefined || now - meta.lastSave >= 60000) {
+        meta.lastSave = now;
+        device.save();
+    }
 
     return result;
 }
@@ -518,8 +810,8 @@ const shellyModernExtend = {
         return result;
     },
     shellyPresenceOccupancy(): ModernExtend {
-        const exposesFn: DefinitionExposesFunction = (device) => {
-            return shellyPresenceEndpointNames(device).map((endpointName) => e.occupancy().withAccess(ea.STATE_GET).withEndpoint(endpointName));
+        const exposesFn: DefinitionExposesFunction = () => {
+            return SHELLY_PRESENCE_TARGET_ENDPOINTS.map((endpointName) => e.occupancy().withAccess(ea.STATE_GET).withEndpoint(endpointName));
         };
 
         const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
@@ -530,7 +822,7 @@ const shellyModernExtend = {
                     if (!("occupancy" in msg.data)) return;
 
                     const endpointName = utils.getEndpointName(msg, model, meta).toString();
-                    if (!shellyPresenceEndpointNames(meta.device).includes(endpointName)) return;
+                    if (!SHELLY_PRESENCE_TARGET_ENDPOINTS.includes(endpointName)) return;
 
                     return {[utils.postfixWithEndpointName("occupancy", msg, model, meta)]: (msg.data.occupancy & 1) > 0};
                 },
@@ -546,7 +838,32 @@ const shellyModernExtend = {
             },
         ];
 
-        return {exposes: [exposesFn], fromZigbee, toZigbee, isModernExtend: true};
+        // The presence sensor only pushes occupancy autonomously once reporting is configured on
+        // the msOccupancySensing cluster of each target endpoint; without this it just answers reads.
+        // Every tracked person reports on its own endpoint, so all of them need reporting - a second
+        // person would otherwise never arrive. A single endpoint failing must not abort the rest.
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint) => {
+                for (const endpointName of SHELLY_PRESENCE_TARGET_ENDPOINTS) {
+                    const endpoint = device.getEndpoint(Number(endpointName));
+                    if (!endpoint) continue;
+                    try {
+                        await m.setupAttributes(
+                            endpoint,
+                            coordinatorEndpoint,
+                            "msOccupancySensing",
+                            [{attribute: "occupancy", min: "MIN", max: "1_HOUR", change: 0}],
+                            true,
+                            false,
+                        );
+                    } catch (e) {
+                        logger.warning(`Failed to set up occupancy reporting on endpoint ${endpointName}: ${e}`, NS);
+                    }
+                }
+            },
+        ];
+
+        return {exposes: [exposesFn], fromZigbee, toZigbee, configure, isModernExtend: true};
     },
     shellyRPCSetup(features: string[] = []): ModernExtend {
         // Set helper variables
@@ -555,10 +872,20 @@ const shellyModernExtend = {
         const featureDev = features.includes("Dev");
         const featurePowerstripUI = features.includes("PowerstripUI");
         const featurePowerstripPowerOnBehavior = features.includes("PowerstripPowerOnBehavior");
-        const featureTwoPMInputMode = features.includes("2PMInputMode");
+        // The two 2PM variants put their switch inputs on different endpoints: the cover on 2 and 3,
+        // the switch-mode device on 3 and 4, because there 1 and 2 are its two relays. A single
+        // shared mapping cannot serve both - it would read the second relay as the first input.
+        const twoPMInputEndpoints = features.includes("2PMCoverInputMode")
+            ? {sw1: 2, sw2: 3}
+            : features.includes("2PMSwitchInputMode")
+              ? {sw1: 3, sw2: 4}
+              : undefined;
         const featureOnePMInputMode = features.includes("1PMInputMode");
         const featureCoverTiltAuto = features.includes("CoverTiltAuto");
         const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
+        const featurePresenceZoneConfig = features.includes("PresenceZoneConfig");
+        const featurePresenceSensorConfig = features.includes("PresenceSensorConfig");
+        const featureEcoMode = features.includes("EcoMode");
 
         // Generic helper functions
         const validateTime = (value: string) => {
@@ -571,6 +898,39 @@ const shellyModernExtend = {
         const rpcSendRaw = shellyRpcSendRaw;
         const rpcSend = shellyRpcSend;
         const rpcRequest = shellyRpcRequest;
+
+        // Writes reach the device but a single delivery can still fail, and the presence sensor has
+        // no fallback ZCL cluster to fall back on - so a write is retried a few times with a short
+        // pause. Reads are a different matter: the firmware never answers one (see
+        // SHELLY_RPC_CAN_READ), so retrying a read cannot help. The read variant below stays only
+        // for the zone discovery it serves, which is dormant for the same reason.
+        const RPC_MAX_ATTEMPTS = 3;
+        const RPC_RETRY_PAUSE = 1500;
+        const rpcRequestWithRetry = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params?: object): Promise<KeyValue | undefined> => {
+            for (let attempt = 0; attempt < RPC_MAX_ATTEMPTS; attempt++) {
+                if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, RPC_RETRY_PAUSE));
+                const response = await rpcRequest(endpoint, method, params);
+                const result = response?.result ?? response?.params ?? response;
+                if (result) {
+                    assertObject<KeyValue>(result);
+                    return result;
+                }
+            }
+            return undefined;
+        };
+        const rpcSendWithRetry = async (endpoint: Zh.Endpoint | Zh.Group, method: string, params?: object): Promise<void> => {
+            let lastError: unknown;
+            for (let attempt = 0; attempt < RPC_MAX_ATTEMPTS; attempt++) {
+                if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, RPC_RETRY_PAUSE));
+                try {
+                    await rpcSend(endpoint, method, params);
+                    return;
+                } catch (e) {
+                    lastError = e;
+                }
+            }
+            throw lastError;
+        };
 
         const rpcReceive = async (endpoint: Zh.Endpoint | Zh.Group, key: string) => {
             logger.debug(`||| shellyRPC rpcReceive(${key})`, NS);
@@ -592,17 +952,19 @@ const shellyModernExtend = {
             return endpoint;
         };
 
-        const getShellySwitchConfig = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<KeyValue | undefined> => {
-            const response = await rpcRequest(endpoint, "Switch.GetConfig", {id});
-            const result = response?.result ?? response?.params ?? response;
-            if (!result) return undefined;
-            assertObject<KeyValue>(result);
-            return result;
-        };
-
-        const getShellySwitchMode = async (endpoint: Zh.Endpoint | Zh.Group, id: number): Promise<string | undefined> => {
-            const config = await getShellySwitchConfig(endpoint, id);
-            return typeof config?.in_mode === "string" ? config.in_mode : undefined;
+        // Maps a per-zone endpoint name ("1".."N") to the device's RPC PresenceZone id. This
+        // numbering counts zones and is unrelated to the occupancy endpoints, which count tracked
+        // people - presence_delay_1 is the first zone, occupancy_1 is the first person.
+        // Discovery caches the real ids in device.meta, but it needs an RPC read, which the
+        // firmware cannot answer over Zigbee (see SHELLY_RPC_CAN_READ). A device leaves the factory
+        // with a single zone, so fall back to the id the main zone carries - that keeps the one
+        // zone every device has configurable.
+        const presenceZoneIdForEndpoint = (device: Zh.Device, endpointName: string): number | undefined => {
+            const index = Number(endpointName) - 1;
+            if (!Number.isInteger(index) || index < 0) return undefined;
+            const ids = device.meta.presence_zone_ids;
+            if (Array.isArray(ids) && typeof ids[index] === "number") return ids[index] as number;
+            return SHELLY_PRESENCE_FIRST_ZONE_ID + index;
         };
 
         // Features for exposes
@@ -623,14 +985,19 @@ const shellyModernExtend = {
             e.text("rpc_rxctl", ea.STATE_GET).withLabel("RxCtl").withDescription("RX bytes available").withCategory("diagnostic"),
             e.text("rpc_data", ea.STATE_GET).withLabel("Data").withDescription("RX Data").withCategory("diagnostic"),
         ];
+        // The device applies these but cannot report any of them back over Zigbee, so what a value
+        // shows is what was last written from here - never a reading off the device. Say so on every
+        // one of them: a configuration field that quietly means something else than the user assumes
+        // is worse than no field at all.
+        const WRITE_ONLY = "The device cannot report this back over Zigbee, so it shows what was last set from here";
         const exposesPowerstripUI: Expose[] = [
             e
                 .enum("led_mode", ea.STATE_SET, ["off", "switch", "power"])
                 .withLabel("LED Mode")
-                .withDescription("Controls the behaviour of the LED rings around the sockets")
+                .withDescription(`Controls the behaviour of the LED rings around the sockets. ${WRITE_ONLY}`)
                 .withCategory("config"),
             e
-                .composite("led_colors", "led_colors", ea.ALL)
+                .composite("led_colors", "led_colors", ea.STATE_SET)
                 .withFeature(featurePercentage("on_r", "Red (on)"))
                 .withFeature(featurePercentage("on_g", "Green (on)"))
                 .withFeature(featurePercentage("on_b", "Blue (on)"))
@@ -640,28 +1007,37 @@ const shellyModernExtend = {
                 .withFeature(featurePercentage("off_b", "Blue (off)"))
                 .withFeature(featurePercentage("off_brightness", "Brightness (off)"))
                 .withLabel("LED colors in 'switch' mode")
+                .withDescription(`Colors of the LED rings while the LED mode is 'switch'. ${WRITE_ONLY}`)
                 .withCategory("config"),
-            featurePercentage("led_power_brightness", "LED brightness in 'power' mode").withCategory("config"),
+            featurePercentage("led_power_brightness", "LED brightness in 'power' mode")
+                .withDescription(`Brightness of the LED rings while the LED mode is 'power'. ${WRITE_ONLY}`)
+                .withCategory("config"),
             e
-                .composite("led_night_mode", "led_night_mode", ea.ALL)
+                .composite("led_night_mode", "led_night_mode", ea.STATE_SET)
                 .withFeature(e.binary("enable", ea.STATE_SET, true, false))
                 .withFeature(featurePercentage("brightness", "Brightness"))
                 .withFeature(e.text("from", ea.STATE_SET).withLabel("Active from").withDescription("hh:mm"))
                 .withFeature(e.text("until", ea.STATE_SET).withLabel("Active until").withDescription("hh:mm"))
                 .withLabel("LED night mode")
-                .withDescription("Adjust LED brightness during night time")
+                .withDescription(`Adjust LED brightness during night time. ${WRITE_ONLY}`)
                 .withCategory("config"),
             e
-                .composite("buttons_enabled", "buttons_enabled", ea.ALL)
+                .composite("buttons_enabled", "buttons_enabled", ea.STATE_SET)
                 .withFeature(featureButtonEnabled(0))
                 .withFeature(featureButtonEnabled(1))
                 .withFeature(featureButtonEnabled(2))
                 .withFeature(featureButtonEnabled(3))
                 .withLabel("Buttons enabled")
+                .withDescription(`Whether each socket button switches its own socket or is detached. ${WRITE_ONLY}`)
                 .withCategory("config"),
         ];
 
-        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
+        // The RPC receive accumulator only serves the Dev diagnostics: nothing but their reads can
+        // produce shellyRPCCluster responses (the firmware answers no RPC read, see
+        // SHELLY_RPC_CAN_READ), and registering it unconditionally would publish the undeclared
+        // rpc_rxctl/rpc_data state keys on devices that expose no such fields.
+        const fromZigbee: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [];
+        const fromZigbeeDev: Fz.Converter<"shellyRPCCluster", ShellyRPC, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: "shellyRPCCluster",
                 type: ["attributeReport", "readResponse"],
@@ -823,6 +1199,7 @@ const shellyModernExtend = {
 
         if (featureDev) {
             exposes.push(...exposesDev);
+            fromZigbee.push(...fromZigbeeDev);
             toZigbee.push(...toZigbeeDev);
         }
         if (featurePowerstripUI) {
@@ -858,12 +1235,19 @@ const shellyModernExtend = {
                 },
             });
         }
-        if (featureTwoPMInputMode) {
+        // switch_mode travels over the RPC cluster, which the firmware cannot answer over Zigbee
+        // (see SHELLY_RPC_CAN_READ): no convertGet - a device query walks every converter that has
+        // one regardless of the access flags - and the exposes say so instead of announcing GET.
+        if (twoPMInputEndpoints) {
             const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
-                return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2, sw2: 3})).map((endpoint) =>
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                return Object.keys(shellySwitchInputEndpoints(device, twoPMInputEndpoints)).map((endpoint) =>
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint(endpoint),
                 );
             });
             toZigbee.push({
@@ -874,25 +1258,6 @@ const shellyModernExtend = {
                     await rpcSend(ep, "Switch.SetConfig", {id: switchId, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
-                convertGet: async (entity, key, meta) => {
-                    const switchId = meta.endpoint_name === "sw1" ? 0 : 1;
-                    const ep = getRPCEndpoint(entity);
-                    const mode = await getShellySwitchMode(ep, switchId);
-                    if (mode) {
-                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
-                    }
-                },
-            });
-            configure.push(async (device) => {
-                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
-                if (!ep) return;
-                try {
-                    for (const id of [0, 1]) {
-                        await getShellySwitchConfig(ep, id);
-                    }
-                } catch (e) {
-                    logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
-                }
             });
         }
         if (featureOnePMInputMode) {
@@ -900,7 +1265,11 @@ const shellyModernExtend = {
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2})).map((endpoint) =>
-                    e.enum("switch_mode", ea.ALL, inModeValues).withDescription("Switch input mode").withCategory("config").withEndpoint(endpoint),
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint(endpoint),
                 );
             });
             toZigbee.push({
@@ -910,25 +1279,9 @@ const shellyModernExtend = {
                     await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
                     return {state: {switch_mode: value}};
                 },
-                convertGet: async (entity, key, meta) => {
-                    const ep = getRPCEndpoint(entity);
-                    const mode = await getShellySwitchMode(ep, 0);
-                    if (mode) {
-                        meta.publish({[meta.endpoint_name ? `switch_mode_${meta.endpoint_name}` : "switch_mode"]: mode});
-                    }
-                },
-            });
-            configure.push(async (device) => {
-                const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
-                if (!ep) return;
-                try {
-                    await getShellySwitchConfig(ep, 0);
-                } catch (e) {
-                    logger.warning(`Failed to read switch_mode during configure, use get to retry: ${e}`, NS);
-                }
             });
         }
-        if (featureCoverTiltAuto) {
+        if (featureCoverTiltAuto && SHELLY_RPC_CAN_READ) {
             configure.push(async (device) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
                 if (!ep) return;
@@ -949,33 +1302,160 @@ const shellyModernExtend = {
                 }
             });
         }
-        if (featurePresenceZonesAuto) {
+        if (featurePresenceZonesAuto && SHELLY_RPC_CAN_READ) {
             configure.push(async (device) => {
                 const ep = device.getEndpoint(SHELLY_ENDPOINT_ID);
                 if (!ep) return;
                 try {
-                    const response = await rpcRequest(ep, "Shelly.GetConfig");
-                    const result = response?.result ?? response?.params ?? response;
-                    if (!result) return;
-                    assertObject<KeyValue>(result);
+                    // PresenceZones are dynamic components: Shelly.GetConfig never lists them, only
+                    // Shelly.GetComponents does. `dynamic_only` keeps the answer short, but it also
+                    // covers virtual components, so filter for the presencezone prefix. The answer
+                    // is paginated, so keep asking until every announced component has been seen.
+                    const zoneIds: number[] = [];
+                    let offset = 0;
+                    let total = Number.POSITIVE_INFINITY;
+                    for (let page = 0; page < SHELLY_COMPONENT_PAGE_LIMIT && offset < total; page++) {
+                        const result = await rpcRequestWithRetry(ep, "Shelly.GetComponents", {dynamic_only: true, offset});
+                        if (!result) return;
+                        const components = result.components;
+                        if (!Array.isArray(components) || components.length === 0) break;
 
-                    let zoneCount = Object.keys(result).filter((key) => /^presencezone:\d+$/.test(key)).length;
-                    if (zoneCount === 0) {
-                        const presenceConfig = result.presence;
-                        if (presenceConfig) {
-                            assertObject<KeyValue>(presenceConfig);
-                            zoneCount = typeof presenceConfig.main_zone === "string" ? 1 : 0;
+                        for (const component of components) {
+                            const key = (component as KeyValue)?.key;
+                            const match = typeof key === "string" ? /^presencezone:(\d+)$/.exec(key) : null;
+                            if (match) zoneIds.push(Number(match[1]));
                         }
+                        total = typeof result.total === "number" ? result.total : components.length;
+                        offset += components.length;
                     }
+                    if (offset < total) {
+                        logger.warning(`Stopped reading presence components after ${offset} of ${total}; some zones may be missing`, NS);
+                    }
+
+                    zoneIds.sort((a, b) => a - b);
+                    const zoneCount = zoneIds.length;
                     if (zoneCount < 1 || zoneCount > SHELLY_PRESENCE_MAX_ZONES) return;
 
+                    let metaChanged = false;
                     if (device.meta.presence_zone_count !== zoneCount) {
                         device.meta.presence_zone_count = zoneCount;
-                        device.save();
+                        metaChanged = true;
                     }
+                    if (JSON.stringify(device.meta.presence_zone_ids) !== JSON.stringify(zoneIds)) {
+                        device.meta.presence_zone_ids = zoneIds;
+                        metaChanged = true;
+                    }
+                    if (metaChanged) device.save();
                 } catch (e) {
                     logger.warning(`Failed to read presence zones during configure, using last known or default exposed zones: ${e}`, NS);
                 }
+            });
+        }
+        if (featurePresenceZoneConfig) {
+            const presenceZoneKeys = ["presence_delay", "absence_delay"];
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
+                return shellyPresenceEndpointNames(device).flatMap((endpointName) => [
+                    e
+                        .numeric("presence_delay", ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(3600)
+                        .withValueStep(1)
+                        .withUnit("s")
+                        .withLabel("Presence delay")
+                        .withDescription(
+                            "Time presence must be continuously detected before this zone is reported occupied. " +
+                                "The device cannot report this value back over Zigbee, so it shows what was last set",
+                        )
+                        .withCategory("config")
+                        .withEndpoint(endpointName),
+                    e
+                        .numeric("absence_delay", ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(3600)
+                        .withValueStep(1)
+                        .withUnit("s")
+                        .withLabel("Absence delay")
+                        .withDescription(
+                            "Time without presence before this zone is reported empty. " +
+                                "The device cannot report this value back over Zigbee, so it shows what was last set",
+                        )
+                        .withCategory("config")
+                        .withEndpoint(endpointName),
+                ]);
+            });
+            toZigbee.push({
+                key: presenceZoneKeys,
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertEndpoint(entity);
+                    utils.assertString(meta.endpoint_name, "endpoint_name");
+                    const zoneId = presenceZoneIdForEndpoint(entity.getDevice(), meta.endpoint_name);
+                    if (zoneId === undefined) throw new Error(`No Shelly presence zone for endpoint ${meta.endpoint_name}`);
+                    const seconds = Math.min(3600, Math.max(0, Math.round(value as number)));
+                    const ep = getRPCEndpoint(entity);
+                    await rpcSendWithRetry(ep, "PresenceZone.SetConfig", {id: zoneId, config: {[SHELLY_PRESENCE_ZONE_FIELDS[key]]: seconds}});
+                    return {state: {[key]: seconds}};
+                },
+            });
+        }
+        if (featurePresenceSensorConfig) {
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
+                return SHELLY_PRESENCE_SETTING_GROUPS.map((group) => {
+                    const composite = e.composite(group.key, group.key, ea.STATE_SET).withLabel(group.label).withDescription(group.description);
+                    for (const setting of group.settings) composite.withFeature(setting.expose());
+                    return composite.withCategory("config");
+                });
+            });
+            toZigbee.push({
+                key: SHELLY_PRESENCE_SETTING_GROUPS.map((group) => group.key),
+                convertSet: async (entity, key, value, meta) => {
+                    const group = SHELLY_PRESENCE_SETTING_GROUPS.find((candidate) => candidate.key === key);
+                    if (!group) return;
+                    assertObject<KeyValue>(value);
+
+                    // Only the values actually given travel; the rest of the group stays as it is.
+                    const config: KeyValue = {};
+                    const state: KeyValue = {};
+                    for (const setting of group.settings) {
+                        const given = value[setting.key];
+                        if (given === undefined) continue;
+                        if (setting.key === "sensitivity" && given === SHELLY_PRESENCE_SENSITIVITY_CUSTOM) {
+                            throw new Error(
+                                "Sensitivity 'custom' is reported by the device, not set: adjust the individual detection thresholds instead",
+                            );
+                        }
+                        shellyMergeConfig(config, setting.path, given);
+                        state[setting.key] = given as KeyValue[string];
+                    }
+                    if (Object.keys(state).length === 0) return;
+
+                    utils.assertEndpoint(entity);
+                    await rpcSendWithRetry(getRPCEndpoint(entity), "Presence.SetConfig", {config});
+                    return {state: {[key]: state}};
+                },
+            });
+        }
+        if (featureEcoMode) {
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
+                return [
+                    e
+                        .binary("eco_mode", ea.STATE_SET, true, false)
+                        .withLabel("Eco mode")
+                        .withDescription(
+                            "Reduce CPU and radio activity to lower power consumption (may slightly increase response latency). Write-only: the device cannot report this back over Zigbee, so it shows what was last set from here",
+                        )
+                        .withCategory("config"),
+                ];
+            });
+            toZigbee.push({
+                key: ["eco_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = getRPCEndpoint(entity);
+                    await rpcSendWithRetry(ep, "Sys.SetConfig", {config: {device: {eco_mode: value === true}}});
+                    return {state: {eco_mode: value === true}};
+                },
             });
         }
         return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
@@ -1000,6 +1480,11 @@ const shellyModernExtend = {
             return result;
         };
         const readWifiStateViaRpc = async (endpoint: Zh.Endpoint): Promise<KeyValue | undefined> => {
+            // Reading through the RPC cluster only gains the untruncated SSID here, and the firmware
+            // cannot answer an RPC read at all - it would just cost two timeouts before the setup
+            // cluster, which does answer, gets its turn. The reported SSID is completed from the
+            // cached one anyway.
+            if (!SHELLY_RPC_CAN_READ) return undefined;
             const config = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetConfig"));
             const status = rpcResult(await shellyRpcRequest(endpoint, "Wifi.GetStatus"));
             const state: KeyValue = {};
@@ -1065,9 +1550,6 @@ const shellyModernExtend = {
                 );
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["staticIp", "netMask"], SHELLY_OPTIONS);
                 await endpoint.read<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", ["gateway", "nameServer"], SHELLY_OPTIONS);
-                if (meta) {
-                    published = true;
-                }
             } catch (e) {
                 logger.warning(`Failed to read Wi-Fi state through Shelly setup cluster; leaving previous state unchanged: ${e}`, NS);
             }
@@ -1172,46 +1654,49 @@ const shellyModernExtend = {
                     assertObject<KeyValue>(value);
                     const ep = determineEndpoint(entity, meta, "shellyWiFiSetupCluster");
 
-                    const attr1 = {
-                        enabled: value.enabled === true,
-                        ssid: value.ssid || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr1, SHELLY_OPTIONS);
+                    // Stage only the fields actually given: every staged attribute is applied by
+                    // actionCode 1, so an absent field must not travel as its empty default - a
+                    // payload of only {enabled} used to wipe the stored credentials, and one of
+                    // only {ssid, password} silently wrote enabled=false (#12617). The ssid and
+                    // password never travel empty: clearing credentials over Zigbee is exactly
+                    // the accident this fixes. The static network fields may travel empty on
+                    // purpose (clearing them when switching back to DHCP).
+                    const staged: Partial<ShellyWiFiSetup["attributes"]> = {};
+                    if (typeof value.enabled === "boolean") staged.enabled = value.enabled;
+                    if (typeof value.ssid === "string" && value.ssid !== "") staged.ssid = value.ssid;
+                    if (typeof value.password === "string" && value.password !== "") staged.password = value.password;
+                    if (typeof value.static_ip === "string") staged.staticIp = value.static_ip;
+                    if (typeof value.net_mask === "string") staged.netMask = value.net_mask;
+                    if (typeof value.gateway === "string") staged.gateway = value.gateway;
+                    if (typeof value.name_server === "string") staged.nameServer = value.name_server;
+                    if (Object.keys(staged).length === 0) return;
 
-                    const attr2 = {
-                        password: value.password || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr2, SHELLY_OPTIONS);
+                    // Keep the proven write grouping (small multi-attribute frames, password on
+                    // its own), but skip groups with nothing to write.
+                    const groups: Partial<ShellyWiFiSetup["attributes"]>[] = [
+                        {enabled: staged.enabled, ssid: staged.ssid},
+                        {password: staged.password},
+                        {staticIp: staged.staticIp, netMask: staged.netMask},
+                        {gateway: staged.gateway, nameServer: staged.nameServer},
+                    ];
+                    for (const group of groups) {
+                        const attrs = Object.fromEntries(Object.entries(group).filter(([, attrValue]) => attrValue !== undefined)) as Partial<
+                            ShellyWiFiSetup["attributes"]
+                        >;
+                        if (Object.keys(attrs).length === 0) continue;
+                        await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", attrs, SHELLY_OPTIONS);
+                    }
+                    await ep.write<"shellyWiFiSetupCluster", ShellyWiFiSetup>("shellyWiFiSetupCluster", {actionCode: 1}, SHELLY_OPTIONS);
 
-                    const attr3 = {
-                        staticIp: value.static_ip || "",
-                        netMask: value.net_mask || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr3, SHELLY_OPTIONS);
-
-                    const attr4 = {
-                        gateway: value.gateway || "",
-                        nameServer: value.name_server || "",
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr4, SHELLY_OPTIONS);
-
-                    const attr5 = {
-                        actionCode: 1,
-                    };
-                    await ep.write("shellyWiFiSetupCluster", attr5, SHELLY_OPTIONS);
-
-                    return {
-                        state: {
-                            wifi_config: {
-                                enabled: attr1.enabled,
-                                ssid: attr1.ssid === "" ? undefined : attr1.ssid,
-                                static_ip: attr3.staticIp === "" ? undefined : attr3.staticIp,
-                                net_mask: attr3.netMask === "" ? undefined : attr3.netMask,
-                                gateway: attr4.gateway === "" ? undefined : attr4.gateway,
-                                name_server: attr4.nameServer === "" ? undefined : attr4.nameServer,
-                            },
-                        },
-                    };
+                    // Optimistic state: only what was written; the password stays write-only.
+                    const written: KeyValue = {};
+                    if (staged.enabled !== undefined) written.enabled = staged.enabled;
+                    if (staged.ssid !== undefined) written.ssid = staged.ssid;
+                    if (staged.staticIp !== undefined) written.static_ip = staged.staticIp;
+                    if (staged.netMask !== undefined) written.net_mask = staged.netMask;
+                    if (staged.gateway !== undefined) written.gateway = staged.gateway;
+                    if (staged.nameServer !== undefined) written.name_server = staged.nameServer;
+                    return {state: {wifi_config: written}};
                 },
             },
         ];
@@ -1297,10 +1782,9 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    if (data.uvIndex !== undefined) {
-                        const uv_index = (data.uvIndex as number) / 10;
-                        const calculated = updateWS90CalculatedValues(msg.device, {uv_index});
-                        return calculated;
+                    const payload = ws90Scaled("uv_index", data.uvIndex, 0xff);
+                    if (payload) {
+                        return updateWS90CalculatedValues(msg.device, payload);
                     }
                 },
             },
@@ -1309,10 +1793,11 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: {[key: string]: number} = {};
-                    if (data.windSpeed !== undefined) payload.wind_speed = (data.windSpeed as number) / 10;
-                    if (data.windDirection !== undefined) payload.wind_direction = (data.windDirection as number) / 10;
-                    if (data.gustSpeed !== undefined) payload.gust_speed = (data.gustSpeed as number) / 10;
+                    const payload: {[key: string]: number} = {
+                        ...(ws90Scaled("wind_speed", data.windSpeed, 0xffff) ?? {}),
+                        ...(ws90Scaled("wind_direction", data.windDirection, 0xffff) ?? {}),
+                        ...(ws90Scaled("gust_speed", data.gustSpeed, 0xffff) ?? {}),
+                    };
                     const calculated = updateWS90CalculatedValues(msg.device, payload);
                     return calculated;
                 },
@@ -1322,11 +1807,10 @@ const shellyModernExtend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     const data = msg.data as KeyValue;
-                    const payload: {[key: string]: number | boolean} = {};
+                    const payload: {[key: string]: number | boolean} = {
+                        ...(ws90Scaled("precipitation", data.precipitation, 0xffffff) ?? {}),
+                    };
                     if (data.rainStatus !== undefined) payload.rain_status = Boolean(data.rainStatus);
-                    if (data.precipitation !== undefined) {
-                        payload.precipitation = (data.precipitation as number) / 10;
-                    }
 
                     // Calculate rain_rate (it's a calculated value, not a base sensor value)
                     const ws90Meta = getWS90Meta(msg.device);
@@ -1340,7 +1824,6 @@ const shellyModernExtend = {
                     // Include rain_rate in calculated values
                     calculated.rain_rate = rain_rate;
 
-                    msg.device.save();
                     return calculated; // Only calculated values; m.binary()/m.numeric() handle base rain values
                 },
             },
@@ -1406,11 +1889,23 @@ const handlePosition = e
     .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
     .withDescription("Handle position: closed, tilted (partly open), or open");
 
+// Resolves which switch input (1 or 2) sent a message, from the definition's own endpoint map:
+// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4 and the
+// single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from any
+// other endpoint return undefined and must be ignored, not mislabeled as input 1.
+const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint: Zh.Endpoint}): number | undefined => {
+    const endpoints = model.endpoint?.(msg.device) ?? {};
+    if (endpoints.sw1 === msg.endpoint.ID) return 1;
+    if (endpoints.sw2 === msg.endpoint.ID) return 2;
+    return undefined;
+};
+
 const fzLocal = {
     one_button_events: {
         cluster: "genOnOff",
         type: ["commandToggle"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(msg.endpoint.ID, {1: "single", 2: "double", 3: "triple"});
             return {action: event};
         },
@@ -1420,6 +1915,7 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}`, {"1": "single_long", "2": "double_long", "3": "triple_long"});
             return {action: event};
         },
@@ -1429,6 +1925,7 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
                 "1_commandOn": "1_single",
                 "1_commandOff": "2_single",
@@ -1447,6 +1944,7 @@ const fzLocal = {
         cluster: "genLevelCtrl",
         type: ["commandStep"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.stepmode}`, {
                 "1_0": "1_hold",
                 "1_1": "2_hold",
@@ -1461,6 +1959,7 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
                 "1_1": "1_double",
                 "2_1": "2_double",
@@ -1491,19 +1990,18 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
+    // The input numbering comes from the definition's endpoint map (see shellyInputNumber): a
+    // fixed endpoint lookup broke the cover-mode 2PM, whose inputs live on endpoints 2/3 while
+    // the switch-mode device has them on 3/4 - input 1 threw and input 2 was reported as input 1.
     two_switch_inputs_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
-            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.type}`, {
-                "3_commandOn": "input_1_on",
-                "3_commandOff": "input_1_off",
-                "3_commandToggle": "input_1_toggle",
-                "4_commandOn": "input_2_on",
-                "4_commandOff": "input_2_off",
-                "4_commandToggle": "input_2_toggle",
-            });
-            return {action: event};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const input = shellyInputNumber(model, msg);
+            if (input === undefined) return;
+            const event = utils.getFromLookup(msg.type, {commandOn: "on", commandOff: "off", commandToggle: "toggle"});
+            return {action: `input_${input}_${event}`};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
@@ -1511,21 +2009,18 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
-            const event = utils.getFromLookup(`${msg.endpoint.ID}_${msg.data.sceneid}`, {
-                "3_1": "input_1_single",
-                "4_1": "input_2_single",
-                "3_2": "input_1_double",
-                "4_2": "input_2_double",
-                "3_3": "input_1_triple",
-                "4_3": "input_2_triple",
-                "3_4": "input_1_hold",
-                "4_4": "input_2_hold",
-                "3_5": "input_1_toggle",
-                "4_5": "input_2_toggle",
-                "3_11": "input_1_hold",
-                "4_11": "input_2_hold",
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            const input = shellyInputNumber(model, msg);
+            if (input === undefined) return;
+            const event = utils.getFromLookup(`${msg.data.sceneid}`, {
+                "1": "single",
+                "2": "double",
+                "3": "triple",
+                "4": "hold",
+                "5": "toggle",
+                "11": "hold",
             });
-            return {action: event};
+            return {action: `input_${input}_${event}`};
         },
     } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall"]>,
 
@@ -1533,7 +2028,8 @@ const fzLocal = {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID !== 2) return {};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (shellyInputNumber(model, msg) !== 1) return;
             const event = utils.getFromLookup(msg.type, {
                 commandOn: "input_1_on",
                 commandOff: "input_1_off",
@@ -1547,7 +2043,8 @@ const fzLocal = {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.endpoint.ID !== 2) return {};
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            if (shellyInputNumber(model, msg) !== 1) return;
             const event = utils.getFromLookup(`${msg.data.sceneid}`, {
                 "1": "input_1_single",
                 "2": "input_1_double",
@@ -1564,7 +2061,7 @@ const fzLocal = {
         cluster: "genOnOffSwitchCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (!Object.hasOwn(msg.data, "switchType")) return {};
+            if (!Object.hasOwn(msg.data, "switchType")) return;
             const property = utils.postfixWithEndpointName("switch_type", msg, model, meta);
             return {[property]: utils.getFromLookup(msg.data.switchType as number, {0: "toggle", 1: "momentary"})};
         },
@@ -1622,14 +2119,26 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1 Mini Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
@@ -1650,14 +2159,26 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1 Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
@@ -1678,14 +2199,26 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
@@ -1708,14 +2241,26 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "1PM Gen 4",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
-        exposes: [
+        // The switch input endpoint only exists when an input is actually wired. Without it the
+        // setting has nothing to address, and a state that can never hold a value is worse than
+        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
+        exposes: (device) => [
             e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            e.enum("switch_type", ea.ALL, ["toggle", "momentary"]).withDescription("Switch input type").withCategory("config").withEndpoint("sw1"),
+            ...shellySwitchInputExposes(device, {sw1: 2}),
         ],
         extend: [
-            m.deviceEndpoints({endpoints: {sw1: 2}}),
+            // The endpoint map must only name endpoints the device actually has: the application
+            // builds its property parser from these names and resolves them with a non-null
+            // assertion, so naming sw1 on a device without a wired input crashes every
+            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
+            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
+            shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
@@ -1793,6 +2338,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Cover mode)",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
@@ -1818,7 +2367,7 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({sw1: 2, sw2: 3}),
             shellyModernExtend.shellyWindowCovering(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode", "CoverTiltAuto"]),
+            shellyModernExtend.shellyRPCSetup(["2PMCoverInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1864,6 +2413,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "2PM Gen4 (Switch mode)",
         ota: true,
+        // The genOnOff/genScenes bindings and the switchType read in configure were added after
+        // this device was first released; bump the patch version so already paired devices get
+        // re-configured and their input events start arriving (same rule as the BLU remotes).
+        version: "0.0.1",
         fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
@@ -1891,7 +2444,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
             shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["2PMInputMode"]),
+            shellyModernExtend.shellyRPCSetup(["2PMSwitchInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -1992,6 +2545,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "wind_speed",
                 cluster: "shellyWS90Wind",
                 attribute: "windSpeed",
+                fzConvert: (model, msg) => ws90Scaled("wind_speed", msg.data.windSpeed, 0xffff),
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2004,6 +2558,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "wind_direction",
                 cluster: "shellyWS90Wind",
                 attribute: "windDirection",
+                fzConvert: (model, msg) => ws90Scaled("wind_direction", msg.data.windDirection, 0xffff),
                 valueMin: 0,
                 valueMax: 360,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2016,6 +2571,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "gust_speed",
                 cluster: "shellyWS90Wind",
                 attribute: "gustSpeed",
+                fzConvert: (model, msg) => ws90Scaled("gust_speed", msg.data.gustSpeed, 0xffff),
                 valueMin: 0,
                 valueMax: 140,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2038,6 +2594,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "uv_index",
                 cluster: "shellyWS90UV",
                 attribute: "uvIndex",
+                fzConvert: (model, msg) => ws90Scaled("uv_index", msg.data.uvIndex, 0xff),
                 valueMin: 0,
                 valueMax: 11,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2070,6 +2627,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "precipitation",
                 cluster: "shellyWS90Rain",
                 attribute: "precipitation",
+                fzConvert: (model, msg) => ws90Scaled("precipitation", msg.data.precipitation, 0xffffff),
                 valueMin: 0,
                 valueMax: 100000,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
@@ -2226,12 +2784,8 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    const result: KeyValue = {};
-                    if (msg.data.alarmMask !== undefined) {
-                        const alarmMask = msg.data.alarmMask;
-                        result.calibration_ok = !((alarmMask & (1 << 2)) > 0);
-                    }
-                    return result;
+                    if (msg.data.alarmMask === undefined) return;
+                    return {calibration_ok: !((msg.data.alarmMask & (1 << 2)) > 0)};
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
@@ -2310,13 +2864,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4SN-0U61X",
         vendor: "Shelly",
         description: "Presence Gen4 Zigbee",
+        // The occupancy endpoints only report once reporting is configured on all ten of them, which
+        // this definition sets up. Devices paired before this version have no such configuration, so
+        // bump the patch version to have the application re-configure them.
+        version: "0.0.1",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
             shellyModernExtend.shellyPresenceOccupancy(),
             ...shellyModernExtend.shellyLightLevel(),
             m.identify(),
             ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["PresenceZonesAuto"]),
+            shellyModernExtend.shellyRPCSetup(["PresenceZonesAuto", "PresenceZoneConfig", "PresenceSensorConfig", "EcoMode"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },

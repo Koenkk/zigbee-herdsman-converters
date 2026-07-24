@@ -295,10 +295,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDO-4-1-00",
         vendor: "NodOn",
         description: "Door & window opening sensor",
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact()],
-        extend: [m.battery({voltageReporting: true})],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"], zoneStatusReporting: {max: constants.repInterval.HOUR}}),
+        ],
         ota: true,
     },
     {
@@ -307,13 +307,34 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Energy monitoring sensor",
         extend: [
+            m.identify(),
             m.electricityMeter({
-                acFrequency: true,
+                // A forced object's `change` is not auto-scaled by the multiplier/divisor (unlike
+                // the default change) — values below are already raw ZCL units. Factors measured
+                // on physical devices: acPowerMultiplier/Divisor=1/1, acCurrentMultiplier/Divisor=1/100,
+                // acVoltageMultiplier/Divisor=1/100, acFrequencyMultiplier/Divisor=1/100.
+                voltage: {min: 30, max: 3600, change: 2300}, // 23 V
+                current: {min: 10, max: 3600, change: 100}, // 1 A
+                power: {min: 10, max: 3600, change: 250}, // 250 W
+                acFrequency: {min: 30, max: 3600, change: 500}, // 5 Hz
+                producedEnergy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                energy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                apparentPower: {min: 10, max: 3600, change: 250}, // 250 VA, shares activePower's factor
                 powerFactor: true,
-                producedEnergy: true,
             }),
         ],
-        exposes: [e.power_apparent()],
+        toZigbee: [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, _key, _value, _meta) => {
+                    // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
+                    // Network membership, bindings and configureReporting are not affected (ZCL spec).
+                    await entity.command("genBasic", "resetFactDefault", {});
+                    return {state: {}};
+                },
+            },
+        ],
+        exposes: [e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config")],
         ota: true,
     },
     {
@@ -351,7 +372,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        endpoint: (device) => ({default: 1}),
+        extend: [m.identify(), m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("genOnOff", endpoint);
+        },
         ota: true,
     },
     {
@@ -367,12 +393,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
+        endpoint: (device) => ({default: 1}),
         extend: [
+            m.identify(),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchTypeOnOff(),
         ],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("genOnOff", endpoint);
+        },
         ota: true,
     },
     {
@@ -381,11 +413,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Lighting relay switch",
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.identify(),
+            m.deviceEndpoints({endpoints: {default: 1, l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
         ],
+        configure: async (device) => {
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            await ep1.bind("genOnOff", ep1);
+            await ep2.bind("genOnOff", ep2);
+        },
         ota: true,
     },
     {
