@@ -8839,60 +8839,57 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Human presence sensor 3-gang smart switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-                e.enum("presence_state", ea.STATE, ["none", "presence"]).withDescription("Presence Status"),
-                e.switch().withEndpoint("l1"),
-                e.switch().withEndpoint("l2"),
-                e.switch().withEndpoint("l3"),
-                e
-                    .numeric("countdown_1", ea.STATE_SET)
-                    .withValueMin(0)
-                    .withValueMax(43200)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Switch 1 Countdown"),
-                e
-                    .numeric("countdown_2", ea.STATE_SET)
-                    .withValueMin(0)
-                    .withValueMax(43200)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Switch 2 Countdown"),
-                e
-                    .numeric("countdown_3", ea.STATE_SET)
-                    .withValueMin(0)
-                    .withValueMax(43200)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Switch 3 Countdown"),
-                e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Power-on Status"),
-                e.enum("light_mode", ea.STATE_SET, ["relay", "none", "pos"]).withDescription("Indicator Light Status"),
-                e
-                    .numeric("delays_time", ea.STATE_SET)
-                    .withValueMin(3)
-                    .withValueMax(3600)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Unoccupied Delay Time"),
-                e.numeric("sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Trigger Sensitivity"),
-                e
-                    .enum("turn_on_light_for_person", ea.STATE_SET, ["none", "all", "on_ch1", "on_ch2", "on_ch3", "on_1_2ch", "on_2_3ch", "on_1_3ch"])
-                    .withDescription("Turn On Light When Human Detected"),
-                e
-                    .enum("turn_off_light_for_person", ea.STATE_SET, [
-                        "none",
-                        "all",
-                        "off_ch1",
-                        "off_ch2",
-                        "off_ch3",
-                        "off_1_2ch",
-                        "off_2_3ch",
-                        "off_1_3ch",
-                    ])
-                    .withDescription("Turn Off Light When Human Not Detected"),
-            ];
-
-            return exps;
-        },
+            e.enum("presence_state", ea.STATE, ["none", "presence"]).withDescription("Presence Status"),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e
+                .numeric("countdown_1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Switch 1 Countdown"),
+            e
+                .numeric("countdown_2", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Switch 2 Countdown"),
+            e
+                .numeric("countdown_3", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Switch 3 Countdown"),
+            e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Power-on Status"),
+            e.enum("light_mode", ea.STATE_SET, ["relay", "none", "pos"]).withDescription("Indicator Light Status"),
+            e
+                .numeric("delays_time", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Unoccupied Delay Time"),
+            e.numeric("sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Trigger Sensitivity"),
+            e
+                .enum("turn_on_light_for_person", ea.STATE_SET, ["none", "all", "on_ch1", "on_ch2", "on_ch3", "on_1_2ch", "on_2_3ch", "on_1_3ch"])
+                .withDescription("Turn On Light When Human Detected"),
+            e
+                .enum("turn_off_light_for_person", ea.STATE_SET, [
+                    "none",
+                    "all",
+                    "off_ch1",
+                    "off_ch2",
+                    "off_ch3",
+                    "off_1_2ch",
+                    "off_2_3ch",
+                    "off_1_3ch",
+                ])
+                .withDescription("Turn Off Light When Human Not Detected"),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "state_l1", tuya.valueConverter.onOff],
