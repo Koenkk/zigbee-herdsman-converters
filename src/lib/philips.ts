@@ -762,9 +762,8 @@ const philipsModernExtend = {
         return result;
     },
     onOff: (args?: modernExtend.OnOffArgs) => {
-        args = {powerOnBehavior: false, ota: true, ...args};
+        args = {ota: true, ...args};
         const result = modernExtend.onOff(args);
-        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
         return result;
     },
     twilightOnOff: () => {
