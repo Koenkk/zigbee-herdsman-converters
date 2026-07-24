@@ -2,7 +2,7 @@ import type {Models as ZHModels} from "zigbee-herdsman";
 
 import {Zcl} from "zigbee-herdsman";
 import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
-
+import type {HomeAssistant} from "./exposes";
 import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as philips from "./philips";
@@ -386,7 +386,12 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
         const label = await getClusterAttributeValue(endpoint, "genBinaryInput", "description", undefined);
 
-        const name = endpointName ? "binary_input" : `binary_input_${endpoint.ID}`;
+        let labelHomeAssistant: HomeAssistant | undefined;
+        if (label) {
+            labelHomeAssistant = {name: label} as const satisfies HomeAssistant;
+        }
+
+        const name = "binary_input";
 
         const description = `Binary Input ${label ?? name} on endpoint ${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryInput"> = {
@@ -400,6 +405,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             description: description,
             access: "STATE_GET",
             endpointName,
+            homeassistant: labelHomeAssistant,
         };
         generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
     }
@@ -418,7 +424,12 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
 
         const label = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
 
-        const name = endpointName ? "binary_output" : `binary_output_${endpoint.ID}`;
+        let labelHomeAssistant: HomeAssistant | undefined;
+        if (label) {
+            labelHomeAssistant = {name: label} as const satisfies HomeAssistant;
+        }
+
+        const name = "binary_output";
 
         const description = `Binary Output ${label ?? name} on endpoint ${endpoint.ID}`;
         const args: m.BinaryArgs<"genBinaryOutput"> = {
@@ -432,6 +443,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             description: description,
             access: "ALL",
             endpointName,
+            homeassistant: labelHomeAssistant,
         };
         generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
     }
@@ -471,16 +483,16 @@ function getNamefromApplicationType(applicationType: number): string | undefined
         1: "humidity", // Relative_Humidity_Percent
         2: "pressure", // Pressure_Pascal
         3: "flow", // Flow_Liters_Per_Sec
-        4: undefined, // Percentage
-        5: undefined, // Parts_Per_Million
-        6: undefined, // Rotational_Speed_RPM
+        4: "percentage", // Percentage
+        5: "part_per_million", // Parts_Per_Million
+        6: "rotational_speed", // Rotational_Speed_RPM
         7: "current", // Current_Amps
-        8: "ac_frequency", // Frequency_Hz
+        8: "frequency", // Frequency_Hz
         9: "power", // Power_Watts
         10: "power", // Power_Kilo_Watts
         11: "energy", // Energy_Kilo_Watt_Hours
-        12: undefined, // Count
-        13: undefined, // Enthalpy_KJoules_Per_Kg
+        12: "count", // Count
+        13: "enthalpy", // Enthalpy_KJoules_Per_Kg
         14: "duration", // Time_Seconds
     };
 
@@ -759,19 +771,21 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
         const label = await getClusterAttributeValue(endpoint, "genAnalogInput", "description", undefined);
 
+        let labelHomeAssistant: HomeAssistant | undefined;
+        if (label) {
+            labelHomeAssistant = {name: label} as const satisfies HomeAssistant;
+        }
+
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogInput", "applicationType", undefined);
         let unit: string | undefined;
         let name: string | undefined;
-
-        logger.info(`apptype ${applicationType}`, NS);
 
         if (applicationType !== undefined) {
             name = getNamefromApplicationType(applicationType);
             unit = getUnitfromApplicationType(applicationType);
         }
-        logger.info(`name ${name}`, NS);
 
-        name = name ?? (endpointNames ? "analog_input" : `analog_input_${endpoint.ID}`);
+        name = name ? `analog_in_${name}` : "analog_input";
 
         if (unit === undefined) {
             const bacnet_unit = await getClusterAttributeValue(endpoint, "genAnalogInput", "engineeringUnits", undefined);
@@ -783,7 +797,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         const description = `Analog Input ${label ?? name} on endpoint ${endpoint.ID}`;
 
         const args: m.NumericArgs<"genAnalogInput"> = {
-            name: name,
+            name,
             label,
             valueMin: await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined),
             valueMax: await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined),
@@ -795,6 +809,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
             access: "STATE_GET",
             endpointNames,
             unit,
+            homeassistant: labelHomeAssistant,
         };
         generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
     }
@@ -813,6 +828,11 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
 
         const label = await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", undefined);
 
+        let labelHomeAssistant: HomeAssistant | undefined;
+        if (label) {
+            labelHomeAssistant = {name: label} as const satisfies HomeAssistant;
+        }
+
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogOutput", "applicationType", undefined);
         let unit: string | undefined;
         let name: string | undefined;
@@ -822,7 +842,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             unit = getUnitfromApplicationType(applicationType);
         }
 
-        name = name ?? (endpointNames ? "analog_output" : `analog_output_${endpoint.ID}`);
+        name = name ? `analog_out_${name}` : "analog_output";
 
         if (unit === undefined) {
             const bacnet_unit = await getClusterAttributeValue(endpoint, "genAnalogOutput", "engineeringUnits", undefined);
@@ -834,7 +854,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         const description = `Analog Output ${label ?? name} on endpoint ${endpoint.ID}`;
 
         const args: m.NumericArgs<"genAnalogOutput"> = {
-            name: name.replace(/\s+/g, "_").toLowerCase(),
+            name,
             label,
             valueMin: await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined),
             valueMax: await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined),
@@ -846,6 +866,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
             access: "ALL",
             endpointNames,
             unit,
+            homeassistant: labelHomeAssistant,
         };
         generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
     }

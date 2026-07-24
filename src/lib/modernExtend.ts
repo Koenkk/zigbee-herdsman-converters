@@ -2727,6 +2727,7 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     entityCategory?: "config" | "diagnostic";
     precision?: number;
     fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
+    homeassistant?: exposes.HomeAssistant;
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -2747,6 +2748,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         entityCategory,
         precision,
         fzConvert,
+        homeassistant,
     } = args;
 
     const endpoints = args.endpointNames;
@@ -2764,6 +2766,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
         if (label !== undefined) expose = expose.withLabel(label);
         if (entityCategory) expose = expose.withCategory(entityCategory);
+        if (homeassistant) expose = expose.withHomeAssistant(homeassistant);
 
         return expose;
     };
@@ -2863,11 +2866,25 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
     entityCategory?: "config" | "diagnostic";
+    homeassistant?: exposes.HomeAssistant;
 }
 export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: BinaryArgs<Cl, Custom>,
 ): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
+    const {
+        name,
+        valueOn,
+        valueOff,
+        cluster,
+        attribute,
+        description,
+        zigbeeCommandOptions,
+        endpointName,
+        reporting,
+        label,
+        entityCategory,
+        homeassistant,
+    } = args;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
@@ -2875,6 +2892,7 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
     if (endpointName) expose = expose.withEndpoint(endpointName);
     if (label) expose = expose.withLabel(label);
     if (entityCategory) expose = expose.withCategory(entityCategory);
+    if (homeassistant) expose = expose.withHomeAssistant(homeassistant);
 
     const fromZigbee = [
         {
