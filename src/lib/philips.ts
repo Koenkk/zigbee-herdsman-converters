@@ -764,6 +764,11 @@ const philipsModernExtend = {
     onOff: (args?: modernExtend.OnOffArgs) => {
         args = {ota: true, ...args};
         const result = modernExtend.onOff(args);
+
+        const customCluster2 = philipsModernExtend.addManuSpecificPhilips2Cluster();
+        result.onEvent = [...customCluster2.onEvent, ...(result.onEvent ?? [])];
+        result.configure = [...customCluster2.configure, ...(result.configure ?? [])];
+
         return result;
     },
     twilightOnOff: () => {
