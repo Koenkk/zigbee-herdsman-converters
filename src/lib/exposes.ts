@@ -21,6 +21,7 @@ export interface HomeAssistant {
     deviceClass?: string;
     enabledByDefault?: boolean;
     icon?: string;
+    name?: string;
 }
 
 export class Base {
@@ -34,7 +35,6 @@ export class Base {
     features?: Feature[];
     category?: "config" | "diagnostic";
     homeassistant?: HomeAssistant;
-    labelIsCustom?: boolean;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -69,7 +69,6 @@ export class Base {
 
     withLabel(label: string) {
         this.label = label;
-        this.labelIsCustom = true;
         return this;
     }
 
