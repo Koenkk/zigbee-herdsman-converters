@@ -765,8 +765,9 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         let name: string | undefined;
 
         if (applicationType !== undefined) {
-            name = APPTYPE_NAME[(applicationType >> 16) & 0xff];
-            unit = APPTYPE_UNIT[(applicationType >> 16) & 0xff];
+            const typeBits = (applicationType >> 16) & 0xff;
+            name = APPTYPE_NAME[typeBits];
+            unit = APPTYPE_UNIT[typeBits];
         }
 
         name = name ? `analog_in_${name}` : "analog_input";
@@ -822,8 +823,9 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         let name: string | undefined;
 
         if (applicationType !== undefined) {
-            name = APPTYPE_NAME[(applicationType >> 16) & 0xff];
-            unit = APPTYPE_UNIT[(applicationType >> 16) & 0xff];
+            const typeBits = (applicationType >> 16) & 0xff;
+            name = APPTYPE_NAME[typeBits];
+            unit = APPTYPE_UNIT[typeBits];
         }
 
         name = name ? `analog_out_${name}` : "analog_output";
