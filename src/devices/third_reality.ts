@@ -106,6 +106,14 @@ interface ThirdAirQualitySensor {
     commandResponses: never;
 }
 
+interface ThirdDoorSensor {
+    attributes: {
+        delayOpenAttrId: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface Third60gRadarSensor {
     attributes: {
         totalVolatileOrganicCompounds: number;
@@ -651,6 +659,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rDoorSpecialCluster", ThirdDoorSensor>({
+                name: "delay_open",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                cluster: "3rDoorSpecialCluster",
+                attribute: "delayOpenAttrId",
+                description: "Delay open time",
+                access: "ALL",
             }),
         ],
     },

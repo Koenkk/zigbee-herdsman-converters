@@ -1700,7 +1700,7 @@ export interface IasArgs {
     zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
     keepAliveTimeout?: (device: Device) => number;
-    zoneStatusReporting?: boolean;
+    zoneStatusReporting?: boolean | Partial<ReportingConfigWithoutAttribute>;
     description?: string;
     invertAlarm?: true;
     manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
@@ -1851,9 +1851,12 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     let configure: Configure[];
     if (args.zoneStatusReporting) {
+        const zoneStatusReportingConfig = isObject(args.zoneStatusReporting) ? args.zoneStatusReporting : {};
         configure = [
             async (device, coordinatorEndpoint) => {
-                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [{attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0}]);
+                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [
+                    {attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0, ...zoneStatusReportingConfig},
+                ]);
             },
         ];
     }
@@ -1948,7 +1951,8 @@ interface MeterArgs {
     threePhase?: boolean;
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    powerFactor?: boolean;
+    apparentPower?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    powerFactor?: false | true | Partial<ReportingConfigWithoutAttribute>;
     tariffs?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic
     fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
@@ -2053,7 +2057,16 @@ function genericMeter(args: MeterArgs = {}) {
             },
             power_factor: {
                 attribute: "powerFactor" as const,
+                forced: isObject(args.powerFactor) ? args.powerFactor : (false as const),
                 change: 10,
+            },
+            // Report change with every 5VA change
+            apparent_power: {
+                attribute: "apparentPower" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: isObject(args.apparentPower) ? args.apparentPower : (false as const),
+                change: 5,
             },
             // Report change with every 5V change
             voltage: {
@@ -2196,6 +2209,9 @@ function genericMeter(args: MeterArgs = {}) {
     if (args.acFrequency === false) {
         delete configureLookup.haElectricalMeasurement.ac_frequency;
     }
+    if (args.apparentPower === false) {
+        delete configureLookup.haElectricalMeasurement.apparent_power;
+    }
     if (args.threePhase === false) {
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
@@ -2211,6 +2227,7 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.power_factor;
         delete configureLookup.haElectricalMeasurement.ac_frequency;
+        delete configureLookup.haElectricalMeasurement.apparent_power;
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
@@ -2243,6 +2260,7 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
+        if (args.apparentPower !== false) exposes.push(e.power_apparent());
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
@@ -2326,6 +2344,7 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
+        if (args.apparentPower !== false) exposes.push(e.power_apparent());
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
 
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
@@ -2429,6 +2448,7 @@ export function electricityMeter(args: ElectricityMeterArgs = {}): ModernExtend 
         producedEnergy: false,
         acFrequency: false,
         powerFactor: false,
+        apparentPower: false,
         status: false,
         extendedStatus: false,
         ...args,

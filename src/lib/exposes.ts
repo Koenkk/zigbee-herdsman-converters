@@ -15,7 +15,8 @@ import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
 export interface HomeAssistant {
-    type?: "valve";
+    type?: "valve" | "infrared";
+    schema?: "emitter" | "receiver";
     entityCategory?: "config" | "diagnostic";
     deviceClass?: string;
     enabledByDefault?: boolean;
