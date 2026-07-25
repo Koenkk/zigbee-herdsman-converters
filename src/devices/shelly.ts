@@ -132,6 +132,8 @@ interface ShellyLightLevel {
 
 let shellyRpcSending = false;
 
+const preserveNameHA = {preserveName: true} satisfies exposes.HomeAssistant;
+
 const shellyRpcLock = async <T>(callback: () => Promise<T>): Promise<T> => {
     // Since RPC messages require multiple writes to complete, we have to make sure
     // we're not interleaving request/response transactions accidentally.
@@ -1235,10 +1237,18 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
-            e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
-            e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
-            e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),
+            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature").withHomeAssistant(preserveNameHA),
+            e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature").withHomeAssistant(preserveNameHA),
+            e
+                .numeric("humidex", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated humidex (feels-like for warm conditions)")
+                .withHomeAssistant(preserveNameHA),
+            e
+                .numeric("apparent_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated apparent temperature")
+                .withHomeAssistant(preserveNameHA),
             e.numeric("heat_stress", ea.STATE).withUnit("%").withDescription("Calculated heat stress percentage (0-100%)"),
             e.numeric("rain_rate", ea.STATE).withUnit("mm/h").withDescription("Calculated rainfall rate"),
             e.numeric("pressure_trend", ea.STATE).withUnit("hPa/h").withDescription("Pressure change rate (negative = falling)"),
@@ -2023,6 +2033,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 unit: "m/s",
                 access: "STATE_GET",
+                homeassistant: preserveNameHA,
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
                 name: "shellyWS90UV",
