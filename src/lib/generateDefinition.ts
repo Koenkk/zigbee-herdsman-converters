@@ -451,12 +451,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     return generated;
 }
 
-const getfromApplicationType = (applicationTypeMap: {[key: number]: string}, applicationType: number): string | undefined => {
-    // Only take type ( Bits 16 to 23 ) into account.
-    return applicationTypeMap[(applicationType >> 16) & 0xff];
-};
-
-const APPTYPE_UNIT_LOOKUP: {[key: number]: string} = {
+const APPTYPE_UNIT: Record<number, string> = {
     0: "°C", // Temp_Degrees_C
     1: "%", // Relative_Humidity_Percent
     2: "Pa", // Pressure_Pascal
@@ -469,12 +464,12 @@ const APPTYPE_UNIT_LOOKUP: {[key: number]: string} = {
     9: "W", // Power_Watts
     10: "kW", // Power_Kilo_Watts
     11: "kWh", // Energy_Kilo_Watt_Hours
-    12: undefined, // Count
+    // 12: undefined, // Count
     13: "kJ/kg", // Enthalpy_KJoules_Per_Kg
     14: "s", // Time_Seconds
-} as const;
+};
 
-const APPTYPE_NAME_LOOKUP: {[key: number]: string} = {
+const APPTYPE_NAME: Record<number, string> = {
     0: "temperature", // Temp_Degrees_C
     1: "humidity", // Relative_Humidity_Percent
     2: "pressure", // Pressure_Pascal
@@ -490,9 +485,9 @@ const APPTYPE_NAME_LOOKUP: {[key: number]: string} = {
     12: "count", // Count
     13: "enthalpy", // Enthalpy_KJoules_Per_Kg
     14: "duration", // Time_Seconds
-} as const;
+};
 
-const BACNETUNIT_LOOKUP: {[key: number]: string | undefined} = {
+const BACNET_UNIT: Record<number, string> = {
     0: "m²",
     1: "ft²",
     2: "mA",
@@ -747,7 +742,7 @@ const BACNETUNIT_LOOKUP: {[key: number]: string | undefined} = {
     252: "mol%",
     253: "Pa·s",
     254: "MMSCFM",
-} as const;
+};
 
 async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
@@ -770,8 +765,8 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         let name: string | undefined;
 
         if (applicationType !== undefined) {
-            name = getfromApplicationType(APPTYPE_NAME_LOOKUP, applicationType);
-            unit = getfromApplicationType(APPTYPE_UNIT_LOOKUP, applicationType);
+            name = APPTYPE_NAME[(applicationType >> 16) & 0xff];
+            unit = APPTYPE_UNIT[(applicationType >> 16) & 0xff];
         }
 
         name = name ? `analog_in_${name}` : "analog_input";
@@ -779,7 +774,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         if (unit === undefined) {
             const bacnet_unit = await getClusterAttributeValue(endpoint, "genAnalogInput", "engineeringUnits", undefined);
             if (bacnet_unit !== undefined) {
-                unit = BACNETUNIT_LOOKUP[bacnet_unit];
+                unit = BACNET_UNIT[bacnet_unit];
             }
         }
 
@@ -827,8 +822,8 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         let name: string | undefined;
 
         if (applicationType !== undefined) {
-            name = getfromApplicationType(APPTYPE_NAME_LOOKUP, applicationType);
-            unit = getfromApplicationType(APPTYPE_UNIT_LOOKUP, applicationType);
+            name = APPTYPE_NAME[(applicationType >> 16) & 0xff];
+            unit = APPTYPE_UNIT[(applicationType >> 16) & 0xff];
         }
 
         name = name ? `analog_out_${name}` : "analog_output";
@@ -836,7 +831,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         if (unit === undefined) {
             const bacnet_unit = await getClusterAttributeValue(endpoint, "genAnalogOutput", "engineeringUnits", undefined);
             if (bacnet_unit !== undefined) {
-                unit = BACNETUNIT_LOOKUP[bacnet_unit];
+                unit = BACNET_UNIT[bacnet_unit];
             }
         }
 
