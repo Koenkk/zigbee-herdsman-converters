@@ -480,8 +480,8 @@ const APPTYPE_NAME_LOOKUP: {[key: number]: string} = {
     2: "pressure", // Pressure_Pascal
     3: "flow", // Flow_Liters_Per_Sec
     4: "percentage", // Percentage
-    5: "part_per_million", // Parts_Per_Million
-    6: "rotational_speed", // Rotational_Speed_RPM
+    5: "ppm", // Parts_Per_Million
+    6: "rpm", // Rotational_Speed_RPM
     7: "current", // Current_Amps
     8: "frequency", // Frequency_Hz
     9: "power", // Power_Watts
@@ -588,7 +588,7 @@ const BACNETUNIT_LOOKUP: {[key: number]: string | undefined} = {
     92: "°C/min",
     93: "°F/h",
     94: "°F/min",
-    95: undefined,
+    // 95: undefined,
     96: "ppm",
     97: "ppb",
     98: "%",
