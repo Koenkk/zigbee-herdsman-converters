@@ -21,6 +21,7 @@ export interface HomeAssistant {
     deviceClass?: string;
     enabledByDefault?: boolean;
     icon?: string;
+    valueTemplate?: string | null;
 }
 
 export class Base {
