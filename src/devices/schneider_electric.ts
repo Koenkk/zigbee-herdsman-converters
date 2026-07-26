@@ -1686,7 +1686,7 @@ const fzLocal = {
     } satisfies Fz.Converter<"lightingBallastCfg", SchneiderLightingBallastCfg, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     EKO09738_metering: {
-        // Elko EKO09738 and EKO09716 reports power in mW, scale to W
+        // ELKO EKO09738 and EKO09716 reports power in mW, scale to W
         cluster: "seMetering",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -1826,7 +1826,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
         ],
         whiteLabel: [
-            {vendor: "Elko", model: "EKO07090"},
+            {vendor: "ELKO", model: "EKO07090"},
             {vendor: "Schneider Electric", model: "550B1012"},
         ],
     },
@@ -1837,7 +1837,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Micro module switch",
         ota: true,
         extend: [m.onOff({powerOnBehavior: false})],
-        whiteLabel: [{vendor: "Elko", model: "EKO07144"}],
+        whiteLabel: [{vendor: "ELKO", model: "EKO07144"}],
     },
     {
         zigbeeModel: ["PUCK/UNIDIM/1"],
@@ -1876,7 +1876,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6730",
         vendor: "Schneider Electric",
         description: "Wiser power micromodule",
-        whiteLabel: [{vendor: "Elko", model: "EKO20004"}],
+        whiteLabel: [{vendor: "ELKO", model: "EKO20004"}],
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.identify()],
     },
     {
@@ -1927,11 +1927,11 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
-            {vendor: "Elko", model: "EKO07278"},
-            {vendor: "Elko", model: "EKO07279"},
-            {vendor: "Elko", model: "EKO07280"},
-            {vendor: "Elko", model: "EKO07281"},
-            {vendor: "Elko", model: "EKO30198"},
+            {vendor: "ELKO", model: "EKO07278"},
+            {vendor: "ELKO", model: "EKO07279"},
+            {vendor: "ELKO", model: "EKO07280"},
+            {vendor: "ELKO", model: "EKO07281"},
+            {vendor: "ELKO", model: "EKO30198"},
             {vendor: "Schneider", model: "WDE002961"},
             {vendor: "Schneider", model: "WDE003961"},
             {vendor: "Schneider", model: "WDE004961"},
@@ -2428,7 +2428,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {top: 21, bottom: 22};
         },
-        whiteLabel: [{vendor: "Elko", model: "EKO07117"}],
+        whiteLabel: [{vendor: "ELKO", model: "EKO07117"}],
         meta: {multiEndpoint: true},
         exposes: [
             e.action([
@@ -2748,7 +2748,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.current(),
             e.voltage(),
         ],
-        whiteLabel: [{vendor: "Elko", model: "EKO09738", description: "SmartStikk"}],
+        whiteLabel: [{vendor: "ELKO", model: "EKO09738", description: "SmartStikk"}],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(6);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
@@ -2844,10 +2844,10 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.occupancyConfiguration(),
         ],
         whiteLabel: [
-            {vendor: "Elko", model: "EKO06988"},
-            {vendor: "Elko", model: "EKO06989"},
-            {vendor: "Elko", model: "EKO06990"},
-            {vendor: "Elko", model: "EKO06991"},
+            {vendor: "ELKO", model: "EKO06988"},
+            {vendor: "ELKO", model: "EKO06989"},
+            {vendor: "ELKO", model: "EKO06990"},
+            {vendor: "ELKO", model: "EKO06991"},
             {vendor: "LK", model: "545D6306"},
         ],
     },
@@ -3449,11 +3449,11 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
-            {vendor: "Elko", model: "EKO07250"},
-            {vendor: "Elko", model: "EKO07251"},
-            {vendor: "Elko", model: "EKO07252"},
-            {vendor: "Elko", model: "EKO07253"},
-            {vendor: "Elko", model: "EKO30199"},
+            {vendor: "ELKO", model: "EKO07250"},
+            {vendor: "ELKO", model: "EKO07251"},
+            {vendor: "ELKO", model: "EKO07252"},
+            {vendor: "ELKO", model: "EKO07253"},
+            {vendor: "ELKO", model: "EKO30199"},
             {vendor: "Exxact", model: "WDE002962"},
             {vendor: "Exxact", model: "WDE003962"},
         ],
@@ -3590,7 +3590,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "GreenPower_254", ieeeAddr: /^0x00000000e205567e$/}],
         model: "EKO01825",
-        vendor: "Elko",
+        vendor: "ELKO",
         description: "PowerTag power sensor",
         whiteLabel: [{vendor: "Schneider Electric", model: "A9MEM1570"}],
         fromZigbee: [fzLocal.schneider_powertag],

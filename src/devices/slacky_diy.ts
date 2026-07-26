@@ -1,3 +1,4 @@
+import {Zcl} from "zigbee-herdsman";
 import type {ClusterOrRawAttributeKeys, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
@@ -136,6 +137,14 @@ interface SlackyDiySeMetering {
         dateRelease: string;
         deviceName: string;
         devicePassword: string;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SlackyDiyRfPowerCfg {
+    attributes: {
+        txPower: number;
     };
     commands: never;
     commandResponses: never;
@@ -2981,6 +2990,145 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["TS0201-z2C-SlD"],
+        model: "TS0201-LCD-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya temperature and humidity sensor with LCD display and custom firmware",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {
+                    "1": 1,
+                    "2": 2,
+                },
+            }),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                percentageReportingConfig: batteryReporting,
+                voltageReportingConfig: batteryReporting,
+            }),
+            m.temperature({reporting: temperatureReporting}),
+            m.humidity({reporting: humidityReporting}),
+            m.numeric({
+                name: "temperature_offset",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureOffset, type: 0x29},
+                unit: "°C",
+                valueMin: -5,
+                valueMax: 5,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside temperature",
+            }),
+            m.numeric({
+                name: "humidity_offset",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityOffset, type: 0x29},
+                unit: "%",
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 1,
+                scale: 100,
+                description: "Offset to add/subtract to the inside humidity",
+            }),
+            m.numeric({
+                name: "read_interval",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrSensorReadPeriod, type: 0x21},
+                unit: "Sec",
+                valueMin: 5,
+                valueMax: 600,
+                valueStep: 1,
+                description: "Sensors reading period",
+            }),
+            m.binary({
+                name: "enabling_repeat_command",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrRepeatCommand, type: 0x10},
+                description: "Enables/disables repeat command",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary({
+                name: "enabling_temperature_control",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureOnOff, type: 0x10},
+                description: "Enables/disables Tempearure control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureLow, type: 0x29},
+                unit: "°C",
+                valueMin: -40,
+                valueMax: 125,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Temperature low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_temperature",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: attrTemperatureHigh, type: 0x29},
+                unit: "°C",
+                valueMin: -40,
+                valueMax: 125,
+                valueStep: 0.1,
+                scale: 100,
+                description: "Temperature high turn-on limit",
+            }),
+            m.enumLookup({
+                name: "temperature_actions",
+                endpointName: "1",
+                lookup: {heat: 0, cool: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Heat or cool",
+            }),
+            m.binary({
+                name: "enabling_humidity_control",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityOnOff, type: 0x10},
+                description: "Enables/disables Humidity control",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric({
+                name: "low_humidity",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityLow, type: 0x29},
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                description: "Humidity low turn-off limit",
+            }),
+            m.numeric({
+                name: "high_humidity",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: attrHumidityHigh, type: 0x29},
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                valueStep: 1,
+                scale: 100,
+                description: "Humidity high turn-on limit",
+            }),
+            m.enumLookup({
+                name: "humidity_actions",
+                endpointName: "2",
+                lookup: {wet: 0, dry: 1},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Wet or dry",
+            }),
+        ],
+        ota: true,
+    },
+    {
         zigbeeModel: ["ZG-222ZA-z-SlD", "ZG-222Z-z-SlD", "SNZB-05-z-SlD"],
         model: "ZG-222ZA-z-SlD",
         vendor: "Slacky-DIY",
@@ -3743,7 +3891,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["TSM1-0025-SlD"],
+        zigbeeModel: ["TSM1-0025-SlD", "TSM1-SlD"],
         model: "TSM1-SlD",
         vendor: "Slacky-DIY",
         description: "Tuya switch module 1 gang with custom firmware",
@@ -3777,9 +3925,39 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.deviceAddCustomCluster("genLevelCtrl", {
+                name: "genLevelCtrl",
+                ID: 0x0008,
+                attributes: {
+                    minLevel: {
+                        name: "minLevel",
+                        ID: 0x0002,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    maxLevel: {
+                        name: "maxLevel",
+                        ID: 0x0003,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.text({
+                name: "model_number",
+                cluster: "genBasic",
+                attribute: "productLabel",
+                access: "STATE_GET",
+                description: "Switch model number",
+            }),
             m.onOff({powerOnBehavior: true}),
             m.commandsOnOff(),
-            localActionExtend(),
+            localActionExtend({reporting: false}),
+            m.commandsLevelCtrl(),
             m.enumLookup({
                 name: "switch_actions",
                 lookup: {off: 0, on: 1},
@@ -3789,7 +3967,12 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"genOnOffSwitchCfg", SlackyDiyOnOffCfg>({
                 name: "switch_type",
-                lookup: {toggle: 0, momentary: 1, multifunction: 2},
+                lookup: {
+                    toggle: 0,
+                    momentary: 1,
+                    multifunction: 2,
+                    brightness_level: 3,
+                },
                 cluster: "genOnOffSwitchCfg",
                 attribute: "customSwitchType",
                 description: "Switch type",
@@ -3802,12 +3985,30 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 0, max: 65000, change: 0},
                 description: "Relay decoupled",
             }),
+            m.numeric<"genLevelCtrl">({
+                name: "min_level",
+                access: "ALL",
+                cluster: "genLevelCtrl",
+                attribute: "minLevel",
+                valueMin: 1,
+                valueMax: 255,
+                description: "Minimum level when decreasing",
+            }),
+            m.numeric<"genLevelCtrl">({
+                name: "max_level",
+                access: "ALL",
+                cluster: "genLevelCtrl",
+                attribute: "maxLevel",
+                valueMin: 1,
+                valueMax: 255,
+                description: "Maximum level when increasing",
+            }),
         ],
         meta: {},
         ota: true,
     },
     {
-        zigbeeModel: ["TS0203-z20-Sld"],
+        zigbeeModel: ["TS0203-z20-SlD"],
         model: "TS0203-z-Sld",
         vendor: "Slacky-DIY",
         description: "Tuya door/window sensor with custom firmware",
@@ -6913,6 +7114,63 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         meta: {},
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Router-ZG-807Z-SlD"],
+        model: "Router-ZG-807Z-SlD",
+        vendor: "Slacky-DIY",
+        description: "Tuya router with custom firmware",
+        extend: [
+            m.deviceAddCustomCluster("SlackyDiyCustomCluster", {
+                name: "SlackyDiyCustomCluster",
+                ID: 0xff65,
+                manufacturerCode: 0x6565,
+                attributes: {
+                    txPower: {
+                        name: "txPower",
+                        ID: 0x0000,
+                        type: Zcl.DataType.ENUM8,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                lowStatus: true,
+                percentageReportingConfig: {min: 5, max: 3600, change: 0},
+                voltageReportingConfig: {min: 5, max: 3600, change: 0},
+                lowStatusReportingConfig: {min: 0, max: 3600, change: 0},
+            }),
+            m.numeric({
+                name: "uptime_time",
+                access: "STATE_GET",
+                cluster: "genTime",
+                attribute: "time",
+                reporting: {min: 60, max: 3600, change: 15},
+                unit: "sec",
+                description: "Uptime of device",
+            }),
+            m.enumLookup<"SlackyDiyCustomCluster", SlackyDiyRfPowerCfg>({
+                name: "tx_power",
+                cluster: "SlackyDiyCustomCluster",
+                attribute: "txPower",
+                lookup: {"0 dBm": 0, "5 dBm": 1, "10 dBm": 2},
+                reporting: false,
+                description: "Rf power config",
+            }),
+            m.enumLookup({
+                name: "switch_actions",
+                lookup: {on_off: 0, off_on: 1, toggle: 2},
+                cluster: "genOnOffSwitchCfg",
+                attribute: "switchActions",
+                description: "Actions switch",
+            }),
+        ],
         ota: true,
     },
 ];

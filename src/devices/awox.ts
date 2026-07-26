@@ -400,6 +400,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}})],
     },
     {
+        zigbeeModel: ["EZMB-RGB-TW-I2C"],
+        model: "EZMB-RGB-TW-I2C",
+        vendor: "AwoX",
+        description: "EGLO Connect-Z LED G95 13.5W RGB + tunable white",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        whiteLabel: [{vendor: "EGLO", model: "12254"}],
+    },
+    {
         fingerprint: [
             {
                 type: "Router",

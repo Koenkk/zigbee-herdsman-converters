@@ -694,5 +694,9 @@ export const presetsZosung = {
             .withDescription("The IR timings learned by device")
             .withHomeAssistant({type: "infrared", schema: "receiver"}),
     ir_code_to_send: () => e.text("ir_code_to_send", ea.SET).withDescription("The IR code or timings to send by device"),
-    ir_emitter: () => e.text("ir_emitter", ea.SET).withDescription("IR emitter feature").withHomeAssistant({type: "infrared", schema: "emitter"}),
+    ir_emitter: () =>
+        e
+            .text("ir_emitter", ea.SET)
+            .withDescription("The IR code or timings to send by device")
+            .withHomeAssistant({type: "infrared", schema: "emitter"}),
 };
