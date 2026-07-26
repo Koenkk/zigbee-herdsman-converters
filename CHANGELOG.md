@@ -1,5 +1,20 @@
 # Changelog
 
+## [26.87.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.86.0...v26.87.0) (2026-07-26)
+
+
+### Features
+
+* **add:** TS0201-LCD-SlD, Router-ZG-807Z-SlD ([#12765](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12765)) ([9fa1bf0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9fa1bf0ff9eedaf99026c9997755ca24578495be))
+* Philips Hue plugs: expose Power-on behavior ([#12764](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12764)) ([92b017e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/92b017e2fe95ca7dcf9edbe759c534529bf844ba))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3210_r3wubmyh` as Nous P8Z ([#12762](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12762)) ([be5b2fa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/be5b2fab52b9695d290494fc103a5034cfa25ca9))
+* HOBEIAN ZG-302ZM: fix auto on/off lookup ([#12760](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12760)) ([1d80375](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1d8037594d70d65a906b99f04a58dfe8c56d3d27))
+* **ignore:** bump zigbee-herdsman from 10.6.3 to 10.7.0 in the minor-patch group ([#12766](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12766)) ([d8553a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d8553a5dd769cc95020c312741c385fad2f787e7))
+
 ## [26.86.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.85.0...v26.86.0) (2026-07-24)
 
 
