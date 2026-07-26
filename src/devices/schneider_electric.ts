@@ -483,9 +483,14 @@ const schneiderElectricExtend = {
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         });
-        extend.configure.push(
-            m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
-        );
+        extend.configure.push(async (device, coordinatorEndpoint, definition) => {
+            const endpoints = utils.getEndpointsWithCluster(device, "lightingBallastCfg", "input");
+            for (const endpoint of endpoints) {
+                await endpoint.read<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"], {
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                });
+            }
+        });
         return extend;
     },
 
