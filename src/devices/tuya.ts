@@ -7021,7 +7021,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_11pg3ima",
             "_TZ3000_et7afzxz",
             "_TZ3000_pftj0i7z",
-            "_TZ3000_xffhmvhv",   // Nobø Connect SWS-IZ mode switch
+            "_TZ3000_xffhmvhv", // Nobø Connect SWS-IZ mode switch
         ]),
         model: "TS004F",
         vendor: "Tuya",
