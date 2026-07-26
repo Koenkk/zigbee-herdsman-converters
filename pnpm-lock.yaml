@@ -15,8 +15,8 @@ importers:
         specifier: ^7.8.5
         version: 7.8.5
       zigbee-herdsman:
-        specifier: ^10.6.3
-        version: 10.6.3
+        specifier: ^10.7.0
+        version: 10.7.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.3
@@ -843,8 +843,8 @@ packages:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
 
-  postcss@8.5.21:
-    resolution: {integrity: sha512-v4sDNP3fdNiWMfabO7OwOQdOX8TiQSztKyT1Wj0w+j7LDallJThJRBBBmzVGyYj0crMh7jlV4zepPkiNu9UwDQ==}
+  postcss@8.5.23:
+    resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
     engines: {node: ^10 || ^12 || >=14}
 
   ps-tree@1.2.0:
@@ -1042,8 +1042,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  zigbee-herdsman@10.6.3:
-    resolution: {integrity: sha512-LSscRq7Q71J8naavNimH6twhcOMNn4lI+mar5AURvH4nnlDBtrrNy36t05TiMs6ZA4PkiYnpGeaSEU6ZMlus/w==}
+  zigbee-herdsman@10.7.0:
+    resolution: {integrity: sha512-eKp9Y2/+RJ+SxVttud1gkSvm5u5Vl5Uk6uWjmcZRVEdaMpcoJduNHQHSapXFtTqmYVgpsnydIhva7k5xAePZFg==}
 
   zigbee-on-host@0.2.4:
     resolution: {integrity: sha512-NIG6CWp+Yfn7PjqEIRvenHqpwT1U7rSkyimnFOUIFpnmxQOJKrmcwWDfn6WjbU/YIYYWSQPlj+g13icu1xwlyg==}
@@ -1640,7 +1640,7 @@ snapshots:
 
   picomatch@4.0.5: {}
 
-  postcss@8.5.21:
+  postcss@8.5.23:
     dependencies:
       nanoid: 3.3.16
       picocolors: 1.1.1
@@ -1783,7 +1783,7 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.5)
       picomatch: 4.0.5
-      postcss: 8.5.21
+      postcss: 8.5.23
       rollup: 4.62.2
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -1827,7 +1827,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zigbee-herdsman@10.6.3:
+  zigbee-herdsman@10.7.0:
     dependencies:
       '@date-fns/tz': 1.5.0
       '@serialport/bindings-cpp': 13.0.1
