@@ -123,6 +123,25 @@ describe("Check definitions", () => {
         }
     });
 
+    it("Vendor name casing should be consistent", () => {
+        const vendors = new Set<string>();
+        const vendorsLower = new Set<string>();
+
+        for (const definition of definitions) {
+            const v = definition.vendor;
+            const vl = v.toLowerCase();
+
+            if (vendors.has(v)) continue;
+
+            if (vendorsLower.has(vl)) {
+                throw new Error(`'${v}' has inconsistent casing`);
+            }
+
+            vendors.add(v);
+            vendorsLower.add(vl);
+        }
+    });
+
     it("Check if all exposes have a color temp range", () => {
         for (const definition of definitions) {
             const exposes = definitionExposes(definition);
@@ -200,8 +219,8 @@ describe("Check definitions", () => {
             "Legrand|281506",
             "LiXee|ZLinky_TIC",
             "LiXee|ZiPulses",
-            "LYTKO|L101Ze-DBN",
-            "LYTKO|L101Ze-SBN",
+            "Lytko|L101Ze-DBN",
+            "Lytko|L101Ze-SBN",
             "Aqara|TH-S04D",
             "Schneider Electric|MEG5779",
             "Slacky-DIY|THERM_SLACKY_DIY_R01",

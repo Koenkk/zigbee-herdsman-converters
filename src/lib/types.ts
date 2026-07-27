@@ -70,7 +70,7 @@ export interface Fingerprint {
 }
 export type WhiteLabel =
     | {vendor?: string; model: string; description?: string; fingerprint: Fingerprint[]}
-    | {vendor?: string; model: string; description?: string};
+    | {vendor?: string; model: string; description?: string; whiteLabelOf?: string};
 
 export interface MockProperty {
     property: string;
@@ -189,7 +189,7 @@ export interface DefinitionMeta {
      *
      * @defaultValue false
      */
-    omitOptionalLevelParams?: boolean;
+    omitOptionalLevelAndColorParams?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
@@ -222,7 +222,7 @@ export interface DefinitionMeta {
     /**
      * Override the Home Assistant discovery payload using a custom function.
      */
-    overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
+    overrideHaDiscoveryPayload?(payload: KeyValueAny, options?: KeyValueAny): void;
     /**
      * Never use a transition when transitioning to off (even when specified)
      */
@@ -443,7 +443,7 @@ export namespace Tz {
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
-        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
+        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<ConvertSetResult>;
     }
 }
 
@@ -471,7 +471,7 @@ export namespace Tuya {
             publish?: Publish,
             // biome-ignore lint/suspicious/noExplicitAny: value is validated on per-case basis
             msg?: Fz.Message<any>,
-        ) => number | string | boolean | KeyValue | KeyValue[] | null;
+        ) => number | string | string[] | boolean | KeyValue | KeyValue[] | null;
     }
     export interface MetaTuyaDataPointsMeta {
         skip?: (meta: Tz.Meta) => boolean;

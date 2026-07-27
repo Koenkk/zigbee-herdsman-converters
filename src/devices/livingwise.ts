@@ -1,4 +1,5 @@
 import * as fz from "../converters/fromZigbee";
+import * as orvibo from "../devices/orvibo";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -50,7 +51,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LVS-SC7",
         vendor: "LivingWise",
         description: "Scene controller ",
-        fromZigbee: [fz.orvibo_raw_2],
+        fromZigbee: [orvibo.fzLocal.orvibo_raw_2],
         exposes: [
             e.action([
                 "button_1_click",

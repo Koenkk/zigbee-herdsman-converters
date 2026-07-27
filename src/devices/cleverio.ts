@@ -14,8 +14,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SA100",
         vendor: "Cleverio",
         description: "Smart siren",
-        fromZigbee: [fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
-        toZigbee: [tz.warning, tz.ts0216_volume],
+        fromZigbee: [tuya.fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
+        toZigbee: [tz.warning, tuya.tz.ts0216_volume],
         exposes: [
             e.warning(),
             e.binary("alarm", ea.STATE, true, false),

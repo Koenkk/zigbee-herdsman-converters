@@ -1,5 +1,5 @@
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
+import * as ptvo from "../devices/custom_devices_diy";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
@@ -372,10 +372,15 @@ export const definitions: DefinitionWithExtend[] = [
             fzLocal.zigusb_on_off_invert,
             fzLocal.zigusb_analog_input,
             fz.temperature,
-            fz.ptvo_multistate_action,
+            ptvo.fzLocal.ptvo_multistate_action,
             fzLocal.zigusb_button_config,
         ],
-        toZigbee: [tzLocal.zigusb_restart_interval, tzLocal.zigusb_on_off_invert, tz.ptvo_switch_analog_input, tzLocal.zigusb_button_config],
+        toZigbee: [
+            tzLocal.zigusb_restart_interval,
+            tzLocal.zigusb_on_off_invert,
+            ptvo.tzLocal.ptvo_switch_analog_input,
+            tzLocal.zigusb_button_config,
+        ],
         exposes: [
             e.switch().withEndpoint("l1"),
             e
@@ -416,7 +421,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZigDC",
         vendor: "xyzroe",
         description: "ZigDC",
-        fromZigbee: [fz.temperature, fz.humidity, fz.ptvo_multistate_action, fzLocal.ZigDC_ina3221, fzLocal.ZigDC_uptime, fzLocal.ZigDC_input_config],
+        fromZigbee: [
+            fz.temperature,
+            fz.humidity,
+            ptvo.fzLocal.ptvo_multistate_action,
+            fzLocal.ZigDC_ina3221,
+            fzLocal.ZigDC_uptime,
+            fzLocal.ZigDC_input_config,
+        ],
         toZigbee: [tzLocal.ZigDC_interval, tzLocal.ZigDC_input_config],
         exposes: [
             e.current().withAccess(ea.STATE).withEndpoint("ch1"),

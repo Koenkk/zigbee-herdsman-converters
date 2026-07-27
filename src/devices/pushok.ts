@@ -254,6 +254,48 @@ const pushokExtend = {
             isModernExtend: true,
         };
     },
+    mp3Play: (): ModernExtend => {
+        const volumeLevels = ["3", "6", "9", "12", "15", "18", "21", "24", "27", "30"];
+        const defaultVolumeIndex = 7;
+        const exposes = [
+            presets
+                .numeric("track", access.SET)
+                .withValueMin(1)
+                .withValueMax(255)
+                .withValueStep(1)
+                .withDescription("Track number to play; writing it starts playback at the current volume"),
+            presets.enum("volume", access.SET, volumeLevels).withDescription("Playback volume"),
+        ];
+        const fromZigbee: Fz.Converter<"genAnalogOutput", undefined, ["attributeReport", "readResponse"]>[] = [];
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["track", "volume"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "volume") {
+                        return {state: {volume: value}};
+                    }
+                    let track = Math.round(Number(value));
+                    if (track < 1) track = 1;
+                    if (track > 255) track = 255;
+                    let volumeIndex = volumeLevels.indexOf(String(meta.state?.volume));
+                    if (volumeIndex < 0) volumeIndex = defaultVolumeIndex;
+                    await entity.command(
+                        "genOnOff",
+                        "onWithTimedOff",
+                        {ctrlbits: 0, ontime: track, offwaittime: volumeIndex},
+                        {disableDefaultResponse: true},
+                    );
+                    return {state: {track}};
+                },
+            },
+        ];
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -548,6 +590,7 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {},
                 description: "Battery state",
                 access: "STATE_GET",
+                entityCategory: "diagnostic",
                 reporting: null,
             }),
             m.iasZoneAlarm({
@@ -712,6 +755,82 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "PushOk Hardware",
         description: "Gas pulse meter",
         extend: [m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}), pushokExtend.pulseCounter()],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["POK019"],
+        model: "POK019",
+        vendor: "PushOk Hardware",
+        description: "Battery powered window handle",
+        extend: [
+            m.windowCovering({controls: ["lift"], coverInverted: false, stateSource: "lift", configureReporting: false, coverMode: false}),
+            m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+            m.iasZoneAlarm({
+                zoneType: "contact",
+                zoneAttributes: ["alarm_1"],
+                alarmTimeout: false,
+                description: "Indicates whether the window is closed (= true) or opened (= false)",
+            }),
+            m.enumLookup({
+                name: "window_opening_mode",
+                lookup: {
+                    two_position: 0,
+                    three_position: 1,
+                    four_position: 2,
+                    reversed_two_position: 3,
+                    reversed_three_position: 4,
+                    reversed_four_position: 5,
+                },
+                cluster: "genMultistateOutput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Window opening mode depending on supported handle positions and installation orientation",
+                access: "ALL",
+                reporting: null,
+            }),
+            m.enumLookup({
+                name: "status",
+                lookup: {off: 0, on: 1, moving: 2, stuck: 3, middle: 4, micro_ventilation: 5, tilted: 6},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Actual window status",
+                access: "STATE_GET",
+                reporting: null,
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["POK018"],
+        model: "POK018",
+        vendor: "PushOk Hardware",
+        description: "Battery powered loudspeaker",
+        extend: [
+            m.enumLookup({
+                name: "status",
+                lookup: {unknown: 0, idle: 1, playing: 2, no_tracks: 3, no_sd_card: 4, no_module: 5},
+                cluster: "genMultistateInput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description: "Player status: idle/playing, or a fault. Refreshed only on a play attempt, so it reflects the last check.",
+                access: "STATE_GET",
+                reporting: null,
+            }),
+            m.numeric({
+                name: "num_tracks",
+                cluster: "genMultistateValue",
+                attribute: "presentValue",
+                description: "Total tracks on the SD card",
+                access: "STATE_GET",
+                valueMin: 0,
+                valueMax: 255,
+                valueStep: 1,
+                reporting: null,
+            }),
+            pushokExtend.mp3Play(),
+            m.battery({percentage: true, voltage: true, lowStatus: false, percentageReporting: false}),
+        ],
         ota: true,
     },
 ];

@@ -45,6 +45,16 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ewelink_countdown: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // genOnOff.onTime holds the remaining on-time in 1/10 s while a timed-off countdown is running.
+            if (msg.data.onTime !== undefined) {
+                return {countdown: Math.round(msg.data.onTime / 10)};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -59,9 +69,41 @@ const tzLocal = {
             await entity.read("genOnOff", ["onOff"]);
         },
     } satisfies Tz.Converter,
+    ewelink_countdown: {
+        key: ["countdown"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const seconds = Math.round(value);
+            if (seconds <= 0) {
+                await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: "OFF", countdown: 0}};
+            }
+            // genOnOff.onWithTimedOff expects ontime/offwaittime in 1/10 s; onTime is a uint16 capped at 0xFFFE.
+            const ontime = Math.min(seconds * 10, 0xfffe);
+            await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime, offwaittime: 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {state: "ON", countdown: Math.floor(ontime / 10)}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onTime"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 const ewelinkExtend = {
+    countdown: (): ModernExtend => {
+        const exposes = [
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(6500)
+                .withValueStep(1)
+                .withDescription("Turn the device on and automatically turn it off again after this many seconds (0 disables the timer)"),
+        ];
+        const fromZigbee = [fzLocal.ewelink_countdown];
+        const toZigbee = [tzLocal.ewelink_countdown];
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
     addCustomClusterSiren: (): ModernExtend => {
         return m.deviceAddCustomCluster("customEwelinkSiren", {
             name: "customEwelinkSiren",
@@ -95,7 +137,7 @@ const ewelinkExtend = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku"]),
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku", "_TZ3000_piuensvr", "_TZ3000_mmzmkkd4"]),
         zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
@@ -103,14 +145,17 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku"])],
+        whiteLabel: [
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku", "HOBEIAN"]),
+            tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
+        ],
     },
     {
         zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
         model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
-        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse(), ewelinkExtend.countdown()],
         whiteLabel: [
             {
                 vendor: "Mumubiz",
@@ -216,6 +261,13 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.WS01_rain],
         toZigbee: [],
         exposes: [e.rain()],
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-02(7014)"],
+        model: "CK-TLSR8656-SS5-02(7014)",
+        vendor: "eWeLink",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
         zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
@@ -451,5 +503,38 @@ export const definitions: DefinitionWithExtend[] = [
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,
+    },
+    {
+        zigbeeModel: ["CK-BL702-MWS-01(7016)"],
+        model: "MG3-5RZ",
+        vendor: "eWeLink",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
     },
 ];

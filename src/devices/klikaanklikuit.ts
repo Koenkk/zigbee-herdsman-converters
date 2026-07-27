@@ -16,4 +16,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee switch module",
         extend: [m.onOff()],
     },
+    {
+        zigbeeModel: ["Socket Dimmer"],
+        model: "ZCC-250",
+        vendor: "KlikAanKlikUit",
+        description: "Zigbee socket dimmer",
+        extend: [m.light()],
+    },
 ];

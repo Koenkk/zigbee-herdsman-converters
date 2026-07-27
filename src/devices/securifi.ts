@@ -2,9 +2,36 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
+
+const fzLocal = {
+    almond_click: {
+        cluster: "ssIasAce",
+        type: ["commandArm"],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data.armmode;
+            const lookup: KeyValueAny = {3: "single", 0: "double", 2: "long"};
+
+            // Workaround to ignore duplicated (false) presses that
+            // are 100ms apart, since the button often generates
+            // multiple duplicated messages for a single click event.
+            if (!globalStore.hasValue(msg.endpoint, "since")) {
+                globalStore.putValue(msg.endpoint, "since", 0);
+            }
+
+            const now = Date.now();
+            const since = globalStore.getValue(msg.endpoint, "since");
+
+            if (now - since > 100 && lookup[action]) {
+                globalStore.putValue(msg.endpoint, "since", now);
+                return {action: lookup[action]};
+            }
+        },
+    } satisfies Fz.Converter<"ssIasAce", undefined, ["commandArm"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -38,7 +65,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "B01M7Y8BP9",
         vendor: "Securifi",
         description: "Almond Click multi-function button",
-        fromZigbee: [fz.almond_click],
+        fromZigbee: [fzLocal.almond_click],
         exposes: [e.action(["single", "double", "long"])],
         toZigbee: [],
     },

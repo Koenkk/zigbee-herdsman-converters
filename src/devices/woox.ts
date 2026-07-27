@@ -71,8 +71,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "R7051",
         vendor: "Woox",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
-        toZigbee: [tz.warning, tz.ts0216_volume, tz.ts0216_duration],
+        fromZigbee: [fz.battery, tuya.fz.ts0216_siren, fz.ias_alarm_only_alarm_1, fz.power_source],
+        toZigbee: [tz.warning, tuya.tz.ts0216_volume, tuya.tz.ts0216_duration],
         exposes: [
             e.battery(),
             e.battery_voltage(),

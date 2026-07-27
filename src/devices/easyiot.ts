@@ -826,7 +826,7 @@ const tzLocal = {
      * TunnelID must be 0x0001 per the data-point tunneling protocol.
      */
     easyiot_rs485_set_config: {
-        key: ["rs485_config"],
+        key: ["rs485_config", "rs232_config"],
         convertSet: async (entity, key, value, meta) => {
             assertObject(value, "rs485_config must be an object");
             const payload = value as KeyValueAny;
@@ -1007,6 +1007,41 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .composite("rs485_config", "rs485_config", ea.SET)
                 .withDescription("RS485 serial port configuration")
+                .withFeature(
+                    e
+                        .enum("baud_rate", ea.SET, [
+                            "1200",
+                            "2400",
+                            "4800",
+                            "9600",
+                            "19200",
+                            "38400",
+                            "57600",
+                            "115200",
+                            "230400",
+                            "460800",
+                            "921600",
+                        ])
+                        .withDescription("Baud rate (bps)"),
+                )
+                .withFeature(e.enum("parity", ea.SET, ["none", "even", "odd"]).withDescription("Parity (none / even / odd)"))
+                .withFeature(e.enum("stop_bits", ea.SET, ["1", "1.5", "2"]).withDescription("Stop bits (1 / 1.5 / 2)")),
+        ],
+    },
+    {
+        fingerprint: [{modelID: "ZB-RS232", manufacturerName: "easyiot"}],
+        model: "ZB-RS232",
+        vendor: "easyiot",
+        description: "Zigbee to RS232 controller",
+        fromZigbee: [fzLocal.easyiot_ir_recv_command],
+        toZigbee: [tzLocal.easyiot_ir_send_command, tzLocal.easyiot_rs485_set_config],
+        ota: true,
+        exposes: [
+            e.text("last_received_command", ea.STATE).withDescription("Received data"),
+            e.text("send_command", ea.SET).withDescription("Send data"),
+            e
+                .composite("rs232_config", "rs232_config", ea.SET)
+                .withDescription("RS232 serial port configuration")
                 .withFeature(
                     e
                         .enum("baud_rate", ea.SET, [
@@ -1249,5 +1284,12 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
         },
+    },
+    {
+        fingerprint: [{modelID: "ZB-LTH01", manufacturerName: "easyiot"}],
+        model: "ZB-LTH01",
+        vendor: "easyiot",
+        description: "Zigbee light and temperature sensor",
+        extend: [m.temperature(), m.humidity(), m.illuminance(), m.battery()],
     },
 ];

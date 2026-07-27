@@ -3,10 +3,25 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    ias_keypad: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+                restore_reports: (zoneStatus & (1 << 5)) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -136,7 +151,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KP-23EL-ZBS-ACE",
         vendor: "Climax",
         description: "Remote Keypad",
-        fromZigbee: [fz.ias_keypad, fz.battery, fz.command_arm, fz.command_panic, fz.command_emergency],
+        fromZigbee: [fzLocal.ias_keypad, fz.battery, fz.command_arm, fz.command_panic, fz.command_emergency],
         toZigbee: [],
         exposes: [e.battery_low(), e.tamper(), e.action(["emergency", "panic", "disarm", "arm_all_zones", "arm_day_zones"])],
     },

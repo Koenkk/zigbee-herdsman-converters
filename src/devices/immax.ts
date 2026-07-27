@@ -120,6 +120,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "NEO smart internal double socket",
         vendor: "Immax",
         extend: [
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 electricalMeasurements: true,
                 powerOutageMemory: true,
@@ -318,7 +319,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07502L",
         vendor: "Immax",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, legacy.fz.ZB003X_attr, legacy.fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         exposes: [
             e.occupancy(),

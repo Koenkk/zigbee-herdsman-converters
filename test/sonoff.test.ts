@@ -548,3 +548,360 @@ describe("Sonoff TRVZB", () => {
         });
     });
 });
+
+describe("Sonoff SWV", () => {
+    it("continues configuring when optional water shortage auto-close attribute is unsupported", async () => {
+        const device = mockDevice({
+            modelID: "SWV",
+            endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genOnOff", "msFlowMeasurement"], inputClusterIDs: [0xfc11]}],
+        });
+        const coordinator = mockDevice({modelID: "Coordinator", endpoints: [{ID: 1}]});
+        const endpoint = device.getEndpoint(1);
+        const readFn = endpoint.read as Mock;
+        const swv = await findByDevice(device);
+
+        readFn.mockImplementation((_cluster: string, attributes: number[]) => {
+            if (attributes.includes(0x5011)) {
+                return Promise.reject(new Error("Status 'UNSUPPORTED_ATTRIBUTE'"));
+            }
+
+            return Promise.resolve({});
+        });
+
+        await expect(swv.configure(device, coordinator.getEndpoint(1), swv)).resolves.toBeUndefined();
+
+        expect(readFn).toHaveBeenCalledWith("customClusterEwelink", [0x500c]);
+        expect(readFn).toHaveBeenCalledWith("customClusterEwelink", [0x5011]);
+    });
+});
+
+describe("Sonoff SNZB-02DR2", () => {
+    let device: Definition;
+    let endpoint: ZHModels.Endpoint;
+    let writeFn: Mock;
+    let meta: Tz.Meta;
+
+    beforeEach(async () => {
+        device = await findByDevice(mockDevice({modelID: "SNZB-02DR2", endpoints: [{ID: 1}]}));
+
+        writeFn = vi.fn();
+        endpoint = {write: writeFn} as unknown as ZHModels.Endpoint;
+        meta = {
+            state: {},
+            device: null,
+            message: null,
+            mapped: null,
+            options: null,
+            publish: null,
+            endpoint_name: null,
+        };
+    });
+
+    describe("toZigbee", () => {
+        it("enables the external display via temperature_sensor_select", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("temperature_sensor_select"));
+
+            await tzConverter.convertSet(endpoint, "temperature_sensor_select", "external", meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {temperatureSensorSelect: 1}, undefined);
+        });
+
+        it("disables the external display via temperature_sensor_select", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("temperature_sensor_select"));
+
+            await tzConverter.convertSet(endpoint, "temperature_sensor_select", "internal", meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {temperatureSensorSelect: 0}, undefined);
+        });
+
+        it("writes external temperature scaled x100 (signed)", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("external_temperature"));
+
+            await tzConverter.convertSet(endpoint, "external_temperature", -10.07, meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {externalTemperature: -1007}, undefined);
+        });
+
+        it("writes external humidity scaled x100", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("external_humidity"));
+
+            await tzConverter.convertSet(endpoint, "external_humidity", 88, meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {externalHumidity: 8800}, undefined);
+        });
+    });
+});
+
+describe("Sonoff SWV-ZFE", () => {
+    let device: Definition;
+    let endpoint: ZHModels.Endpoint;
+    let writeFn: Mock;
+    let commandFn: Mock;
+    let meta: Tz.Meta;
+
+    beforeEach(async () => {
+        device = await findByDevice(mockDevice({modelID: "SWV-ZFE", endpoints: [{ID: 1}]}));
+
+        writeFn = vi.fn();
+        commandFn = vi.fn();
+        endpoint = {write: writeFn, command: commandFn} as unknown as ZHModels.Endpoint;
+        meta = {
+            state: {
+                manual_default_settings: {
+                    irrigation_duration: 15,
+                    irrigation_mode: "capacity",
+                    irrigation_amount_unit: "liter",
+                    irrigation_amount: 42,
+                    fail_safe: 60,
+                },
+                seasonal_watering_adjustment: {
+                    january: 1.1,
+                    february: 1.2,
+                    march: 1.3,
+                    april: 1.4,
+                    may: 1.5,
+                    june: 1.6,
+                    july: 1.7,
+                    august: 1.8,
+                    september: 1.9,
+                    october: 2,
+                    november: 0.9,
+                    december: 0.8,
+                },
+                valve_alarm_settings: {
+                    enable_alarm_water_shortage: true,
+                    enable_alarm_water_leak: false,
+                    enable_water_shortage_auto_close: true,
+                    alarm_water_shortage_duration: 5,
+                    alarm_water_leak_duration: 1,
+                },
+                irrigation_plan_report: {
+                    plan_index: 2,
+                    enable_state: true,
+                    loop_type_mode: "weekdays",
+                    loop_type_interval_days: 1,
+                    loop_type_week_days: {
+                        sunday: true,
+                        monday: false,
+                        tuesday: true,
+                        wednesday: false,
+                        thursday: true,
+                        friday: false,
+                        saturday: false,
+                    },
+                    enable_date: "2026-06-21",
+                    start_time: "06:30",
+                    irrigation_mode: "capacity",
+                    irrigation_total_duration: 20,
+                    irrigation_duration: 4,
+                    interval_duration: 3,
+                    irrigation_amount_unit: "liter",
+                    irrigation_amount: 50,
+                    fail_safe: 30,
+                    create_datetime: "2026-06-21T04:30:00Z",
+                },
+            },
+            device: null,
+            message: null,
+            mapped: null,
+            options: null,
+            publish: null,
+            endpoint_name: null,
+        };
+    });
+
+    describe("toZigbee", () => {
+        it("sends manual default settings to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("manual_default_settings"));
+
+            const value = {
+                irrigation_duration: 30,
+                irrigation_mode: "capacity",
+                irrigation_amount_unit: "liter",
+                irrigation_amount: 42,
+                fail_safe: 60,
+            };
+            const result = await tzConverter.convertSet(endpoint, "manual_default_settings", value, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20509: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([1, 0, 30, 0, 30, 0, 10, 1, 0, 42, 0, 60]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    manual_default_settings: value,
+                },
+            });
+        });
+
+        it("sends seasonal watering adjustment to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("seasonal_watering_adjustment"));
+
+            const value = {
+                january: 1.1,
+                february: 1.2,
+                march: 1.3,
+                april: 1.4,
+                may: 1.5,
+                june: 0.7,
+                july: 1.7,
+                august: 1.8,
+                september: 1.9,
+                october: 2,
+                november: 0.9,
+                december: 0.8,
+            };
+            const result = await tzConverter.convertSet(endpoint, "seasonal_watering_adjustment", value, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20510: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([11, 12, 13, 14, 15, 7, 17, 18, 19, 20, 9, 8]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    seasonal_watering_adjustment: value,
+                },
+            });
+        });
+
+        it("sends valve alarm settings to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("valve_alarm_settings"));
+
+            const value = {
+                enable_alarm_water_shortage: true,
+                enable_alarm_water_leak: false,
+                enable_water_shortage_auto_close: true,
+                alarm_water_shortage_duration: 5,
+                alarm_water_leak_duration: 3,
+            };
+            const result = await tzConverter.convertSet(endpoint, "valve_alarm_settings", value, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20512: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([0b01001, 5, 3, 0]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    valve_alarm_settings: value,
+                },
+            });
+        });
+
+        it("sends irrigation plan settings to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_settings"));
+            const year2000InUtc = 946684800;
+            const enableDate = Date.UTC(2026, 5, 21, 0, 0, 0) / 1000 - year2000InUtc;
+            const createDatetime = Date.parse("2026-06-21T04:30:00Z") / 1000;
+            const expectedPayload = [
+                2,
+                1,
+                3,
+                0b00010101,
+                (enableDate >> 24) & 0xff,
+                (enableDate >> 16) & 0xff,
+                (enableDate >> 8) & 0xff,
+                enableDate & 0xff,
+                1,
+                0,
+                0,
+                91,
+                104,
+                0,
+                20,
+                0,
+                9,
+                0,
+                3,
+                1,
+                0,
+                50,
+                0,
+                30,
+                (createDatetime >> 24) & 0xff,
+                (createDatetime >> 16) & 0xff,
+                (createDatetime >> 8) & 0xff,
+                createDatetime & 0xff,
+            ];
+
+            const value = {
+                plan_index: 2,
+                enable_state: true,
+                loop_type_mode: "weekdays",
+                loop_type_interval_days: 1,
+                loop_type_week_days: {
+                    sunday: true,
+                    monday: false,
+                    tuesday: true,
+                    wednesday: false,
+                    thursday: true,
+                    friday: false,
+                    saturday: false,
+                },
+                enable_date: "2026-06-21",
+                start_time: "06:30",
+                irrigation_mode: "capacity",
+                irrigation_total_duration: 20,
+                irrigation_duration: 9,
+                interval_duration: 3,
+                irrigation_amount_unit: "liter",
+                irrigation_amount: 50,
+                fail_safe: 30,
+                create_datetime: "2026-06-21T04:30:00Z",
+            };
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_settings", value, meta);
+
+            expect(commandFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                "irrigationPlanSettings",
+                {data: expectedPayload},
+                {disableDefaultResponse: false},
+            );
+            expect(result).toEqual({
+                state: {
+                    irrigation_plan_settings: value,
+                },
+            });
+        });
+
+        it("removes an irrigation plan through the composite remove command", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_remove"));
+
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_remove", {plan_index: 3}, meta);
+
+            expect(commandFn).toHaveBeenCalledWith("customClusterEwelink", "irrigationPlanRemove", {data: [3]}, {disableDefaultResponse: true});
+            expect(result).toEqual({
+                state: {
+                    irrigation_plan_remove: {plan_index: 3},
+                    irrigation_plan_settings_3: null,
+                },
+            });
+        });
+    });
+});

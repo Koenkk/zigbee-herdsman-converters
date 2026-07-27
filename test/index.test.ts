@@ -2,6 +2,7 @@ import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
 import {describe, expect, it, vi} from "vitest";
+import baseDefinitions from "../src/devices/index";
 import {addExternalDefinition, findByDevice, postProcessConvertedFromZigbeeMessage, removeExternalDefinitions} from "../src/index";
 import {access, Composite, Enum, List, Numeric, presets} from "../src/lib/exposes";
 import {mockDevice} from "./utils";
@@ -584,5 +585,33 @@ describe("ZHC", () => {
                 ],
             },
         });
+    });
+
+    it("checks if whiteLabelOf references point to existing models", () => {
+        const models = new Set<string>();
+
+        for (const definition of baseDefinitions) {
+            models.add(definition.model);
+            if (definition.whiteLabel) {
+                for (const whiteLabel of definition.whiteLabel) {
+                    if ("fingerprint" in whiteLabel && whiteLabel.fingerprint) {
+                        models.add(whiteLabel.model);
+                    }
+                }
+            }
+        }
+
+        for (const definition of baseDefinitions) {
+            if (!definition.whiteLabel) continue;
+
+            for (const whiteLabel of definition.whiteLabel) {
+                if ("whiteLabelOf" in whiteLabel && whiteLabel.whiteLabelOf) {
+                    assert(
+                        models.has(whiteLabel.whiteLabelOf),
+                        `whiteLabelOf '${whiteLabel.whiteLabelOf}' (for ${whiteLabel.vendor ?? definition.vendor} ${whiteLabel.model}) is not a valid model`,
+                    );
+                }
+            }
+        }
     });
 });

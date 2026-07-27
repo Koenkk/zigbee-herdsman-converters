@@ -14,14 +14,17 @@ const ea = exposes.access;
 interface StelproHvacThermostat {
     attributes: {
         stelproOutdoorTemp: number;
+        power: number;
+        energy: number;
         stelproSystemMode: number;
+        peakDemandIcon: number;
     };
     commands: never;
     commandResponses: never;
 }
 
 export const tzLocal = {
-    stelpro_thermostat_outdoor_temperature: {
+    thermostat_outdoor_temperature: {
         key: ["outdoor_temperature_display"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
@@ -31,6 +34,18 @@ export const tzLocal = {
             await entity.write<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", {stelproOutdoorTemp: value * 100});
         },
     } satisfies Tz.Converter,
+    peak_demand_event_icon: {
+        key: ["peak_demand_icon"],
+        convertSet: async (entity, key, value, meta) => {
+            const hours = Number(value);
+            const seconds = hours * 3600;
+            if (seconds < 0 || seconds > 65535) {
+                throw new Error("Peak demand duration must be between 0 and 18 hours");
+            }
+            await entity.write<"hvacThermostat", StelproHvacThermostat>("hvacThermostat", {peakDemandIcon: seconds});
+            return {state: {[key]: hours}};
+        },
+    } satisfies Tz.Converter,
 };
 
 export const fzLocal = {
@@ -38,20 +53,20 @@ export const fzLocal = {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data["16392"] !== undefined) {
-                return {power: msg.data["16392"]};
+            if (msg.data.power !== undefined) {
+                return {power: msg.data.power};
             }
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", StelproHvacThermostat, ["attributeReport", "readResponse"]>,
     energy: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data["16393"] !== undefined) {
-                return {energy: Number.parseFloat(msg.data["16393"] as string) / 1000};
+            if (msg.data.energy !== undefined) {
+                return {energy: msg.data.energy / 1000};
             }
         },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"hvacThermostat", StelproHvacThermostat, ["attributeReport", "readResponse"]>,
     stelpro_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -76,7 +91,10 @@ export const stelproExtend = {
             ID: Zcl.Clusters.hvacThermostat.ID,
             attributes: {
                 stelproOutdoorTemp: {name: "stelproOutdoorTemp", ID: 0x4001, type: Zcl.DataType.INT16, write: true, min: -32768, max: 32767},
+                power: {name: "power", ID: 0x4008, type: Zcl.DataType.UINT16},
+                energy: {name: "energy", ID: 0x4009, type: Zcl.DataType.UINT32},
                 stelproSystemMode: {name: "stelproSystemMode", ID: 0x401c, type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                peakDemandIcon: {name: "peakDemandIcon", ID: 0x4105, type: Zcl.DataType.UINT16, write: true},
             },
             commands: {},
             commandsResponse: {},
@@ -99,8 +117,8 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tz.stelpro_peak_demand_event_icon,
-            tzLocal.stelpro_thermostat_outdoor_temperature,
+            tzLocal.peak_demand_event_icon,
+            tzLocal.thermostat_outdoor_temperature,
         ],
         exposes: [
             e.keypad_lockout(),
@@ -155,7 +173,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tzLocal.stelpro_thermostat_outdoor_temperature,
+            tzLocal.thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -205,7 +223,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tzLocal.stelpro_thermostat_outdoor_temperature,
+            tzLocal.thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -255,7 +273,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tzLocal.stelpro_thermostat_outdoor_temperature,
+            tzLocal.thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),
@@ -361,7 +379,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_keypad_lockout,
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
-            tzLocal.stelpro_thermostat_outdoor_temperature,
+            tzLocal.thermostat_outdoor_temperature,
         ],
         exposes: [
             e.local_temperature(),

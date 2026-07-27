@@ -2,13 +2,14 @@ import {gt as semverGt, valid as semverValid} from "semver";
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as eurotronic from "../devices/eurotronic";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
-import {isDummyDevice} from "../lib/utils";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend} from "../lib/types";
+import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -76,15 +77,6 @@ const nodonModernExtend = {
                 "Manuel calibration: Set rotation run time down of the roller shutter. " +
                 "Do not change it if your roller shutter is already calibrated.",
             zigbeeCommandOptions: {manufacturerCode: 0x128b},
-            ...args,
-        }),
-    dryContact: (args?: Partial<m.EnumLookupArgs<"genBinaryInput">>) =>
-        m.enumLookup({
-            name: "dry_contact",
-            lookup: {contact_closed: 0x00, contact_open: 0x01},
-            cluster: "genBinaryInput",
-            attribute: {ID: 0x055, type: Zcl.DataType.ENUM8},
-            description: "State of the contact, closed or open.",
             ...args,
         }),
     impulseMode: (args?: Partial<m.NumericArgs<"genOnOff">>) => {
@@ -234,6 +226,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Electrical heating actuator",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.temperature(), m.humidity(), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["IRB-4-1-00"],
@@ -282,7 +275,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDC-4-1-00",
         vendor: "NodOn",
         description: "Dry contact sensor",
-        extend: [m.battery({voltageReporting: true}), nodonModernExtend.dryContact()],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.binary({
+                name: "dry_contact",
+                cluster: "genBinaryInput",
+                attribute: "presentValue",
+                reporting: {min: 0, max: constants.repInterval.HOUR, change: 1},
+                valueOn: ["contact_closed", 1],
+                valueOff: ["contact_open", 0],
+                description: "State of the dry contact, closed or open.",
+                access: "STATE_GET",
+            }),
+        ],
         ota: true,
     },
     {
@@ -290,10 +295,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SDO-4-1-00",
         vendor: "NodOn",
         description: "Door & window opening sensor",
-        fromZigbee: [fz.battery, fz.ias_contact_alarm_1],
-        toZigbee: [],
-        exposes: [e.contact()],
-        extend: [m.battery({voltageReporting: true})],
+        extend: [
+            m.battery({voltageReporting: true}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"], zoneStatusReporting: {max: constants.repInterval.HOUR}}),
+        ],
         ota: true,
     },
     {
@@ -302,12 +307,178 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Energy monitoring sensor",
         extend: [
+            m.identify(),
             m.electricityMeter({
-                acFrequency: true,
+                // A forced object's `change` is not auto-scaled by the multiplier/divisor (unlike
+                // the default change) — values below are already raw ZCL units. Factors measured
+                // on physical devices: acPowerMultiplier/Divisor=1/1, acCurrentMultiplier/Divisor=1/100,
+                // acVoltageMultiplier/Divisor=1/100, acFrequencyMultiplier/Divisor=1/100.
+                voltage: {min: 30, max: 3600, change: 2300}, // 23 V
+                current: {min: 10, max: 3600, change: 100}, // 1 A
+                power: {min: 10, max: 3600, change: 250}, // 250 W
+                acFrequency: {min: 30, max: 3600, change: 500}, // 5 Hz
+                producedEnergy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                energy: {min: 300, max: 3600, change: 10}, // 0.1 kWh
+                apparentPower: {min: 10, max: 3600, change: 250}, // 250 VA, shares activePower's factor
                 powerFactor: true,
-                producedEnergy: true,
             }),
         ],
+        toZigbee: [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, _key, _value, _meta) => {
+                    // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
+                    // Network membership, bindings and configureReporting are not affected (ZCL spec).
+                    await entity.command("genBasic", "resetFactDefault", {});
+                    return {state: {}};
+                },
+            },
+        ],
+        exposes: [e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config")],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["SEM-4-3-20"],
+        model: "SEM-4-3-20",
+        vendor: "NodOn",
+        description: "3CT Energy Meter",
+        endpoint: (device) => ({default: 1}),
+        extend: (() => {
+            const meter = m.electricityMeter({
+                threePhase: true,
+                voltage: {min: 10, max: 3600, change: 100},
+                current: {min: 10, max: 3600, change: 100},
+                power: {min: 10, max: 3600, change: 250},
+                acFrequency: {min: 60, max: 3600, change: 10},
+                producedEnergy: {min: 300, max: 3600, change: 100},
+                energy: {min: 300, max: 3600, change: 100},
+            });
+            // electricityMeter()'s base voltage/current/power/energy exposes have no per-phase
+            // suffix for Phase A (only Phase B/C get '_phase_b'/'_phase_c'); this device measures
+            // 3 phases so all labels are made explicit rather than leaving Phase A implicit.
+            const relabel = (name: string, label: string) => {
+                const found = meter.exposes?.find((exp) => typeof exp !== "function" && exp.name === name);
+                if (found && typeof found !== "function") found.withLabel(label);
+            };
+            relabel("voltage", "Voltage - Phase A");
+            relabel("current", "Current - Phase A");
+            relabel("power", "Active power - Phase A");
+            relabel("voltage_phase_b", "Voltage - Phase B");
+            relabel("current_phase_b", "Current - Phase B");
+            relabel("power_phase_b", "Active power - Phase B");
+            relabel("voltage_phase_c", "Voltage - Phase C");
+            relabel("current_phase_c", "Current - Phase C");
+            relabel("power_phase_c", "Active power - Phase C");
+            relabel("energy", "Total consumed energy");
+            relabel("produced_energy", "Total produced energy");
+            return [m.identify(), meter];
+        })(),
+        toZigbee: [
+            {
+                key: ["energy_reset"],
+                convertSet: async (entity, _key, _value, _meta) => {
+                    // genBasic/resetFactDefault resets all cluster attributes to factory defaults.
+                    // Network membership, bindings and configureReporting are not affected (ZCL spec).
+                    await entity.command("genBasic", "resetFactDefault", {});
+                    return {state: {}};
+                },
+            },
+        ],
+        exposes: [
+            e.enum("energy_reset", ea.SET, ["reset"]).withDescription("Reset all energy counters to 0").withCategory("config"),
+
+            e.power_factor().withAccess(ea.STATE).withLabel("Power factor - Phase A"),
+            e.power_factor_phase_b().withAccess(ea.STATE).withLabel("Power factor - Phase B"),
+            e.power_factor_phase_c().withAccess(ea.STATE).withLabel("Power factor - Phase C"),
+            e.power_reactive().withAccess(ea.STATE).withLabel("Reactive power - Phase A"),
+            e.power_reactive_phase_b().withAccess(ea.STATE).withLabel("Reactive power - Phase B"),
+            e.power_reactive_phase_c().withAccess(ea.STATE).withLabel("Reactive power - Phase C"),
+            e.power_apparent().withAccess(ea.STATE).withLabel("Apparent power - Phase A"),
+            e.power_apparent_phase_b().withAccess(ea.STATE).withLabel("Apparent power - Phase B"),
+            e.power_apparent_phase_c().withAccess(ea.STATE).withLabel("Apparent power - Phase C"),
+
+            e.numeric("total_active_power", ea.STATE).withUnit("W").withDescription("Total active power across all 3 phases"),
+            e.numeric("total_reactive_power", ea.STATE).withUnit("VAR").withDescription("Total reactive power across all 3 phases"),
+            e.numeric("total_apparent_power", ea.STATE).withUnit("VA").withDescription("Total apparent power across all 3 phases"),
+
+            // Phase A/B/C energy: NodOn repurposes seMetering's tariff-tier attributes
+            // (currentTier1/2/3SummDelivered/Received) to carry per-phase energy on this
+            // 3-phase device — not tariffs. `tariffs` is never passed to m.electricityMeter()
+            // above, so none of these are exposed automatically; all 3 phases must be added
+            // manually. Property name stays energy_tier_N/produced_energy_tier_N (fz.metering
+            // hardcodes it), only the frontend label is overridden.
+            e.numeric("energy_tier_1", ea.STATE).withLabel("Consumed energy - Phase A").withUnit("kWh").withDescription("Energy consumed by Phase A"),
+            e
+                .numeric("produced_energy_tier_1", ea.STATE)
+                .withLabel("Produced energy - Phase A")
+                .withUnit("kWh")
+                .withDescription("Energy exported by Phase A"),
+            e.numeric("energy_tier_2", ea.STATE).withLabel("Consumed energy - Phase B").withUnit("kWh").withDescription("Energy consumed by Phase B"),
+            e
+                .numeric("produced_energy_tier_2", ea.STATE)
+                .withLabel("Produced energy - Phase B")
+                .withUnit("kWh")
+                .withDescription("Energy exported by Phase B"),
+            e.numeric("energy_tier_3", ea.STATE).withLabel("Consumed energy - Phase C").withUnit("kWh").withDescription("Energy consumed by Phase C"),
+            e
+                .numeric("produced_energy_tier_3", ea.STATE)
+                .withLabel("Produced energy - Phase C")
+                .withUnit("kWh")
+                .withDescription("Energy exported by Phase C"),
+        ],
+        fromZigbee: [
+            // totalActivePower (0x0304), totalReactivePower (0x0305), totalApparentPower (0x0306)
+            // are not handled by fz.electrical_measurement
+            {
+                cluster: "haElectricalMeasurement",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, _publish, _options, meta) => {
+                    const payload: KeyValue = {};
+                    const getFactor = (key: string) => {
+                        const mult = msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", `${key}Multiplier`) as number;
+                        const div = msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", `${key}Divisor`) as number;
+                        return mult && div ? mult / div : 1;
+                    };
+                    if (msg.data.totalActivePower !== undefined) {
+                        payload[postfixWithEndpointName("total_active_power", msg, model, meta)] = msg.data.totalActivePower * getFactor("acPower");
+                    }
+                    if (msg.data.totalReactivePower !== undefined) {
+                        payload[postfixWithEndpointName("total_reactive_power", msg, model, meta)] =
+                            msg.data.totalReactivePower * getFactor("acPower");
+                    }
+                    if (msg.data.totalApparentPower !== undefined) {
+                        payload[postfixWithEndpointName("total_apparent_power", msg, model, meta)] =
+                            msg.data.totalApparentPower * getFactor("acPower");
+                    }
+                    return payload;
+                },
+            } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await m.setupAttributes(endpoint, coordinatorEndpoint, "haElectricalMeasurement", [
+                {attribute: "reactivePower", min: 10, max: 3600, change: 250},
+                {attribute: "reactivePowerPhB", min: 10, max: 3600, change: 250},
+                {attribute: "reactivePowerPhC", min: 10, max: 3600, change: 250},
+                {attribute: "apparentPower", min: 10, max: 3600, change: 250},
+                {attribute: "apparentPowerPhB", min: 10, max: 3600, change: 250},
+                {attribute: "apparentPowerPhC", min: 10, max: 3600, change: 250},
+                {attribute: "powerFactor", min: 60, max: 3600, change: 20},
+                {attribute: "powerFactorPhB", min: 60, max: 3600, change: 20},
+                {attribute: "powerFactorPhC", min: 60, max: 3600, change: 20},
+                {attribute: "totalActivePower", min: 10, max: 3600, change: 250},
+                {attribute: "totalReactivePower", min: 10, max: 3600, change: 250},
+                {attribute: "totalApparentPower", min: 10, max: 3600, change: 250},
+            ]);
+            await m.setupAttributes(endpoint, coordinatorEndpoint, "seMetering", [
+                {attribute: "currentTier1SummDelivered", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier1SummReceived", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier2SummDelivered", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier2SummReceived", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier3SummDelivered", min: 300, max: 3600, change: 100},
+                {attribute: "currentTier3SummReceived", min: 300, max: 3600, change: 100},
+            ]);
+        },
         ota: true,
     },
     {
@@ -345,7 +516,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
-        extend: [m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        endpoint: (device) => ({default: 1}),
+        extend: [m.identify(), m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("genOnOff", endpoint);
+        },
         ota: true,
     },
     {
@@ -361,12 +537,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
+        endpoint: (device) => ({default: 1}),
         extend: [
+            m.identify(),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchTypeOnOff(),
         ],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.bind("genOnOff", endpoint);
+        },
         ota: true,
     },
     {
@@ -375,11 +557,18 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "NodOn",
         description: "Lighting relay switch",
         extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.identify(),
+            m.deviceEndpoints({endpoints: {default: 1, l1: 1, l2: 2}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
         ],
+        configure: async (device) => {
+            const ep1 = device.getEndpoint(1);
+            const ep2 = device.getEndpoint(2);
+            await ep1.bind("genOnOff", ep1);
+            await ep2.bind("genOnOff", ep2);
+        },
         ota: true,
     },
     {
@@ -402,6 +591,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Pilot wire heating module",
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), ...nodonPilotWire(true)],
         ota: true,
+        endpoint: (device) => ({default: 1}),
     },
     {
         zigbeeModel: ["SIN-4-FP-21"],
@@ -438,9 +628,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_setpoint_raise_lower,
             tz.thermostat_control_sequence_of_operation,
             tz.thermostat_system_mode,
-            tz.eurotronic_error_status,
-            tz.eurotronic_child_lock,
-            tz.eurotronic_mirror_display,
+            eurotronic.tzLocal.eurotronic_error_status,
+            eurotronic.tzLocal.eurotronic_child_lock,
+            eurotronic.tzLocal.eurotronic_mirror_display,
         ],
         exposes: [
             e.child_lock(),

@@ -36,8 +36,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSD29/BSD59",
         vendor: "Woolley",
         description: "Zigbee 3.0 smart plug",
-        fromZigbee: [fz.on_off_skip_duplicate_transaction, fzLocal.BSD29],
-        toZigbee: [tz.on_off],
+        fromZigbee: [fz.on_off_skip_duplicate_transaction, fzLocal.BSD29, fz.power_on_behavior],
+        toZigbee: [tz.on_off, tz.power_on_behavior],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -45,7 +45,7 @@ export const definitions: DefinitionWithExtend[] = [
             device.powerSource = "Mains (single phase)";
             device.save();
         },
-        exposes: [e.power(), e.current(), e.voltage(), e.switch()],
+        exposes: [e.power(), e.current(), e.voltage(), e.switch(), e.power_on_behavior()],
         onEvent: (event) => {
             if (event.type === "start") {
                 event.data.device.customReadResponse = (frame) => {
