@@ -278,9 +278,6 @@ const SHELLY_PRESENCE_SETTING_GROUPS: readonly ShellyPresenceSettingGroup[] = [
 
 const NS = "zhc:shelly";
 
-const HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID = 0x0b04;
-const HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID = 0x0510;
-
 const checkOption = (device: Zh.Device | DummyDevice, options: KeyValue, key: string, defaultValue = false): boolean => {
     if (options?.[key] === "true") return true;
     if (options?.[key] === "false") return false;
@@ -741,19 +738,6 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
 // =============================================================================
 
 const shellyModernExtend = {
-    shellyPowerFactorInt16Fix(): ModernExtend {
-        // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
-        // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
-        return m.deviceAddCustomCluster("haElectricalMeasurement", {
-            name: "haElectricalMeasurement",
-            ID: HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID,
-            attributes: {
-                powerFactor: {name: "powerFactor", ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
-            },
-            commands: {},
-            commandsResponse: {},
-        });
-    },
     shellyCustomClusters(): ModernExtend[] {
         return [
             m.deviceAddCustomCluster("shellyRPCCluster", {
@@ -2221,7 +2205,6 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -2263,7 +2246,6 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -2284,7 +2266,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "EM Mini Gen4",
         extend: [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2303,7 +2284,6 @@ export const definitions: DefinitionWithExtend[] = [
                 acFrequency: true,
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2442,7 +2422,6 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({l1: 1, l2: 2, sw1: 3, sw2: 4}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMSwitchInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -2466,7 +2445,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter(),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2490,7 +2468,6 @@ export const definitions: DefinitionWithExtend[] = [
                 power: {change: 6},
                 energy: {change: 125000},
             }),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI", "PowerstripPowerOnBehavior"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -2651,7 +2628,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({configureReporting: true}),
             m.electricityMeter(),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2668,7 +2644,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
             m.commandsWindowCovering({endpointNames: ["4"]}),
             m.commandsLevelCtrl({endpointNames: ["4"]}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
