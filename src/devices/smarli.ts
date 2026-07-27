@@ -53,6 +53,9 @@ export const definitions: DefinitionWithExtend[] = [
             sunricher.extend.motorControl(),
             m.identify(),
         ],
+        meta: {
+            coverPositionTiltDisableReport: true,
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
