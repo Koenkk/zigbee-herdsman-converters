@@ -285,18 +285,8 @@ describe("converters/fromZigbee", () => {
             expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
         });
 
-        it("invert_cover flips the position but leaves state derived from the raw value", () => {
+        it("invert_cover flips both position and state together", () => {
             const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover: true});
-            expect(payload).toStrictEqual({position: 100, state: "CLOSE"});
-        });
-
-        it("invert_cover_state flips only the OPEN/CLOSE label, not the position", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover_state: true});
-            expect(payload).toStrictEqual({position: 0, state: "OPEN"});
-        });
-
-        it("invert_cover and invert_cover_state combine independently", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover: true, invert_cover_state: true});
             expect(payload).toStrictEqual({position: 100, state: "OPEN"});
         });
 
@@ -305,9 +295,9 @@ describe("converters/fromZigbee", () => {
             expect(payload).toStrictEqual({position: 100, state: "OPEN"});
         });
 
-        it("invert_cover_state on a coverInverted device flips state back", () => {
-            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {invert_cover_state: true});
-            expect(payload).toStrictEqual({position: 100, state: "CLOSE"});
+        it("invert_cover on a coverInverted device cancels back to the non-inverted combination", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {invert_cover: true});
+            expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
         });
 
         it("derives state from tilt when coverStateFromTilt is set", () => {
@@ -315,9 +305,9 @@ describe("converters/fromZigbee", () => {
             expect(payload).toStrictEqual({tilt: 100, state: "OPEN"});
         });
 
-        it("invert_cover_state also flips tilt-derived state", () => {
-            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {invert_cover_state: true});
-            expect(payload).toStrictEqual({tilt: 100, state: "CLOSE"});
+        it("invert_cover flips tilt-derived state too", () => {
+            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {invert_cover: true});
+            expect(payload).toStrictEqual({tilt: 0, state: "CLOSE"});
         });
 
         it("decodes cover_mode bits", () => {
