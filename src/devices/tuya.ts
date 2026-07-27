@@ -29229,4 +29229,148 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("Excellux", ["AIRPRS1"]),
+        model: "EZ-104UPT",
+        vendor: "Excellux",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        description: "Contact sensor and vibration sensor",
+        exposes: [
+            e
+                .enum("uv_warning", ea.STATE, ["Low", "Moderate", "High", "Very High", "Extreme"])
+                .withDescription("UV Warning.Low < Moderate < High < Very High < Extreme"),          
+            e
+                .enum("pressure_warn", ea.STATE, ["none", "low", "high"])
+                .withDescription("none: pressure is between v0 and v1;low : pressure is lower than v0 and v1;high: pressure is higher than v0 and v1"),
+            e
+                .enum("pressure_tend", ea.STATE, ["normal", "rise", "fall"])
+                .withDescription("normal: Minor fluctuations in air pressure;Rising: Air pressure shows a steady upward trend;Falling: Air pressure shows a steady downward trend"),          
+            e
+                .enum("temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription("Temperature warning. Low: temperature is lower than v0 and v1. High: temperature is higher than v0 and v1"),
+            e.enum("illuminance_warning", ea.STATE, ["none", "low", "high"]).withDescription("Illuminance warning level,low:low,high:high,none"),
+            e.battery(),
+            e.temperature(),
+            e.illuminance(),
+            e
+                .numeric("uv", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(3300)
+                .withUnit("Volt")
+                .withDescription("uv Value"),
+            e
+                .numeric("uv_level", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(15.0)
+                .withValueStep(0.1)
+                .withDescription("uv level from 0.0 to 15.0"),
+            e  
+                .numeric("pressure", ea.STATE)        
+                .withValueMin(300)
+                .withValueMax(1100)
+                .withValueStep(0.01)
+                .withUnit("hPa")
+                .withDescription("pressure by sensor"),
+            e
+                .numeric("pressure_calibration", ea.STATE_SET)
+                .withValueMin(-10.0)
+                .withValueMax(10.0)
+                .withValueStep(0.01)
+                .withUnit("hPa")
+                .withDescription("calibration pressure"),
+            e
+                .numeric("pressure_v0_set", ea.STATE_SET)
+                .withValueMin(300)
+                .withValueMax(1100)
+                .withValueStep(0.01)
+                .withUnit("hPa")
+                .withDescription("set v0 pressure"),
+            e
+                .numeric("pressure_v1_set", ea.STATE_SET)
+                .withValueMin(300)
+                .withValueMax(1100)
+                .withValueStep(0.01)
+                .withUnit("hPa")
+                .withDescription("set v1 pressure"),
+            e
+                .numeric("uv_calibration", ea.STATE_SET)
+                .withValueMin(-1.0)
+                .withValueMax(1.0)
+                .withValueStep(0.1)
+                .withDescription("calibration uv"),
+            e
+                .numeric("sampling_interval", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(1200)
+                .withValueStep(5)
+                .withUnit("s")
+                .withDescription("Sampling interval"),
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-2)
+                .withValueMax(2)
+                .withValueStep(0.01)
+                .withUnit("°C")
+                .withDescription("Temperature calibration"),
+            e
+                .numeric("temperature_v0_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.01)
+                .withUnit("°C")
+                .withDescription("Temperature v0 threshold setting"),
+            e
+                .numeric("temperature_v1_set", ea.STATE_SET)
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.01)
+                .withUnit("°C")
+                .withDescription("Temperature v1 threshold setting"),
+            e.numeric("illuminance_v0", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance v0 threshold setting"),
+            e.numeric("illuminance_v1", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance v1 threshold setting"),
+            e.numeric("illuminance_calibration", ea.STATE_SET)
+                .withValueMin(-1000)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withUnit("lux")
+                .withDescription("Illuminance calibration"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [4, "battery", tuya.valueConverter.raw],
+                [5, "temperature", tuya.valueConverter.localTempCalibration4],
+                [20, "illuminance", tuya.valueConverter.raw],
+                [101, "sampling_interval", tuya.valueConverter.raw],
+                [104, "illuminance_v0", tuya.valueConverter.raw],
+                [105, "illuminance_v1", tuya.valueConverter.raw],
+                [106, "illuminance_calibration", tuya.valueConverter.raw],
+                [107, "illuminance_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0),low: tuya.enum(1),high: tuya.enum(2)})],
+                [108, "uv", tuya.valueConverter.raw],
+                [109, "uv_level", tuya.valueConverter.divideBy10],
+                [110, "uv_calibration", tuya.valueConverter.localTempCalibration2],
+                [111, "uv_warning", tuya.valueConverterBasic.lookup({"Low": tuya.enum(0), "Moderate": tuya.enum(1), "High": tuya.enum(2), "Very High": tuya.enum(3), "Extreme": tuya.enum(4)})],
+                [114, "temperature_calibration", tuya.valueConverter.localTempCalibration4],
+                [115, "temperature_v0_set", tuya.valueConverter.localTempCalibration4],
+                [116, "temperature_v1_set", tuya.valueConverter.localTempCalibration4],
+                [117, "temperature_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+                [124, "pressure", tuya.valueConverter.divideBy100],
+                [125, "pressure_calibration", tuya.valueConverter.localTempCalibration4],
+                [126, "pressure_v0_set", tuya.valueConverter.divideBy100],
+                [127, "pressure_v1_set", tuya.valueConverter.divideBy100],
+                [128, "pressure_warn", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+                [129, "pressure_tend", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), rise: tuya.enum(1), fall: tuya.enum(2)})],
+
+            ],
+        }
+    }
 ];
