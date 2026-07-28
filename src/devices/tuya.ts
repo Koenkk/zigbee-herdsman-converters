@@ -7021,6 +7021,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_11pg3ima",
             "_TZ3000_et7afzxz",
             "_TZ3000_pftj0i7z",
+            "_TZ3000_xffhmvhv", // Nobø Connect SWS-IZ mode switch
         ]),
         model: "TS004F",
         vendor: "Tuya",
@@ -7067,6 +7068,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Zemismart", "ZMR4", "Wireless switch with 4 buttons", ["_TZ3000_11pg3ima", "_TZ3000_et7afzxz"]),
             tuya.whitelabel("Moes", "TS004F_1", "Wireless switch with 4 buttons", ["_TZ3000_xabckq1v"]),
+            tuya.whitelabel("Nobø", "SWS-IZ", "Mode switch (Home/Sleep/Away/Vacation)", ["_TZ3000_xffhmvhv"]),
         ],
         toZigbee: [tuya.tz.operation_mode],
         configure: async (device, coordinatorEndpoint) => {
