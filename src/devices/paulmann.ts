@@ -32,6 +32,13 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: [{modelID: "CCT-I", manufacturerName: "Paulmann Licht GmbH"}],
+        model: "CCT-I",
+        vendor: "Paulmann",
+        description: "Tunable white light controller with integrated motion sensor (tested with Skyla 948.64)",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
+    {
         zigbeeModel: ["94842"],
         model: "94842",
         vendor: "Paulmann",

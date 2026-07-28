@@ -12,7 +12,7 @@ import * as namron from "../lib/namron";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as sunricher from "../lib/sunricher";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, postfixWithEndpointName} from "../lib/utils";
 
@@ -21,6 +21,16 @@ const e = exposes.presets;
 const ea = exposes.access;
 
 const sunricherManufacturerCode = 0x1224;
+const sunricherDaliEndpointIds = [1, 2, 3, 4, 5, 6, 7, 8] as const;
+const sunricherDaliEndpointNames = ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8"];
+const sunricherDaliDimmableLightDeviceId = 0x0101;
+const sunricherDaliColorTempLightDeviceId = 0x010c;
+const sunricherDaliColorTempRange: [number, number] = [150, 500];
+
+interface SunricherDaliEndpointInfo {
+    id: number;
+    deviceID?: number;
+}
 
 export interface SunricherHvacThermostat {
     attributes: {
@@ -255,6 +265,93 @@ async function syncTimeWithTimeZone(endpoint: Zh.Endpoint) {
     } catch {
         logger.error("Failed to sync time with time zone", NS);
     }
+}
+
+function sunricherDaliIsEnabledEndpoint(endpoint: Zh.Endpoint) {
+    return (
+        sunricherDaliEndpointIds.includes(endpoint.ID as (typeof sunricherDaliEndpointIds)[number]) &&
+        [sunricherDaliDimmableLightDeviceId, sunricherDaliColorTempLightDeviceId].includes(endpoint.deviceID)
+    );
+}
+
+function sunricherDaliIsColorTempEndpoint(endpoint: {deviceID?: number}) {
+    return endpoint.deviceID === sunricherDaliColorTempLightDeviceId;
+}
+
+function sunricherDaliEndpointName(endpointID: number) {
+    return `l${endpointID}`;
+}
+
+function sunricherDaliEnabledEndpoints(device: Zh.Device) {
+    return device.endpoints.filter(sunricherDaliIsEnabledEndpoint);
+}
+
+function sunricherDaliEndpointInfos(device: Zh.Device | DummyDevice): SunricherDaliEndpointInfo[] {
+    if ("isDummyDevice" in device) {
+        return sunricherDaliEndpointIds.map((id) => ({id, deviceID: sunricherDaliColorTempLightDeviceId}));
+    }
+
+    return sunricherDaliEnabledEndpoints(device).map((endpoint) => ({id: endpoint.ID, deviceID: endpoint.deviceID}));
+}
+
+function sunricherDaliEndpoint(device: Zh.Device) {
+    return Object.fromEntries(sunricherDaliEnabledEndpoints(device).map((endpoint) => [sunricherDaliEndpointName(endpoint.ID), endpoint.ID]));
+}
+
+function sunricherDaliExposes(device: Zh.Device | DummyDevice): Expose[] {
+    return sunricherDaliEndpointInfos(device).map((endpoint) => {
+        const expose = e.light().withBrightness();
+
+        if (sunricherDaliIsColorTempEndpoint(endpoint)) {
+            expose.withColorTemp(sunricherDaliColorTempRange);
+        }
+
+        return expose.withEndpoint(sunricherDaliEndpointName(endpoint.id));
+    });
+}
+
+async function sunricherDaliReadInitialState(endpoint: Zh.Endpoint) {
+    await endpoint.read("genOnOff", ["onOff"]);
+    await endpoint.read("genLevelCtrl", ["currentLevel"]);
+
+    if (sunricherDaliIsColorTempEndpoint(endpoint)) {
+        await endpoint.read("lightingColorCtrl", ["colorMode", "colorTemperature"]);
+    }
+}
+
+function sunricherDaliController(): ModernExtend {
+    return {
+        fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp],
+        toZigbee: [
+            {...tz.light_onoff_brightness, endpoints: sunricherDaliEndpointNames},
+            tz.ignore_transition,
+            tz.level_config,
+            tz.ignore_rate,
+            tz.light_brightness_move,
+            tz.light_brightness_step,
+            tz.light_colortemp,
+            tz.light_colortemp_move,
+            tz.light_colortemp_step,
+            tz.light_color_mode,
+            tz.light_color_options,
+        ],
+        exposes: [sunricherDaliExposes],
+        endpoint: sunricherDaliEndpoint,
+        meta: {multiEndpoint: true},
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                for (const endpoint of sunricherDaliEnabledEndpoints(device)) {
+                    const clusters = sunricherDaliIsColorTempEndpoint(endpoint)
+                        ? ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]
+                        : ["genOnOff", "genLevelCtrl"];
+
+                    await reporting.bind(endpoint, coordinatorEndpoint, clusters);
+                    await sunricherDaliReadInitialState(endpoint);
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
 }
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1963,6 +2060,21 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee micro smart dimmer",
         extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
+    },
+    {
+        fingerprint: [
+            {
+                type: "Router",
+                modelID: "Light",
+                manufacturerID: sunricherManufacturerCode,
+                manufacturerName: "Sunricher",
+                priority: 1,
+            },
+        ],
+        model: "SR-2421-Z2D8C",
+        vendor: "Sunricher",
+        description: "Zigbee to DALI controller",
+        extend: [sunricherDaliController()],
     },
     {
         zigbeeModel: ["HK-ZD-DIM-A"],

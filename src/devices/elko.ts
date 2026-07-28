@@ -144,7 +144,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ElkoDimmerRemoteZHA"],
         model: "EKO05806",
         vendor: "ELKO",
-        description: "Elko ESH 316 Endevender RF",
+        description: "ELKO ESH 316 Endevender RF",
         fromZigbee: [fz.command_toggle, fz.command_step],
         toZigbee: [],
         exposes: [e.action(["toggle", "brightness_step_up", "brightness_step_down"])],

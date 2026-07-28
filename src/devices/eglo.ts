@@ -214,6 +214,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "900024/12253",
         vendor: "EGLO",
         description: "RGB light",
+        whiteLabel: [{vendor: "EGLO", model: "900878", description: "ANDREAS-Z pendant light"}],
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}})],
     },
     {

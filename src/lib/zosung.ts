@@ -628,11 +628,17 @@ export const fzZosung = {
                     },
                     {disableDefaultResponse: true},
                 );
+
+                // Clear learned IR timings for HA
+                clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
+                globalStore.putValue(msg.endpoint, "timer", setTimeout(() => publish({learned_ir_timings: ""}), 500).unref());
+
                 return {
                     learned_ir_code: learnedIRCode,
                     learned_ir_timings: {
                         modulation: 38000,
                         timings: learnedTimings,
+                        timestamp: Date.now(),
                     },
                 };
             }
@@ -642,7 +648,7 @@ export const fzZosung = {
 
 export const tzZosung = {
     zosung_ir_code_to_send: {
-        key: ["ir_code_to_send"],
+        key: ["ir_code_to_send", "ir_emitter"],
         convertSet: async (entity, key, value, meta) => {
             const irMsg = normalizeIrMsg(value);
 
@@ -687,6 +693,16 @@ export const tzZosung = {
 export const presetsZosung = {
     learn_ir_code: () => e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code"),
     learned_ir_code: () => e.text("learned_ir_code", ea.STATE).withDescription("The IR code learned by device"),
-    learned_ir_timings: () => e.text("learned_ir_timings", ea.STATE).withDescription("The IR timings learned by device"),
+    learned_ir_timings: () =>
+        e.text("learned_ir_timings", ea.STATE).withDescription("The IR timings learned by device").withHomeAssistant({
+            type: "infrared",
+            schema: "receiver",
+            valueTemplate: "{{ value_json.learned_ir_timings | tojson }}",
+        }),
     ir_code_to_send: () => e.text("ir_code_to_send", ea.SET).withDescription("The IR code or timings to send by device"),
+    ir_emitter: () =>
+        e
+            .text("ir_emitter", ea.SET)
+            .withDescription("The IR code or timings to send by device")
+            .withHomeAssistant({type: "infrared", schema: "emitter", valueTemplate: null}),
 };
