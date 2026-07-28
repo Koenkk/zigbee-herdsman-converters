@@ -9716,6 +9716,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_action",
                 lookup: {
+                    none: 0,
                     start_automatic: 2,
                     start_manual: 3,
                     clear: 4,
