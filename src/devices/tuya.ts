@@ -8657,6 +8657,80 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_vosmoqsg", "_TZE28C1000000_ewn672ef"]),
+        model: 'ZF24Pro',
+        vendor: 'Tuya',
+        description: 'Tuya Temperature & Humidity Human Presence Sensor',
+        extend: [tuya.modernExtend.tuyaBase({dp: true,}),],
+        exposes: [
+                e.presence(),
+                e.numeric("distance", ea.STATE).withUnit("m").withDescription("Object distance"),
+                e.illuminance(),
+                e.temperature(), 
+                e.humidity(),
+                e.numeric("move_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Mobility sensitivity"),
+                e.numeric("presence_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Presence sensitivity"),
+                e
+                    .numeric("presence_timeout", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(600)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Presence state timeout time"),
+                e
+                    .numeric("detection_distance_max", ea.STATE_SET)
+                    .withValueMin(0.75)
+                    .withValueMax(9.0)
+                    .withValueStep(0.75)
+                    .withUnit("m")
+                    .withDescription("Maximum detection distance"),
+                 e
+                 .numeric("temperature_correction", ea.STATE_SET)
+                    .withValueMin(-1.5)
+                    .withValueMax(1.5)
+                    .withValueStep(0.5)
+                    .withUnit("℃")
+                    .withDescription("temperature_correction"),
+                e
+                .numeric("humidity_correction", ea.STATE_SET)
+                    .withValueMin(-10)
+                    .withValueMax(10)
+                    .withValueStep(1)
+                    .withUnit("%")
+                    .withDescription("humidity_correction"),
+                e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Function"),
+                e.binary("living_room", ea.STATE_SET, "ON", "OFF").withDescription("Living room"),
+                e.binary("bedroom", ea.STATE_SET, "ON", "OFF").withDescription("Bedroom"),
+                e.binary("bathroom", ea.STATE_SET, "ON", "OFF").withDescription("Bathroom"),
+                e.binary("sleep", ea.STATE_SET, "ON", "OFF").withDescription("Sleep"),
+                e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [2, "move_sensitivity", tuya.valueConverter.raw],
+                [4, "detection_distance_max", tuya.valueConverter.divideBy100],
+                [9, "distance", tuya.valueConverter.divideBy100],
+                [22, "temperature", tuya.valueConverter.divideBy10],
+                [23, "humidity", tuya.valueConverter.raw],
+                [101, "presence_timeout", tuya.valueConverter.raw],
+                [102, "illuminance", tuya.valueConverter.raw],
+                [103, "presence_sensitivity", tuya.valueConverter.raw],
+                [104, "state", tuya.valueConverter.onOff],
+                [105, "living_room", tuya.valueConverter.onOff],
+                [106, "bedroom", tuya.valueConverter.onOff],
+                [107, "bathroom", tuya.valueConverter.onOff],
+                [108, "sleep", tuya.valueConverter.onOff],
+                [109, "radar_switch", tuya.valueConverter.onOff],
+                [110, "temperature_correction", tuya.valueConverter.divideBy10],
+                [111, "humidity_correction", tuya.valueConverter.raw],
+            ],
+        },
+        whiteLabel: [
+                tuya.whitelabel("Tuya", "ZT24Pro", "Tuya Temperature & Humidity Human Presence Sensor", ["_TZE28C1000000_ewn672ef"]),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_jlbsptkl"]),
         model: "_TZE28C1000000_jlbsptkl",
         vendor: "Tuya",
