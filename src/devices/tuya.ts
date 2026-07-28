@@ -28344,7 +28344,7 @@ export const definitions: DefinitionWithExtend[] = [
             ez
                 .ir_code_to_send()
                 .withDescription(
-                    "The IR code to send by device (Support SmartIR IR code library. IR remote Firmware ID must be Firmware ID>01062026)",
+                    "The IR code to send by device (Firmware ID must be >01062026,Support SmartIR IR code library https://github.com/smartHomeHub/SmartIR/blob/master/docs/CLIMATE.md)",
                 ),
             ez.ir_emitter().withDescription("IR emitter feature. IR remote Firmware ID must be Firmware ID>01062026)"),
             e.enum("switch1_on", ea.STATE_SET, ["study", "registered", "unregistered"]).withDescription("Switch 1 on IR code Study and Study status"),
@@ -29171,7 +29171,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "temperature_sampling", tuya.valueConverter.raw],
                 [112, "soil_sampling", tuya.valueConverter.raw],
                 [110, "soil_warning", tuya.valueConverter.raw],
-                [103, "illuminance", tuya.valueConverter.raw],
+                [105, "illuminance", tuya.valueConverter.raw],
                 [107, "illuminance_sampling", tuya.valueConverter.raw],
             ],
         },
