@@ -593,39 +593,6 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-function createWs01Definition(modelInfo: (typeof WS01_MODELS)[number]): DefinitionWithExtend {
-    const relayEndpointNames = Object.keys(WS01_ENDPOINTS).slice(0, modelInfo.relayCount);
-    const relayConfigExposes = relayEndpointNames.flatMap((endpoint) => [
-        exposes
-            .enum("operation_mode", ea.STATE_SET, ["control_relay", "wireless"])
-            .withEndpoint(endpoint)
-            .withDescription("Control relay or act as wireless switch")
-            .withCategory("config"),
-        exposes
-            .enum("wireless_led_status", ea.STATE_SET, Object.keys(WS07_WIRELESS_LED_STATUS))
-            .withEndpoint(endpoint)
-            .withDescription("LED state while in wireless switch mode")
-            .withCategory("config"),
-        exposes
-            .enum("led_feedback_mode", ea.STATE_SET, Object.keys(WS07_LED_FEEDBACK_MODE))
-            .withEndpoint(endpoint)
-            .withDescription("Relay-mode LED feedback relation")
-            .withCategory("config"),
-    ]);
-
-    return {
-        zigbeeModel: [modelInfo.model],
-        model: modelInfo.model,
-        vendor: "TERNCY",
-        description: `${modelInfo.relayCount}-gang ${modelInfo.neutral ? "neutral" : "no-neutral"} wall switch`,
-        fromZigbee: [fzLocal.ws01_action, fzLocal.ws01_switch_config],
-        toZigbee: [tzLocal.ws01_operation_mode, tzLocal.ws01_wireless_led_status, tzLocal.ws01_led_feedback_mode],
-        exposes: [...relayConfigExposes, e.action(ws01EndpointActions()), e.action_duration()],
-        extend: [terncyExtend.addClusterAduroSmart(), m.deviceEndpoints({endpoints: WS01_ENDPOINTS}), m.onOff({endpointNames: relayEndpointNames})],
-        meta: {multiEndpoint: true},
-    };
-}
-
 export const definitions: DefinitionWithExtend[] = [
     ...WS01_MODELS.map(createWs01Definition),
     {
@@ -808,3 +775,36 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [50, 500]}, powerOnBehavior: false, effect: false})],
     },
 ];
+
+function createWs01Definition(modelInfo: (typeof WS01_MODELS)[number]): DefinitionWithExtend {
+    const relayEndpointNames = Object.keys(WS01_ENDPOINTS).slice(0, modelInfo.relayCount);
+    const relayConfigExposes = relayEndpointNames.flatMap((endpoint) => [
+        exposes
+            .enum("operation_mode", ea.STATE_SET, ["control_relay", "wireless"])
+            .withEndpoint(endpoint)
+            .withDescription("Control relay or act as wireless switch")
+            .withCategory("config"),
+        exposes
+            .enum("wireless_led_status", ea.STATE_SET, Object.keys(WS07_WIRELESS_LED_STATUS))
+            .withEndpoint(endpoint)
+            .withDescription("LED state while in wireless switch mode")
+            .withCategory("config"),
+        exposes
+            .enum("led_feedback_mode", ea.STATE_SET, Object.keys(WS07_LED_FEEDBACK_MODE))
+            .withEndpoint(endpoint)
+            .withDescription("Relay-mode LED feedback relation")
+            .withCategory("config"),
+    ]);
+
+    return {
+        zigbeeModel: [modelInfo.model],
+        model: modelInfo.model,
+        vendor: "TERNCY",
+        description: `${modelInfo.relayCount}-gang ${modelInfo.neutral ? "neutral" : "no-neutral"} wall switch`,
+        fromZigbee: [fzLocal.ws01_action, fzLocal.ws01_switch_config],
+        toZigbee: [tzLocal.ws01_operation_mode, tzLocal.ws01_wireless_led_status, tzLocal.ws01_led_feedback_mode],
+        exposes: [...relayConfigExposes, e.action(ws01EndpointActions()), e.action_duration()],
+        extend: [terncyExtend.addClusterAduroSmart(), m.deviceEndpoints({endpoints: WS01_ENDPOINTS}), m.onOff({endpointNames: relayEndpointNames})],
+        meta: {multiEndpoint: true},
+    };
+}
