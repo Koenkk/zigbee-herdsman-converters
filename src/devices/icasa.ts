@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
+import * as sunricher from "../lib/sunricher";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
@@ -18,7 +19,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ICZB-IW21D",
         vendor: "iCasa",
         description: "Zigbee AC dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["ICZB-DC11"],
