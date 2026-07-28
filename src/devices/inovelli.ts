@@ -19,6 +19,7 @@ export const definitions: DefinitionWithExtend[] = [
             inovelli.m.parameters({
                 attrs: [{attributes: inovelli.VZM30_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
                 model: inovelli.Model.VZM30,
+                temperatureReporting: {min: 1800, max: 3600, change: 5},
             }),
             inovelli.m.addCustomCluster(),
             m.identify(),
@@ -45,6 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
             inovelli.m.parameters({
                 attrs: [{attributes: inovelli.VZM31_ATTRIBUTES, clusterName: inovelli.CLUSTER_NAME}],
                 model: inovelli.Model.VZM31,
+                temperatureReporting: {min: 1800, max: 3600, change: 5},
             }),
             inovelli.m.addCustomCluster(),
             m.identify(),
