@@ -2115,7 +2115,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9040A-S",
         vendor: "Sunricher",
         description: "Zigbee AC phase-cut dimmer single-line",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["Micro Smart OnOff", "HK-SL-RELAY-A"],
@@ -2839,7 +2839,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9101SAC-HP2",
         vendor: "Sunricher",
         description: "Zigbee 2 channel AC phase-cut dimmer",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.light({endpointNames: ["l1", "l2"], configureReporting: true}),
+            sunricher.extend.minimumPWM(),
+        ],
     },
     {
         zigbeeModel: ["ZG2855-RGB"],
