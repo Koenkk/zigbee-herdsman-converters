@@ -8658,53 +8658,53 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_vosmoqsg", "_TZE28C1000000_ewn672ef"]),
-        model: 'ZF24Pro',
-        vendor: 'Tuya',
-        description: 'Tuya Temperature & Humidity Human Presence Sensor',
-        extend: [tuya.modernExtend.tuyaBase({dp: true,}),],
+        model: "ZF24Pro",
+        vendor: "Tuya",
+        description: "Tuya Temperature & Humidity Human Presence Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-                e.presence(),
-                e.numeric("distance", ea.STATE).withUnit("m").withDescription("Object distance"),
-                e.illuminance(),
-                e.temperature(), 
-                e.humidity(),
-                e.numeric("move_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Mobility sensitivity"),
-                e.numeric("presence_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Presence sensitivity"),
-                e
-                    .numeric("presence_timeout", ea.STATE_SET)
-                    .withValueMin(1)
-                    .withValueMax(600)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription("Presence state timeout time"),
-                e
-                    .numeric("detection_distance_max", ea.STATE_SET)
-                    .withValueMin(0.75)
-                    .withValueMax(9.0)
-                    .withValueStep(0.75)
-                    .withUnit("m")
-                    .withDescription("Maximum detection distance"),
-                 e
-                 .numeric("temperature_correction", ea.STATE_SET)
-                    .withValueMin(-1.5)
-                    .withValueMax(1.5)
-                    .withValueStep(0.5)
-                    .withUnit("℃")
-                    .withDescription("temperature_correction"),
-                e
+            e.presence(),
+            e.numeric("distance", ea.STATE).withUnit("m").withDescription("Object distance"),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            e.numeric("move_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Mobility sensitivity"),
+            e.numeric("presence_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withValueStep(1).withDescription("Presence sensitivity"),
+            e
+                .numeric("presence_timeout", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Presence state timeout time"),
+            e
+                .numeric("detection_distance_max", ea.STATE_SET)
+                .withValueMin(0.75)
+                .withValueMax(9.0)
+                .withValueStep(0.75)
+                .withUnit("m")
+                .withDescription("Maximum detection distance"),
+            e
+                .numeric("temperature_correction", ea.STATE_SET)
+                .withValueMin(-1.5)
+                .withValueMax(1.5)
+                .withValueStep(0.5)
+                .withUnit("℃")
+                .withDescription("temperature_correction"),
+            e
                 .numeric("humidity_correction", ea.STATE_SET)
-                    .withValueMin(-10)
-                    .withValueMax(10)
-                    .withValueStep(1)
-                    .withUnit("%")
-                    .withDescription("humidity_correction"),
-                e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Function"),
-                e.binary("living_room", ea.STATE_SET, "ON", "OFF").withDescription("Living room"),
-                e.binary("bedroom", ea.STATE_SET, "ON", "OFF").withDescription("Bedroom"),
-                e.binary("bathroom", ea.STATE_SET, "ON", "OFF").withDescription("Bathroom"),
-                e.binary("sleep", ea.STATE_SET, "ON", "OFF").withDescription("Sleep"),
-                e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
-            ],
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("humidity_correction"),
+            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Function"),
+            e.binary("living_room", ea.STATE_SET, "ON", "OFF").withDescription("Living room"),
+            e.binary("bedroom", ea.STATE_SET, "ON", "OFF").withDescription("Bedroom"),
+            e.binary("bathroom", ea.STATE_SET, "ON", "OFF").withDescription("Bathroom"),
+            e.binary("sleep", ea.STATE_SET, "ON", "OFF").withDescription("Sleep"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
@@ -8726,9 +8726,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "humidity_correction", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [
-                tuya.whitelabel("Tuya", "ZT24Pro", "Tuya Temperature & Humidity Human Presence Sensor", ["_TZE28C1000000_ewn672ef"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Tuya", "ZT24Pro", "Tuya Temperature & Humidity Human Presence Sensor", ["_TZE28C1000000_ewn672ef"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_jlbsptkl"]),
