@@ -1368,6 +1368,28 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    // Implement special battery handling for the SNZB-09P.
+    snzb_09p_battery: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const rawPercentage = msg.data.batteryPercentageRemaining;
+
+            if (rawPercentage === undefined || rawPercentage >= 255) {
+                return;
+            }
+
+            const battery = utils.precisionRound(rawPercentage / 2, 2);
+
+            if (meta.state.power_supply_mode === "external" && battery !== 100) {
+                // External power mode only accepts a 100% battery report.
+                // Returning nothing preserves the existing battery state.
+                return;
+            }
+
+            return {battery};
+        },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -7171,6 +7193,41 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    // Clear the stale battery state when the device reports that it is using external power.
+    powerSupplyModeWithChangeBatteryState: (): ModernExtend => {
+        const lookup = {battery: 0x00, external: 0x01};
+
+        return m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+            name: "power_supply_mode",
+            lookup,
+            cluster: "customClusterEwelink",
+            attribute: "powerSupplyMode",
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+            description: "Current power source of the device.",
+            fzConvert: (_model, msg, _publish, _options, meta) => {
+                if (msg.data.powerSupplyMode === undefined) return;
+
+                const powerSupplyMode = utils.getFromLookupByValue(msg.data.powerSupplyMode, lookup);
+                if (powerSupplyMode === "external") {
+                    void msg.endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+                }
+                return {
+                    power_supply_mode: powerSupplyMode,
+                    ...(powerSupplyMode === "external" && meta.state.battery !== 100 ? {battery: null} : {}),
+                };
+            },
+        });
+    },
+    // extend the original ability of battery
+    batteryWithPowerSupplyMode: (): ModernExtend => {
+        const batteryExtend = m.battery();
+
+        return {
+            ...batteryExtend,
+            fromZigbee: [fzLocal.snzb_09p_battery],
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -9716,6 +9773,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_action",
                 lookup: {
+                    none: 0,
                     start_automatic: 2,
                     start_manual: 3,
                     clear: 4,
@@ -11330,16 +11388,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
-                name: "power_supply_mode",
-                lookup: {battery: 0x00, external: 0x01},
-                cluster: "customClusterEwelink",
-                attribute: "powerSupplyMode",
-                access: "STATE_GET",
-                entityCategory: "diagnostic",
-                description: "Current power source of the device.",
-            }),
-            m.battery(),
+            sonoffExtend.powerSupplyModeWithChangeBatteryState(),
+            sonoffExtend.batteryWithPowerSupplyMode(),
             m.binary<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_sound_enable",
                 cluster: "customClusterEwelink",
@@ -11374,16 +11424,16 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_sound_type",
                 lookup: {
-                    sound_0: 0x00,
-                    sound_1: 0x01,
-                    sound_2: 0x02,
-                    sound_3: 0x03,
-                    sound_4: 0x04,
-                    sound_5: 0x05,
-                    sound_6: 0x06,
-                    sound_7: 0x07,
-                    sound_8: 0x08,
-                    sound_9: 0x09,
+                    siren_classic: 0x00,
+                    siren_steady: 0x01,
+                    siren_rising: 0x03,
+                    siren_warning: 0x05,
+                    siren_rapid: 0x06,
+                    siren_emergency: 0x08,
+                    tone_chirp: 0x02,
+                    tone_hi_lo: 0x04,
+                    tone_intermittent: 0x07,
+                    tone_pulse: 0x09,
                 },
                 cluster: "customClusterEwelink",
                 attribute: "alarmSoundType",
@@ -11392,7 +11442,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_volume_level",
-                lookup: {low: 0x00, medium: 0x01, high: 0x02, highest: 0x03},
+                lookup: {low: 0x00, medium: 0x01, high: 0x02, max: 0x03},
                 cluster: "customClusterEwelink",
                 attribute: "alarmVolumeLevel",
                 entityCategory: "config",
