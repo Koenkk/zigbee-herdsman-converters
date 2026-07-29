@@ -323,6 +323,7 @@ export function setupConfigureForReading<Cl extends string | number, Custom exte
     };
     return configure;
 }
+
 // #region General
 
 export function forceDeviceType(args: {type: "EndDevice" | "Router"}): ModernExtend {
