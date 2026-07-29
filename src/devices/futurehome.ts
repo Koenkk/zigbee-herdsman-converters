@@ -155,7 +155,7 @@ const futurehomeExtend = {
         extend.options = pollExtend.options;
         return extend;
     },
-    charging: (): ModernExtend => {
+    chargingCommand: (): ModernExtend => {
         const commandLookup: {[key: string]: number} = {
             start: 0x01,
             stop: 0x02,
@@ -168,7 +168,7 @@ const futurehomeExtend = {
                 {
                     key: ["charging_start", "charging_stop", "charging_pause"],
                     convertSet: async (entity, key, value, meta) => {
-                        const normalizedAction = key.replace("charging_", ""); // "start", "stop", or "pause"
+                        const normalizedAction = key.replace("charging_", "");
                         const commandId = commandLookup[normalizedAction];
                         await entity.command("haApplianceControl", "executionOfCommand", {commandId: commandId});
                         try {
@@ -176,7 +176,7 @@ const futurehomeExtend = {
                         } catch {
                             // do nothing
                         }
-                        return; // {state: {charging: value}};
+                        return;
                     },
                     convertGet: async (entity, key, meta) => {
                         await entity.command("haApplianceControl", "signalState", {});
@@ -517,8 +517,25 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            futurehomeExtend.chargerStatus(),
-            futurehomeExtend.charging(),
+            // futurehomeExtend.chargerStatus(),
+            m.enumLookup<"haApplianceControl", FuturehomeHaApplianceControl>({
+                name: "status",
+                cluster: "haApplianceControl",
+                attribute: "status",
+                description: "Status",
+                lookup: {
+                    plugged_out: 0x00,
+                    off: 0x01,
+                    plugged_in_charging: 0x02,
+                    plugged_in_paused: 0x03,
+                    plugged_in: 0x04,
+                    stopped: 0x05,
+                },
+                access: "STATE_GET",
+                reporting: {min: 5, max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            futurehomeExtend.chargingCommand(),
             futurehomeExtend.chargerSessionTimings(),
             m.binary({
                 name: "cable_locked",
@@ -575,7 +592,7 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: {min: 5, max: "1_HOUR", change: 1},
             }),
             m.electricityMeter({
-                energy: {divisor: 1000, multiplier: 1},
+                energy: {divisor: 1000, multiplier: 1, min: "1_MINUTE", change: 1},
                 power: false,
                 threePhase: true,
             }),
@@ -599,22 +616,6 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.enumLookup<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "status",
-                cluster: "haApplianceControl",
-                attribute: "status",
-                description: "Status",
-                lookup: {
-                    plugged_out: 0x00,
-                    off: 0x01,
-                    plugged_in_charging: 0x02,
-                    plugged_in_paused: 0x03,
-                    plugged_in: 0x04,
-                    stopped: 0x05,
-                },
-                access: "STATE_GET",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
