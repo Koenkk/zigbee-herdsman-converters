@@ -175,6 +175,16 @@ interface SchneiderLightingBallastCfg {
     commandResponses: never;
 }
 
+interface SchneiderClosuresWindowCovering {
+    attributes: {
+        liftDriveUpTime: number;
+        liftDriveDownTime: number;
+        tiltOpenCloseAndStepTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
@@ -1080,6 +1090,45 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addSchneiderClosuresWindowCoveringCluster: () =>
+        m.deviceAddCustomCluster("closuresWindowCovering", {
+            name: "closuresWindowCovering",
+            ID: Zcl.Clusters.closuresWindowCovering.ID,
+            attributes: {
+                liftDriveUpTime: {
+                    name: "liftDriveUpTime",
+                    ID: 0xe014,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    min: 0,
+                    max: 3000,
+                    default: 1200,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                liftDriveDownTime: {
+                    name: "liftDriveDownTime",
+                    ID: 0xe015,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    min: 0,
+                    max: 3000,
+                    default: 1200,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                tiltOpenCloseAndStepTime: {
+                    name: "tiltOpenCloseAndStepTime",
+                    ID: 0xe016,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    min: 0,
+                    max: 3000,
+                    default: 100,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -1749,23 +1798,44 @@ export const definitions: DefinitionWithExtend[] = [
             if (oldNoTilt === newNoTilt) return;
 
             const coverEndpoint = event.data.device.getEndpoint(5);
-            await coverEndpoint.read(0x0102, [0xe016], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-            await coverEndpoint.write(
-                0x0102,
-                {[0xe016]: {value: newNoTilt ? 0 : 10, type: 0x21}},
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                ["tiltOpenCloseAndStepTime"],
                 {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             );
-            await coverEndpoint.read(0x0102, [0xe016], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+            await coverEndpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                {tiltOpenCloseAndStepTime: newNoTilt ? 0 : 10},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                ["tiltOpenCloseAndStepTime"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
 
             const controlEndpoint = event.data.device.getEndpoint(21);
-            await controlEndpoint.read(0xff17, [0x0001], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+            await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                ["switchActions"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
             const switchActions = (newNoTilt ? 0 : 1) + (event.data.state.child_lock === "LOCK" ? 0 : 2);
-            await controlEndpoint.write(0xff17, {1: {value: switchActions, type: 0x30}}, {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
-            await controlEndpoint.read(0xff17, [0x0001], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+            await controlEndpoint.write<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                {switchActions},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                ["switchActions"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
         },
         extend: [
             m.identify(),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            schneiderElectricExtend.addSchneiderClosuresWindowCoveringCluster(),
             m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
                 name: "indicator_mode",
                 lookup: {
@@ -1789,17 +1859,17 @@ export const definitions: DefinitionWithExtend[] = [
                 convert: (model, msg) => {
                     const result: KeyValueAny = {};
 
-                    const up = msg.data[0xe014];
+                    const up = msg.data.liftDriveUpTime ?? msg.data[0xe014];
                     if (up !== undefined) {
                         result.lift_duration_up = Number((up * 0.1).toFixed(1));
                     }
 
-                    const down = msg.data[0xe015];
+                    const down = msg.data.liftDriveDownTime ?? msg.data[0xe015];
                     if (down !== undefined) {
                         result.lift_duration_down = Number((down * 0.1).toFixed(1));
                     }
 
-                    const tilt = msg.data[0xe016];
+                    const tilt = msg.data.tiltOpenCloseAndStepTime ?? msg.data[0xe016];
                     if (tilt !== undefined) {
                         result.tilt_duration = Number((tilt * 0.1).toFixed(1));
                     }
@@ -1834,51 +1904,59 @@ export const definitions: DefinitionWithExtend[] = [
                 key: ["lift_duration_up"],
                 convertSet: async (entity, key, value, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    const rawValue = Math.round(+value * 10);
-                    await endpoint.write(
-                        0x0102,
-                        {[0xe014]: {value: rawValue, type: Zcl.DataType.UINT16}},
+                    const liftDriveUpTime = Math.round(+value * 10);
+                    await endpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                        "closuresWindowCovering",
+                        {liftDriveUpTime},
                         {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
                     );
                     return {state: {lift_duration_up: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read(0x0102, [0xe014], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+                    await endpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>("closuresWindowCovering", ["liftDriveUpTime"], {
+                        manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    });
                 },
             },
             {
                 key: ["lift_duration_down"],
                 convertSet: async (entity, key, value, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    const rawValue = Math.round(+value * 10);
-                    await endpoint.write(
-                        0x0102,
-                        {[0xe015]: {value: rawValue, type: Zcl.DataType.UINT16}},
+                    const liftDriveDownTime = Math.round(+value * 10);
+                    await endpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                        "closuresWindowCovering",
+                        {liftDriveDownTime},
                         {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
                     );
                     return {state: {lift_duration_down: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read(0x0102, [0xe015], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+                    await endpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>("closuresWindowCovering", ["liftDriveDownTime"], {
+                        manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                    });
                 },
             },
             {
                 key: ["tilt_duration"],
                 convertSet: async (entity, key, value, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    const rawValue = Math.round(+value * 100);
-                    await endpoint.write(
-                        0x0102,
-                        {[0xe016]: {value: rawValue, type: Zcl.DataType.UINT16}},
+                    const tiltOpenCloseAndStepTime = Math.round(+value * 100);
+                    await endpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                        "closuresWindowCovering",
+                        {tiltOpenCloseAndStepTime},
                         {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
                     );
                     return {state: {tilt_duration: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read(0x0102, [0xe016], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+                    await endpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                        "closuresWindowCovering",
+                        ["tiltOpenCloseAndStepTime"],
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
                 },
             },
             {
@@ -1888,17 +1966,16 @@ export const definitions: DefinitionWithExtend[] = [
                         throw new Error("reversed must be a boolean");
                     }
                     const endpoint = meta.device.getEndpoint(5);
-                    const currentMode = await endpoint.read(0x0102, [0x0017]);
-                    // @ts-expect-error the key is a string (windowCoveringMode)
-                    const modeValue = currentMode.windowCoveringMode ?? currentMode[0x0017] ?? 0;
+                    const currentMode = await endpoint.read("closuresWindowCovering", [0x0017]);
+                    const modeValue = Number(currentMode.windowCoveringMode ?? currentMode[0x0017] ?? 0);
                     const bit0 = 1 << 0;
                     const updatedModeValue = value ? modeValue | bit0 : modeValue & ~bit0;
-                    await endpoint.write(0x0102, {[0x0017]: {value: updatedModeValue, type: Zcl.DataType.BITMAP8}});
+                    await endpoint.write("closuresWindowCovering", {[0x0017]: {value: updatedModeValue, type: Zcl.DataType.BITMAP8}});
                     return {state: {reversed: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read(0x0102, [0x0017]);
+                    await endpoint.read("closuresWindowCovering", [0x0017]);
                 },
             },
             {
@@ -1906,16 +1983,20 @@ export const definitions: DefinitionWithExtend[] = [
                 convertSet: async (entity, key, value, meta) => {
                     const endpoint = meta.device.getEndpoint(21);
                     const switchActions = (meta.state.tilt_lock === "LOCK" ? 0 : 1) + (value === "LOCK" ? 0 : 2);
-                    await endpoint.write(
-                        0xff17,
-                        {[0x0001]: {value: switchActions, type: Zcl.DataType.ENUM8}},
+                    await endpoint.write<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        {switchActions},
                         {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
                     );
                     return {state: {child_lock: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(21);
-                    await endpoint.read(0xff17, [0x0001], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+                    await endpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        ["switchActions"],
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
                 },
             },
             {
@@ -1923,16 +2004,20 @@ export const definitions: DefinitionWithExtend[] = [
                 convertSet: async (entity, key, value, meta) => {
                     const endpoint = meta.device.getEndpoint(21);
                     const switchActions = (value === "LOCK" ? 0 : 1) + (meta.state.child_lock === "LOCK" ? 0 : 2);
-                    await endpoint.write(
-                        0xff17,
-                        {[0x0001]: {value: switchActions, type: Zcl.DataType.ENUM8}},
+                    await endpoint.write<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        {switchActions},
                         {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
                     );
                     return {state: {tilt_lock: value}};
                 },
                 convertGet: async (entity, key, meta) => {
                     const endpoint = meta.device.getEndpoint(21);
-                    await endpoint.read(0xff17, [0x0001], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+                    await endpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        ["switchActions"],
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
                 },
             },
         ],
@@ -2023,11 +2108,17 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(coverEndpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(coverEndpoint);
             await reporting.currentPositionTiltPercentage(coverEndpoint);
-            await coverEndpoint.read(0x0102, [0x0017]);
-            await coverEndpoint.read(0x0102, [0xe014, 0xe015, 0xe016], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+            await coverEndpoint.read("closuresWindowCovering", ["windowCoveringMode"]);
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>("closuresWindowCovering", [0xe014, 0xe015, 0xe016], {
+                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            });
 
             const controlEndpoint = device.getEndpoint(21);
-            await controlEndpoint.read(0xff17, [0x0000, 0x0001], {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC});
+            await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                ["ledIndication", "switchActions"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
         },
     },
     {
