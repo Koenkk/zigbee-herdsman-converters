@@ -1850,6 +1850,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_up",
+                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveUpTime",
                 unit: "s",
@@ -1862,6 +1863,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_down",
+                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveDownTime",
                 unit: "s",
