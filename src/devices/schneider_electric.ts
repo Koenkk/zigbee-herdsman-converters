@@ -1848,6 +1848,30 @@ export const definitions: DefinitionWithExtend[] = [
                 endpointName: "switch",
                 entityCategory: "config",
             }),
+            m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
+                name: "lift_duration_up",
+                cluster: "closuresWindowCovering",
+                attribute: "liftDriveUpTime",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 0.1,
+                scale: 10,
+                description: "Duration in seconds for shutter upward movement (0.1s precision) (Default: 120)",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
+                name: "lift_duration_down",
+                cluster: "closuresWindowCovering",
+                attribute: "liftDriveDownTime",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 0.1,
+                scale: 10,
+                description: "Duration in seconds for shutter downward movement (0.1s precision) (Default: 120)",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
         ],
         fromZigbee: [
             fz.cover_position_tilt,
@@ -1856,17 +1880,6 @@ export const definitions: DefinitionWithExtend[] = [
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg) => {
                     const result: KeyValueAny = {};
-
-                    const up = msg.data.liftDriveUpTime;
-                    if (up !== undefined) {
-                        result.lift_duration_up = Number((up * 0.1).toFixed(1));
-                    }
-
-                    const down = msg.data.liftDriveDownTime;
-                    if (down !== undefined) {
-                        result.lift_duration_down = Number((down * 0.1).toFixed(1));
-                    }
-
                     const tilt = msg.data.tiltOpenCloseAndStepTime;
                     if (tilt !== undefined) {
                         result.tilt_duration = Number((tilt * 0.1).toFixed(1));
@@ -1898,44 +1911,6 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
-            {
-                key: ["lift_duration_up"],
-                convertSet: async (entity, key, value, meta) => {
-                    const endpoint = meta.device.getEndpoint(5);
-                    const liftDriveUpTime = Math.round(+value * 10);
-                    await endpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
-                        "closuresWindowCovering",
-                        {liftDriveUpTime},
-                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-                    );
-                    return {state: {lift_duration_up: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>("closuresWindowCovering", ["liftDriveUpTime"], {
-                        manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
-                    });
-                },
-            },
-            {
-                key: ["lift_duration_down"],
-                convertSet: async (entity, key, value, meta) => {
-                    const endpoint = meta.device.getEndpoint(5);
-                    const liftDriveDownTime = Math.round(+value * 10);
-                    await endpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
-                        "closuresWindowCovering",
-                        {liftDriveDownTime},
-                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-                    );
-                    return {state: {lift_duration_down: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>("closuresWindowCovering", ["liftDriveDownTime"], {
-                        manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
-                    });
-                },
-            },
             {
                 key: ["tilt_duration"],
                 convertSet: async (entity, key, value, meta) => {
@@ -2037,30 +2012,6 @@ export const definitions: DefinitionWithExtend[] = [
             } else {
                 exposesList.push(e.cover_position().withEndpoint("cover"));
             }
-
-            exposesList.push(
-                e
-                    .numeric("lift_duration_up", ea.ALL)
-                    .withCategory("config")
-                    .withUnit("s")
-                    .withValueStep(0.1)
-                    .withValueMin(0)
-                    .withValueMax(300)
-                    .withDescription("Duration in seconds for shutter upward movement (0.1s precision) (Default: 120)")
-                    .withHomeAssistant({icon: "mdi:arrow-up-bold-circle-outline"}),
-            );
-
-            exposesList.push(
-                e
-                    .numeric("lift_duration_down", ea.ALL)
-                    .withCategory("config")
-                    .withUnit("s")
-                    .withValueStep(0.1)
-                    .withValueMin(0)
-                    .withValueMax(300)
-                    .withDescription("Duration in seconds for shutter downward movement (0.1s precision) (Default: 120)")
-                    .withHomeAssistant({icon: "mdi:arrow-down-bold-circle-outline"}),
-            );
 
             if (tilt_enabled) {
                 exposesList.push(
