@@ -1874,6 +1874,28 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Duration in seconds for shutter downward movement (0.1s precision) (Default: 120)",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
             }),
+            (() => {
+                const extend: ModernExtend = m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
+                    name: "tilt_duration",
+                    endpointNames: ["cover"],
+                    cluster: "closuresWindowCovering",
+                    attribute: "tiltOpenCloseAndStepTime",
+                    unit: "s",
+                    valueMin: 0,
+                    valueMax: 30,
+                    valueStep: 0.01,
+                    scale: 100,
+                    description: "Duration in seconds for shutter tilt movement (0.01s precision) (Default: 1)",
+                    zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                });
+                const original_exposes = extend.exposes;
+                extend.exposes = [
+                    (device, options) => {
+                        return options.no_tilt === true ? [] : original_exposes.flatMap((e) => (typeof e === "function" ? e(device, options) : e));
+                    },
+                ];
+                return extend;
+            })(),
         ],
         fromZigbee: [
             fz.cover_position_tilt,
@@ -1882,11 +1904,6 @@ export const definitions: DefinitionWithExtend[] = [
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg) => {
                     const result: KeyValueAny = {};
-                    const tilt = msg.data.tiltOpenCloseAndStepTime;
-                    if (tilt !== undefined) {
-                        result.tilt_duration = Number((tilt * 0.1).toFixed(1));
-                    }
-
                     const windowCoveringMode = msg.data.windowCoveringMode;
                     if (windowCoveringMode !== undefined) {
                         result.reversed = (windowCoveringMode & 1) !== 0;
@@ -1913,27 +1930,6 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
-            {
-                key: ["tilt_duration"],
-                convertSet: async (entity, key, value, meta) => {
-                    const endpoint = meta.device.getEndpoint(5);
-                    const tiltOpenCloseAndStepTime = Math.round(+value * 100);
-                    await endpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
-                        "closuresWindowCovering",
-                        {tiltOpenCloseAndStepTime},
-                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-                    );
-                    return {state: {tilt_duration: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const endpoint = meta.device.getEndpoint(5);
-                    await endpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
-                        "closuresWindowCovering",
-                        ["tiltOpenCloseAndStepTime"],
-                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-                    );
-                },
-            },
             {
                 key: ["reversed"],
                 convertSet: async (entity, key, value, meta) => {
@@ -2013,22 +2009,6 @@ export const definitions: DefinitionWithExtend[] = [
                 exposesList.push(e.cover_position_tilt().withEndpoint("cover"));
             } else {
                 exposesList.push(e.cover_position().withEndpoint("cover"));
-            }
-
-            if (tilt_enabled) {
-                exposesList.push(
-                    e
-                        .numeric("tilt_duration", ea.ALL)
-                        .withCategory("config")
-                        .withUnit("s")
-                        .withValueStep(0.01)
-                        .withValueMin(0)
-                        .withValueMax(30)
-                        .withDescription(
-                            "Duration in seconds for tilt upward movement (0.01s precision). If set to 0, tilt movement is disabled. (Default: 1)",
-                        )
-                        .withHomeAssistant({icon: "mdi:arrow-up-bold-circle-outline"}),
-                );
             }
 
             exposesList.push(
