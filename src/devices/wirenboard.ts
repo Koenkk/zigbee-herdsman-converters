@@ -855,7 +855,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature({reporting: false}),
             m.humidity({reporting: false}),
             m.occupancy({reporting: false}),
-            m.co2({scale: 1, reporting: false}),
+            m.co2({reporting: false}),
             // Custom attributes
             m.numeric({
                 name: "noise_level",
