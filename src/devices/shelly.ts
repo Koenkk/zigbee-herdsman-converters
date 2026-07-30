@@ -2485,6 +2485,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [{modelID: "Flood S", manufacturerName: "Shelly"}],
+        model: "S4SN-0071Z",
+        vendor: "Shelly",
+        description: "Flood S Gen 4",
+        extend: [
+            m.battery({percentageReportingConfig: false}),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
+            ...shellyModernExtend.shellyCustomClusters(),
+        ],
+    },
+    {
         fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
         model: "WS90",
         vendor: "Shelly",
