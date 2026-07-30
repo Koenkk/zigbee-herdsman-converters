@@ -4828,7 +4828,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_4cgmagba"]),
         model: "BHT-209-GCZB",
         vendor: "Beca",
@@ -4844,21 +4844,14 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
                 .withSystemMode(["heat"], ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE),
-            e
-                .max_temperature_limit()
-                .withUnit("°C")
-                .withValueMin(35)
-                .withValueMax(45)
-                .withValueStep(1),
+            e.max_temperature_limit().withUnit("°C").withValueMin(35).withValueMax(45).withValueStep(1),
             e
                 .deadzone_temperature()
                 .withValueMin(1)
                 .withValueMax(5)
                 .withValueStep(1)
                 .withDescription("The delta between local_temperature and current_heating_setpoint to trigger heating"),
-            e
-                .binary("heating_mode", ea.STATE_SET, "ON", "OFF")
-                .withDescription("ON = heating, OFF = cooling. Must stay ON for boiler control"),
+            e.binary("heating_mode", ea.STATE_SET, "ON", "OFF").withDescription("ON = heating, OFF = cooling. Must stay ON for boiler control"),
         ],
         meta: {
             tuyaDatapoints: [
