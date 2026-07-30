@@ -3,9 +3,237 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+
+type GlydeaTarget = number | "stop";
+
+type GlydeaState = {
+    /**
+     * Expected final position in Zigbee2MQTT coordinates:
+     * 0 = closed, 100 = open.
+     *
+     * "stop" means that an explicit stop command was sent.
+     * undefined means that no Z2M command context is available.
+     */
+    target?: GlydeaTarget;
+
+    /**
+     * True after the device reports windowCoveringType=0.
+     * This allows stale command context to be discarded when a later
+     * movement starts outside Zigbee2MQTT.
+     */
+    stopped: boolean;
+};
+
+const glydeaStateKey = "glydea_position_state";
+
+function getGlydeaState(endpoint: Zh.Endpoint): GlydeaState {
+    return globalStore.getValue(endpoint, glydeaStateKey, {
+        stopped: false,
+    });
+}
+
+function saveGlydeaState(endpoint: Zh.Endpoint, state: GlydeaState): void {
+    globalStore.putValue(endpoint, glydeaStateKey, state);
+}
+
+function getGlydeaEndpoints(entity: Zh.Endpoint | Zh.Group): Zh.Endpoint[] {
+    return utils.isEndpoint(entity) ? [entity] : entity.members;
+}
+
+function setGlydeaTarget(entity: Zh.Endpoint | Zh.Group, target: GlydeaTarget): void {
+    for (const endpoint of getGlydeaEndpoints(entity)) {
+        const state = getGlydeaState(endpoint);
+
+        state.target = target;
+        state.stopped = false;
+
+        saveGlydeaState(endpoint, state);
+    }
+}
+
+function clearGlydeaTarget(entity: Zh.Endpoint | Zh.Group): void {
+    for (const endpoint of getGlydeaEndpoints(entity)) {
+        const state = getGlydeaState(endpoint);
+
+        delete state.target;
+
+        saveGlydeaState(endpoint, state);
+    }
+}
+
+const fzLocal = {
+    glydeaPosition: {
+        ...fz.cover_position_tilt,
+
+        convert: (model, msg, publish, options, meta) => {
+            const converted = fz.cover_position_tilt.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+
+            /*
+             * An explicit read is authoritative. It is not part of the
+             * faulty movement-stop reporting sequence.
+             */
+            if (msg.type === "readResponse") {
+                return converted;
+            }
+
+            const state = getGlydeaState(msg.endpoint);
+
+            const coveringType = msg.data.windowCoveringType;
+
+            if (coveringType !== undefined) {
+                const moving = coveringType !== 0;
+
+                if (moving) {
+                    /*
+                     * When a new movement starts after the preceding
+                     * operation stopped, and no new Z2M command replaced
+                     * the state, treat it as externally initiated.
+                     */
+                    if (state.stopped) {
+                        delete state.target;
+                    }
+
+                    state.stopped = false;
+                } else {
+                    state.stopped = true;
+                }
+
+                saveGlydeaState(msg.endpoint, state);
+            }
+
+            const rawPosition = msg.data.currentPositionLiftPercentage;
+
+            /*
+             * Only raw zero is affected by the Glydea bug.
+             * All normal position reports pass through unchanged.
+             */
+            if (rawPosition !== 0) {
+                return converted;
+            }
+
+            /*
+             * Without command context it is impossible to distinguish
+             * a real raw-zero endpoint from the device's faulty raw-zero
+             * report. Preserve standard Z2M behaviour in that case.
+             */
+            if (state.target === undefined) {
+                return converted;
+            }
+
+            const convertedPosition = converted?.position;
+
+            /*
+             * A zero after STOP is always spurious.
+             *
+             * For OPEN, CLOSE and exact-position commands, compare with
+             * the expected position in exposed Z2M coordinates.
+             *
+             * convertedPosition was produced by the standard converter,
+             * so options such as invert_cover have already been applied.
+             */
+            const spurious = state.target === "stop" || convertedPosition !== state.target;
+
+            delete state.target;
+
+            saveGlydeaState(msg.endpoint, state);
+
+            return spurious ? {} : converted;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+};
+
+const tzLocal = {
+    glydeaCoverState: {
+        ...tz.cover_state,
+
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+
+            const normalized = value.toLowerCase();
+
+            let target: GlydeaTarget | undefined;
+
+            switch (normalized) {
+                case "open":
+                case "on":
+                    target = 100;
+                    break;
+
+                case "close":
+                case "off":
+                    target = 0;
+                    break;
+
+                case "stop":
+                    target = "stop";
+                    break;
+            }
+
+            if (target !== undefined) {
+                setGlydeaTarget(entity, target);
+            }
+
+            const convertSet = tz.cover_state.convertSet;
+
+            if (convertSet === undefined) {
+                throw new Error("cover_state converter does not support convertSet");
+            }
+
+            try {
+                return await convertSet(entity, key, value, meta);
+            } catch (error) {
+                if (target !== undefined) {
+                    clearGlydeaTarget(entity);
+                }
+
+                throw error;
+            }
+        },
+    } satisfies Tz.Converter,
+
+    glydeaCoverPositionTilt: {
+        ...tz.cover_position_tilt,
+
+        convertSet: async (entity, key, value, meta) => {
+            const tracksPosition = key === "position";
+
+            if (tracksPosition) {
+                utils.assertNumber(value, key);
+
+                setGlydeaTarget(entity, value);
+            }
+
+            const convertSet = tz.cover_position_tilt.convertSet;
+
+            if (convertSet === undefined) {
+                throw new Error("cover_position_tilt converter does not support convertSet");
+            }
+
+            try {
+                return await convertSet(entity, key, value, meta);
+            } catch (error) {
+                if (tracksPosition) {
+                    clearGlydeaTarget(entity);
+                }
+
+                throw error;
+            }
+        },
+    } satisfies Tz.Converter,
+};
+
+const glydeaWindowCovering = m.windowCovering({
+    controls: ["lift"],
+});
+
+glydeaWindowCovering.fromZigbee = [fzLocal.glydeaPosition];
+
+glydeaWindowCovering.toZigbee = [tzLocal.glydeaCoverState, tzLocal.glydeaCoverPositionTilt];
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -128,7 +356,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9028412A",
         vendor: "Somfy",
         description: "Glydea Curtain motor Zigbee module",
-        extend: [m.windowCovering({controls: ["lift"]})],
+        extend: [glydeaWindowCovering],
     },
     {
         zigbeeModel: ["Tilt & Lift 25 WF Roller"],
