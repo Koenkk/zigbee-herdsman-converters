@@ -20,7 +20,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZVG1",
         vendor: "RTX",
         description: "Zigbee smart water valve",
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, timeStart: "2000"})],
         fromZigbee: [legacy.fz.ZVG1],
         toZigbee: [
             legacy.tz.tuya_switch_state,
