@@ -132,6 +132,8 @@ describe("ZHC", () => {
         const definition3 = await findByDevice(device3);
 
         expect(definition1.model).toStrictEqual("HG06338");
+        // TS011F_plug_3 version-only fingerprints have priority:-1, so they still win
+        // over TS011F_plug_1's zigbeeModel match but lose to priority-0 fingerprints.
         expect(definition2.model).toStrictEqual("TS011F_plug_3");
         expect(definition3.model).toStrictEqual("TS011F_plug_1");
     });
@@ -498,10 +500,10 @@ describe("ZHC", () => {
         expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
             "power_calibration",
             "power_precision",
-            "current_calibration",
-            "current_precision",
             "voltage_calibration",
             "voltage_precision",
+            "current_calibration",
+            "current_precision",
             "energy_calibration",
             "energy_precision",
             "identify_timeout",
