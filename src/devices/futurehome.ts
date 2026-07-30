@@ -4,6 +4,7 @@ import * as m from "../lib/modernExtend";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -208,60 +209,60 @@ const futurehomeExtend = {
                         const now = new Date();
                         const currentSession = globalStore.getValue(meta.device, "charging_session", {
                             isCharging: false,
+                            chargerConnected: false,
                         }) as {
                             isCharging: boolean;
-                            startTime?: string;
-                            endTime?: string;
-                            prevStartTime?: string;
-                            prevEndTime?: string;
-                            prevDuration?: number;
+                            isChargerConnected: boolean;
+                            chargingStartTime?: string;
+                            chargingEndTime?: string;
+                            connectedStartTime?: string;
+                            connectedEndTime?: string;
+                            // duration: number;
+                            // prevStartTime?: string;
+                            // prevEndTime?: string;
+                            // prevDuration?: number;
                         };
 
-                        const isNowCharging = status === 0x02; // plugged_in_charging
+                        const isCharging = status === 0x02;
                         const wasCharging = currentSession.isCharging;
+                        const isChargerConnected = status !== 0x00;
+                        const wasChargerConnected = currentSession.isChargerConnected;
 
                         // Charging started
-                        if (isNowCharging && !wasCharging) {
-                            currentSession.startTime = now.toISOString();
+                        if (isCharging && !wasCharging) {
+                            currentSession.chargingStartTime = utils.toLocalISOString(now);
+                            currentSession.chargingEndTime = undefined;
                             currentSession.isCharging = true;
-                            result.charging_start_datetime = currentSession.startTime;
+                            result.charging_start_datetime = currentSession.chargingStartTime;
+                            result.charging_end_datetime = currentSession.chargingEndTime;
                         }
 
-                        // Charging ended (status is neither 0x02 nor 0x03)
-                        if (!isNowCharging && wasCharging && status !== 0x03) {
-                            currentSession.endTime = now.toISOString();
+                        // Charging ended
+                        if (!isCharging && wasCharging) {
+                            currentSession.chargingEndTime = utils.toLocalISOString(now);
                             currentSession.isCharging = false;
-                            result.charging_end_datetime = currentSession.endTime;
-
-                            // Calculate and expose the previous session data
-                            if (currentSession.startTime) {
-                                const startMs = new Date(currentSession.startTime).getTime();
-                                const endMs = now.getTime();
-
-                                currentSession.prevStartTime = currentSession.startTime;
-                                currentSession.prevEndTime = currentSession.endTime;
-                                currentSession.prevDuration = Math.round((endMs - startMs) / 1000); // Duration in seconds
-
-                                result.previous_charging_start_datetime = currentSession.prevStartTime;
-                                result.previous_charging_end_datetime = currentSession.prevEndTime;
-                                result.previous_charging_duration = currentSession.prevDuration;
-                            }
+                            result.charging_end_datetime = currentSession.chargingEndTime;
                         }
 
-                        // Paused (status 0x03) - keep isCharging as true to wait for actual end
-                        if (status === 0x03 && wasCharging) {
-                            currentSession.isCharging = true;
+                        // charger connected
+                        if (isChargerConnected && !wasChargerConnected) {
+                            currentSession.connectedStartTime = utils.toLocalISOString(now);
+                            currentSession.connectedEndTime = undefined;
+                            currentSession.isChargerConnected = true;
+                            result.connected_start_datetime = currentSession.connectedStartTime;
+                            result.connected_end_datetime = currentSession.connectedEndTime;
                         }
 
-                        // Expose current charging status
+                        // charger disconnected
+                        if (!isChargerConnected && wasChargerConnected) {
+                            currentSession.connectedEndTime = utils.toLocalISOString(now);
+                            currentSession.isChargerConnected = false;
+                            result.connected_end_datetime = currentSession.connectedEndTime;
+                        }
+
+                        // Expose current charging and connection status
                         result.is_charging = currentSession.isCharging;
-
-                        // Calculate ongoing duration if currently charging
-                        if (currentSession.isCharging && currentSession.startTime) {
-                            const startMs = new Date(currentSession.startTime).getTime();
-                            const nowMs = now.getTime();
-                            result.current_charging_duration = Math.round((nowMs - startMs) / 1000);
-                        }
+                        result.is_charger_connected = currentSession.isChargerConnected;
 
                         globalStore.putValue(meta.device, "charging_session", currentSession);
 
@@ -272,19 +273,22 @@ const futurehomeExtend = {
             exposes: [
                 exposes.text("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
                 exposes.text("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
-                exposes
-                    .text("previous_charging_start_datetime", ea.STATE)
-                    .withDescription("Date and time when previous charging session started (ISO 8601 format)"),
-                exposes
-                    .text("previous_charging_end_datetime", ea.STATE)
-                    .withDescription("Date and time when previous charging session ended (ISO 8601 format)"),
-                exposes.numeric("previous_charging_duration", ea.STATE).withDescription("Duration of the previous charging session").withUnit("s"),
-                exposes.binary("is_charging", ea.STATE, "true", "false").withDescription("Indicates if an active charging session is ongoing"),
-                exposes.numeric("current_charging_duration", ea.STATE).withDescription("Duration of the current charging session").withUnit("s"),
+                exposes.text("connected_start_datetime", ea.STATE).withDescription("Date and time when charger was connected."),
+                exposes.text("connected_end_datetime", ea.STATE).withDescription("Date and time when charger was disconnected."),
+                // exposes
+                //     .text("previous_charging_start_datetime", ea.STATE)
+                //     .withDescription("Date and time when previous charging session started (ISO 8601 format)"),
+                // exposes
+                //     .text("previous_charging_end_datetime", ea.STATE)
+                //     .withDescription("Date and time when previous charging session ended (ISO 8601 format)"),
+                // exposes.numeric("previous_charging_duration", ea.STATE).withDescription("Duration of the previous charging session").withUnit("s"),
+                exposes.binary("is_charging", ea.STATE, "true", "false").withDescription("Indicates if an active charging session is ongoing."),
+                exposes.binary("is_charger_connected", ea.STATE, "true", "false").withDescription("Indicates if the charger is connected."),
+                // exposes.numeric("current_charging_duration", ea.STATE).withDescription("Duration of the current charging session").withUnit("s"),
             ],
         };
     },
-    previousSessionEnergy: (): ModernExtend => {
+    sessionEnergyDuration: (): ModernExtend => {
         return {
             isModernExtend: true,
             fromZigbee: [
@@ -581,7 +585,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
-            futurehomeExtend.previousSessionEnergy(),
+            futurehomeExtend.sessionEnergyDuration(),
             m.numeric<"haElectricalMeasurement", undefined>({
                 name: "power",
                 cluster: "haElectricalMeasurement",
