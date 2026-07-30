@@ -2474,21 +2474,21 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{modelID: "Flood", manufacturerName: "Shelly"}],
+        fingerprint: [
+            {modelID: "Flood", manufacturerName: "Shelly"},
+            {modelID: "Flood S", manufacturerName: "Shelly"},
+        ],
         model: "S4SN-0071A",
         vendor: "Shelly",
         description: "Flood Gen 4",
-        extend: [
-            m.battery({percentageReportingConfig: false}),
-            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
-            ...shellyModernExtend.shellyCustomClusters(),
+        whiteLabel: [
+            {
+                vendor: "Shelly",
+                model: "S4SN-0071Z",
+                description: "Flood S Gen 4",
+                fingerprint: [{modelID: "Flood S", manufacturerName: "Shelly"}],
+            },
         ],
-    },
-    {
-        fingerprint: [{modelID: "Flood S", manufacturerName: "Shelly"}],
-        model: "S4SN-0071Z",
-        vendor: "Shelly",
-        description: "Flood S Gen 4",
         extend: [
             m.battery({percentageReportingConfig: false}),
             m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
