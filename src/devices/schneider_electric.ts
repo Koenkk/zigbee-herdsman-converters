@@ -1788,9 +1788,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520567",
         vendor: "Schneider Electric",
         description: "Wiser Odace roller shutter switch (S520567W)",
-        endpoint: (device) => {
-            return {cover: 5, switch: 21};
-        },
         onEvent: async (event) => {
             if (event.type !== "deviceOptionsChanged") return;
             const oldNoTilt = event.data.from?.no_tilt === true;
@@ -1834,6 +1831,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.identify(),
+            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}}),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             schneiderElectricExtend.addSchneiderClosuresWindowCoveringCluster(),
             m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
@@ -2035,9 +2033,9 @@ export const definitions: DefinitionWithExtend[] = [
             const tilt_enabled = !(options.no_tilt === true);
 
             if (tilt_enabled) {
-                exposesList.push(e.cover_position_tilt());
+                exposesList.push(e.cover_position_tilt().withEndpoint("cover"));
             } else {
-                exposesList.push(e.cover_position());
+                exposesList.push(e.cover_position().withEndpoint("cover"));
             }
 
             exposesList.push(
