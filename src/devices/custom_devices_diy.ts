@@ -18,6 +18,17 @@ const switchTypesList = {
     "multi-click": 0x02,
 };
 
+// genOnOffSwitchCfg.switchType is defined as read-only. Allow override with write: true.
+const genOnOffSwitchCfgSwitchTypeWritable = m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+    name: "genOnOffSwitchCfg",
+    ID: 0x0007,
+    attributes: {
+        switchType: {name: "switchType", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, min: 0x00, max: 0x02},
+    },
+    commands: {},
+    commandsResponse: {},
+});
+
 export const tzLocal = {
     tirouter: {
         key: ["transmit_power"],
@@ -1141,6 +1152,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Multi switch from Smarthjemmet.dk",
         fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
             ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
@@ -1380,6 +1392,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "FUGA compatible switch from Smarthjemmet.dk",
         fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
             ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
