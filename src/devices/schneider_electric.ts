@@ -1857,22 +1857,22 @@ export const definitions: DefinitionWithExtend[] = [
                 convert: (model, msg) => {
                     const result: KeyValueAny = {};
 
-                    const up = msg.data.liftDriveUpTime ?? msg.data[0xe014];
+                    const up = msg.data.liftDriveUpTime;
                     if (up !== undefined) {
                         result.lift_duration_up = Number((up * 0.1).toFixed(1));
                     }
 
-                    const down = msg.data.liftDriveDownTime ?? msg.data[0xe015];
+                    const down = msg.data.liftDriveDownTime;
                     if (down !== undefined) {
                         result.lift_duration_down = Number((down * 0.1).toFixed(1));
                     }
 
-                    const tilt = msg.data.tiltOpenCloseAndStepTime ?? msg.data[0xe016];
+                    const tilt = msg.data.tiltOpenCloseAndStepTime;
                     if (tilt !== undefined) {
                         result.tilt_duration = Number((tilt * 0.1).toFixed(1));
                     }
 
-                    const windowCoveringMode = msg.data.windowCoveringMode ?? msg.data[0x0017];
+                    const windowCoveringMode = msg.data.windowCoveringMode;
                     if (windowCoveringMode !== undefined) {
                         result.reversed = (windowCoveringMode & 1) !== 0;
                     }
@@ -1885,7 +1885,7 @@ export const definitions: DefinitionWithExtend[] = [
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options) => {
                     const result: KeyValueAny = {};
-                    const switchActions = msg.data.switchActions ?? msg.data[0x0001];
+                    const switchActions = msg.data.switchActions;
                     if (switchActions !== undefined) {
                         result.child_lock = switchActions === 0 || switchActions === 1 ? "LOCK" : "UNLOCK";
                         result.tilt_lock = switchActions === 0 || switchActions === 2 ? "LOCK" : "UNLOCK";
@@ -1965,7 +1965,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }
                     const endpoint = meta.device.getEndpoint(5);
                     const currentMode = await endpoint.read("closuresWindowCovering", [0x0017]);
-                    const modeValue = Number(currentMode.windowCoveringMode ?? currentMode[0x0017] ?? 0);
+                    const modeValue = currentMode.windowCoveringMode ?? 0;
                     const bit0 = 1 << 0;
                     const updatedModeValue = value ? modeValue | bit0 : modeValue & ~bit0;
                     await endpoint.write("closuresWindowCovering", {[0x0017]: {value: updatedModeValue, type: Zcl.DataType.BITMAP8}});
@@ -2107,9 +2107,13 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.currentPositionLiftPercentage(coverEndpoint);
             await reporting.currentPositionTiltPercentage(coverEndpoint);
             await coverEndpoint.read("closuresWindowCovering", ["windowCoveringMode"]);
-            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>("closuresWindowCovering", [0xe014, 0xe015, 0xe016], {
-                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
-            });
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                ["liftDriveUpTime", "liftDriveDownTime", "tiltOpenCloseAndStepTime"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+            );
 
             const controlEndpoint = device.getEndpoint(21);
             await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
