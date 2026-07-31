@@ -2390,7 +2390,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("flow_rate", ea.STATE).withUnit("L/h").withDescription("Instantaneous water flow rate"),
             e.binary("auto_clean", ea.STATE_SET, "ON", "OFF").withDescription("Auto clean"),
             e.temperature(),
-            e.numeric("battery_voltage", ea.STATE).withUnit("V").withDescription("Battery voltage").withCategory("diagnostic"),
+            e.battery_voltage(),
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.text("faults", ea.STATE).withDescription("Active fault status"),
             e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
@@ -2506,7 +2506,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "battery_voltage", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.divideBy100],
             ],
         },
         // Optional: Add device-specific options
@@ -2657,7 +2657,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP 22 - Outlet Water Temperature
                 [22, "outlet_water_temperature", tuya.valueConverter.divideBy100],
                 // DP 24 - Power Supply Voltage
-                [24, "battery_voltage", tuya.valueConverter.multiplyBy10],
+                [24, "voltage", tuya.valueConverter.multiplyBy10],
             ],
         },
         options: [
@@ -2699,7 +2699,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("report_period", ea.STATE_SET, ["1h", "2h", "3h", "4h", "6h", "8h", "12h", "24h"]).withDescription("Report period"),
             e.text("meter_id", ea.STATE).withDescription("Meter identification number"),
             e.temperature(),
-            e.numeric("battery_voltage", ea.STATE).withUnit("V").withDescription("Battery voltage").withCategory("diagnostic"),
+            e.battery_voltage(),
             e.text("faults", ea.STATE).withDescription("Active fault status"),
         ],
         meta: {
@@ -2829,7 +2829,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "battery_voltage", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.divideBy100],
             ],
         },
         options: [
