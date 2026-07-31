@@ -296,6 +296,7 @@ export function setupConfigureForReading<Cl extends string | number, Custom exte
     cluster: Cl,
     attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
     endpointNames?: string[],
+    options?: Record<string, unknown>,
 ) {
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
@@ -303,12 +304,20 @@ export function setupConfigureForReading<Cl extends string | number, Custom exte
             const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
             const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
-                await endpoint.read<Cl, Custom>(cluster, attributes);
+                if (options !== undefined) {
+                    await endpoint.read<Cl, Custom>(cluster, attributes, options);
+                } else {
+                    await endpoint.read<Cl, Custom>(cluster, attributes);
+                }
             }
         } else {
             const endpoints = getEndpointsWithCluster(device, cluster, "input");
             for (const endpoint of endpoints) {
-                await endpoint.read<Cl, Custom>(cluster, attributes);
+                if (options !== undefined) {
+                    await endpoint.read<Cl, Custom>(cluster, attributes, options);
+                } else {
+                    await endpoint.read<Cl, Custom>(cluster, attributes);
+                }
             }
         }
     };
