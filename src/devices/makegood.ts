@@ -40,12 +40,12 @@ const backlightColorConverter = {
         const buf = Buffer.isBuffer(value) ? value : Buffer.from(value as string);
         if (buf.length !== 21) return null;
         const parseSocket = (o: number) => ({
-            onBrightness: buf[o],
-            onHue: buf.readUInt16BE(o + 1),
-            onSaturation: buf.readUInt16BE(o + 3),
-            offBrightness: buf[o + 5],
-            offHue: buf.readUInt16BE(o + 6),
-            offSaturation: buf.readUInt16BE(o + 8),
+            on_brightness: buf[o],
+            on_hue: buf.readUInt16BE(o + 1),
+            on_saturation: buf.readUInt16BE(o + 3),
+            off_brightness: buf[o + 5],
+            off_hue: buf.readUInt16BE(o + 6),
+            off_saturation: buf.readUInt16BE(o + 8),
         });
         return {
             mode: buf[0] === 1 ? "multi" : "single",
@@ -76,12 +76,12 @@ const backlightColorToZigbee: Tz.Converter = {
         const clamp = (v: unknown, min: number, max: number) => Math.max(min, Math.min(max, Number(v) || 0));
 
         const writeSocket = (s: KeyValueAny, o: number) => {
-            buf[o] = clamp(s.onBrightness ?? 100, 0, 100);
-            buf.writeUInt16BE(clamp(s.onHue ?? 0, 0, 360), o + 1);
-            buf.writeUInt16BE(clamp(s.onSaturation ?? 1000, 0, 1000), o + 3);
-            buf[o + 5] = clamp(s.offBrightness ?? 10, 0, 100);
-            buf.writeUInt16BE(clamp(s.offHue ?? 240, 0, 360), o + 6);
-            buf.writeUInt16BE(clamp(s.offSaturation ?? 1000, 0, 1000), o + 8);
+            buf[o] = clamp(s.on_brightness ?? 100, 0, 100);
+            buf.writeUInt16BE(clamp(s.on_hue ?? 0, 0, 360), o + 1);
+            buf.writeUInt16BE(clamp(s.on_saturation ?? 1000, 0, 1000), o + 3);
+            buf[o + 5] = clamp(s.off_brightness ?? 10, 0, 100);
+            buf.writeUInt16BE(clamp(s.off_hue ?? 240, 0, 360), o + 6);
+            buf.writeUInt16BE(clamp(s.off_saturation ?? 1000, 0, 1000), o + 8);
         };
 
         writeSocket(cfg.socket1 ?? {}, 1);
@@ -232,7 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .withDescription("Socket 1 LED")
                         .withFeature(
                             e
-                                .numeric("onBrightness", ea.STATE_SET)
+                                .numeric("on_brightness", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(100)
                                 .withUnit("%")
@@ -240,21 +240,21 @@ export const definitions: DefinitionWithExtend[] = [
                         )
                         .withFeature(
                             e
-                                .numeric("onHue", ea.STATE_SET)
+                                .numeric("on_hue", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(360)
                                 .withDescription("Hue (0=red, 60=yellow, 120=green, 180=cyan, 240=blue, 300=magenta, 360=purple)"),
                         )
                         .withFeature(
                             e
-                                .numeric("onSaturation", ea.STATE_SET)
+                                .numeric("on_saturation", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(1000)
                                 .withDescription("Saturation when ON (0=white, 1000=full color)"),
                         )
                         .withFeature(
                             e
-                                .numeric("offBrightness", ea.STATE_SET)
+                                .numeric("off_brightness", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(100)
                                 .withUnit("%")
@@ -262,14 +262,14 @@ export const definitions: DefinitionWithExtend[] = [
                         )
                         .withFeature(
                             e
-                                .numeric("offHue", ea.STATE_SET)
+                                .numeric("off_hue", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(360)
                                 .withDescription("Hue when OFF — multi-color mode only"),
                         )
                         .withFeature(
                             e
-                                .numeric("offSaturation", ea.STATE_SET)
+                                .numeric("off_saturation", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(1000)
                                 .withDescription("Saturation when OFF — multi-color mode only"),
@@ -281,7 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .withDescription("Socket 2 LED")
                         .withFeature(
                             e
-                                .numeric("onBrightness", ea.STATE_SET)
+                                .numeric("on_brightness", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(100)
                                 .withUnit("%")
@@ -289,21 +289,21 @@ export const definitions: DefinitionWithExtend[] = [
                         )
                         .withFeature(
                             e
-                                .numeric("onHue", ea.STATE_SET)
+                                .numeric("on_hue", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(360)
                                 .withDescription("Hue (0=red, 60=yellow, 120=green, 180=cyan, 240=blue, 300=magenta, 360=purple)"),
                         )
                         .withFeature(
                             e
-                                .numeric("onSaturation", ea.STATE_SET)
+                                .numeric("on_saturation", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(1000)
                                 .withDescription("Saturation when ON (0=white, 1000=full color)"),
                         )
                         .withFeature(
                             e
-                                .numeric("offBrightness", ea.STATE_SET)
+                                .numeric("off_brightness", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(100)
                                 .withUnit("%")
@@ -311,14 +311,14 @@ export const definitions: DefinitionWithExtend[] = [
                         )
                         .withFeature(
                             e
-                                .numeric("offHue", ea.STATE_SET)
+                                .numeric("off_hue", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(360)
                                 .withDescription("Hue when OFF — multi-color mode only"),
                         )
                         .withFeature(
                             e
-                                .numeric("offSaturation", ea.STATE_SET)
+                                .numeric("off_saturation", ea.STATE_SET)
                                 .withValueMin(0)
                                 .withValueMax(1000)
                                 .withDescription("Saturation when OFF — multi-color mode only"),
