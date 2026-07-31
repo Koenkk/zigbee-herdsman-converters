@@ -4840,7 +4840,7 @@ const tuyaModernExtend = {
             powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
-            switchTypeButton?: boolean;
+            switchTypeButton?: boolean | ((manufacturerName: string) => boolean);
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
