@@ -9552,7 +9552,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
@@ -9598,12 +9602,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
@@ -9648,16 +9660,28 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
             await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
