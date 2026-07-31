@@ -1898,7 +1898,15 @@ export const definitions: DefinitionWithExtend[] = [
             })(),
         ],
         fromZigbee: [
-            fz.cover_position_tilt,
+            {
+                ...fz.cover_position_tilt,
+                convert: async (model, msg, publish, options, meta) => {
+                    const result = await fz.cover_position_tilt.convert(model, msg, publish, options, meta);
+                    if (!result) return result;
+                    delete result[postfixWithEndpointName("state", msg, model, meta)];
+                    return result;
+                },
+            },
             {
                 cluster: "closuresWindowCovering",
                 type: ["attributeReport", "readResponse"],
