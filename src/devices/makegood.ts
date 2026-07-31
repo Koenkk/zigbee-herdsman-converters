@@ -87,7 +87,7 @@ const backlightColorToZigbee: Tz.Converter = {
         writeSocket(cfg.socket1 ?? {}, 1);
         writeSocket(cfg.socket2 ?? {}, 11);
 
-        await tuya.sendDataPointRaw(entity, 107, [buf]);
+        await tuya.sendDataPointRaw(entity, 107, buf);
         return {state: {backlight_color: cfg}};
     },
 } satisfies Tz.Converter;
