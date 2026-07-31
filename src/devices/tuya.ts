@@ -11415,8 +11415,9 @@ export const definitions: DefinitionWithExtend[] = [
                 "acVoltageDivisor",
                 "acPowerMultiplier",
                 "acPowerDivisor",
-                "acCurrentMultiplier",
-                "acCurrentDivisor",
+                // "acCurrentMultiplier",
+                // "acCurrentDivisor",
+                // Some devices report wrong divisor. Zbeacon TS011F v1.0.5 gives 1, but it's actually 1000
             ] as const) {
                 try {
                     await endpoint.read("haElectricalMeasurement", [attr]);
