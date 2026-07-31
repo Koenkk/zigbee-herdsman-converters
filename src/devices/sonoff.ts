@@ -10132,7 +10132,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -10273,7 +10274,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -10415,7 +10417,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
