@@ -9718,7 +9718,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "motor_run_status",
+                name: "moving",
                 lookup: {Stop: 0, Forward: 1, Reverse: 2},
                 cluster: "customClusterEwelink",
                 attribute: "motorRunStatus",
