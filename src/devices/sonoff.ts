@@ -9515,10 +9515,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZBM5-1C-120"],
+        zigbeeModel: ["ZBM5-1C-120", "ZBM5-1C-80/86"],
+        whiteLabel: [
+            {
+                model: "ZBM5-1C-80/86",
+                vendor: "SONOFF",
+                description: "Zigbee Smart one-channel wall switch (type 80/86)",
+                fingerprint: [{modelID: "ZBM5-1C-80/86"}],
+            },
+        ],
         model: "ZBM5-1C-120",
         vendor: "SONOFF",
-        description: "Zigbee Smart one-channel wall switch (type 120).",
+        description: "Zigbee Smart one-channel wall switch (type 120)",
         ota: true,
         extend: [
             m.commandsOnOff({commands: ["toggle"]}),
@@ -9544,17 +9552,29 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
         },
     },
     {
-        zigbeeModel: ["ZBM5-2C-120"],
+        zigbeeModel: ["ZBM5-2C-120", "ZBM5-2C-80/86"],
+        whiteLabel: [
+            {
+                model: "ZBM5-2C-80/86",
+                vendor: "SONOFF",
+                description: "Zigbee Smart two-channel wall switch (type 80/86)",
+                fingerprint: [{modelID: "ZBM5-2C-80/86"}],
+            },
+        ],
         model: "ZBM5-2C-120",
         vendor: "SONOFF",
-        description: "Zigbee Smart two-channel wall switch (type 120).",
+        description: "Zigbee Smart two-channel wall switch (type 120)",
         exposes: [],
         ota: true,
         extend: [
@@ -9582,21 +9602,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
     },
     {
-        zigbeeModel: ["ZBM5-3C-120"],
+        zigbeeModel: ["ZBM5-3C-120", "ZBM5-3C-80/86"],
+        whiteLabel: [
+            {
+                model: "ZBM5-3C-80/86",
+                vendor: "SONOFF",
+                description: "Zigbee Smart three-channel wall switch (type 80/86)",
+                fingerprint: [{modelID: "ZBM5-3C-80/86"}],
+            },
+        ],
         model: "ZBM5-3C-120",
         vendor: "SONOFF",
-        description: "Zigbee Smart three-channel wall switch (type 120).",
+        description: "Zigbee Smart three-channel wall switch (type 120)",
         exposes: [],
         ota: true,
         extend: [
@@ -9624,140 +9660,28 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
-            await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-        },
-    },
-    {
-        zigbeeModel: ["ZBM5-1C-80/86"],
-        model: "ZBM5-1C-80/86",
-        vendor: "SONOFF",
-        description: "Zigbee Smart one-channel wall switch (type 80/86).",
-        ota: true,
-        extend: [
-            m.commandsOnOff({commands: ["toggle"]}),
-            m.onOff(),
-            sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "device_work_mode",
-                lookup: {"Zigbee end device": 0, "Zigbee router": 1},
-                cluster: "customClusterEwelink",
-                attribute: "deviceWorkMode",
-                description: "The device runs as a Zigbee End device or Zigbee router.",
-                access: "STATE_GET",
-            }),
-            m.binary<"customClusterEwelink", SonoffEwelink>({
-                name: "network_indicator",
-                cluster: "customClusterEwelink",
-                attribute: "networkLed",
-                description: "Network indicator settings, turn off/on the blue online status network indicator.",
-                valueOff: [false, 0],
-                valueOn: [true, 1],
-            }),
-            sonoffExtend.detachRelayModeControl(1),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
-            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-        },
-    },
-    {
-        zigbeeModel: ["ZBM5-2C-80/86"],
-        model: "ZBM5-2C-80/86",
-        vendor: "SONOFF",
-        description: "Zigbee Smart two-channel wall switch (type 80/86).",
-        exposes: [],
-        ota: true,
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
-            m.onOff({endpointNames: ["l1", "l2"]}),
-            sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "device_work_mode",
-                lookup: {"Zigbee end device": 0, "Zigbee router": 1},
-                cluster: "customClusterEwelink",
-                attribute: "deviceWorkMode",
-                description: "The device runs as a Zigbee End device or Zigbee router.",
-                access: "STATE_GET",
-            }),
-            m.binary<"customClusterEwelink", SonoffEwelink>({
-                name: "network_indicator",
-                cluster: "customClusterEwelink",
-                attribute: "networkLed",
-                description: "Network indicator settings, turn off/on the blue online status network indicator.",
-                valueOff: [false, 0],
-                valueOn: [true, 1],
-            }),
-            sonoffExtend.detachRelayModeControl(2),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
-            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
-            await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-        },
-    },
-    {
-        zigbeeModel: ["ZBM5-3C-80/86"],
-        model: "ZBM5-3C-80/86",
-        vendor: "SONOFF",
-        description: "Zigbee Smart three-channel wall switch (type 80/86).",
-        exposes: [],
-        ota: true,
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"]}),
-            m.onOff({endpointNames: ["l1", "l2", "l3"]}),
-            sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "device_work_mode",
-                lookup: {"Zigbee end device": 0, "Zigbee router": 1},
-                cluster: "customClusterEwelink",
-                attribute: "deviceWorkMode",
-                description: "The device runs as a Zigbee End device or Zigbee router.",
-                access: "STATE_GET",
-            }),
-            m.binary<"customClusterEwelink", SonoffEwelink>({
-                name: "network_indicator",
-                cluster: "customClusterEwelink",
-                attribute: "networkLed",
-                description: "Network indicator settings, turn off/on the blue online status network indicator.",
-                valueOff: [false, 0],
-                valueOn: [true, 1],
-            }),
-            sonoffExtend.detachRelayModeControl(3),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
-            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
-            await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
             await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
@@ -10208,7 +10132,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -10349,7 +10274,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -10491,7 +10417,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),

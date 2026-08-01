@@ -484,7 +484,9 @@ const schneiderElectricExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         });
         extend.configure.push(
-            m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"]),
+            m.setupConfigureForReading<"lightingBallastCfg", SchneiderLightingBallastCfg>("lightingBallastCfg", ["wiserControlMode"], undefined, {
+                manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            }),
         );
         return extend;
     },
