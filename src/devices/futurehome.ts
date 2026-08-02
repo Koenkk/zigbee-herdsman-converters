@@ -16,14 +16,7 @@ interface FuturehomeHaApplianceControl {
         energyMeterNow: number;
         chargingSessionStartT: number;
         chargingSessionEndT: number;
-        a5: number;
-        a6: number;
-        a7: number;
-        a8: number;
         status: number;
-        aa: number;
-        ab: number;
-        a10: number;
     };
     commands: never;
     commandResponses: never;
@@ -46,116 +39,6 @@ const localValueConverters = {
 };
 
 const futurehomeExtend = {
-    chargerStatus: (): ModernExtend => {
-        const extend: ModernExtend = {
-            isModernExtend: true,
-            fromZigbee: [
-                {
-                    cluster: "haApplianceControl",
-                    type: ["commandSignalStateNotification", "commandSignalStateRsp"],
-                    convert(model, msg, publish, options, meta) {
-                        const status = msg?.data?.applianceStatus;
-                        if (status === undefined || status === null) return;
-                        let chargerStatus:
-                            | "plugged_out"
-                            | "1: Off"
-                            | "4: plugged_in"
-                            | "2: plugged_in_charging"
-                            | "3: plugged_in_paused"
-                            | "5: stopped"
-                            | "8X: failure" = "plugged_out";
-                        let chargingOn = false;
-
-                        switch (status) {
-                            case 0x01: // Off
-                                chargerStatus = "1: Off";
-                                chargingOn = false;
-                                break;
-                            case 0x02: // StandBy → charging
-                                chargerStatus = "2: plugged_in_charging";
-                                chargingOn = true;
-                                break;
-                            case 0x03: // Programmed (paused by user)
-                                chargerStatus = "3: plugged_in_paused";
-                                chargingOn = false;
-                                break;
-                            case 0x04: // ProgrammedWaitingToStart
-                                chargerStatus = "4: plugged_in";
-                                chargingOn = false;
-                                break;
-                            case 0x05: // Running
-                                chargerStatus = "5: stopped";
-                                chargingOn = false;
-                                break;
-                            case 0x08: // Failure
-                                chargerStatus = "8X: failure";
-                                chargingOn = false;
-                                break;
-                            default:
-                                chargerStatus = "plugged_out";
-                                chargingOn = false;
-                        }
-                        return {charger_status: chargerStatus, charging_on: chargingOn === true ? "ON" : "OFF"};
-                    },
-                } satisfies Fz.Converter<"haApplianceControl", undefined, ["commandSignalStateNotification", "commandSignalStateRsp"]>,
-            ],
-            toZigbee: [
-                {
-                    key: ["charger_status", "charging_on"],
-                    convertGet: async (entity, key, meta) => {
-                        await entity.command("haApplianceControl", "signalState", {});
-                    },
-                } satisfies Tz.Converter,
-            ],
-            configure: [
-                async (device, coordinatorEndpoint, logger) => {
-                    for (const endpoint of device.endpoints) {
-                        if (endpoint.supportsInputCluster("haApplianceControl")) {
-                            await endpoint.bind("haApplianceControl", coordinatorEndpoint);
-                            try {
-                                await endpoint.command("haApplianceControl", "signalState", {});
-                            } catch {
-                                // do nothing
-                            }
-                        }
-                    }
-                },
-            ],
-            exposes: [
-                exposes
-                    .enum("charger_status", ea.STATE_GET, [
-                        "plugged_out",
-                        "1: Off",
-                        "2: plugged_in_charging",
-                        "3: plugged_in_paused",
-                        "4: plugged_in",
-                        "5: stopped",
-                        "8X: failure",
-                    ])
-                    .withDescription("Current EV charger state"),
-                exposes.binary("charging_on", ea.STATE, "ON", "OFF").withDescription("Indicates if the charger is actively delivering power"),
-            ],
-        };
-        const pollExtend = m.poll({
-            key: "charger_status_poll",
-            optionKey: "charger_status_poll_interval",
-            option: e
-                .numeric("charger_status_poll_interval", ea.SET)
-                .withValueMin(-1)
-                .withUnit("s")
-                .withDescription("Polling interval charger status (default: 60s, -1 to disable)"),
-            defaultIntervalSeconds: 60,
-            poll: async (device) => {
-                const endpoint = device.endpoints.find((e) => e.supportsInputCluster("haApplianceControl"));
-                if (endpoint) {
-                    await endpoint.command("haApplianceControl", "signalState", {});
-                }
-            },
-        });
-        extend.onEvent = pollExtend.onEvent;
-        extend.options = pollExtend.options;
-        return extend;
-    },
     chargingCommand: (): ModernExtend => {
         const commandLookup: {[key: string]: number} = {
             start: 0x01,
@@ -209,7 +92,7 @@ const futurehomeExtend = {
                         const now = new Date();
                         const currentSession = globalStore.getValue(meta.device, "charging_session", {
                             isCharging: false,
-                            chargerConnected: false,
+                            isChargerConnected: false,
                         }) as {
                             isCharging: boolean;
                             isChargerConnected: boolean;
@@ -217,10 +100,6 @@ const futurehomeExtend = {
                             chargingEndTime?: string;
                             connectedStartTime?: string;
                             connectedEndTime?: string;
-                            // duration: number;
-                            // prevStartTime?: string;
-                            // prevEndTime?: string;
-                            // prevDuration?: number;
                         };
 
                         const isCharging = status === 0x02;
@@ -265,26 +144,17 @@ const futurehomeExtend = {
                         result.is_charger_connected = currentSession.isChargerConnected;
 
                         globalStore.putValue(meta.device, "charging_session", currentSession);
-
                         return result;
                     },
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
             exposes: [
+                exposes.binary("is_charging", ea.STATE, "true", "false").withDescription("Indicates if an active charging session is ongoing."),
                 exposes.text("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
                 exposes.text("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
+                exposes.binary("is_charger_connected", ea.STATE, "true", "false").withDescription("Indicates if the charger is connected."),
                 exposes.text("connected_start_datetime", ea.STATE).withDescription("Date and time when charger was connected."),
                 exposes.text("connected_end_datetime", ea.STATE).withDescription("Date and time when charger was disconnected."),
-                // exposes
-                //     .text("previous_charging_start_datetime", ea.STATE)
-                //     .withDescription("Date and time when previous charging session started (ISO 8601 format)"),
-                // exposes
-                //     .text("previous_charging_end_datetime", ea.STATE)
-                //     .withDescription("Date and time when previous charging session ended (ISO 8601 format)"),
-                // exposes.numeric("previous_charging_duration", ea.STATE).withDescription("Duration of the previous charging session").withUnit("s"),
-                exposes.binary("is_charging", ea.STATE, "true", "false").withDescription("Indicates if an active charging session is ongoing."),
-                exposes.binary("is_charger_connected", ea.STATE, "true", "false").withDescription("Indicates if the charger is connected."),
-                // exposes.numeric("current_charging_duration", ea.STATE).withDescription("Duration of the current charging session").withUnit("s"),
             ],
         };
     },
@@ -324,8 +194,15 @@ const futurehomeExtend = {
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
             exposes: [
-                exposes.numeric("session_energy", ea.STATE).withLabel("Session energy").withDescription("Previous session").withUnit("kWh"),
-                exposes.numeric("charging_duration", ea.STATE).withDescription("Charging duration last session").withUnit("s"),
+                exposes
+                    .numeric("session_energy", ea.STATE)
+                    .withLabel("Session energy")
+                    .withDescription("For ongoining or last session as reported by the charger.")
+                    .withUnit("kWh"),
+                exposes
+                    .numeric("charging_duration", ea.STATE)
+                    .withDescription("Charging duration for ongoing or last session as reported by the charger.")
+                    .withUnit("s"),
             ],
         };
     },
@@ -450,51 +327,9 @@ export const definitions: DefinitionWithExtend[] = [
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                     },
-                    a5: {
-                        name: "a5",
-                        ID: 0xef05,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    a6: {
-                        name: "a6",
-                        ID: 0xef06,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    a7: {
-                        name: "a7",
-                        ID: 0xef07,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    a8: {
-                        name: "a8",
-                        ID: 0xef08,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
                     status: {
                         name: "status",
                         ID: 0xef09,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    aa: {
-                        name: "aa",
-                        ID: 0xef0a,
-                        type: Zcl.DataType.UINT8,
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    ab: {
-                        name: "ab",
-                        ID: 0xef0b,
                         type: Zcl.DataType.UINT8,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
@@ -506,22 +341,10 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                         write: true,
                     },
-                    // ID: 0xef0d,
-                    // ID: 0xef0e,
-                    // ID: 0xef0f,
-                    a10: {
-                        name: "a10",
-                        ID: 0xef10,
-                        type: Zcl.DataType.UINT16, // tested with write
-                        manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
-                        write: true,
-                    },
-                    // ID: 0xef11,
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            // futurehomeExtend.chargerStatus(),
             m.enumLookup<"haApplianceControl", FuturehomeHaApplianceControl>({
                 name: "status",
                 cluster: "haApplianceControl",
@@ -540,16 +363,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             futurehomeExtend.chargingCommand(),
-            futurehomeExtend.chargerSessionTimings(),
-            m.binary({
-                name: "cable_locked",
-                cluster: "closuresDoorLock",
-                attribute: "operatingMode",
-                valueOff: ["UNLOCK", 0x00],
-                valueOn: ["LOCK", 0x02],
-                description: "Permanently lock cable when not charging.",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
             m.numeric({
                 name: "setpoint_charging_current",
                 cluster: "genAnalogOutput",
@@ -561,6 +374,16 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 32,
                 valueStep: 1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
+            }),
+            futurehomeExtend.chargerSessionTimings(),
+            m.binary({
+                name: "cable_locked",
+                cluster: "closuresDoorLock",
+                attribute: "operatingMode",
+                valueOff: ["UNLOCK", 0x00],
+                valueOn: ["LOCK", 0x02],
+                description: "Permanently lock cable when not charging.",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.numeric({
@@ -620,119 +443,6 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 scale: 1000,
                 reporting: {min: 5, max: "1_HOUR", change: 1},
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "start_t",
-                cluster: "haApplianceControl",
-                attribute: "chargingSessionStartT",
-                description: "Start time of charging session. Time in seconds. Should be converted to date and time.",
-                access: "STATE",
-                scale: 1.0,
-                unit: "s",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "end_t",
-                cluster: "haApplianceControl",
-                attribute: "chargingSessionEndT",
-                description: "End time of charging session. Time in seconds. Should be converted to date and time.",
-                access: "STATE",
-                scale: 1.0,
-                unit: "s",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a5",
-                cluster: "haApplianceControl",
-                attribute: "a5",
-                description: "a5 - not reportable",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a6",
-                cluster: "haApplianceControl",
-                attribute: "a6",
-                description: "a6",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a7",
-                cluster: "haApplianceControl",
-                attribute: "a7",
-                description: "a7 - not reportable",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a8",
-                cluster: "haApplianceControl",
-                attribute: "a8",
-                description: "a8 - not reportable",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "status_code",
-                cluster: "haApplianceControl",
-                attribute: "status",
-                description: "Status code",
-                access: "STATE_GET",
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "aa",
-                cluster: "haApplianceControl",
-                attribute: "aa",
-                description: "aa",
-                access: "STATE_GET",
-                reporting: {min: 5, max: "1_HOUR", change: 1},
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "ab",
-                cluster: "haApplianceControl",
-                attribute: "ab",
-                description: "ab - not reportable",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric<"haApplianceControl", FuturehomeHaApplianceControl>({
-                name: "a10",
-                cluster: "haApplianceControl",
-                attribute: "a10",
-                description: "a10 - not reportable",
-                access: "STATE_GET",
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric({
-                name: "actuator_enabled",
-                cluster: "closuresDoorLock",
-                attribute: "actuatorEnabled",
-                description: "closuresDoorLock - presentValue",
-                valueMin: -1000,
-                valueMax: 1000,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric({
-                name: "present_value",
-                cluster: "genMultistateValue",
-                attribute: "presentValue",
-                description: "genMultistateValue - presentValue",
-                valueMin: -1000,
-                valueMax: 1000,
-                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
-            }),
-            m.numeric({
-                name: "present_value2",
-                cluster: "genMultistateInput",
-                attribute: "presentValue",
-                description: "genMultistateInput - presentValue",
-                valueMin: -1000,
-                valueMax: 1000,
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
         ],
