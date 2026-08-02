@@ -29759,16 +29759,22 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Split-type sensor for detecting soil moisture, soil fertility, temperature and humidity",
         exposes: [
             e.battery().withDescription("Battery level"),
-            e.enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Probe temperature sensor warning. Low: temperature is lower than v0 and v1. High: temperature is higher than v0 and v1"),
+            e
+                .enum("probe_temperature_warning", ea.STATE, ["none", "low", "high"])
+                .withDescription(
+                    "Probe temperature sensor warning. Low: temperature is lower than v0 and v1. High: temperature is higher than v0 and v1",
+                ),
             e
                 .enum("temperature_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Temperature warning. Low: temperature is lower than v0 and v1. High: temperature is higher than v0 and v1"),
-            e.enum("humidity_warning", ea.STATE, ["none", "low", "high"])
+            e
+                .enum("humidity_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
-            e.enum("fertility_warning", ea.STATE, ["none", "low", "high"])
+            e
+                .enum("fertility_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Fertility warning status: none=fertility between v0/v1; low=between below v0; high=above v1"),
-            e.enum("moisture_warning", ea.STATE, ["none", "low", "high"])
+            e
+                .enum("moisture_warning", ea.STATE, ["none", "low", "high"])
                 .withDescription("Moisture warning status: none=moisture between v0/v1; low=below v0; high=above v1"),
             e
                 .numeric("probe_temperature", ea.STATE)
@@ -29780,7 +29786,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.soil_moisture(),
             e.temperature(),
             e.humidity(),
-            e.numeric("fertility", ea.STATE)
+            e
+                .numeric("fertility", ea.STATE)
                 .withValueMin(0)
                 .withValueStep(1)
                 .withValueMax(5000)
@@ -29793,19 +29800,22 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(5)
                 .withUnit("s")
                 .withDescription("Sampling interval"),
-            e.numeric("probe_temperature_calibration", ea.STATE_SET)
+            e
+                .numeric("probe_temperature_calibration", ea.STATE_SET)
                 .withValueMin(-2)
                 .withValueMax(2)
                 .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor calibration"),
-            e.numeric("probe_temperature_v0_set", ea.STATE_SET)
+            e
+                .numeric("probe_temperature_v0_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(125)
                 .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor v0 threshold setting"),
-            e.numeric("probe_temperature_v1_set", ea.STATE_SET)
+            e
+                .numeric("probe_temperature_v1_set", ea.STATE_SET)
                 .withValueMin(-40)
                 .withValueMax(125)
                 .withValueStep(0.1)
@@ -29854,31 +29864,36 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.01)
                 .withUnit("%")
                 .withDescription("Humidity v1 threshold setting"),
-            e.numeric("fertility_v0_set", ea.STATE_SET)
+            e
+                .numeric("fertility_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
                 .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
-            e.numeric("fertility_v1_set", ea.STATE_SET)
+            e
+                .numeric("fertility_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
                 .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
-            e.numeric("moisture_calibration", ea.STATE_SET)
+            e
+                .numeric("moisture_calibration", ea.STATE_SET)
                 .withValueMin(-30)
                 .withValueMax(30)
                 .withValueStep(1)
                 .withUnit("%")
                 .withDescription("Moisture calibration value"),
-            e.numeric("moisture_v0_set", ea.STATE_SET)
+            e
+                .numeric("moisture_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
                 .withDescription("Moisture low threshold setting"),
-            e.numeric("moisture_v1_set", ea.STATE_SET)
+            e
+                .numeric("moisture_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
@@ -29915,6 +29930,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [132, "moisture_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
-
     },
 ];
