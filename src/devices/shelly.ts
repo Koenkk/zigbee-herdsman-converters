@@ -278,9 +278,6 @@ const SHELLY_PRESENCE_SETTING_GROUPS: readonly ShellyPresenceSettingGroup[] = [
 
 const NS = "zhc:shelly";
 
-const HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID = 0x0b04;
-const HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID = 0x0510;
-
 const checkOption = (device: Zh.Device | DummyDevice, options: KeyValue, key: string, defaultValue = false): boolean => {
     if (options?.[key] === "true") return true;
     if (options?.[key] === "false") return false;
@@ -741,19 +738,6 @@ function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: 
 // =============================================================================
 
 const shellyModernExtend = {
-    shellyPowerFactorInt16Fix(): ModernExtend {
-        // Shelly Gen4 devices report haElectricalMeasurement.powerFactor (0x0510) as INT16 (0x29)
-        // while zigbee-herdsman defines it as INT8 (0x28). This breaks configureReporting (INVALID_DATA_TYPE).
-        return m.deviceAddCustomCluster("haElectricalMeasurement", {
-            name: "haElectricalMeasurement",
-            ID: HA_ELECTRICAL_MEASUREMENT_CLUSTER_ID,
-            attributes: {
-                powerFactor: {name: "powerFactor", ID: HA_ELECTRICAL_MEASUREMENT_POWER_FACTOR_ATTR_ID, type: Zcl.DataType.INT16},
-            },
-            commands: {},
-            commandsResponse: {},
-        });
-    },
     shellyCustomClusters(): ModernExtend[] {
         return [
             m.deviceAddCustomCluster("shellyRPCCluster", {
@@ -2115,9 +2099,18 @@ const tzLocal = {
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Mini1", "1 Mini"],
+        fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
         model: "S4SW-001X8EU",
         vendor: "Shelly",
         description: "1 Mini Gen 4",
+        whiteLabel: [
+            {
+                vendor: "Shelly",
+                model: "S4SW-001X16EU",
+                description: "1 Gen 4",
+                fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
+            },
+        ],
         ota: true,
         // The genOnOff/genScenes bindings and the switchType read in configure were added after
         // this device was first released; bump the patch version so already paired devices get
@@ -2154,50 +2147,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
-        model: "S4SW-001X16EU",
-        vendor: "Shelly",
-        description: "1 Gen 4",
-        ota: true,
-        // The genOnOff/genScenes bindings and the switchType read in configure were added after
-        // this device was first released; bump the patch version so already paired devices get
-        // re-configured and their input events start arriving (same rule as the BLU remotes).
-        version: "0.0.1",
-        fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
-        toZigbee: [tzLocal.switch_input_type],
-        // The switch input endpoint only exists when an input is actually wired. Without it the
-        // setting has nothing to address, and a state that can never hold a value is worse than
-        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
-        exposes: (device) => [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            ...shellySwitchInputExposes(device, {sw1: 2}),
-        ],
-        extend: [
-            // The endpoint map must only name endpoints the device actually has: the application
-            // builds its property parser from these names and resolves them with a non-null
-            // assertion, so naming sw1 on a device without a wired input crashes every
-            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
-            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
-            shellyDeviceEndpoints({sw1: 2}),
-            m.onOff({powerOnBehavior: false}),
-            ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
-            shellyModernExtend.shellyWiFiSetup(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(2);
-            if (ep) {
-                await ep.bind("genOnOff", coordinatorEndpoint);
-                await ep.bind("genScenes", coordinatorEndpoint);
-                await ep.read("genOnOffSwitchCfg", ["switchType"]);
-            }
-        },
-    },
-    {
-        zigbeeModel: ["Mini1PM", "1PM Mini"],
+        zigbeeModel: ["Mini1PM", "1PM Mini", "1PM"],
         model: "S4SW-001P8EU",
         vendor: "Shelly",
         description: "1PM Mini Gen 4",
+        whiteLabel: [
+            {
+                vendor: "Shelly",
+                model: "S4SW-001P16EU",
+                description: "1PM Gen 4",
+                fingerprint: [{modelID: "1PM"}],
+            },
+        ],
         ota: true,
         // The genOnOff/genScenes bindings and the switchType read in configure were added after
         // this device was first released; bump the patch version so already paired devices get
@@ -2221,49 +2182,6 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({sw1: 2}),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
-            ...shellyModernExtend.shellyCustomClusters(),
-            shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
-            shellyModernExtend.shellyWiFiSetup(),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const ep = device.getEndpoint(2);
-            if (ep) {
-                await ep.bind("genOnOff", coordinatorEndpoint);
-                await ep.bind("genScenes", coordinatorEndpoint);
-                await ep.read("genOnOffSwitchCfg", ["switchType"]);
-            }
-        },
-    },
-    {
-        zigbeeModel: ["1PM"],
-        model: "S4SW-001P16EU",
-        vendor: "Shelly",
-        description: "1PM Gen 4",
-        ota: true,
-        // The genOnOff/genScenes bindings and the switchType read in configure were added after
-        // this device was first released; bump the patch version so already paired devices get
-        // re-configured and their input events start arriving (same rule as the BLU remotes).
-        version: "0.0.1",
-        fromZigbee: [fzLocal.one_switch_input_events, fzLocal.one_switch_input_scene_events, fzLocal.switch_input_type],
-        toZigbee: [tzLocal.switch_input_type],
-        // The switch input endpoint only exists when an input is actually wired. Without it the
-        // setting has nothing to address, and a state that can never hold a value is worse than
-        // none - so expose it the same way the 2PM already does, conditional on the endpoint.
-        exposes: (device) => [
-            e.action(["input_1_on", "input_1_off", "input_1_toggle", "input_1_single", "input_1_double", "input_1_triple", "input_1_hold"]),
-            ...shellySwitchInputExposes(device, {sw1: 2}),
-        ],
-        extend: [
-            // The endpoint map must only name endpoints the device actually has: the application
-            // builds its property parser from these names and resolves them with a non-null
-            // assertion, so naming sw1 on a device without a wired input crashes every
-            // switch_type_sw1/switch_mode_sw1 set with "Cannot read properties of undefined
-            // (reading 'ID')" (Koenkk/zigbee2mqtt#31951).
-            shellyDeviceEndpoints({sw1: 2}),
-            m.onOff({powerOnBehavior: false}),
-            m.electricityMeter({producedEnergy: true, acFrequency: true}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -2284,7 +2202,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "EM Mini Gen4",
         extend: [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2303,7 +2220,6 @@ export const definitions: DefinitionWithExtend[] = [
                 acFrequency: true,
             }),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2442,7 +2358,6 @@ export const definitions: DefinitionWithExtend[] = [
             shellyDeviceEndpoints({l1: 1, l2: 2, sw1: 3, sw2: 4}),
             m.onOff({powerOnBehavior: false, endpointNames: ["l1", "l2"]}),
             m.electricityMeter({producedEnergy: true, acFrequency: true, endpointNames: ["l1", "l2"]}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMSwitchInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
@@ -2466,7 +2381,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter(),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2490,17 +2404,27 @@ export const definitions: DefinitionWithExtend[] = [
                 power: {change: 6},
                 energy: {change: 125000},
             }),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI", "PowerstripPowerOnBehavior"]),
             shellyModernExtend.shellyWiFiSetup(),
         ],
     },
     {
-        fingerprint: [{modelID: "Flood", manufacturerName: "Shelly"}],
+        fingerprint: [
+            {modelID: "Flood", manufacturerName: "Shelly"},
+            {modelID: "Flood S", manufacturerName: "Shelly"},
+        ],
         model: "S4SN-0071A",
         vendor: "Shelly",
         description: "Flood Gen 4",
+        whiteLabel: [
+            {
+                vendor: "Shelly",
+                model: "S4SN-0071Z",
+                description: "Flood S Gen 4",
+                fingerprint: [{modelID: "Flood S", manufacturerName: "Shelly"}],
+            },
+        ],
         extend: [
             m.battery({percentageReportingConfig: false}),
             m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
@@ -2651,7 +2575,6 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({configureReporting: true}),
             m.electricityMeter(),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
@@ -2668,7 +2591,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
             m.commandsWindowCovering({endpointNames: ["4"]}),
             m.commandsLevelCtrl({endpointNames: ["4"]}),
-            shellyModernExtend.shellyPowerFactorInt16Fix(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
         ],
