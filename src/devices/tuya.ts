@@ -2511,7 +2511,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.multiplyBy10],
             ],
         },
         // Optional: Add device-specific options
@@ -2834,7 +2834,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [22, "temperature", tuya.valueConverter.divideBy100],
-                [26, "voltage", tuya.valueConverter.divideBy100],
+                [26, "voltage", tuya.valueConverter.multiplyBy10],
             ],
         },
         options: [
