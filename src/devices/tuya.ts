@@ -1918,7 +1918,7 @@ const fzLocal = {
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
 };
 
-const fzSigned: Fz.Converter = {
+const fzSigned = {
     cluster: "manuSpecificTuya",
     type: ["commandDataReport", "commandDataResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1936,7 +1936,7 @@ const fzSigned: Fz.Converter = {
         if (current !== undefined) result.current_signed = sign * Math.abs(current);
         return result;
     },
-};
+} satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -2011,7 +2011,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Current with sign: positive = consumption, negative = production"),
             te
                 .leakageCurrent()
-                .withDescription("Current measured by the external ring. Place it over BOTH live and neutral wires to detect leakage current"),
+                .withDescription(
+                    "Current measured by the external ring. Place it over BOTH live and neutral wires to detect leakage current",
+                ),
             e.device_temperature(),
             te.circuitBreakerFaults(),
             exposes.enum("clear_fault", ea.STATE_SET, ["CLEAR"]).withDescription("Clear the stored faults"),
