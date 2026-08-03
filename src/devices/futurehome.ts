@@ -184,7 +184,7 @@ const futurehomeExtend = {
                             endT = msg.data.chargingSessionEndT;
                         }
                         if (energyStart !== null && energyNow !== null) {
-                            result.session_energy = ((energyNow as number) - (energyStart as number)).toFixed(3);
+                            result.session_energy = utils.precisionRound((energyNow as number) - (energyStart as number), 3);
                         }
                         if (startT !== null && endT !== null) {
                             result.charging_duration = (endT as number) - (startT as number);
@@ -202,7 +202,8 @@ const futurehomeExtend = {
                 exposes
                     .numeric("charging_duration", ea.STATE)
                     .withDescription("Charging duration for ongoing or last session as reported by the charger.")
-                    .withUnit("s"),
+                    .withUnit("s")
+                    .withHomeAssistant({deviceClass: "duration"}),
             ],
         };
     },
