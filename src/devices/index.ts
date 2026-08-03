@@ -103,7 +103,7 @@ import {definitions as ezex} from "./ezex";
 import {definitions as ezviz} from "./ezviz";
 import {definitions as fantem} from "./fantem";
 import {definitions as feibit} from "./feibit";
-import {definitions as fortezza} from "./fortezza";
+import fortezza from "./fortezza.js";
 import {definitions as frankever} from "./frankever";
 import {definitions as frient} from "./frient";
 import {definitions as futurehome} from "./futurehome";
