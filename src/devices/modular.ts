@@ -1,5 +1,4 @@
 import * as m from "../lib/modernExtend";
-import * as philips from "../lib/philips";
 import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [

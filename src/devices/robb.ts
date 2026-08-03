@@ -81,14 +81,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "Battery powered PIR presence, temperature, humidity and light sensors",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5}}),
             m.battery(),
             m.identify(),
             m.occupancy(),
             m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
-            m.temperature({endpointNames: ["3"]}),
-            m.humidity({endpointNames: ["4"]}),
-            m.illuminance({endpointNames: ["5"]}),
+            m.temperature(),
+            m.humidity(),
+            m.illuminance(),
         ],
     },
     {
