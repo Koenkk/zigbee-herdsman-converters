@@ -13,10 +13,10 @@ const definition = {
     description: 'Smart Door Lock',
     onEvent: tuya.onEventSetTime,
     fromZigbee: [fz.battery],
-    toZigbee: [] as any,
+    toZigbee: [],
     exposes: [e.battery(), e.lock()],
     meta: {
-        tuyaDatapoints: [] as any,
+        tuyaDatapoints: [],
     },
 };
 
