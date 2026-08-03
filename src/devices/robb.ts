@@ -63,7 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ROB_200-065-0"],
         model: "ROB_200-065-0",
-        vendor: "ROBB smarrt",
+        vendor: "ROBB",
         description: "LED Power Supply & RGBW Controller 24V 100W",
         extend: [m.light({colorTemp: {range: [160, 450]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
         whiteLabel: [{vendor: "Sunricher", model: "srp-zv9105-24-100cvf"}],
