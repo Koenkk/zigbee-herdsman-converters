@@ -15,6 +15,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LWM005",
         vendor: "Modular",
         description: "Dim Module Hue 0-10V/1-10V 150-300W",
-        extend: [philips.m.light()],
+        extend: [m.light()],
     },
 ];
