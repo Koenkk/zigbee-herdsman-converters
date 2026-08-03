@@ -2011,9 +2011,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Current with sign: positive = consumption, negative = production"),
             te
                 .leakageCurrent()
-                .withDescription(
-                    "Current measured by the external ring. Place it over BOTH live and neutral wires to detect leakage current",
-                ),
+                .withDescription("Current measured by the external ring. Place it over BOTH live and neutral wires to detect leakage current"),
             e.device_temperature(),
             te.circuitBreakerFaults(),
             exposes.enum("clear_fault", ea.STATE_SET, ["CLEAR"]).withDescription("Clear the stored faults"),
