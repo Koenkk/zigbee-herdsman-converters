@@ -175,6 +175,16 @@ interface SchneiderLightingBallastCfg {
     commandResponses: never;
 }
 
+interface SchneiderClosuresWindowCovering {
+    attributes: {
+        liftDriveUpTime: number;
+        liftDriveDownTime: number;
+        tiltOpenCloseAndStepTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 function indicatorMode(endpoint?: string) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
@@ -1082,6 +1092,45 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    addSchneiderClosuresWindowCoveringCluster: () =>
+        m.deviceAddCustomCluster("closuresWindowCovering", {
+            name: "closuresWindowCovering",
+            ID: Zcl.Clusters.closuresWindowCovering.ID,
+            attributes: {
+                liftDriveUpTime: {
+                    name: "liftDriveUpTime",
+                    ID: 0xe014,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    min: 0,
+                    max: 3000,
+                    default: 1200,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                liftDriveDownTime: {
+                    name: "liftDriveDownTime",
+                    ID: 0xe015,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    min: 0,
+                    max: 3000,
+                    default: 1200,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                tiltOpenCloseAndStepTime: {
+                    name: "tiltOpenCloseAndStepTime",
+                    ID: 0xe016,
+                    type: Zcl.DataType.UINT16,
+                    write: true,
+                    min: 0,
+                    max: 3000,
+                    default: 100,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
 };
 
 const tzLocal = {
@@ -1740,18 +1789,281 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["NHPB/SHUTTER/1"],
         model: "S520567",
         vendor: "Schneider Electric",
-        description: "Roller shutter",
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
-        exposes: [
-            e.cover_position_tilt(),
-            e.numeric("lift_duration", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(300).withDescription("Duration of lift"),
+        description: "Wiser Odace roller shutter switch (S520567W)",
+        onEvent: async (event) => {
+            if (event.type !== "deviceOptionsChanged") return;
+            const oldNoTilt = event.data.from?.no_tilt === true;
+            const newNoTilt = event.data.to?.no_tilt === true;
+            if (oldNoTilt === newNoTilt) return;
+
+            const coverEndpoint = event.data.device.getEndpoint(5);
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                ["tiltOpenCloseAndStepTime"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            await coverEndpoint.write<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                {tiltOpenCloseAndStepTime: newNoTilt ? 0 : 10},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                ["tiltOpenCloseAndStepTime"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+
+            const controlEndpoint = event.data.device.getEndpoint(21);
+            await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                ["switchActions"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            const switchActions = (newNoTilt ? 0 : 1) + (event.data.state.child_lock === "LOCK" ? 0 : 2);
+            await controlEndpoint.write<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                {switchActions},
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+            await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                ["switchActions"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
+        },
+        extend: [
+            m.identify(),
+            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}}),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
+            schneiderElectricExtend.addSchneiderClosuresWindowCoveringCluster(),
+            m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
+                name: "indicator_mode",
+                lookup: {
+                    consistent_with_load: 0,
+                    always_on: 1,
+                    reverse_with_load: 2,
+                    always_off: 3,
+                },
+                cluster: "manuSpecificSchneiderLightSwitchConfiguration",
+                attribute: "ledIndication",
+                description: "Set Indicator Mode.",
+                endpointName: "switch",
+                entityCategory: "config",
+            }),
+            m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
+                name: "lift_duration_up",
+                endpointNames: ["cover"],
+                cluster: "closuresWindowCovering",
+                attribute: "liftDriveUpTime",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 0.1,
+                scale: 10,
+                description: "Duration in seconds for shutter upward movement (0.1s precision) (Default: 120)",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
+                name: "lift_duration_down",
+                endpointNames: ["cover"],
+                cluster: "closuresWindowCovering",
+                attribute: "liftDriveDownTime",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 0.1,
+                scale: 10,
+                description: "Duration in seconds for shutter downward movement (0.1s precision) (Default: 120)",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            (() => {
+                const extend: ModernExtend = m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
+                    name: "tilt_duration",
+                    endpointNames: ["cover"],
+                    cluster: "closuresWindowCovering",
+                    attribute: "tiltOpenCloseAndStepTime",
+                    unit: "s",
+                    valueMin: 0,
+                    valueMax: 30,
+                    valueStep: 0.01,
+                    scale: 100,
+                    description: "Duration in seconds for shutter tilt movement (0.01s precision) (Default: 1)",
+                    zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                });
+                const original_exposes = extend.exposes;
+                extend.exposes = [
+                    (device, options) => {
+                        return options.no_tilt === true ? [] : original_exposes.flatMap((e) => (typeof e === "function" ? e(device, options) : e));
+                    },
+                ];
+                return extend;
+            })(),
         ],
+        fromZigbee: [
+            {
+                ...fz.cover_position_tilt,
+                convert: async (model, msg, publish, options, meta) => {
+                    const result = await fz.cover_position_tilt.convert(model, msg, publish, options, meta);
+                    if (!result) return result;
+                    delete result[postfixWithEndpointName("state", msg, model, meta)];
+                    return result;
+                },
+            },
+            {
+                cluster: "closuresWindowCovering",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    const result: KeyValueAny = {};
+                    const windowCoveringMode = msg.data.windowCoveringMode;
+                    if (windowCoveringMode !== undefined) {
+                        result.reversed = (windowCoveringMode & 1) !== 0;
+                    }
+
+                    return Object.keys(result).length > 0 ? result : undefined;
+                },
+            },
+            {
+                cluster: "manuSpecificSchneiderLightSwitchConfiguration",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options) => {
+                    const result: KeyValueAny = {};
+                    const switchActions = msg.data.switchActions;
+                    if (switchActions !== undefined) {
+                        result.child_lock = switchActions === 0 || switchActions === 1 ? "LOCK" : "UNLOCK";
+                        result.tilt_lock = switchActions === 0 || switchActions === 2 ? "LOCK" : "UNLOCK";
+                    }
+
+                    return Object.keys(result).length > 0 ? result : undefined;
+                },
+            },
+        ],
+        toZigbee: [
+            tz.cover_state,
+            tz.cover_position_tilt,
+            {
+                key: ["reversed"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (typeof value !== "boolean") {
+                        throw new Error("reversed must be a boolean");
+                    }
+                    const endpoint = meta.device.getEndpoint(5);
+                    const currentMode = await endpoint.read("closuresWindowCovering", [0x0017]);
+                    const modeValue = currentMode.windowCoveringMode ?? 0;
+                    const bit0 = 1 << 0;
+                    const updatedModeValue = value ? modeValue | bit0 : modeValue & ~bit0;
+                    await endpoint.write("closuresWindowCovering", {[0x0017]: {value: updatedModeValue, type: Zcl.DataType.BITMAP8}});
+                    return {state: {reversed: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = meta.device.getEndpoint(5);
+                    await endpoint.read("closuresWindowCovering", [0x0017]);
+                },
+            },
+            {
+                key: ["child_lock"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(21);
+                    const switchActions = (meta.state.tilt_lock === "LOCK" ? 0 : 1) + (value === "LOCK" ? 0 : 2);
+                    await endpoint.write<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        {switchActions},
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
+                    return {state: {child_lock: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = meta.device.getEndpoint(21);
+                    await endpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        ["switchActions"],
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
+                },
+            },
+            {
+                key: ["tilt_lock"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(21);
+                    const switchActions = (value === "LOCK" ? 0 : 1) + (meta.state.child_lock === "LOCK" ? 0 : 2);
+                    await endpoint.write<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        {switchActions},
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
+                    return {state: {tilt_lock: value}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = meta.device.getEndpoint(21);
+                    await endpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                        "manuSpecificSchneiderLightSwitchConfiguration",
+                        ["switchActions"],
+                        {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                    );
+                },
+            },
+        ],
+        options: [
+            e
+                .binary("no_tilt", ea.SET, true, false)
+                .withCategory("config")
+                .withDescription(
+                    "Disable tilt functionality, updating this setting will reset the values of tilt_duration and tilt_lock. (default: false)",
+                )
+                .withHomeAssistant({icon: "mdi:arrow-up-down"}),
+        ],
+        exposes: (device, options) => {
+            const exposesList = [];
+            const tilt_enabled = !(options.no_tilt === true);
+
+            if (tilt_enabled) {
+                exposesList.push(e.cover_position_tilt().withEndpoint("cover"));
+            } else {
+                exposesList.push(e.cover_position().withEndpoint("cover"));
+            }
+
+            exposesList.push(
+                e
+                    .binary("reversed", ea.ALL, true, false)
+                    .withCategory("config")
+                    .withDescription("Reverse motor direction (window covering mode bit 0)")
+                    .withHomeAssistant({icon: "mdi:swap-vertical"}),
+            );
+
+            exposesList.push(e.child_lock().withAccess(ea.ALL));
+
+            if (tilt_enabled) {
+                exposesList.push(
+                    e
+                        .binary("tilt_lock", ea.ALL, "LOCK", "UNLOCK")
+                        .withCategory("config")
+                        .withDescription("Disable or enable tilt control on the physical switch button")
+                        .withHomeAssistant({icon: "mdi:lock"}),
+                );
+            }
+
+            return exposesList;
+        },
         meta: {coverInverted: true},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(5);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(endpoint);
+            const coverEndpoint = device.getEndpoint(5);
+            await reporting.bind(coverEndpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(coverEndpoint);
+            await reporting.currentPositionTiltPercentage(coverEndpoint);
+            await coverEndpoint.read("closuresWindowCovering", ["windowCoveringMode"]);
+            await coverEndpoint.read<"closuresWindowCovering", SchneiderClosuresWindowCovering>(
+                "closuresWindowCovering",
+                ["liftDriveUpTime", "liftDriveDownTime", "tiltOpenCloseAndStepTime"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+            );
+
+            const controlEndpoint = device.getEndpoint(21);
+            await controlEndpoint.read<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>(
+                "manuSpecificSchneiderLightSwitchConfiguration",
+                ["ledIndication", "switchActions"],
+                {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            );
         },
     },
     {
