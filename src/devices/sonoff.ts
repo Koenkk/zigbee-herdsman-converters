@@ -9719,7 +9719,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "moving",
-                lookup: {Stop: 0, Forward: 1, Reverse: 2},
+                lookup: {stop: 0, forward: 1, reverse: 2},
                 cluster: "customClusterEwelink",
                 attribute: "motorRunStatus",
                 description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
