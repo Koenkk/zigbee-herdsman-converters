@@ -303,7 +303,6 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "haApplianceControl",
                 ID: Zcl.Clusters.haApplianceControl.ID,
                 attributes: {
-                    //     ID: 0xef00,
                     chargingSessionStartT: {
                         name: "chargingSessionStartT",
                         ID: 0xef01,
