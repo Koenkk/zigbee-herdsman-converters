@@ -3916,7 +3916,7 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "AOYAN",
                 model: "AY301Z",
                 description: "Wall switch module",
-                fingerprint: [{modelID: "AY301Z"}],
+                fingerprint: [{modelID: "AY301Z"}, {manufacturerName: "AOYAN"}],
             },
             tuya.whitelabel("Tuya", "QS-zigbee-S08-16A-RF", "Wall switch module", ["_TZ3000_dlhhrhs8"]),
         ],
@@ -12638,6 +12638,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {left: 1, right: 2}}),
             tuya.modernExtend.tuyaOnOff({
                 backlightModeOffNormalInverted: true,
                 onOffCountdown: true,
@@ -12661,6 +12662,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}),
             tuya.modernExtend.tuyaOnOff({
                 backlightModeOffNormalInverted: true,
                 onOffCountdown: true,
