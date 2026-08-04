@@ -8148,7 +8148,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         ota: true,
         description: "Zigbee water sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+        version: "0.0.1",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
     },
     {
         zigbeeModel: ["SNZB-06P"],
