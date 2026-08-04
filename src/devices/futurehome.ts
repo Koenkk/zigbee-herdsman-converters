@@ -374,6 +374,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 32,
                 valueStep: 1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                homeassistant: {icon: "mdi:target"},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             futurehomeExtend.chargerSessionTimings(),
