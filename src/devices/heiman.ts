@@ -1459,7 +1459,7 @@ const heimanExtend = {
     linkAvailable: (args?: Partial<m.EnumLookupArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "link_available",
-            lookup: {inactive: 0, smoke_active: 1, co_active: 2, heat_active: 3},
+            lookup: {inactive: 0, smoke_active: 1, co_active: 2, gas_active: 3, heat_active: 4},
             cluster: "heimanClusterSpecial",
             attribute: "interconnectable",
             description: "used for interconnection automation.",
