@@ -174,6 +174,47 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
+    sunricher_srzg9002kr12z4_color_temp_step: {
+        cluster: "lightingColorCtrl",
+        type: ["commandStepColorTemp"],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? "color_temperature_step_up" : "color_temperature_step_down";
+            return {
+                action: direction,
+                action_group: msg.groupID,
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime / 100,
+            };
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepColorTemp"]>,
+    sunricher_srzg9002kr12z4_hue_step: {
+        cluster: "lightingColorCtrl",
+        type: ["commandStepHue"],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? "hue_step_up" : "hue_step_down";
+            return {
+                action: direction,
+                action_group: msg.groupID,
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime / 100,
+            };
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepHue"]>,
+    sunricher_srzg9002kr12z4_cover_commands: {
+        cluster: "closuresWindowCovering",
+        type: ["commandUpOpen", "commandDownClose", "commandStop"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: Record<string, string> = {
+                commandUpOpen: "curtain_open",
+                commandDownClose: "curtain_close",
+                commandStop: "curtain_stop",
+            };
+            return {
+                action: lookup[msg.type],
+                action_group: msg.groupID,
+            };
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["commandUpOpen", "commandDownClose", "commandStop"]>,
 };
 
 const tzLocal = {
@@ -1717,6 +1758,67 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee smart wall panel remote",
         extend: [m.battery(), sunricher.extend.SRZG9002KR12Pro()],
+    },
+    {
+        zigbeeModel: ["HK-ZRC-K12&RS-TL"],
+        model: "SR-ZG9002KR12-Z4",
+        vendor: "Sunricher",
+        description: "Zigbee smart wall panel remote with 4 group buttons, 7 scene buttons and rotary knob",
+        fromZigbee: [
+            fz.command_on,
+            fz.command_off,
+            fz.command_move,
+            fz.command_step,
+            fz.command_stop,
+            fz.command_recall,
+            fz.command_store,
+            fz.battery,
+            fzLocal.sunricher_srzg9002kr12z4_color_temp_step,
+            fzLocal.sunricher_srzg9002kr12z4_hue_step,
+            fzLocal.sunricher_srzg9002kr12z4_cover_commands,
+        ],
+        toZigbee: [],
+        exposes: [
+            e.battery(),
+            e.action([
+                "on",
+                "off",
+                "brightness_step_up",
+                "brightness_step_down",
+                "recall_1",
+                "recall_2",
+                "recall_3",
+                "recall_4",
+                "recall_5",
+                "recall_6",
+                "recall_7",
+                "store_1",
+                "store_2",
+                "store_3",
+                "store_4",
+                "store_5",
+                "store_6",
+                "store_7",
+                "color_temperature_step_up",
+                "color_temperature_step_down",
+                "hue_step_up",
+                "hue_step_down",
+                "curtain_open",
+                "curtain_close",
+                "curtain_stop",
+            ]),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ep of device.endpoints) {
+                for (const cluster of ["genScenes", "genOnOff", "genLevelCtrl", "lightingColorCtrl", "closuresWindowCovering"]) {
+                    try {
+                        await ep.bind(cluster, coordinatorEndpoint);
+                    } catch (error) {
+                        logger.warning(`Bind of ${cluster} on endpoint ${ep.ID} failed: ${(error as Error).message}`, NS);
+                    }
+                }
+            }
+        },
     },
     {
         zigbeeModel: ["ZV9380A", "ZG9380A"],
