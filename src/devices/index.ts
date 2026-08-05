@@ -184,6 +184,7 @@ import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
 import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
+import {definitions as linknlink} from "./linknlink";
 import {definitions as linptech} from "./linptech";
 import {definitions as livingwise} from "./livingwise";
 import {definitions as livolo} from "./livolo";
@@ -564,6 +565,7 @@ const definitions: DefinitionWithExtend[] = [
     ...lightsolutions,
     ...lincukoo,
     ...linkind,
+    ...linknlink,
     ...linptech,
     ...livingwise,
     ...livolo,

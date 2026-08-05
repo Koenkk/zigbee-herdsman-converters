@@ -2284,6 +2284,7 @@ export const definitions: DefinitionWithExtend[] = [
             namron.toZigbee.namron_thermostat_child_lock,
         ],
         extend: [
+            namron.namronExtend.addNamronHvacThermostatCluster(),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({voltage: false}),
             m.binary<"hvacThermostat", namron.NamronHvacThermostat>({

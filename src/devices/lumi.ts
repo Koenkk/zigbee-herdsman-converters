@@ -68,6 +68,7 @@ const {
     w600Thermostat,
     w600ValvePosition,
     w600WeeklySchedule,
+    lumiBathroomHeaterT1,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
@@ -83,9 +84,11 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
     for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
         const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
         await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
-        // Set report max to 0 to prevent stale actions being published
+        // Disable reporting for presentValue (max=0xFFFF = "shall not issue reports", ZCL).
+        // Button presses are firmware-generated unsolicited reports and keep working;
+        // an active reporting entry caused the hourly stale action replays.
         // https://github.com/Koenkk/zigbee2mqtt/issues/32059
-        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 0, 1));
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 65535, 1));
         // Initialize Aqara's per-button multi-click setting on startup.
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
@@ -159,6 +162,20 @@ function fp310DetectionRange(): ModernExtend {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["lumi.bhf_light.acn001"],
+        model: "ZNYB01LM",
+        vendor: "Aqara",
+        description: "Smart bathroom heater T1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            m.identify(),
+            m.light({effect: false, powerOnBehavior: false, colorTemp: {range: [153, 370]}}),
+            m.ignoreClusterReport({cluster: "hvacFanCtrl"}),
+            lumiBathroomHeaterT1(),
+        ],
+    },
     {
         zigbeeModel: ["lumi.flood.acn001"],
         model: "SJCGQ13LM",
@@ -3300,10 +3317,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumiZigbeeOTA(),
             lumiLight({
-                colorTemp: true,
                 color: false,
+                colorTemp: true,
+                colorTempRange: [166, 370],
                 powerOutageMemory: "enum",
-                levelConfig: {features: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level"]},
+                levelConfig: {features: ["on_transition_time", "off_transition_time", "on_level"]},
             }),
             m.numeric({
                 name: "min_brightness",
@@ -5217,7 +5235,7 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             },
         },
-        version: "0.0.1",
+        version: "0.0.2",
         configure: configureAqaraH2EuShutterSwitch,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),

@@ -1196,6 +1196,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_ubuikmgo"]),
+        model: "ZSS-QT-LTH-C",
+        vendor: "Moes",
+        description: "Smart 3-in-1 brightness, temperature and humidity sensor",
+        configure: tuya.configureMagicPacket,
+        extend: [m.battery(), m.temperature(), m.humidity(), m.illuminance()],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fhn3negr"]),
         model: "SH4-ZB",
         vendor: "Moes",
@@ -1366,7 +1374,15 @@ export const definitions: DefinitionWithExtend[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.learned_ir_timings(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
+        exposes: [
+            ez.learn_ir_code(),
+            ez.learned_ir_code(),
+            ez.learned_ir_timings(),
+            ez.ir_code_to_send(),
+            ez.ir_emitter(),
+            e.battery(),
+            e.battery_voltage(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);

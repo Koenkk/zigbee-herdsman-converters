@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it} from "vitest";
+import {beforeEach, describe, expect, it, vi} from "vitest";
 import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
 import type {Definition, Fz, Tz} from "../src/lib/types";
@@ -35,6 +35,207 @@ describe("lib/lumi", () => {
                 null,
             );
             expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeGreaterThanOrEqual(before);
+        });
+    });
+
+    describe("ZNYB01LM bathroom heater", () => {
+        const definition = {model: "ZNYB01LM"} as Definition;
+        const extend = lumiModernExtend.lumiBathroomHeaterT1();
+        const manufacturerOptions = {manufacturerCode: 0x115f, disableDefaultResponse: true};
+
+        const convertFromYuba = async (data: Record<string | number, unknown>) => {
+            const converter = extend.fromZigbee?.find(({cluster}) => cluster === "manuSpecificLumi");
+            expect(converter).toBeDefined();
+            return await converter?.convert(definition, {data} as never, vi.fn(), {}, {} as Fz.Meta);
+        };
+
+        const getToZigbee = (key: string) => {
+            const converter = extend.toZigbee?.find(({key: keys}) => keys.includes(key));
+            if (!converter) throw new Error(`Missing toZigbee converter for ${key}`);
+            return converter;
+        };
+
+        const createContext = (readResponse: Record<string | number, unknown> = {}, state: Record<string, unknown> = {}) => {
+            const read = vi.fn(async () => readResponse);
+            const device = mockDevice({modelID: "lumi.bhf_light.acn001", endpoints: [{ID: 1, read}]});
+            const meta: Tz.Meta = {
+                state,
+                device,
+                message: {},
+                mapped: definition,
+                options: {},
+                publish: vi.fn(),
+                endpoint_name: null,
+            };
+            return {device, endpoint: device.endpoints[0], meta, read};
+        };
+
+        it.each([
+            {
+                packed: "0x0a280c35100cfffd",
+                expected: {
+                    current_heating_setpoint: 26,
+                    local_temperature: 31.25,
+                    heater_power: true,
+                    operating_mode: "warm",
+                    system_mode: "heat",
+                    running_state: "heat",
+                    fan_mode: "low",
+                    swing_mode: "on",
+                },
+            },
+            {
+                packed: "0xffffffff131dfffe",
+                expected: {
+                    heater_power: true,
+                    operating_mode: "dry",
+                    system_mode: "dry",
+                    running_state: "fan_only",
+                    fan_mode: "medium",
+                    swing_mode: "off",
+                },
+            },
+            {
+                packed: "0xffffffff142cffff",
+                expected: {
+                    heater_power: true,
+                    operating_mode: "fan_only",
+                    system_mode: "fan_only",
+                    running_state: "fan_only",
+                    fan_mode: "high",
+                    swing_mode: "on",
+                },
+            },
+            {
+                packed: "0xffffffff150dfffd",
+                expected: {
+                    heater_power: true,
+                    operating_mode: "exhaust",
+                    system_mode: "fan_only",
+                    running_state: "fan_only",
+                    fan_mode: "low",
+                    swing_mode: "off",
+                },
+            },
+            {
+                packed: "0xffffffff0ffffffc",
+                expected: {heater_power: false, operating_mode: "off", system_mode: "off", running_state: "idle", swing_mode: "off"},
+            },
+        ])("decodes packed state $packed", async ({packed, expected}) => {
+            expect(await convertFromYuba({591: packed})).toStrictEqual(expected);
+        });
+
+        it("decodes packed state from the Lumi heartbeat", async () => {
+            const packed = 0x0a280c35100cfffdn;
+            const bytes = Buffer.alloc(10);
+            bytes[0] = 0x78;
+            bytes[1] = 0x27;
+            bytes.writeBigUInt64LE(packed, 2);
+
+            expect(await convertFromYuba({247: bytes})).toMatchObject({
+                current_heating_setpoint: 26,
+                local_temperature: 31.25,
+                operating_mode: "warm",
+                fan_mode: "low",
+                swing_mode: "on",
+            });
+        });
+
+        it("decodes private configuration attributes", async () => {
+            const schedule = (435 << 16) | 1290;
+            expect(
+                await convertFromYuba({
+                    598: 0,
+                    599: schedule,
+                    702: 1,
+                    1304: 0x21c4ec,
+                }),
+            ).toStrictEqual({
+                mute_prompt_tone: "OFF",
+                mute_prompt_start_time: "21:30",
+                mute_prompt_end_time: "07:15",
+                constant_temperature_mode: "ON",
+                night_light_mode: "ON",
+            });
+        });
+
+        it("writes target temperature using the Aqara packed command", async () => {
+            const {endpoint, meta} = createContext();
+            const result = await getToZigbee("current_heating_setpoint").convertSet?.(endpoint, "current_heating_setpoint", 26, meta);
+
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {591: {value: 0x0a28ffffffffffffn, type: 0x27}}, manufacturerOptions);
+            expect(result).toStrictEqual({state: {current_heating_setpoint: 26}});
+        });
+
+        it.each([
+            ["warm", 0xffffffff10ffffffn],
+            ["dry", 0xffffffff13ffffffn],
+            ["fan_only", 0xffffffff14ffffffn],
+            ["exhaust", 0xffffffff15ffffffn],
+            ["off", 0xffffffff0ffffffcn],
+        ])("writes operating mode %s", async (mode, packed) => {
+            const {endpoint, meta} = createContext();
+            await getToZigbee("operating_mode").convertSet?.(endpoint, "operating_mode", mode, meta);
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {591: {value: packed, type: 0x27}}, manufacturerOptions);
+        });
+
+        it("preserves swing mode when changing fan speed", async () => {
+            const {endpoint, meta} = createContext({591: "0xffffffffff0cfffd"});
+            await getToZigbee("fan_mode").convertSet?.(endpoint, "fan_mode", "high", meta);
+
+            expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [591], {manufacturerCode: 0x115f});
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {591: {value: 0xffffffffff2cffffn, type: 0x27}}, manufacturerOptions);
+        });
+
+        it("preserves fan speed when changing swing mode", async () => {
+            const {endpoint, meta} = createContext({591: "0xffffffffff1dfffe"});
+            await getToZigbee("swing_mode").convertSet?.(endpoint, "swing_mode", "on", meta);
+
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {591: {value: 0xffffffffff1cfffen, type: 0x27}}, manufacturerOptions);
+        });
+
+        it("preserves the night-light schedule when toggling it", async () => {
+            const {endpoint, meta} = createContext({1304: 0x21c4ed});
+            await getToZigbee("night_light_mode").convertSet?.(endpoint, "night_light_mode", "ON", meta);
+
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {1304: {value: 0x21c4ec, type: 0x23}}, manufacturerOptions);
+        });
+
+        it("preserves mute end time when changing mute start time", async () => {
+            const currentSchedule = (435 << 16) | 1260;
+            const {endpoint, meta} = createContext({599: currentSchedule});
+            await getToZigbee("mute_prompt_start_time").convertSet?.(endpoint, "mute_prompt_start_time", "22:05", meta);
+
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {599: {value: (435 << 16) | 1325, type: 0x23}}, manufacturerOptions);
+        });
+
+        it.each([15, 46])("rejects target temperature %d", async (temperature) => {
+            const {endpoint, meta} = createContext();
+            await expect(
+                getToZigbee("current_heating_setpoint").convertSet?.(endpoint, "current_heating_setpoint", temperature, meta),
+            ).rejects.toThrow("between 16 and 45");
+        });
+
+        it("rejects invalid mute time", async () => {
+            const {endpoint, meta} = createContext({599: 0});
+            await expect(getToZigbee("mute_prompt_start_time").convertSet?.(endpoint, "mute_prompt_start_time", "24:00", meta)).rejects.toThrow(
+                "HH:MM",
+            );
+        });
+
+        it("reads current temperature from the packed state", async () => {
+            const {endpoint, meta} = createContext();
+            await getToZigbee("local_temperature").convertGet?.(endpoint, "local_temperature", meta);
+
+            expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [591], {manufacturerCode: 0x115f});
+        });
+
+        it("reads private state during configuration", async () => {
+            const {device, endpoint} = createContext();
+            await extend.configure?.[0](device, endpoint, definition);
+
+            expect(endpoint.read).toHaveBeenCalledTimes(1);
+            expect(endpoint.read).toHaveBeenCalledWith("manuSpecificLumi", [591, 598, 599, 702, 1304], {manufacturerCode: 0x115f});
         });
     });
 
