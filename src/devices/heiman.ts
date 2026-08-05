@@ -1914,7 +1914,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "HS1SA-E",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke sensor",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -1928,7 +1928,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SmokeSensor-N", "SmokeSensor-EM"],
         model: "HS3SA/HS1SA",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke sensor",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -1942,7 +1942,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS2SA-EF-3.0"],
         model: "HS2SA-EF-3.0",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke sensor",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
@@ -2903,7 +2903,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS15A-M"],
         model: "HS15A-M",
         vendor: "Heiman",
-        description: "Smoke detector relabeled for zipato",
+        description: "Smart smoke sensor relabeled for zipato",
         extend: [m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery(), m.iasWarning()],
     },
     {
@@ -3161,7 +3161,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS1SA-EF-3.0", "HS1SA-E-PLUS"],
         model: "HS1SA-E-PLUS",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke sensor",
         fromZigbee: [fz.ias_smoke_alarm_1, fz.battery, fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3220,7 +3220,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HM-722ESY-E-PLUS"],
         model: "HM-722ESY-E Plus",
         vendor: "Heiman",
-        description: "Co detector",
+        description: "Smart carbon monoxide sensor",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3316,7 +3316,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HS1CA-E-PLUS"],
         model: "HS1CA-E-PLUS",
         vendor: "Heiman",
-        description: "Co detector",
+        description: "Smart carbon monoxide sensor",
         version: "0.0.1",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
@@ -3410,7 +3410,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["Smokesensor-EF2-3.0"],
         model: "HS1SA-E Lover",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke sensor",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3447,7 +3447,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HM-636THV-AC-M"],
         model: "HM-636THV-AC-M",
         vendor: "Heiman",
-        description: "Smoke detector",
+        description: "Smart smoke&CO sensor",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
@@ -3739,7 +3739,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["HM-5HA-E", "HM-5HA-EF-3.0"],
         model: "HM-5HA-E",
         vendor: "Heiman",
-        description: "Heat detector",
+        description: "Smart heat detector",
         fromZigbee: [fzLocal.heimanClusterSpecialfz],
         toZigbee: [tz.warning],
         configure: async (device, coordinatorEndpoint) => {
