@@ -68,9 +68,21 @@ const futurehomeExtend = {
                 } satisfies Tz.Converter,
             ],
             exposes: [
-                exposes.enum("charging_start", ea.SET, ["start"]).withLabel("Start charging").withDescription("Press to start charging"),
-                exposes.enum("charging_stop", ea.SET, ["stop"]).withLabel("Stop charging").withDescription("Press to stop charging"),
-                exposes.enum("charging_pause", ea.SET, ["pause"]).withLabel("Pause charging").withDescription("Press to pause charging"),
+                e
+                    .enum("charging_start", ea.SET, ["start"])
+                    .withLabel("Start charging")
+                    .withDescription("Press to start charging")
+                    .withHomeAssistant({icon: "mdi:arrow-right-drop-circle"}),
+                e
+                    .enum("charging_stop", ea.SET, ["stop"])
+                    .withLabel("Stop charging")
+                    .withDescription("Press to stop charging")
+                    .withHomeAssistant({icon: "mdi:stop-circle"}),
+                e
+                    .enum("charging_pause", ea.SET, ["pause"])
+                    .withLabel("Pause charging")
+                    .withDescription("Press to pause charging")
+                    .withHomeAssistant({icon: "mdi:pause-circle"}),
             ],
         };
     },
@@ -406,6 +418,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Automatically start charging when a car is connected.",
                 valueOff: ["OFF", 0],
                 valueOn: ["ON", 1],
+                entityCategory: "config",
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             futurehomeExtend.sessionEnergyDuration(),
