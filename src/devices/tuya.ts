@@ -5880,7 +5880,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_state", ea.STATE, ["opening", "closing"]).withDescription("Current motor movement status"),
+            te.motorState(),
             e.enum("mode", ea.STATE_SET, ["morning", "night"]).withDescription("Operating mode. morning=normal, night=slower and quieter"),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
             e.battery(),
@@ -15208,7 +15208,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             e.enum("goto_positon", ea.SET, ["25", "50", "75", "FAVORITE"]),
-            e.enum("motor_state", ea.STATE, ["OPENING", "CLOSING", "STOPPED"]),
+            te.motorState(),
             e.numeric("active_power", ea.STATE).withDescription("Active power").withUnit("mWt"),
             e.numeric("cycle_count", ea.STATE).withDescription("Cycle count"),
             e.numeric("cycle_time", ea.STATE).withDescription("Cycle time").withUnit("ms"),
@@ -25402,7 +25402,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ayvolt Blinds",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition(), e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction")],
+        exposes: [
+            te.coverPosition(),
+            te.motorState(),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
+        ],
         meta: {
             tuyaDatapoints: [
                 [
@@ -25416,7 +25420,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [
                     3,
-                    "work_state",
+                    "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
@@ -25687,12 +25691,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"), // DP 11
             e.enum("border", ea.STATE_SET, ["UP", "Down", "Delete"]).withDescription("Border mode"), // DP 16
             e.numeric("speed", ea.STATE_SET).withValueMin(1).withValueMax(5).withDescription("Motor speed"), // DP 103
-            e.text("work_state", ea.STATE),
+            te.motorState(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
-                [3, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1), stopped: tuya.enum(2)})],
+                [3, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1), stopped: tuya.enum(2)})],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
                 [103, "speed", tuya.valueConverter.raw],
@@ -25713,7 +25717,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current work state"),
+            te.motorState(),
             e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
             e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
             e.text("fault", ea.STATE).withDescription("Fault details"),
@@ -25725,7 +25729,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
                 [10, "total_time", tuya.valueConverter.raw],
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
                 [12, "fault", tuya.valueConverter.raw],
@@ -25742,7 +25746,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current work state"),
+            te.motorState(),
             e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
             e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
             e.binary("auto_power", ea.STATE_SET, true, false),
@@ -25755,7 +25759,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "position", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
                 [6, "auto_power", tuya.valueConverter.raw],
-                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
                 [10, "total_time", tuya.valueConverter.raw],
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
                 [12, "fault", tuya.valueConverter.raw],
@@ -26440,7 +26444,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("mode", ea.STATE_SET, ["morning", "night"]).withDescription("Operating mode. morning=normal, night=slower and quieter"),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor rotation direction. Change if blind moves wrong way"),
             e.binary("auto_power", ea.STATE_SET, true, false).withDescription("Auto-complete open/close when curtain is manually pulled"),
-            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Current motor movement status"),
+            te.motorState(),
             e.enum("countdown", ea.STATE_SET, ["cancel", "1h", "2h", "3h", "4h"]).withDescription("Countdown timer to trigger open/close"),
             e.numeric("countdown_left", ea.STATE).withUnit("s").withDescription("Remaining countdown time in seconds"),
             e.numeric("time_total", ea.STATE).withUnit("ms").withDescription("Full travel time in ms, populated after calibration"),
@@ -26487,7 +26491,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, "auto_power", tuya.valueConverter.onOff],
                 [
                     7,
-                    "work_state",
+                    "motor_state",
                     tuya.valueConverterBasic.lookup({
                         opening: tuya.enum(0),
                         closing: tuya.enum(1),

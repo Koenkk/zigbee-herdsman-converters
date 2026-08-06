@@ -1253,6 +1253,11 @@ const tuyaExposes = {
     alarmDuration: () =>
         e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
     coverPosition: () => e.cover_position().setAccess("position", ea.STATE_SET),
+    motorState: () =>
+        e
+            .enum("motor_state", ea.STATE, ["opening", "closing", "stopped"])
+            .withDescription("Current motor movement status")
+            .withCategory("diagnostic"),
 };
 
 export {tuyaExposes as exposes};
