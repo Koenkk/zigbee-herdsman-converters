@@ -3866,14 +3866,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                [
-                    "indicatorLightLevelControlOf1",
-                    "rebootedCount",
-                    "rejoinedCount",
-                    "reportedPackages",
-                    "temperatureOffset",
-                    "humidityOffset",
-                ],
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
@@ -3913,14 +3906,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                [
-                    "indicatorLightLevelControlOf1",
-                    "rebootedCount",
-                    "rejoinedCount",
-                    "reportedPackages",
-                    "temperatureOffset",
-                    "humidityOffset",
-                ],
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
@@ -3959,14 +3945,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                [
-                    "indicatorLightLevelControlOf1",
-                    "rebootedCount",
-                    "rejoinedCount",
-                    "reportedPackages",
-                    "temperatureOffset",
-                    "humidityOffset",
-                ],
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
