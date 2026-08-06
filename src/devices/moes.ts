@@ -1775,9 +1775,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("automatic_mode", ea.STATE_SET, "ON", "OFF")
                 .withDescription("When set to `ON`, the device will start pushing in the same direction the window was pushed"),
-            e
-                .binary("slow_stop", ea.STATE_SET, "ON", "OFF")
-                .withDescription("When set to `ON`, the device decelerates gradually for quieter operation"),
+            te.slowMode(),
             e.enum("button_position", ea.STATE_SET, ["UP", "DOWN"]).withDescription("Swaps the behavior of the device's physical buttons"),
         ],
         meta: {
@@ -1794,7 +1792,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "position", tuya.valueConverter.coverPosition],
                 [105, "charging", tuya.valueConverter.trueFalse1],
                 [106, "automatic_mode", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
-                [110, "slow_stop", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [110, "slow_mode", tuya.valueConverter.onOffEnumOn1], //
                 [112, "button_position", tuya.valueConverterBasic.lookup({UP: 1, DOWN: 0})],
             ],
         },

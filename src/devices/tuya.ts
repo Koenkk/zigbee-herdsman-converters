@@ -5881,7 +5881,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             te.motorState(),
-            e.enum("mode", ea.STATE_SET, ["morning", "night"]).withDescription("Operating mode. morning=normal, night=slower and quieter"),
+            te.slowMode(),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
             e.battery(),
             e
@@ -5910,7 +5910,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [3, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
-                [7, "mode", tuya.valueConverterBasic.lookup({morning: tuya.enum(0), night: tuya.enum(1)})],
+                [7, "slow_mode", tuya.valueConverter.onOffEnumOn1], // mode: morning, night
                 // DP9 = set, DP8 = report
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
@@ -24411,7 +24411,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("fault", ea.STATE, ["Normal", "None", "Fault"]).withDescription("Motor Fault"),
             e.numeric("countdown", ea.STATE_SET).withValueMin(10).withValueMax(90).withUnit("s").withDescription("Motor timeout"),
             e.enum("motor_direction", ea.STATE_SET, ["Left Side", "Right Side"]).withDescription("Pusher install side"),
-            e.enum("mode", ea.STATE_SET, ["Enable", "Disable"]).withDescription("Slow stop mode"),
+            te.slowMode(),
             e.enum("fixed_window_sash", ea.STATE_SET, ["Up", "Down"]).withDescription("Button position"),
             e.enum("window_detection", ea.STATE, ["Opened", "Closed", "Pending"]).withDescription("Window detection status"),
         ],
@@ -24426,7 +24426,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "fault", tuya.valueConverterBasic.lookup({Normal: 0, None: 1, Fault: 2})],
                 [108, "countdown", tuya.valueConverter.raw],
                 [109, "motor_direction", tuya.valueConverterBasic.lookup({"Left Side": 1, "Right Side": 0})],
-                [110, "mode", tuya.valueConverterBasic.lookup({Enable: 1, Disable: 0})],
+                [110, "slow_mode", tuya.valueConverter.onOffEnumOn1],
                 [112, "fixed_window_sash", tuya.valueConverterBasic.lookup({Up: 1, Down: 0})],
                 [114, "window_detection", tuya.valueConverterBasic.lookup({Opened: 0, Closed: 1, Pending: 2})],
             ],
@@ -26441,7 +26441,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         exposes: [
             te.coverPosition(),
-            e.enum("mode", ea.STATE_SET, ["morning", "night"]).withDescription("Operating mode. morning=normal, night=slower and quieter"),
+            te.slowMode(),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor rotation direction. Change if blind moves wrong way"),
             e.binary("auto_power", ea.STATE_SET, true, false).withDescription("Auto-complete open/close when curtain is manually pulled"),
             te.motorState(),
@@ -26472,14 +26472,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
-                [
-                    4,
-                    "mode",
-                    tuya.valueConverterBasic.lookup({
-                        morning: tuya.enum(0),
-                        night: tuya.enum(1),
-                    }),
-                ],
+                [4, "slow_mode", tuya.valueConverter.onOffEnumOn1],
                 [
                     5,
                     "motor_direction",

@@ -1258,6 +1258,8 @@ const tuyaExposes = {
             .enum("motor_state", ea.STATE, ["opening", "closing", "stopped"])
             .withDescription("Current motor movement status")
             .withCategory("diagnostic"),
+    slowMode: () =>
+        e.binary("slow_mode", ea.STATE_SET, "ON", "OFF").withDescription("Operate the motor slower and quieter than normal").withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
