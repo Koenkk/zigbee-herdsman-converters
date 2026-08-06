@@ -104,10 +104,10 @@ const futurehomeExtend = {
                         const now = new Date();
                         const currentSession = globalStore.getValue(meta.device, "charging_session", {
                             isCharging: false,
-                            isChargerConnected: false,
+                            isPlugConnected: false,
                         }) as {
                             isCharging: boolean;
-                            isChargerConnected: boolean;
+                            isPlugConnected: boolean;
                             chargingStartTime?: string;
                             chargingEndTime?: string;
                             connectedStartTime?: string;
@@ -116,8 +116,8 @@ const futurehomeExtend = {
 
                         const isCharging = status === 0x02;
                         const wasCharging = currentSession.isCharging;
-                        const isChargerConnected = status !== 0x00;
-                        const wasChargerConnected = currentSession.isChargerConnected;
+                        const isPlugConnected = status !== 0x00;
+                        const wasPlugConnected = currentSession.isPlugConnected;
 
                         // Charging started
                         if (isCharging && !wasCharging) {
@@ -135,25 +135,25 @@ const futurehomeExtend = {
                             result.charging_end_datetime = currentSession.chargingEndTime;
                         }
 
-                        // charger connected
-                        if (isChargerConnected && !wasChargerConnected) {
+                        // Plug connected
+                        if (isPlugConnected && !wasPlugConnected) {
                             currentSession.connectedStartTime = utils.toLocalISOString(now);
                             currentSession.connectedEndTime = undefined;
-                            currentSession.isChargerConnected = true;
+                            currentSession.isPlugConnected = true;
                             result.connected_start_datetime = currentSession.connectedStartTime;
                             result.connected_end_datetime = currentSession.connectedEndTime;
                         }
 
-                        // charger disconnected
-                        if (!isChargerConnected && wasChargerConnected) {
+                        // Plug disconnected
+                        if (!isPlugConnected && wasPlugConnected) {
                             currentSession.connectedEndTime = utils.toLocalISOString(now);
-                            currentSession.isChargerConnected = false;
+                            currentSession.isPlugConnected = false;
                             result.connected_end_datetime = currentSession.connectedEndTime;
                         }
 
                         // Expose current charging and connection status
                         result.is_charging = currentSession.isCharging;
-                        result.is_charger_connected = currentSession.isChargerConnected;
+                        result.is_plug_connected = currentSession.isPlugConnected;
 
                         globalStore.putValue(meta.device, "charging_session", currentSession);
                         return result;
@@ -161,12 +161,18 @@ const futurehomeExtend = {
                 } satisfies Fz.Converter<"haApplianceControl", FuturehomeHaApplianceControl, ["attributeReport", "readResponse"]>,
             ],
             exposes: [
-                exposes.binary("is_charging", ea.STATE, "true", "false").withDescription("Indicates if an active charging session is ongoing."),
-                exposes.text("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
-                exposes.text("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
-                exposes.binary("is_charger_connected", ea.STATE, "true", "false").withDescription("Indicates if the charger is connected."),
-                exposes.text("connected_start_datetime", ea.STATE).withDescription("Date and time when charger was connected."),
-                exposes.text("connected_end_datetime", ea.STATE).withDescription("Date and time when charger was disconnected."),
+                e
+                    .binary("is_charging", ea.STATE, true, false)
+                    .withDescription("Indicates if an active charging session is ongoing.")
+                    .withHomeAssistant({deviceClass: "battery_charging"}),
+                e.text("charging_start_datetime", ea.STATE).withDescription("Date and time when charging started (ISO 8601 format)"),
+                e.text("charging_end_datetime", ea.STATE).withDescription("Date and time when charging ended (ISO 8601 format)"),
+                e
+                    .binary("is_plug_connected", ea.STATE, true, false)
+                    .withDescription("Indicates if the plug is connected.")
+                    .withHomeAssistant({deviceClass: "plug"}), // ({deviceClass: "plug", preserveName: true}),
+                e.text("connected_start_datetime", ea.STATE).withDescription("Date and time when charger was connected."),
+                e.text("connected_end_datetime", ea.STATE).withDescription("Date and time when charger was disconnected."),
             ],
         };
     },
