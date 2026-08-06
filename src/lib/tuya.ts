@@ -1252,6 +1252,7 @@ const tuyaExposes = {
     version: () => e.text("version", ea.STATE).withCategory("diagnostic"),
     alarmDuration: () =>
         e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
+    coverPosition: () => e.cover_position().setAccess("position", ea.STATE_SET),
 };
 
 export {tuyaExposes as exposes};

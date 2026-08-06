@@ -11,6 +11,7 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const NS = "zhc:zemismart";
 
@@ -219,7 +220,7 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.toZigbee.tuya_cover_control],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction").withCategory("config"),
             e
                 .enum("motor_working_mode", ea.STATE_SET, ["continuous", "intermittently"])
@@ -362,7 +363,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         exposes: [
             e.text("work_state", ea.STATE),
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.battery(),
             e.enum("program", ea.SET, ["set_bottom", "set_upper", "reset"]).withDescription("Set the upper/bottom limit"),
             e
@@ -426,7 +427,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.ZMAM02_cover],
         toZigbee: [legacy.tz.ZMAM02_cover],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e
                 .composite("options", "options", ea.STATE)
                 .withFeature(e.numeric("motor_speed", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Motor speed")),
@@ -452,7 +453,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the upper stroke limit").withCategory("config"),
             e
                 .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
@@ -1053,7 +1054,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
             e
                 .numeric("calibration_time", ea.STATE_SET)
@@ -1111,7 +1112,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
             e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
             e.battery(),
@@ -1145,7 +1146,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.text("work_state", ea.STATE),
             e.battery(),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),

@@ -4,6 +4,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -11,6 +12,7 @@ const NS = "zhc:livolo";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const poll = async (device: Zh.Device) => {
     try {
@@ -768,7 +770,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tzLocal.livolo_cover_state, tzLocal.livolo_cover_position, tzLocal.livolo_cover_options],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e
                 .composite("options", "options", ea.STATE_SET)
                 .withDescription("Motor options")

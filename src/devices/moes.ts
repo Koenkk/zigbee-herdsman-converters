@@ -11,6 +11,7 @@ import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -497,7 +498,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Star feather Zigbee curtain switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
+        exposes: [te.coverPosition()],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
@@ -526,7 +527,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
             e.battery(),
         ],
@@ -1394,7 +1395,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.moes_cover],
         toZigbee: [legacy.tz.moes_cover],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("backlight", ea.STATE_SET, ["OFF", "ON"]),
             e.enum("calibration", ea.STATE_SET, ["OFF", "ON"]),
             e.enum("motor_reversal", ea.STATE_SET, ["OFF", "ON"]),
@@ -1578,7 +1579,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
             e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
         ],
@@ -1805,10 +1806,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller Shade Blinds Motor for 38mm Tube",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [tuya.whitelabel("Tuya", "GM35TEQ-TYZ-2/25", "Roller Shade Blinds Motor for 38mm Tube", ["_TZE284_8whfphjv"])],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),
-        ],
+        exposes: [te.coverPosition(), e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction")],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
@@ -2064,7 +2062,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller blind motor 17mm/25mm/28mm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
             e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
             e.battery(),
