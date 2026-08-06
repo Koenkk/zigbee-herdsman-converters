@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
 import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -302,6 +303,45 @@ export const tzLegrand = {
             return {state: {auto_mode: value}};
         },
     } satisfies Tz.Converter,
+    cover_state_with_moving: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            // cover_state.convertSet returns void; call it for the side-effect only
+            await tz.cover_state.convertSet?.(entity, key, value, meta);
+            const cmd = (value as string).toLowerCase();
+            if (cmd === "open") {
+                return {state: {state: "opening", action: "opening", moving: true}};
+            }
+            if (cmd === "close") {
+                return {state: {state: "closing", action: "closing", moving: true}};
+            }
+            if (cmd === "stop") {
+                const pos = meta.state?.position as number | undefined;
+                const stoppedState = pos !== undefined && pos <= 0 ? "CLOSE" : "OPEN";
+                return {state: {state: stoppedState, action: "stopped", moving: false}};
+            }
+        },
+    } satisfies Tz.Converter,
+    cover_position_with_moving: {
+        key: ["position", "tilt"],
+        convertSet: async (entity, key, value, meta) => {
+            const result = await tz.cover_position_tilt.convertSet?.(entity, key, value, meta);
+            // cover_position_tilt returns {state?: KeyValue} | void; cast to access .state safely
+            const prevState = (result as KeyValueAny)?.state ?? {};
+            const currentPos = meta.state?.position as number | undefined;
+            if (key === "position" && currentPos !== undefined) {
+                const numValue = value as number;
+                const action = numValue > currentPos ? "opening" : numValue < currentPos ? "closing" : "stopped";
+                const moving = action !== "stopped";
+                const state = action === "opening" ? "opening" : action === "closing" ? "closing" : numValue > 0 ? "OPEN" : "CLOSE";
+                return {state: {...prevState, state, action, moving}};
+            }
+            return {state: {...prevState, state: "opening", action: "moving", moving: true}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await tz.cover_position_tilt.convertGet?.(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
         return {
             key: ["calibration_mode"],
@@ -514,6 +554,40 @@ export const fzLegrand = {
                 }
             }
             return payload;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+    cover_moving_state: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.tuyaMovingState === undefined) return;
+
+            const targetPos = 100 - msg.data.tuyaMovingState;
+            const reportedLift = (msg.data as KeyValueAny).currentPositionLiftPercentage;
+
+            // If both target and current position are available in the same frame,
+            // we can determine whether the cover is still moving or has stopped.
+            if (reportedLift !== undefined) {
+                const currentPos = 100 - reportedLift;
+                if (Math.abs(targetPos - currentPos) <= 1) {
+                    const state = currentPos > 0 ? "OPEN" : "CLOSE";
+                    return {state, action: "stopped", moving: false};
+                }
+                const direction = targetPos > currentPos ? "opening" : "closing";
+                return {state: direction, action: direction, moving: true};
+            }
+
+            const currentPos = Number(meta.state?.position);
+            if (!Number.isNaN(currentPos)) {
+                if (Math.abs(targetPos - currentPos) <= 1) {
+                    const state = currentPos > 0 ? "OPEN" : "CLOSE";
+                    return {state, action: "stopped", moving: false};
+                }
+                const direction = targetPos > currentPos ? "opening" : "closing";
+                return {state: direction, action: direction, moving: true};
+            }
+
+            return {state: "opening", action: "moving", moving: true};
         },
     } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     identify: {
