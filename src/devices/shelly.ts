@@ -2196,11 +2196,7 @@ function shellyTRVGetRemoteSensing(endpoint: Zh.Endpoint, state: KeyValue = {}, 
 async function shellyTRVEnableRemoteTemperature(endpoint: Zh.Endpoint, remoteSensing: number): Promise<number> {
     const enabled = remoteSensing | 1;
     if (enabled !== remoteSensing) {
-        await endpoint.write(
-            "hvacThermostat",
-            {remoteSensing: enabled},
-            {disableResponse: true, disableDefaultResponse: true},
-        );
+        await endpoint.write("hvacThermostat", {remoteSensing: enabled}, {disableResponse: true, disableDefaultResponse: true});
     }
     return enabled;
 }
@@ -2208,10 +2204,7 @@ async function shellyTRVEnableRemoteTemperature(endpoint: Zh.Endpoint, remoteSen
 /**
  * Sends an external temperature as the attribute report of a bound Temperature Measurement server.
  */
-async function shellyTRVSendExternalTemperature(
-    endpoint: Zh.Endpoint,
-    request: ShellyTRVExternalTemperatureRequest,
-): Promise<void> {
+async function shellyTRVSendExternalTemperature(endpoint: Zh.Endpoint, request: ShellyTRVExternalTemperatureRequest): Promise<void> {
     await endpoint.report(
         "msTemperatureMeasurement",
         {measuredValue: request.measuredValue},
@@ -2281,10 +2274,7 @@ const fzShellyTRVExternalTemperature = {
 
         if (shellyTRVExternalTemperatureIsExpired(request)) {
             shellyTRVClearExternalTemperatureRequest(msg.device);
-            logger.warning(
-                `External temperature ${request.temperature} °C was not confirmed by '${msg.device.ieeeAddr}'`,
-                NS,
-            );
+            logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${msg.device.ieeeAddr}'`, NS);
             return;
         }
 
