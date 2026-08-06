@@ -6,7 +6,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -22,14 +22,48 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
+// Moes ADCBZI01 curtain robot: travel-range calibration is driven by the Tuya
+// vendor attribute tuyaMotorReversal (0xF002) on closuresWindowCovering, used as
+// a 3-value control (0 stop, 1 calibrate, 2 calibrate in the opposite direction).
+const adcbziCalibrationTo: {[k: string]: number} = {stop: 0, calibrate: 1, calibrate_reverse: 2};
+const adcbziCalibrationFrom: {[k: number]: string} = {0: "stop", 1: "calibrate", 2: "calibrate_reverse"};
+
+const tzLocal = {
+    adcbzi_calibration: {
+        key: ["calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            const v = adcbziCalibrationTo[value as string];
+            if (v === undefined) throw new Error(`calibration: invalid value '${value}'`);
+            await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: v});
+            return {state: {calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaMotorReversal"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    adcbzi_calibration: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                return {calibration: adcbziCalibrationFrom[msg.data.tuyaMotorReversal] ?? String(msg.data.tuyaMotorReversal)};
+            }
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6"]),
+        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6", "_TZ3210_rundhkxp"]),
         model: "ADCBZI01",
         vendor: "Moes",
         description: "Curtain Robot",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.datapoints],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tuya.tz.datapoints],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.adcbzi_calibration, tuya.fz.datapoints],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.adcbzi_calibration, tuya.tz.datapoints],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         exposes: [
             e.cover_position(),
             e.position(),
@@ -49,6 +83,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("custom_week_prog_2", ea.STATE_SET).withDescription("Custom week program 2"),
             e.text("custom_week_prog_3", ea.STATE_SET).withDescription("Custom week program 3"),
             e.text("custom_week_prog_4", ea.STATE_SET).withDescription("Custom week program 4"),
+            e
+                .enum("calibration", ea.ALL, ["stop", "calibrate", "calibrate_reverse"])
+                .withDescription(
+                    "Travel-range calibration. With the curtain fully closed, set 'calibrate' and the motor free-runs " +
+                        "toward open; at the fully-open end set 'stop' to halt it and store the limit. Use 'calibrate_reverse' " +
+                        "if it runs the wrong way. Always start fully closed, otherwise the open/close commands end up reversed.",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -81,6 +122,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "factory_test", tuya.valueConverter.raw], // Factory test (0-100)
                 [112, "total_distance", tuya.valueConverter.raw], // Total running distance in meters
             ],
+        },
+        // Poll EF00 datapoints so battery/illuminance/total_* populate (they were permanently N/A
+        // without a poll). This unit exposes no genPowerCfg, so bind only closuresWindowCovering.
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {

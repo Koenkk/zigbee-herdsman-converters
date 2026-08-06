@@ -1,5 +1,28 @@
 # Changelog
 
+## [26.92.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.91.0...v26.92.0) (2026-08-05)
+
+
+### Features
+
+* **add:** CK-TLSR8656-SS5-01(7037 ([#12835](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12835)) ([86f4bdf](https://github.com/Koenkk/zigbee-herdsman-converters/commit/86f4bdf845e24157fcb5defda0016da94191bea5))
+* **add:** CK-TLSR8656-SS5-01(7037) ([#12836](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12836)) ([e0a6651](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e0a6651529ed7cbf863c366f8dd7064b8ff33429))
+* Philips 929002376101: support effects ([#12834](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12834)) ([f3e1e4d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f3e1e4d2f423340d11bbab469e375bed9b666f74))
+
+
+### Bug Fixes
+
+* AOYAN: fix switch module definitions ([#12838](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12838)) ([4f03a3b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4f03a3b9e4e98ba21c6874be9d9db4ffcb73a0fa))
+* **detect:** Detect `_TZ3210_rundhkxp` as Moes ADCBZI01 ([#12843](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12843)) ([9b35a4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9b35a4cdb71122f2a5fbc7c00a263216414461c1))
+* **detect:** Detect `_TZE284_ksz749x8` as Tuya ZTH02 ([#12844](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12844)) ([a884436](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a884436aa189ffa4461394b48b9e0b64cdcf4652))
+* Fix `state` not inverted when setting `invert_cover: true` ([#12707](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12707)) ([3c1b419](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3c1b41986a477b70079a0e09c8eaae1f089f0e23))
+* Heiman: make the descriptions are consistent ([#12845](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12845)) ([98d6e09](https://github.com/Koenkk/zigbee-herdsman-converters/commit/98d6e09b9d39aee3d4a3ed260098019c4323da35))
+* **ignore:** Remove duplicate CK-TLSR8656-SS5-01(7037) ([4c0cdd3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4c0cdd33b9576a0931d37f1d97d9d3eb5af84a27))
+* IKEA E1524/E1810: fix arrow hold/release actions ([#12841](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12841)) ([fcbb50a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fcbb50a2f22ce72906b9ee4219a869d7b2128553))
+* NodOn SEM-4-1-00: bump definition version to trigger reconfigure ([#12846](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12846)) ([4613a1b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4613a1b6582e87497d7bac5ff9a0a8dca0756e4c))
+* Philips 929004581801: fix color temp range ([#12849](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12849)) ([4086f1b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4086f1b8e6025abb7f5ab82a3c3f0cfe9cbc94f7))
+* SONOFF SNZB-05P: fix power source ([#12839](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12839)) ([cdf3319](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cdf33194ef1df87bea9dcda3841156c05609a69f))
+
 ## [26.91.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.90.0...v26.91.0) (2026-08-03)
 
 
