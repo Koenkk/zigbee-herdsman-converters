@@ -8148,7 +8148,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         ota: true,
         description: "Zigbee water sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+        version: "0.0.1",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
     },
     {
         zigbeeModel: ["SNZB-06P"],
@@ -11922,6 +11927,42 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
             await endpoint.read("seMetering", ["multiplier", "divisor"]);
             await reporting.currentSummDelivered(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-01(7037)", "CK-TLSR8656-Z123SE24DY-01(7037)"],
+        model: "CK-TLSR8656-SS5-01(7037)",
+        vendor: "eWeLink",
+        whiteLabel: [
+            {
+                model: "CK-TLSR8656-Z123SE24DY-01(7037)",
+                vendor: "eWeLink",
+                fingerprint: [{modelID: "CK-TLSR8656-Z123SE24DY-01(7037)", manufacturerName: "eWeLink"}],
+            },
+        ],
+        description: "Zigbee CO sensor",
+        ota: true,
+        extend: [
+            ewelinkBattery(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 1000,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+            }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msCarbonMonoxide", "ssIasZone"]);
+            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining", "batteryVoltage"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
     },
 ];

@@ -1783,7 +1783,7 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
             const value = msg.data.currentPositionLiftPercentage;
             result[postfixWithEndpointName("position", msg, model, meta)] = invert ? value : 100 - value;
             if (!coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invert
                     ? value === 0
                         ? "CLOSE"
                         : "OPEN"
@@ -1796,7 +1796,7 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
             const value = msg.data.currentPositionTiltPercentage;
             result[postfixWithEndpointName("tilt", msg, model, meta)] = invert ? value : 100 - value;
             if (coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invert
                     ? value === 100
                         ? "OPEN"
                         : "CLOSE"
