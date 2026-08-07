@@ -1282,6 +1282,7 @@ const tuyaExposes = {
             .enum("cover_limit", ea.STATE_SET, ["set_up", "set_down", "delete_up", "delete_down", "delete_both"])
             .withDescription("Set current position as the limit position")
             .withCategory("config"),
+    clickControl: () => e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control"),
 };
 
 export {tuyaExposes as exposes};
@@ -1663,6 +1664,7 @@ export const valueConverter = {
         delete_down: new Enum(3),
         delete_both: new Enum(4),
     }),
+    clickControl: valueConverterBasic.lookup({up: new Enum(0), down: new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,

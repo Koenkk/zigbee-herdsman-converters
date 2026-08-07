@@ -2119,7 +2119,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             e.enum("control_back_mode", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control (up/down)"),
+            te.clickControl(),
             te.favoritePosition(),
         ],
         meta: {
@@ -2145,14 +2145,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [19, "favorite_position", tuya.valueConverter.raw],
-                [
-                    20,
-                    "click_control",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                    }),
-                ],
+                [20, "click_control", tuya.valueConverter.clickControl],
             ],
         },
     },
@@ -5880,7 +5873,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             te.coverType(),
             te.coverLimit(),
-            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control (up/down)"),
+            te.clickControl(),
             te.favoritePosition(),
         ],
         meta: {
@@ -5905,14 +5898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [15, "cover_type", tuya.valueConverter.coverType], // curtain_type
                 [16, "cover_limit", tuya.valueConverter.coverLimit], // border
                 [19, "favorite_position", tuya.valueConverter.raw], // position_best
-                [
-                    20,
-                    "click_control",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                    }),
-                ],
+                [20, "click_control", tuya.valueConverter.clickControl],
             ],
         },
     },
@@ -9848,7 +9834,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.coverPosition(),
             e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction"),
             te.coverLimit(),
-            e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Single motor steps"),
+            te.clickControl(),
             e.binary("motor_fault", ea.STATE, true, false),
         ],
         whiteLabel: [
@@ -9885,14 +9871,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [12, "motor_fault", tuya.valueConverter.trueFalse1],
                 [13, "battery", tuya.valueConverter.raw],
                 [16, "cover_limit", tuya.valueConverter.coverLimit],
-                [
-                    20,
-                    "click_control",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                    }),
-                ],
+                [20, "click_control", tuya.valueConverter.clickControl],
             ],
         },
     },
@@ -26344,7 +26323,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             te.coverLimit(),
             te.favoritePosition(),
-            e.enum("click_control", ea.SET, ["up", "down"]).withDescription("Single jog step up or down"),
+            te.clickControl(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -26395,14 +26374,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [13, "battery", tuya.valueConverter.raw],
                 [16, "cover_limit", tuya.valueConverter.coverLimit],
                 [19, "favorite_position", tuya.valueConverter.raw],
-                [
-                    20,
-                    "click_control",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                    }),
-                ],
+                [20, "click_control", tuya.valueConverter.clickControl],
             ],
         },
     },
