@@ -845,7 +845,7 @@ export const options = {
             ),
     invert_cover: () =>
         new Binary("invert_cover", access.SET, true, false).withDescription(
-            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
+            "Inverts the cover position and state, false: open=100,close=0, true: open=0,close=100 (default false).",
         ),
     illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),
     color_sync: () =>

@@ -306,6 +306,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SEM-4-1-00",
         vendor: "NodOn",
         description: "Energy monitoring sensor",
+        version: "0.0.1",
         extend: [
             m.identify(),
             m.electricityMeter({
