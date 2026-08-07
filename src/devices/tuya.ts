@@ -2116,12 +2116,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Novato",
         description: "Curtain motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            te.coverPosition(),
-            e.enum("control_back_mode", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            te.clickControl(),
-            te.favoritePosition(),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection(), te.clickControl(), te.favoritePosition()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -2136,14 +2131,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP9 = set position, DP8 = position report; DP9 first so writes go to it
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
-                [
-                    11,
-                    "control_back_mode",
-                    tuya.valueConverterBasic.lookup({
-                        forward: tuya.enum(0),
-                        back: tuya.enum(1),
-                    }),
-                ],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [19, "favorite_position", tuya.valueConverter.raw],
                 [20, "click_control", tuya.valueConverter.clickControl],
             ],
