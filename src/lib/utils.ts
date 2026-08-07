@@ -349,7 +349,9 @@ export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
 }
 
 export async function sleep(ms: number) {
-    return await new Promise((resolve) => setTimeout(resolve, ms));
+    return await new Promise<void>((resolve) => {
+        setTimeout(resolve, ms).unref();
+    });
 }
 
 export function toSnakeCase(value: string | KeyValueAny) {
@@ -532,7 +534,7 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: NodeJS.Timeout) => {
                 clearTimeout(t);
             });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
@@ -540,11 +542,11 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
-                }, since * 1000);
+                }, since * 1000).unref();
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: NodeJS.Timeout) => {
                 clearTimeout(t);
             });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);

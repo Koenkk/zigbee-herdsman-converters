@@ -95,6 +95,22 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["RCL 241 T"],
+        model: "RCL 241 T",
+        vendor: "Innr",
+        description: "Round Ceiling Light (42cm)- Warm to Cool White",
+        extend: [m.light({colorTemp: {range: [153, 500]}, turnsOffAtBrightness1: true})],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["RCL 242 C"],
+        model: "RCL 242 C",
+        vendor: "Innr",
+        description: "Round ceilng light (42cm) - white and colour",
+        extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        ota: true,
+    },
+    {
         zigbeeModel: ["FL 142 C"],
         model: "FL 142 C",
         vendor: "Innr",
@@ -349,7 +365,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 279 T",
         vendor: "Innr",
         description: "Smart bulb tunable white E27",
-        extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [200, 454]}, turnsOffAtBrightness1: true})],
         ota: true,
         endpoint: (device) => {
             return {default: 1};

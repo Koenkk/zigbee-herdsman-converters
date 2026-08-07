@@ -184,6 +184,7 @@ import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
 import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
+import {definitions as linknlink} from "./linknlink";
 import {definitions as linptech} from "./linptech";
 import {definitions as livingwise} from "./livingwise";
 import {definitions as livolo} from "./livolo";
@@ -226,9 +227,11 @@ import {definitions as niko} from "./niko";
 import {definitions as ninjaBlocks} from "./ninja_blocks";
 import {definitions as niviss} from "./niviss";
 import {definitions as nobo} from "./nobo";
+import {definitions as nodieby} from "./nodieby";
 import {definitions as nodon} from "./nodon";
 import {definitions as nordtronic} from "./nordtronic";
 import {definitions as nous} from "./nous";
+import {definitions as novaDigital} from "./nova_digital";
 import {definitions as novo} from "./novo";
 import {definitions as nue3a} from "./nue_3a";
 import {definitions as nyce} from "./nyce";
@@ -252,6 +255,7 @@ import {definitions as plaid} from "./plaid";
 import {definitions as plugwise} from "./plugwise";
 import {definitions as profalux} from "./profalux";
 import {definitions as prolight} from "./prolight";
+import {definitions as pulsar} from "./pulsar";
 import {definitions as purmo} from "./purmo";
 import {definitions as pushok} from "./pushok";
 import {definitions as qa} from "./qa";
@@ -561,6 +565,7 @@ const definitions: DefinitionWithExtend[] = [
     ...lightsolutions,
     ...lincukoo,
     ...linkind,
+    ...linknlink,
     ...linptech,
     ...livingwise,
     ...livolo,
@@ -600,10 +605,12 @@ const definitions: DefinitionWithExtend[] = [
     ...niko,
     ...ninjaBlocks,
     ...niviss,
+    ...nodieby,
     ...nodon,
     ...nordtronic,
     ...nous,
     ...nobo,
+    ...novaDigital,
     ...novo,
     ...nue3a,
     ...nyce,
@@ -627,6 +634,7 @@ const definitions: DefinitionWithExtend[] = [
     ...plugwise,
     ...profalux,
     ...prolight,
+    ...pulsar,
     ...purmo,
     ...pushok,
     ...qmotion,

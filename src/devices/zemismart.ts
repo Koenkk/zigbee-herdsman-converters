@@ -93,10 +93,6 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             if (meta.options.time_close != null && meta.options.time_open != null) {
-                const sleepSeconds = async (s: number) => {
-                    return await new Promise((resolve) => setTimeout(resolve, s * 1000));
-                };
-
                 const oldPosition = meta.state.position;
                 if (value === 100) {
                     await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
@@ -106,18 +102,16 @@ const tzLocal = {
                     if (utils.isNumber(oldPosition) && oldPosition > value) {
                         const delta = oldPosition - value;
                         utils.assertNumber(meta.options.time_open);
-                        const mutiplicateur = meta.options.time_open / 100;
-                        const timeBeforeStop = delta * mutiplicateur;
+                        const timeBeforeStop = delta * (meta.options.time_open / 100) * 1000;
                         await entity.command("closuresWindowCovering", "downClose", {}, utils.getOptions(meta.mapped, entity));
-                        await sleepSeconds(timeBeforeStop);
+                        await utils.sleep(timeBeforeStop);
                         await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
                     } else if (utils.isNumber(oldPosition) && oldPosition < value) {
                         const delta = value - oldPosition;
                         utils.assertNumber(meta.options.time_close);
-                        const mutiplicateur = meta.options.time_close / 100;
-                        const timeBeforeStop = delta * mutiplicateur;
+                        const timeBeforeStop = delta * (meta.options.time_close / 100) * 1000;
                         await entity.command("closuresWindowCovering", "upOpen", {}, utils.getOptions(meta.mapped, entity));
-                        await sleepSeconds(timeBeforeStop);
+                        await utils.sleep(timeBeforeStop);
                         await entity.command("closuresWindowCovering", "stop", {}, utils.getOptions(meta.mapped, entity));
                     }
                 }
@@ -341,7 +335,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_zigisuyh", "_TZ3000_v4mevirn", "_TZ3000_mlswgkc3"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_zigisuyh", "_TZ3000_v4mevirn", "_TZ3000_mlswgkc3", "_TZ3000_gazjngjl"]),
         model: "ZIGBEE-B09-UK",
         vendor: "Zemismart",
         description: "Zigbee smart outlet universal socket with USB port",
@@ -701,7 +695,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_k7v0eqke", "_TZE204_iyki9kjp", "_TZE284_k7v0eqke", "_TZE284_e4pf6l87"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_k7v0eqke",
+            "_TZE204_iyki9kjp",
+            "_TZE284_k7v0eqke",
+            "_TZE284_e4pf6l87",
+            "_TZE28C1000000_e4pf6l87",
+        ]),
         model: "ZMS-206EU-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
@@ -813,6 +813,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_xibaabmu",
             "_TZE284_xibaabmu",
             "_TZE204_08qc13ct",
+            "_TZE28C1000000_y4jqpry8",
         ]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",
@@ -984,7 +985,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi", "_TZE28C1000000_xvywzhmi"]),
         model: "ZMS-208US-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",

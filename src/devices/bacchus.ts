@@ -313,6 +313,17 @@ export const definitions: DefinitionWithExtend[] = [
                 precision: 3,
                 reporting: electicityReporting,
             }),
+            energy({
+                name: "energy_all",
+                unit: "kWh",
+                cluster: "seMetering",
+                attribute: "currentSummDelivered",
+                description: "Energy on all tariffs",
+                access: "STATE_GET",
+                scale: 1000,
+                precision: 3,
+                reporting: electicityReporting,
+            }),
             m.numeric({
                 name: "measurement_period",
                 unit: "sec",

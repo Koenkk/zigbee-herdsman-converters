@@ -34,7 +34,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_bep7ccew"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_bep7ccew", "_TZ3210_qlmnxmac"]),
+        whiteLabel: [tuya.whitelabel("Melery", "_TZ3210_qlmnxmac", "2 gang power point with power monitoring", ["_TZ3210_qlmnxmac"])],
         model: "MG-GPO01",
         vendor: "MakeGood",
         description: "Double Zigbee power point",

@@ -56,6 +56,8 @@ export const light_color: Tz.Converter = {
         const transtime = utils.getTransition(entity, key, meta).time;
         const supportsHueAndSaturation = utils.getMetaValue(entity, meta.mapped, "supportsHueAndSaturation", "allEqual", false);
         const supportsEnhancedHue = utils.getMetaValue(entity, meta.mapped, "supportsEnhancedHue", "allEqual", false);
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
 
         if (newColor.isHSV() && supportsHueAndSaturation) {
             const hsv = newColor.hsv;
@@ -67,7 +69,7 @@ export const light_color: Tz.Converter = {
                 await entity.command(
                     "genLevelCtrl",
                     "moveToLevelWithOnOff",
-                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime, optionsMask: 0, optionsOverride: 0},
+                    {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime, ...optionalParams},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
@@ -80,7 +82,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHueAndSaturation",
-                        {transtime, enhancehue, saturation, optionsMask: 0, optionsOverride: 0},
+                        {transtime, enhancehue, saturation, ...optionalParams},
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
@@ -88,7 +90,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "moveToHueAndSaturation",
-                        {transtime, hue, saturation, optionsMask: 0, optionsOverride: 0},
+                        {transtime, hue, saturation, ...optionalParams},
                         utils.getOptions(meta.mapped, entity),
                     );
                 }
@@ -100,7 +102,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "enhancedMoveToHue",
-                        {transtime, enhancehue, direction, optionsMask: 0, optionsOverride: 0},
+                        {transtime, enhancehue, direction, ...optionalParams},
                         utils.getOptions(meta.mapped, entity),
                     );
                 } else {
@@ -108,7 +110,7 @@ export const light_color: Tz.Converter = {
                     await entity.command(
                         "lightingColorCtrl",
                         "moveToHue",
-                        {transtime, hue, direction, optionsMask: 0, optionsOverride: 0},
+                        {transtime, hue, direction, ...optionalParams},
                         utils.getOptions(meta.mapped, entity),
                     );
                 }
@@ -118,7 +120,7 @@ export const light_color: Tz.Converter = {
                 await entity.command(
                     "lightingColorCtrl",
                     "moveToSaturation",
-                    {transtime, saturation, optionsMask: 0, optionsOverride: 0},
+                    {transtime, saturation, ...optionalParams},
                     utils.getOptions(meta.mapped, entity),
                 );
             }
@@ -148,7 +150,7 @@ export const light_color: Tz.Converter = {
             await entity.command(
                 "lightingColorCtrl",
                 "moveToColor",
-                {transtime, colorx, colory, optionsMask: 0, optionsOverride: 0},
+                {transtime, colorx, colory, ...optionalParams},
                 utils.getOptions(meta.mapped, entity),
             );
         } else {
@@ -167,6 +169,8 @@ export const light_colortemp: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         const [colorTempMin, colorTempMax] = light.findColorTempRange(entity);
         const preset = {warmest: colorTempMax, warm: 454, neutral: 370, cool: 250, coolest: colorTempMin};
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
 
         if (key === "color_temp_percent") {
             utils.assertNumber(value);
@@ -188,7 +192,7 @@ export const light_colortemp: Tz.Converter = {
         await entity.command(
             "lightingColorCtrl",
             "moveToColorTemp",
-            {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time, optionsMask: 0, optionsOverride: 0},
+            {colortemp: value as number, transtime: utils.getTransition(entity, key, meta).time, ...optionalParams},
             utils.getOptions(meta.mapped, entity),
         );
         return {
@@ -663,6 +667,7 @@ export const squawk: Tz.Converter = {
 };
 export const cover_state: Tz.Converter = {
     key: ["state"],
+    options: [exposes.options.invert_cover()],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {
             open: "upOpen" as const,
@@ -671,8 +676,24 @@ export const cover_state: Tz.Converter = {
             on: "upOpen" as const,
             off: "downClose" as const,
         };
+        const invertedLookup = {
+            open: "downClose" as const,
+            close: "upOpen" as const,
+            stop: "stop" as const,
+            on: "downClose" as const,
+            off: "upOpen" as const,
+        };
         utils.assertString(value, key);
-        await entity.command("closuresWindowCovering", utils.getFromLookup(value.toLowerCase(), lookup), {}, utils.getOptions(meta.mapped, entity));
+        const invert = utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
+            ? !meta.options.invert_cover
+            : meta.options.invert_cover;
+        const commandLookup = invert ? invertedLookup : lookup;
+        await entity.command(
+            "closuresWindowCovering",
+            utils.getFromLookup(value.toLowerCase(), commandLookup),
+            {},
+            utils.getOptions(meta.mapped, entity),
+        );
     },
 };
 export const cover_position_tilt: Tz.Converter = {
@@ -936,6 +957,9 @@ export const light_brightness_step: Tz.Converter = {
     key: ["brightness_step", "brightness_step_onoff"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         const onOff = key.endsWith("_onoff");
         const command = onOff ? "stepWithOnOff" : "step";
         value = Number(value);
@@ -946,7 +970,7 @@ export const light_brightness_step: Tz.Converter = {
         await entity.command(
             "genLevelCtrl",
             command,
-            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, optionsMask: 0, optionsOverride: 0},
+            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, ...optionalParams},
             utils.getOptions(meta.mapped, entity),
         );
 
@@ -978,8 +1002,11 @@ export const light_brightness_step: Tz.Converter = {
 export const light_brightness_move: Tz.Converter = {
     key: ["brightness_move", "brightness_move_onoff"],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         if (value === "stop" || value === 0) {
-            await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "stop", {...optionalParams}, utils.getOptions(meta.mapped, entity));
 
             // As we cannot determine the new brightness state, we read it from the device
             await utils.sleep(500);
@@ -994,7 +1021,7 @@ export const light_brightness_move: Tz.Converter = {
         await entity.command(
             "genLevelCtrl",
             command,
-            {movemode: value > 0 ? 0 : 1, rate: Math.abs(value), optionsMask: 0, optionsOverride: 0},
+            {movemode: value > 0 ? 0 : 1, rate: Math.abs(value), ...optionalParams},
             utils.getOptions(meta.mapped, entity),
         );
     },
@@ -1003,6 +1030,9 @@ export const light_colortemp_step: Tz.Converter = {
     key: ["color_temp_step"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         value = Number(value);
         utils.assertNumber(value, key);
 
@@ -1017,8 +1047,7 @@ export const light_colortemp_step: Tz.Converter = {
                 transtime: transition,
                 minimum: 0,
                 maximum: 600,
-                optionsMask: 0,
-                optionsOverride: 0,
+                ...optionalParams,
             },
             utils.getOptions(meta.mapped, entity),
         );
@@ -1036,6 +1065,9 @@ export const light_colortemp_step: Tz.Converter = {
 export const light_colortemp_move: Tz.Converter = {
     key: ["colortemp_move", "color_temp_move"],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         // Initialize payload with default constraints
         let minimum = 0;
         let maximum = 600;
@@ -1121,7 +1153,7 @@ export const light_colortemp_move: Tz.Converter = {
         await entity.command(
             "lightingColorCtrl",
             "moveColorTemp",
-            {minimum, maximum, rate, movemode, optionsMask: 0, optionsOverride: 0},
+            {minimum, maximum, rate, movemode, ...optionalParams},
             utils.getOptions(meta.mapped, entity),
         );
 
@@ -1139,6 +1171,9 @@ export const light_color_and_colortemp_via_color: Tz.Converter = {
     key: ["color", "color_temp", "color_temp_percent"],
     options: [exposes.options.color_sync(), exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         if (key === "color") {
             return await light_color.convertSet(entity, key, value, meta);
         }
@@ -1152,8 +1187,7 @@ export const light_color_and_colortemp_via_color: Tz.Converter = {
                     transtime: utils.getTransition(entity, key, meta).time,
                     colorx: utils.mapNumberRange(xy.x, 0, 1, 0, 65535),
                     colory: utils.mapNumberRange(xy.y, 0, 1, 0, 65535),
-                    optionsMask: 0,
-                    optionsOverride: 0,
+                    ...optionalParams,
                 },
                 utils.getOptions(meta.mapped, entity),
             );
@@ -1170,6 +1204,9 @@ export const light_hue_saturation_step: Tz.Converter = {
     key: ["hue_step", "saturation_step"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         value = Number(value);
         utils.assertNumber(value, key);
 
@@ -1180,7 +1217,7 @@ export const light_hue_saturation_step: Tz.Converter = {
         await entity.command(
             "lightingColorCtrl",
             command,
-            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, optionsMask: 0, optionsOverride: 0},
+            {stepmode: mode, stepsize: Math.abs(value), transtime: transition, ...optionalParams},
             utils.getOptions(meta.mapped, entity),
         );
 
@@ -1196,6 +1233,9 @@ export const light_hue_saturation_step: Tz.Converter = {
 export const light_hue_saturation_move: Tz.Converter = {
     key: ["hue_move", "saturation_move"],
     convertSet: async (entity, key, value, meta) => {
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+
         value = value === "stop" ? value : Number(value);
         const command = key === "hue_move" ? "moveHue" : "moveSaturation";
         const attribute = key === "hue_move" ? "currentHue" : "currentSaturation";
@@ -1211,12 +1251,7 @@ export const light_hue_saturation_move: Tz.Converter = {
             movemode = value > 0 ? 1 : 3;
         }
 
-        await entity.command(
-            "lightingColorCtrl",
-            command,
-            {rate, movemode, optionsMask: 0, optionsOverride: 0},
-            utils.getOptions(meta.mapped, entity),
-        );
+        await entity.command("lightingColorCtrl", command, {rate, movemode, ...optionalParams}, utils.getOptions(meta.mapped, entity));
 
         // We cannot determine the hue/saturation from the current state so we read it, because
         // - Color mode could have been switched (x/y or colortemp)
@@ -1238,7 +1273,8 @@ export const light_onoff_brightness: Tz.Converter = {
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
-        const omitOptionalLevelParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelParams", "allEqual", false);
+        const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
+        const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
 
@@ -1371,43 +1407,16 @@ export const light_onoff_brightness: Tz.Converter = {
 
             if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
                 if (targetState === "on") {
-                    const payload = {level: Number(brightness), transtime: transition.time} as {
-                        level: number;
-                        transtime: number;
-                        optionsMask?: number;
-                        optionsOverride?: number;
-                    };
-                    if (!omitOptionalLevelParams) {
-                        payload.optionsMask = 0;
-                        payload.optionsOverride = 0;
-                    }
+                    const payload = {level: Number(brightness), transtime: transition.time, ...optionalParams};
                     await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
                 }
                 await on_off.convertSet(entity, "state", state, meta);
             } else {
-                const payload = {level: Number(brightness), transtime: transition.time} as {
-                    level: number;
-                    transtime: number;
-                    optionsMask?: number;
-                    optionsOverride?: number;
-                };
-                if (!omitOptionalLevelParams) {
-                    payload.optionsMask = 0;
-                    payload.optionsOverride = 0;
-                }
+                const payload = {level: Number(brightness), transtime: transition.time, ...optionalParams};
                 await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
             }
         } else {
-            const payload = {level: Number(brightness), transtime: transition.time} as {
-                level: number;
-                transtime: number;
-                optionsMask?: number;
-                optionsOverride?: number;
-            };
-            if (!omitOptionalLevelParams) {
-                payload.optionsMask = 0;
-                payload.optionsOverride = 0;
-            }
+            const payload = {level: Number(brightness), transtime: transition.time, ...optionalParams};
             await entity.command(
                 "genLevelCtrl",
                 state === null ? "moveToLevel" : "moveToLevelWithOnOff",
@@ -1567,6 +1576,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
 
         let daysofweek = value.dayofweek;
         const transitions = value.transitions;
+        const convertedTransitions: TClusterCommandPayload<"hvacThermostat", "setWeeklySchedule">["transitions"] = [];
         let numoftrans = 0;
         const modes: string[] = [];
 
@@ -1590,47 +1600,61 @@ export const thermostat_weekly_schedule: Tz.Converter = {
 
             // transform transition payload values if needed
             for (const elem of transitions) {
+                const heatSetpoint = elem.heatSetpoint ?? elem.heat_setpoint;
+                const coolSetpoint = elem.coolSetpoint ?? elem.cool_setpoint;
+                let transitionTime = elem.transitionTime ?? elem.transition_time ?? elem.time;
+                const convertedTransition: Partial<TClusterCommandPayload<"hvacThermostat", "setWeeklySchedule">["transitions"][number]> = {};
+
                 // update mode if needed
-                if (elem.heatSetpoint != null && !modes.includes("heat")) {
+                if (heatSetpoint != null && !modes.includes("heat")) {
                     modes.push("heat");
                 }
-                if (elem.coolSetpoint != null && !modes.includes("cool")) {
+                if (coolSetpoint != null && !modes.includes("cool")) {
                     modes.push("cool");
                 }
 
                 // transform setpoint values if numeric
-                if (typeof elem.heatSetpoint === "number") {
-                    elem.heatSetpoint = Math.round(elem.heatSetpoint * 100);
+                if (typeof heatSetpoint === "number") {
+                    convertedTransition.heatSetpoint = Math.round(heatSetpoint * 100);
+                } else if (heatSetpoint != null) {
+                    convertedTransition.heatSetpoint = heatSetpoint;
                 }
-                if (typeof elem.coolSetpoint === "number") {
-                    elem.coolSetpoint = Math.round(elem.coolSetpoint * 100);
+                if (typeof coolSetpoint === "number") {
+                    convertedTransition.coolSetpoint = Math.round(coolSetpoint * 100);
+                } else if (coolSetpoint != null) {
+                    convertedTransition.coolSetpoint = coolSetpoint;
                 }
 
                 // accept 24h time notation (e.g. 19:30)
-                if (typeof elem.transitionTime === "string") {
-                    const time = elem.transitionTime.split(":");
+                if (typeof transitionTime === "string") {
+                    const time = transitionTime.split(":");
                     const timeHour = Number.parseInt(time[0], 10) * 60;
                     const timeMinute = Number.parseInt(time[1], 10);
 
                     if (time.length !== 2 || Number.isNaN(timeHour) || Number.isNaN(timeMinute)) {
-                        logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${elem.transitionTime}'!`, NS);
+                        logger.warning(`weekly_schedule: expected 24h time notation (e.g. 19:30) but got '${transitionTime}'!`, NS);
                     } else {
-                        elem.transitionTime = timeHour + timeMinute;
+                        transitionTime = timeHour + timeMinute;
                     }
-                } else if (typeof elem.transitionTime === "object") {
-                    if (elem.transitionTime.hour == null || elem.transitionTime.minute == null) {
+                } else if (typeof transitionTime === "object") {
+                    if (transitionTime.hour == null || transitionTime.minute == null) {
                         throw new Error(
-                            `weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), but got '${JSON.stringify(elem.transitionTime)}'!`,
+                            `weekly_schedule: expected 24h time object (e.g. {"hour": 19, "minute": 30}), but got '${JSON.stringify(transitionTime)}'!`,
                         );
                     }
-                    if (Number.isNaN(elem.transitionTime.hour)) {
-                        throw new Error(`weekly_schedule: expected time.hour to be a number, but got '${elem.transitionTime.hour}'!`);
+                    if (Number.isNaN(transitionTime.hour)) {
+                        throw new Error(`weekly_schedule: expected time.hour to be a number, but got '${transitionTime.hour}'!`);
                     }
-                    if (Number.isNaN(elem.transitionTime.minute)) {
-                        throw new Error(`weekly_schedule: expected time.minute to be a number, but got '${elem.transitionTime.minute}'!`);
+                    if (Number.isNaN(transitionTime.minute)) {
+                        throw new Error(`weekly_schedule: expected time.minute to be a number, but got '${transitionTime.minute}'!`);
                     }
-                    elem.transitionTime = Number.parseInt(elem.transitionTime.hour, 10) * 60 + Number.parseInt(elem.transitionTime.minute, 10);
+                    transitionTime = Number.parseInt(transitionTime.hour, 10) * 60 + Number.parseInt(transitionTime.minute, 10);
                 }
+
+                convertedTransition.transitionTime = transitionTime;
+                convertedTransitions.push(
+                    convertedTransition as TClusterCommandPayload<"hvacThermostat", "setWeeklySchedule">["transitions"][number],
+                );
             }
         } else {
             logger.error("weekly_schedule: transitions is not an array!", NS);
@@ -1669,7 +1693,7 @@ export const thermostat_weekly_schedule: Tz.Converter = {
         await entity.command(
             "hvacThermostat",
             "setWeeklySchedule",
-            {dayofweek, numoftrans, transitions, mode},
+            {dayofweek, numoftrans, transitions: convertedTransitions, mode},
             utils.getOptions(meta.mapped, entity),
         );
     },

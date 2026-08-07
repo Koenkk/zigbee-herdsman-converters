@@ -159,7 +159,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // scale_switch (RW Boolean)
                 [39, "scale_protection", tuya.valueConverter.onOff],
                 // temp_correction (RW Integer, -10-10 C, scale 0 step 1)
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [47, "local_temperature_calibration", tuya.valueConverter.raw],
                 // comfort_temp (RW Integer, 100-250 C, scale 1 step 10)
                 [101, "comfort_temperature", tuya.valueConverter.divideBy10],
                 //! switch (RW Boolean) - Non-functional
@@ -267,7 +267,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [35, "error_status", tuya.valueConverter.raw],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.raw],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [
                     49,
                     "system_mode",
@@ -407,7 +407,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_o9gyszw2", "_TZE204_jtbgusdc", "_TZE284_jtbgusdc", "_TZE204_fjms2pi9", "_TZE284_fjms2pi9"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_o9gyszw2",
+            "_TZE204_jtbgusdc",
+            "_TZE284_jtbgusdc",
+            "_TZE204_fjms2pi9",
+            "_TZE284_fjms2pi9",
+            "_TZE28C1000000_jtbgusdc",
+        ]),
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",
@@ -594,7 +601,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [35, "fault", tuya.valueConverter.errorOrBatteryLow],
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [36, "scale_protection", tuya.valueConverter.onOff],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [101, "valve_volume", tuya.valueConverter.raw], //
                 [102, "humidity", tuya.valueConverter.raw], //
                 [103, "out_door_sensor1", tuya.valueConverter.onOff], //

@@ -46,6 +46,7 @@ const {
     lumiLedDisabledNight,
     lumiFlipIndicatorLight,
     lumiPreventReset,
+    lumiAqaraH2EuShutterSwitchAction,
     lumiClickMode,
     lumiSlider,
     lumiSetEventMode,
@@ -67,6 +68,7 @@ const {
     w600Thermostat,
     w600ValvePosition,
     w600WeeklySchedule,
+    lumiBathroomHeaterT1,
     lumiReadPositionOnReport,
 } = lumi.modernExtend;
 
@@ -75,7 +77,6 @@ const {manufacturerCode} = lumi;
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
-const aqaraH2EuShutterSwitchActionLookup = {hold: 0, single: 1, double: 2, release: 255};
 const aqaraH2EuShutterSwitchMultiEndpointSkip = ["energy", "position", "state", "tilt"];
 const aqaraH2EuShutterSwitchMultiClickAttribute = 0x0286;
 
@@ -83,7 +84,11 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
     for (const endpointName of aqaraH2EuShutterSwitchEndpointNames) {
         const endpoint = device.getEndpoint(aqaraH2EuShutterSwitchEndpoints[endpointName]);
         await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi", "genMultistateInput"]);
-        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 3600, 1));
+        // Disable reporting for presentValue (max=0xFFFF = "shall not issue reports", ZCL).
+        // Button presses are firmware-generated unsolicited reports and keep working;
+        // an active reporting entry caused the hourly stale action replays.
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
+        await endpoint.configureReporting("genMultistateInput", reporting.payload("presentValue", 0, 65535, 1));
         // Initialize Aqara's per-button multi-click setting on startup.
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
@@ -157,6 +162,20 @@ function fp310DetectionRange(): ModernExtend {
 }
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["lumi.bhf_light.acn001"],
+        model: "ZNYB01LM",
+        vendor: "Aqara",
+        description: "Smart bathroom heater T1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            m.identify(),
+            m.light({effect: false, powerOnBehavior: false, colorTemp: {range: [153, 370]}}),
+            m.ignoreClusterReport({cluster: "hvacFanCtrl"}),
+            lumiBathroomHeaterT1(),
+        ],
+    },
     {
         zigbeeModel: ["lumi.flood.acn001"],
         model: "SJCGQ13LM",
@@ -2811,6 +2830,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.curtain.acn018"],
+        model: "C200",
+        vendor: "Aqara",
+        description: "Curtain motor",
+        toZigbee: [lumi.toZigbee.lumi_curtain_limits_calibration, lumi.toZigbee.lumi_curtain_automatic_calibration_ZNCLDJ01LM],
+        exposes: [
+            e.enum("limits_calibration", ea.SET, ["start", "end", "reset"]).withDescription("Calibrate the position limits"),
+            e
+                .enum("automatic_calibration", ea.SET, ["calibrate"])
+                .withDescription("Performs an automatic calibration process similar to Aqara’s method to set curtain limits."),
+        ],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
+            lumiCurtainSpeed(),
+            lumiCurtainManualOpenClose(),
+            lumiCurtainAdaptivePullingSpeed(),
+            lumiCurtainManualStop(),
+            lumiCurtainReverse(),
+            lumiCurtainStatus(),
+            lumiCurtainLastManualOperation(),
+            lumiCurtainPosition(),
+            lumiCurtainTraverseTime(),
+            lumiCurtainCalibrationStatus(),
+            lumiCurtainCalibrated(),
+            lumiCurtainIdentifyBeep(),
+            m.identify(),
+            lumiZigbeeOTA(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.curtain.acn002"],
         model: "ZNJLBL01LM",
         description: "Roller shade driver E1",
@@ -3267,10 +3317,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumiZigbeeOTA(),
             lumiLight({
-                colorTemp: true,
                 color: false,
+                colorTemp: true,
+                colorTempRange: [166, 370],
                 powerOutageMemory: "enum",
-                levelConfig: {features: ["on_off_transition_time", "on_transition_time", "off_transition_time", "execute_if_off", "on_level"]},
+                levelConfig: {features: ["on_transition_time", "off_transition_time", "on_level"]},
             }),
             m.numeric({
                 name: "min_brightness",
@@ -3386,6 +3437,90 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Spotlight T2",
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
+    },
+    {
+        zigbeeModel: ["lumi.light.acn036"],
+        model: "SSWQDYH02",
+        vendor: "Aqara",
+        description: "Spotlight V1",
+        whiteLabel: [
+            {vendor: "Aqara", model: "ZNSD01LM"},
+            {vendor: "Aqara", model: "ZNSD02LM"},
+            {vendor: "Aqara", model: "ZNSD03LM"},
+        ],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            lumiLight({
+                color: false,
+                colorTemp: true,
+                colorTempRange: [166, 370],
+                powerOutageMemory: "enum",
+                levelConfig: {features: ["on_transition_time", "off_transition_time", "on_level"]},
+            }),
+            m.numeric({
+                name: "min_brightness",
+                valueMin: 0,
+                valueMax: 99,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0515, type: 0x20},
+                description: "Minimum brightness level",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "max_brightness",
+                valueMin: 1,
+                valueMax: 100,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0516, type: 0x20},
+                description: "Maximum brightness level",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.light.acn040"],
+        model: "SSWQD22LM",
+        vendor: "Aqara",
+        description: "Spotlight T2 Pro",
+        whiteLabel: [
+            {vendor: "Aqara", model: "ZNSD07LM"},
+            {vendor: "Aqara", model: "ZNSD08LM"},
+            {vendor: "Aqara", model: "ZNSD09LM"},
+            {vendor: "Aqara", model: "ZNSD10LM"},
+        ],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            lumiLight({
+                color: false,
+                colorTemp: true,
+                colorTempRange: [166, 370],
+                levelConfig: {features: ["on_transition_time", "off_transition_time", "on_level"]},
+            }),
+            m.numeric({
+                name: "min_brightness",
+                valueMin: 0,
+                valueMax: 99,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0515, type: 0x20},
+                description: "Minimum brightness level",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.numeric({
+                name: "max_brightness",
+                valueMin: 1,
+                valueMax: 100,
+                unit: "%",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0516, type: 0x20},
+                description: "Maximum brightness level",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+        ],
     },
     {
         zigbeeModel: ["lumi.switch.n0agl1"],
@@ -5100,9 +5235,11 @@ export const definitions: DefinitionWithExtend[] = [
                 }
             },
         },
+        version: "0.0.2",
         configure: configureAqaraH2EuShutterSwitch,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiAqaraH2EuShutterSwitchAction(),
             lumiZigbeeOTA(),
             m.deviceEndpoints({
                 endpoints: aqaraH2EuShutterSwitchEndpoints,
@@ -5110,10 +5247,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({cluster: "metering", power: false, energy: {divisor: 1000}}),
             m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: true}),
-            lumiAction({
-                actionLookup: aqaraH2EuShutterSwitchActionLookup,
-                endpointNames: aqaraH2EuShutterSwitchEndpointNames,
-            }),
             lumiMultiClick({description: "Multi-click mode for top wireless button", endpointName: "top_wireless_button"}),
             lumiMultiClick({description: "Multi-click mode for bottom wireless button", endpointName: "bottom_wireless_button"}),
         ],
@@ -5761,6 +5894,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "UT-A01E",
         vendor: "Aqara",
         description: "Floor heating thermostat W500",
+        ota: true,
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.electricityMeter({current: false, voltage: false, power: {divisor: 1}, energy: {divisor: 1000}}),
@@ -5859,7 +5993,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_presence, lumi.toZigbee.lumi_motion_sensitivity],
         exposes: [e.power_outage_count(), e.motion_sensitivity_select(["low", "medium", "high"]).withDescription("Presence Detection Sensitivity.")],
-        version: "0.0.1",
+        version: "0.0.2",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -5868,6 +6002,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x014f], {manufacturerCode: manufacturerCode}); // Read current PIR interval
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+            await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00f7], {manufacturerCode: manufacturerCode}); // Read battery data; firmware 0.0.0_6542 does not push the 0x00F7 struct on its own
 
             // Configure reporting so presence (0x0142) and PIR detection (0x014d) update autonomously.
             await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
@@ -5883,11 +6018,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumi.lumiModernExtend.lumiPreventLeave(),
+            m.quirkCheckinInterval("1_HOUR"), // No genPollCtrl; gives the request queue a lifetime so fp300BatteryPoll's queued read survives until the device wakes
             lumi.lumiModernExtend.lumiBattery({
-                voltageToPercentage: {min: 2850, max: 3000},
-                voltageAttribute: 0x0017, // Attribute: 23
-                //percentageAttribute: 0x0018 // Attribute: 24 // TODO: Should confirm to be sure
+                voltageAttribute: 0x0017, // Attribute: 23 (battery voltage in mV)
+                percentageAttribute: 0x0018, // Attribute: 24 (battery percentage, the device's own gauge; tracks discharge consistently with attribute 23)
             }),
+            lumi.lumiModernExtend.fp300BatteryPoll(),
             lumi.lumiModernExtend.fp1ePresence(),
             lumi.lumiModernExtend.fp300PIRDetection(),
 
@@ -5905,9 +6041,9 @@ export const definitions: DefinitionWithExtend[] = [
 
             m.numeric<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "absence_delay_timer",
-                valueMin: 10,
+                valueMin: 1,
                 valueMax: 300,
-                valueStep: 5,
+                valueStep: 1,
                 scale: 1,
                 unit: "sec",
                 cluster: "manuSpecificLumi",

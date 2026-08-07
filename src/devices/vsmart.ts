@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const ea = exposes.access;
 
@@ -423,7 +424,7 @@ const mLocal = {
                         );
 
                         if (i < commands.length - 1) {
-                            await new Promise((resolve) => setTimeout(resolve, COMMAND_DELAY_MS));
+                            await utils.sleep(COMMAND_DELAY_MS);
                         }
                     }
 

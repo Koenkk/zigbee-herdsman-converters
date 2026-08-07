@@ -108,7 +108,7 @@ export const fzLocal = {
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
-            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000).unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
             return {presence: true};
         },
@@ -123,7 +123,7 @@ export const fzLocal = {
             const timeout = useOptionsTimeout ? Number(options.presence_timeout) : 100; // 100 seconds by default
             // Stop existing timer because motion is detected and set a new one.
             clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-            const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+            const timer = setTimeout(() => publish({presence: false}), timeout * 1000).unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
             return {presence: true};
         },

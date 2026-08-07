@@ -14,6 +14,15 @@ import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export interface HomeAssistant {
+    type?: "infrared" | "button" | "valve";
+    schema?: "emitter" | "receiver";
+    entityCategory?: "config" | "diagnostic";
+    deviceClass?: string;
+    enabledByDefault?: boolean;
+    icon?: string;
+    valueTemplate?: string | null;
+}
 
 export class Base {
     name: string;
@@ -25,6 +34,7 @@ export class Base {
     description?: string;
     features?: Feature[];
     category?: "config" | "diagnostic";
+    homeassistant?: HomeAssistant;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -70,6 +80,11 @@ export class Base {
     withCategory(category: "config" | "diagnostic") {
         this.category = category;
         this.validateCategory();
+        return this;
+    }
+
+    withHomeAssistant(homeassistant: HomeAssistant) {
+        this.homeassistant = homeassistant;
         return this;
     }
 
@@ -121,6 +136,7 @@ export class Base {
             target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
+        target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
     }
 }
 
@@ -829,7 +845,7 @@ export const options = {
             ),
     invert_cover: () =>
         new Binary("invert_cover", access.SET, true, false).withDescription(
-            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
+            "Inverts the cover position and state, false: open=100,close=0, true: open=0,close=100 (default false).",
         ),
     illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),
     color_sync: () =>
@@ -840,6 +856,10 @@ export const options = {
         new Enum("thermostat_unit", access.SET, ["celsius", "fahrenheit"]).withDescription(
             "Controls the temperature unit of the thermostat (default celsius).",
         ),
+    homeassistant_climate_modes: () =>
+        new Enum("homeassistant_climate_modes", access.SET, ["heat", "cool", "heat_cool"])
+            .withLabel("Home Assistant climate modes")
+            .withDescription("Controls which modes are exposed in Home Assistant climate discovery (default heat)."),
     expose_pin: () =>
         new Binary("expose_pin", access.SET, true, false)
             .withLabel("Expose PIN")

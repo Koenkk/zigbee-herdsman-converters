@@ -156,4 +156,11 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low()],
     },
+    {
+        zigbeeModel: ["SE-RZ11"],
+        model: "SE-RZ11",
+        vendor: "Sercomm",
+        description: "Boiler control relay module used in Enel Homix system",
+        extend: [m.onOff({powerOnBehavior: false})],
+    },
 ];

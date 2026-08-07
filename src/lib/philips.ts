@@ -591,7 +591,7 @@ const philipsModernExtend = {
                             } catch (_e) {
                                 // Best-effort sync
                             }
-                        }, 1000);
+                        }, 1000).unref();
                     }
 
                     // Merge syncColorState results into newState. syncColorState
@@ -762,9 +762,13 @@ const philipsModernExtend = {
         return result;
     },
     onOff: (args?: modernExtend.OnOffArgs) => {
-        args = {powerOnBehavior: false, ota: true, ...args};
+        args = {ota: true, ...args};
         const result = modernExtend.onOff(args);
-        result.toZigbee.push(philipsTz.hue_power_on_behavior, philipsTz.hue_power_on_error);
+
+        const customCluster2 = philipsModernExtend.addManuSpecificPhilips2Cluster();
+        result.onEvent = [...customCluster2.onEvent, ...(result.onEvent ?? [])];
+        result.configure = [...customCluster2.configure, ...(result.configure ?? [])];
+
         return result;
     },
     twilightOnOff: () => {
@@ -1009,7 +1013,7 @@ const philipsTz = {
                     } catch (_e) {
                         // Ignore read failures — best-effort sync
                     }
-                }, 1000);
+                }, 1000).unref();
 
                 return {state};
             }

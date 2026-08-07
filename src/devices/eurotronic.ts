@@ -232,6 +232,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPZB0001",
         vendor: "Eurotronic",
         description: "Spirit Zigbee wireless heater thermostat",
+        extend: [eurotronicExtend.addEurotronicHvacThermostatCluster()],
         fromZigbee: [fzLocal.eurotronic_thermostat, fz.battery],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -324,6 +325,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "COZB0001",
         vendor: "Eurotronic",
         description: "Comet Zigbee wireless heater thermostat",
+        extend: [eurotronicExtend.addEurotronicHvacThermostatCluster()],
         meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fzLocal.eurotronic_thermostat, fz.battery],
         toZigbee: [

@@ -596,7 +596,7 @@ export const occupancy_with_timeout: Fz.Converter<"msOccupancySensing", undefine
         if (timeout !== 0) {
             const timer = setTimeout(() => {
                 publish({occupancy: false});
-            }, timeout * 1000);
+            }, timeout * 1000).unref();
 
             globalStore.putValue(msg.endpoint, "occupancy_timer", timer);
         }
@@ -1099,7 +1099,7 @@ export const ias_vibration_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
         if (timeout !== 0) {
             const timer = setTimeout(() => {
                 publish({vibration: false});
-            }, timeout * 1000);
+            }, timeout * 1000).unref();
 
             globalStore.getValue(msg.endpoint, "timers").push(timer);
         }
@@ -1169,9 +1169,9 @@ export const ias_contact_alarm_1: Fz.Converter<"ssIasZone", undefined, "commandS
         };
     },
 };
-export const ias_contact_alarm_1_report: Fz.Converter<"ssIasZone", undefined, "attributeReport"> = {
+export const ias_contact_alarm_1_report: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "ssIasZone",
-    type: "attributeReport",
+    type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
         const zoneStatus = msg.data.zoneStatus;
         if (zoneStatus !== undefined) {
@@ -1293,7 +1293,7 @@ export const ias_occupancy_alarm_1_with_timeout: Fz.Converter<"ssIasZone", undef
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
         if (timeout !== 0) {
-            const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000);
+            const timer = setTimeout(() => publish({occupancy: false}), timeout * 1000).unref();
             globalStore.putValue(msg.endpoint, "timer", timer);
         }
 
@@ -1427,7 +1427,7 @@ export const command_move_to_level: Fz.Converter<"genLevelCtrl", undefined, ["co
         const payload: KeyValueAny = {
             action: postfixWithEndpointName("brightness_move_to_level", msg, model, meta),
             action_level: msg.data.level,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
 
@@ -1470,7 +1470,7 @@ export const command_move: Fz.Converter<"genLevelCtrl", undefined, ["commandMove
                     const property = postfixWithEndpointName("brightness", msg, model, meta);
                     const deltaProperty = postfixWithEndpointName("action_brightness_delta", msg, model, meta);
                     publish({[property]: brightness, [deltaProperty]: delta});
-                }, intervalOpts);
+                }, intervalOpts).unref();
 
                 globalStore.putValue(msg.endpoint, "simulated_brightness_timer", timer);
             }
@@ -1489,7 +1489,7 @@ export const command_step: Fz.Converter<"genLevelCtrl", undefined, ["commandStep
         const payload: KeyValueAny = {
             action: postfixWithEndpointName(`brightness_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
 
@@ -1559,7 +1559,7 @@ export const command_step_color_temperature: Fz.Converter<"lightingColorCtrl", u
         };
 
         if (msg.data.transtime !== undefined) {
-            payload.action_transition_time = msg.data.transtime / 100;
+            payload.action_transition_time = msg.data.transtime / 10;
         }
 
         addActionGroup(payload, msg, model);
@@ -1608,7 +1608,7 @@ export const command_step_hue: Fz.Converter<"lightingColorCtrl", undefined, ["co
         const payload = {
             action: postfixWithEndpointName(`color_hue_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
         return payload;
@@ -1623,7 +1623,7 @@ export const command_step_saturation: Fz.Converter<"lightingColorCtrl", undefine
         const payload = {
             action: postfixWithEndpointName(`color_saturation_step_${direction}`, msg, model, meta),
             action_step_size: msg.data.stepsize,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
         };
         addActionGroup(payload, msg, model);
         return payload;
@@ -1724,7 +1724,7 @@ export const command_move_to_hue: Fz.Converter<"lightingColorCtrl", undefined, "
         const payload = {
             action: postfixWithEndpointName("move_to_hue", msg, model, meta),
             action_hue: msg.data.hue,
-            action_transition_time: msg.data.transtime / 100,
+            action_transition_time: msg.data.transtime / 10,
             action_direction: msg.data.direction === 0 ? "decrement" : "increment",
         };
         addActionGroup(payload, msg, model);
@@ -1783,7 +1783,7 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
             const value = msg.data.currentPositionLiftPercentage;
             result[postfixWithEndpointName("position", msg, model, meta)] = invert ? value : 100 - value;
             if (!coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invert
                     ? value === 0
                         ? "CLOSE"
                         : "OPEN"
@@ -1796,7 +1796,7 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
             const value = msg.data.currentPositionTiltPercentage;
             result[postfixWithEndpointName("tilt", msg, model, meta)] = invert ? value : 100 - value;
             if (coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invert
                     ? value === 100
                         ? "OPEN"
                         : "CLOSE"
@@ -1911,7 +1911,7 @@ export const checkin_presence: Fz.Converter<"genPollCtrl", undefined, ["commandC
         // Stop existing timer because presence is detected and set a new one.
         clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
 
-        const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+        const timer = setTimeout(() => publish({presence: false}), timeout * 1000).unref();
         globalStore.putValue(msg.endpoint, "timer", timer);
 
         return {presence: true};

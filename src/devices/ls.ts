@@ -107,7 +107,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "L&S Lighting",
         description: "Zigbee remote",
         extend: [
-            m.battery(),
             lsModernExtend.groupIdExpose(),
             lsModernExtend.commandsOnOffDouble(),
             m.commandsOnOff({commands: ["on", "off"]}),

@@ -19,6 +19,30 @@ const ea = exposes.access;
 
 const NS = "zhc:bosch";
 
+function addWeeklyScheduleExpose(climate: exposes.Climate) {
+    const featureDayOfWeek = new exposes.List(
+        "dayofweek",
+        ea.SET,
+        new exposes.Composite("day", "dayofweek", ea.SET).withFeature(
+            new exposes.Enum("day", ea.SET, ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "away_or_vacation"]),
+        ),
+    )
+        .withLabel("Day of week")
+        .withLengthMin(1)
+        .withLengthMax(8)
+        .withDescription("Days on which the schedule will be active.");
+    const featureTransitionTime = new exposes.Composite("time", "transition_time", ea.SET)
+        .withFeature(new exposes.Numeric("hour", ea.SET))
+        .withFeature(new exposes.Numeric("minute", ea.SET))
+        .withDescription("Trigger transition X minutes after 00:00.");
+    const featureTransition = new exposes.Composite("transition", "transition", ea.SET)
+        .withFeature(featureTransitionTime)
+        .withFeature(new exposes.Numeric("heat_setpoint", ea.SET).withLabel("Heat setpoint").withDescription("Target heat setpoint"));
+    const featureTransitions = new exposes.List("transitions", ea.SET, featureTransition).withLengthMin(1).withLengthMax(10);
+
+    climate.addFeature(new exposes.Composite("schedule", "weekly_schedule", ea.ALL).withFeature(featureDayOfWeek).withFeature(featureTransitions));
+}
+
 export const manufacturerOptions = {
     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
     sendPolicy: <SendPolicy>"immediate",
@@ -2475,7 +2499,7 @@ export const boschBsenExtend = {
                             // only known to Bosch. Therefore, we have to manually defer the turn-off by
                             // 4 seconds + 3 minutes to avoid any confusion.
                             const timeoutDelay = 184 * 1000;
-                            setTimeout(() => publish({occupancy: false}), timeoutDelay);
+                            setTimeout(() => publish({occupancy: false}), timeoutDelay).unref();
                             meta.device.meta.occupancyLockTimeout = Date.now() + timeoutDelay;
                         }
                     }
@@ -2508,7 +2532,7 @@ export const boschBsenExtend = {
                         endpoint.read("ssIasZone", ["zoneStatus"]).catch((exception) => {
                             logger.warning(`Error during reading the zoneStatus on device '${event.data.device.ieeeAddr}': ${exception}`, NS);
                         });
-                    }, timeoutDelay);
+                    }, timeoutDelay).unref();
                 } else {
                     await endpoint.read("ssIasZone", ["zoneStatus"]);
                 }
@@ -3031,7 +3055,7 @@ export const boschSmokeAlarmExtend = {
                             const alarmTimer = setTimeout(
                                 async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
                                 (timeoutInSeconds - 60) * 1000,
-                            );
+                            ).unref();
                             globalStore.putValue("boschSmokeAlarm", "alarmTimer", alarmTimer);
                         }
                     }
@@ -3509,7 +3533,27 @@ export const boschThermostatExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    relayState: () => m.onOff({description: "The state of the relay controlling the connected heating/cooling device", powerOnBehavior: false}),
+    relayState: (): ModernExtend => {
+        const description = "The state of the relay controlling the connected heating/cooling device";
+        const relay = m.onOff({description, powerOnBehavior: false, configureReporting: false});
+        const relayExposes = (relay.exposes ?? []).filter((relayExpose): relayExpose is Expose => typeof relayExpose !== "function");
+        const relayEndpoint = (device: Zh.Device) => device.endpoints.find((endpoint) => endpoint.supportsInputCluster("genOnOff"));
+        const expose: DefinitionExposesFunction = (device) => {
+            return utils.isDummyDevice(device) || relayEndpoint(device) ? relayExposes : [];
+        };
+        const configure: Configure = async (device, coordinatorEndpoint) => {
+            const endpoint = relayEndpoint(device);
+            if (!endpoint) {
+                logger.debug(`Skipping Bosch thermostat relay reporting for ${device.ieeeAddr}: no genOnOff input cluster`, NS);
+                return;
+            }
+
+            await endpoint.bind("genOnOff", coordinatorEndpoint);
+            await endpoint.configureReporting("genOnOff", payload<"genOnOff">("onOff", 0, repInterval.MAX, 1));
+        };
+
+        return {...relay, exposes: [expose], configure: [configure]};
+    },
     cableSensorMode: () =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "cable_sensor_mode",
@@ -3696,7 +3740,7 @@ export const boschThermostatExtend = {
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: null},
         }),
-    rmThermostat: (): ModernExtend => {
+    rmThermostat: (args?: {weeklySchedule?: boolean}): ModernExtend => {
         const thermostat = m.thermostat({
             localTemperature: {
                 configure: {reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10}},
@@ -3724,9 +3768,16 @@ export const boschThermostatExtend = {
                 values: ["cooling_only", "heating_only"],
                 configure: {reporting: {min: "MIN", max: "MAX", change: null}},
             },
+            weeklySchedule: args?.weeklySchedule ? {values: ["heat"]} : undefined,
         });
 
         const exposes: (Expose | DefinitionExposesFunction)[] = thermostat.exposes;
+
+        if (args?.weeklySchedule) {
+            const climate = exposes[0] as exposes.Climate;
+            climate.features = climate.features.filter((feature) => feature.property !== "weekly_schedule");
+            addWeeklyScheduleExpose(climate);
+        }
 
         return {
             exposes: exposes,
