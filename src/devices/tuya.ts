@@ -5851,7 +5851,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
-                [3, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [3, "motor_state", tuya.valueConverter.motorState], // work_state
                 [7, "slow_mode", tuya.valueConverter.onOffEnumOn1], // mode: morning, night
                 // DP9 = set, DP8 = report
                 [9, "position", tuya.valueConverter.coverPosition],
@@ -25431,7 +25431,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
-                [3, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1), stopped: tuya.enum(2)})],
+                [3, "motor_state", tuya.valueConverter.motorState],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
                 [103, "speed", tuya.valueConverter.raw],
@@ -25464,7 +25464,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
-                [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [7, "motor_state", tuya.valueConverter.motorState],
                 [10, "total_time", tuya.valueConverter.raw],
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
                 [12, "fault", tuya.valueConverter.raw],
@@ -25494,7 +25494,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "position", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [6, "auto_power", tuya.valueConverter.raw],
-                [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [7, "motor_state", tuya.valueConverter.motorState],
                 [10, "total_time", tuya.valueConverter.raw],
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
                 [12, "fault", tuya.valueConverter.raw],
@@ -26200,14 +26200,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "slow_mode", tuya.valueConverter.onOffEnumOn1],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [6, "auto_power", tuya.valueConverter.onOff],
-                [
-                    7,
-                    "motor_state",
-                    tuya.valueConverterBasic.lookup({
-                        opening: tuya.enum(0),
-                        closing: tuya.enum(1),
-                    }),
-                ],
+                [7, "motor_state", tuya.valueConverter.motorState],
                 [
                     8,
                     "countdown",
