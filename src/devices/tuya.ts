@@ -5884,9 +5884,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.slowMode(),
             te.motorDirection(),
             e.battery(),
-            e
-                .enum("curtain_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
-                .withDescription("Curtain type"),
+            te.coverType(),
             e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
             e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control (up/down)"),
             e
@@ -5916,17 +5914,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [8, "position", tuya.valueConverter.coverPosition],
                 [11, "motor_direction", tuya.valueConverter.tubularMotorDirection], // control_back_mode
                 [13, "battery", tuya.valueConverter.raw],
-                [
-                    15,
-                    "curtain_type",
-                    tuya.valueConverterBasic.lookup({
-                        roman_pole: tuya.enum(0),
-                        roller_blind: tuya.enum(1),
-                        canopy_curtain: tuya.enum(2),
-                        roman_blind: tuya.enum(3),
-                        honeycomb_curtain: tuya.enum(4),
-                    }),
-                ],
+                [15, "cover_type", tuya.valueConverter.coverType], // curtain_type
                 [
                     16,
                     "border",

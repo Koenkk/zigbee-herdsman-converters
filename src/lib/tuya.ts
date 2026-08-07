@@ -1263,6 +1263,11 @@ const tuyaExposes = {
     motorDirectionSide: () => e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side").withCategory("config"),
     slowMode: () =>
         e.binary("slow_mode", ea.STATE_SET, "ON", "OFF").withDescription("Operate the motor slower and quieter than normal").withCategory("config"),
+    coverType: () =>
+        e
+            .enum("cover_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
+            .withDescription("Type of window covers installed")
+            .withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
@@ -1630,6 +1635,13 @@ export const valueConverter = {
     },
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
     motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
+    coverType: valueConverterBasic.lookup({
+        roman_pole: new Enum(0),
+        roller_blind: new Enum(1),
+        canopy_curtain: new Enum(2),
+        roman_blind: new Enum(3),
+        honeycomb_curtain: new Enum(4),
+    }),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
