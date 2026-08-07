@@ -5840,13 +5840,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             te.motorState(),
-            te.slowMode(),
-            te.motorDirection(),
-            e.battery(),
-            te.coverType(),
-            te.coverLimit(),
             te.clickControl(),
+            te.slowMode(),
             te.favoritePosition(),
+            te.coverLimit(),
+            te.motorDirection(),
+            te.coverType(),
+            e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
