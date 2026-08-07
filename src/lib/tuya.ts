@@ -1277,6 +1277,11 @@ const tuyaExposes = {
             .withValueStep(1)
             .withDescription("Store the preferred cover position")
             .withCategory("config"),
+    coverLimit: () =>
+        e
+            .enum("cover_limit", ea.STATE_SET, ["set_up", "set_down", "delete_up", "delete_down", "delete_both"])
+            .withDescription("Set current position as the limit position")
+            .withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
@@ -1650,6 +1655,13 @@ export const valueConverter = {
         canopy_curtain: new Enum(2),
         roman_blind: new Enum(3),
         honeycomb_curtain: new Enum(4),
+    }),
+    coverLimit: valueConverterBasic.lookup({
+        set_up: new Enum(0),
+        set_down: new Enum(1),
+        delete_up: new Enum(2),
+        delete_down: new Enum(3),
+        delete_both: new Enum(4),
     }),
     plus1: {
         from: (v: number) => v + 1,
