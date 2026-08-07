@@ -1028,7 +1028,7 @@ export const presets = {
     contact: () =>
         new Binary("contact", access.STATE, false, true)
             .withDescription("Indicates if the contact is closed (= true) or open (= false)")
-            .withHomeAssistant({name: null}),
+            .withHomeAssistant({name: null}), // Prevents HA from appending the device class to the device name (e.g. "Garage Door Door")
     cover_position: () => new Cover().withPosition(),
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),
