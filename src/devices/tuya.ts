@@ -5882,7 +5882,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.coverPosition(),
             te.motorState(),
             te.slowMode(),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            te.motorDirection(),
             e.battery(),
             e
                 .enum("curtain_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
@@ -5914,14 +5914,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // DP9 = set, DP8 = report
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
-                [
-                    11,
-                    "motor_direction", //control_back_mode
-                    tuya.valueConverterBasic.lookup({
-                        forward: tuya.enum(0),
-                        back: tuya.enum(1),
-                    }),
-                ],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection], // control_back_mode
                 [13, "battery", tuya.valueConverter.raw],
                 [
                     15,
@@ -8715,7 +8708,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.illuminance().withUnit("%"),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
-            e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side"),
+            te.motorDirectionSide(),
             e.enum("set_upper_limit", ea.STATE_SET, ["start", "stop"]).withDescription("Learning"),
             e.enum("factory_reset", ea.STATE_SET, ["SET"]).withDescription("Remove limits"),
         ],
@@ -8751,14 +8744,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [13, "battery", tuya.valueConverter.raw],
-                [
-                    101,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        left: tuya.enum(0),
-                        right: tuya.enum(1),
-                    }),
-                ],
+                [101, "motor_direction", tuya.valueConverter.motorDirectionSide],
                 [
                     102,
                     "set_upper_limit",
@@ -8944,8 +8930,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_cover_9",
         vendor: "Tuya",
         description: "Cover motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
-        exposes: [te.coverPosition(), e.battery()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [te.coverPosition(), te.motorDirection(), e.battery()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -8959,14 +8945,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        normal: tuya.enum(0),
-                        reversed: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [101, "battery", tuya.valueConverter.raw],
             ],
         },
@@ -9435,7 +9414,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Cover motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
-        exposes: [te.coverPosition(), e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction")],
+        exposes: [te.coverPosition(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -9449,7 +9428,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})], // maybe enum ?
             ],
         },
         whiteLabel: [tuya.whitelabel("Nova Digital", "ZC-GM42", "Roller blind motor", ["_TZE204_ycke4deo"])],
@@ -9464,7 +9443,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("work_state", ea.STATE),
             te.coverPosition(),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
-            e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side"),
+            te.motorDirectionSide(),
             e.enum("set_upper_limit", ea.STATE_SET, ["start", "stop"]).withDescription("Learning"),
             e.enum("factory_reset", ea.STATE_SET, ["SET"]).withDescription("Remove limits"),
         ],
@@ -9498,14 +9477,7 @@ export const definitions: DefinitionWithExtend[] = [
                         learning: tuya.enum(2),
                     }),
                 ],
-                [
-                    101,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        left: tuya.enum(0),
-                        right: tuya.enum(1),
-                    }),
-                ],
+                [101, "motor_direction", tuya.valueConverter.motorDirectionSide],
                 [
                     102,
                     "set_upper_limit",
@@ -9524,7 +9496,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Manhot",
         description: "Cover motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
-        exposes: [te.coverPosition(), e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction")],
+        exposes: [te.coverPosition(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -9538,14 +9510,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        normal: tuya.enum(0),
-                        reversed: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
@@ -9559,7 +9524,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             te.coverPosition(),
             e.enum("set_limits", ea.STATE_SET, ["up", "down", "reset"]),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor Steering"),
+            te.motorDirection(),
             e.binary("tilt_mode", ea.STATE_SET, "ON", "OFF").withDescription("Step movement"),
             e.binary("child_lock", ea.STATE_SET, "ON", "OFF").withDescription("Child Lock"),
         ],
@@ -9575,14 +9540,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
-                [
-                    11,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        normal: tuya.enum(0),
-                        reversed: tuya.enum(1),
-                    }),
-                ],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
                 [
                     16,
@@ -9990,7 +9948,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
+            te.motorDirection(),
             e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed").withUnit("rpm"),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
             e.enum("set_upper_limit", ea.SET, ["SET"]).withDescription("Set the upper limit, to reset limits use factory_reset"),
@@ -24410,7 +24368,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("manual_mode", ea.STATE_SET, ["Enable", "Disable"]),
             e.enum("fault", ea.STATE, ["Normal", "None", "Fault"]).withDescription("Motor Fault"),
             e.numeric("countdown", ea.STATE_SET).withValueMin(10).withValueMax(90).withUnit("s").withDescription("Motor timeout"),
-            e.enum("motor_direction", ea.STATE_SET, ["Left Side", "Right Side"]).withDescription("Pusher install side"),
+            te.motorDirectionSide(),
             te.slowMode(),
             e.enum("fixed_window_sash", ea.STATE_SET, ["Up", "Down"]).withDescription("Button position"),
             e.enum("window_detection", ea.STATE, ["Opened", "Closed", "Pending"]).withDescription("Window detection status"),
@@ -24425,7 +24383,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [106, "manual_mode", tuya.valueConverterBasic.lookup({Enable: 0, Disable: 1})],
                 [107, "fault", tuya.valueConverterBasic.lookup({Normal: 0, None: 1, Fault: 2})],
                 [108, "countdown", tuya.valueConverter.raw],
-                [109, "motor_direction", tuya.valueConverterBasic.lookup({"Left Side": 1, "Right Side": 0})],
+                [109, "motor_direction", tuya.valueConverterBasic.lookup({left: 1, right: 0})], // swapped ?
                 [110, "slow_mode", tuya.valueConverter.onOffEnumOn1],
                 [112, "fixed_window_sash", tuya.valueConverterBasic.lookup({Up: 1, Down: 0})],
                 [114, "window_detection", tuya.valueConverterBasic.lookup({Opened: 0, Closed: 1, Pending: 2})],
@@ -24622,7 +24580,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            te.motorDirection(),
             e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
         ],
         meta: {
@@ -24637,14 +24595,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        forward: tuya.enum(0),
-                        back: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     16,
                     "border",
@@ -25402,11 +25353,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Ayvolt Blinds",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [
-            te.coverPosition(),
-            te.motorState(),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
-        ],
+        exposes: [te.coverPosition(), te.motorState(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -25716,7 +25663,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            te.motorDirection(),
             te.motorState(),
             e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
             e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
@@ -25728,7 +25675,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
                 [10, "total_time", tuya.valueConverter.raw],
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_close: tuya.enum(0), fully_open: tuya.enum(1)})],
@@ -25745,7 +25692,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
+            te.motorDirection(),
             te.motorState(),
             e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
             e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
@@ -25757,7 +25704,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [6, "auto_power", tuya.valueConverter.raw],
                 [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
                 [10, "total_time", tuya.valueConverter.raw],
@@ -26442,7 +26389,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             te.coverPosition(),
             te.slowMode(),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor rotation direction. Change if blind moves wrong way"),
+            te.motorDirection(),
             e.binary("auto_power", ea.STATE_SET, true, false).withDescription("Auto-complete open/close when curtain is manually pulled"),
             te.motorState(),
             e.enum("countdown", ea.STATE_SET, ["cancel", "1h", "2h", "3h", "4h"]).withDescription("Countdown timer to trigger open/close"),
@@ -26473,14 +26420,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
                 [4, "slow_mode", tuya.valueConverter.onOffEnumOn1],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        forward: tuya.enum(0),
-                        back: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [6, "auto_power", tuya.valueConverter.onOff],
                 [
                     7,

@@ -1258,6 +1258,9 @@ const tuyaExposes = {
             .enum("motor_state", ea.STATE, ["opening", "closing", "stopped"])
             .withDescription("Current motor movement status")
             .withCategory("diagnostic"),
+    motorDirection: () =>
+        e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor rotation direction").withCategory("config"),
+    motorDirectionSide: () => e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side").withCategory("config"),
     slowMode: () =>
         e.binary("slow_mode", ea.STATE_SET, "ON", "OFF").withDescription("Operate the motor slower and quieter than normal").withCategory("config"),
 };
@@ -1626,6 +1629,7 @@ export const valueConverter = {
         },
     },
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
+    motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,

@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             te.coverPosition(),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor Steering"),
+            te.motorDirection(),
             e.binary("auto_power", ea.STATE_SET, "ON", "OFF").withDescription("Manual pull, automatic run"),
         ],
         meta: {
@@ -32,14 +32,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        normal: tuya.enum(0),
-                        reversed: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
                 [6, "auto_power", tuya.valueConverter.onOff],
             ],
