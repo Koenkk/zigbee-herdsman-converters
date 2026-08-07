@@ -55,7 +55,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Customizable siren",
         extend: [
             m.deviceEndpoints({endpoints: {"43": 43, default: 43}}),
-            m.onOff({powerOnBehavior: false, configureReporting: false}),
             m.battery(),
             m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
             m.iasWarning(),
