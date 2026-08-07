@@ -2120,13 +2120,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.coverPosition(),
             e.enum("control_back_mode", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
             e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control (up/down)"),
-            e
-                .numeric("position_best", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Preferred position"),
+            te.favoritePosition(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -2150,7 +2144,7 @@ export const definitions: DefinitionWithExtend[] = [
                         back: tuya.enum(1),
                     }),
                 ],
-                [19, "position_best", tuya.valueConverter.raw],
+                [19, "favorite_position", tuya.valueConverter.raw],
                 [
                     20,
                     "click_control",
@@ -5887,13 +5881,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.coverType(),
             e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]),
             e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control (up/down)"),
-            e
-                .numeric("position_best", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Preferred position"),
+            te.favoritePosition(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -5926,7 +5914,7 @@ export const definitions: DefinitionWithExtend[] = [
                         remove_top_bottom: tuya.enum(4),
                     }),
                 ],
-                [19, "position_best", tuya.valueConverter.raw],
+                [19, "favorite_position", tuya.valueConverter.raw], // position_best
                 [
                     20,
                     "click_control",
@@ -26391,7 +26379,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("border", ea.SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"])
                 .withDescription("Set or clear motor travel limits"),
-            e.numeric("position_best", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Saved favourite position"),
+            te.favoritePosition(),
             e.enum("click_control", ea.SET, ["up", "down"]).withDescription("Single jog step up or down"),
         ],
         meta: {
@@ -26452,7 +26440,7 @@ export const definitions: DefinitionWithExtend[] = [
                         remove_top_bottom: tuya.enum(4),
                     }),
                 ],
-                [19, "position_best", tuya.valueConverter.raw],
+                [19, "favorite_position", tuya.valueConverter.raw],
                 [
                     20,
                     "click_control",
@@ -26845,7 +26833,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("situation_set", ea.STATE, ["fully_open", "fully_close"]).withDescription("Situation of the blinds"),
             e.binary("fault", ea.STATE, true, false).withDescription("Motor fault"),
             e.enum("border", ea.STATE_SET, ["down_delete", "remove_top_bottom"]).withDescription("Set lower/upper limit"),
-            e.numeric("position_best", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Set the best position"),
+            te.favoritePosition(),
             e
                 .numeric("angle_horizontal", ea.STATE_SET)
                 .withValueMin(0)
@@ -26882,7 +26870,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "situation_set", tuya.valueConverterBasic.lookup({fully_open: tuya.enum(0), fully_close: tuya.enum(1)})],
                 [12, "fault", tuya.valueConverter.raw],
                 [16, "border", tuya.valueConverterBasic.lookup({down_delete: tuya.enum(0), remove_top_bottom: tuya.enum(1)})],
-                [19, "position_best", tuya.valueConverter.setLimit],
+                [19, "favorite_position", tuya.valueConverter.raw],
                 [21, "angle_horizontal", tuya.valueConverter.raw],
                 [101, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
                 [102, "quick_calibration", tuya.valueConverter.raw],

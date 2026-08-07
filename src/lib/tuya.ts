@@ -1268,6 +1268,15 @@ const tuyaExposes = {
             .enum("cover_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
             .withDescription("Type of window covers installed")
             .withCategory("config"),
+    favoritePosition: () =>
+        e
+            .numeric("favorite_position", ea.STATE_SET)
+            .withUnit("%")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withDescription("Store the preferred cover position")
+            .withCategory("config"),
 };
 
 export {tuyaExposes as exposes};
