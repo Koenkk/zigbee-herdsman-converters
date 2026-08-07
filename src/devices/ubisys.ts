@@ -33,6 +33,12 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
+// Maximum payload of a single structured write. The adapter reports the limit it can send, but it
+// is not exposed to converters, and the usable APS payload shrinks further with source routing.
+// Use the largest payload the previous per-template chunking already produced (`dimmer_single`,
+// four records) so that no request is larger than one that already worked.
+const MAX_STRUCTURED_WRITE_BYTES = 56;
+
 const ubisys = {
     fz: {
         dimmer_setup: {
@@ -600,6 +606,8 @@ const ubisys = {
                     // XXX: input_action_templates is not validated
                     //      it could potentially write values that don't fit OCTET_STR (e.g. value at x index is > 0xff)
 
+                    const flatInputActions = resultingInputActions.flat();
+
                     // write length of octet str array at index 0
                     await devMgmtEp.writeStructured(
                         "manuSpecificUbisysDeviceSetup",
@@ -608,29 +616,46 @@ const ubisys = {
                                 attrId: attributeInputActions.ID,
                                 selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [0]},
                                 dataType: Zcl.DataType.UINT16,
-                                elementData: resultingInputActions.flat().length,
+                                elementData: flatInputActions.length,
                             },
                         ],
                         manufacturerOptions.ubisysNull,
                     );
 
+                    // Write in chunks to prevent frame overflow. Chunking per template is not
+                    // enough: a single `dimmer_double` produces six records of 82 bytes total,
+                    // which exceeds the APS payload limit once the ZCL header is added and
+                    // fails with MESSAGE_TOO_LONG before the request is sent.
+                    let chunk: Parameters<typeof devMgmtEp.writeStructured>[1] = [];
+                    let chunkBytes = 0;
                     let index = 1;
 
-                    // write in chunks to prevent frame overflow
-                    // XXX: depends entirely on the values inside the nested array as far as "not overflowing"
-                    //      it also is not optimized for "minimum writes", since count is based on nesting
-                    for (const inputAction of resultingInputActions) {
-                        await devMgmtEp.writeStructured(
-                            "manuSpecificUbisysDeviceSetup",
-                            inputAction.map((a) => ({
-                                attrId: attributeInputActions.ID,
-                                selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [index++]},
-                                dataType: Zcl.DataType.OCTET_STR,
-                                elementData: Buffer.from(a),
-                            })),
-                            manufacturerOptions.ubisysNull,
-                        );
+                    const writeChunk = async () => {
+                        if (chunk.length === 0) return;
+
+                        await devMgmtEp.writeStructured("manuSpecificUbisysDeviceSetup", chunk, manufacturerOptions.ubisysNull);
+                        chunk = [];
+                        chunkBytes = 0;
+                    };
+
+                    for (const inputAction of flatInputActions) {
+                        // attrId (2) + selector indicator (1) + one index (2) + data type (1) + octet string length (1)
+                        const recordBytes = 7 + inputAction.length;
+
+                        if (chunkBytes + recordBytes > MAX_STRUCTURED_WRITE_BYTES) {
+                            await writeChunk();
+                        }
+
+                        chunk.push({
+                            attrId: attributeInputActions.ID,
+                            selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [index++]},
+                            dataType: Zcl.DataType.OCTET_STR,
+                            elementData: Buffer.from(inputAction),
+                        });
+                        chunkBytes += recordBytes;
                     }
+
+                    await writeChunk();
                 }
             },
         } satisfies Tz.Converter,
