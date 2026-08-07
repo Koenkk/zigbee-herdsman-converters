@@ -21,15 +21,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],

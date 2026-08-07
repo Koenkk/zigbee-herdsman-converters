@@ -1648,6 +1648,7 @@ export const valueConverter = {
             return position;
         },
     },
+    coverAction: valueConverterBasic.lookup({OPEN: new Enum(0), STOP: new Enum(1), CLOSE: new Enum(2), CONTINUE: new Enum(3)}),
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
     motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
     coverType: valueConverterBasic.lookup({

@@ -501,7 +501,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [te.coverPosition()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
             ],
         },
@@ -529,15 +529,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [te.coverPosition(), te.motorDirection(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
                 [3, "position", tuya.valueConverter.coverPositionInverted],
                 [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})], // maybe enum ?
@@ -1581,15 +1573,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [
                     2,
                     "position",
@@ -1803,7 +1787,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [te.coverPosition(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
                 [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
@@ -2058,7 +2042,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
                 [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],

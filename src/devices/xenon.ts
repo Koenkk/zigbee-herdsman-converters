@@ -16,7 +16,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [te.coverPosition(), exposes.enum("calibration", ea.STATE_SET, ["start", "finish"]), e.temperature()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.coverPosition],
                 [102, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), finish: tuya.enum(1)})],
