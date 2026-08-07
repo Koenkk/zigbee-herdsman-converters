@@ -16738,7 +16738,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1", "_TZ3000_5rpu3r0d"]),
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bmqxalil", "_TZ3000_w1tcofu8", "_TZ3000_ma3mhpx2", "_TZ3000_wijoqjk1", "_TZ3000_5rpu3r0d", "_TZ3000_bbebkwjk"]),
         model: "TS0001_switch_1_gang",
         vendor: "Tuya",
         description: "1-Gang switch with backlight",
@@ -16749,7 +16749,7 @@ export const definitions: DefinitionWithExtend[] = [
                 backlightModeOffOn: (m) => m !== "_TZ3000_5rpu3r0d",
                 switchType: (m) => m === "_TZ3000_5rpu3r0d",
                 onOffCountdown: (m) => m === "_TZ3000_5rpu3r0d",
-                indicatorMode: (m) => m === "_TZ3000_5rpu3r0d",
+                indicatorMode: (m) => ["_TZ3000_5rpu3r0d", "_TZ3000_bbebkwjk"].includes(m),
             }),
         ],
         configure: async (device, coordinatorEndpoint) => {
