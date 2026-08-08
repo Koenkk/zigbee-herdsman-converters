@@ -45,6 +45,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Ribag Air O",
         vendor: "RIBAG Licht",
         description: "RIBAG Vertico Air Pendelleuchte",
-        extend: ribagLight(),
+        extend: [ribagLight()],
     },
 ];
