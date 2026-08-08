@@ -29034,7 +29034,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_y8ficeai"}],
+        fingerprint: [
+            {modelID: "TS0601", manufacturerName: "_TZE204_y8ficeai"},
+            {modelID: "TS0601", manufacturerName: "_TZE284_tokhh9pf"},
+        ],
         model: "TS0601_6gang_switch",
         vendor: "Tuya",
         description: "6 gang touch panel switch with backlight and child lock",
