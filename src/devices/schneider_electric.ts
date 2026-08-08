@@ -1390,16 +1390,16 @@ const fzLocal = {
         type: ["commandNotification", "commandCommissioningNotification"],
         convert: async (model, msg, publish, options, meta) => {
             if (msg.type !== "commandNotification") {
-                return;
+                return {...meta.state};
             }
 
             const commandID = msg.data.commandID;
 
             if (utils.hasAlreadyProcessedMessage(msg, model, msg.data.frameCounter, `${msg.device.ieeeAddr}_${commandID}`)) {
-                return;
+                return {...meta.state};
             }
 
-            if (commandID >= 0xe0) return; // Skip op commands
+            if (commandID >= 0xe0) return {...meta.state}; // Skip op commands
 
             const rxAfterTx = msg.data.options & (1 << 11);
             const ret: KeyValue = {};
@@ -1546,7 +1546,14 @@ const fzLocal = {
                 );
             }
 
-            return ret;
+            if (Object.keys(ret).length > 0) return ret;
+
+            // The PowerTag also sends frames the converter produces no data for
+            // (0xa3 multi-cluster report, acCurrentOverload-only frames). An empty
+            // payload triggers the publishLastSeen fallback, which republishes the
+            // full cached state and bypasses the debounce; return the cached state so
+            // these frames merge into the debounce instead.
+            return {...meta.state};
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
     wiser_device_info: {
