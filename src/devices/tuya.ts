@@ -8370,6 +8370,25 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, l3: 3};
         },
         meta: {multiEndpoint: true},
+    },{
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_bu47m8pv"]),
+        model: "TS0003_backlight_artdna",
+        vendor: "ARTDNA",
+        description: "3 gang switch with backlight toggle",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ["l1", "l2", "l3"],
+                backlightModeOffOn: true,
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
+            await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0001", [
