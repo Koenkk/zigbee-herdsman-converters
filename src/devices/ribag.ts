@@ -1,8 +1,7 @@
 import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
-import type {Tz} from "../lib/types";
+import type {DefinitionWithExtend, Tz} from "../lib/types";
 import {getTransition, replaceToZigbeeConvertersInArray} from "../lib/utils";
-import type {DefinitionWithExtend} from "../lib/types";
 
 const COLOR_TEMP_MIN = 153;
 const COLOR_TEMP_MAX = 500;
