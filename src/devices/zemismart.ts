@@ -11,6 +11,7 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const NS = "zhc:zemismart";
 
@@ -219,8 +220,8 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.toZigbee.tuya_cover_control],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction").withCategory("config"),
+            te.coverPosition(),
+            te.motorDirection(),
             e
                 .enum("motor_working_mode", ea.STATE_SET, ["continuous", "intermittently"])
                 .withDescription("Motor operating mode")
@@ -361,14 +362,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
-            e.text("work_state", ea.STATE),
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
+            te.motorState(),
             e.battery(),
             e.enum("program", ea.SET, ["set_bottom", "set_upper", "reset"]).withDescription("Set the upper/bottom limit"),
             e
                 .enum("click_control", ea.SET, ["upper", "upper_micro", "lower", "lower_micro"])
                 .withDescription("Control motor in steps (ignores set limits; normal/micro = 120deg/5deg movement)"),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
+            te.motorDirection(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -386,7 +387,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     7,
-                    "work_state",
+                    "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
@@ -426,7 +427,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.ZMAM02_cover],
         toZigbee: [legacy.tz.ZMAM02_cover],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e
                 .composite("options", "options", ea.STATE)
                 .withFeature(e.numeric("motor_speed", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Motor speed")),
@@ -452,7 +453,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the upper stroke limit").withCategory("config"),
             e
                 .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
@@ -1053,7 +1054,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
             e
                 .numeric("calibration_time", ea.STATE_SET)
@@ -1064,15 +1065,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [
                     8,
@@ -1110,30 +1103,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tubular motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
-            e.battery(),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPosition], // Percent control - set position (0-100)
                 [8, "position", tuya.valueConverter.coverPosition], // Percent state - current position (0-100)
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
-                [
-                    16,
-                    "border",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                        up_delete: tuya.enum(2),
-                        down_delete: tuya.enum(3),
-                        remove_top_bottom: tuya.enum(4),
-                    }),
-                ],
+                [16, "cover_limit", tuya.valueConverter.coverLimit],
             ],
         },
     },
@@ -1144,12 +1122,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Blind driver",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.text("work_state", ea.STATE),
-            e.battery(),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
-        ],
+        exposes: [te.coverPosition(), te.motorState(), e.battery(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -1166,7 +1139,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     7,
-                    "work_state",
+                    "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
