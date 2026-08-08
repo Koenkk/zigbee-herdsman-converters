@@ -11,6 +11,7 @@ const COLOR_TEMP_MAX = 500;
  * light converter currently adds.
  */
 
+/** @type {import("zigbee-herdsman-converters/lib/types").Tz.Converter} */
 const ribagColorTemp = {
     key: ["color_temp", "color_temp_percent"],
     options: tz.light_colortemp.options,
