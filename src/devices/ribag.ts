@@ -1,6 +1,7 @@
 import * as tz from "zigbee-herdsman-converters/converters/toZigbee";
 import * as m from "zigbee-herdsman-converters/lib/modernExtend";
 import type {Tz} from "zigbee-herdsman-converters/lib/types";
+import type {DefinitionWithExtend} from "../lib/types";
 import {getTransition, replaceToZigbeeConvertersInArray} from "zigbee-herdsman-converters/lib/utils";
 
 const COLOR_TEMP_MIN = 153;
@@ -38,10 +39,12 @@ const ribagLight = () => {
     return extension;
 };
 
-export default {
-    zigbeeModel: ["Ribag Air O"],
-    model: "Ribag Air O",
-    vendor: "RIBAG Licht",
-    description: "RIBAG Vertico Air Pendelleuchte",
-    extend: [ribagLight()],
-};
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["Ribag Air O"],
+        model: "Ribag Air O",
+        vendor: "RIBAG Licht",
+        description: "RIBAG Vertico Air Pendelleuchte",
+        extend: [ribagLight()],
+    },
+];
