@@ -1,5 +1,6 @@
 import * as tz from "zigbee-herdsman-converters/converters/toZigbee";
 import * as m from "zigbee-herdsman-converters/lib/modernExtend";
+import type {Tz} from "zigbee-herdsman-converters/lib/types";
 import {getTransition, replaceToZigbeeConvertersInArray} from "zigbee-herdsman-converters/lib/utils";
 
 const COLOR_TEMP_MIN = 153;
@@ -11,8 +12,7 @@ const COLOR_TEMP_MAX = 500;
  * light converter currently adds.
  */
 
-/** @type {import("zigbee-herdsman-converters/lib/types").Tz.Converter} */
-const ribagColorTemp = {
+const ribagColorTemp: Tz.Converter = {
     key: ["color_temp", "color_temp_percent"],
     options: tz.light_colortemp.options,
     convertSet: async (entity, key, value, meta) => {
@@ -42,6 +42,6 @@ export default {
     zigbeeModel: ["Ribag Air O"],
     model: "Ribag Air O",
     vendor: "RIBAG Licht",
-    description: "RIBAG Vertico Air Pendant Light",
+    description: "RIBAG Vertico Air Pendelleuchte",
     extend: [ribagLight()],
 };
