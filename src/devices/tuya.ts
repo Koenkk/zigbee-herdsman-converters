@@ -11518,6 +11518,117 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [
+            {modelID: "TS011F", manufacturerName: "_TZ3008_tary5dvv"},
+            {modelID: "TS011F", manufacturerName: "_TZ3210_iooniers"},
+            {modelID: "TS011F", manufacturerName: "_TZ3008_iooniers"},
+            {modelID: "TS011F", manufacturerName: "_TZ3008_xvfd3nkp"},
+            {modelID: "TS011F", manufacturerName: "_TZ3008_qziabvzj"},
+        ],
+        model: "TS011F_Socket",
+        description: "Smart plug (with power monitoring)",
+        vendor: "Tuya",
+        whiteLabel: [
+            tuya.whitelabel("EIGHTREE", "EIGHTREE Socket", "EIGHTREE ZigBee socket based on Tuya", [
+                "_TZ3008_tary5dvv",
+                "_TZ3210_iooniers",
+                "_TZ3008_iooniers",
+                "_TZ3008_xvfd3nkp",
+                "_TZ3008_qziabvzj",
+            ]),
+        ],
+        ota: true,
+        extend: [tuya.modernExtend.tuyaBase(), m.identify(), m.electricityMeter()],
+        fromZigbee: [
+            fz.on_off,
+            tuya.fz.on_off_countdown,
+            tuya.fz.power_outage_memory,
+            tuya.fz.child_lock,
+            tuya.fz.indicator_mode,
+            tuya.fz.switch_type_button,
+        ],
+        toZigbee: [
+            // No `tz.on_off` here: its key list also contains "state" and it would shadow
+            // `on_off_countdown`, which has to reset the countdown when the state is set.
+            tuya.tz.on_off_countdown,
+            tuya.tz.power_on_behavior_1,
+            tuya.tz.child_lock,
+            tuya.tz.backlight_indicator_mode_1,
+            tuya.tz.switch_type_button,
+        ],
+        // Dynamic multi-gang: first endpoint stays as unsuffixed "state"; the rest become CH<ID>.
+        // A single function controls ordering: state -> CH2..CHN -> features.
+        exposes: (device) => {
+            const eps = !utils.isDummyDevice(device) ? device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")) : [];
+            const _mfr = device?.manufacturerName;
+            const feats = [];
+            feats.push(e.switch()); // first endpoint = state
+            for (const ep of eps.slice(1)) feats.push(e.switch().withEndpoint(`CH${ep.ID}`)); // CH2..CHN
+            // Features (mirrors the vendor-specific conditions of the original plug_1)
+            feats.push(tuya.exposes.countdown().withAccess(ea.ALL)); // first endpoint -> countdown
+            for (const ep of eps.slice(1)) feats.push(tuya.exposes.countdown().withAccess(ea.ALL).withEndpoint(`CH${ep.ID}`)); // CH2..CHN -> countdown_CHn
+
+            feats.push(tuya.exposes.powerOutageMemory());
+            feats.push(tuya.exposes.indicatorMode());
+            feats.push(e.child_lock());
+            feats.push(tuya.exposes.switchTypeButton());
+            return feats;
+        },
+        endpoint: (device) => {
+            const map: {[s: string]: number} = {};
+            const eps = device?.endpoints ? device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")) : [];
+            for (const ep of eps.slice(1)) map[`CH${ep.ID}`] = ep.ID;
+            return map;
+        },
+        meta: {
+            multiEndpoint: true,
+            // Device-level attributes must not get an endpoint suffix.
+            // Do NOT list "state" here: multi-gang switching relies on "state" being suffixed per endpoint.
+            multiEndpointSkip: ["power", "current", "voltage", "energy", "child_lock", "power_outage_memory", "indicator_mode", "switch_type"],
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+            // Multi-gang: the additional genOnOff endpoints (exposed as CH2..CHN) need to be bound as
+            // well, otherwise their state changes are never reported to the coordinator.
+            for (const gangEndpoint of device.endpoints.filter((ep) => ep.supportsInputCluster("genOnOff")).slice(1)) {
+                await reporting.bind(gangEndpoint, coordinatorEndpoint, ["genOnOff"]);
+            }
+            await reporting.currentSummDelivered(endpoint);
+            await reporting.rmsVoltage(endpoint, {change: 5});
+            await reporting.rmsCurrent(endpoint, {change: 50});
+
+            if (
+                !["_TZ3000_0zfrhq4i", "_TZ3000_okaz9tjs", "_TZ3000_typdpbpg", "_TZ3000_ww6drja5", "Zbeacon", "_TZ3000_cicwjqth"].includes(
+                    device.manufacturerName,
+                )
+            ) {
+                // Gives INVALID_DATA_TYPE for _TZ3000_0zfrhq4i and a few others (issue 20028).
+                // https://github.com/Koenkk/zigbee2mqtt/discussions/19680#discussioncomment-7667035
+                // Excludes _TZ3000_gjnozsaz per https://github.com/Koenkk/zigbee2mqtt/issues/28729#issuecomment-3370261334
+                await reporting.activePower(endpoint, {change: 10});
+            }
+            // Fallback scaling factors, used only when the device does not report its own
+            // multipliers/divisors. m.electricityMeter() reads them from the device and,
+            // when successful, overrides the values saved here.
+            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                acVoltageMultiplier: 1,
+                acVoltageDivisor: 1,
+                acPowerMultiplier: 1,
+                acPowerDivisor: 1,
+                acCurrentDivisor: 1000,
+                acCurrentMultiplier: 1,
+            });
+            endpoint.saveClusterAttributeKeyValue("seMetering", {
+                divisor: 100,
+                multiplier: 1,
+            });
+            utils.attachOutputCluster(device, "genOta");
+            device.save();
+        },
+    },
+    {
+        fingerprint: [
             {modelID: "TS011F", applicationVersion: 192, manufacturerName: "_TZ3000_2uollq9d", priority: -1},
             {modelID: "TS011F", applicationVersion: 160, priority: -1},
             {modelID: "TS011F", applicationVersion: 100, priority: -1},
