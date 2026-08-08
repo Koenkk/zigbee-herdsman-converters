@@ -1,9 +1,10 @@
-import * as tz from "zigbee-herdsman-converters/converters/toZigbee";
-import * as m from "zigbee-herdsman-converters/lib/modernExtend";
-import type {Tz} from "zigbee-herdsman-converters/lib/types";
-import {getTransition, replaceToZigbeeConvertersInArray} from "zigbee-herdsman-converters/lib/utils";
+import * as tz from "../converters/toZigbee";
+import * as m from "../lib/modernExtend";
+import type {Tz} from "../lib/types";
+import {getTransition, replaceToZigbeeConvertersInArray} from "../lib/utils";
 import type {DefinitionWithExtend} from "../lib/types";
 
+const NS = "zhc:ribag";
 const COLOR_TEMP_MIN = 153;
 const COLOR_TEMP_MAX = 500;
 
