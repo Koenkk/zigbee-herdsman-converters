@@ -4,7 +4,6 @@ import type {Tz} from "../lib/types";
 import {getTransition, replaceToZigbeeConvertersInArray} from "../lib/utils";
 import type {DefinitionWithExtend} from "../lib/types";
 
-const NS = "zhc:ribag";
 const COLOR_TEMP_MIN = 153;
 const COLOR_TEMP_MAX = 500;
 
