@@ -1075,7 +1075,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.instantaneousDemand(endpoint3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(endpoint1);
-            const payload = reporting.payload<"closuresWindowCovering", UbisysClosuresWindowCovering>("operationalStatus", 1, 3600, 0);
+            const payload = reporting.payload<"closuresWindowCovering", UbisysClosuresWindowCovering>("operationalStatus", 0, 65000, 0);
             await endpoint1.configureReporting("closuresWindowCovering", payload);
         },
         onEvent: (event) => {
