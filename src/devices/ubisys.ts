@@ -109,6 +109,20 @@ const ubisys = {
                 return {configure_device_setup: result};
             },
         } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup, ["attributeReport", "readResponse"]>,
+        operational_status: {
+            cluster: "closuresWindowCovering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.operationalStatus !== undefined) {
+                    const status = msg.data.operationalStatus;
+                    const operationalStatus = status & 3;
+                    const operationalStatusValues = {0: "stopped", 1: "opening", 2: "closing"};
+                    return {
+                        operational_status: utils.getFromLookup(operationalStatus, operationalStatusValues),
+                    };
+                }
+            },
+        } satisfies Fz.Converter<"closuresWindowCovering", UbisysClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     },
     tz: {
         configure_j1: {
@@ -1011,7 +1025,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "J1",
         vendor: "Ubisys",
         description: "Shutter control J1",
-        fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
+        fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup, ubisys.fz.operational_status],
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
