@@ -1065,6 +1065,7 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
             ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
             ubisysModernExtend.pollCurrentSummDelivered(3),
+            ubisysModernExtend.operationalStatus(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1074,6 +1075,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.instantaneousDemand(endpoint3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(endpoint1);
+            const payload = reporting.payload<"closuresWindowCovering", UbisysClosuresWindowCovering>("operationalStatus", 1, 3600, 0);
+            await endpoint1.configureReporting("closuresWindowCovering", payload);
         },
         onEvent: (event) => {
             /*
