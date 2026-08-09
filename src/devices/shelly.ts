@@ -2126,11 +2126,7 @@ function shellyTRVGetExternalTemperatureRequest(device: Zh.Device): ShellyTRVExt
  * Zigbee2MQTT restart. Retry bookkeeping may stay in memory because createdAt
  * remains persisted and still bounds the request lifetime across restarts.
  */
-function shellyTRVPutExternalTemperatureRequest(
-    device: Zh.Device,
-    request: ShellyTRVExternalTemperatureRequest,
-    persist = true,
-): void {
+function shellyTRVPutExternalTemperatureRequest(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest, persist = true): void {
     device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY] = request;
     if (persist) device.save();
 }
