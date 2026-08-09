@@ -1252,6 +1252,37 @@ const tuyaExposes = {
     version: () => e.text("version", ea.STATE).withCategory("diagnostic"),
     alarmDuration: () =>
         e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
+    coverPosition: () => e.cover_position().setAccess("position", ea.STATE_SET),
+    motorState: () =>
+        e
+            .enum("motor_state", ea.STATE, ["opening", "closing", "stopped"])
+            .withDescription("Current motor movement status")
+            .withCategory("diagnostic"),
+    motorDirection: () =>
+        e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor rotation direction").withCategory("config"),
+    motorDirectionSide: () => e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side").withCategory("config"),
+    slowMode: () =>
+        e.binary("slow_mode", ea.STATE_SET, "ON", "OFF").withDescription("Operate the motor slower and quieter than normal").withCategory("config"),
+    coverType: () =>
+        e
+            .enum("cover_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
+            .withDescription("Type of window covers installed")
+            .withCategory("config"),
+    favoritePosition: () =>
+        e
+            .numeric("favorite_position", ea.STATE_SET)
+            .withUnit("%")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withDescription("Store the preferred cover position")
+            .withCategory("config"),
+    coverLimit: () =>
+        e
+            .enum("cover_limit", ea.STATE_SET, ["set_up", "set_down", "delete_up", "delete_down", "delete_both"])
+            .withDescription("Set current position as the limit position")
+            .withCategory("config"),
+    clickControl: () => e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control"),
 };
 
 export {tuyaExposes as exposes};
@@ -1617,7 +1648,25 @@ export const valueConverter = {
             return position;
         },
     },
+    coverAction: valueConverterBasic.lookup({OPEN: new Enum(0), STOP: new Enum(1), CLOSE: new Enum(2), CONTINUE: new Enum(3)}),
+    motorState: valueConverterBasic.lookup({opening: new Enum(0), closing: new Enum(1), stopped: new Enum(2)}),
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
+    motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
+    coverType: valueConverterBasic.lookup({
+        roman_pole: new Enum(0),
+        roller_blind: new Enum(1),
+        canopy_curtain: new Enum(2),
+        roman_blind: new Enum(3),
+        honeycomb_curtain: new Enum(4),
+    }),
+    coverLimit: valueConverterBasic.lookup({
+        set_up: new Enum(0),
+        set_down: new Enum(1),
+        delete_up: new Enum(2),
+        delete_down: new Enum(3),
+        delete_both: new Enum(4),
+    }),
+    clickControl: valueConverterBasic.lookup({up: new Enum(0), down: new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
