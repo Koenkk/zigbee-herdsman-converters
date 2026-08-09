@@ -4,7 +4,6 @@ import type {Feature} from "../lib/exposes";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
-import * as globalStore from "../lib/store";
 import type {
     Configure,
     Definition,
@@ -398,7 +397,7 @@ interface ShellyTRVExternalTemperatureRequest {
     attempts: number;
 }
 
-const SHELLY_TRV_EXTERNAL_TEMPERATURE_STORE_KEY = "shelly_trv_external_temperature_request";
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY = "shelly_trv_external_temperature_request";
 const SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS = 1500;
 const SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS = 30;
 const SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS = 60 * 60 * 1000;
@@ -2111,24 +2110,39 @@ const tzLocal = {
 };
 
 /**
- * Returns the pending external temperature request for a TRV.
+ * Returns the persisted pending external temperature request for a TRV.
  */
 function shellyTRVGetExternalTemperatureRequest(device: Zh.Device): ShellyTRVExternalTemperatureRequest | undefined {
-    return globalStore.getValue(device, SHELLY_TRV_EXTERNAL_TEMPERATURE_STORE_KEY) as ShellyTRVExternalTemperatureRequest | undefined;
+    const request = device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY];
+    if (typeof request !== "object" || request === null) return undefined;
+
+    return request as ShellyTRVExternalTemperatureRequest;
 }
 
 /**
- * Stores the pending external temperature request for a TRV.
+ * Stores the pending external temperature request in the device metadata.
+ *
+ * The request itself is persisted immediately so delivery can resume after a
+ * Zigbee2MQTT restart. Retry bookkeeping may stay in memory because createdAt
+ * remains persisted and still bounds the request lifetime across restarts.
  */
-function shellyTRVPutExternalTemperatureRequest(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest): void {
-    globalStore.putValue(device, SHELLY_TRV_EXTERNAL_TEMPERATURE_STORE_KEY, request);
+function shellyTRVPutExternalTemperatureRequest(
+    device: Zh.Device,
+    request: ShellyTRVExternalTemperatureRequest,
+    persist = true,
+): void {
+    device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY] = request;
+    if (persist) device.save();
 }
 
 /**
- * Clears the pending external temperature request for a TRV.
+ * Clears the persisted pending external temperature request for a TRV.
  */
-function shellyTRVClearExternalTemperatureRequest(device: Zh.Device | string): void {
-    globalStore.clearValue(device, SHELLY_TRV_EXTERNAL_TEMPERATURE_STORE_KEY);
+function shellyTRVClearExternalTemperatureRequest(device: Zh.Device): void {
+    if (!(SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY in device.meta)) return;
+
+    delete device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY];
+    device.save();
 }
 
 /**
@@ -2159,7 +2173,7 @@ function shellyTRVReserveExternalTemperatureAttempt(
         lastAttemptAt: Date.now(),
         attempts: request.attempts + 1,
     };
-    shellyTRVPutExternalTemperatureRequest(device, reserved);
+    shellyTRVPutExternalTemperatureRequest(device, reserved, false);
     return reserved;
 }
 
@@ -2317,33 +2331,21 @@ const tzShellyTRVExternalTemperature = {
 } satisfies Tz.Converter;
 
 /**
- * Restores pending delivery state after a restart and retries when the TRV announces itself.
+ * Retries a persisted pending external temperature when the TRV announces itself.
  */
 const shellyTRVExternalTemperatureOnEvent: OnEvent.Handler = (event) => {
-    if (event.type === "stop") {
-        shellyTRVClearExternalTemperatureRequest(event.data.ieeeAddr);
-        return;
-    }
-
-    if (event.type === "start") {
-        const request = shellyTRVGetExternalTemperatureRequest(event.data.device);
-        if (request) return;
-
-        const temperature = event.data.state.external_temperature;
-        const localTemperature = event.data.state.local_temperature;
-        const remoteSensing = shellyTRVRemoteSensingFromState(event.data.state);
-        if (typeof temperature !== "number" || typeof localTemperature !== "number" || (remoteSensing & 1) === 0) return;
-        if (Math.round(temperature * 100) === Math.round(localTemperature * 100)) return;
-
-        shellyTRVPutExternalTemperatureRequest(event.data.device, shellyTRVCreateExternalTemperatureRequest(temperature));
-        return;
-    }
-
     if (event.type !== "deviceAnnounce") return;
 
     const endpoint = event.data.device.getEndpoint(1);
     const request = shellyTRVGetExternalTemperatureRequest(event.data.device);
-    if (!endpoint || !request || shellyTRVExternalTemperatureIsExpired(request)) return;
+    if (!endpoint || !request) return;
+
+    if (shellyTRVExternalTemperatureIsExpired(request)) {
+        shellyTRVClearExternalTemperatureRequest(event.data.device);
+        logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${event.data.device.ieeeAddr}'`, NS);
+        return;
+    }
+
     if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
 
     const remoteSensing = shellyTRVGetRemoteSensing(endpoint, event.data.state);
