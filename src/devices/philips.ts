@@ -5173,5 +5173,5 @@ export const definitions: DefinitionWithExtend[] = [
     vendor: 'Signify Netherlands B.V.',
     description: 'Hue white and color ambiance slim downlight 4 inch',
     extend: [philips.m.light({"colorTemp":{"range":[50,1000]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
-};
+},
 ];
