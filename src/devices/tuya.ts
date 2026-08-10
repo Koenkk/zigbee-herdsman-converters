@@ -785,6 +785,28 @@ const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
     ),
 ];
 
+// Correct certain TS130F covers that report the requested position while moving,
+// but then incorrectly revert to the original start position when
+// reporting STOP.
+const ts130fPositionFixStoreKey = "ts130f_position_fix";
+
+interface Ts130fPositionFixState {
+    startPosition: number;
+    targetPosition: number;
+    rawTargetPosition?: number;
+    correctionInProgress: boolean;
+}
+
+const clearTs130fPositionFix = (entity: Zh.Endpoint | Zh.Group): void => {
+    if (utils.isGroup(entity)) {
+        for (const member of entity.members) {
+            globalStore.clearValue(member, ts130fPositionFixStoreKey);
+        }
+    } else {
+        globalStore.clearValue(entity, ts130fPositionFixStoreKey);
+    }
+};
+
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
@@ -1397,6 +1419,53 @@ const tzLocal = {
             value = utils.toNumber(value, "sensitivity");
             await entity.write("ssIasZone", {currentZoneSensitivityLevel: value as number});
             return {state: {sensitivity: value}};
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS130F_cover_state: {
+        ...tz.cover_state,
+        convertSet: async (entity, key, value, meta) => {
+            // Any new state invalidates the previous position transaction.
+            clearTs130fPositionFix(entity);
+            return await tz.cover_state.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS130F_cover_position_tilt: {
+        ...tz.cover_position_tilt,
+        convertSet: async (entity, key, value, meta) => {
+            // Any new cover command invalidates the previous position transaction.
+            clearTs130fPositionFix(entity);
+
+            if (key !== "position" || !utils.isEndpoint(entity)) {
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            }
+
+            utils.assertNumber(value, key);
+
+            const startPosition = meta.state.position;
+
+            // Only track intermediate movements from a known position.
+            if (!utils.isNumber(startPosition) || value <= 0 || value >= 100 || value === startPosition) {
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            }
+
+            const pending: Ts130fPositionFixState = {
+                startPosition,
+                targetPosition: value,
+                correctionInProgress: false,
+            };
+
+            globalStore.putValue(entity, ts130fPositionFixStoreKey, pending);
+
+            try {
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            } catch (error) {
+                if (globalStore.getValue(entity, ts130fPositionFixStoreKey) === pending) {
+                    clearTs130fPositionFix(entity);
+                }
+                throw error;
+            }
         },
     } satisfies Tz.Converter,
 };
@@ -2076,6 +2145,108 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS130F_cover_position_tilt: {
+        ...fz.cover_position_tilt,
+        convert: (model, msg, publish, options, meta) => {
+            const converted = fz.cover_position_tilt.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+
+            const pending = globalStore.getValue(msg.endpoint, ts130fPositionFixStoreKey) as Ts130fPositionFixState | undefined;
+
+            const rawPosition = msg.data.currentPositionLiftPercentage;
+            const movingState = msg.data.tuyaMovingState;
+
+            if (pending === undefined || !utils.isNumber(rawPosition) || rawPosition > 100) {
+                return converted;
+            }
+
+            const positionProperty = utils.postfixWithEndpointName("position", msg, model, meta);
+            const position = converted?.[positionProperty];
+
+            // UP/DOWN: remember the raw Zigbee target once the device acknowledges
+            // the requested logical position while moving.
+            if (movingState === 0 || movingState === 2) {
+                if (position === pending.targetPosition) {
+                    pending.rawTargetPosition = rawPosition;
+                    globalStore.putValue(msg.endpoint, ts130fPositionFixStoreKey, pending);
+                } else if (pending.rawTargetPosition !== undefined) {
+                    // The device started reporting another position while moving.
+                    // This is not the failure pattern we are looking for.
+                    clearTs130fPositionFix(msg.endpoint);
+                }
+
+                return converted;
+            }
+
+            if (movingState === 1) {
+                // We only repair a transaction after the target was explicitly
+                // acknowledged while moving.
+                if (pending.rawTargetPosition === undefined) {
+                    clearTs130fPositionFix(msg.endpoint);
+                    return converted;
+                }
+
+                // Normal successful completion.
+                if (position === pending.targetPosition) {
+                    clearTs130fPositionFix(msg.endpoint);
+                    return converted;
+                }
+
+                // Exact failure pattern:
+                //
+                // start S -> command T -> T + moving -> S + STOP
+                //
+                // Suppress the stale position and repair the device attribute.
+                if (position === pending.startPosition) {
+                    if (!pending.correctionInProgress) {
+                        pending.correctionInProgress = true;
+                        globalStore.putValue(msg.endpoint, ts130fPositionFixStoreKey, pending);
+
+                        const staleResult = converted;
+                        const rawTargetPosition = pending.rawTargetPosition;
+
+                        logger.debug(`Correcting stale TS130F position from ${pending.startPosition} to ${pending.targetPosition}`, NS);
+
+                        void msg.endpoint
+                            .write(
+                                "closuresWindowCovering",
+                                {currentPositionLiftPercentage: rawTargetPosition},
+                                utils.getOptions(model, msg.endpoint),
+                            )
+                            .then(() => {
+                                if (globalStore.getValue(msg.endpoint, ts130fPositionFixStoreKey) === pending) {
+                                    clearTs130fPositionFix(msg.endpoint);
+                                }
+                            })
+                            .catch((error) => {
+                                if (globalStore.getValue(msg.endpoint, ts130fPositionFixStoreKey) === pending) {
+                                    clearTs130fPositionFix(msg.endpoint);
+
+                                    logger.warning(`Failed to correct stale TS130F position: ${error}`, NS);
+
+                                    // The correction failed, so expose the actual stale
+                                    // device state instead of leaving an optimistic value.
+                                    if (staleResult !== undefined) {
+                                        publish(staleResult);
+                                    }
+                                }
+                            });
+                    }
+
+                    // tuya.fz.cover_options still processes the same report and
+                    // publishes moving=STOP. Only position/state are suppressed here.
+                    return {};
+                }
+
+                // Any other final position (e.g. 99 when start=100) is considered
+                // a legitimate intermediate/manual stop.
+                clearTs130fPositionFix(msg.endpoint);
+                return converted;
+            }
+
+            return converted;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
 };
 
 // MS032Z stair light controller - DP 125, the six running-light effects.
@@ -6027,7 +6198,6 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "LoraTap", model: "SC400"},
             tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
             tuya.whitelabel("LoraTap", "SC500ZB-v4", "Smart curtain/shutter switch", ["_TZ3000_5iixzdo7"]),
-            tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart Zigbee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
             tuya.whitelabel("Zemismart", "ZN-LC1E", "Smart curtain/shutter switch", ["_TZ3000_74hsp7qy"]),
             tuya.whitelabel("Girier", "TS130F_GIRIER", "Smart curtain switch", ["_TZ3210_dwytrmda"]),
@@ -6068,6 +6238,52 @@ export const definitions: DefinitionWithExtend[] = [
             }
             return exps;
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_yruungrl"]),
+        model: "B4Z",
+        vendor: "Nous",
+        description: "Blind/curtain motor controller",
+        fromZigbee: [
+            fzLocal.TS130F_cover_position_tilt,
+            tuya.fz.indicator_mode,
+            tuya.fz.cover_options,
+            tuya.fz.backlight_mode_off_on,
+            tuya.fz.switch_type_curtain,
+        ],
+        toZigbee: [
+            tzLocal.TS130F_cover_state,
+            tzLocal.TS130F_cover_position_tilt,
+            tuya.tz.cover_calibration,
+            tuya.tz.cover_reversal,
+            tuya.tz.backlight_indicator_mode_2,
+            tuya.tz.backlight_indicator_mode_1,
+            tuya.tz.switch_type_curtain,
+        ],
+        meta: {coverInverted: true},
+        extend: [
+            tuyaBase(),
+            tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
+            m.deviceAddCustomCluster("closuresWindowCovering", {
+                name: "closuresWindowCovering",
+                ID: 0x0102,
+                attributes: {
+                    currentPositionLiftPercentage: {
+                        name: "currentPositionLiftPercentage",
+                        ID: 0x0008,
+                        type: DataType.UINT8,
+                        report: true,
+                        scene: true,
+                        max: 100,
+                        default: 0,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            tuya.modernExtend.tuyaCoverSwitchType(),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS130F", ["_TZ3000_1dd0d5yi"]),
