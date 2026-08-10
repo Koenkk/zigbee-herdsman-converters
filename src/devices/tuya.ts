@@ -15751,7 +15751,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY205Z",
                 vendor: "AOYAN",
                 description: "PIR 24Ghz human presence sensor",
-                fingerprint: [{modelID: "AY205Z", manufacturerName: "AOYAN"}],
+                fingerprint: [{modelID: "AY205Z", manufacturerName: "AOYAN"}, {manufacturerName: "AOYAN"}],
             },
         ],
     },
