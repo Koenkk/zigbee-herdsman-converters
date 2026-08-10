@@ -26,6 +26,50 @@ const mapAttribute = <T>(
     return undefined;
 };
 
+const createClusterMethods = <TAttributes extends Record<string, Attribute>, TCommands extends Record<string, Command>>(
+    attributes: TAttributes,
+    commands: TCommands,
+    commandsResponse: Record<string, Command>,
+) => ({
+    getAttribute: (key: number | string): Attribute | undefined => {
+        if (typeof key === "string") {
+            return attributes[key];
+        }
+        for (const attrName in attributes) {
+            if (attributes[attrName].ID === key) {
+                return attributes[attrName];
+            }
+        }
+        return undefined;
+    },
+    getCommand: (key: number | string): Command => {
+        if (typeof key === "string") {
+            const cmd = commands[key];
+            if (!cmd) throw new Error(`Command '${key}' not found`);
+            return cmd;
+        }
+        for (const cmdName in commands) {
+            if (commands[cmdName].ID === key) {
+                return commands[cmdName];
+            }
+        }
+        throw new Error(`Command with ID '${key}' not found`);
+    },
+    getCommandResponse: (key: number | string): Command => {
+        if (typeof key === "string") {
+            const cmd = commandsResponse[key];
+            if (!cmd) throw new Error(`Command response '${key}' not found`);
+            return cmd;
+        }
+        for (const cmdName in commandsResponse) {
+            if (commandsResponse[cmdName].ID === key) {
+                return commandsResponse[cmdName];
+            }
+        }
+        throw new Error(`Command response with ID '${key}' not found`);
+    },
+});
+
 const hzcExtend = {
     addHzcThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
@@ -38,15 +82,15 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute: (key: number | string): Attribute | undefined => {
-                throw new Error("Function not implemented.");
-            },
-            getCommand: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
-            getCommandResponse: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
+            ...createClusterMethods(
+                {
+                    frost_temp: {name: "frost_temp", ID: 0x9000, type: Zcl.DataType.UINT8},
+                    frost: {name: "frost", ID: 0x8001, type: Zcl.DataType.BOOLEAN},
+                    local_temperature_calibration: {name: "local_temperature_calibration", ID: 0x0010, type: Zcl.DataType.INT8},
+                },
+                {},
+                {},
+            ),
         }),
     addHzcUserInterfaceCluster: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
@@ -59,15 +103,15 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute: (key: number | string): Attribute | undefined => {
-                throw new Error("Function not implemented.");
-            },
-            getCommand: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
-            getCommandResponse: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
+            ...createClusterMethods(
+                {
+                    auto_time: {name: "auto_time", ID: 0x8004, type: Zcl.DataType.BOOLEAN},
+                    holiday_time: {name: "holiday_time", ID: 0x8002, type: Zcl.DataType.UINT8},
+                    display_mode: {name: "display_mode", ID: 0x8000, type: Zcl.DataType.ENUM8},
+                },
+                {},
+                {},
+            ),
         }),
     addHzcWindowCluster: () =>
         m.deviceAddCustomCluster("hzcWindow", {
@@ -79,15 +123,14 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute: (key: number | string): Attribute | undefined => {
-                throw new Error("Function not implemented.");
-            },
-            getCommand: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
-            getCommandResponse: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
+            ...createClusterMethods(
+                {
+                    window_check: {name: "window_check", ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+                    window_status: {name: "window_status", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+                },
+                {},
+                {},
+            ),
         }),
     addHzcValueCluster: () =>
         m.deviceAddCustomCluster("hzcValue", {
@@ -104,15 +147,19 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute: (key: number | string): Attribute | undefined => {
-                throw new Error("Function not implemented.");
-            },
-            getCommand: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
-            getCommandResponse: (key: number | string): Command => {
-                throw new Error("Function not implemented.");
-            },
+            ...createClusterMethods(
+                {
+                    value_switch: {name: "value_switch", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+                    control_type: {name: "control_type", ID: 0x0002, type: Zcl.DataType.ENUM8},
+                    value_opening: {name: "value_opening", ID: 0x0003, type: Zcl.DataType.UINT8},
+                    scale_switch: {name: "scale_switch", ID: 0x0004, type: Zcl.DataType.BOOLEAN},
+                    boost_switch: {name: "boost_switch", ID: 0x0005, type: Zcl.DataType.BOOLEAN},
+                    boost_countdown: {name: "boost_countdown", ID: 0x0006, type: Zcl.DataType.UINT8},
+                    work_mode: {name: "work_mode", ID: 0x0007, type: Zcl.DataType.ENUM8},
+                },
+                {},
+                {},
+            ),
         }),
     hzcThermostatFromZigbee: () => {
         return {
