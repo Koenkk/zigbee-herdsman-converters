@@ -11000,9 +11000,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ];
                 let composite = e
                     .composite("programming_mode", "programming_mode", ea.STATE_SET)
-                    .withDescription(
-                        "Schedule: W=Weekdays, S=Saturday, U=Sunday. 4 slots each with hour(h), minute(m), temperature(t).",
-                    );
+                    .withDescription("Schedule: W=Weekdays, S=Saturday, U=Sunday. 4 slots each with hour(h), minute(m), temperature(t).");
                 for (const group of groups) {
                     for (let slot = 0; slot < 4; slot++) {
                         const offset = group.start + slot * 4;
