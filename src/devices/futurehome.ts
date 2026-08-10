@@ -355,13 +355,13 @@ export const definitions: DefinitionWithExtend[] = [
                 ID: Zcl.Clusters.haApplianceControl.ID,
                 attributes: {
                     chargingSessionStartT: {
-                        name: "chargingSessionStartT",
+                        name: "chargingSessionStartTime",
                         ID: 0xef01,
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
                     },
                     chargingSessionEndT: {
-                        name: "chargingSessionEndT",
+                        name: "chargingSessionEndTime",
                         ID: 0xef02,
                         type: Zcl.DataType.UINT32,
                         manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS,
