@@ -24246,7 +24246,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZV"],
+        zigbeeModel: ["ZG-204ZV", "AY204T"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
@@ -24299,6 +24299,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            {
+                model: "AY204T",
+                vendor: "AOYAN",
+                description: "Millimeter wave motion detection",
+                fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN  "}],
+            },
+        ],
     },
     {
         zigbeeModel: ["ZG-223Z"],
