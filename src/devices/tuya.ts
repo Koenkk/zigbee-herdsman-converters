@@ -19591,7 +19591,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpbki2zm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpbki2zm", "_TZE204_qujphad5"]),
         model: "TYBAC-006",
         vendor: "Tuya",
         description: "Wall-mount thermostat for 2-pipe fan-coil unit",
