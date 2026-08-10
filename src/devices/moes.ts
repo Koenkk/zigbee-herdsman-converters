@@ -138,7 +138,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZHT-S03",
         vendor: "Moes",
         description: "Zigbee wall thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.child_lock(),
             e
