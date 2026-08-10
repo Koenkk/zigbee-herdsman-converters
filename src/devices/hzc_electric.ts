@@ -590,7 +590,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "alarm_2", "tamper"]}), m.battery()],
     },
     {
-        zigbeeModel: ["HZC Electric motion sensor"],
+        fingerprint: [{modelID: "MotionSensor-ZB3.0", manufacturerName: "Shyugj"}],
         model: "S902M-ZG",
         vendor: "HZC Electric",
         description: "Motion sensor",

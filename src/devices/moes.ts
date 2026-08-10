@@ -6,11 +6,12 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -22,14 +23,48 @@ const exposesLocal = {
     program_temperature: (name: string) => e.numeric(name, ea.STATE_SET).withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5),
 };
 
+// Moes ADCBZI01 curtain robot: travel-range calibration is driven by the Tuya
+// vendor attribute tuyaMotorReversal (0xF002) on closuresWindowCovering, used as
+// a 3-value control (0 stop, 1 calibrate, 2 calibrate in the opposite direction).
+const adcbziCalibrationTo: {[k: string]: number} = {stop: 0, calibrate: 1, calibrate_reverse: 2};
+const adcbziCalibrationFrom: {[k: number]: string} = {0: "stop", 1: "calibrate", 2: "calibrate_reverse"};
+
+const tzLocal = {
+    adcbzi_calibration: {
+        key: ["calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            const v = adcbziCalibrationTo[value as string];
+            if (v === undefined) throw new Error(`calibration: invalid value '${value}'`);
+            await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: v});
+            return {state: {calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", ["tuyaMotorReversal"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const fzLocal = {
+    adcbzi_calibration: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            if (msg.data.tuyaMotorReversal !== undefined) {
+                return {calibration: adcbziCalibrationFrom[msg.data.tuyaMotorReversal] ?? String(msg.data.tuyaMotorReversal)};
+            }
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6"]),
+        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6", "_TZ3210_rundhkxp"]),
         model: "ADCBZI01",
         vendor: "Moes",
         description: "Curtain Robot",
-        fromZigbee: [fz.cover_position_tilt, tuya.fz.datapoints],
-        toZigbee: [tz.cover_position_tilt, tz.cover_state, tuya.tz.datapoints],
+        fromZigbee: [fz.cover_position_tilt, fzLocal.adcbzi_calibration, tuya.fz.datapoints],
+        toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.adcbzi_calibration, tuya.tz.datapoints],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         exposes: [
             e.cover_position(),
             e.position(),
@@ -49,6 +84,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("custom_week_prog_2", ea.STATE_SET).withDescription("Custom week program 2"),
             e.text("custom_week_prog_3", ea.STATE_SET).withDescription("Custom week program 3"),
             e.text("custom_week_prog_4", ea.STATE_SET).withDescription("Custom week program 4"),
+            e
+                .enum("calibration", ea.ALL, ["stop", "calibrate", "calibrate_reverse"])
+                .withDescription(
+                    "Travel-range calibration. With the curtain fully closed, set 'calibrate' and the motor free-runs " +
+                        "toward open; at the fully-open end set 'stop' to halt it and store the limit. Use 'calibrate_reverse' " +
+                        "if it runs the wrong way. Always start fully closed, otherwise the open/close commands end up reversed.",
+                ),
         ],
         meta: {
             tuyaDatapoints: [
@@ -81,6 +123,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [111, "factory_test", tuya.valueConverter.raw], // Factory test (0-100)
                 [112, "total_distance", tuya.valueConverter.raw], // Total running distance in meters
             ],
+        },
+        // Poll EF00 datapoints so battery/illuminance/total_* populate (they were permanently N/A
+        // without a poll). This unit exposes no genPowerCfg, so bind only closuresWindowCovering.
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
+            await reporting.currentPositionLiftPercentage(endpoint);
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
         },
     },
     {
@@ -136,7 +186,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [109, "local_temperature_calibration", tuya.valueConverter.localTempCalibration3],
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [112, "temperature_delta", tuya.valueConverter.divideBy10],
                 [
                     31,
@@ -448,10 +498,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Star feather Zigbee curtain switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [e.cover_position().setAccess("position", ea.STATE_SET)],
+        exposes: [te.coverPosition()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
             ],
         },
@@ -461,26 +511,28 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZC-LS02",
         vendor: "Moes",
         description: "Roller blind motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Set the motor direction"),
-            e.battery(),
+        // This motor never reports battery spontaneously; DP 13 (battery) is only sent in
+        // response to a dataQuery. Without polling, `battery` stays null forever. Confirmed
+        // on hardware: dp 13 -> 100 only arrives after a dataQuery. Poll periodically and on
+        // device announce so the battery level is reported reliably.
+        // respondToMcuVersionResponse is left at its default (false): with it enabled, one
+        // of the units gets stuck in an mcuVersionRequest/Response ping-pong (~3x/s) that
+        // floods the network/MQTT (see https://github.com/Koenkk/zigbee2mqtt/issues/28367).
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 24 * 60 * 60,
+            }),
         ],
+        exposes: [te.coverPosition(), te.motorDirection(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPositionInverted],
                 [3, "position", tuya.valueConverter.coverPositionInverted],
-                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})],
+                [5, "motor_direction", tuya.valueConverterBasic.lookup({normal: false, reversed: true})], // maybe enum ?
                 [13, "battery", tuya.valueConverter.raw],
             ],
         },
@@ -865,7 +917,7 @@ export const definitions: DefinitionWithExtend[] = [
                         OFF: false,
                     }),
                 ],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [102, "position", tuya.valueConverter.raw],
                 [
                     103,
@@ -1182,6 +1234,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.illuminance()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0222", ["_TZ3000_ubuikmgo"]),
+        model: "ZSS-QT-LTH-C",
+        vendor: "Moes",
+        description: "Smart 3-in-1 brightness, temperature and humidity sensor",
+        configure: tuya.configureMagicPacket,
+        extend: [m.battery(), m.temperature(), m.humidity(), m.illuminance()],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fhn3negr"]),
         model: "SH4-ZB",
         vendor: "Moes",
@@ -1227,7 +1287,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [45, "error_status", tuya.valueConverter.raw],
                 [101, "comfort_temperature", tuya.valueConverter.divideBy2],
                 [102, "eco_temperature", tuya.valueConverter.divideBy2],
-                [104, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [104, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [105, "auto_setpoint_override", tuya.valueConverter.divideBy2],
                 [106, "boost_heating", tuya.valueConverter.onOff],
                 [107, "window_detection", tuya.valueConverter.onOff],
@@ -1323,7 +1383,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.moes_cover],
         toZigbee: [legacy.tz.moes_cover],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("backlight", ea.STATE_SET, ["OFF", "ON"]),
             e.enum("calibration", ea.STATE_SET, ["OFF", "ON"]),
             e.enum("motor_reversal", ea.STATE_SET, ["OFF", "ON"]),
@@ -1352,7 +1412,15 @@ export const definitions: DefinitionWithExtend[] = [
             fz.battery,
         ],
         toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
-        exposes: [ez.learn_ir_code(), ez.learned_ir_code(), ez.ir_code_to_send(), e.battery(), e.battery_voltage()],
+        exposes: [
+            ez.learn_ir_code(),
+            ez.learned_ir_code(),
+            ez.learned_ir_timings(),
+            ez.ir_code_to_send(),
+            ez.ir_emitter(),
+            e.battery(),
+            e.battery_voltage(),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
@@ -1499,21 +1567,13 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
             e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [
                     2,
                     "position",
@@ -1695,9 +1755,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("automatic_mode", ea.STATE_SET, "ON", "OFF")
                 .withDescription("When set to `ON`, the device will start pushing in the same direction the window was pushed"),
-            e
-                .binary("slow_stop", ea.STATE_SET, "ON", "OFF")
-                .withDescription("When set to `ON`, the device decelerates gradually for quieter operation"),
+            te.slowMode(),
             e.enum("button_position", ea.STATE_SET, ["UP", "DOWN"]).withDescription("Swaps the behavior of the device's physical buttons"),
         ],
         meta: {
@@ -1714,7 +1772,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [104, "position", tuya.valueConverter.coverPosition],
                 [105, "charging", tuya.valueConverter.trueFalse1],
                 [106, "automatic_mode", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
-                [110, "slow_stop", tuya.valueConverterBasic.lookup({ON: 1, OFF: 0})],
+                [110, "slow_mode", tuya.valueConverter.onOffEnumOn1], // slow_stop
                 [112, "button_position", tuya.valueConverterBasic.lookup({UP: 1, DOWN: 0})],
             ],
         },
@@ -1726,16 +1784,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller Shade Blinds Motor for 38mm Tube",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         whiteLabel: [tuya.whitelabel("Tuya", "GM35TEQ-TYZ-2/25", "Roller Shade Blinds Motor for 38mm Tube", ["_TZE284_8whfphjv"])],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Set the motor direction"),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
@@ -1984,30 +2039,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Roller blind motor 17mm/25mm/28mm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
-            e.battery(),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", {from: (v: string) => Buffer.from(v, "base64").readUInt32BE(0)}],
-                [
-                    16,
-                    "border",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                        up_delete: tuya.enum(2),
-                        down_delete: tuya.enum(3),
-                        remove_top_bottom: tuya.enum(4),
-                    }),
-                ],
+                [16, "cover_limit", tuya.valueConverter.coverLimit],
             ],
         },
     },

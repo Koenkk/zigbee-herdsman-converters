@@ -54,12 +54,31 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Frient",
         description: "Customizable siren",
         extend: [
-            m.deviceEndpoints({endpoints: {"43": 43}}),
-            m.onOff({powerOnBehavior: false}),
+            m.deviceEndpoints({endpoints: {"43": 43, default: 43}}),
             m.battery(),
             m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
             m.iasWarning(),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["SMRZB-342"],
+        model: "SMRZB-342",
+        vendor: "Frient",
+        description: "Smart DIN Relay 2",
+        extend: [
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
+            m.electricityMeter({
+                voltage: {divisor: 100, multiplier: 1},
+                current: {divisor: 1000, multiplier: 1},
+                power: {divisor: 1, multiplier: 1},
+                energy: {divisor: 1000, multiplier: 1},
+            }),
+            m.deviceTemperature(),
+        ],
+        ota: true,
+        endpoint: () => {
+            return {default: 2};
+        },
     },
 ];

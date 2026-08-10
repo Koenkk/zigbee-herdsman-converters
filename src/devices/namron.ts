@@ -2284,6 +2284,7 @@ export const definitions: DefinitionWithExtend[] = [
             namron.toZigbee.namron_thermostat_child_lock,
         ],
         extend: [
+            namron.namronExtend.addNamronHvacThermostatCluster(),
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({voltage: false}),
             m.binary<"hvacThermostat", namron.NamronHvacThermostat>({
@@ -2595,7 +2596,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "preset", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), home: tuya.enum(1), away: tuya.enum(2)})],
                 [16, "current_heating_setpoint", tuya.valueConverter.raw],
                 [24, "local_temperature", tuya.valueConverter.raw],
-                [28, "local_temperature_calibration", tuya.valueConverter.localTempCalibration2],
+                [28, "local_temperature_calibration", tuya.valueConverter.raw],
                 [30, "child_lock", tuya.valueConverter.lockUnlock],
                 [101, "local_temperature_floor", tuya.valueConverter.raw],
                 [102, "sensor", tuya.valueConverterBasic.lookup({air_sensor: tuya.enum(0), floor_sensor: tuya.enum(1), both: tuya.enum(2)})],

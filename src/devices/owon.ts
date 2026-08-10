@@ -1224,7 +1224,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["PIR323-PTH"],
+        zigbeeModel: ["PIR323-PTH", "PIR323-PTH-20"],
         model: "PIR323-PTH",
         vendor: "OWON",
         description: "Multi-sensor",
