@@ -243,7 +243,7 @@ const hzcExtend = {
                         // keypadLockout (0x0001 = 1)
                         const keypadLockout = mapAttribute(data, 0x0001, "keypadLockout", (v) => (Number(v) === 1 ? "LOCK" : "UNLOCK"));
                         if (keypadLockout !== undefined) {
-                            result.keypadLockout = keypadLockout;
+                            result.keypad_lockout = keypadLockout;
                         }
 
                         // Sync time when auto_time is enabled
@@ -458,7 +458,7 @@ const hzcExtend = {
         }),
     keypadLockout: () =>
         m.binary({
-            name: "keypadLockout",
+            name: "keypad_lockout",
             cluster: "hvacUserInterfaceCfg",
             attribute: "keypadLockout",
             description: "Keypad lockout",
