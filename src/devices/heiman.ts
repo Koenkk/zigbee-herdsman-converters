@@ -3217,6 +3217,68 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["S1-TL"],
+        model: "S1-TL",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
+                    "sensorFaultState",
+                    "deviceMuteControl",
+                    "deviceMuteState",
+                    "indicatorLightLevelControlOf1",
+                    "interconnectable",
+                    "smokeConcentrationLevel",
+                    "smokeChamberContaminationLevel",
+                    "smokeConcentationUnit",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "battery_low", "test"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterSensorFaultState(),
+            heimanExtend.heimanClusterDeviceMuteState(),
+            heimanExtend.iasZoneInitiateTestMode(),
+            heimanExtend.heimanClusterSensorMutable(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.heimanClusterSensorInterconnectable(),
+            heimanExtend.smokeConcentrationLevel(),
+            heimanExtend.smokeConcentationUnit(),
+            heimanExtend.smokeChamberContaminationLevel(),
+            heimanExtend.linkAvailable(),
+            heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
         zigbeeModel: ["HM-722ESY-E-PLUS"],
         model: "HM-722ESY-E Plus",
         vendor: "Heiman",
@@ -3782,6 +3844,124 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.sirenForAutomationOnly(),
             heimanExtend.temperatureOffset(),
             heimanExtend.linkAvailable(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2VTD"],
+        model: "HS2VTD",
+        vendor: "Heiman",
+        description: "Smart 4 in 1 door sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "alarm_2", "battery_low"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2TD"],
+        model: "HS2TD",
+        vendor: "Heiman",
+        description: "Smart 3 in 1 door sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["HS2HT"],
+        model: "HS2HT",
+        vendor: "Heiman",
+        description: "Smart temperature & humidity sensor",
+        fromZigbee: [fzLocal.heimanClusterSpecialfz],
+        toZigbee: [tz.warning],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        exposes: [],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
+            m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight(),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),

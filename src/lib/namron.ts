@@ -881,7 +881,6 @@ export const namronExtend = {
                     ID: 0x8001,
                     type: Zcl.DataType.BOOLEAN,
                     write: true,
-                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 windowState: {
                     name: "windowState",
