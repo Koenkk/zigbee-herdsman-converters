@@ -1240,4 +1240,40 @@ export const ikeaModernExtend = {
 
         return result;
     },
+
+    /**
+     * Remote reads the appVersion from the bound device (coordinator with default bindings) when toggle_hold is triggered.
+     *
+     * Low versions cause it to drop arrow hold/release commands, in favor of repeated arrow click commands.
+     * https://github.com/Koenkk/zigbee2mqtt/issues/32109
+     *
+     * (Presumably old bulbs don't support the continuous cycling commands -> remote keeps backward compatibility)
+     */
+    handleAppVersionReadRequest: (): ModernExtend => {
+        const onEvent: OnEvent.Handler[] = [
+            (event) => {
+                if (event.type === "start") {
+                    event.data.device.customReadResponse = (frame, endpoint) => {
+                        if (
+                            frame.isCluster("genBasic") &&
+                            frame.payload.some((i: {attrId: number}) => i.attrId === Zcl.Clusters.genBasic.attributes.appVersion.ID)
+                        ) {
+                            endpoint.readResponse("genBasic", frame.header.transactionSequenceNumber, {appVersion: 99}).catch((e) => {
+                                logger.warning(`Custom appVersion response failed for '${event.data.device.ieeeAddr}': ${e}`, NS);
+                            });
+
+                            return true;
+                        }
+
+                        return false;
+                    };
+                }
+            },
+        ];
+
+        return {
+            onEvent,
+            isModernExtend: true,
+        };
+    },
 };
