@@ -619,7 +619,7 @@ const trv603ScheduleConverter = (dayNumber: number) => {
 };
 
 const zht002ProgrammingModeConverter = {
-    from: (v: unknown) => v,
+    from: (v: unknown) => v as KeyValue,
     to: (v: KeyValue, meta: Tz.Meta) => {
         let existing: KeyValue = {};
         if (meta?.state?.programming_mode && typeof meta.state.programming_mode === "object") {
