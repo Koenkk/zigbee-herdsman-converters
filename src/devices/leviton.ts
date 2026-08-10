@@ -1,9 +1,11 @@
+import {Zcl} from "zigbee-herdsman";
+
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -21,6 +23,17 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
+    restore_execute_if_off_after_power_cycle: {
+        cluster: "genLevelCtrl",
+        type: ["attributeReport"],
+        convert: async (model, msg, publish, options, meta) => {
+            // DG3HL does not announce after a mains cycle, but its first level report always uses TSN 1.
+            const levelConfig = meta.state.level_config as KeyValue | undefined;
+            if (msg.data.currentLevel !== undefined && msg.meta.zclTransactionSequenceNumber === 1 && levelConfig?.execute_if_off === true) {
+                await msg.endpoint.write("genLevelCtrl", {options: 1});
+            }
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -43,7 +56,56 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DG3HL-1BW",
         vendor: "Leviton",
         description: "Indoor Decora smart Zigbee 3.0 certified plug-in dimmer",
-        extend: [m.light({effect: false, configureReporting: true})],
+        fromZigbee: [fzLocal.restore_execute_if_off_after_power_cycle],
+        extend: [
+            m.deviceAddCustomCluster("lightingBallastCfg", {
+                name: "lightingBallastCfg",
+                ID: Zcl.Clusters.lightingBallastCfg.ID,
+                attributes: {
+                    powerOnLevel: {name: "powerOnLevel", ID: 0x0012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.light({
+                effect: false,
+                configureReporting: true,
+                powerOnBehavior: false,
+                ota: true,
+                levelConfig: {features: ["on_transition_time", "off_transition_time", "on_level", "execute_if_off"]},
+            }),
+            m.numeric({
+                name: "ballast_minimum_level",
+                cluster: "lightingBallastCfg",
+                attribute: "minLevel",
+                description: "Specifies the minimum light output of the ballast",
+                access: "ALL",
+                valueMin: 1,
+                valueMax: 254,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "ballast_maximum_level",
+                cluster: "lightingBallastCfg",
+                attribute: "maxLevel",
+                description: "Specifies the maximum light output of the ballast",
+                access: "ALL",
+                valueMin: 1,
+                valueMax: 254,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "ballast_power_on_level",
+                cluster: "lightingBallastCfg",
+                attribute: "powerOnLevel",
+                description: "Level applied after mains power returns; 255 restores the previous level",
+                access: "ALL",
+                valueMin: 1,
+                valueMax: 255,
+                entityCategory: "config",
+            }),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: ["DG15A"],

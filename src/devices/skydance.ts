@@ -81,7 +81,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {separateWhite: true},
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mde0utnv", "_TZE200_aa9awrng"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mde0utnv", "_TZE200_aa9awrng", "_TZE204_zhiqbr7l"]),
         model: "WZ5_rgbcct",
         vendor: "Skydance",
         description: "Zigbee & RF 5 in 1 LED controller (RGB+CCT mode)",

@@ -157,7 +157,14 @@ export const definitions: DefinitionWithExtend[] = [
         ]),
         model: "NAS-WV03B",
         vendor: "NEO",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "2000",
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+            }),
+        ],
         description: "Smart sprinkler timer with measurements",
         whiteLabel: [
             tuya.whitelabel("Nous", "L14", "Smart water valve", ["_TZE204_nnhwcvbk", "_TZE284_nnhwcvbk"]),

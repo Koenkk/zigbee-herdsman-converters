@@ -518,12 +518,25 @@ export type ThermostatSchedule = KeyValue & {
 
 export type FromValue = string | number[] | Uint8Array;
 
-export function convertBufferToNumber(chunks: Buffer | number[]) {
+export function convertBufferToNumber(chunks: Buffer | number[], signed = true) {
+    // Input:           max 4 bytes in big-endian order
+    // Output signed:   int32 encoded with 2s complement
+    // Output unsigned: uint32
+    //
+    // Examples:
+    // [  1,   2,   3,   4] -> [0x01, 0x02, 0x03, 0x04] -> 0x01020304
+    // -> +16909060 signed / unsigned
+    // [255, 255, 255, 254] -> [0xFF, 0xFF, 0xFF, 0xFE] -> 0xFFFFFFFE
+    // -> -2 signed / +4294967294 unsigned
+
     let value = 0;
     for (let i = 0; i < chunks.length; i++) {
         value = value << 8;
         value += chunks[i];
     }
+
+    if (!signed) return value >>> 0;
+
     return value;
 }
 
@@ -558,6 +571,18 @@ function getDataValue(dpValue: Tuya.DpValue) {
 }
 
 export function convertDecimalValueTo4ByteHexArray(value: number) {
+    // Input: int32 or uint32
+    // Output: 4 bytes in big-endian order
+    //
+    // Examples:
+    //          +2 -> 0x00000002 -> [0x00, 0x00, 0x00, 0x02] -> [  0,   0,   0,   2]
+    // +4294967294 -> 0XFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
+    //          -2 -> 0xFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
+
+    // Encode negative values as 2s complement
+    if (value < 0) {
+        value = 0x100000000 + value;
+    }
     const hexValue = Number(value).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
@@ -1227,6 +1252,37 @@ const tuyaExposes = {
     version: () => e.text("version", ea.STATE).withCategory("diagnostic"),
     alarmDuration: () =>
         e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
+    coverPosition: () => e.cover_position().setAccess("position", ea.STATE_SET),
+    motorState: () =>
+        e
+            .enum("motor_state", ea.STATE, ["opening", "closing", "stopped"])
+            .withDescription("Current motor movement status")
+            .withCategory("diagnostic"),
+    motorDirection: () =>
+        e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor rotation direction").withCategory("config"),
+    motorDirectionSide: () => e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side").withCategory("config"),
+    slowMode: () =>
+        e.binary("slow_mode", ea.STATE_SET, "ON", "OFF").withDescription("Operate the motor slower and quieter than normal").withCategory("config"),
+    coverType: () =>
+        e
+            .enum("cover_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
+            .withDescription("Type of window covers installed")
+            .withCategory("config"),
+    favoritePosition: () =>
+        e
+            .numeric("favorite_position", ea.STATE_SET)
+            .withUnit("%")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withDescription("Store the preferred cover position")
+            .withCategory("config"),
+    coverLimit: () =>
+        e
+            .enum("cover_limit", ea.STATE_SET, ["set_up", "set_down", "delete_up", "delete_down", "delete_both"])
+            .withDescription("Set current position as the limit position")
+            .withCategory("config"),
+    clickControl: () => e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control"),
 };
 
 export {tuyaExposes as exposes};
@@ -1592,7 +1648,25 @@ export const valueConverter = {
             return position;
         },
     },
+    coverAction: valueConverterBasic.lookup({OPEN: new Enum(0), STOP: new Enum(1), CLOSE: new Enum(2), CONTINUE: new Enum(3)}),
+    motorState: valueConverterBasic.lookup({opening: new Enum(0), closing: new Enum(1), stopped: new Enum(2)}),
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
+    motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
+    coverType: valueConverterBasic.lookup({
+        roman_pole: new Enum(0),
+        roller_blind: new Enum(1),
+        canopy_curtain: new Enum(2),
+        roman_blind: new Enum(3),
+        honeycomb_curtain: new Enum(4),
+    }),
+    coverLimit: valueConverterBasic.lookup({
+        set_up: new Enum(0),
+        set_down: new Enum(1),
+        delete_up: new Enum(2),
+        delete_down: new Enum(3),
+        delete_both: new Enum(4),
+    }),
+    clickControl: valueConverterBasic.lookup({up: new Enum(0), down: new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
@@ -1956,57 +2030,6 @@ export const valueConverter = {
     },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
-    localTempCalibration1: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 10;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 10;
-            if (v < 0) return v * 10 + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration2: {
-        from: (v: number) => v,
-        to: (v: number) => {
-            if (v < 0) return v + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration3: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 10;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 10;
-            if (v < 0) return v * 10 + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration4: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v / 100;
-        },
-        to: (v: number) => {
-            if (v > 0) return v * 100;
-            if (v < 0) return v * 100 + 0x100000000;
-            return v;
-        },
-    },
-    localTempCalibration5: {
-        from: (v: number) => {
-            if (v > 0x7fffffff) v -= 0x100000000;
-            return v;
-        },
-        to: (v: number) => {
-            if (v > 0) return v;
-            if (v < 0) return v + 0x100000000;
-            return v;
-        },
-    },
     thermostatHolidayStartStop: {
         from: (v: string) => {
             const start = {
@@ -4866,7 +4889,7 @@ const tuyaModernExtend = {
             powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
-            switchTypeButton?: boolean;
+            switchTypeButton?: boolean | ((manufacturerName: string) => boolean);
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;

@@ -473,7 +473,6 @@ export const definitions: DefinitionWithExtend[] = [
                 e
                     .enum("valve_protection", ea.STATE_SET, ["off", "on", "anti_stop"])
                     .withLabel("Valve Protection")
-                    .withDescription("Prevents valve blockage during long periods of inactivity.")
                     .withDescription("Prevents valve blockage during long periods of inactivity."),
                 e
                     .enum("comfort_warm_floor", ea.STATE_SET, ["OFF", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"])
@@ -499,6 +498,12 @@ export const definitions: DefinitionWithExtend[] = [
                     .enum("device_pair_state", ea.STATE, ["none", "commutation_center", "trv"])
                     .withLabel("Device Pair State")
                     .withDescription("Defines paired devices type: None, Commutation Center or TRV"),
+                e.battery().withDescription("Battery percentage of the paired TRV (can take up to 24 hours after pairing/restarting to appear)"),
+                e.numeric("trv_latest_firmware", ea.STATE).withLabel("TRV Latest Firmware").withDescription("Shows TRV latest firmware version"),
+                e
+                    .numeric("trv_firmware", ea.STATE)
+                    .withLabel("TRV Current Firmware")
+                    .withDescription("Shows TRV current firmware version for paired TRV"),
             ];
             if (options?.expose_device_state === true) {
                 exposesList.unshift(e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON or OFF"));
@@ -589,6 +594,7 @@ export const definitions: DefinitionWithExtend[] = [
                         },
                     },
                 ],
+                [35, "battery", tuya.valueConverter.raw],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
                 [43, "sensor_choose", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), all: tuya.enum(1), external: tuya.enum(2)})],
                 [44, "backlight", tuya.valueConverter.raw],
@@ -651,16 +657,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
                 [114, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
                 [115, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
-                // [119, "???", 0],
                 [120, "sensor_error", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), E1: tuya.enum(1), E2: tuya.enum(2)})],
-                // [121, "???", 0],
-                // [122, "???", 0],
-                // [123, "???", 0],
-
-                // [128, "???", 0],
-
-                // [136, "???", 0],
-                // [137, "???", 0],
+                [136, "trv_latest_firmware", tuya.valueConverter.divideBy10],
+                [137, "trv_firmware", tuya.valueConverter.raw],
             ],
         },
     },

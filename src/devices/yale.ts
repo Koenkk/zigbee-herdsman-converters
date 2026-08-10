@@ -527,40 +527,65 @@ const fzLocal = {
                 14: "manual_unlock",
                 15: "non_access_user_operational_event",
             };
+            // NOTE: do NOT derive state/lock_state from operation events here. These
+            // devices report lockState via attributeReport on real bolt movement, and
+            // operation events can arrive without the bolt moving (or with codes that
+            // differ per firmware generation), which caused phantom unlocks in HA.
+            return {
+                action: actionLookup[msg.data[3]] ?? "unknown",
+                action_source_user: msg.data[5],
+            };
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
+    solis_action: {
+        cluster: "closuresDoorLock",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            // The Solis (SOLIS01) sends the standard ZCL operation event notification
+            // (command 0x20) in a frame that fails ZCL parsing, so it lands here raw.
+            // Field layout follows the ZCL spec (validated against live frames):
+            //   data[3] = operation event source (0 keypad / 1 rf / 2 manual / 3 rfid / 4 indeterminate)
+            //   data[4] = operation event code (same table as fz.lock_operation_event)
+            //   data[5..6] = user id (uint16 LE)
+            // data[3] is the SOURCE, not the action code — decoding it as the action
+            // (as ymc_action does) misreports events, e.g. a real manual unlock
+            // (source=2, code=2) came out as "auto_lock".
+            const eventLookup: {[key: number]: string} = {
+                0: "unknown",
+                1: "lock",
+                2: "unlock",
+                3: "lock_failure_invalid_pin_or_id",
+                4: "lock_failure_invalid_schedule",
+                5: "unlock_failure_invalid_pin_or_id",
+                6: "unlock_failure_invalid_schedule",
+                7: "one_touch_lock",
+                8: "key_lock",
+                9: "key_unlock",
+                10: "auto_lock",
+                11: "schedule_lock",
+                12: "schedule_unlock",
+                13: "manual_lock",
+                14: "manual_unlock",
+                15: "non_access_user_operational_event",
+            };
             const sourceLookup: {[key: number]: string} = {
                 0: "keypad",
                 1: "rf",
                 2: "manual",
                 3: "rfid",
-                4: "manual",
-                5: "keypad",
-                6: "keypad",
-                7: "manual",
-                8: "manual",
-                9: "manual",
-                10: "manual",
-                11: "rf",
-                12: "rf",
-                13: "manual",
-                14: "manual",
-                15: "keypad",
+                4: "indeterminate",
             };
-            const lockActions = [2, 7, 8, 10, 11, 13];
-            const unlockActions = [0, 1, 3, 4, 9, 12, 14];
-            const actionCode = msg.data[3];
-            const result: ZHTypes.KeyValue = {
-                action: actionLookup[actionCode] ?? "unknown",
-                action_source_name: sourceLookup[actionCode] ?? null,
-                action_source_user: msg.data[5],
+            const source = msg.data[3];
+            const code = msg.data[4];
+            // No state/lock_state here on purpose: the Solis reports lockState via
+            // attributeReport within the same second of a real operation, and it also
+            // emits operation events while the bolt does not move (e.g. right after a
+            // reboot), so deriving state from events causes phantom unlocks.
+            return {
+                action: eventLookup[code] ?? `unknown_${code}`,
+                action_source_name: sourceLookup[source] ?? `unknown_${source}`,
+                action_user: msg.data[5] | (msg.data[6] << 8),
             };
-            if (lockActions.includes(actionCode)) {
-                result.state = "LOCK";
-                result.lock_state = "locked";
-            } else if (unlockActions.includes(actionCode)) {
-                result.state = "UNLOCK";
-                result.lock_state = "unlocked";
-            }
-            return result;
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
@@ -803,8 +828,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SOLIS01",
         vendor: "Yale",
         description: "Solis digital lock",
-        fromZigbee: [fzLocal.ymc_action],
-        extend: [lockExtend()],
+        fromZigbee: [fzLocal.solis_action],
+        // Solis reports batteryPercentageRemaining on a 0-100 scale (not the ZCL
+        // 0-200): a live frame reporting 58 corresponds to ~58%, and right after a
+        // reboot the firmware sends placeholder values (200/0) until it re-measures.
+        extend: [lockExtend({battery: {dontDividePercentage: true}})],
     },
     {
         zigbeeModel: ["YRD430 TS", "YRD430 PB"],
