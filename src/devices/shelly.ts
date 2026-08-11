@@ -2463,6 +2463,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
         ],
     },
     {
