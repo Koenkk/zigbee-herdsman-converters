@@ -252,6 +252,72 @@ describe("converters/fromZigbee", () => {
         });
     });
 
+    describe("cover_position_tilt", () => {
+        const makeMsg = (data: Record<string, number>) => ({
+            data,
+            endpoint: null,
+            device: null,
+            meta: null,
+            groupID: null,
+            type: "attributeReport" as const,
+            cluster: "closuresWindowCovering" as const,
+            linkquality: 0,
+        });
+
+        // biome-ignore lint/suspicious/noExplicitAny: test helper
+        const convert = (data: Record<string, number>, modelMeta: Record<string, unknown>, options: Record<string, any>) =>
+            fromZigbee.cover_position_tilt.convert(
+                // @ts-expect-error mock
+                {meta: modelMeta},
+                makeMsg(data),
+                null,
+                options,
+                {meta: {}},
+            );
+
+        it("converts a fully-open lift percentage using the default (non-inverted) convention", () => {
+            const payload = convert({currentPositionLiftPercentage: 0}, {}, {});
+            expect(payload).toStrictEqual({position: 100, state: "OPEN"});
+        });
+
+        it("converts a fully-closed lift percentage using the default convention", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {}, {});
+            expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
+        });
+
+        it("invert_cover flips both position and state together", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover: true});
+            expect(payload).toStrictEqual({position: 100, state: "OPEN"});
+        });
+
+        it("device-level coverInverted meta alone preserves pre-existing behaviour", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {});
+            expect(payload).toStrictEqual({position: 100, state: "OPEN"});
+        });
+
+        it("invert_cover on a coverInverted device cancels back to the non-inverted combination", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {invert_cover: true});
+            expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
+        });
+
+        it("derives state from tilt when coverStateFromTilt is set", () => {
+            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {});
+            expect(payload).toStrictEqual({tilt: 100, state: "OPEN"});
+        });
+
+        it("invert_cover flips tilt-derived state too", () => {
+            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {invert_cover: true});
+            expect(payload).toStrictEqual({tilt: 0, state: "CLOSE"});
+        });
+
+        it("decodes cover_mode bits", () => {
+            const payload = convert({windowCoveringMode: 0b1011}, {}, {});
+            expect(payload).toStrictEqual({
+                cover_mode: {reversed: true, calibration: true, maintenance: false, led: true},
+            });
+        });
+    });
+
     describe("command_step_color_temperature", () => {
         const makeMsg = (stepmode: number, stepsize: number, transtime?: number) => ({
             data: {stepmode, stepsize, ...(transtime !== undefined ? {transtime} : {})},

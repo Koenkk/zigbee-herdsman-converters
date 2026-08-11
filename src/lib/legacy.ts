@@ -1567,7 +1567,7 @@ const fromZigbee = {
                         break;
                     case 121: // running state
                         // @ts-expect-error ignore
-                        result.motor_state = {0: "OPENING", 1: "STOPPED", 2: "CLOSING"}[value];
+                        result.motor_state = {0: "opening", 1: "stopped", 2: "closing"}[value];
                         result.running = value !== 1;
                         break;
                     default: // Unknown code

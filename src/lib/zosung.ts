@@ -691,7 +691,8 @@ export const tzZosung = {
 };
 
 export const presetsZosung = {
-    learn_ir_code: () => e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code"),
+    learn_ir_code: () =>
+        e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code").withHomeAssistant({type: "button"}),
     learned_ir_code: () => e.text("learned_ir_code", ea.STATE).withDescription("The IR code learned by device"),
     learned_ir_timings: () =>
         e.text("learned_ir_timings", ea.STATE).withDescription("The IR timings learned by device").withHomeAssistant({

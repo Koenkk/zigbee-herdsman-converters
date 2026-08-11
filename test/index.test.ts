@@ -404,6 +404,33 @@ describe("ZHC", () => {
         expect(definitionWithExtPresent.model).toStrictEqual("ZY-M100-S_1");
     });
 
+    it("finds definition by NUL padded model ID", async () => {
+        const device = mockDevice({modelID: "lumi.sensor_motion\u0000", endpoints: []}, "Router");
+
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
+    it("finds definition by NUL padded model ID when an external converter adds a second candidate", async () => {
+        const device = mockDevice({modelID: "lumi.sensor_motion\u0000", endpoints: []}, "Router");
+
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+
+        addExternalDefinition({
+            zigbeeModel: ["lumi.sensor_motion"],
+            model: "mock-model",
+            vendor: "dummy",
+            description: "dummy",
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: "mock-model.js",
+        });
+
+        expect((await findByDevice(device))?.model).toStrictEqual("mock-model");
+        removeExternalDefinitions("mock-model.js");
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
     it("exposes light with endpoint", () => {
         const expected = {
             type: "light",

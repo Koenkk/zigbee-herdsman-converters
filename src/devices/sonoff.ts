@@ -1368,6 +1368,28 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"msTemperatureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    // Implement special battery handling for the SNZB-09P.
+    snzb_09p_battery: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const rawPercentage = msg.data.batteryPercentageRemaining;
+
+            if (rawPercentage === undefined || rawPercentage >= 255) {
+                return;
+            }
+
+            const battery = utils.precisionRound(rawPercentage / 2, 2);
+
+            if (meta.state.power_supply_mode === "external" && battery !== 100) {
+                // External power mode only accepts a 100% battery report.
+                // Returning nothing preserves the existing battery state.
+                return;
+            }
+
+            return {battery};
+        },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -7171,6 +7193,41 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    // Clear the stale battery state when the device reports that it is using external power.
+    powerSupplyModeWithChangeBatteryState: (): ModernExtend => {
+        const lookup = {battery: 0x00, external: 0x01};
+
+        return m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+            name: "power_supply_mode",
+            lookup,
+            cluster: "customClusterEwelink",
+            attribute: "powerSupplyMode",
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+            description: "Current power source of the device.",
+            fzConvert: (_model, msg, _publish, _options, meta) => {
+                if (msg.data.powerSupplyMode === undefined) return;
+
+                const powerSupplyMode = utils.getFromLookupByValue(msg.data.powerSupplyMode, lookup);
+                if (powerSupplyMode === "external") {
+                    void msg.endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
+                }
+                return {
+                    power_supply_mode: powerSupplyMode,
+                    ...(powerSupplyMode === "external" && meta.state.battery !== 100 ? {battery: null} : {}),
+                };
+            },
+        });
+    },
+    // extend the original ability of battery
+    batteryWithPowerSupplyMode: (): ModernExtend => {
+        const batteryExtend = m.battery();
+
+        return {
+            ...batteryExtend,
+            fromZigbee: [fzLocal.snzb_09p_battery],
+        };
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -8091,7 +8148,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         ota: true,
         description: "Zigbee water sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+        version: "0.0.1",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
     },
     {
         zigbeeModel: ["SNZB-06P"],
@@ -9458,10 +9520,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZBM5-1C-120"],
+        zigbeeModel: ["ZBM5-1C-120", "ZBM5-1C-80/86"],
+        whiteLabel: [
+            {
+                model: "ZBM5-1C-80/86",
+                vendor: "SONOFF",
+                description: "Zigbee Smart one-channel wall switch (type 80/86)",
+                fingerprint: [{modelID: "ZBM5-1C-80/86"}],
+            },
+        ],
         model: "ZBM5-1C-120",
         vendor: "SONOFF",
-        description: "Zigbee Smart one-channel wall switch (type 120).",
+        description: "Zigbee Smart one-channel wall switch (type 120)",
         ota: true,
         extend: [
             m.commandsOnOff({commands: ["toggle"]}),
@@ -9487,17 +9557,29 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
         },
     },
     {
-        zigbeeModel: ["ZBM5-2C-120"],
+        zigbeeModel: ["ZBM5-2C-120", "ZBM5-2C-80/86"],
+        whiteLabel: [
+            {
+                model: "ZBM5-2C-80/86",
+                vendor: "SONOFF",
+                description: "Zigbee Smart two-channel wall switch (type 80/86)",
+                fingerprint: [{modelID: "ZBM5-2C-80/86"}],
+            },
+        ],
         model: "ZBM5-2C-120",
         vendor: "SONOFF",
-        description: "Zigbee Smart two-channel wall switch (type 120).",
+        description: "Zigbee Smart two-channel wall switch (type 120)",
         exposes: [],
         ota: true,
         extend: [
@@ -9525,21 +9607,37 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
     },
     {
-        zigbeeModel: ["ZBM5-3C-120"],
+        zigbeeModel: ["ZBM5-3C-120", "ZBM5-3C-80/86"],
+        whiteLabel: [
+            {
+                model: "ZBM5-3C-80/86",
+                vendor: "SONOFF",
+                description: "Zigbee Smart three-channel wall switch (type 80/86)",
+                fingerprint: [{modelID: "ZBM5-3C-80/86"}],
+            },
+        ],
         model: "ZBM5-3C-120",
         vendor: "SONOFF",
-        description: "Zigbee Smart three-channel wall switch (type 120).",
+        description: "Zigbee Smart three-channel wall switch (type 120)",
         exposes: [],
         ota: true,
         extend: [
@@ -9567,140 +9665,28 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            try {
+                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
-            await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-        },
-    },
-    {
-        zigbeeModel: ["ZBM5-1C-80/86"],
-        model: "ZBM5-1C-80/86",
-        vendor: "SONOFF",
-        description: "Zigbee Smart one-channel wall switch (type 80/86).",
-        ota: true,
-        extend: [
-            m.commandsOnOff({commands: ["toggle"]}),
-            m.onOff(),
-            sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "device_work_mode",
-                lookup: {"Zigbee end device": 0, "Zigbee router": 1},
-                cluster: "customClusterEwelink",
-                attribute: "deviceWorkMode",
-                description: "The device runs as a Zigbee End device or Zigbee router.",
-                access: "STATE_GET",
-            }),
-            m.binary<"customClusterEwelink", SonoffEwelink>({
-                name: "network_indicator",
-                cluster: "customClusterEwelink",
-                attribute: "networkLed",
-                description: "Network indicator settings, turn off/on the blue online status network indicator.",
-                valueOff: [false, 0],
-                valueOn: [true, 1],
-            }),
-            sonoffExtend.detachRelayModeControl(1),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
-            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-        },
-    },
-    {
-        zigbeeModel: ["ZBM5-2C-80/86"],
-        model: "ZBM5-2C-80/86",
-        vendor: "SONOFF",
-        description: "Zigbee Smart two-channel wall switch (type 80/86).",
-        exposes: [],
-        ota: true,
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
-            m.onOff({endpointNames: ["l1", "l2"]}),
-            sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "device_work_mode",
-                lookup: {"Zigbee end device": 0, "Zigbee router": 1},
-                cluster: "customClusterEwelink",
-                attribute: "deviceWorkMode",
-                description: "The device runs as a Zigbee End device or Zigbee router.",
-                access: "STATE_GET",
-            }),
-            m.binary<"customClusterEwelink", SonoffEwelink>({
-                name: "network_indicator",
-                cluster: "customClusterEwelink",
-                attribute: "networkLed",
-                description: "Network indicator settings, turn off/on the blue online status network indicator.",
-                valueOff: [false, 0],
-                valueOn: [true, 1],
-            }),
-            sonoffExtend.detachRelayModeControl(2),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
-            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
-            await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-        },
-    },
-    {
-        zigbeeModel: ["ZBM5-3C-80/86"],
-        model: "ZBM5-3C-80/86",
-        vendor: "SONOFF",
-        description: "Zigbee Smart three-channel wall switch (type 80/86).",
-        exposes: [],
-        ota: true,
-        extend: [
-            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"]}),
-            m.onOff({endpointNames: ["l1", "l2", "l3"]}),
-            sonoffExtend.addCustomClusterEwelink(),
-            m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "device_work_mode",
-                lookup: {"Zigbee end device": 0, "Zigbee router": 1},
-                cluster: "customClusterEwelink",
-                attribute: "deviceWorkMode",
-                description: "The device runs as a Zigbee End device or Zigbee router.",
-                access: "STATE_GET",
-            }),
-            m.binary<"customClusterEwelink", SonoffEwelink>({
-                name: "network_indicator",
-                cluster: "customClusterEwelink",
-                attribute: "networkLed",
-                description: "Network indicator settings, turn off/on the blue online status network indicator.",
-                valueOff: [false, 0],
-                valueOn: [true, 1],
-            }),
-            sonoffExtend.detachRelayModeControl(3),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint1 = device.getEndpoint(1);
-            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
-            await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-            const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
-            await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            const endpoint3 = device.getEndpoint(3);
-            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            try {
+                await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
+            } catch {
+                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
+            }
             await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
             await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
@@ -9716,6 +9702,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "motor_travel_calibration_action",
                 lookup: {
+                    none: 0,
                     start_automatic: 2,
                     start_manual: 3,
                     clear: 4,
@@ -9736,8 +9723,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "motor_run_status",
-                lookup: {Stop: 0, Forward: 1, Reverse: 2},
+                name: "moving",
+                lookup: {stop: 0, forward: 1, reverse: 2},
                 cluster: "customClusterEwelink",
                 attribute: "motorRunStatus",
                 description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
@@ -10150,7 +10137,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -10291,7 +10279,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -10433,7 +10422,8 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                homeassistant: {type: "valve"},
+                // homeassistant: {type: "valve"},
+                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -11330,16 +11320,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
-            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
-                name: "power_supply_mode",
-                lookup: {battery: 0x00, external: 0x01},
-                cluster: "customClusterEwelink",
-                attribute: "powerSupplyMode",
-                access: "STATE_GET",
-                entityCategory: "diagnostic",
-                description: "Current power source of the device.",
-            }),
-            m.battery(),
+            sonoffExtend.powerSupplyModeWithChangeBatteryState(),
+            sonoffExtend.batteryWithPowerSupplyMode(),
             m.binary<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_sound_enable",
                 cluster: "customClusterEwelink",
@@ -11374,16 +11356,16 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_sound_type",
                 lookup: {
-                    sound_0: 0x00,
-                    sound_1: 0x01,
-                    sound_2: 0x02,
-                    sound_3: 0x03,
-                    sound_4: 0x04,
-                    sound_5: 0x05,
-                    sound_6: 0x06,
-                    sound_7: 0x07,
-                    sound_8: 0x08,
-                    sound_9: 0x09,
+                    siren_classic: 0x00,
+                    siren_steady: 0x01,
+                    siren_rising: 0x03,
+                    siren_warning: 0x05,
+                    siren_rapid: 0x06,
+                    siren_emergency: 0x08,
+                    tone_chirp: 0x02,
+                    tone_hi_lo: 0x04,
+                    tone_intermittent: 0x07,
+                    tone_pulse: 0x09,
                 },
                 cluster: "customClusterEwelink",
                 attribute: "alarmSoundType",
@@ -11392,7 +11374,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_volume_level",
-                lookup: {low: 0x00, medium: 0x01, high: 0x02, highest: 0x03},
+                lookup: {low: 0x00, medium: 0x01, high: 0x02, max: 0x03},
                 cluster: "customClusterEwelink",
                 attribute: "alarmVolumeLevel",
                 entityCategory: "config",
@@ -11945,6 +11927,42 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
             await endpoint.read("seMetering", ["multiplier", "divisor"]);
             await reporting.currentSummDelivered(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-01(7037)", "CK-TLSR8656-Z123SE24DY-01(7037)"],
+        model: "CK-TLSR8656-SS5-01(7037)",
+        vendor: "eWeLink",
+        whiteLabel: [
+            {
+                model: "CK-TLSR8656-Z123SE24DY-01(7037)",
+                vendor: "eWeLink",
+                fingerprint: [{modelID: "CK-TLSR8656-Z123SE24DY-01(7037)", manufacturerName: "eWeLink"}],
+            },
+        ],
+        description: "Zigbee CO sensor",
+        ota: true,
+        extend: [
+            ewelinkBattery(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 1000,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+            }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msCarbonMonoxide", "ssIasZone"]);
+            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining", "batteryVoltage"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
     },
 ];
