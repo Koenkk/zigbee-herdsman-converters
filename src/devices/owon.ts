@@ -1266,18 +1266,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
     },
     {
-        zigbeeModel: ["DWS312"],
+        zigbeeModel: ["DWS312", "DWS332-E"],
         model: "DWS312",
         vendor: "OWON",
         description: "Door/window sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
-    },
-    {
-        zigbeeModel: ["DWS332-E"],
-        model: "DWS332-E",
-        vendor: "OWON",
-        description: "Door/window sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+        whiteLabel: [{vendor: "OWON", model: "DWS332-E", description: "Door/window sensor"}],
     },
     {
         zigbeeModel: ["SPM915"],
