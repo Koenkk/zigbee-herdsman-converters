@@ -4,6 +4,7 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -14,31 +15,16 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
         exposes: [
             e.battery(),
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor Steering"),
+            te.coverPosition(),
+            te.motorDirection(),
             e.binary("auto_power", ea.STATE_SET, "ON", "OFF").withDescription("Manual pull, automatic run"),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        normal: tuya.enum(0),
-                        reversed: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
                 [6, "auto_power", tuya.valueConverter.onOff],
             ],
