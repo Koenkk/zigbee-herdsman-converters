@@ -24247,7 +24247,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY02SZ",
                 vendor: "AOYAN",
                 description: "Vibration sensor",
-                fingerprint: [{modelID: "AY02SZ", manufacturerName: "AOYAN"}],
+                fingerprint: [{modelID: "AY02SZ", manufacturerName: "AOYAN"}, {manufacturerName: "AOYAN"}],
             },
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
