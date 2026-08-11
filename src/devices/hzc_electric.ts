@@ -1,5 +1,4 @@
 import {Zcl} from "zigbee-herdsman";
-import type {Attribute, Command} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
@@ -26,50 +25,6 @@ const mapAttribute = <T>(
     return undefined;
 };
 
-const createClusterMethods = <TAttributes extends Record<string, Attribute>, TCommands extends Record<string, Command>>(
-    attributes: TAttributes,
-    commands: TCommands,
-    commandsResponse: Record<string, Command>,
-) => ({
-    getAttribute: (key: number | string): Attribute | undefined => {
-        if (typeof key === "string") {
-            return attributes[key];
-        }
-        for (const attrName in attributes) {
-            if (attributes[attrName].ID === key) {
-                return attributes[attrName];
-            }
-        }
-        return undefined;
-    },
-    getCommand: (key: number | string): Command => {
-        if (typeof key === "string") {
-            const cmd = commands[key];
-            if (!cmd) throw new Error(`Command '${key}' not found`);
-            return cmd;
-        }
-        for (const cmdName in commands) {
-            if (commands[cmdName].ID === key) {
-                return commands[cmdName];
-            }
-        }
-        throw new Error(`Command with ID '${key}' not found`);
-    },
-    getCommandResponse: (key: number | string): Command => {
-        if (typeof key === "string") {
-            const cmd = commandsResponse[key];
-            if (!cmd) throw new Error(`Command response '${key}' not found`);
-            return cmd;
-        }
-        for (const cmdName in commandsResponse) {
-            if (commandsResponse[cmdName].ID === key) {
-                return commandsResponse[cmdName];
-            }
-        }
-        throw new Error(`Command response with ID '${key}' not found`);
-    },
-});
-
 const hzcExtend = {
     addHzcThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
@@ -82,15 +37,43 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            ...createClusterMethods(
-                {
-                    frost_temp: {name: "frost_temp", ID: 0x9000, type: Zcl.DataType.UINT8},
-                    frost: {name: "frost", ID: 0x8001, type: Zcl.DataType.BOOLEAN},
-                    local_temperature_calibration: {name: "local_temperature_calibration", ID: 0x0010, type: Zcl.DataType.INT8},
-                },
-                {},
-                {},
-            ),
+            getAttribute(key: number | string) {
+                if (typeof key === "string") {
+                    return this.attributes[key];
+                }
+                for (const attrName in this.attributes) {
+                    if (this.attributes[attrName].ID === key) {
+                        return this.attributes[attrName];
+                    }
+                }
+                return undefined;
+            },
+            getCommand(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commands[key];
+                    if (!cmd) throw new Error(`Command '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commands) {
+                    if (this.commands[cmdName].ID === key) {
+                        return this.commands[cmdName];
+                    }
+                }
+                throw new Error(`Command with ID '${key}' not found`);
+            },
+            getCommandResponse(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commandsResponse[key];
+                    if (!cmd) throw new Error(`Command response '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commandsResponse) {
+                    if (this.commandsResponse[cmdName].ID === key) {
+                        return this.commandsResponse[cmdName];
+                    }
+                }
+                throw new Error(`Command response with ID '${key}' not found`);
+            },
         }),
     addHzcUserInterfaceCluster: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
@@ -103,15 +86,43 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            ...createClusterMethods(
-                {
-                    auto_time: {name: "auto_time", ID: 0x8004, type: Zcl.DataType.BOOLEAN},
-                    holiday_time: {name: "holiday_time", ID: 0x8002, type: Zcl.DataType.UINT8},
-                    display_mode: {name: "display_mode", ID: 0x8000, type: Zcl.DataType.ENUM8},
-                },
-                {},
-                {},
-            ),
+            getAttribute(key: number | string) {
+                if (typeof key === "string") {
+                    return this.attributes[key];
+                }
+                for (const attrName in this.attributes) {
+                    if (this.attributes[attrName].ID === key) {
+                        return this.attributes[attrName];
+                    }
+                }
+                return undefined;
+            },
+            getCommand(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commands[key];
+                    if (!cmd) throw new Error(`Command '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commands) {
+                    if (this.commands[cmdName].ID === key) {
+                        return this.commands[cmdName];
+                    }
+                }
+                throw new Error(`Command with ID '${key}' not found`);
+            },
+            getCommandResponse(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commandsResponse[key];
+                    if (!cmd) throw new Error(`Command response '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commandsResponse) {
+                    if (this.commandsResponse[cmdName].ID === key) {
+                        return this.commandsResponse[cmdName];
+                    }
+                }
+                throw new Error(`Command response with ID '${key}' not found`);
+            },
         }),
     addHzcWindowCluster: () =>
         m.deviceAddCustomCluster("hzcWindow", {
@@ -123,14 +134,43 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            ...createClusterMethods(
-                {
-                    window_check: {name: "window_check", ID: 0x0000, type: Zcl.DataType.BOOLEAN},
-                    window_status: {name: "window_status", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
-                },
-                {},
-                {},
-            ),
+            getAttribute(key: number | string) {
+                if (typeof key === "string") {
+                    return this.attributes[key];
+                }
+                for (const attrName in this.attributes) {
+                    if (this.attributes[attrName].ID === key) {
+                        return this.attributes[attrName];
+                    }
+                }
+                return undefined;
+            },
+            getCommand(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commands[key];
+                    if (!cmd) throw new Error(`Command '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commands) {
+                    if (this.commands[cmdName].ID === key) {
+                        return this.commands[cmdName];
+                    }
+                }
+                throw new Error(`Command with ID '${key}' not found`);
+            },
+            getCommandResponse(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commandsResponse[key];
+                    if (!cmd) throw new Error(`Command response '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commandsResponse) {
+                    if (this.commandsResponse[cmdName].ID === key) {
+                        return this.commandsResponse[cmdName];
+                    }
+                }
+                throw new Error(`Command response with ID '${key}' not found`);
+            },
         }),
     addHzcValueCluster: () =>
         m.deviceAddCustomCluster("hzcValue", {
@@ -147,19 +187,43 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            ...createClusterMethods(
-                {
-                    value_switch: {name: "value_switch", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
-                    control_type: {name: "control_type", ID: 0x0002, type: Zcl.DataType.ENUM8},
-                    value_opening: {name: "value_opening", ID: 0x0003, type: Zcl.DataType.UINT8},
-                    scale_switch: {name: "scale_switch", ID: 0x0004, type: Zcl.DataType.BOOLEAN},
-                    boost_switch: {name: "boost_switch", ID: 0x0005, type: Zcl.DataType.BOOLEAN},
-                    boost_countdown: {name: "boost_countdown", ID: 0x0006, type: Zcl.DataType.UINT8},
-                    work_mode: {name: "work_mode", ID: 0x0007, type: Zcl.DataType.ENUM8},
-                },
-                {},
-                {},
-            ),
+            getAttribute(key: number | string) {
+                if (typeof key === "string") {
+                    return this.attributes[key];
+                }
+                for (const attrName in this.attributes) {
+                    if (this.attributes[attrName].ID === key) {
+                        return this.attributes[attrName];
+                    }
+                }
+                return undefined;
+            },
+            getCommand(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commands[key];
+                    if (!cmd) throw new Error(`Command '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commands) {
+                    if (this.commands[cmdName].ID === key) {
+                        return this.commands[cmdName];
+                    }
+                }
+                throw new Error(`Command with ID '${key}' not found`);
+            },
+            getCommandResponse(key: number | string) {
+                if (typeof key === "string") {
+                    const cmd = this.commandsResponse[key];
+                    if (!cmd) throw new Error(`Command response '${key}' not found`);
+                    return cmd;
+                }
+                for (const cmdName in this.commandsResponse) {
+                    if (this.commandsResponse[cmdName].ID === key) {
+                        return this.commandsResponse[cmdName];
+                    }
+                }
+                throw new Error(`Command response with ID '${key}' not found`);
+            },
         }),
     hzcThermostatFromZigbee: () => {
         return {
