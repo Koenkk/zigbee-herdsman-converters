@@ -14,6 +14,7 @@ import type {
     Fz,
     KeyValue,
     ModernExtend,
+    OnEvent,
     Tz,
     Zh,
 } from "../lib/types";
@@ -384,6 +385,22 @@ interface ShellyTRVManualMode {
     };
     commandResponses: never;
 }
+
+/**
+ * Tracks an external temperature until the TRV reports the same value as its local temperature.
+ */
+interface ShellyTRVExternalTemperatureRequest {
+    temperature: number;
+    measuredValue: number;
+    createdAt: number;
+    lastAttemptAt: number;
+    attempts: number;
+}
+
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY = "shelly_trv_external_temperature_request";
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS = 1500;
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS = 30;
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS = 60 * 60 * 1000;
 
 interface ShellyLightLevel {
     attributes: {
@@ -2092,6 +2109,248 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+/**
+ * Returns the persisted pending external temperature request for a TRV.
+ */
+function shellyTRVGetExternalTemperatureRequest(device: Zh.Device): ShellyTRVExternalTemperatureRequest | undefined {
+    const request = device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY];
+    if (typeof request !== "object" || request === null) return undefined;
+
+    return request as ShellyTRVExternalTemperatureRequest;
+}
+
+/**
+ * Stores the pending external temperature request in the device metadata.
+ *
+ * The request itself is persisted immediately so delivery can resume after a
+ * Zigbee2MQTT restart. Retry bookkeeping may stay in memory because createdAt
+ * remains persisted and still bounds the request lifetime across restarts.
+ */
+function shellyTRVPutExternalTemperatureRequest(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest, persist = true): void {
+    device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY] = request;
+    if (persist) device.save();
+}
+
+/**
+ * Clears the persisted pending external temperature request for a TRV.
+ */
+function shellyTRVClearExternalTemperatureRequest(device: Zh.Device): void {
+    if (!(SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY in device.meta)) return;
+
+    delete device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY];
+    device.save();
+}
+
+/**
+ * Creates a new confirmation-tracked external temperature request.
+ */
+function shellyTRVCreateExternalTemperatureRequest(temperature: number): ShellyTRVExternalTemperatureRequest {
+    return {
+        temperature,
+        measuredValue: Math.round(temperature * 100),
+        createdAt: Date.now(),
+        lastAttemptAt: 0,
+        attempts: 0,
+    };
+}
+
+/**
+ * Reserves one delivery attempt before asynchronous Zigbee traffic starts.
+ *
+ * Updating the store synchronously prevents several reports from the same wake window
+ * from scheduling duplicate retries.
+ */
+function shellyTRVReserveExternalTemperatureAttempt(
+    device: Zh.Device,
+    request: ShellyTRVExternalTemperatureRequest,
+): ShellyTRVExternalTemperatureRequest {
+    const reserved = {
+        ...request,
+        lastAttemptAt: Date.now(),
+        attempts: request.attempts + 1,
+    };
+    shellyTRVPutExternalTemperatureRequest(device, reserved, false);
+    return reserved;
+}
+
+/**
+ * Reconstructs the thermostat RemoteSensing bit mask from the cached state.
+ */
+function shellyTRVRemoteSensingFromState(state: KeyValue): number {
+    if (typeof state.remote_sensing_raw === "number") return state.remote_sensing_raw;
+
+    if (typeof state.remote_sensing !== "object" || state.remote_sensing === null) return 0;
+    const remoteSensing = state.remote_sensing as KeyValue;
+    let value = 0;
+    if (remoteSensing.local_temperature === "remotely") value |= 1;
+    if (remoteSensing.outdoor_temperature === "remotely") value |= 1 << 1;
+    if (remoteSensing.occupancy === "remotely") value |= 1 << 2;
+    return value;
+}
+
+/**
+ * Returns the best available RemoteSensing bit mask without querying the sleeping device.
+ */
+function shellyTRVGetRemoteSensing(endpoint: Zh.Endpoint, state: KeyValue = {}, reportedValue?: number): number {
+    if (reportedValue !== undefined) return reportedValue;
+
+    const cached = endpoint.getClusterAttributeValue("hvacThermostat", "remoteSensing");
+    if (typeof cached === "number") return cached;
+
+    return shellyTRVRemoteSensingFromState(state);
+}
+
+/**
+ * Enables the external local-temperature source while preserving the other RemoteSensing bits.
+ */
+async function shellyTRVEnableRemoteTemperature(endpoint: Zh.Endpoint, remoteSensing: number): Promise<number> {
+    const enabled = remoteSensing | 1;
+    if (enabled !== remoteSensing) {
+        await endpoint.write("hvacThermostat", {remoteSensing: enabled}, {disableResponse: true, disableDefaultResponse: true});
+    }
+    return enabled;
+}
+
+/**
+ * Sends an external temperature as the attribute report of a bound Temperature Measurement server.
+ */
+async function shellyTRVSendExternalTemperature(endpoint: Zh.Endpoint, request: ShellyTRVExternalTemperatureRequest): Promise<void> {
+    await endpoint.report(
+        "msTemperatureMeasurement",
+        {measuredValue: request.measuredValue},
+        {
+            direction: Zcl.Direction.SERVER_TO_CLIENT,
+            srcEndpoint: 1,
+            disableResponse: true,
+            disableDefaultResponse: true,
+        },
+    );
+}
+
+/**
+ * Enables remote sensing and sends the currently reserved external temperature request.
+ */
+async function shellyTRVDeliverExternalTemperature(
+    endpoint: Zh.Endpoint,
+    request: ShellyTRVExternalTemperatureRequest,
+    remoteSensing: number,
+): Promise<void> {
+    await shellyTRVEnableRemoteTemperature(endpoint, remoteSensing);
+    await shellyTRVSendExternalTemperature(endpoint, request);
+}
+
+/**
+ * Checks whether the TRV has confirmed the requested value while using the remote source.
+ */
+function shellyTRVExternalTemperatureIsConfirmed(
+    request: ShellyTRVExternalTemperatureRequest,
+    localTemperature: number | undefined,
+    remoteSensing: number,
+): boolean {
+    return localTemperature === request.measuredValue && (remoteSensing & 1) !== 0;
+}
+
+/**
+ * Checks whether a request reached its bounded retry limit.
+ */
+function shellyTRVExternalTemperatureIsExpired(request: ShellyTRVExternalTemperatureRequest): boolean {
+    return (
+        request.attempts >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS ||
+        Date.now() - request.createdAt >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS
+    );
+}
+
+/**
+ * Confirms an external temperature from incoming thermostat reports and retries an unconfirmed value during a wake window.
+ */
+const fzShellyTRVExternalTemperature = {
+    cluster: "hvacThermostat",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const request = shellyTRVGetExternalTemperatureRequest(msg.device);
+        if (!request) return;
+
+        const remoteSensing = shellyTRVGetRemoteSensing(
+            msg.endpoint,
+            meta.state,
+            typeof msg.data.remoteSensing === "number" ? msg.data.remoteSensing : undefined,
+        );
+
+        if (shellyTRVExternalTemperatureIsConfirmed(request, msg.data.localTemp, remoteSensing)) {
+            shellyTRVClearExternalTemperatureRequest(msg.device);
+            logger.debug(`External temperature ${request.temperature} °C was confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (shellyTRVExternalTemperatureIsExpired(request)) {
+            shellyTRVClearExternalTemperatureRequest(msg.device);
+            logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
+
+        const reserved = shellyTRVReserveExternalTemperatureAttempt(msg.device, request);
+        shellyTRVDeliverExternalTemperature(msg.endpoint, reserved, remoteSensing).catch((error) =>
+            logger.debug(`Failed to retry external temperature for '${msg.device.ieeeAddr}': ${error}`, NS),
+        );
+    },
+} satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+/**
+ * Stores and sends an external temperature while marking the request as pending until the TRV confirms it.
+ */
+const tzShellyTRVExternalTemperature = {
+    key: ["external_temperature"],
+    convertSet: async (entity, key, value, meta) => {
+        utils.assertEndpoint(entity);
+        utils.assertNumber(value, key);
+        if (value < -40 || value > 85) {
+            throw new Error(`External temperature must be between -40 and 85 °C, got ${value}`);
+        }
+
+        const temperature = Math.round(value * 100) / 100;
+        const request = shellyTRVCreateExternalTemperatureRequest(temperature);
+        shellyTRVPutExternalTemperatureRequest(entity.getDevice(), request);
+
+        const remoteSensing = shellyTRVGetRemoteSensing(entity, meta.state);
+        const reserved = shellyTRVReserveExternalTemperatureAttempt(entity.getDevice(), request);
+
+        try {
+            await shellyTRVDeliverExternalTemperature(entity, reserved, remoteSensing);
+        } catch (error) {
+            logger.debug(`Initial external temperature delivery to '${entity.getDevice().ieeeAddr}' failed: ${error}`, NS);
+        }
+
+        return {state: {external_temperature: temperature}};
+    },
+} satisfies Tz.Converter;
+
+/**
+ * Retries a persisted pending external temperature when the TRV announces itself.
+ */
+const shellyTRVExternalTemperatureOnEvent: OnEvent.Handler = (event) => {
+    if (event.type !== "deviceAnnounce") return;
+
+    const endpoint = event.data.device.getEndpoint(1);
+    const request = shellyTRVGetExternalTemperatureRequest(event.data.device);
+    if (!endpoint || !request) return;
+
+    if (shellyTRVExternalTemperatureIsExpired(request)) {
+        shellyTRVClearExternalTemperatureRequest(event.data.device);
+        logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${event.data.device.ieeeAddr}'`, NS);
+        return;
+    }
+
+    if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
+
+    const remoteSensing = shellyTRVGetRemoteSensing(endpoint, event.data.state);
+    const reserved = shellyTRVReserveExternalTemperatureAttempt(event.data.device, request);
+    shellyTRVDeliverExternalTemperature(endpoint, reserved, remoteSensing).catch((error) =>
+        logger.debug(`Failed to deliver external temperature after announce from '${event.data.device.ieeeAddr}': ${error}`, NS),
+    );
+};
+
 // =============================================================================
 // Device Definitions
 // =============================================================================
@@ -2702,6 +2961,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Thermostatic radiator valve",
         fromZigbee: [
             fz.thermostat,
+            fzShellyTRVExternalTemperature,
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -2712,6 +2972,7 @@ export const definitions: DefinitionWithExtend[] = [
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
+            tzShellyTRVExternalTemperature,
             {
                 key: ["calibrate"],
                 convertSet: async (entity, key, value, meta) => {
@@ -2727,6 +2988,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("calibration_ok", ea.STATE, true, false).withDescription("Calibration OK").withCategory("diagnostic"),
             e.enum("calibrate", ea.SET, ["trigger"]).withDescription("Trigger valve calibration").withCategory("config"),
+            e
+                .numeric("external_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.01)
+                .withDescription("External room temperature used by the thermostat"),
         ],
         extend: [
             m.battery(),
@@ -2780,6 +3048,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        onEvent: shellyTRVExternalTemperatureOnEvent,
     },
     {
         fingerprint: [{modelID: "Presence", manufacturerName: "Shelly"}],
