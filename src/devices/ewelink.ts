@@ -575,45 +575,4 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
     },
-    {
-        zigbeeModel: ["CK-TLSR8656-SS5-01(7037)", "CK-TLSR8656-Z123SE24DY-01(7037)"],
-        model: "CK-TLSR8656-SS5-01(7037)",
-        vendor: "eWeLink",
-        whiteLabel: [
-            {
-                model: "CK-TLSR8656-Z123SE24DY-01(7037)",
-                vendor: "eWeLink",
-                fingerprint: [
-                    {
-                        modelID: "CK-TLSR8656-Z123SE24DY-01(7037)",
-                        manufacturerName: "eWeLink",
-                    },
-                ],
-            },
-        ],
-        description: "Zigbee CO sensor",
-        ota: true,
-        extend: [
-            m.battery(),
-            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1"]}),
-            m.numeric({
-                name: "co",
-                unit: "ppm",
-                valueMin: 0,
-                valueMax: 1000,
-                cluster: "msCarbonMonoxide",
-                attribute: "measuredValue",
-                description: "The measured CO level",
-                access: "STATE_GET",
-            }),
-            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msCarbonMonoxide", "ssIasZone"]);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining", "batteryVoltage"]);
-            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
-            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
-        },
-    },
 ];
