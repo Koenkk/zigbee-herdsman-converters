@@ -37,43 +37,6 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute(key: number | string) {
-                if (typeof key === "string") {
-                    return this.attributes[key];
-                }
-                for (const attrName in this.attributes) {
-                    if (this.attributes[attrName].ID === key) {
-                        return this.attributes[attrName];
-                    }
-                }
-                return undefined;
-            },
-            getCommand(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commands[key];
-                    if (!cmd) throw new Error(`Command '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commands) {
-                    if (this.commands[cmdName].ID === key) {
-                        return this.commands[cmdName];
-                    }
-                }
-                throw new Error(`Command with ID '${key}' not found`);
-            },
-            getCommandResponse(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commandsResponse[key];
-                    if (!cmd) throw new Error(`Command response '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commandsResponse) {
-                    if (this.commandsResponse[cmdName].ID === key) {
-                        return this.commandsResponse[cmdName];
-                    }
-                }
-                throw new Error(`Command response with ID '${key}' not found`);
-            },
         }),
     addHzcUserInterfaceCluster: () =>
         m.deviceAddCustomCluster("hvacUserInterfaceCfg", {
@@ -86,43 +49,6 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute(key: number | string) {
-                if (typeof key === "string") {
-                    return this.attributes[key];
-                }
-                for (const attrName in this.attributes) {
-                    if (this.attributes[attrName].ID === key) {
-                        return this.attributes[attrName];
-                    }
-                }
-                return undefined;
-            },
-            getCommand(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commands[key];
-                    if (!cmd) throw new Error(`Command '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commands) {
-                    if (this.commands[cmdName].ID === key) {
-                        return this.commands[cmdName];
-                    }
-                }
-                throw new Error(`Command with ID '${key}' not found`);
-            },
-            getCommandResponse(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commandsResponse[key];
-                    if (!cmd) throw new Error(`Command response '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commandsResponse) {
-                    if (this.commandsResponse[cmdName].ID === key) {
-                        return this.commandsResponse[cmdName];
-                    }
-                }
-                throw new Error(`Command response with ID '${key}' not found`);
-            },
         }),
     addHzcWindowCluster: () =>
         m.deviceAddCustomCluster("hzcWindow", {
@@ -134,43 +60,6 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute(key: number | string) {
-                if (typeof key === "string") {
-                    return this.attributes[key];
-                }
-                for (const attrName in this.attributes) {
-                    if (this.attributes[attrName].ID === key) {
-                        return this.attributes[attrName];
-                    }
-                }
-                return undefined;
-            },
-            getCommand(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commands[key];
-                    if (!cmd) throw new Error(`Command '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commands) {
-                    if (this.commands[cmdName].ID === key) {
-                        return this.commands[cmdName];
-                    }
-                }
-                throw new Error(`Command with ID '${key}' not found`);
-            },
-            getCommandResponse(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commandsResponse[key];
-                    if (!cmd) throw new Error(`Command response '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commandsResponse) {
-                    if (this.commandsResponse[cmdName].ID === key) {
-                        return this.commandsResponse[cmdName];
-                    }
-                }
-                throw new Error(`Command response with ID '${key}' not found`);
-            },
         }),
     addHzcValueCluster: () =>
         m.deviceAddCustomCluster("hzcValue", {
@@ -187,43 +76,6 @@ const hzcExtend = {
             },
             commands: {},
             commandsResponse: {},
-            getAttribute(key: number | string) {
-                if (typeof key === "string") {
-                    return this.attributes[key];
-                }
-                for (const attrName in this.attributes) {
-                    if (this.attributes[attrName].ID === key) {
-                        return this.attributes[attrName];
-                    }
-                }
-                return undefined;
-            },
-            getCommand(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commands[key];
-                    if (!cmd) throw new Error(`Command '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commands) {
-                    if (this.commands[cmdName].ID === key) {
-                        return this.commands[cmdName];
-                    }
-                }
-                throw new Error(`Command with ID '${key}' not found`);
-            },
-            getCommandResponse(key: number | string) {
-                if (typeof key === "string") {
-                    const cmd = this.commandsResponse[key];
-                    if (!cmd) throw new Error(`Command response '${key}' not found`);
-                    return cmd;
-                }
-                for (const cmdName in this.commandsResponse) {
-                    if (this.commandsResponse[cmdName].ID === key) {
-                        return this.commandsResponse[cmdName];
-                    }
-                }
-                throw new Error(`Command response with ID '${key}' not found`);
-            },
         }),
     hzcThermostatFromZigbee: () => {
         return {
