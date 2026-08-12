@@ -3936,7 +3936,8 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.onOff(endpoint);
             }
         },
-    },    {
+    },
+    {
         fingerprint: tuya.fingerprint("TS011F", [
             "_TZ3000_mvn6jl7x",
             "_TZ3000_raviyuvk",
