@@ -74,6 +74,50 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    
+    {
+        zigbeeModel: ["HE300_ZB"],
+        model: "HE300_ZB",
+        vendor: "MultIR",
+        description: "Human presence sensor",
+        extend: [
+            m.illuminance(),
+            m.numeric({
+                name: "occupancy distance",
+                cluster: 0x0406,
+                attribute: "Radar detection range",
+                description: "Motion Range Detection (meter)",
+                valueMin: 2,
+                valueMax: 6,
+            }),
+            m.numeric({
+                name: "occupancy unmanned duration",
+                cluster: 0x0406,
+                attribute: "Duration Unoccupied",
+                description: "Ultrasonic occupied to unoccupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy sensitivity",
+                cluster: 0x0406,
+                attribute: "Sensitivity Level",
+                description: "Sensitivity of human presence detection",
+                lookup: {
+                    low: 0x02,
+                    medium: 0x01,
+                    high: 0x00,
+                },
+                entityCategory: "config",
+            }),            
+        ],
+        exposes: [
+            e.occupancy(),
+            e.enum("human_motion_state", ea.STATE, ["none", "small", "large"])
+                .withDescription('Human Motion State'), 
+        ],
+    },
+    
     {
         zigbeeModel: ["MIR-SM200"],
         model: "MIR-SM200",
