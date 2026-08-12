@@ -1319,7 +1319,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "548727",
         vendor: "Philips",
         description: "Hue White and Color Ambiance BR30 with bluetooth",
-        extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ["LCB002"],
@@ -1854,7 +1854,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290011998B",
         vendor: "Philips",
         description: "Hue white ambiance E26",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["LTA002"],
