@@ -4491,9 +4491,12 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingColorCtrl", "heimanClusterSpecial"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("genOnOff", ["onOff", "startUpOnOff"]);
+            await endpoint.read("genLevelCtrl", ["currentLevel"]);
+            await endpoint.read("lightingColorCtrl", ["currentX", "currentY", "colorMode"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
                 [
@@ -4518,6 +4521,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             m.identify(),
+            m.light({color: true, effect: false, configureReporting: true}),
             m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
             m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
             heimanExtend.heimanClusterSpecial(),
