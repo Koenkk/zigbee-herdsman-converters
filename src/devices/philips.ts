@@ -5167,4 +5167,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Runner single spotlight (White)",
         extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
+    {
+        zigbeeModel: ["LCD018"],
+        model: "929004291501",
+        vendor: "Philips",
+        description: "Hue white and color ambiance slim downlight 4 inch",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
 ];
