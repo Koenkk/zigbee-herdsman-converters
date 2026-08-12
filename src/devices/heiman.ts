@@ -3606,6 +3606,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "rebootedCount",
                     "rejoinedCount",
                     "reportedPackages",
+                    "humidityOffset",
                     "temperatureOffset",
                 ],
                 {
@@ -3634,6 +3635,7 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.linkAvailable(),
             heimanExtend.sirenForAutomationOnly(),
             heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
@@ -4203,8 +4205,7 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterSensorMutable(),
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.heimanClusterSensorInterconnectable(),
-            heimanExtend.sirenForAutomationOnly(),
-            heimanExtend.sirenForAutomationOnly({lookup: {stop: 0, smoke_siren: 1, co_siren: 2, heat_siren: 3} }),
+            heimanExtend.sirenForAutomationOnly({lookup: {stop: 0, smoke_siren: 1, co_siren: 2, heat_siren: 3}}),
             heimanExtend.temperatureOffset(),
             heimanExtend.linkAvailable(),
             heimanExtend.reportedPackages(),
@@ -4341,7 +4342,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const endpoint2 = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingColorCtrl",  "heimanClusterSpecial"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl", "lightingColorCtrl", "heimanClusterSpecial"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
