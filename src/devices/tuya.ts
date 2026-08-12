@@ -8744,9 +8744,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7lb6j8wg"]),
-        model: "TS0601_TZE204_7lb6j8wg",
+        model: "_TZE204_7lb6j8wg",
         vendor: "Tuya",
-        description: "Semicom Tuya touch panel: 3 shutters",
+        description: "Semicom touch panel: 3 shutters",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
@@ -8783,9 +8783,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_8eazvzo6"]),
-        model: "TS0601_TZE204_8eazvzo6",
+        model: "_TZE204_8eazvzo6",
         vendor: "Tuya",
-        description: "Semicom Tuya touch panel: 6 switches",
+        description: "Semicom touch panel: 6 switches",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             // Expose Switches to Home Assistant
