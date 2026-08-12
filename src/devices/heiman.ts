@@ -83,6 +83,10 @@ interface HeimanPrivateCluster {
         occupanyControlOnOffIlluminanceThreshold: number;
         radarDetectionMinRange: number;
         radarDetectionMaxRange: number;
+        dewPoint: number;
+        vpd: number;
+        thi: number;
+        heatIndex: number;
 
         // Light/Switch 0x1000~0x1FFF
         indicatorLightControl: number;
@@ -502,6 +506,10 @@ const heimanExtend = {
                 radarDetectionTargetRange: {name: "radarDetectionTargetRange", ID: 0x0029, type: Zcl.DataType.UINT16},
                 radarDetectionMinRange: {name: "radarDetectionMinRange", ID: 0x002b, type: Zcl.DataType.UINT16, write: true},
                 radarDetectionMaxRange: {name: "radarDetectionMaxRange", ID: 0x002c, type: Zcl.DataType.UINT16, write: true},
+                dewPoint: {name: "dewPoint", ID: 0x0033, type: Zcl.DataType.INT16},
+                vpd: {name: "vpd", ID: 0x0034, type: Zcl.DataType.UINT16},
+                thi: {name: "thi", ID: 0x0035, type: Zcl.DataType.UINT16},
+                heatIndex: {name: "heatIndex", ID: 0x0036, type: Zcl.DataType.INT16},
 
                 // Light/Switch 0x1000~0x1FFF
                 indicatorLightControl: {name: "indicatorLightControl", ID: 0x1000, type: Zcl.DataType.BITMAP8, write: true},
@@ -1335,9 +1343,7 @@ const heimanExtend = {
     },
     heimanClusterSensorMutable: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
-        const exposes = utils.exposeEndpoints(
-            e.binary("temporary_mute", ea.ALL, true, false).withDescription("Silence the alarm temporarily"),
-        );
+        const exposes = utils.exposeEndpoints(e.binary("temporary_mute", ea.ALL, true, false).withDescription("Silence the alarm temporarily"));
 
         const fromZigbee = [
             {
@@ -1865,6 +1871,38 @@ const heimanExtend = {
             description: "used for humidity offset, unit: RH%",
             access: "ALL",
             ...args,
+        }),
+    dewPoint: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "dew_point",
+            cluster: "heimanClusterSpecial",
+            attribute: "dewPoint",
+            description: "Dew point",
+            access: "STATE_GET",
+        }),
+    vpd: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "vpd",
+            cluster: "heimanClusterSpecial",
+            attribute: "vpd",
+            description: "Saturated vapor pressure",
+            access: "STATE_GET",
+        }),
+    thi: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "thi",
+            cluster: "heimanClusterSpecial",
+            attribute: "thi",
+            description: "Temperature humidity index",
+            access: "STATE_GET",
+        }),
+    heatIndex: () =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "heat_index",
+            cluster: "heimanClusterSpecial",
+            attribute: "heatIndex",
+            description: "Heat index",
+            access: "STATE_GET",
         }),
     reportedPackages: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -4230,7 +4268,18 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                [
+                    "indicatorLightLevelControlOf1",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "dewPoint",
+                    "vpd",
+                    "thi",
+                    "heatIndex",
+                ],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
@@ -4248,6 +4297,10 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
+            heimanExtend.dewPoint(),
+            heimanExtend.vpd(),
+            heimanExtend.thi(),
+            heimanExtend.heatIndex(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
@@ -4270,7 +4323,18 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                [
+                    "indicatorLightLevelControlOf1",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "dewPoint",
+                    "vpd",
+                    "thi",
+                    "heatIndex",
+                ],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
@@ -4288,6 +4352,10 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
+            heimanExtend.dewPoint(),
+            heimanExtend.vpd(),
+            heimanExtend.thi(),
+            heimanExtend.heatIndex(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
@@ -4309,7 +4377,18 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                [
+                    "indicatorLightLevelControlOf1",
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "dewPoint",
+                    "vpd",
+                    "thi",
+                    "heatIndex",
+                ],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
@@ -4326,6 +4405,10 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
+            heimanExtend.dewPoint(),
+            heimanExtend.vpd(),
+            heimanExtend.thi(),
+            heimanExtend.heatIndex(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
