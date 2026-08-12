@@ -1844,6 +1844,72 @@ const heimanExtend = {
             access: "ALL",
             ...args,
         }),
+    lightSpeed: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_speed",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightSpeed",
+            description: "Light effect speed",
+            access: "ALL",
+            ...args,
+        }),
+    lightIntensity: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_intensity",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightIntensity",
+            description: "Light effect intensity",
+            access: "ALL",
+            ...args,
+        }),
+    lightPalette: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_palette",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightPalette",
+            description: "Light effect palette",
+            access: "ALL",
+            ...args,
+        }),
+    lightOptions: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_options",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightOptions",
+            description: "Light effect options bitmap",
+            access: "ALL",
+            ...args,
+        }),
+    lightEffectCount: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_effect_count",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightEffectCount",
+            description: "Number of available light effects",
+            access: "STATE_GET",
+            ...args,
+        }),
+    lightPixelCount: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "light_pixel_count",
+            valueMin: 0,
+            valueMax: 255,
+            cluster: "heimanClusterSpecial",
+            attribute: "lightPixelCount",
+            description: "Number of light pixels",
+            access: "ALL",
+            ...args,
+        }),
     temperatureOffset: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "temperature_offset",
@@ -4430,7 +4496,19 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                ["rebootedCount", "rejoinedCount", "reportedPackages", "temperatureOffset", "humidityOffset"],
+                [
+                    "rebootedCount",
+                    "rejoinedCount",
+                    "reportedPackages",
+                    "temperatureOffset",
+                    "humidityOffset",
+                    "lightSpeed",
+                    "lightIntensity",
+                    "lightPalette",
+                    "lightOptions",
+                    "lightEffectCount",
+                    "lightPixelCount",
+                ],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
@@ -4448,6 +4526,12 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.floor(),
             heimanExtend.voice(),
             heimanExtend.lightEffect(),
+            heimanExtend.lightSpeed(),
+            heimanExtend.lightIntensity(),
+            heimanExtend.lightPalette(),
+            heimanExtend.lightOptions(),
+            heimanExtend.lightEffectCount(),
+            heimanExtend.lightPixelCount(),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
             heimanExtend.reportedPackages(),
