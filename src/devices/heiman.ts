@@ -1336,7 +1336,7 @@ const heimanExtend = {
     heimanClusterSensorMutable: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const exposes = utils.exposeEndpoints(
-            e.binary("temporary_mute", ea.ALL, true, false).withDescription("temporarily mute smoke alarm but please ensure there is no real fire."),
+            e.binary("temporary_mute", ea.ALL, true, false).withDescription("Silence the alarm temporarily"),
         );
 
         const fromZigbee = [
@@ -4205,7 +4205,7 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.heimanClusterSensorMutable(),
             heimanExtend.heimanClusterIndicatorLight(),
             heimanExtend.heimanClusterSensorInterconnectable(),
-            heimanExtend.sirenForAutomationOnly({lookup: {stop: 0, smoke_siren: 1, co_siren: 2, heat_siren: 3}}),
+            heimanExtend.sirenForAutomationOnly({lookup: {stop: 0, smoke_siren: 1, co_siren: 2, heat_siren: 5}}),
             heimanExtend.temperatureOffset(),
             heimanExtend.linkAvailable(),
             heimanExtend.reportedPackages(),
