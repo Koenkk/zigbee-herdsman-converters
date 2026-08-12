@@ -11262,6 +11262,10 @@ export const definitions: DefinitionWithExtend[] = [
         // Note: below you will find the TS011F_plug_2 and TS011F_plug_3. These are identified via a fingerprint and
         // thus preferred above the TS011F_plug_1 if the fingerprint matches
         zigbeeModel: ["TS011F"],
+        // These report an applicationVersion caught by the version-only fingerprints of TS011F_plug_3
+        // (metering by polling), but they do support attribute reporting. A modelID + manufacturerName
+        // fingerprint outranks those `priority: -1` entries and keeps them on this definition.
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3008_tary5dvv", "_TZ3210_iooniers", "_TZ3008_iooniers", "_TZ3008_xvfd3nkp", "_TZ3008_qziabvzj"]),
         model: "TS011F_plug_1",
         description: "Smart plug (with power monitoring)",
         vendor: "Tuya",
@@ -11316,6 +11320,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("BlitzWolf", "BW-SHP13", "Smart plug (with power monitoring)", ["_TZ3000_amdymr7l"]),
             tuya.whitelabel("NEO Coolcam", "PLUG-001SPB2", "Smart plug (with power monitoring)", ["_TZ3000_zloso4jk"]),
             tuya.whitelabel("Haozee", "HT-SP-ZB-01", "Smart plug (with power monitoring)", ["_TZ3210_w0qqde0g"]),
+            tuya.whitelabel("EIGHTREE", "EIGHTREE Socket", "Smart plug (with power monitoring)", [
+                "_TZ3008_tary5dvv",
+                "_TZ3210_iooniers",
+                "_TZ3008_iooniers",
+                "_TZ3008_xvfd3nkp",
+                "_TZ3008_qziabvzj",
+            ]),
         ],
         ota: true,
         extend: [
@@ -11357,6 +11368,14 @@ export const definitions: DefinitionWithExtend[] = [
                 await reporting.activePower(endpoint, {change: 10});
             }
 
+            // Unlike the plugs that made #12817 necessary, these report their current and metering
+            // scale correctly (e.g. seMetering.divisor is 10, not the hardcoded 100 below), so read
+            // it from the device instead. Limited to these manufacturerNames to keep the hardcoded
+            // path (and the #12817 workaround) unchanged for every other TS011F.
+            const readMeteringScale = ["_TZ3008_tary5dvv", "_TZ3210_iooniers", "_TZ3008_iooniers", "_TZ3008_xvfd3nkp", "_TZ3008_qziabvzj"].includes(
+                device.manufacturerName,
+            );
+
             const acCurrentDivisor = ["_TZ3000_typdpbpg"].includes(device.manufacturerName) ? 2000 : 1000;
             endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
                 acCurrentDivisor,
@@ -11380,6 +11399,15 @@ export const definitions: DefinitionWithExtend[] = [
                     await endpoint.read("haElectricalMeasurement", [attr]);
                 } catch {
                     /* Not all Tuya plugs expose all multiplier/divisor attributes; fall back to defaults. */
+                }
+            }
+            if (readMeteringScale) {
+                for (const attr of ["acCurrentMultiplier", "acCurrentDivisor"] as const) {
+                    try {
+                        await endpoint.read("haElectricalMeasurement", [attr]);
+                    } catch {
+                        /* Fall back to the hardcoded value saved above. */
+                    }
                 }
             }
             endpoint.saveClusterAttributeKeyValue("seMetering", {
