@@ -1892,7 +1892,7 @@ const heimanExtend = {
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "light_effect_count",
             valueMin: 0,
-            valueMax: 65535,
+            valueMax: 200,
             cluster: "heimanClusterSpecial",
             attribute: "lightEffectCount",
             description: "Number of available light effects",
@@ -1903,7 +1903,7 @@ const heimanExtend = {
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "light_pixel_count",
             valueMin: 0,
-            valueMax: 65535,
+            valueMax: 1000,
             cluster: "heimanClusterSpecial",
             attribute: "lightPixelCount",
             description: "Number of light pixels",
