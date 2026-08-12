@@ -8744,73 +8744,71 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_7lb6j8wg"]),
-        model: 'TS0601_TZE204_7lb6j8wg',
-        vendor: 'Tuya',
-        description: 'Semicom Tuya touch panel: 3 shutters',
+        model: "TS0601_TZE204_7lb6j8wg",
+        vendor: "Tuya",
+        description: "Semicom Tuya touch panel: 3 shutters",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
             // Expose Shutters/Covers to Home Assistant
-            e.cover_position().withEndpoint('c1').setAccess('position', ea.STATE_SET),
-            e.cover_position().withEndpoint('c2').setAccess('position', ea.STATE_SET),
-            e.cover_position().withEndpoint('c3').setAccess('position', ea.STATE_SET),
-            
+            e.cover_position().withEndpoint("c1").setAccess("position", ea.STATE_SET),
+            e.cover_position().withEndpoint("c2").setAccess("position", ea.STATE_SET),
+            e.cover_position().withEndpoint("c3").setAccess("position", ea.STATE_SET),
+
             // Declare the state already published, so HA creates a sensor for it
-            e.enum('state', ea.STATE, ['OPEN', 'STOP', 'CLOSE']).withEndpoint('c1'),
-            e.enum('state', ea.STATE, ['OPEN', 'STOP', 'CLOSE']).withEndpoint('c2'),
-            e.enum('state', ea.STATE, ['OPEN', 'STOP', 'CLOSE']).withEndpoint('c3'),
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c1"),
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c2"),
+            e.enum("state", ea.STATE, ["OPEN", "STOP", "CLOSE"]).withEndpoint("c3"),
         ],
         endpoint: (device) => {
-            return {'c1': 1, 'c2': 1, 'c3': 1};
+            return {c1: 1, c2: 1, c3: 1};
         },
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
                 // --- SHUTTERS / COVERS ---
                 // Cover 1 (DP 1 for state/control, DP 2 for position)
-                [1, 'state_c1', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
-                [2, 'position_c1', tuya.valueConverter.coverPosition],
-                
+                [1, "state_c1", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [2, "position_c1", tuya.valueConverter.coverPosition],
+
                 // Cover 2 (DP 4 for state/control, DP 5 for position)
-                [4, 'state_c2', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
-                [5, 'position_c2', tuya.valueConverter.coverPosition],
-    
+                [4, "state_c2", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [5, "position_c2", tuya.valueConverter.coverPosition],
+
                 // Cover 3 (DP 7 for state/control, DP 8 for position)
-                [101, 'state_c3', tuya.valueConverterBasic.lookup({'OPEN': tuya.enum(0), 'STOP': tuya.enum(1), 'CLOSE': tuya.enum(2)})],
-                [102, 'position_c3', tuya.valueConverter.coverPosition],
-                
+                [101, "state_c3", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [102, "position_c3", tuya.valueConverter.coverPosition],
             ],
         },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_8eazvzo6"]),
-        model: 'TS0601_TZE204_8eazvzo6',
-        vendor: 'Tuya',
-        description: 'Semicom Tuya touch panel: 6 switches',
+        model: "TS0601_TZE204_8eazvzo6",
+        vendor: "Tuya",
+        description: "Semicom Tuya touch panel: 6 switches",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             // Expose Switches to Home Assistant
-            e.switch().withEndpoint('s1'),
-            e.switch().withEndpoint('s2'),
-            e.switch().withEndpoint('s3'),
-            e.switch().withEndpoint('s4'),
-            e.switch().withEndpoint('s5'),
-            e.switch().withEndpoint('s6'),
+            e.switch().withEndpoint("s1"),
+            e.switch().withEndpoint("s2"),
+            e.switch().withEndpoint("s3"),
+            e.switch().withEndpoint("s4"),
+            e.switch().withEndpoint("s5"),
+            e.switch().withEndpoint("s6"),
         ],
         endpoint: (device) => {
-            return {'s1': 1, 's2': 1, 's3': 1, 's4': 1, 's5': 1, 's6': 1};
+            return {s1: 1, s2: 1, s3: 1, s4: 1, s5: 1, s6: 1};
         },
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
                 // --- LIGHTS / SWITCHES ---
-                [1, 'state_s1', tuya.valueConverter.onOff],
-                [2, 'state_s2', tuya.valueConverter.onOff],
-                [3, 'state_s3', tuya.valueConverter.onOff],
-                [4, 'state_s4', tuya.valueConverter.onOff],
-                [5, 'state_s5', tuya.valueConverter.onOff],
-                [6, 'state_s6', tuya.valueConverter.onOff],
-                
+                [1, "state_s1", tuya.valueConverter.onOff],
+                [2, "state_s2", tuya.valueConverter.onOff],
+                [3, "state_s3", tuya.valueConverter.onOff],
+                [4, "state_s4", tuya.valueConverter.onOff],
+                [5, "state_s5", tuya.valueConverter.onOff],
+                [6, "state_s6", tuya.valueConverter.onOff],
             ],
         },
     },
