@@ -618,6 +618,22 @@ const trv603ScheduleConverter = (dayNumber: number) => {
     };
 };
 
+const zht002ProgrammingModeConverter = {
+    from: (v: unknown) => v as KeyValue,
+    to: (v: KeyValue, meta: Tz.Meta) => {
+        let existing: KeyValue = {};
+        if (meta?.state?.programming_mode && typeof meta.state.programming_mode === "object") {
+            existing = {...(meta.state.programming_mode as KeyValue)};
+        }
+        const merged = {...existing, ...v};
+        const buffer: number[] = [];
+        for (let i = 0; i < 48; i++) {
+            buffer[i] = (merged[i.toString()] as number) || 0;
+        }
+        return buffer;
+    },
+};
+
 // AR331 Pro (DP 106): holiday start/end as 9-byte LE: [prefix, ts_start_LE4, ts_end_LE4]
 const ar331ProHolidayTimeConverter = {
     from: (v: number[]) => {
@@ -8242,6 +8258,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_iv4eq7eh",
             "_TZ3000_mzcp0of6",
             "_TZ3210_aksyshpw", // https://github.com/Koenkk/zigbee2mqtt/issues/32391
+            "_TZ3000_bu47m8pv",
         ]),
         model: "TS0003_switch_module_2",
         vendor: "Tuya",
@@ -8270,6 +8287,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("AVATTO", "ZWSM16-3", "3 gang switch module", ["_TZ3000_hbic3ka3", "_TZ3000_iv4eq7eh"]),
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
             tuya.whitelabel("Moes", "ZM4LT3", "3-gang switch module", ["_TZ3000_mzcp0of6"]),
+            tuya.whitelabel("ARTDNA", "Z20-IK03F", "3 gang F style switch module", ["_TZ3000_bu47m8pv"]),
         ],
     },
     {
@@ -10956,9 +10974,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.eco_mode(),
             e.temperature_sensor_select(["IN", "AL", "OU"]).withLabel("Sensor").withDescription("Choose which sensor to use. Default: AL"),
             e.enum("valve_state", ea.STATE, ["close", "open"]).withDescription("State of the valve"),
-            e
-                .text("workdays_schedule", ea.STATE_SET)
-                .withDescription('Workdays schedule, 4 entries max, example: "06:00/20°C 11:20/22°C 16:59/15°C 22:00/25°C"'),
             e.min_temperature().withValueMin(0).withValueMax(20),
             e.max_temperature().withValueMin(20).withValueMax(50),
             e
@@ -10978,9 +10993,42 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1)
                 .withValueStep(1)
                 .withPreset("default", 1, "Default value")
-                .withDescription("The difference between the local temperature that triggers heating and the set temperature"),
-
-            e.enum("working_day", ea.STATE_SET, ["disabled", "5-2", "6-1", "7"]).withDescription("Workday setting"),
+                .withDescription("The difference between local temp and set temp that triggers heating"),
+            (() => {
+                const groups = [
+                    {name: "W", start: 0},
+                    {name: "S", start: 16},
+                    {name: "U", start: 32},
+                ];
+                let composite = e
+                    .composite("programming_mode", "programming_mode", ea.STATE_SET)
+                    .withDescription("Schedule: W=Weekdays, S=Saturday, U=Sunday. 4 slots each with hour(h), minute(m), temperature(t).");
+                for (const group of groups) {
+                    for (let slot = 0; slot < 4; slot++) {
+                        const offset = group.start + slot * 4;
+                        const label = `${group.name}${slot + 1}`;
+                        composite = composite.withFeature(
+                            e.numeric(offset.toString(), ea.STATE_SET).withValueMin(0).withValueMax(23).withDescription(`${label}h`),
+                        );
+                        composite = composite.withFeature(
+                            e
+                                .numeric((offset + 1).toString(), ea.STATE_SET)
+                                .withValueMin(0)
+                                .withValueMax(59)
+                                .withDescription(`${label}m`),
+                        );
+                        composite = composite.withFeature(
+                            e
+                                .numeric((offset + 3).toString(), ea.STATE_SET)
+                                .withValueMin(5)
+                                .withValueMax(45)
+                                .withUnit("°C")
+                                .withDescription(`${label}t`),
+                        );
+                    }
+                }
+                return composite;
+            })(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -10996,26 +11044,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "local_temperature", tuya.valueConverter.divideBy10],
                 [18, "min_temperature", tuya.valueConverter.raw],
                 [19, "local_temperature_calibration", tuya.valueConverter.localTemperatureCalibration],
-                [
-                    23,
-                    "working_day",
-                    tuya.valueConverterBasic.lookup((_, device) => {
-                        if (device.manufacturerName === "_TZE204_xalsoe3m") {
-                            return {
-                                disabled: tuya.enum(0),
-                                "5-2": tuya.enum(1),
-                                "6-1": tuya.enum(2),
-                                "7": tuya.enum(3),
-                            };
-                        }
-                        return {
-                            disabled: tuya.enum(0),
-                            "5-2": tuya.enum(2),
-                            "6-1": tuya.enum(1),
-                            "7": tuya.enum(3),
-                        };
-                    }),
-                ],
                 [
                     32,
                     "sensor",
@@ -11037,7 +11065,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [50, "current_heating_setpoint", tuya.valueConverter.raw],
-                [68, "programming_mode", tuya.valueConverter.raw],
+                [68, "programming_mode", zht002ProgrammingModeConverter],
                 [101, "max_temperature_limit", tuya.valueConverter.raw],
                 [102, "deadzone_temperature", tuya.valueConverter.raw],
             ],
@@ -15777,7 +15805,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY205Z",
                 vendor: "AOYAN",
                 description: "PIR 24Ghz human presence sensor",
-                fingerprint: [{modelID: "AY205Z", manufacturerName: "AOYAN"}],
+                fingerprint: [{modelID: "AY205Z", manufacturerName: "AOYAN"}, {manufacturerName: "AOYAN"}],
             },
         ],
     },
@@ -19619,7 +19647,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpbki2zm"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpbki2zm", "_TZE204_qujphad5"]),
         model: "TYBAC-006",
         vendor: "Tuya",
         description: "Wall-mount thermostat for 2-pipe fan-coil unit",
@@ -24247,7 +24275,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY02SZ",
                 vendor: "AOYAN",
                 description: "Vibration sensor",
-                fingerprint: [{modelID: "AY02SZ", manufacturerName: "AOYAN"}],
+                fingerprint: [{modelID: "AY02SZ", manufacturerName: "AOYAN"}, {manufacturerName: "AOYAN"}],
             },
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
@@ -24272,7 +24300,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZV"],
+        zigbeeModel: ["ZG-204ZV", "AY204T"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
@@ -24325,6 +24353,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [
+            {
+                model: "AY204T",
+                vendor: "AOYAN",
+                description: "Millimeter wave motion detection",
+                fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN  "}],
+            },
+        ],
     },
     {
         zigbeeModel: ["ZG-223Z"],
