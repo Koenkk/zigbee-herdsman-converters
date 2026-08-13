@@ -10846,8 +10846,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -50,
-                valueMax: 50,
+                valueMin: -20,
+                valueMax: 60,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "°C",
@@ -10859,8 +10859,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -200,
-                valueMax: 200,
+                valueMin: 5,
+                valueMax: 95,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
