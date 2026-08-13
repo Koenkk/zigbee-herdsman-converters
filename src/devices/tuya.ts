@@ -1282,8 +1282,8 @@ const tzLocal = {
 
 const fzLocal = {
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
-// as raw lightingColorCtrl frames without updating colorTemperature.
-    FUT035Z_rf_color_temp: {
+    // as raw lightingColorCtrl frames without updating colorTemperature.
+    FUT035ZrfColorTemp: {
         cluster: "lightingColorCtrl",
         type: "raw",
         convert: (model, msg, publish, options, meta) => {
@@ -1299,7 +1299,6 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
-
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         cluster: "closuresWindowCovering",
@@ -6942,7 +6941,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0502B",
         vendor: "Tuya",
         description: "Light controller",
-        fromZigbee: [fzLocal.FUT035Z_rf_color_temp],
+        fromZigbee: [fzLocal.FUT035ZrfColorTemp],
         whiteLabel: [
             tuya.whitelabel("Mercator Ikuü", "SMI7040", "Ford Batten Light", ["_TZ3000_zw7wr5uo"]),
             {
