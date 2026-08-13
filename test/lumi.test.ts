@@ -1,4 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
+import {findByDevice} from "../src/index";
 import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
 import type {Definition, Fz, Tz} from "../src/lib/types";
@@ -1005,5 +1006,57 @@ describe("lib/lumi", () => {
                 expect(result).toStrictEqual({});
             });
         });
+    });
+});
+
+describe("SJCGQ12LM IAS enrollment", () => {
+    const coordinatorIeeeAddr = "0x00124b002a2ebcfd";
+    const notEnrolled = {zoneState: 0, iasCieAddr: "0x0000000000000000"};
+    const enrolled = {zoneState: 1, iasCieAddr: coordinatorIeeeAddr};
+
+    const setup = async (read: ReturnType<typeof vi.fn<() => Promise<Record<string, unknown>>>>) => {
+        const device = mockDevice(
+            {
+                modelID: "lumi.flood.agl02",
+                manufacturerName: "LUMI",
+                endpoints: [{ID: 1, inputClusters: ["genBasic", "ssIasZone", "genIdentify", "genPowerCfg"], read}],
+            },
+            "EndDevice",
+        );
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}], ieeeAddr: coordinatorIeeeAddr}).getEndpoint(1);
+
+        return {device, endpoint: device.getEndpoint(1), coordinatorEndpoint, definition: await findByDevice(device)};
+    };
+
+    it("enrolls the device when it reports zoneState 0", async () => {
+        const read = vi.fn().mockResolvedValueOnce(notEnrolled).mockResolvedValueOnce(enrolled);
+        const {device, endpoint, coordinatorEndpoint, definition} = await setup(read);
+
+        await definition.configure?.(device, coordinatorEndpoint, definition);
+
+        expect(endpoint.write).toHaveBeenCalledWith("ssIasZone", {iasCieAddr: coordinatorIeeeAddr}, {sendPolicy: "immediate"});
+        expect(endpoint.command).toHaveBeenCalledWith(
+            "ssIasZone",
+            "enrollRsp",
+            {enrollrspcode: 0, zoneid: 23},
+            {disableDefaultResponse: true, sendPolicy: "immediate"},
+        );
+    });
+
+    it("leaves an already enrolled device alone", async () => {
+        const read = vi.fn().mockResolvedValue(enrolled);
+        const {device, endpoint, coordinatorEndpoint, definition} = await setup(read);
+
+        await definition.configure?.(device, coordinatorEndpoint, definition);
+
+        expect(endpoint.write).not.toHaveBeenCalled();
+        expect(endpoint.command).not.toHaveBeenCalled();
+    });
+
+    it("fails when the device stays unenrolled", async () => {
+        const read = vi.fn().mockResolvedValue(notEnrolled);
+        const {device, coordinatorEndpoint, definition} = await setup(read);
+
+        await expect(definition.configure?.(device, coordinatorEndpoint, definition)).rejects.toThrow("IAS enrollment failed");
     });
 });

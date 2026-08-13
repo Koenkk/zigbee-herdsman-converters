@@ -8,7 +8,7 @@ import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "../lib/types";
-import {assertNumber} from "../lib/utils";
+import {assertNumber, sleep} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -93,6 +93,25 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
         });
+    }
+}
+
+async function ensureLumiIasEnrollment(endpoint: Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint) {
+    const coordinatorIeeeAddress = coordinatorEndpoint.deviceIeeeAddress;
+    const isEnrolled = (state: {zoneState?: number; iasCieAddr?: string}) =>
+        state.zoneState === 1 && state.iasCieAddr?.toLowerCase() === coordinatorIeeeAddress.toLowerCase();
+
+    if (isEnrolled(await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr"], {sendPolicy: "immediate"}))) {
+        return;
+    }
+
+    await endpoint.write("ssIasZone", {iasCieAddr: coordinatorIeeeAddress}, {sendPolicy: "immediate"});
+    await endpoint.command("ssIasZone", "enrollRsp", {enrollrspcode: 0, zoneid: 23}, {disableDefaultResponse: true, sendPolicy: "immediate"});
+    await sleep(500);
+
+    const state = await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr"], {sendPolicy: "immediate"});
+    if (!isEnrolled(state)) {
+        throw new Error(`IAS enrollment failed; expected zoneState=1 and iasCieAddr=${coordinatorIeeeAddress}, got ${JSON.stringify(state)}`);
     }
 }
 
@@ -2065,6 +2084,10 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
+        version: "0.0.1",
+        configure: async (device, coordinatorEndpoint) => {
+            await ensureLumiIasEnrollment(device.getEndpoint(1), coordinatorEndpoint);
+        },
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
     },
     {
