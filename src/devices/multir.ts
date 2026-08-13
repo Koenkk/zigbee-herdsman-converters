@@ -78,7 +78,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "PIR sensor",
         fromZigbee: [
         fz.occupancy, 
-        fzLocal.he300_motion_state, 
+        fzLocal.HE300_Motion_State, 
         ],    
         toZigbee: [],
         extend: [
