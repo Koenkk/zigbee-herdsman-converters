@@ -33,6 +33,29 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const fzLocal = {
+    HE300_Motion_State: {
+        cluster: 0x0406, 
+        type: ['attributeReport', 'readResponse'],
+        convert: (model, msg, publish, options, meta) => {
+            const attributeId = 0x0000;             
+            if (msg.data.hasOwnProperty(attributeId)) {
+                const value = msg.data[attributeId];
+                let state = 'none';
+                if (value === 0x00) {
+                    state = 'none';   
+                } else if (value === 0x01) {
+                    state = 'active';  
+                } else if (value === 0x02) {
+                    state = 'static';  
+                }
+                return { human_motion_state: state };
+            }
+            return {};
+        },
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["MIR-MC100", "MIR-MC100-E"],
@@ -53,6 +76,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MIR-IR100",
         vendor: "MultIR",
         description: "PIR sensor",
+        fromZigbee: [
+        fz.occupancy, 
+        fzLocal.he300_motion_state, 
+        ],    
+        toZigbee: [],
         extend: [
             m.battery(),
             m.illuminance(),
@@ -85,36 +113,37 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 name: "occupancy distance",
                 cluster: 0x0406,
-                attribute: "Radar detection range",
+                attribute: {ID: 0xA205, type: 0x20},
                 description: "Motion Range Detection (meter)",
                 valueMin: 2,
                 valueMax: 6,
             }),
             m.numeric({
-                name: "occupancy unmanned duration",
+               name: "occupancy unmanned duration",
                 cluster: 0x0406,
-                attribute: "Duration Unoccupied",
+                attribute: {ID: 0xA206, type: 0x21},
                 description: "Ultrasonic occupied to unoccupied delay (seconds)",
                 valueMin: 0,
                 valueMax: 65535,
             }),
             m.enumLookup({
                 name: "occupancy sensitivity",
+                attribute: " Sensitivity Level",
                 cluster: 0x0406,
-                attribute: "Sensitivity Level",
+                attribute: {ID: 0xA203, type: 0x30},
                 description: "Sensitivity of human presence detection",
                 lookup: {
-                    low: 0x02,
+                    low: 0x00,
                     medium: 0x01,
-                    high: 0x00,
+                    high: 0x02,
                 },
                 entityCategory: "config",
             }),            
         ],
         exposes: [
             e.occupancy(),
-            e.enum('Motion State', ea.STATE, ['none', 'active', 'state'])
-                .withDescription('Human Motion State')
+            e.enum('human_motion_state', ea.STATE, ['none', 'active', 'static'])
+            .withDescription('Human Motion State'),
         ],
     },
     
