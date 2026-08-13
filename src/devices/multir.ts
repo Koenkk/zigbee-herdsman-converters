@@ -103,7 +103,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HE300_ZB",
         vendor: "MultIR",
         description: "Human presence sensor",
-         fromZigbee: [
+        fromZigbee: [
         fz.occupancy, 
         fzLocal.HE300_Motion_State, 
         ],    
@@ -128,7 +128,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "occupancy sensitivity",
-                attribute: " Sensitivity Level",
                 cluster: 0x0406,
                 attribute: {ID: 0xA203, type: 0x30},
                 description: "Sensitivity of human presence detection",
