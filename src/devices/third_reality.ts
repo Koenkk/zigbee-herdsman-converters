@@ -485,8 +485,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.forcePowerSource({powerSource: "Battery"}),
-            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
-            m.battery({voltage: true, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.battery(),
             m.illuminance(),
             m.deviceAddCustomCluster("3rMotionV2SpecialCluster", {
                 name: "3rMotionV2SpecialCluster",
