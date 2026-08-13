@@ -113,7 +113,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.occupancy(),
-            e.enum('human_motion_state', ea.STATE, ['none', 'active', 'state'])
+            e.enum('Motion State', ea.STATE, ['none', 'active', 'state'])
                 .withDescription('Human Motion State')
                 .withValueMap({
                     0: 'none',   
