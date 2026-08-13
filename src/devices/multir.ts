@@ -75,12 +75,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MIR-IL100", "MIR-IR100"],
         model: "MIR-IR100",
         vendor: "MultIR",
-        description: "PIR sensor",
-        fromZigbee: [
-        fz.occupancy, 
-        fzLocal.HE300_Motion_State, 
-        ],    
-        toZigbee: [],
+        description: "PIR sensor",       
         extend: [
             m.battery(),
             m.illuminance(),
@@ -108,6 +103,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HE300_ZB",
         vendor: "MultIR",
         description: "Human presence sensor",
+         fromZigbee: [
+        fz.occupancy, 
+        fzLocal.HE300_Motion_State, 
+        ],    
+        toZigbee: [],
         extend: [
             m.illuminance(),
             m.numeric({
