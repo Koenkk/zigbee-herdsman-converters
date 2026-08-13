@@ -2084,6 +2084,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             await ensureLumiIasEnrollment(device.getEndpoint(1), coordinatorEndpoint);
         },
