@@ -27,6 +27,7 @@ import type {
     Configure,
     DefinitionExposesFunction,
     DefinitionWithExtend,
+    DummyDevice,
     Expose,
     Fz,
     KeyValue,
@@ -324,11 +325,12 @@ const SWVZNELitersPerWaterFlowUnit: Record<SWVZNEWaterFlowUnit, number> = {
     imperial_gallon: 4.54609,
 };
 
-// Single-channel SWV-ZF* with flow meter supports unified imperial gallon from 1.1.0, while dual-channel SWV-ZF2 supports it from 1.0.9
-const SWVZNEFirmwareSupportsUnifiedImperialGallon = (device?: Zh.Device): boolean => {
+// Compares a device's firmware version against a minimum version, segment by segment.
+// Missing/non-numeric segments count as 0; equal versions count as supported.
+const firmwareAtLeast = (device: Zh.Device | undefined, targetVersion: string): boolean => {
     if (!device?.softwareBuildID) return false;
     const currentParts = device.softwareBuildID.split(".").map((part) => Number(part));
-    const targetParts = (device.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0").split(".").map((part) => Number(part));
+    const targetParts = targetVersion.split(".").map((part) => Number(part));
     const length = Math.max(currentParts.length, targetParts.length);
     for (let i = 0; i < length; i++) {
         const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
@@ -338,6 +340,10 @@ const SWVZNEFirmwareSupportsUnifiedImperialGallon = (device?: Zh.Device): boolea
     }
     return true;
 };
+
+// Single-channel SWV-ZF* with flow meter supports unified imperial gallon from 1.1.0, while dual-channel SWV-ZF2 supports it from 1.0.9
+const SWVZNEFirmwareSupportsUnifiedImperialGallon = (device?: Zh.Device): boolean =>
+    firmwareAtLeast(device, device?.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0");
 
 const SWVZNENormalizeWaterFlowUnit = (value: unknown): SWVZNEWaterFlowUnit | undefined => {
     if (value === "gallon" || value === "US gallon" || value === "us_gallon") return "us_gallon";
@@ -360,6 +366,11 @@ const SWVZNEIrrigationAmountUnitToDeviceCode = (unit: unknown, device?: Zh.Devic
     return SWVZNELegacyIrrigationAmountUnitCodeByName[normalizedUnit];
 };
 
+// SNZB-02UL: the remote sensor data source and the weather display on the E-ink screen
+// are only available on firmware >= 1.0.1
+const SNZB02ULFirmwareSupportsRemoteFeatures = (device: Zh.Device | DummyDevice): boolean =>
+    utils.isDummyDevice(device) || firmwareAtLeast(device, "1.0.1");
+
 interface SonoffSnzb02ul {
     attributes: {
         comfortTemperatureMax: number;
@@ -369,9 +380,15 @@ interface SonoffSnzb02ul {
         comfortHumidityMax: number;
         temperatureCalibration: number;
         humidityCalibration: number;
+        longitude: number;
+        latitude: number;
     };
-    commands: never;
-    commandResponses: never;
+    commands: {
+        getCurrentWeatherInfo: {data: number[]};
+    };
+    commandResponses: {
+        getCurrentWeatherInfoReply: {data: number[]};
+    };
 }
 
 type SonoffStructElement = {elmType: number; elmVal: unknown};
@@ -3398,6 +3415,260 @@ const sonoffExtend = {
         ];
 
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    // SNZB-02UL 远程属性联动 - 通用传感器数据属性 (T=0x03)
+    // 网关将远程传感器数据(温度/湿度/气压)分别下发到设备, 显示在 E-ink 屏上。
+    // 属性结构: 帧头(3B) + T(1B) + L(1B) + SensorCount(1B) + SensorItem*
+    // SensorItem = SensorType(1B) SensorId(1B) SensorState(1B) ValueLength(1B) Value(NB)
+    // 温度(值):            | 01 01 00 | 03 07 01 | 00 00 01 02 XX XX |
+    // 湿度(值):            | 01 01 00 | 03 07 01 | 01 00 01 02 XX XX |
+    // 气压(值):            | 01 01 00 | 03 09 01 | 02 00 01 04 XX XX XX XX |
+    // 统一状态(SensorCount=3, valueLen=0):
+    //                      | 01 01 00 | 03 0D 03 | 00 00 XX 00 | 01 00 XX 00 | 02 00 XX 00 |
+    remoteSensorData: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const ATTR_ID = 0x601e;
+
+        const STATE_CODE: Record<string, number> = {enable: 0x01, disable: 0x02};
+
+        // SensorType → {expose key, 值字节数, 写值函数}
+        const SENSOR_CFG: Record<number, {valueKey: string; bytes: number; write: (buf: Buffer, offset: number, v: number) => void}> = {
+            0: {valueKey: "remote_temperature", bytes: 2, write: (buf, o, v) => buf.writeInt16LE(v, o)},
+            1: {valueKey: "remote_humidity", bytes: 2, write: (buf, o, v) => buf.writeUInt16LE(v, o)},
+            2: {valueKey: "remote_pressure", bytes: 4, write: (buf, o, v) => buf.writeInt32LE(v, o)},
+        };
+
+        // 构造单个 SensorItem
+        const buildItem = (sensorType: number, sensorState: number, valueLen: number, writeFn?: (buf: Buffer, offset: number) => void): Buffer => {
+            const item = Buffer.alloc(4 + valueLen);
+            item[0] = sensorType;
+            item[1] = 0x00; // SensorId (default 0)
+            item[2] = sensorState;
+            item[3] = valueLen;
+            if (valueLen > 0 && writeFn) writeFn(item, 4);
+            return item;
+        };
+
+        // 从缓存构造 SensorItem (带数值, state=online)
+        const buildCachedValueItem = (meta: Tz.Meta, sensorType: number): Buffer | null => {
+            const cfg = SENSOR_CFG[sensorType];
+            const cachedValue = meta.state[cfg.valueKey] as number | undefined;
+            if (cachedValue === undefined) return null;
+            return buildItem(sensorType, 0x01, cfg.bytes, (buf, offset) => cfg.write(buf, offset, Math.round(cachedValue * 100)));
+        };
+
+        // 构造完整 T=0x03 负载并写入设备
+        const writePayload = async (entity: Zh.Endpoint | Zh.Group, items: Buffer[], meta: Tz.Meta) => {
+            const totalItemBytes = items.reduce((sum, item) => sum + item.length, 0);
+            const L = 1 + totalItemBytes;
+            const header = [0x01, 0x01, 0x00, 0x03, L, items.length];
+            const payload = [...header, ...items.flatMap((item) => Array.from(item))];
+            await entity.write(
+                clusterName,
+                {[ATTR_ID]: {value: {elementType: Zcl.DataType.UINT8, elements: payload}, type: Zcl.DataType.ARRAY}},
+                utils.getOptions(meta.mapped, entity),
+            );
+        };
+
+        // 检查当前远程源是否在线
+        const isOnline = (meta: Tz.Meta): boolean => meta.state.remote_sensors_state !== "disable";
+
+        const exposes = [
+            e
+                .enum("remote_sensors_state", ea.STATE_SET, ["enable", "disable"])
+                .withDescription(
+                    "The remote temperature‑humidity source shares the same display area with the date. When the remote temperature‑humidity source is enabled, the date will no longer be shown. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("remote_temperature", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(50)
+                .withUnit("°C")
+                .withDescription(
+                    "Remote temperature value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("remote_humidity", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(95)
+                .withUnit("%")
+                .withDescription(
+                    "Remote humidity value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("remote_pressure", ea.STATE_SET)
+                .withValueMin(700)
+                .withValueMax(1100)
+                .withUnit("hPa")
+                .withDescription(
+                    "Remote atmospheric pressure value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            // ---- 温度值 ----
+            {
+                key: ["remote_temperature"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!isOnline(meta)) {
+                        return {state: {remote_temperature: value}}; // 离线: 仅缓存, 不下发
+                    }
+                    const scaled = Math.round((value as number) * 100);
+                    await writePayload(entity, [buildItem(0x00, 0x01, 2, (buf, offset) => buf.writeInt16LE(scaled, offset))], meta);
+                    return {state: {remote_temperature: value}};
+                },
+            },
+            // ---- 湿度值 ----
+            {
+                key: ["remote_humidity"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!isOnline(meta)) {
+                        return {state: {remote_humidity: value}};
+                    }
+                    const scaled = Math.round((value as number) * 100);
+                    await writePayload(entity, [buildItem(0x01, 0x01, 2, (buf, offset) => buf.writeUInt16LE(scaled, offset))], meta);
+                    return {state: {remote_humidity: value}};
+                },
+            },
+            // ---- 气压值 ----
+            {
+                key: ["remote_pressure"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!isOnline(meta)) {
+                        return {state: {remote_pressure: value}};
+                    }
+                    const scaled = Math.round((value as number) * 100);
+                    await writePayload(entity, [buildItem(0x02, 0x01, 4, (buf, offset) => buf.writeInt32LE(scaled, offset))], meta);
+                    return {state: {remote_pressure: value}};
+                },
+            },
+            // ---- 统一状态 ----
+            {
+                key: ["remote_sensors_state"],
+                convertSet: async (entity, key, value, meta) => {
+                    const stateCode = STATE_CODE[value as string] ?? 0x01;
+                    if (value === "enable") {
+                        // 切回在线: 从缓存拿已缓存的值, 拼成完整负载下发
+                        const items = [0x00, 0x01, 0x02].map((type) => buildCachedValueItem(meta, type) ?? buildItem(type, stateCode, 0));
+                        await writePayload(entity, items, meta);
+                    } else {
+                        // 离线: 下发纯状态 (valueLen=0)
+                        await writePayload(
+                            entity,
+                            [0x00, 0x01, 0x02].map((type) => buildItem(type, stateCode, 0)),
+                            meta,
+                        );
+                    }
+                    return {state: {remote_sensors_state: value}};
+                },
+            },
+        ];
+
+        const gated: DefinitionExposesFunction = (device) => (SNZB02ULFirmwareSupportsRemoteFeatures(device) ? exposes : []);
+
+        return {exposes: [gated], fromZigbee: [], toZigbee, isModernExtend: true};
+    },
+    getCurrentWeatherInfo02UL: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const commandId = 0x14;
+        const replyCommandName = "getCurrentWeatherInfoReply";
+        const weatherKey = "weather";
+        // 默认坐标(微度, 1e-6°): 深圳. 设备拿到有效经纬度后才会携带坐标发 0x14 天气请求.
+        const DEFAULT_LONGITUDE_MICRO = 114057900;
+        const DEFAULT_LATITUDE_MICRO = 22543100;
+        // 映射: 晴/多云/阴/雨/雪/风 -> 0x00-0x05
+        const WEATHER_TO_VALUE: Record<string, number> = {
+            sunny: 0x00,
+            partly_cloudy: 0x01,
+            overcast: 0x02,
+            rain: 0x03,
+            snow: 0x04,
+            windy: 0x05,
+        };
+
+        const expose = e
+            .enum(weatherKey, ea.STATE_SET, Object.keys(WEATHER_TO_VALUE))
+            .withCategory("config")
+            .withDescription(
+                "Weather shown on the E-ink screen. Selecting a value sends the default coordinates to the device and is applied on its next weather request. Note: wake up the device by pressing the button on the back before changing this value.",
+            );
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [weatherKey],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.write<"customClusterEwelink", SonoffSnzb02ul>(
+                        clusterName,
+                        {longitude: DEFAULT_LONGITUDE_MICRO, latitude: DEFAULT_LATITUDE_MICRO},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    return {state: {[weatherKey]: value}};
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffSnzb02ul, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: async (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (!parsedRawCommand || parsedRawCommand.commandId !== commandId) return;
+
+                    const payload = parsedRawCommand.payload;
+                    if (payload.length !== 9) {
+                        logger.warning(`getCurrentWeatherInfo02UL: invalid payload length=${payload.length}`, NS);
+                        return;
+                    }
+
+                    const type = payload.readUInt8(0);
+                    if (type !== 0x00) {
+                        logger.warning(`getCurrentWeatherInfo02UL: unsupported device type=${type}`, NS);
+                        return;
+                    }
+
+                    const selectedWeather = meta.state?.[weatherKey];
+                    const weatherValue = typeof selectedWeather === "string" ? WEATHER_TO_VALUE[selectedWeather] : undefined;
+                    if (weatherValue === undefined) {
+                        logger.warning(
+                            `getCurrentWeatherInfo02UL: no weather selected (weather=${JSON.stringify(selectedWeather)}), falling back to sunny`,
+                            NS,
+                        );
+                    }
+
+                    const requestTransactionSequenceNumber = msg.meta.zclTransactionSequenceNumber;
+                    const requestDirection = msg.meta.frameControl?.direction ?? Zcl.Direction.SERVER_TO_CLIENT;
+                    const responseDirection =
+                        requestDirection === Zcl.Direction.CLIENT_TO_SERVER ? Zcl.Direction.SERVER_TO_CLIENT : Zcl.Direction.CLIENT_TO_SERVER;
+
+                    await msg.endpoint.commandResponse<typeof clusterName, typeof replyCommandName, SonoffSnzb02ul>(
+                        clusterName,
+                        replyCommandName,
+                        {data: [type, 0x01, weatherValue ?? 0x00]},
+                        {
+                            disableDefaultResponse: true,
+                            direction: responseDirection,
+                            manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+                        },
+                        requestTransactionSequenceNumber,
+                    );
+                    logger.info(
+                        `getCurrentWeatherInfo02UL: response sent type=${type} weather=${JSON.stringify(selectedWeather)} weatherValue=${weatherValue ?? 0x00}`,
+                        NS,
+                    );
+                },
+            },
+        ];
+
+        const gated: DefinitionExposesFunction = (device) => (SNZB02ULFirmwareSupportsRemoteFeatures(device) ? [expose] : []);
+
+        return {exposes: [gated], fromZigbee, toZigbee, isModernExtend: true};
     },
     tpWgzbaTemperatureHysteresis: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
@@ -10575,8 +10846,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -20,
-                valueMax: 60,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "°C",
@@ -10588,8 +10859,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: 5,
-                valueMax: 95,
+                valueMin: -200,
+                valueMax: 200,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
@@ -11567,14 +11838,31 @@ export const definitions: DefinitionWithExtend[] = [
                     temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
                     temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
                     humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                    remoteSensorData: {name: "remoteSensorData", ID: 0x601e, type: Zcl.DataType.ARRAY, write: true},
+                    longitude: {name: "longitude", ID: 0x5016, type: Zcl.DataType.INT32, write: true, min: -2147483648},
+                    latitude: {name: "latitude", ID: 0x5017, type: Zcl.DataType.INT32, write: true, min: -2147483648},
                 },
-                commands: {},
-                commandsResponse: {},
+                commands: {
+                    getCurrentWeatherInfo: {
+                        name: "getCurrentWeatherInfo",
+                        ID: 0x14,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {
+                    getCurrentWeatherInfoReply: {
+                        name: "getCurrentWeatherInfoReply",
+                        ID: 0x14,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
             }),
             m.battery(),
             m.temperature({valueMin: 0, valueMax: 50}),
             m.humidity({valueMin: 5, valueMax: 95}),
             sonoffExtend.temperatureHumidityCalculatedValues(),
+            sonoffExtend.remoteSensorData(),
+            sonoffExtend.getCurrentWeatherInfo02UL(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
                 name: "comfort_temperature_min",
