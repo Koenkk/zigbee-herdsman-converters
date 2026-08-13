@@ -6,7 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {utcToDeviceLocal2000Seconds} from "../lib/sonoff";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
-import {assertObject, assertString} from "../lib/utils";
+import {assertObject, assertString, postfixWithEndpointName} from "../lib/utils";
 
 const NS = "zhc:easyiot";
 const ea = exposes.access;
@@ -413,6 +413,31 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"seTunneling", undefined, ["commandTransferData"]>,
+
+    easyiot_occupancy: {
+        cluster: "occupancySensing",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            try {
+                if (!msg?.data) return;
+
+                const data = msg.data as unknown as Record<string, unknown>;
+                if (!Object.hasOwn(data, "occupancy")) return;
+
+                // occupancy may be numeric (bitmask) or boolean
+                const raw = data["occupancy"];
+                const isOccupied = typeof raw === "number" ? (raw as number & 1) === 1 : !!raw;
+
+                const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
+                const payload: Record<string, boolean> = {};
+                payload[propertyName] = isOccupied;
+
+                return payload;
+            } catch (err) {
+                logger.error(`easyiot_occupancy converter error: ${err}`, NS);
+            }
+        },
+    } satisfies Fz.Converter<"occupancySensing", undefined, ["attributeReport", "readResponse"]>,
 
     easyiot_action: {
         cluster: "genOnOff",
@@ -1466,7 +1491,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB-24GMS02",
         vendor: "easyiot",
         description: "Zigbee motion and radar sensor",
-        fromZigbee: [fzLocal.easyiot_radar_calib_status],
+        fromZigbee: [fzLocal.easyiot_radar_calib_status, fzLocal.easyiot_occupancy],
         toZigbee: [
             tzLocal.easyiot_set_detection_range,
             tzLocal.easyiot_set_work_mode,
@@ -1514,6 +1539,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "occupancySensing",
                 ID: 0x0406,
                 attributes: {
+                    occupancy: {name: "occupancy", ID: 0x0000, type: Zcl.DataType.BITMAP8, report: true, required: true},
                     occupancySensorMode: {name: "occupancySensorMode", ID: 0xfe01, type: Zcl.DataType.ENUM8, write: true},
                     occupancySensorRange: {name: "occupancySensorRange", ID: 0xfe02, type: Zcl.DataType.UINT8, write: true},
                 },
