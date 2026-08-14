@@ -119,7 +119,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Human presence sensor",
         fromZigbee: [
         fz.occupancy, 
-        fz_HE300_Local.HE300_Motion_State, 
+        fz_HE300_Local.HE300_motion_State, 
         ],   
         toZigbee: [],
         extend: [
