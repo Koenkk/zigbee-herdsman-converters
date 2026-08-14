@@ -3311,24 +3311,32 @@ const tuyaTz = {
         key: ["state", "brightness"],
         convertSet: async (entity, key, value, meta) => {
             const {message, state} = meta;
-            if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
-                return await tz.on_off.convertSet(entity, key, value, meta);
+            const brightnessKey = Object.keys(state).find((k) => k.startsWith("brightness_l")) ? `brightness_l${entity.ID}` : "brightness";
+            const stateKey = Object.keys(state).find((k) => k.startsWith("state_l")) ? `state_l${entity.ID}` : "state";
+            if (message.state === "OFF"  || (message.state != null && message.brightness == null)) {
+                return  await tz.on_off.convertSet(entity, key, value, meta);
             }
             if (message.brightness != null) {
-                // set brightness
-                if (state.state === "OFF") {
-                    await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
-                }
-
+                // If state includes brightness assume we need to use a custom lookup    
                 const brightness = utils.toNumber(message.brightness, "brightness");
-                const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
-                await entity.command<"genLevelCtrl", "moveToLevelTuya", TuyaGenLevelCtrl>(
-                    "genLevelCtrl",
-                    "moveToLevelTuya",
-                    {level, transtime: 100},
-                    utils.getOptions(meta.mapped, entity),
-                );
-                return {state: {state: "ON", brightness}};
+                 // we allow at most 1 incase its a rounding/ float precision issue
+                const brightnessUnchanged = Math.abs(utils.mapNumberRange(brightness, 0, 254, 0, 254) - utils.toNumber(state[brightnessKey], "brightness")) <= 1;
+                // if the brightness is unchanged then we need to force it on due to weirdness with moveToLevelTuya
+                if (state[stateKey] === "OFF" && brightnessUnchanged ) {
+                    await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
+                } else {
+                    const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
+
+                    // set brightness
+                    await entity.command(
+                        "genLevelCtrl",
+                        "moveToLevelTuya",
+                        {level, transtime: 100},
+                        utils.getOptions(meta.mapped, entity)
+                    );
+               }  
+
+              return {state: {state:"ON", brightness}};
             }
         },
         convertGet: async (entity, key, meta) => {
