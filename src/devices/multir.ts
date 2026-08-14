@@ -112,7 +112,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     
-const definition = {
+{
         zigbeeModel: ["HE300_ZB"],
         model: "HE300_ZB",
         vendor: "MultIR",
@@ -160,8 +160,7 @@ const definition = {
             e.enum('human_motion_state', ea.STATE, ['none', 'active', 'static'])
                 .withDescription('Human Motion State'),
         ],
-    };
-        module.exports = definition;        
+    };    
     },
     
     {
