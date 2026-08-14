@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {ClusterDefinition, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
+import type {Cluster, ZclArray} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
 import * as tz from "../converters/toZigbee";
 import {repInterval} from "../lib/constants";
@@ -280,18 +280,20 @@ interface YokisPilotWire {
 }
 
 const YokisClustersDefinition: {
-    [s: string]: ClusterDefinition;
+    [s: string]: Cluster;
 } = {
     manuSpecificYokisDevice: {
+        name: "manuSpecificYokisDevice",
         ID: 0xfc01,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Indicate if the device configuration has changed. 0 to 0xFFFE -> No Change, 0xFFFF -> Change have been detected
-            configurationChanged: {ID: 0x0005, type: Zcl.DataType.UINT16},
+            configurationChanged: {name: "configurationChanged", ID: 0x0005, type: Zcl.DataType.UINT16},
         },
         commands: {
             // Reset setting depending on RESET ACTION value
             resetToFactorySettings: {
+                name: "resetToFactorySettings",
                 ID: 0x00,
                 response: 0,
                 parameters: [
@@ -301,12 +303,14 @@ const YokisClustersDefinition: {
             },
             // Relaunch BLE advertising for 15 minutes
             relaunchBleAdvert: {
+                name: "relaunchBleAdvert",
                 ID: 0x11,
                 response: 0,
                 parameters: [],
             },
             // Open Zigbee network
             openNetwork: {
+                name: "openNetwork",
                 ID: 0x12,
                 response: 0,
                 parameters: [
@@ -318,33 +322,37 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisInput: {
+        name: "manuSpecificYokisInput",
         ID: 0xfc02,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Indicate how the input should be handle: 0 -> Unknown, 1 -> Push button, 2 -> Switch, 3 -> Relay, 4 -> FP_IN
-            inputMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+            inputMode: {name: "inputMode", ID: 0x0000, type: Zcl.DataType.ENUM8},
             // Indicate the contact nature of the entry: 0 -> NC, 1 -> NO
-            contactMode: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+            contactMode: {name: "contactMode", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
             // Indicate the last known state of the local BP (Bouton Poussoir, or Push Button)
-            lastLocalCommandState: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+            lastLocalCommandState: {name: "lastLocalCommandState", ID: 0x0002, type: Zcl.DataType.BOOLEAN},
             // Indicate the last known state of the Bp connect
-            lastBPConnectState: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+            lastBPConnectState: {name: "lastBPConnectState", ID: 0x0003, type: Zcl.DataType.BOOLEAN},
             // Indicate the backlight intensity applied on the keys. Only use for “Simon” product. Default: 0x0A, Min-Max: 0x00 - 0x64
-            backlightIntensity: {ID: 0x0004, type: Zcl.DataType.UINT8},
+            backlightIntensity: {name: "backlightIntensity", ID: 0x0004, type: Zcl.DataType.UINT8},
         },
         commands: {
             // Send to the server cluster a button press
             sendPress: {
+                name: "sendPress",
                 ID: 0x00,
                 parameters: [],
             },
             // Send to the server cluster a button release
             sendRelease: {
+                name: "sendRelease",
                 ID: 0x01,
                 parameters: [],
             },
             // Change the Input mode to use switch input, wired relay or simple push button
             selectInputMode: {
+                name: "selectInputMode",
                 ID: 0x02,
                 parameters: [
                     // Input mode to be set. See @inputMode
@@ -355,36 +363,39 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisEntryConfigurator: {
+        name: "manuSpecificYokisEntryConfigurator",
         ID: 0xfc03,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Use to enable short press action
-            eShortPress: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+            eShortPress: {name: "eShortPress", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
             // Use to enable long press action
-            eLongPress: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+            eLongPress: {name: "eLongPress", ID: 0x0002, type: Zcl.DataType.BOOLEAN},
             // Define long Press duration in milliseconds. Default: 0x0BB8, Min-Max: 0x00 - 0x1388
-            longPressDuration: {ID: 0x0003, type: Zcl.DataType.UINT16},
+            longPressDuration: {name: "longPressDuration", ID: 0x0003, type: Zcl.DataType.UINT16},
             // Define the maximum time between 2 press to keep in a sequence (In milliseconds). Default: 0x01F4, Min-Max: 0x0064 - 0x0258
-            timeBetweenPress: {ID: 0x0004, type: Zcl.DataType.UINT16},
+            timeBetweenPress: {name: "timeBetweenPress", ID: 0x0004, type: Zcl.DataType.UINT16},
             // Enable R12M Long Press action
-            eR12MLongPress: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
+            eR12MLongPress: {name: "eR12MLongPress", ID: 0x0005, type: Zcl.DataType.BOOLEAN},
             // Disable local configuration
-            eLocalConfigLock: {ID: 0x0006, type: Zcl.DataType.BOOLEAN},
+            eLocalConfigLock: {name: "eLocalConfigLock", ID: 0x0006, type: Zcl.DataType.BOOLEAN},
         },
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisSubSystem: {
+        name: "manuSpecificYokisSubSystem",
         ID: 0xfc04,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Define the device behavior after power failure : 0 -> LAST STATE, 1 -> OFF, 2 -> ON, 3-> BLINK
-            powerFailureMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+            powerFailureMode: {name: "powerFailureMode", ID: 0x0001, type: Zcl.DataType.ENUM8},
         },
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisLoadManager: {
+        name: "manuSpecificYokisLoadManager",
         ID: 0xfc05, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},
@@ -392,62 +403,64 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisLightControl: {
+        name: "manuSpecificYokisLightControl",
         ID: 0xfc06,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Use to know which state is the relay
-            onOff: {ID: 0x0000, type: Zcl.DataType.BOOLEAN},
+            onOff: {name: "onOff", ID: 0x0000, type: Zcl.DataType.BOOLEAN},
             // Indicate the previous state before action
-            prevState: {ID: 0x0001, type: Zcl.DataType.BOOLEAN},
+            prevState: {name: "prevState", ID: 0x0001, type: Zcl.DataType.BOOLEAN},
             // Define the ON embedded timer duration in seconds.  Default: 0x00, Min-Max: 0x00 – 0x00409980
-            onTimer: {ID: 0x0002, type: Zcl.DataType.UINT32},
+            onTimer: {name: "onTimer", ID: 0x0002, type: Zcl.DataType.UINT32},
             // Enable (0x01) / Disable (0x00) use of onTimer.
-            eOnTimer: {ID: 0x0003, type: Zcl.DataType.BOOLEAN},
+            eOnTimer: {name: "eOnTimer", ID: 0x0003, type: Zcl.DataType.BOOLEAN},
             // Define the PRE-ON embedded delay in seconds.  Default: 0x00, Min-Max: 0x00 – 0x00409980
-            preOnDelay: {ID: 0x0004, type: Zcl.DataType.UINT32},
+            preOnDelay: {name: "preOnDelay", ID: 0x0004, type: Zcl.DataType.UINT32},
             // Enable (0x01) / Disable (0x00) use of PreOnTimer.
-            ePreOnDelay: {ID: 0x0005, type: Zcl.DataType.BOOLEAN},
+            ePreOnDelay: {name: "ePreOnDelay", ID: 0x0005, type: Zcl.DataType.BOOLEAN},
             // Define the PRE-OFF embedded delay in seconds.  Default: 0x00, Min-Max: 0x00 – 0x00409980
-            preOffDelay: {ID: 0x0008, type: Zcl.DataType.UINT32},
+            preOffDelay: {name: "preOffDelay", ID: 0x0008, type: Zcl.DataType.UINT32},
             // Enable (0x01) / Disable (0x00) PreOff delay.
-            ePreOffDelay: {ID: 0x0009, type: Zcl.DataType.BOOLEAN},
+            ePreOffDelay: {name: "ePreOffDelay", ID: 0x0009, type: Zcl.DataType.BOOLEAN},
             // Set the value of ON pulse length. Default: 0x01F4, Min-Max: 0x0014 – 0xFFFE
-            pulseDuration: {ID: 0x000a, type: Zcl.DataType.UINT16},
+            pulseDuration: {name: "pulseDuration", ID: 0x000a, type: Zcl.DataType.UINT16},
             // Indicates the current Type of time selected that will be used during push button configuration: 0x00 -> Seconds, 0x01 -> Minutes
-            timeType: {ID: 0x000b, type: Zcl.DataType.ENUM8},
+            timeType: {name: "timeType", ID: 0x000b, type: Zcl.DataType.ENUM8},
             // Set the value of the LONG ON embedded timer in seconds.  Default: 0x5460 (1h), Min-Max: 0x00 – 0x00409980
-            longOnDuration: {ID: 0x000c, type: Zcl.DataType.UINT32},
+            longOnDuration: {name: "longOnDuration", ID: 0x000c, type: Zcl.DataType.UINT32},
             // Indicates the operating mode: 0x00 -> Timer, 0x01 -> Staircase, 0x02 -> Pulse
-            operatingMode: {ID: 0x000d, type: Zcl.DataType.ENUM8},
+            operatingMode: {name: "operatingMode", ID: 0x000d, type: Zcl.DataType.ENUM8},
             // Time before goes off after the stop announce blinking. (In seconds).  Default: 0x0000, Min-Max: 0x00 – 0x00409980
-            stopAnnounceTime: {ID: 0x0013, type: Zcl.DataType.UINT32},
+            stopAnnounceTime: {name: "stopAnnounceTime", ID: 0x0013, type: Zcl.DataType.UINT32},
             // Enable (0x01) / Disable (0x00) the announcement before turning OFF.
-            eStopAnnounce: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
+            eStopAnnounce: {name: "eStopAnnounce", ID: 0x0014, type: Zcl.DataType.BOOLEAN},
             // Enable (0x01) / Disable (0x00) Deaf Actions.
-            eDeaf: {ID: 0x0015, type: Zcl.DataType.BOOLEAN},
+            eDeaf: {name: "eDeaf", ID: 0x0015, type: Zcl.DataType.BOOLEAN},
             // Enable (0x01) / Disable (0x00) Blink Actions.
-            eBlink: {ID: 0x0016, type: Zcl.DataType.BOOLEAN},
+            eBlink: {name: "eBlink", ID: 0x0016, type: Zcl.DataType.BOOLEAN},
             // Number of blinks done when receiving the corresponding order. One blink is considered as one ON step followed by one OFF step.
             // Default: 0x03, Min-Max: 0x00 – 0x14
-            blinkAmount: {ID: 0x0017, type: Zcl.DataType.UINT8},
+            blinkAmount: {name: "blinkAmount", ID: 0x0017, type: Zcl.DataType.UINT8},
             // Duration for the ON time on a blink period (In millisecond).  Default: 0x000001F4, Min-Max: 0x00 – 0x00409980
-            blinkOnTime: {ID: 0x0018, type: Zcl.DataType.UINT32},
+            blinkOnTime: {name: "blinkOnTime", ID: 0x0018, type: Zcl.DataType.UINT32},
             // Duration for the OFF time on a blink period (In millisecond).  Default: 0x000001F4, Min-Max: 0x00 – 0x00409980
-            blinkOffTime: {ID: 0x0019, type: Zcl.DataType.UINT32},
+            blinkOffTime: {name: "blinkOffTime", ID: 0x0019, type: Zcl.DataType.UINT32},
             // Define number of blink to do when receiving the DEAF action. One blink is considered as one ON step followed by one OFF step.
             // Default: 0x03, Min-Max: 0x00 – 0x14
-            deafBlinkAmount: {ID: 0x001a, type: Zcl.DataType.UINT8},
+            deafBlinkAmount: {name: "deafBlinkAmount", ID: 0x001a, type: Zcl.DataType.UINT8},
             // Define duration of a blink ON (In millisecond). Default: 0x0320, Min-Max: 0x0064– 0x4E20
-            deafBlinkTime: {ID: 0x001b, type: Zcl.DataType.UINT16},
+            deafBlinkTime: {name: "deafBlinkTime", ID: 0x001b, type: Zcl.DataType.UINT16},
             // Indicate which state must be apply after a blink sequence: 0x00 -> State before blinking, 0x01 -> OFF, 0x02 -> ON
-            stateAfterBlink: {ID: 0x001c, type: Zcl.DataType.ENUM8},
+            stateAfterBlink: {name: "stateAfterBlink", ID: 0x001c, type: Zcl.DataType.ENUM8},
             // Define the output relay as Normaly close.
-            eNcCommand: {ID: 0x001d, type: Zcl.DataType.BOOLEAN},
+            eNcCommand: {name: "eNcCommand", ID: 0x001d, type: Zcl.DataType.BOOLEAN},
         },
         commands: {
             // Move to position specified in uc_BrightnessEnd parameter.
             // If TOR mode or MTR is set (no dimming) : if uc_BrightnessEnd under 50% will set to OFF else will be set to ON
             moveToPosition: {
+                name: "moveToPosition",
                 ID: 0x02,
                 parameters: [
                     {name: "uc_BrightnessStart", type: Zcl.DataType.UINT8},
@@ -461,11 +474,13 @@ const YokisClustersDefinition: {
             },
             // This command allows the relay to be controlled with an impulse. The pulse time is defined by PulseLength.
             pulse: {
+                name: "pulse",
                 ID: 0x04,
                 parameters: [{name: "PulseLength", type: Zcl.DataType.UINT16}],
             },
             // With this command, the module is asked to perform a blinking sequence.
             blink: {
+                name: "blink",
                 ID: 0x05,
                 parameters: [
                     {name: "uc_BlinkAmount", type: Zcl.DataType.UINT8},
@@ -477,6 +492,7 @@ const YokisClustersDefinition: {
             },
             // Start a deaf sequence on a device only if the attribute “eDeaf” is set to Enable.
             deafBlink: {
+                name: "deafBlink",
                 ID: 0x06,
                 parameters: [
                     {name: "uc_BlinkAmount", type: Zcl.DataType.UINT8},
@@ -487,6 +503,7 @@ const YokisClustersDefinition: {
             },
             // Switch output ON for LONG ON DURATION time.
             longOn: {
+                name: "longOn",
                 ID: 0x07,
                 parameters: [],
             },
@@ -494,69 +511,73 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisDimmer: {
+        name: "manuSpecificYokisDimmer",
         ID: 0xfc07,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // This attribute defines the current position, in %. Default: 0x00, Min-Max: 0x00 - 0x64
-            currentPosition: {ID: 0x0000, type: Zcl.DataType.UINT8},
+            currentPosition: {name: "currentPosition", ID: 0x0000, type: Zcl.DataType.UINT8},
             // This attribute defines the memory position, in %. Default: 0x00, Min-Max: 0x00 - 0x64
-            memoryPosition: {ID: 0x0001, type: Zcl.DataType.UINT8},
+            memoryPosition: {name: "memoryPosition", ID: 0x0001, type: Zcl.DataType.UINT8},
             // This attribute defines if a ramp up should be used or not.
-            eRampUp: {ID: 0x0002, type: Zcl.DataType.BOOLEAN},
+            eRampUp: {name: "eRampUp", ID: 0x0002, type: Zcl.DataType.BOOLEAN},
             // This attribute defines the time taken during the ramp up in ms. Default: 0x000003E8, Min-Max: 0x00000000 – 0x05265C00
-            rampUp: {ID: 0x0003, type: Zcl.DataType.UINT32},
+            rampUp: {name: "rampUp", ID: 0x0003, type: Zcl.DataType.UINT32},
             // This attribute defines if a ramp down should be used or not.
-            eRampDown: {ID: 0x0004, type: Zcl.DataType.BOOLEAN},
+            eRampDown: {name: "eRampDown", ID: 0x0004, type: Zcl.DataType.BOOLEAN},
             // This attribute defines the time taken during the ramp down in ms. Default: 0x000003E8, Min-Max: 0x00000000 – 0x05265C00
-            rampDown: {ID: 0x0005, type: Zcl.DataType.UINT32},
+            rampDown: {name: "rampDown", ID: 0x0005, type: Zcl.DataType.UINT32},
             // This attribute defines the time taken during the ramp loop in ms. Default: 0x00000FA0, Min-Max: 0x00000000 – 0x05265C00
-            rampContinuousTime: {ID: 0x0006, type: Zcl.DataType.UINT32},
+            rampContinuousTime: {name: "rampContinuousTime", ID: 0x0006, type: Zcl.DataType.UINT32},
             // This attribute defines the value of each step during a dimming up. This value is set in %. Default: 0x01, Min-Max: 0x00 - 0x64
-            stepUp: {ID: 0x0007, type: Zcl.DataType.UINT8},
+            stepUp: {name: "stepUp", ID: 0x0007, type: Zcl.DataType.UINT8},
             // This attribute defines the value of the low dim limit, used during a dimming loop, on a long press for example. This value is set in %. Default: 0x06, Min-Max: 0x00 - 0x64
-            lowDimLimit: {ID: 0x0008, type: Zcl.DataType.UINT8},
+            lowDimLimit: {name: "lowDimLimit", ID: 0x0008, type: Zcl.DataType.UINT8},
             // This attribute defines the value of the high dim limit, used during a dimming loop, on a long press for example. This value is set in %. Default: 0x64, Min-Max: 0x00 - 0x64
-            highDimLimit: {ID: 0x0009, type: Zcl.DataType.UINT8},
+            highDimLimit: {name: "highDimLimit", ID: 0x0009, type: Zcl.DataType.UINT8},
             // This attribute defines the time before the nightlight begin. This value is set in seconds. Default: 0x00000000, Min-Max: 0x00000000 – 0xFFFFFFFE
-            nightLightStartingDelay: {ID: 0x000c, type: Zcl.DataType.UINT32},
+            nightLightStartingDelay: {name: "nightLightStartingDelay", ID: 0x000c, type: Zcl.DataType.UINT32},
             // This attribute defines the dimming value at the start of the nightlight. This value is set in %. Default: 0x28, Min-Max: 0x00 - 0x64
-            nightLightStartingBrightness: {ID: 0x000d, type: Zcl.DataType.UINT8},
+            nightLightStartingBrightness: {name: "nightLightStartingBrightness", ID: 0x000d, type: Zcl.DataType.UINT8},
             // This attribute defines the dimming value at the last step of the nightlight. This attribute must be lower than 0x000D :Nightlight starting brightness. This value is set in %. Default: 0x05, Min-Max: 0x00 - 0x64
-            nightLightEndingBrightness: {ID: 0x000e, type: Zcl.DataType.UINT8},
+            nightLightEndingBrightness: {name: "nightLightEndingBrightness", ID: 0x000e, type: Zcl.DataType.UINT8},
             // This attribute defines the ramp duration of the nightlight. The ramp is running after the end of the starting delay and until the ending bright is reached. This value is set in seconds. Default: 0x00000E10, Min-Max: 0x00000000 – 0x05265C00
-            nightLightRampTime: {ID: 0x000f, type: Zcl.DataType.UINT32},
+            nightLightRampTime: {name: "nightLightRampTime", ID: 0x000f, type: Zcl.DataType.UINT32},
             // This attribute defines the total duration of the nightlight. It must not be lower than 0x000F : Nightlight ramp time. This value is set in seconds. Default: 0x00000E10, Min-Max: 0x00000000 – 0x05265C00
-            nightLightOnTime: {ID: 0x0010, type: Zcl.DataType.UINT32},
+            nightLightOnTime: {name: "nightLightOnTime", ID: 0x0010, type: Zcl.DataType.UINT32},
             // This attribute defines the value of the favorite position 1. This value is set in %. Default: 0x19, Min-Max: 0x00 - 0x64
-            favoritePosition1: {ID: 0x0011, type: Zcl.DataType.UINT8},
+            favoritePosition1: {name: "favoritePosition1", ID: 0x0011, type: Zcl.DataType.UINT8},
             // This attribute defines the value of the favorite position 2. This value is set in %. Default: 0x32, Min-Max: 0x00 - 0x64
-            favoritePosition2: {ID: 0x0012, type: Zcl.DataType.UINT8},
+            favoritePosition2: {name: "favoritePosition2", ID: 0x0012, type: Zcl.DataType.UINT8},
             // This attribute defines the value of the favorite position 3. This value is set in %. Default: 0x4B, Min-Max: 0x00 - 0x64
-            favoritePosition3: {ID: 0x0013, type: Zcl.DataType.UINT8},
+            favoritePosition3: {name: "favoritePosition3", ID: 0x0013, type: Zcl.DataType.UINT8},
             // This attribute enables or disables the 2-step controller mode. This mode enable product to run without any ramp before and after ON or OFF. It acts like a relay.
-            stepControllerMode: {ID: 0x0014, type: Zcl.DataType.BOOLEAN},
+            stepControllerMode: {name: "stepControllerMode", ID: 0x0014, type: Zcl.DataType.BOOLEAN},
             // This attribute enables or disables the memory position mode at first push button release.
-            memoryPositionMode: {ID: 0x0015, type: Zcl.DataType.BOOLEAN},
+            memoryPositionMode: {name: "memoryPositionMode", ID: 0x0015, type: Zcl.DataType.BOOLEAN},
             // This attribute defines the value of each step during a dimming down. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
-            stepDown: {ID: 0x0016, type: Zcl.DataType.UINT8},
+            stepDown: {name: "stepDown", ID: 0x0016, type: Zcl.DataType.UINT8},
             // This attribute defines the value of each step during a dimming loop. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
-            stepContinuous: {ID: 0x0017, type: Zcl.DataType.UINT8},
+            stepContinuous: {name: "stepContinuous", ID: 0x0017, type: Zcl.DataType.UINT8},
             // This attribute defines the value of each step during the ramp down of the nightlight mode. This value is set in %. Default: 0x01, Min-Max: 0x01 - 0x64
-            stepNightLight: {ID: 0x0018, type: Zcl.DataType.UINT8},
+            stepNightLight: {name: "stepNightLight", ID: 0x0018, type: Zcl.DataType.UINT8},
         },
         commands: {
             // Start dimming up, from current position to the upper dim limit. When the limit is reached, stay at this position.
             dimUp: {
+                name: "dimUp",
                 ID: 0x00,
                 parameters: [],
             },
             // Start dimming down, from current position to the lower dim limit. When the limit is reached, stay at this position.
             dimDown: {
+                name: "dimDown",
                 ID: 0x01,
                 parameters: [],
             },
             // Start the dimming loop process for the selected duration.
             dim: {
+                name: "dim",
                 ID: 0x02,
                 parameters: [
                     // Set the duration of the ramp for the continuous variation, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
@@ -567,11 +588,13 @@ const YokisClustersDefinition: {
             },
             // Stop the actual dimming process.
             dimStop: {
+                name: "dimStop",
                 ID: 0x04,
                 parameters: [],
             },
             // Start dimming to the min value set in the device.
             dimToMin: {
+                name: "dimToMin",
                 ID: 0x05,
                 parameters: [
                     // Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
@@ -580,6 +603,7 @@ const YokisClustersDefinition: {
             },
             // Start dimming to the max value set in the device.
             dimToMax: {
+                name: "dimToMax",
                 ID: 0x06,
                 parameters: [
                     // Set the transition time to the selected value, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
@@ -588,6 +612,7 @@ const YokisClustersDefinition: {
             },
             // Start the nightlight mode with the given parameters.
             startNightLightMode: {
+                name: "startNightLightMode",
                 ID: 0x07,
                 parameters: [
                     // Set the starting delay value, used before the start of the nightlight, otherwise use 0xFFFFFFFF to use the one configured in the product. Value is in ms.
@@ -606,21 +631,25 @@ const YokisClustersDefinition: {
             },
             // Start the nightlight mode from the current dimming value.
             startNightLightModeCurrent: {
+                name: "startNightLightModeCurrent",
                 ID: 0x08,
                 parameters: [],
             },
             // Start dimming to the favorite position 1.
             moveToFavorite1: {
+                name: "moveToFavorite1",
                 ID: 0x09,
                 parameters: [],
             },
             // Start dimming to the favorite position 2.
             moveToFavorite2: {
+                name: "moveToFavorite2",
                 ID: 0x0a,
                 parameters: [],
             },
             // Start dimming to the favorite position 3.
             moveToFavorite3: {
+                name: "moveToFavorite3",
                 ID: 0x0b,
                 parameters: [],
             },
@@ -628,6 +657,7 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisWindowCovering: {
+        name: "manuSpecificYokisWindowCovering",
         ID: 0xfc08, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},
@@ -635,55 +665,58 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisChannel: {
+        name: "manuSpecificYokisChannel",
         ID: 0xfc09, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Define the command to send to the servers using cluster On/Off. 0x00 -> toggle, 0x01 -> ON, 0x02 -> OFF, 0x03 -> OFF
-            onOffClusterMode: {ID: 0x0000, type: Zcl.DataType.ENUM8},
+            onOffClusterMode: {name: "onOffClusterMode", ID: 0x0000, type: Zcl.DataType.ENUM8},
             // Define the command to send to the servers using cluster Level control. 0x00 -> nothing, 0x01 -> Move up, 0x02 -> Move down, 0x03 -> stop
-            levelControlClusterMode: {ID: 0x0001, type: Zcl.DataType.ENUM8},
+            levelControlClusterMode: {name: "levelControlClusterMode", ID: 0x0001, type: Zcl.DataType.ENUM8},
             // Define the command to send to the servers using cluster Window Covering. 0x00 -> toggle, 0x01 -> up/open, 0x02 -> down/close, 0x03 -> stop
-            windowCoveringClusterMode: {ID: 0x0002, type: Zcl.DataType.ENUM8},
+            windowCoveringClusterMode: {name: "windowCoveringClusterMode", ID: 0x0002, type: Zcl.DataType.ENUM8},
             // Defines the cluster that will be used by the channel to create an order. Default: 0xFFF0, Min-Max: 0x0000 – 0xFFFF
-            clusterToBeUsed: {ID: 0x0003, type: Zcl.DataType.UINT16},
+            clusterToBeUsed: {name: "clusterToBeUsed", ID: 0x0003, type: Zcl.DataType.UINT16},
             // Define the channel sending mode. 0x00 -> Direct, 0x01 -> Broadcast, 0x02 -> Group
-            sendingMode: {ID: 0x0004, type: Zcl.DataType.ENUM8},
+            sendingMode: {name: "sendingMode", ID: 0x0004, type: Zcl.DataType.ENUM8},
             // Define the light control mode used between remote and the binded device. 0x00 -> Mode pulse, 0x01 -> Mode deaf
-            yokisLightControlMode: {ID: 0x0005, type: Zcl.DataType.ENUM8},
+            yokisLightControlMode: {name: "yokisLightControlMode", ID: 0x0005, type: Zcl.DataType.ENUM8},
             // Define the command to send to the servers using cluster Yokis Pilot Wire. 0x00 -> toggle, 0x01 -> confort, 0x02 -> eco
-            yokisPilotWireClusterMode: {ID: 0x0006, type: Zcl.DataType.ENUM8},
+            yokisPilotWireClusterMode: {name: "yokisPilotWireClusterMode", ID: 0x0006, type: Zcl.DataType.ENUM8},
             // Indicate the group id who will receive the command from the dedicated endpoint. Default: 0x0000, Min-Max: 0x0000 – 0xFFFF
-            groupId: {ID: 0x0007, type: Zcl.DataType.UINT16},
+            groupId: {name: "groupId", ID: 0x0007, type: Zcl.DataType.UINT16},
         },
         commands: {},
         commandsResponse: {},
     },
     manuSpecificYokisPilotWire: {
+        name: "manuSpecificYokisPilotWire",
         ID: 0xfc0a,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // Represent the actual order used by the device. Default: 0x02, Min-Max: 0x00 - 0xF1. Reportable, not writable
-            actualOrder: {ID: 0x0000, type: Zcl.DataType.UINT8},
+            actualOrder: {name: "actualOrder", ID: 0x0000, type: Zcl.DataType.UINT8},
             // Define the “Order” embedded timer duration. This timer is set when the device changes its order (in second). After that duration, the device is set back to its fallback order. Default: 0x00000000, Min-Max: 0x00000000 - 0xFFFFFFFF
-            orderTimer: {ID: 0x0001, type: Zcl.DataType.UINT32},
+            orderTimer: {name: "orderTimer", ID: 0x0001, type: Zcl.DataType.UINT32},
             // Define the duration before an order is set. This timer is used when a new order is asked, it corresponds to the time before this order is applied. The duration is set in second. Default: 0x00000000, Min-Max: 0x00000000 - 0xFFFFFFFF
-            preOrderTimer: {ID: 0x0002, type: Zcl.DataType.UINT32},
+            preOrderTimer: {name: "preOrderTimer", ID: 0x0002, type: Zcl.DataType.UINT32},
             // Represent the actual unit used for local command configuration: 0x00 -> Second, 0x01 -> Minutes. Default: 0x00, Min-Max: 0x00 - 0x01.
-            timerUnit: {ID: 0x0003, type: Zcl.DataType.UINT8},
+            timerUnit: {name: "timerUnit", ID: 0x0003, type: Zcl.DataType.UINT8},
             // Define the product’s LED behavior: 0x00 -> LED is always ON and blink during radio activity, 0x01 -> LED is only OFF during few seconds after a mode transition. Default: 0x00, Min-Max: 0x00 - 0x01.
-            ledMode: {ID: 0x0004, type: Zcl.DataType.UINT8},
+            ledMode: {name: "ledMode", ID: 0x0004, type: Zcl.DataType.UINT8},
             // Define if the product must be set into pilot wire relay mode: 0x00 -> Relay mode is deactivated, 0x01 -> Relay mode is activated. Default: 0x00, Min-Max: 0x00 - 0x01.
-            pilotWireRelayMode: {ID: 0x0005, type: Zcl.DataType.UINT8},
+            pilotWireRelayMode: {name: "pilotWireRelayMode", ID: 0x0005, type: Zcl.DataType.UINT8},
             // Define the order scrolling sense: 0x00 -> Forward : Confort -> Confort – 1 -> Confort – 2 -> Eco -> Hors-Gel -> Arrêt, 0x01 -> Backward : Arrêt -> Hors-Gel -> Eco -> Confort – 2 -> Confort – 1 -> Confort. Default: 0x00, Min-Max: 0x00 - 0x01.
-            orderScrollingMode: {ID: 0x0006, type: Zcl.DataType.UINT8},
+            orderScrollingMode: {name: "orderScrollingMode", ID: 0x0006, type: Zcl.DataType.UINT8},
             // Define the number of orders supported by the device: 0x00 -> 4 orders (Confort, Eco, Hors-Gel, Arrêt), 0x01 -> 6 orders (Confort, Confort – 1, Confort – 2, Eco, Hors-Gel, Arrêt). Default: 0x01, Min-Max: 0x00 - 0x01.
-            orderNumberSupported: {ID: 0x0007, type: Zcl.DataType.UINT8},
+            orderNumberSupported: {name: "orderNumberSupported", ID: 0x0007, type: Zcl.DataType.UINT8},
             // Represent the fallback order used by the device after the end of an order timer is reached: 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort. Default: 0x02, Min-Max: 0x00 - 0x05.
-            fallbackOrder: {ID: 0x0008, type: Zcl.DataType.UINT8},
+            fallbackOrder: {name: "fallbackOrder", ID: 0x0008, type: Zcl.DataType.UINT8},
         },
         commands: {
             // Set the device in the specified order.
             setOrder: {
+                name: "setOrder",
                 ID: 0x00,
                 parameters: [
                     // Order to be set: 0x00 -> Stop, 0x01 -> Frost-off, 0x02 -> Eco, 0x03 -> Confort-2, 0x04 -> Confort-1, 0x05 -> Confort
@@ -692,6 +725,7 @@ const YokisClustersDefinition: {
             },
             // Toggle between order by respecting the scrolling order.
             toggleOrder: {
+                name: "toggleOrder",
                 ID: 0x01,
                 parameters: [],
             },
@@ -699,31 +733,33 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisTemperatureMeasurement: {
+        name: "manuSpecificYokisTemperatureMeasurement",
         ID: 0xfc0b,
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {
             // This attribute represents the last value measured. The unit is in 0.01 °C (12,25°C -> 1225). Default: 0x0000, Min-Max: 0x954D - 0x7FFE. Reportable, not writable
-            currentValue: {ID: 0x0000, type: Zcl.DataType.INT16},
+            currentValue: {name: "currentValue", ID: 0x0000, type: Zcl.DataType.INT16},
             // Represent the minimal value set since the last power-on/reset. The unit is in 0.01 °C (12,25°C -> 1225). Default: 0x7FFE , Min-Max: 0x954D - 0x7FFE. Reportable, not writable
-            minMeasuredValue: {ID: 0x0001, type: Zcl.DataType.INT16},
+            minMeasuredValue: {name: "minMeasuredValue", ID: 0x0001, type: Zcl.DataType.INT16},
             // Represent the maximal value set since the last power-on/reset. The unit is in 0.01 °C (12,25°C -> 1225). Default: 0x954D , Min-Max: 0x954D - 0x7FFE. Reportable, not writable
-            maxMeasuredValue: {ID: 0x0002, type: Zcl.DataType.INT16},
+            maxMeasuredValue: {name: "maxMeasuredValue", ID: 0x0002, type: Zcl.DataType.INT16},
             // Represent the offset applicated to the temperature measured. The unit is in 0,1°C (1,5°C -> 15). Default: 0x00, Min-Max: 0xCE (-50) - 0x32 (50).
-            offset: {ID: 0x0003, type: Zcl.DataType.INT8},
+            offset: {name: "offset", ID: 0x0003, type: Zcl.DataType.INT8},
             // Represent the sampling period used to process the temperature measurement. The unit is in seconds. Default: 0x0A, Min-Max: 0x01 - 0x78.
-            samplingPeriod: {ID: 0x0004, type: Zcl.DataType.UINT8},
+            samplingPeriod: {name: "samplingPeriod", ID: 0x0004, type: Zcl.DataType.UINT8},
             // Represents the sampling number to sense per sampling period defined before. Default: 0x03, Min-Max: 0x01 - 0x14.
-            samplingNumber: {ID: 0x0005, type: Zcl.DataType.UINT8},
+            samplingNumber: {name: "samplingNumber", ID: 0x0005, type: Zcl.DataType.UINT8},
             // Represents the temperature variation to request a new temperature sending through reports. The unit is in 0,1°C (0,5°C ->5). Default: 0x00, Min-Max: 0x00 - 0x0A.
-            deltaTemp: {ID: 0x0006, type: Zcl.DataType.UINT8},
+            deltaTemp: {name: "deltaTemp", ID: 0x0006, type: Zcl.DataType.UINT8},
             // Represents the minimal sending period that the device must respect before sending a new value through reporting. A writing on this attribute will update all reporting entries related to the temperature measurement. Default: 0x0A, Min-Max: 0x0000 - 0xFFFF.
-            minimalSendingPeriod: {ID: 0x0007, type: Zcl.DataType.UINT16},
+            minimalSendingPeriod: {name: "minimalSendingPeriod", ID: 0x0007, type: Zcl.DataType.UINT16},
             // Represents the maximal sending period. The device must send a new value through reporting before the end of this period. A writing on this attribute will update all reporting entries related to the temperature measurement. Default: 0x0A, Min-Max: 0x0000 - 0xFFFF.
-            maximalSendingPeriod: {ID: 0x0008, type: Zcl.DataType.UINT16},
+            maximalSendingPeriod: {name: "maximalSendingPeriod", ID: 0x0008, type: Zcl.DataType.UINT16},
         },
         commands: {
             // Reset the Min and Max temperature value information.
             minMaxReset: {
+                name: "minMaxReset",
                 ID: 0x00,
                 parameters: [],
             },
@@ -731,6 +767,7 @@ const YokisClustersDefinition: {
         commandsResponse: {},
     },
     manuSpecificYokisStats: {
+        name: "manuSpecificYokisStats",
         ID: 0xfcf0, // Details coming soon
         manufacturerCode: Zcl.ManufacturerCode.YOKIS,
         attributes: {},

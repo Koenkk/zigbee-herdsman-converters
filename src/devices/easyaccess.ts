@@ -1,11 +1,32 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as onesti from "../devices/onesti";
 import * as exposes from "../lib/exposes";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    easycode_action: {
+        cluster: "closuresDoorLock",
+        type: "raw",
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                13: "lock",
+                14: "zigbee_unlock",
+                3: "rfid_unlock",
+                0: "keypad_unlock",
+            };
+            const value = lookup[msg.data[4]];
+            if (value === "lock" || value === "zigbee_unlock") {
+                return {action: value};
+            }
+            return {action: lookup[msg.data[3]]};
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, "raw">,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -13,8 +34,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EasyCode903G2.1",
         vendor: "EasyAccess",
         description: "EasyFinger V2",
-        fromZigbee: [fz.lock, fz.easycode_action, fz.battery],
-        toZigbee: [tz.lock, tz.easycode_auto_relock, tz.lock_sound_volume],
+        fromZigbee: [fz.lock, fzLocal.easycode_action, fz.battery],
+        toZigbee: [tz.lock, onesti.tzLocal.easycode_auto_relock, tz.lock_sound_volume],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);

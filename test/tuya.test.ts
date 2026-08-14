@@ -1,14 +1,13 @@
 import {describe, expect, it} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as tuya from "../src/lib/tuya";
 import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
-    describe("dpTHZBSettings", async () => {
+    describe("dpTHZBSettings", () => {
         const {toZigbee, fromZigbee} = tuya.modernExtend.dpTHZBSettings();
-        const device = mockDevice({modelID: "TS000F", manufacturerName: "_TZ3218_7fiyo3kv", endpoints: [{}]});
-        const definition = await findByDevice(device);
 
         // 0000 disable   writeInt32LE(temp_greater_value * 10)  01 on      unknown   writeInt32LE(temp_lower_value * 10)   01 on
         // 8000 enable                                           00 off     01                                              00 off
@@ -25,6 +24,8 @@ describe("lib/tuya", () => {
         };
 
         it.each([enable20OnMinus10Off, disable0Off0Dot2On])("toZigbee", async (data) => {
+            const device = mockDevice({modelID: "TS000F", manufacturerName: "_TZ3218_7fiyo3kv", endpoints: [{}]});
+            const definition = await findByDevice(device);
             const meta: Tz.Meta = {state: {}, device, message: null, mapped: definition, options: null, publish: null, endpoint_name: null};
             await toZigbee[0].convertSet(device.endpoints[0], "auto_settings", data.from.auto_settings, {
                 ...meta,
@@ -48,9 +49,35 @@ describe("lib/tuya", () => {
         });
 
         it.each([enable20OnMinus10Off, disable0Off0Dot2On])("fromZigbee", async (data) => {
-            const msg = {data: {dpValues: [data.to]}} as Fz.Message;
+            const device = mockDevice({modelID: "TS000F", manufacturerName: "_TZ3218_7fiyo3kv", endpoints: [{}]});
+            const definition = await findByDevice(device);
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+            const msg = {data: {dpValues: [data.to]}} as Fz.Message<any, any, any>;
             const result = await fromZigbee[0].convert(definition, msg, null, null, null);
             expect(result).toStrictEqual(data.from);
+        });
+    });
+
+    describe("closuresWindowCovering custom cluster (Tuya covers)", () => {
+        // Regression: moesCalibrationTime was declared as ENUM8 (a single byte,
+        // max 255). The calibration_time converter writes value * 10 and the
+        // exposed max is 500 s -> 5000, which does not fit in a byte:
+        //   - calibration_time 26 -> 260 throws RangeError (> 255) before sending
+        //   - smaller values (e.g. 25 -> 250) are rejected on-air as
+        //     INVALID_DATA_TYPE
+        // The attribute must be UINT16 for value * 10 (up to 5000) to encode.
+        it("declares moesCalibrationTime as UINT16 so value*10 fits", async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_1dd0d5yi",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            // Registers the custom cluster on the device (deviceAddCustomCluster).
+            await definition.configure?.(device, device.getEndpoint(1), definition);
+
+            const cluster = device.customClusters.closuresWindowCovering;
+            expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
     });
 });

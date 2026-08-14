@@ -9,6 +9,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "AutomatOn",
         description: "Underfloor heating / Irrigation valves controller - 5 zones",
         extend: [
+            tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({powerOnBehavior2: true, childLock: true, onOffCountdown: true, endpoints: ["l1", "l2", "l3", "l4", "l5"]}),
         ],
         endpoint: (device) => {

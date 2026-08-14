@@ -3,6 +3,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
+import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValue} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -23,7 +24,7 @@ const fzLocal = {
             }
             return result;
         },
-    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LXN59_cover_state_via_onoff: {
         cluster: "genOnOff",
@@ -229,6 +230,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZW-EU-4C",
         vendor: "Nue / 3A",
         description: "Zigbee smart curtain switch",
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
         fromZigbee: [fz.cover_position_tilt, fzLocal.LXN59_cover_state_via_onoff, fzLocal.LXN59_cover_options],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         meta: {disableDefaultResponse: true},

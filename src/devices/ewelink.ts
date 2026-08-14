@@ -6,12 +6,25 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 import type {SonoffEwelink} from "./sonoff";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const NS = "zhc:ewelink";
+
+interface EwelinkSiren {
+    attributes: {
+        alarmSoundMode: number;
+        alarmSoundLevel: number;
+        alarmSoundTime: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     WS01_rain: {
@@ -23,11 +36,108 @@ const fzLocal = {
             return {rain: (zoneStatus & 1) > 0};
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    ewelink_siren_alarm: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.onOff !== undefined) {
+                return {alarm: msg.data.onOff === 1};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ewelink_countdown: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // genOnOff.onTime holds the remaining on-time in 1/10 s while a timed-off countdown is running.
+            if (msg.data.onTime !== undefined) {
+                return {countdown: Math.round(msg.data.onTime / 10)};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+};
+
+const tzLocal = {
+    ewelink_siren_alarm: {
+        key: ["alarm"],
+        convertSet: async (entity, key, value, meta) => {
+            const alarm = value === true || value === "ON";
+            await entity.command("genOnOff", alarm ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
+            return {state: {alarm}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onOff"]);
+        },
+    } satisfies Tz.Converter,
+    ewelink_countdown: {
+        key: ["countdown"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const seconds = Math.round(value);
+            if (seconds <= 0) {
+                await entity.command("genOnOff", "off", {}, utils.getOptions(meta.mapped, entity));
+                return {state: {state: "OFF", countdown: 0}};
+            }
+            // genOnOff.onWithTimedOff expects ontime/offwaittime in 1/10 s; onTime is a uint16 capped at 0xFFFE.
+            const ontime = Math.min(seconds * 10, 0xfffe);
+            await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime, offwaittime: 0}, utils.getOptions(meta.mapped, entity));
+            return {state: {state: "ON", countdown: Math.floor(ontime / 10)}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", ["onTime"]);
+        },
+    } satisfies Tz.Converter,
+};
+
+const ewelinkExtend = {
+    countdown: (): ModernExtend => {
+        const exposes = [
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(6500)
+                .withValueStep(1)
+                .withDescription("Turn the device on and automatically turn it off again after this many seconds (0 disables the timer)"),
+        ];
+        const fromZigbee = [fzLocal.ewelink_countdown];
+        const toZigbee = [tzLocal.ewelink_countdown];
+        return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    addCustomClusterSiren: (): ModernExtend => {
+        return m.deviceAddCustomCluster("customEwelinkSiren", {
+            name: "customEwelinkSiren",
+            ID: 0xfc11,
+            attributes: {
+                alarmSoundMode: {name: "alarmSoundMode", ID: 0x2021, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmSoundLevel: {name: "alarmSoundLevel", ID: 0x2022, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                alarmSoundTime: {name: "alarmSoundTime", ID: 0x2023, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+    },
+    sirenAlarm: (): ModernExtend => {
+        const exposes = [e.binary("alarm", ea.ALL, true, false).withDescription("Turn the siren alarm on or off")];
+        const fromZigbee = [fzLocal.ewelink_siren_alarm];
+        const toZigbee = [tzLocal.ewelink_siren_alarm];
+        const configure: Exclude<ModernExtend["configure"], undefined> = [
+            async (device, coordinatorEndpoint) => {
+                try {
+                    await m.setupAttributes(device, coordinatorEndpoint, "genOnOff", [{attribute: "onOff", min: "MIN", max: "MAX", change: 1}]);
+                } catch (error) {
+                    logger.warning(`eWeLink siren genOnOff bind/reporting failed, continuing without reporting: ${error}`, NS);
+                }
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku"]),
+        fingerprint: tuya.fingerprint("TS0207", ["_TZ3000_hgm6k8ku", "_TZ3000_piuensvr", "_TZ3000_mmzmkkd4"]),
         zigbeeModel: ["CK-BL702-ROUTER-01(7018)"],
         model: "CK-BL702-ROUTER-01(7018)",
         vendor: "eWeLink",
@@ -35,14 +145,25 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         exposes: [],
-        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku"])],
+        whiteLabel: [
+            tuya.whitelabel("HOBEIAN", "ZG-807Z", "USB signal repeater", ["_TZ3000_piuensvr", "_TZ3000_hgm6k8ku", "HOBEIAN"]),
+            tuya.whitelabel("COOLO", "ZG-807ZL", "USB signal repeater", ["_TZ3000_mmzmkkd4", "COOLO"]),
+        ],
     },
     {
         zigbeeModel: ["CK-BL702-MSW-01(7010)", "CK-BL702-MSW-01(7011)-1"],
         model: "CK-BL702-MSW-01(7010)",
         vendor: "eWeLink",
         description: "CMARS Zigbee smart plug",
-        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse()],
+        extend: [m.onOff({skipDuplicateTransaction: true}), m.skipDefaultResponse(), ewelinkExtend.countdown()],
+        whiteLabel: [
+            {
+                vendor: "Mumubiz",
+                model: "CZV20",
+                description: "Zigbee smart water valve",
+                fingerprint: [{modelID: "CK-BL702-MSW-01(7010)"}],
+            },
+        ],
     },
     {
         zigbeeModel: ["SA-003-Zigbee"],
@@ -142,6 +263,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.rain()],
     },
     {
+        zigbeeModel: ["CK-TLSR8656-SS5-02(7014)"],
+        model: "CK-TLSR8656-SS5-02(7014)",
+        vendor: "eWeLink",
+        description: "Temperature & humidity sensor",
+        extend: [m.temperature(), m.humidity(), m.battery()],
+    },
+    {
         zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
         model: "SNZB-05",
         vendor: "eWeLink",
@@ -162,6 +290,86 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["NAS-AB03B3"],
+        model: "NAS-AB03B3",
+        vendor: "eWeLink",
+        description: "Indoor sound and light alarm",
+        extend: [
+            ewelinkExtend.addCustomClusterSiren(),
+            ewelinkExtend.sirenAlarm(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["battery_low"]}),
+            m.battery({percentage: true, percentageReporting: true, percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "alarm_duration",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundTime",
+                entityCategory: "config",
+                description: "Duration in seconds of the alarm",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+            }),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "volume",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundLevel",
+                entityCategory: "config",
+                description: "Indoor siren volume level",
+                valueMin: 0x00,
+                valueMax: 0x0f,
+                access: "ALL",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "melody",
+                lookup: {1: 0x00, 2: 0x01, 3: 0x02, 4: 0x03, 5: 0x04, 6: 0x05, 7: 0x06, 8: 0x07, 9: 0x08, 10: 0x09, 11: 0x0a},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundMode",
+                entityCategory: "config",
+                description: "Alarm melody",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["NAS-AB06B3"],
+        model: "NAS-AB06B3",
+        vendor: "eWeLink",
+        description: "Outdoor sound and light alarm",
+        extend: [
+            ewelinkExtend.addCustomClusterSiren(),
+            ewelinkExtend.sirenAlarm(),
+            m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["battery_low"]}),
+            m.battery({percentage: true, percentageReporting: true, percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+            m.numeric<"customEwelinkSiren", EwelinkSiren>({
+                name: "alarm_duration",
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundTime",
+                entityCategory: "config",
+                description: "Duration in seconds of the alarm",
+                valueMin: 1,
+                valueMax: 1800,
+                unit: "s",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "volume",
+                lookup: {high: 0x03, medium: 0x02, low: 0x01},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundLevel",
+                entityCategory: "config",
+                description: "Outdoor siren volume",
+            }),
+            m.enumLookup<"customEwelinkSiren", EwelinkSiren>({
+                name: "melody",
+                lookup: {1: 0x00, 2: 0x01, 3: 0x02},
+                cluster: "customEwelinkSiren",
+                attribute: "alarmSoundMode",
+                entityCategory: "config",
+                description: "Alarm melody",
+            }),
+        ],
+        ota: true,
+    },
+    {
         zigbeeModel: ["CK-MG22-JLDJ-01(7015)", "CK-MG22-Z310EE07DOOYA-01(7015)", "MYDY25Z-1", "Grandekor Smart Curtain Grandekor"],
         model: "CK-MG22-JLDJ-01(7015)",
         vendor: "eWeLink",
@@ -173,10 +381,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Dooya Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -219,10 +429,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Reax Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -262,10 +474,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "AK Curtain",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
                 ID: 0xef00,
                 attributes: {},
                 commands: {
                     protocolData: {
+                        name: "protocolData",
                         ID: 0,
                         parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
                     },
@@ -289,5 +503,76 @@ export const definitions: DefinitionWithExtend[] = [
             await m.setupAttributes(device, coordinatorEndpoint, "closuresWindowCovering", windowCoveringAttributes);
         },
         ota: true,
+    },
+    {
+        zigbeeModel: ["CK-BL702-MWS-01(7016)"],
+        model: "MG3-5RZ",
+        vendor: "eWeLink",
+        description: "Zigbee human presence radar (5.8 GHz)",
+        extend: [
+            m.occupancy({reporting: false}),
+            m.numeric({
+                name: "occupied_to_unoccupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0020, type: 0x21},
+                description: "Ultrasonic occupied → unoccupied delay (seconds)",
+                valueMin: 60,
+                valueMax: 65535,
+            }),
+            m.numeric({
+                name: "unoccupied_to_occupied_delay",
+                cluster: 0x0406,
+                attribute: {ID: 0x0021, type: 0x21},
+                description: "Ultrasonic unoccupied → occupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+            }),
+            m.enumLookup({
+                name: "occupancy_sensitivity",
+                lookup: {low: 1, medium: 2, high: 3},
+                cluster: 0x0406,
+                attribute: {ID: 0x0022, type: 0x20},
+                description: "Sensitivity of human presence detection",
+            }),
+        ],
+        ota: false,
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-01(7035)", "CK-TLSR8656-Z123SE22DY-01(7035)"],
+        model: "CK-TLSR8656-SS5-01(7035)",
+        vendor: "eWeLink",
+        description: "Zigbee smoke alarm",
+        ota: true,
+        whiteLabel: [
+            {
+                model: "CK-TLSR8656-Z123SE22DY-01(7035)",
+                vendor: "eWeLink",
+                fingerprint: [
+                    {
+                        modelID: "CK-TLSR8656-Z123SE22DY-01(7035)",
+                        manufacturerName: "eWeLink",
+                    },
+                ],
+            },
+        ],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+        },
     },
 ];

@@ -133,7 +133,6 @@ const extend = {
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (Object.hasOwn(msg.data, attribute)) {
-                        console.log("from ", msg.data[attribute]);
                         const value = Math.round((msg.data[attribute] as number) / 5.1);
                         return {
                             minimum_pwm: value,
@@ -148,7 +147,6 @@ const extend = {
             {
                 key: ["minimum_pwm"],
                 convertSet: async (entity, key, value, meta) => {
-                    console.log("to ", value);
                     const numValue = typeof value === "string" ? Number.parseInt(value, 10) : value;
                     utils.assertNumber(numValue);
                     const zgValue = Math.round(numValue * 5.1);
@@ -182,7 +180,7 @@ const extend = {
                         manufacturerCode: sunricherManufacturerCode,
                     });
                 } catch (error) {
-                    console.warn(`Failed to read external switch type attribute: ${error}`);
+                    console.warn(`Failed to read minimum PWM attribute: ${error}`);
                 }
             },
         ];
@@ -664,11 +662,11 @@ const extend = {
                         result.preset = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
                         result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
                         if (systemMode !== undefined) {
-                            result.system_mode = constants.thermostatSystemModes[systemMode];
+                            result.system_mode = utils.getFromLookup(systemMode, constants.thermostatSystemModes);
                         }
                     } else if (systemMode !== undefined) {
                         result.preset = utils.getFromLookup(systemMode, systemModeLookup);
-                        result.system_mode = constants.thermostatSystemModes[systemMode];
+                        result.system_mode = utils.getFromLookup(systemMode, constants.thermostatSystemModes);
                         if (awayOrBoostMode !== undefined) {
                             result.away_or_boost_mode = utils.getFromLookup(awayOrBoostMode, awayOrBoostModeLookup);
                         }
@@ -701,7 +699,7 @@ const extend = {
                             state: {
                                 // @ts-expect-error ignore
                                 preset: systemModeLookup[systemMode],
-                                system_mode: constants.thermostatSystemModes[systemMode],
+                                system_mode: utils.getFromLookup(systemMode, constants.thermostatSystemModes),
                             },
                         };
                     }
@@ -719,7 +717,7 @@ const extend = {
                         state: {
                             // @ts-expect-error ignore
                             preset: systemModeLookup[systemMode],
-                            system_mode: constants.thermostatSystemModes[systemMode],
+                            system_mode: utils.getFromLookup(systemMode, constants.thermostatSystemModes),
                         },
                     };
                 },
@@ -916,4 +914,4 @@ const extend = {
     },
 };
 
-export {tz, extend};
+export {extend, tz};

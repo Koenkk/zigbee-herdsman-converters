@@ -85,10 +85,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["MIR-IL100", "MIR-IR100"],
+        zigbeeModel: ["MIR-IL100", "MIR-IR100", "MIR-IR100-E"],
         model: "MIR-IR100",
         vendor: "MultIR",
         description: "PIR sensor",       
+        whiteLabel: [{vendor: "Intelbras", model: "MSM 1001", fingerprint: [{modelID: "MIR-IR100-E"}]}],
         extend: [
             m.battery(),
             m.illuminance(),
@@ -163,6 +164,16 @@ const definition = {
         module.exports = definition;        
     },
     
+    {
+        zigbeeModel: ["MIR-SM100-E"],
+        model: "MIR-SM100-E",
+        vendor: "MultIR",
+        description: "Smoke sensor",
+        extend: [m.battery(), m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+        exposes: [
+            exposes.enum("silence", ea.SET, ["ON"]).withDescription("After enabling mute, it will return to detection state after 90 seconds."),
+        ],
+    },
     {
         zigbeeModel: ["MIR-SM200"],
         model: "MIR-SM200",

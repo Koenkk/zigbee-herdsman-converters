@@ -1,10 +1,8 @@
-import * as exposes from "../lib/exposes";
-import * as legacy from "../lib/legacy";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
-const e = exposes.presets;
-const ea = exposes.access;
+const te = tuya.exposes;
+const tvc = tuya.valueConverter;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -19,8 +17,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PF-PM02D-TYZ",
         vendor: "IOTPerfect",
         description: "Smart water/gas valve",
-        exposes: [e.switch().setAccess("state", ea.STATE_SET)],
-        fromZigbee: [legacy.fz.tuya_switch],
-        toZigbee: [legacy.tz.tuya_switch_state],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [te.switch(), te.fault()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tvc.onOff],
+                [26, "fault", tvc.fault],
+            ],
+        },
     },
 ];

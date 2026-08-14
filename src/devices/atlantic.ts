@@ -5,6 +5,7 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
@@ -78,6 +79,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Atlantic Group",
         description: "Interface Naviclim for Takao air conditioners",
         fromZigbee: [fz.thermostat, fz.fan],
+        extend: [philips.m.addManuSpecificPhilips2Cluster()],
         toZigbee: [
             tzLocal.ac_louver_position,
             tzLocal.preset,
@@ -114,6 +116,30 @@ export const definitions: DefinitionWithExtend[] = [
 
             const endpoint232 = device.getEndpoint(232);
             await reporting.bind(endpoint232, coordinatorEndpoint, ["haDiagnostic"]);
+        },
+    },
+    {
+        zigbeeModel: ["100050060900", "100050060900 "],
+        model: "100050060900",
+        vendor: "Atlantic Group",
+        description: "Galapagos electric radiator",
+        fromZigbee: [fz.thermostat, fz.occupancy, fz.metering],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.currentsummdelivered],
+        exposes: [
+            e.climate().withLocalTemperature().withSetpoint("occupied_heating_setpoint", 5, 30, 0.5).withSystemMode(["off", "heat"]),
+            e.occupancy(),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "msOccupancySensing", "seMetering"]);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.occupancy(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            // The device reports seMetering multiplier=1000/divisor=1000 while currentSummDelivered is in Wh
+            endpoint.saveClusterAttributeKeyValue("seMetering", {multiplier: 1, divisor: 1000});
         },
     },
 ];

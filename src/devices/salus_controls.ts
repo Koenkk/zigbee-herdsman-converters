@@ -1,11 +1,10 @@
 import {Zcl} from "zigbee-herdsman";
-
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
 
@@ -34,6 +33,33 @@ interface Salus {
     commandResponses: never;
 }
 
+const fzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    SP600_power: {
+        cluster: "seMetering",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.dateCode === "20160120") {
+                // Cannot use metering, divisor/multiplier is not according to ZCL.
+                // https://github.com/Koenkk/zigbee2mqtt/issues/2233
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/915
+
+                const result: KeyValueAny = {};
+                if (msg.data.instantaneousDemand !== undefined) {
+                    result.power = msg.data.instantaneousDemand;
+                }
+                // Summation is reported in Watthours
+                if (msg.data.currentSummDelivered !== undefined) {
+                    const value = msg.data.currentSummDelivered;
+                    result.energy = value / 1000.0;
+                }
+                return result;
+            }
+            return fz.metering.convert(model, msg, publish, options, meta);
+        },
+    } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SPE600"],
@@ -48,7 +74,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP600",
         vendor: "Salus Controls",
         description: "Smart plug (UK socket)",
-        extend: [m.onOff(), m.electricityMeter({cluster: "metering", fzMetering: fz.SP600_power})],
+        extend: [m.onOff(), m.electricityMeter({cluster: "metering", fzMetering: fzLocal.SP600_power})],
         ota: {manufacturerName: "SalusControls"},
     },
     {
@@ -131,28 +157,30 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Salus Controls", model: "FC600NH", description: "Fan coil thermostat", fingerprint: [{modelID: "FC600NH"}]}],
         extend: [
             m.deviceAddCustomCluster("manuSpecificSalus", {
+                name: "manuSpecificSalus",
                 ID: 0xfc04,
                 manufacturerCode: Zcl.ManufacturerCode.COMPUTIME,
                 attributes: {
-                    frostSetpoint: {ID: 0x0000, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    minFrostSetpoint: {ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    maxFrostSetpoint: {ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    timeDisplayFormat: {ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
-                    attr4: {ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    attr5: {ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    attr6: {ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    attr7: {ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    autoCoolingSetpoint: {ID: 0x0008, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    autoHeatingSetpoint: {ID: 0x0009, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    holdType: {ID: 0x000a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
-                    shortCycleProtection: {ID: 0x000b, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    coolingFanDelay: {ID: 0x000c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    ruleCoolingSetpoint: {ID: 0x000d, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    ruleHeatingSetpoint: {ID: 0x000e, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    attr15: {ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
+                    frostSetpoint: {name: "frostSetpoint", ID: 0x0000, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    minFrostSetpoint: {name: "minFrostSetpoint", ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    maxFrostSetpoint: {name: "maxFrostSetpoint", ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    timeDisplayFormat: {name: "timeDisplayFormat", ID: 0x0003, type: Zcl.DataType.BOOLEAN, write: true},
+                    attr4: {name: "attr4", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    attr5: {name: "attr5", ID: 0x0005, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    attr6: {name: "attr6", ID: 0x0006, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    attr7: {name: "attr7", ID: 0x0007, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    autoCoolingSetpoint: {name: "autoCoolingSetpoint", ID: 0x0008, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    autoHeatingSetpoint: {name: "autoHeatingSetpoint", ID: 0x0009, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    holdType: {name: "holdType", ID: 0x000a, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                    shortCycleProtection: {name: "shortCycleProtection", ID: 0x000b, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    coolingFanDelay: {name: "coolingFanDelay", ID: 0x000c, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    ruleCoolingSetpoint: {name: "ruleCoolingSetpoint", ID: 0x000d, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    ruleHeatingSetpoint: {name: "ruleHeatingSetpoint", ID: 0x000e, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    attr15: {name: "attr15", ID: 0x000f, type: Zcl.DataType.BOOLEAN, write: true},
                 },
                 commands: {
                     resetDevice: {
+                        name: "resetDevice",
                         ID: 0x01,
                         parameters: [],
                     },

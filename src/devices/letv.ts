@@ -1,8 +1,23 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 
 const e = exposes.presets;
+
+const fzLocal = {
+    qlwz_letv8key_switch: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const buttonLookup: KeyValueAny = {4: "up", 2: "down", 5: "left", 3: "right", 8: "center", 1: "back", 7: "play", 6: "voice"};
+            const actionLookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "tripple"};
+            const button = buttonLookup[msg.endpoint.ID];
+            const action = actionLookup[msg.data.presentValue] || msg.data.presentValue;
+            if (button) {
+                return {action: `${action}_${button}`};
+            }
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -10,7 +25,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LeTV.8KEY",
         vendor: "LeTV",
         description: "8key switch",
-        fromZigbee: [fz.qlwz_letv8key_switch],
+        fromZigbee: [fzLocal.qlwz_letv8key_switch],
         exposes: [
             e.action([
                 "hold_up",

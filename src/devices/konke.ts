@@ -2,7 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -21,6 +21,15 @@ const fzLocal = {
             return {action: utils.getFromLookup(msg.data.sceneid, payload)};
         },
     } satisfies Fz.Converter<"genScenes", undefined, "commandRecall">,
+    konke_action: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data.onOff;
+            const lookup: KeyValueAny = {128: "single", 129: "double", 130: "hold"};
+            return lookup[value] ? {action: lookup[value]} : null;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -29,7 +38,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "2AJZ4KPKEY",
         vendor: "Konke",
         description: "Multi-function button",
-        fromZigbee: [fz.konke_action, fz.battery],
+        fromZigbee: [fzLocal.konke_action, fz.battery],
         toZigbee: [],
         exposes: [e.battery_low(), e.battery(), e.action(["single", "double", "hold"])],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},

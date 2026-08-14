@@ -1063,7 +1063,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-B-003P",
         vendor: "Gledopto",
         description: "Zigbee 7W E26/E27 Bulb RGB+CCT (pro)",
-        extend: [gledoptoLight({colorTemp: {range: [155, 495]}, turnsOffAtBrightness1: true})],
+        extend: [gledoptoLight({colorTemp: {range: [155, 495]}, turnsOffAtBrightness1: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ["GL-FL-004TZS"],
@@ -1382,5 +1382,13 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "do_not_disturb", tuya.valueConverter.onOff],
             ],
         },
+    },
+    {
+        zigbeeModel: ["SAV-DL6IN-24V-12W"],
+        model: "SAV-DL6IN-24V-12W",
+        vendor: "Savolar",
+        ota: true,
+        description: "Zigbee 12W Downlight RGB+CCT with external antenna design",
+        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true, powerOnBehavior: true})],
     },
 ];
