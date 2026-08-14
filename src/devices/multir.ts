@@ -118,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.illuminance(),
             m.numeric({
-                name: "occupancyDistance",
+                name: "occupancy_distance",
                 cluster: 0x0406,
                 attribute: {ID: 0xa205, type: 0x20},
                 description: "Motion Range Detection (meter)",
@@ -127,7 +127,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             m.numeric({
-                name: "unmannedDuration",
+                name: "unmanned_duration",
                 cluster: 0x0406,
                 attribute: {ID: 0xa206, type: 0x21},
                 description: "Ultrasonic occupied to unoccupied delay (seconds)",
