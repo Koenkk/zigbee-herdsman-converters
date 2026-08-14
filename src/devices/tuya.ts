@@ -29924,7 +29924,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("Excellux", ["EZ500FL"]),
         model: "EZ-500FL",
@@ -29954,13 +29954,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor"),
-             e
-                .numeric("moisture", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Soil moisture"),
+            e.numeric("moisture", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Soil moisture"),
             e.temperature(),
             e.humidity(),
             e
