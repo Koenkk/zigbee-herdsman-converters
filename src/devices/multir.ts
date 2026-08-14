@@ -36,10 +36,10 @@ const tzLocal = {
 };
 
 const fz_HE300_Local = {
-    HE300_Motion_State: {
+    HE300_motion_State: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
-        convert: (model, msg, publish, options, meta) => {
+        convert: async (model, msg, publish, options, meta) => {
             if (msg.data.hasOwnProperty('occupancy')) {
                 const value = msg.data.occupancy;
 
@@ -66,7 +66,7 @@ const fz_HE300_Local = {
             }
             return {};
         },
-    },
+    }, satisfies Fz.Converter<"msOccupancySensing", undefined, ['attributeReport', 'readResponse']>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
