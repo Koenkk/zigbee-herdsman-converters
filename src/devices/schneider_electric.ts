@@ -2238,6 +2238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 levelConfig: {features: ["on_level", "current_level_startup"]},
             }),
             m.lightingBallast(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
@@ -2314,6 +2315,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.lightingBallast(),
             m.identify(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
             indicatorMode(),
         ],
@@ -3760,6 +3762,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),
             schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
@@ -3794,6 +3797,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),
             schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
