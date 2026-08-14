@@ -39,7 +39,7 @@ const fzhe300Local = {
         cluster: "msOccupancySensing",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('occupancy')) {
+            if (Object.hasOwn(msg.data, "occupancy")) {
                 const value = msg.data.occupancy;
 
                 let occupancy = false;
