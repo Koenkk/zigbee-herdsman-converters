@@ -35,8 +35,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const fz_HE300_Local = {
-    HE300_motion_State: {
+const fzhe300Local = {
+    HE300: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: async (model, msg, publish, options, meta) => {
@@ -119,7 +119,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Human presence sensor",
         fromZigbee: [
         fz.occupancy, 
-        fz_HE300_Local.HE300_motion_State, 
+        fzhe300Local.HE300, 
         ],   
         toZigbee: [],
         extend: [
