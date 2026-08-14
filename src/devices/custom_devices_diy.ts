@@ -1671,7 +1671,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["LIGHT-CCT-TRK", "LIGHT-CCT-STR", "LIGHT-CCT-CUST"],
-        model: "DIY-LIGHT-CCT",
+        model: "TLSR-DIY-ZR01-LIGHT-CCT",
         vendor: "Custom devices (DiY)",
         description: "CCT LED lamp/dimmer with custom firmware",
         ota: true,
