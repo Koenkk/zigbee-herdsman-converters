@@ -83,6 +83,7 @@ interface HeimanPrivateCluster {
         occupanyControlOnOffIlluminanceThreshold: number;
         radarDetectionMinRange: number;
         radarDetectionMaxRange: number;
+        shieldingSensorDetection: number;
         dewPoint: number;
         vpd: number;
         thi: number;
@@ -506,6 +507,7 @@ const heimanExtend = {
                 radarDetectionTargetRange: {name: "radarDetectionTargetRange", ID: 0x0029, type: Zcl.DataType.UINT16},
                 radarDetectionMinRange: {name: "radarDetectionMinRange", ID: 0x002b, type: Zcl.DataType.UINT16, write: true},
                 radarDetectionMaxRange: {name: "radarDetectionMaxRange", ID: 0x002c, type: Zcl.DataType.UINT16, write: true},
+                shieldingSensorDetection: {name: "shieldingSensorDetection", ID: 0x002d, type: Zcl.DataType.UINT16, write: true},
                 dewPoint: {name: "dewPoint", ID: 0x0033, type: Zcl.DataType.INT16},
                 vpd: {name: "vpd", ID: 0x0034, type: Zcl.DataType.UINT16},
                 thi: {name: "thi", ID: 0x0035, type: Zcl.DataType.UINT16},
@@ -1738,6 +1740,18 @@ const heimanExtend = {
             description: "Occupied to unoccupied delay",
             valueMin: 60,
             valueMax: 3600,
+            access: "ALL",
+            ...args,
+        }),
+    shieldingSensorDetection: (args?: Partial<m.NumericArgs<"heimanClusterSpecial", HeimanPrivateCluster>>) =>
+        m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+            name: "shielding_sensor_detection",
+            unit: "min",
+            valueMin: 1,
+            valueMax: 20,
+            cluster: "heimanClusterSpecial",
+            attribute: "shieldingSensorDetection",
+            description: "Duration of shielding sensor detection",
             access: "ALL",
             ...args,
         }),
@@ -3713,6 +3727,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "reportedPackages",
                     "humidityOffset",
                     "temperatureOffset",
+                    "shieldingSensorDetection",
                 ],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
@@ -3747,6 +3762,7 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.smokeChamberContaminationLevel(),
             heimanExtend.linkAvailable(),
             heimanExtend.sirenForAutomationOnly(),
+            heimanExtend.shieldingSensorDetection(),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
             heimanExtend.reportedPackages(),
