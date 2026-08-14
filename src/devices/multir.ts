@@ -1,7 +1,8 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as fz from "../converters/fromZigbee";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+
 
 
 const e = exposes.presets;
@@ -39,29 +40,29 @@ const fzhe300Local = {
     HE300: {
         cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
-        convert: async (model, msg, publish, options, meta) => {
-            if (msg.data.hasOwnProperty('occupancy')) {
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.hasOwn(msg.data, 'occupancy')) {
                 const value = msg.data.occupancy;
 
                 let occupancy = false;
-                let human_motion_state = 'none';
+                let humanMotionstate = 'none';
                 
                 if (value === 0x00) {
                     occupancy = false;
-                    human_motion_state = 'none';
+                    humanMotionstate = 'none';
                 } else if (value === 0x01) {
                     occupancy = true;
-                    human_motion_state = 'active';
+                    humanMotionstate = 'active';
                 } else if (value === 0x02) {
                     occupancy = true;
-                    human_motion_state = 'static';
+                    humanMotionstate = 'static';
                 } else {
                     occupancy = (value & 0x01) !== 0 || (value & 0x02) !== 0;
-                    human_motion_state = (value & 0x02) !== 0 ? 'static' : (value & 0x01) !== 0 ? 'active' : 'none';
+                    humanMotionstate = (value & 0x02) !== 0 ? 'static' : (value & 0x01) !== 0 ? 'active' : 'none';
                 }
                 return {
                     occupancy: occupancy,
-                    human_motion_state: human_motion_state
+                    human_motion_state: humanMotionstate
                 };
             }
             return {};
