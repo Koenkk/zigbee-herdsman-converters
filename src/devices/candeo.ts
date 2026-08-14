@@ -295,17 +295,17 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", CandeoOnOff, ["commandOn", "commandOff", "commandToggle", "commandRelease"]>,
     rd1p_rem_lite_ep2: {
-    cluster: "genOnOff",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const lookup: {[key: number]: string} = {0: "OFF", 1: "ON"};
-        if (Object.hasOwn(msg.data, rd1pREMLiteEP2Attribute)) {
-            const value = msg.data[rd1pREMLiteEP2Attribute] as number;
-            return {rem_lite_ep2: lookup[value]};
-        }
-        return undefined;
-    },
-} satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {0: "OFF", 1: "ON"};
+            if (Object.hasOwn(msg.data, rd1pREMLiteEP2Attribute)) {
+                const value = msg.data[rd1pREMLiteEP2Attribute] as number;
+                return {rem_lite_ep2: lookup[value]};
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -352,7 +352,7 @@ const tzLocal = {
     rd1p_rem_lite_ep2: {
         key: ["rem_lite_ep2"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup : {[key: string]: boolean} = {"off": false, "on": true};
+            const lookup: {[key: string]: boolean} = {off: false, on: true};
             const v = utils.getFromLookup(value, lookup);
             await entity.write("genOnOff", {[rd1pREMLiteEP2Attribute]: {value: v, type: 0x10}});
             return {state: {rem_lite_ep2: value}};
@@ -1113,19 +1113,15 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         fromZigbee: [fzLocal.rd1p_rem_lite_ep2, fzLocal.rd1p_knob_press],
-        toZigbee: [tzLocal.rd1p_rem_lite_ep2,],
+        toZigbee: [tzLocal.rd1p_rem_lite_ep2],
         exposes: [
-            e
-                .action([
-                    "double_pressed",
-                    "held",
-                    "released",
-                ])
-                .withEndpoint("l2"),
+            e.action(["double_pressed", "held", "released"]).withEndpoint("l2"),
             e
                 .binary("rem_lite_ep2", ea.ALL, "ON", "OFF")
                 .withLabel("Extra button commands")
-                .withDescription("When set to ON, extra button commands (double press, hold, release) functionality will be enabled. Please note: a 0.5s delay is added to a single knob press action when this setting is active.")
+                .withDescription(
+                    "When set to ON, extra button commands (double press, hold, release) functionality will be enabled. Please note: a 0.5s delay is added to a single knob press action when this setting is active.",
+                )
                 .withCategory("config"),
         ],
         meta: {},
@@ -1148,7 +1144,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: "C-ZB-RD1P-DPM", manufacturerName: "Candeo"},
-            {modelID: 'C-ZB-RD1Pv2-DPM', manufacturerName: 'Candeo'}
+            {modelID: "C-ZB-RD1Pv2-DPM", manufacturerName: "Candeo"},
         ],
         model: "C-ZB-RD1P-DPM",
         vendor: "Candeo",
@@ -1208,7 +1204,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: "C-ZB-RD1P-REM", manufacturerName: "Candeo"},
-            {modelID: 'C-ZB-RD1Pv2-REM', manufacturerName: 'Candeo'}
+            {modelID: "C-ZB-RD1Pv2-REM", manufacturerName: "Candeo"},
         ],
         model: "C-ZB-RD1P-REM",
         vendor: "Candeo",
