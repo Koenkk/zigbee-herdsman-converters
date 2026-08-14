@@ -417,7 +417,7 @@ interface ShellyLightLevel {
 // not queue every RPC transaction behind one global lock.
 const shellyRpcBusy = new Set<string>();
 
-const preserveNameHA = {preserveName: true} satisfies exposes.HomeAssistant;
+const preserveNameHA = {name: "preserve"} satisfies exposes.HomeAssistant;
 
 const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
     const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";

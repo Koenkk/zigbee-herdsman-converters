@@ -391,7 +391,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
-            labelHomeAssistant = {preserveName: true} as const satisfies HomeAssistant;
+            labelHomeAssistant = {name: "preserve"} as const satisfies HomeAssistant;
         }
         const description = `Binary Input ${label ?? name} on endpoint ${endpoint.ID}`;
         labels.push(label);
@@ -431,7 +431,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (endpointLabel) {
-            labelHomeAssistant = {preserveName: true} as const satisfies HomeAssistant;
+            labelHomeAssistant = {name: "preserve"} as const satisfies HomeAssistant;
         }
         const description = `Binary Output ${endpointLabel ?? name} on endpoint ${endpoint.ID}`;
         labels.push(endpointLabel);
@@ -761,7 +761,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
-            labelHomeAssistant = {preserveName: true};
+            labelHomeAssistant = {name: "preserve"};
         }
 
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogInput", "applicationType", undefined);
@@ -819,7 +819,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
-            labelHomeAssistant = {preserveName: true};
+            labelHomeAssistant = {name: "preserve"};
         }
 
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogOutput", "applicationType", undefined);
