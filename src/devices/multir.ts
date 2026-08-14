@@ -1,8 +1,8 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
-const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
-const exposes = require('zigbee-herdsman-converters/lib/exposes');
+import * as fz from "../converters/fromZigbee";
+
 
 const e = exposes.presets;
 const ea = exposes.access;
