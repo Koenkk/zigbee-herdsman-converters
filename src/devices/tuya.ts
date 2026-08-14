@@ -29776,7 +29776,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor"),
-            e.soil_moisture(),
+            e
+                .numeric("moisture", ea.STATE)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Soil moisture"),
             e.temperature(),
             e.humidity(),
             e
@@ -29786,6 +29792,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(5000)
                 .withUnit("μS/cm")
                 .withDescription("Soil fertility value,between 0-5000μS/cm"),
+            e
+                .numeric("fertility_calibration", ea.STATE_SET)
+                .withValueMin(0.50)
+                .withValueStep(0.01)
+                .withValueMax(2.00)
+                .withDescription("Calibration of cell constant"),
             e
                 .numeric("sampling_interval", ea.STATE_SET)
                 .withValueMin(5)
@@ -29916,6 +29928,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [125, "fertility_v0_set", tuya.valueConverter.raw],
                 [126, "fertility_v1_set", tuya.valueConverter.raw],
                 [127, "fertility_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
+                [128, "fertility_calibration", tuya.valueConverter.divideBy1000],
                 [3, "moisture", tuya.valueConverter.raw],
                 [129, "moisture_v0_set", tuya.valueConverter.raw],
                 [130, "moisture_v1_set", tuya.valueConverter.raw],
