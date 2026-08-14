@@ -3311,10 +3311,11 @@ const tuyaTz = {
         key: ["state", "brightness"],
         convertSet: async (entity, key, value, meta) => {
             const {message, state} = meta;
-            const brightnessKey = Object.keys(state).find((k) => k.startsWith("brightness_l")) && "ID" in entity ? `brightness_l${entity.ID}` : "brightness";
+            const brightnessKey =
+                Object.keys(state).find((k) => k.startsWith("brightness_l")) && "ID" in entity ? `brightness_l${entity.ID}` : "brightness";
             const stateKey = Object.keys(state).find((k) => k.startsWith("state_l")) && "ID" in entity ? `state_l${entity.ID}` : "state";
-            if (message.state === "OFF"  || (message.state != null && message.brightness == null)) {
-                return  await tz.on_off.convertSet(entity, key, value, meta);
+            if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
+                return await tz.on_off.convertSet(entity, key, value, meta);
             }
             if (message.brightness != null) {
                 // If state includes brightness assume we need to use a custom lookup
@@ -3333,9 +3334,9 @@ const tuyaTz = {
                         "genLevelCtrl",
                         "moveToLevelTuya",
                         {level, transtime: 100},
-                        utils.getOptions(meta.mapped, entity)
+                        utils.getOptions(meta.mapped, entity),
                     );
-               }  
+                }
 
                 return {state: {state: "ON", brightness}};
             }
