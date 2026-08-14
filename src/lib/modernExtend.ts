@@ -2888,14 +2888,18 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
-    description: string;
+    description?: string;
+    descriptions?: string[];
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
+    endpointNames?: string[];
     reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string;
+    labels?: string[];
     entityCategory?: "config" | "diagnostic";
     homeassistant?: exposes.HomeAssistant;
+    homeassistants?: exposes.HomeAssistant[];
 }
 export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: BinaryArgs<Cl, Custom>,
@@ -2907,21 +2911,77 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         cluster,
         attribute,
         description,
+        descriptions,
         zigbeeCommandOptions,
         endpointName,
         reporting,
         label,
+        labels,
         entityCategory,
         homeassistant,
+        homeassistants,
     } = args;
+
+    let endpoints = args.endpointNames;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
-    if (endpointName) expose = expose.withEndpoint(endpointName);
-    if (label) expose = expose.withLabel(label);
-    if (entityCategory) expose = expose.withCategory(entityCategory);
-    if (homeassistant) expose = expose.withHomeAssistant(homeassistant);
+    assert(
+        (descriptions !== undefined || description !== undefined) && !(description && descriptions),
+        "Either description or descriptions must be provided, but not both.",
+    );
+    assert(!(labels && label), "Only label or labels can be provided, but not both.");
+    assert(!(homeassistant && homeassistants), "Only homeassistant or homeassistants can be provided, but not both.");
+    assert(!(endpoints && endpointName), "Only endpointNames or endpointName can be provided, but not both.");
+    if (labels && labels.length > 1) {
+        assert(
+            endpoints && endpoints.length === labels.length,
+            "If multiple labels are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (descriptions && descriptions.length > 1) {
+        assert(
+            endpoints && endpoints.length === descriptions.length,
+            "If multiple descriptions are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (homeassistants && homeassistants.length > 1) {
+        assert(
+            endpoints && endpoints.length === homeassistants.length,
+            "If multiple homeassistants are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+
+    if (endpointName && !endpoints) {
+        endpoints = [endpointName];
+    }
+
+    const exposes: Expose[] = [];
+
+    const createExpose = (description: string, endpoint?: string, label?: string, homeassistant?: exposes.HomeAssistant): Expose => {
+        let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
+        if (endpoint) expose = expose.withEndpoint(endpoint);
+        if (label !== undefined) expose = expose.withLabel(label);
+        if (entityCategory) expose = expose.withCategory(entityCategory);
+        if (homeassistant) expose = expose.withHomeAssistant(homeassistant);
+
+        return expose;
+    };
+    // Generate for multiple endpoints only if required.
+    if (!endpoints) {
+        exposes.push(createExpose(descriptions?.[0] ?? description, undefined, labels?.[0] ?? label, homeassistants?.[0] ?? homeassistant));
+    } else {
+        for (const [i, endpoint] of endpoints.entries()) {
+            exposes.push(
+                createExpose(
+                    descriptions?.[i] ?? descriptions?.[0] ?? description,
+                    endpoint,
+                    labels?.[i] ?? labels?.[0] ?? label,
+                    homeassistants?.[i] ?? homeassistants?.[0] ?? homeassistant,
+                ),
+            );
+        }
+    }
 
     const fromZigbee = [
         {
@@ -2929,7 +2989,12 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
-                if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                if (value !== undefined) {
+                    const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                    if (endpoints && !endpoint) {
+                        return;
+                    }
+                    const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                     return {[expose.property]: value === valueOn[1] ? valueOn[0] : valueOff[0]};
                 }
             },
@@ -2970,10 +3035,9 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         },
     ];
 
-    const endpointNames = endpointName ? [endpointName] : null;
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 
-    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface TextArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>

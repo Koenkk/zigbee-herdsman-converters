@@ -376,79 +376,83 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
 }
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
-    const generated: GeneratedExtend[] = [];
-    let endpointName: string | undefined;
+    let endpointNames: string[] | undefined;
+    const labels: string[] = [];
+    const descriptions: string[] = [];
+    const homeassistants: HomeAssistant[] = [];
+    const name = "binary_input";
+
+    if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+        endpointNames = endpoints.map((e) => e.ID.toString());
+    }
 
     for (const endpoint of endpoints) {
-        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-            endpointName = endpoint.ID.toString();
-        }
-
         const label = await getClusterAttributeValue(endpoint, "genBinaryInput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
             labelHomeAssistant = {preserveName: true} as const satisfies HomeAssistant;
         }
-
-        const name = "binary_input";
-
         const description = `Binary Input ${label ?? name} on endpoint ${endpoint.ID}`;
-        const args: m.BinaryArgs<"genBinaryInput"> = {
-            name: name,
-            label,
-            cluster: "genBinaryInput",
-            attribute: "presentValue",
-            reporting: {min: "MIN", max: "MAX", change: 1},
-            valueOn: ["ON", 1],
-            valueOff: ["OFF", 0],
-            description: description,
-            access: "STATE_GET",
-            endpointName,
-            homeassistant: labelHomeAssistant,
-        };
-        generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
+        labels.push(label);
+        descriptions.push(description);
+        homeassistants.push(labelHomeAssistant);
     }
 
-    return generated;
+    const args: m.BinaryArgs<"genBinaryInput"> = {
+        name: name,
+        labels,
+        cluster: "genBinaryInput",
+        attribute: "presentValue",
+        reporting: {min: "MIN", max: "MAX", change: 1},
+        valueOn: ["ON", 1],
+        valueOff: ["OFF", 0],
+        descriptions,
+        access: "STATE_GET",
+        endpointNames,
+        homeassistants,
+    };
+    return [new ExtendGenerator({extend: m.binary, args, source: "binary"})];
 }
 
 async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
-    const generated: GeneratedExtend[] = [];
-    let endpointName: string | undefined;
+    let endpointNames: string[] | undefined;
+    const labels: string[] = [];
+    const descriptions: string[] = [];
+    const homeassistants: HomeAssistant[] = [];
+    const name = "binary_output";
+
+    if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+        endpointNames = endpoints.map((e) => e.ID.toString());
+    }
 
     for (const endpoint of endpoints) {
-        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-            endpointName = endpoint.ID.toString();
-        }
-
         const label = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
             labelHomeAssistant = {preserveName: true} as const satisfies HomeAssistant;
         }
-
-        const name = "binary_output";
-
         const description = `Binary Output ${label ?? name} on endpoint ${endpoint.ID}`;
-        const args: m.BinaryArgs<"genBinaryOutput"> = {
-            name: name,
-            label,
-            cluster: "genBinaryOutput",
-            attribute: "presentValue",
-            reporting: {min: "MIN", max: "MAX", change: 1},
-            valueOn: ["ON", 1],
-            valueOff: ["OFF", 0],
-            description: description,
-            access: "ALL",
-            endpointName,
-            homeassistant: labelHomeAssistant,
-        };
-        generated.push(new ExtendGenerator({extend: m.binary, args, source: "binary"}));
+        labels.push(label);
+        descriptions.push(description);
+        homeassistants.push(labelHomeAssistant);
     }
 
-    return generated;
+    const args: m.BinaryArgs<"genBinaryOutput"> = {
+        name: name,
+        labels,
+        cluster: "genBinaryOutput",
+        attribute: "presentValue",
+        reporting: {min: "MIN", max: "MAX", change: 1},
+        valueOn: ["ON", 1],
+        valueOff: ["OFF", 0],
+        descriptions,
+        access: "ALL",
+        endpointNames,
+        homeassistants,
+    };
+    return [new ExtendGenerator({extend: m.binary, args, source: "binary"})];
 }
 
 const APPTYPE_UNIT: Record<number, string> = {
