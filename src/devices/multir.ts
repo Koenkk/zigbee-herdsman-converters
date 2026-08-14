@@ -160,7 +160,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum('human_motion_state', ea.STATE, ['none', 'active', 'static'])
                 .withDescription('Human Motion State'),
         ],
-    };    
+   
     },
     
     {
