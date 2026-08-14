@@ -15,12 +15,13 @@ import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
 export interface HomeAssistant {
-    type?: "valve" | "infrared";
+    type?: "infrared" | "button" | "valve";
     schema?: "emitter" | "receiver";
     entityCategory?: "config" | "diagnostic";
     deviceClass?: string;
     enabledByDefault?: boolean;
     icon?: string;
+    name?: string | null;
     preserveName?: boolean;
     valueTemplate?: string | null;
 }
@@ -846,7 +847,7 @@ export const options = {
             ),
     invert_cover: () =>
         new Binary("invert_cover", access.SET, true, false).withDescription(
-            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
+            "Inverts the cover position and state, false: open=100,close=0, true: open=0,close=100 (default false).",
         ),
     illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),
     color_sync: () =>
@@ -1025,7 +1026,10 @@ export const presets = {
                 "Indicates whether a plug is physically attached. Device does not have to pull power or even be connected electrically (state of this binary switch can be ON even if main power switch is OFF)",
             )
             .withCategory("diagnostic"),
-    contact: () => new Binary("contact", access.STATE, false, true).withDescription("Indicates if the contact is closed (= true) or open (= false)"),
+    contact: () =>
+        new Binary("contact", access.STATE, false, true)
+            .withDescription("Indicates if the contact is closed (= true) or open (= false)")
+            .withHomeAssistant({name: null}), // Prevents HA from appending the device class to the device name (e.g. "Garage Door Door")
     cover_position: () => new Cover().withPosition(),
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),

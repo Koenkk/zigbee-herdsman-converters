@@ -98,6 +98,16 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdMotionSensorGen2 {
+    attributes: {
+        sensitivity: number;
+        coolDownTime: number;
+        ledIndicator: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdAirQualitySensor {
     attributes: {
         vocIndex: number;
@@ -464,6 +474,59 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RMS26Z"],
+        model: "3RMS26Z",
+        vendor: "Third Reality",
+        description: "Smart PIR Sensor Gen2",
+        ota: true,
+        extend: [
+            m.forcePowerSource({powerSource: "Battery"}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.battery(),
+            m.illuminance(),
+            m.deviceAddCustomCluster("3rMotionV2SpecialCluster", {
+                name: "3rMotionV2SpecialCluster",
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    sensitivity: {name: "sensitivity", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, min: 1, max: 5},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, min: 0, max: 3600},
+                    ledIndicator: {name: "ledIndicator", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, min: 0, max: 1},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "sensitivity",
+                valueMin: 1,
+                valueMax: 5,
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "sensitivity",
+                description: "PIR sensor sensitivity level (1=lowest, 5=highest)",
+                access: "ALL",
+            }),
+            m.numeric<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "cooldown",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 3600,
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "coolDownTime",
+                description: "Cooldown time between motion detections (seconds)",
+                access: "ALL",
+            }),
+            m.binary<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "led_indicator",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "ledIndicator",
+                description: "LED indicator on motion detection",
+                access: "ALL",
             }),
         ],
     },

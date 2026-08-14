@@ -691,14 +691,14 @@ export const tzZosung = {
 };
 
 export const presetsZosung = {
-    learn_ir_code: () => e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code"),
+    learn_ir_code: () =>
+        e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code").withHomeAssistant({type: "button"}),
     learned_ir_code: () => e.text("learned_ir_code", ea.STATE).withDescription("The IR code learned by device"),
     learned_ir_timings: () =>
         e.text("learned_ir_timings", ea.STATE).withDescription("The IR timings learned by device").withHomeAssistant({
             type: "infrared",
             schema: "receiver",
-            valueTemplate:
-                "{{ iif(as_timestamp(now()) | int - value_json.learned_ir_timings.timestamp / 1000 < 5, value_json.learned_ir_timings | tojson, None) }}",
+            valueTemplate: "{{ value_json.learned_ir_timings | tojson }}",
         }),
     ir_code_to_send: () => e.text("ir_code_to_send", ea.SET).withDescription("The IR code or timings to send by device"),
     ir_emitter: () =>

@@ -200,7 +200,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004581801",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (7 meter with 10 bulbs)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
     },
     {
         zigbeeModel: ["LCX030"],
@@ -835,7 +835,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "7299760PH",
         vendor: "Philips",
         description: "Hue Bloom",
-        extend: [philips.m.light({color: true})],
+        extend: [philips.m.light({color: true, colorTemp: {range: [153, 500]}})],
     },
     {
         zigbeeModel: ["929002375901"],
@@ -1319,7 +1319,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "548727",
         vendor: "Philips",
         description: "Hue White and Color Ambiance BR30 with bluetooth",
-        extend: [philips.m.light({colorTemp: {range: undefined}, color: true})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
     },
     {
         zigbeeModel: ["LCB002"],
@@ -1854,7 +1854,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290011998B",
         vendor: "Philips",
         description: "Hue white ambiance E26",
-        extend: [philips.m.light({colorTemp: {range: undefined}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
     },
     {
         zigbeeModel: ["LTA002"],
@@ -2339,8 +2339,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["929002376101"],
         model: "929002376101",
         vendor: "Philips",
-        description: "Hue Iris (generation 2, white)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+        description: "Hue Iris generation 3/4 (white)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, effect: true})],
     },
     {
         zigbeeModel: ["929002376201"],
@@ -4850,6 +4850,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["929004321001"],
+        model: "929004321001",
+        vendor: "Philips",
+        description: "Hue Play Floor lamp large",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true})],
+    },
+    {
         zigbeeModel: ["929003808401_01", "929003808401_02", "929003808401_03"],
         model: "929003808401",
         vendor: "Philips",
@@ -5152,5 +5159,19 @@ export const definitions: DefinitionWithExtend[] = [
                 gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
             }),
         ],
+    },
+    {
+        zigbeeModel: ["929003812301"],
+        model: "929003812301",
+        vendor: "Philips",
+        description: "Runner single spotlight (White)",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}})],
+    },
+    {
+        zigbeeModel: ["LCD018"],
+        model: "929004291501",
+        vendor: "Philips",
+        description: "Hue white and color ambiance slim downlight 4 inch",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
