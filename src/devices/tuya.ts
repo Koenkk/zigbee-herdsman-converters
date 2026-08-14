@@ -29926,11 +29926,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     
     {
-        fingerprint: tuya.fingerprint("Excellux", ["EZ500FL"]),
-        model: "EZ-500FL",
+        fingerprint: tuya.fingerprint("Excellux", ["EZ500FS"]),
+        model: "EZ-500FS",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        description: "Split-type sensor for detecting soil moisture, soil fertility, temperature and humidity",
+        description: "Split-type sensor for detecting soil moisture, temperature and humidity",
         exposes: [
             e.battery().withDescription("Battery level"),
             e
