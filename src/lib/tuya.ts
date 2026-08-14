@@ -3311,8 +3311,8 @@ const tuyaTz = {
         key: ["state", "brightness"],
         convertSet: async (entity, key, value, meta) => {
             const {message, state} = meta;
-            const brightnessKey = Object.keys(state).find((k) => k.startsWith("brightness_l")) ? `brightness_l${entity.ID}` : "brightness";
-            const stateKey = Object.keys(state).find((k) => k.startsWith("state_l")) ? `state_l${entity.ID}` : "state";
+            const brightnessKey = Object.keys(state).find((k) => k.startsWith("brightness_l")) && "ID" in entity ? `brightness_l${entity.ID}` : "brightness";
+            const stateKey = Object.keys(state).find((k) => k.startsWith("state_l")) && "ID" in entity ? `state_l${entity.ID}` : "state";
             if (message.state === "OFF"  || (message.state != null && message.brightness == null)) {
                 return  await tz.on_off.convertSet(entity, key, value, meta);
             }
@@ -3328,7 +3328,7 @@ const tuyaTz = {
                     const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
 
                     // set brightness
-                    await entity.command(
+                    await entity.command<"genLevelCtrl", "moveToLevelTuya", TuyaGenLevelCtrl>(
                         "genLevelCtrl",
                         "moveToLevelTuya",
                         {level, transtime: 100},
