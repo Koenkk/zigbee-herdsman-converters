@@ -1602,7 +1602,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         extend: [
-            m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
+            m.light({colorTemp: {range: [154, 454]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
             m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
                 name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
