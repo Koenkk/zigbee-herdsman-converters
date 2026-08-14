@@ -363,11 +363,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-        fingerprint: [{
-            modelID: "RGBWW",
-            manufacturerName: "Paulmann Licht GmbH",
-            softwareBuildID: "PIIC5405",
-        }],
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5405",
+            },
+        ],
         model: "291.48",
         vendor: "Paulmann",
         description: "Smart Home Zigbee LED Reflector GU10 4.8W RGBWW",
@@ -380,11 +382,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{
-            modelID: "RGBWW",
-            manufacturerName: "Paulmann Licht GmbH",
-            softwareBuildID: "PIIC5809",
-        }],
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5809",
+            },
+        ],
         model: "291.46",
         vendor: "Paulmann",
         description: "Smart Home Zigbee LED bulb 4.9W Matt E14 RGBWW",
