@@ -485,8 +485,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.forcePowerSource({powerSource: "Battery"}),
-            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]}),
-            m.battery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.battery({voltage: true, percentageReporting: false}),
             m.illuminance(),
             m.deviceAddCustomCluster("3rMotionV2SpecialCluster", {
                 name: "3rMotionV2SpecialCluster",
@@ -1602,7 +1602,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         extend: [
-            m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
+            m.light({colorTemp: {range: [154, 454]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
             m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
                 name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
