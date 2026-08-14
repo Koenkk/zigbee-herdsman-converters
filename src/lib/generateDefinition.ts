@@ -401,16 +401,16 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
     const args: m.BinaryArgs<"genBinaryInput"> = {
         name: name,
-        labels,
+        label: labels,
         cluster: "genBinaryInput",
         attribute: "presentValue",
         reporting: {min: "MIN", max: "MAX", change: 1},
         valueOn: ["ON", 1],
         valueOff: ["OFF", 0],
-        descriptions,
+        description: descriptions,
         access: "STATE_GET",
         endpointNames,
-        homeassistants,
+        homeassistant: homeassistants,
     };
     return [new ExtendGenerator({extend: m.binary, args, source: "binary"})];
 }
@@ -427,30 +427,30 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     }
 
     for (const endpoint of endpoints) {
-        const label = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
+        const endpointLabel = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
-        if (label) {
+        if (endpointLabel) {
             labelHomeAssistant = {preserveName: true} as const satisfies HomeAssistant;
         }
-        const description = `Binary Output ${label ?? name} on endpoint ${endpoint.ID}`;
-        labels.push(label);
+        const description = `Binary Output ${endpointLabel ?? name} on endpoint ${endpoint.ID}`;
+        labels.push(endpointLabel);
         descriptions.push(description);
         homeassistants.push(labelHomeAssistant);
     }
 
     const args: m.BinaryArgs<"genBinaryOutput"> = {
-        name: name,
-        labels,
+        name,
+        label: labels,
         cluster: "genBinaryOutput",
         attribute: "presentValue",
         reporting: {min: "MIN", max: "MAX", change: 1},
         valueOn: ["ON", 1],
         valueOff: ["OFF", 0],
-        descriptions,
+        description: descriptions,
         access: "ALL",
         endpointNames,
-        homeassistants,
+        homeassistant: homeassistants,
     };
     return [new ExtendGenerator({extend: m.binary, args, source: "binary"})];
 }

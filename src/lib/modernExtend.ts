@@ -2888,18 +2888,15 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
-    description?: string;
-    descriptions?: string[];
+    description: string | string[];
     zigbeeCommandOptions?: {manufacturerCode: number};
     endpointName?: string;
     endpointNames?: string[];
     reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
-    label?: string;
-    labels?: string[];
+    label?: string | string[];
     entityCategory?: "config" | "diagnostic";
-    homeassistant?: exposes.HomeAssistant;
-    homeassistants?: exposes.HomeAssistant[];
+    homeassistant?: exposes.HomeAssistant | exposes.HomeAssistant[];
 }
 export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: BinaryArgs<Cl, Custom>,
@@ -2911,43 +2908,38 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         cluster,
         attribute,
         description,
-        descriptions,
         zigbeeCommandOptions,
         endpointName,
         reporting,
         label,
-        labels,
         entityCategory,
         homeassistant,
-        homeassistants,
     } = args;
+
+    const descriptionArray = Array.isArray(description) ? description : [description];
+    const labelArray = Array.isArray(label) ? label : [label];
+    const homeassistantArray = Array.isArray(homeassistant) ? homeassistant : [homeassistant];
 
     let endpoints = args.endpointNames;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    assert(
-        (descriptions !== undefined || description !== undefined) && !(description && descriptions),
-        "Either description or descriptions must be provided, but not both.",
-    );
-    assert(!(labels && label), "Only label or labels can be provided, but not both.");
-    assert(!(homeassistant && homeassistants), "Only homeassistant or homeassistants can be provided, but not both.");
     assert(!(endpoints && endpointName), "Only endpointNames or endpointName can be provided, but not both.");
-    if (labels && labels.length > 1) {
+    if (labelArray.length > 1) {
         assert(
-            endpoints && endpoints.length === labels.length,
+            endpoints && endpoints.length === labelArray.length,
             "If multiple labels are provided, endpointNames must be provided and have the same length.",
         );
     }
-    if (descriptions && descriptions.length > 1) {
+    if (descriptionArray.length > 1) {
         assert(
-            endpoints && endpoints.length === descriptions.length,
+            endpoints && endpoints.length === descriptionArray.length,
             "If multiple descriptions are provided, endpointNames must be provided and have the same length.",
         );
     }
-    if (homeassistants && homeassistants.length > 1) {
+    if (homeassistantArray.length > 1) {
         assert(
-            endpoints && endpoints.length === homeassistants.length,
+            endpoints && endpoints.length === homeassistantArray.length,
             "If multiple homeassistants are provided, endpointNames must be provided and have the same length.",
         );
     }
@@ -2969,15 +2961,15 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
     };
     // Generate for multiple endpoints only if required.
     if (!endpoints) {
-        exposes.push(createExpose(descriptions?.[0] ?? description, undefined, labels?.[0] ?? label, homeassistants?.[0] ?? homeassistant));
+        exposes.push(createExpose(descriptionArray[0], undefined, labelArray[0], homeassistantArray[0]));
     } else {
         for (const [i, endpoint] of endpoints.entries()) {
             exposes.push(
                 createExpose(
-                    descriptions?.[i] ?? descriptions?.[0] ?? description,
+                    descriptionArray[i] ?? descriptionArray[0],
                     endpoint,
-                    labels?.[i] ?? labels?.[0] ?? label,
-                    homeassistants?.[i] ?? homeassistants?.[0] ?? homeassistant,
+                    labelArray[i] ?? labelArray[0],
+                    homeassistantArray[i] ?? homeassistantArray[0],
                 ),
             );
         }
