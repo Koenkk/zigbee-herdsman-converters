@@ -118,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.illuminance(),
             m.numeric({
-                name: "occupancy distance",
+                name: "occupancyDistance",
                 cluster: 0x0406,
                 attribute: {ID: 0xa205, type: 0x20},
                 description: "Motion Range Detection (meter)",
@@ -127,7 +127,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             m.numeric({
-                name: "occupancy unmanned duration",
+                name: "unmannedDuration",
                 cluster: 0x0406,
                 attribute: {ID: 0xa206, type: 0x21},
                 description: "Ultrasonic occupied to unoccupied delay (seconds)",
@@ -136,7 +136,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
             }),
             m.enumLookup({
-                name: "occupancy sensitivity",
+                name: "sensitivity",
                 cluster: 0x0406,
                 attribute: {ID: 0xa203, type: 0x30},
                 description: "Sensitivity of human presence detection",
