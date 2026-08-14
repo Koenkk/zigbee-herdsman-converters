@@ -3317,12 +3317,13 @@ const tuyaTz = {
                 return  await tz.on_off.convertSet(entity, key, value, meta);
             }
             if (message.brightness != null) {
-                // If state includes brightness assume we need to use a custom lookup    
+                // If state includes brightness assume we need to use a custom lookup
                 const brightness = utils.toNumber(message.brightness, "brightness");
-                 // we allow at most 1 incase its a rounding/ float precision issue
-                const brightnessUnchanged = Math.abs(utils.mapNumberRange(brightness, 0, 254, 0, 254) - utils.toNumber(state[brightnessKey], "brightness")) <= 1;
+                // we allow at most 1 incase its a rounding/ float precision issue
+                const brightnessUnchanged =
+                    Math.abs(utils.mapNumberRange(brightness, 0, 254, 0, 254) - utils.toNumber(state[brightnessKey], "brightness")) <= 1;
                 // if the brightness is unchanged then we need to force it on due to weirdness with moveToLevelTuya
-                if (state[stateKey] === "OFF" && brightnessUnchanged ) {
+                if (state[stateKey] === "OFF" && brightnessUnchanged) {
                     await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
                 } else {
                     const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
@@ -3336,7 +3337,7 @@ const tuyaTz = {
                     );
                }  
 
-              return {state: {state:"ON", brightness}};
+                return {state: {state: "ON", brightness}};
             }
         },
         convertGet: async (entity, key, meta) => {
