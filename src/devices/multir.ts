@@ -1,6 +1,8 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+const fz = require('zigbee-herdsman-converters/converters/fromZigbee');
+const exposes = require('zigbee-herdsman-converters/lib/exposes');
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -35,21 +37,32 @@ const tzLocal = {
 
 const fzLocal = {
     HE300_Motion_State: {
-        cluster: 0x0406, 
+        cluster: 'msOccupancySensing',
         type: ['attributeReport', 'readResponse'],
         convert: (model, msg, publish, options, meta) => {
-            const attributeId = 0x0000;             
-            if (msg.data.hasOwnProperty(attributeId)) {
-                const value = msg.data[attributeId];
-                let state = 'none';
+            if (msg.data.hasOwnProperty('occupancy')) {
+                const value = msg.data.occupancy;
+
+                let occupancy = false;
+                let human_motion_state = 'none';
+                
                 if (value === 0x00) {
-                    state = 'none';   
+                    occupancy = false;
+                    human_motion_state = 'none';
                 } else if (value === 0x01) {
-                    state = 'active';  
+                    occupancy = true;
+                    human_motion_state = 'active';
                 } else if (value === 0x02) {
-                    state = 'static';  
+                    occupancy = true;
+                    human_motion_state = 'static';
+                } else {
+                    occupancy = (value & 0x01) !== 0 || (value & 0x02) !== 0;
+                    human_motion_state = (value & 0x02) !== 0 ? 'static' : (value & 0x01) !== 0 ? 'active' : 'none';
                 }
-                return { human_motion_state: state };
+                return {
+                    occupancy: occupancy,
+                    human_motion_state: human_motion_state
+                };
             }
             return {};
         },
@@ -98,7 +111,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     
-    {
+const definition = {
         zigbeeModel: ["HE300_ZB"],
         model: "HE300_ZB",
         vendor: "MultIR",
@@ -106,7 +119,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
         fz.occupancy, 
         fzLocal.HE300_Motion_State, 
-        ],    
+        ],   
         toZigbee: [],
         extend: [
             m.illuminance(),
@@ -117,6 +130,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Motion Range Detection (meter)",
                 valueMin: 2,
                 valueMax: 6,
+                entityCategory: "config",
             }),
             m.numeric({
                name: "occupancy unmanned duration",
@@ -125,6 +139,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Ultrasonic occupied to unoccupied delay (seconds)",
                 valueMin: 0,
                 valueMax: 65535,
+                entityCategory: "config",
             }),
             m.enumLookup({
                 name: "occupancy sensitivity",
@@ -137,13 +152,15 @@ export const definitions: DefinitionWithExtend[] = [
                     high: 0x02,
                 },
                 entityCategory: "config",
-            }),            
+            }),          
         ],
         exposes: [
             e.occupancy(),
             e.enum('human_motion_state', ea.STATE, ['none', 'active', 'static'])
-            .withDescription('Human Motion State'),
+                .withDescription('Human Motion State'),
         ],
+    };
+        module.exports = definition;        
     },
     
     {
