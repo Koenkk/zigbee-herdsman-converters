@@ -39,30 +39,28 @@ const fzhe300Local = {
         cluster: "msOccupancySensing",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-                const value = msg.data.occupancy;
+            const value = msg.data.occupancy;
 
-                let occupancy = false;
-                let humanMotionstate = "none";
+            let occupancy = false;
+            let humanMotionstate = "none";
 
-                if (value === 0x00) {
-                    occupancy = false;
-                    humanMotionstate = "none";
-                } else if (value === 0x01) {
-                    occupancy = true;
-                    humanMotionstate = "active";
-                } else if (value === 0x02) {
-                    occupancy = true;
-                    humanMotionstate = "static";
-                } else {
-                    occupancy = (value & 0x01) !== 0 || (value & 0x02) !== 0;
-                    humanMotionstate = (value & 0x02) !== 0 ? "static" : (value & 0x01) !== 0 ? "active" : "none";
-                }
-                return {
-                    occupancy: occupancy,
-                    human_motion_state: humanMotionstate,
-                };
-
-      
+            if (value === 0x00) {
+                occupancy = false;
+                humanMotionstate = "none";
+            } else if (value === 0x01) {
+                occupancy = true;
+                humanMotionstate = "active";
+            } else if (value === 0x02) {
+                occupancy = true;
+                humanMotionstate = "static";
+            } else {
+                occupancy = (value & 0x01) !== 0 || (value & 0x02) !== 0;
+                humanMotionstate = (value & 0x02) !== 0 ? "static" : (value & 0x01) !== 0 ? "active" : "none";
+            }
+            return {
+                occupancy: occupancy,
+                human_motion_state: humanMotionstate,
+            };
         },
     } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
 };
