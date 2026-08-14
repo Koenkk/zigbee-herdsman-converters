@@ -66,7 +66,7 @@ const fz_HE300_Local = {
             }
             return {};
         },
-    }, satisfies Fz.Converter<"msOccupancySensing", undefined, ['attributeReport', 'readResponse']>,
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ['attributeReport', 'readResponse']>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
