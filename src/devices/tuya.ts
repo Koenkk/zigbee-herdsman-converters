@@ -29776,13 +29776,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.1)
                 .withUnit("°C")
                 .withDescription("Probe temperature sensor"),
-            e
-                .numeric("moisture", ea.STATE)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Soil moisture"),
+            e.numeric("moisture", ea.STATE).withValueMin(0).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Soil moisture"),
             e.temperature(),
             e.humidity(),
             e
@@ -29794,9 +29788,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Soil fertility value,between 0-5000μS/cm"),
             e
                 .numeric("fertility_calibration", ea.STATE_SET)
-                .withValueMin(0.50)
+                .withValueMin(0.5)
                 .withValueStep(0.01)
-                .withValueMax(2.00)
+                .withValueMax(2.0)
                 .withDescription("Calibration of cell constant"),
             e
                 .numeric("sampling_interval", ea.STATE_SET)
