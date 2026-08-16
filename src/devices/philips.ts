@@ -426,14 +426,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LP_CF_7904008_EU",
         vendor: "Philips",
         description: "MasterConnect LEDtube EM/mains T8",
-        extend: [philips.m.light()],
+        extend: [philips.m.light(), m.identify()],
     },
     {
         zigbeeModel: ["MWM001"],
         model: "13190230",
         vendor: "Philips",
         description: "Hue white dimmer 1-10V",
-        extend: [philips.m.light()],
+        extend: [philips.m.light(), m.identify()],
     },
     {
         zigbeeModel: ["929003055801", "929004611401", "929004611501_01", "929004611501_02", "929004611501_03"],
@@ -1605,6 +1605,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {top: 11, bottom: 12}}),
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, endpointNames: ["top", "bottom"]}),
+            m.identify({endpointNames: ["top", "bottom"]}),
         ],
     },
     {
@@ -1612,7 +1613,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "9290022166",
         vendor: "Philips",
         description: "Hue white and color ambiance E26/E27",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true}), m.identify()],
         endpoint: (device) => {
             return {default: 11};
         },
@@ -3037,7 +3038,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -3078,7 +3079,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -3138,7 +3139,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003128901",
         vendor: "Philips",
         description: "Hue Go portable table lamp white",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003129001"],
@@ -3168,7 +3169,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3206,7 +3207,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify()],
+        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3293,7 +3294,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Hue wired wall switch module 2 channel",
         extend: [
             m.deviceEndpoints({endpoints: {l1: 11, l2: 12}}),
-            m.identify(),
+            m.identify({endpointNames: ["l1", "l2"]}),
             philips.m.onOff({endpointNames: ["l1", "l2"], powerOnBehavior: true}),
         ],
         ota: true,
@@ -3707,7 +3708,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003597901",
         vendor: "Philips",
         description: "Hue white ambiance Aurelle round panel light",
-        extend: [m.identify(), philips.m.light({colorTemp: {range: [153, 454]}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}}), m.identify()],
     },
     {
         zigbeeModel: ["3418331P6"],
@@ -4357,28 +4358,28 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003535301",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 250 (1st-gen)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
     },
     {
         zigbeeModel: ["LCX015"],
         model: "9290036744",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 250",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
     },
     {
         zigbeeModel: ["LCX016"],
         model: "9290036745",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 100",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
     },
     {
         zigbeeModel: ["LCX017"],
         model: "929003674601",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 500",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
     },
     {
         zigbeeModel: ["915005987101"],
@@ -4583,7 +4584,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929003116501"}],
             },
         ],
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003116001", "929003115901"],
@@ -4702,7 +4703,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "442296118491",
         vendor: "Philips",
         description: "Hue Secure Camera Floodlight",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true})],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003555701"],
@@ -4796,6 +4797,7 @@ export const definitions: DefinitionWithExtend[] = [
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, endpointNames: ["front"]}),
             philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true, endpointNames: ["back"]}),
             philips.m.twilightOnOff(),
+            m.identify({endpointNames: ["front", "back"]}),
         ],
     },
     {
