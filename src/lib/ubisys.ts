@@ -730,13 +730,14 @@ export const ubisysModernExtend = {
         }),
     operationalStatus: (args?: Partial<EnumLookupArgs<"closuresWindowCovering", UbisysClosuresWindowCovering>>) =>
         enumLookup<"closuresWindowCovering", UbisysClosuresWindowCovering>({
-            name: "operational_status",
+            name: "motor_state",
             cluster: "closuresWindowCovering",
             attribute: "operationalStatus",
             entityCategory: "diagnostic",
             description:
                 "This attribute contains two bits which will be set while the motor is active. " +
-                "Thus, devices that do not support positioning or move at a slow pace can still provide feedback.",
+                "Thus, devices that do not support positioning or move at a slow pace can still provide feedback. " +
+                "Exposed as motor_state for compatibility.",
             access: "STATE_GET",
             lookup: {stopped: 0x00, opening: 0x01, closing: 0x02},
             ...args,

@@ -118,7 +118,7 @@ const ubisys = {
                     const operationalStatus = status & 3;
                     const operationalStatusValues = {0: "stopped", 1: "opening", 2: "closing"};
                     return {
-                        operational_status: utils.getFromLookup(operationalStatus, operationalStatusValues),
+                        motor_state: utils.getFromLookup(operationalStatus, operationalStatusValues),
                     };
                 }
             },
