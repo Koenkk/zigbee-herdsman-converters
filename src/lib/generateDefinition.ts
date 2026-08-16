@@ -749,14 +749,21 @@ const BACNET_UNIT: Record<number, string> = {
 };
 
 async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
-    const generated: GeneratedExtend[] = [];
     let endpointNames: string[] | undefined;
+    const labels: string[] = [];
+    const descriptions: string[] = [];
+    const homeassistants: HomeAssistant[] = [];
+    const names: string[] = [];
+    const units: string[] = [];
+    const valueMins: number[] = [];
+    const valueMaxs: number[] = [];
+    const valueSteps: number[] = [];
+
+    if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+        endpointNames = endpoints.map((e) => e.ID.toString());
+    }
 
     for (const endpoint of endpoints) {
-        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-            endpointNames = [endpoint.ID.toString()];
-        }
-
         const label = await getClusterAttributeValue(endpoint, "genAnalogInput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
@@ -784,37 +791,54 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         }
 
         const description = `Analog Input ${label ?? name} on endpoint ${endpoint.ID}`;
+        const valueMin = await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined);
+        const valueMax = await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined);
+        const valueStep = await getClusterAttributeValue(endpoint, "genAnalogInput", "resolution", undefined);
 
-        const args: m.NumericArgs<"genAnalogInput"> = {
-            name,
-            label,
-            valueMin: await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined),
-            valueMax: await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined),
-            valueStep: await getClusterAttributeValue(endpoint, "genAnalogInput", "resolution", undefined),
-            cluster: "genAnalogInput",
-            attribute: "presentValue",
-            reporting: {min: "MIN", max: "MAX", change: 1},
-            description: description,
-            access: "STATE_GET",
-            endpointNames,
-            unit,
-            homeassistant: labelHomeAssistant,
-        };
-        generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
+        labels.push(label);
+        descriptions.push(description);
+        homeassistants.push(labelHomeAssistant);
+        names.push(name);
+        units.push(unit);
+        valueMins.push(valueMin);
+        valueMaxs.push(valueMax);
+        valueSteps.push(valueStep);
     }
 
-    return generated;
+    const args: m.NumericArgs<"genAnalogInput"> = {
+        name: names,
+        label: labels,
+        valueMin: valueMins,
+        valueMax: valueMaxs,
+        valueStep: valueSteps,
+        cluster: "genAnalogInput",
+        attribute: "presentValue",
+        reporting: {min: "MIN", max: "MAX", change: 1},
+        description: descriptions,
+        access: "STATE_GET",
+        endpointNames: endpointNames,
+        unit: units,
+        homeassistant: homeassistants,
+    };
+    return [new ExtendGenerator({extend: m.numeric, args, source: "numeric"})];
 }
 
 async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
-    const generated: GeneratedExtend[] = [];
     let endpointNames: string[] | undefined;
+    const labels: string[] = [];
+    const descriptions: string[] = [];
+    const homeassistants: HomeAssistant[] = [];
+    const names: string[] = [];
+    const units: string[] = [];
+    const valueMins: number[] = [];
+    const valueMaxs: number[] = [];
+    const valueSteps: number[] = [];
+
+    if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+        endpointNames = endpoints.map((e) => e.ID.toString());
+    }
 
     for (const endpoint of endpoints) {
-        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-            endpointNames = [endpoint.ID.toString()];
-        }
-
         const label = await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
@@ -842,24 +866,34 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         }
 
         const description = `Analog Output ${label ?? name} on endpoint ${endpoint.ID}`;
+        const valueMin = await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined);
+        const valueMax = await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined);
+        const valueStep = await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution", undefined);
 
-        const args: m.NumericArgs<"genAnalogOutput"> = {
-            name,
-            label,
-            valueMin: await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined),
-            valueMax: await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined),
-            valueStep: await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution", undefined),
-            cluster: "genAnalogOutput",
-            attribute: "presentValue",
-            reporting: {min: "MIN", max: "MAX", change: 1},
-            description: description,
-            access: "ALL",
-            endpointNames,
-            unit,
-            homeassistant: labelHomeAssistant,
-        };
-        generated.push(new ExtendGenerator({extend: m.numeric, args, source: "numeric"}));
+        labels.push(label);
+        descriptions.push(description);
+        homeassistants.push(labelHomeAssistant);
+        names.push(name);
+        units.push(unit);
+        valueMins.push(valueMin);
+        valueMaxs.push(valueMax);
+        valueSteps.push(valueStep);
     }
 
-    return generated;
+    const args: m.NumericArgs<"genAnalogOutput"> = {
+        name: names,
+        label: labels,
+        valueMin: valueMins,
+        valueMax: valueMaxs,
+        valueStep: valueSteps,
+        cluster: "genAnalogOutput",
+        attribute: "presentValue",
+        reporting: {min: "MIN", max: "MAX", change: 1},
+        description: descriptions,
+        access: "ALL",
+        endpointNames: endpointNames,
+        unit: units,
+        homeassistant: homeassistants,
+    };
+    return [new ExtendGenerator({extend: m.numeric, args, source: "numeric"})];
 }

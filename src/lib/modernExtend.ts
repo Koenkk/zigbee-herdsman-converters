@@ -2741,22 +2741,22 @@ export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
 export interface NumericArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
     extends ClusterWithAttribute<Cl, Custom> {
-    name: string;
-    description: string;
+    name: string | string[];
+    description: string | string[];
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
-    unit?: string;
+    unit?: string | string[];
     endpointNames?: string[];
     reporting?: false | ReportingConfigWithoutAttribute;
-    valueMin?: number;
-    valueMax?: number;
-    valueStep?: number;
+    valueMin?: number | number[];
+    valueMax?: number | number[];
+    valueStep?: number | number[];
     scale?: number | ScaleFunction;
-    label?: string;
+    label?: string | string[];
     entityCategory?: "config" | "diagnostic";
-    precision?: number;
+    precision?: number | number[];
     fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
-    homeassistant?: exposes.HomeAssistant;
+    homeassistant?: exposes.HomeAssistant | exposes.HomeAssistant[];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -2780,13 +2780,88 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         homeassistant,
     } = args;
 
+    const nameArray = Array.isArray(name) ? name : [name];
+    const descriptionArray = Array.isArray(description) ? description : [description];
+    const labelArray = Array.isArray(label) ? label : [label];
+    const homeassistantArray = Array.isArray(homeassistant) ? homeassistant : [homeassistant];
+    const unitArray = Array.isArray(unit) ? unit : [unit];
+    const valueMinArray = Array.isArray(valueMin) ? valueMin : [valueMin];
+    const valueMaxArray = Array.isArray(valueMax) ? valueMax : [valueMax];
+    const valueStepArray = Array.isArray(valueStep) ? valueStep : [valueStep];
+    const precisionArray = Array.isArray(precision) ? precision : [precision];
+
     const endpoints = args.endpointNames;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
+    if (nameArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === nameArray.length,
+            "If multiple names are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (labelArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === labelArray.length,
+            "If multiple labels are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (descriptionArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === descriptionArray.length,
+            "If multiple descriptions are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (homeassistantArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === homeassistantArray.length,
+            "If multiple homeassistants are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (unitArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === unitArray.length,
+            "If multiple units are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (valueMinArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === valueMinArray.length,
+            "If multiple valueMins are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (valueMaxArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === valueMaxArray.length,
+            "If multiple valueMaxs are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (valueStepArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === valueStepArray.length,
+            "If multiple valueSteps are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (precisionArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === precisionArray.length,
+            "If multiple precisions are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+
     const exposes: Expose[] = [];
 
-    const createExpose = (endpoint?: string): Expose => {
+    const createExpose = (
+        name: string,
+        description: string,
+        endpoint?: string,
+        unit?: string,
+        valueMin?: number,
+        valueMax?: number,
+        valueStep?: number,
+        label?: string,
+        homeassistant?: exposes.HomeAssistant,
+    ): Expose => {
         let expose = e.numeric(name, access).withDescription(description);
         if (endpoint) expose = expose.withEndpoint(endpoint);
         if (unit) expose = expose.withUnit(unit);
@@ -2801,10 +2876,34 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
     };
     // Generate for multiple endpoints only if required.
     if (!endpoints) {
-        exposes.push(createExpose(undefined));
+        exposes.push(
+            createExpose(
+                nameArray[0],
+                descriptionArray[0],
+                undefined,
+                unitArray[0],
+                valueMinArray[0],
+                valueMaxArray[0],
+                valueStepArray[0],
+                labelArray[0],
+                homeassistantArray[0],
+            ),
+        );
     } else {
-        for (const endpoint of endpoints) {
-            exposes.push(createExpose(endpoint));
+        for (const [i, endpoint] of endpoints.entries()) {
+            exposes.push(
+                createExpose(
+                    nameArray[i] ?? nameArray[0],
+                    descriptionArray[i] ?? descriptionArray[0],
+                    endpoint,
+                    unitArray[i] ?? unitArray[0],
+                    valueMinArray[i] ?? valueMinArray[0],
+                    valueMaxArray[i] ?? valueMaxArray[0],
+                    valueStepArray[i] ?? valueStepArray[0],
+                    labelArray[i] ?? labelArray[0],
+                    homeassistantArray[i] ?? homeassistantArray[0],
+                ),
+            );
         }
     }
 
@@ -2817,7 +2916,9 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                 ((model, msg, publish, options, meta) => {
                     const attributeValue = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
                     if (attributeValue !== undefined) {
-                        const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                        const endpointName = endpoints ? getEndpointName(msg, model, meta) : undefined;
+                        const endpointIndex = endpoints?.indexOf(endpointName) ?? 0;
+                        const endpoint = endpoints?.find((e) => endpointName === e);
                         if (endpoints && !endpoint) {
                             return;
                         }
@@ -2829,6 +2930,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                             value = typeof scale === "number" ? value / scale : scale(value, "from");
                         }
                         assertNumber(value);
+                        const precision = precisionArray[endpointIndex] ?? precisionArray[0];
                         if (precision != null) value = precisionRound(value, precision);
 
                         const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
@@ -2839,9 +2941,21 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: [name],
+    const toZigbee: Tz.Converter[] = [];
+    // Group by unique `name` so that multiple endpoints
+    // with the same name are represented by a single converter.
+    const uniqueNames = Array.from(new Set(nameArray));
+    for (const uniqName of uniqueNames) {
+        const indices: number[] = [];
+        for (let i = 0; i < nameArray.length; i++) {
+            if (nameArray[i] === uniqName) indices.push(i);
+        }
+
+        const groupEndpointNames = endpoints ? indices.map((i) => endpoints[i]) : undefined;
+        const groupPrecition = indices.map((i) => precisionArray[i]);
+
+        const tZ: Tz.Converter = {
+            key: [uniqName],
             convertSet:
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
@@ -2851,6 +2965,9 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                               payloadValue = typeof scale === "number" ? payloadValue * scale : scale(payloadValue, "to");
                           }
                           assertNumber(payloadValue);
+
+                          const endpointIndex = groupEndpointNames?.indexOf(meta.endpoint_name ?? groupEndpointNames[0]) ?? 0;
+                          const precision = groupPrecition[endpointIndex] ?? groupPrecition[0];
                           if (precision != null) payloadValue = precisionRound(payloadValue, precision);
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
@@ -2875,8 +2992,9 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                           );
                       }
                     : undefined,
-        },
-    ];
+        };
+        toZigbee.push(tZ);
+    }
 
     const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 

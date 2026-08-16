@@ -693,8 +693,6 @@ export default {
                 expect.objectContaining({cluster: "genBinaryInput"}),
                 expect.objectContaining({cluster: "genBinaryOutput"}),
                 expect.objectContaining({cluster: "genAnalogInput"}),
-                expect.objectContaining({cluster: "genAnalogInput"}),
-                expect.objectContaining({cluster: "genAnalogOutput"}),
                 expect.objectContaining({cluster: "genAnalogOutput"}),
             ],
             toZigbee: ["binary_input", "binary_output", "analog_in_temperature", "analog_input", "analog_out_temperature", "analog_output"],
