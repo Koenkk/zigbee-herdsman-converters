@@ -200,6 +200,16 @@ const storeLocal = {
 };
 
 const convLocal = {
+    phaseVariant2WithPhaseByManufacturer: (phase: string, tze204Phase: string) => {
+        const defaultConverter = tuya.valueConverter.phaseVariant2WithPhase(phase);
+        const tze204Converter = tuya.valueConverter.phaseVariant2WithPhase(tze204Phase);
+        return {
+            from: (v: string, meta: Fz.Meta) => {
+                const converter = meta.device.manufacturerName === "_TZE204_wbhaespm" ? tze204Converter : defaultConverter;
+                return converter.from(v);
+            },
+        };
+    },
     novaDigitalToDmBrightness: {
         from: (value: unknown) => {
             const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
@@ -12180,9 +12190,9 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
-                [6, null, tuya.valueConverter.phaseVariant2WithPhase("a")],
+                [6, null, convLocal.phaseVariant2WithPhaseByManufacturer("a", "c")],
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("b")],
-                [8, null, tuya.valueConverter.phaseVariant2WithPhase("c")],
+                [8, null, convLocal.phaseVariant2WithPhaseByManufacturer("c", "a")],
                 [9, "faults", tuya.valueConverter.circuitBreakerFaults],
                 [16, "state", tuya.valueConverter.onOff],
                 [17, null, tuya.valueConverter.threshold_2],
