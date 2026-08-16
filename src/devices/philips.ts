@@ -3038,7 +3038,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
+        extend: [
+            philips.m.addPhilipsGenBasicCluster(),
+            philips.m.addPhilipsMsOccupancySensingCluster(),
+            m.illuminance(),
+            m.identify({isSleepy: true}),
+        ],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -3079,7 +3084,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
+        extend: [
+            philips.m.addPhilipsGenBasicCluster(),
+            philips.m.addPhilipsMsOccupancySensingCluster(),
+            m.illuminance(),
+            m.identify({isSleepy: true}),
+        ],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         endpoint: (device) => {
             return {default: 2, ep1: 1, ep2: 2};
@@ -3169,7 +3179,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
+        extend: [
+            philips.m.addPhilipsGenBasicCluster(),
+            philips.m.addPhilipsMsOccupancySensingCluster(),
+            m.illuminance(),
+            m.identify({isSleepy: true}),
+        ],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -3207,7 +3222,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_indication", ea.ALL, true, false).withDescription("Blink green LED on motion detection"),
             e.numeric("occupancy_timeout", ea.ALL).withUnit("s").withValueMin(0).withValueMax(65535),
         ],
-        extend: [philips.m.addPhilipsGenBasicCluster(), philips.m.addPhilipsMsOccupancySensingCluster(), m.illuminance(), m.identify({isSleepy: true})],
+        extend: [
+            philips.m.addPhilipsGenBasicCluster(),
+            philips.m.addPhilipsMsOccupancySensingCluster(),
+            m.illuminance(),
+            m.identify({isSleepy: true}),
+        ],
         toZigbee: [tz.occupancy_timeout, philips.tz.hue_motion_sensitivity, philips.tz.hue_motion_led_indication],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(2);
@@ -4358,28 +4378,40 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929003535301",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 250 (1st-gen)",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
+        extend: [
+            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: ["LCX015"],
         model: "9290036744",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 250",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
+        extend: [
+            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: ["LCX016"],
         model: "9290036745",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 100",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
+        extend: [
+            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: ["LCX017"],
         model: "929003674601",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 500",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}), m.identify()],
+        extend: [
+            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
+            m.identify(),
+        ],
     },
     {
         zigbeeModel: ["915005987101"],
