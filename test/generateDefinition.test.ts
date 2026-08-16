@@ -87,14 +87,15 @@ describe("GenerateDefinition", () => {
                 endpoints: [{inputClusters: ["msTemperatureMeasurement", "genOnOff"], outputClusters: []}],
             }),
             meta: undefined,
-            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
-            toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature"],
+            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
+            toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
+            exposes: ["power_on_behavior", "switch(state)", "temperature"],
             bind: {1: ["msTemperatureMeasurement", "genOnOff"]},
             read: {
                 1: [
                     ["msTemperatureMeasurement", ["measuredValue"]],
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                 ],
             },
             write: {},
@@ -112,7 +113,7 @@ export default {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
+    extend: [m.temperature(), m.onOff()],
 };
             `,
         });
@@ -126,14 +127,15 @@ export default {
                 endpoints: [{ID: 2, inputClusters: ["msTemperatureMeasurement", "genOnOff"], outputClusters: []}],
             }),
             meta: undefined,
-            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
-            toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature"],
+            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
+            toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
+            exposes: ["power_on_behavior", "switch(state)", "temperature"],
             bind: {2: ["msTemperatureMeasurement", "genOnOff"]},
             read: {
                 2: [
                     ["msTemperatureMeasurement", ["measuredValue"]],
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                 ],
             },
             write: {},
@@ -151,7 +153,7 @@ export default {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
+    extend: [m.temperature(), m.onOff()],
 };
             `,
         });
@@ -168,14 +170,15 @@ export default {
             }),
             meta: {multiEndpoint: true},
             endpoints: {"1": 1, "2": 2},
-            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
-            toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature_1", "temperature_2"],
+            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
+            toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
+            exposes: ["power_on_behavior", "switch(state)", "temperature_1", "temperature_2"],
             bind: {1: ["msTemperatureMeasurement", "genOnOff"], 2: ["msTemperatureMeasurement"]},
             read: {
                 1: [
                     ["msTemperatureMeasurement", ["measuredValue"]],
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                 ],
                 2: [["msTemperatureMeasurement", ["measuredValue"]]],
             },
@@ -195,7 +198,7 @@ export default {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff({"powerOnBehavior":false})],
+    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff()],
 };
             `,
         });
@@ -454,11 +457,12 @@ export default {
                 endpoints: [{inputClusters: ["genOnOff", "seMetering", "haElectricalMeasurement"], outputClusters: [], attributes}],
             }),
             meta: undefined,
-            fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+            fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
             toZigbee: [
                 "state",
                 "on_time",
                 "off_wait_time",
+                "power_on_behavior",
                 "power",
                 "voltage",
                 "current",
@@ -467,11 +471,12 @@ export default {
                 "ac_frequency",
                 "power_factor",
             ],
-            exposes: ["current", "energy", "power", "switch(state)", "voltage"],
+            exposes: ["current", "energy", "power", "power_on_behavior", "switch(state)", "voltage"],
             bind: {1: ["genOnOff", "haElectricalMeasurement", "seMetering"]},
             read: {
                 1: [
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                     ["haElectricalMeasurement", ["acPowerDivisor", "acPowerMultiplier"]],
                     ["haElectricalMeasurement", ["acCurrentDivisor", "acCurrentMultiplier"]],
                     ["haElectricalMeasurement", ["acVoltageDivisor", "acVoltageMultiplier"]],
@@ -503,7 +508,7 @@ export default {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter()],
+    extend: [m.onOff(), m.electricityMeter()],
 };
             `,
         });
