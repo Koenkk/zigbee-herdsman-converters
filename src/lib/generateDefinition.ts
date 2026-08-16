@@ -376,14 +376,14 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
 }
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
-    let endpointNames: string[] | undefined;
+    let endpointName: string[] | undefined;
     const labels: string[] = [];
     const descriptions: string[] = [];
     const homeassistants: HomeAssistant[] = [];
     const name = "binary_input";
 
     if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-        endpointNames = endpoints.map((e) => e.ID.toString());
+        endpointName = endpoints.map((e) => e.ID.toString());
     }
 
     for (const endpoint of endpoints) {
@@ -409,21 +409,21 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         valueOff: ["OFF", 0],
         description: descriptions,
         access: "STATE_GET",
-        endpointNames,
+        endpointName,
         homeassistant: homeassistants,
     };
     return [new ExtendGenerator({extend: m.binary, args, source: "binary"})];
 }
 
 async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
-    let endpointNames: string[] | undefined;
+    let endpointName: string[] | undefined;
     const labels: string[] = [];
     const descriptions: string[] = [];
     const homeassistants: HomeAssistant[] = [];
     const name = "binary_output";
 
     if (!onlyFirstDeviceEnpoint(device, endpoints)) {
-        endpointNames = endpoints.map((e) => e.ID.toString());
+        endpointName = endpoints.map((e) => e.ID.toString());
     }
 
     for (const endpoint of endpoints) {
@@ -449,7 +449,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         valueOff: ["OFF", 0],
         description: descriptions,
         access: "ALL",
-        endpointNames,
+        endpointName,
         homeassistant: homeassistants,
     };
     return [new ExtendGenerator({extend: m.binary, args, source: "binary"})];

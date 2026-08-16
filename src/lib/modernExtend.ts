@@ -3008,8 +3008,7 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     valueOff: [string | boolean, unknown];
     description: string | string[];
     zigbeeCommandOptions?: {manufacturerCode: number};
-    endpointName?: string;
-    endpointNames?: string[];
+    endpointName?: string | string[];
     reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
     label?: string | string[];
@@ -3037,12 +3036,14 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
     const descriptionArray = Array.isArray(description) ? description : [description];
     const labelArray = Array.isArray(label) ? label : [label];
     const homeassistantArray = Array.isArray(homeassistant) ? homeassistant : [homeassistant];
+    let endpoints: string[] | undefined;
+    if (endpointName) {
+        endpoints = Array.isArray(endpointName) ? endpointName : [endpointName];
+    }
 
-    let endpoints = args.endpointNames;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    assert(!(endpoints && endpointName), "Only endpointNames or endpointName can be provided, but not both.");
     if (labelArray.length > 1) {
         assert(
             endpoints && endpoints.length === labelArray.length,
@@ -3060,10 +3061,6 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
             endpoints && endpoints.length === homeassistantArray.length,
             "If multiple homeassistants are provided, endpointNames must be provided and have the same length.",
         );
-    }
-
-    if (endpointName && !endpoints) {
-        endpoints = [endpointName];
     }
 
     const exposes: Expose[] = [];

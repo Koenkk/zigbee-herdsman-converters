@@ -96,9 +96,10 @@ function binaryWithOnOffCommand(args: m.BinaryArgs<"genOnOff", undefined>): Mode
         },
     ];
 
+    const endpoints = Array.isArray(endpointName) ? endpointName : [endpointName];
     const configure: Configure[] = [];
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: [endpointName]}));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints}));
     }
 
     return {...mExtend, toZigbee, configure, isModernExtend: true};
