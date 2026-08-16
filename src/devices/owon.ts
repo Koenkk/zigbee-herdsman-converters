@@ -903,6 +903,31 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
+        fingerprint: [
+            {
+                modelID: "PIR313",
+                manufacturerName: "OWON",
+                endpoints: [
+                    {
+                        ID: 2,
+                        profileID: 260,
+                        deviceID: 262,
+                        inputClusters: [1, 0, 3, 1024],
+                        outputClusters: [3],
+                    },
+                ],
+            },
+        ],
+        model: "PIR313-L",
+        vendor: "OWON",
+        description: "Light sensor",
+        extend: [
+            m.illuminance({
+                reporting: {min: 300, max: 3600, change: 100},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["PIR313-E", "PIR313"],
         model: "PIR313-E",
         vendor: "OWON",
