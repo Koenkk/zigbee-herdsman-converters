@@ -9453,7 +9453,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart switch",
         exposes: [],
         extend: [
-            m.commandsOnOff({commands: ["toggle"]}),
+            // binding and reporting are handled in configure block, skip duplication
+            m.commandsOnOff({commands: ["toggle"], bind: false}),
             m.onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.binary<"customClusterEwelink", SonoffEwelink>({
