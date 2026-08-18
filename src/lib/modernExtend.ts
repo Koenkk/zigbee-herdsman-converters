@@ -988,10 +988,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
         endpointNames = undefined,
     } = args;
 
-    const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: (Expose | DefinitionExposesFunction)[] = endpointNames
-        ? templateExposes.flatMap((exp) => endpointNames.map((ep) => exp.withEndpoint(ep)))
-        : templateExposes;
+    const exposes: (Expose | DefinitionExposesFunction)[] = exposeEndpoints(e.occupancy().withAccess(ea.STATE_GET), endpointNames);
 
     const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
         {
@@ -1000,7 +997,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             options: [opt.no_occupancy_since_false()],
             convert: (model, msg, publish, options, meta) => {
                 if ("occupancy" in msg.data && (!endpointNames || endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
-                    const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
+                    const propertyName = endpointNames ? postfixWithEndpointName("occupancy", msg, model, meta) : "occupancy";
                     const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
                     return payload;

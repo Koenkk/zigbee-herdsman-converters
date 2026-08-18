@@ -1691,19 +1691,30 @@ export const valueConverter = {
         },
     },
     phaseVariant2WithPhase: (phase: string) => {
+        // Payload is 8 bytes: voltage (2), current (3), power (3), same layout as
+        // phaseVariant3/phaseVariant4. Reading only the low 2 bytes of current and
+        // power made the current wrap above 65.536 A.
+        //
+        // Support negative power readings
+        // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
+        // Negative values are not two's complement: they are reported as
+        // NEGATIVE_POWER_OFFSET + power, so the sign bit cannot be used and the
+        // branch is taken on an implausibly high reading instead. The 0x999a
+        // constant previously used here is the low 16 bits of this offset, i.e. an
+        // artifact of the same truncation.
+        const NEGATIVE_POWER_OFFSET = 0x19999a;
+        const IMPLAUSIBLE_POWER = 0x100000; // 1048576 W on a single phase
         return {
             from: (v: string) => {
-                // Support negative power readings
-                // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
                 const buf = Buffer.from(v, "base64");
-                let power = buf[7] | (buf[6] << 8);
-                if (power > 0x7fff) {
-                    power = (0x999a - power) * -1;
+                let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
+                if (power > IMPLAUSIBLE_POWER) {
+                    power -= NEGATIVE_POWER_OFFSET;
                 }
 
                 return {
                     [`voltage_${phase}`]: (buf[1] | (buf[0] << 8)) / 10,
-                    [`current_${phase}`]: (buf[4] | (buf[3] << 8)) / 1000,
+                    [`current_${phase}`]: (buf[4] | (buf[3] << 8) | (buf[2] << 16)) / 1000,
                     [`power_${phase}`]: power,
                 };
             },
