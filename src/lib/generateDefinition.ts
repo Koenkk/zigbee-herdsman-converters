@@ -296,7 +296,7 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         if (!onlyFirstDeviceEnpoint(device, onOffEndpoints)) {
             endpointNames = onOffEndpoints.map((e) => e.ID.toString());
         }
-        generated.push(new ExtendGenerator({extend: m.onOff, args: {powerOnBehavior: false, endpointNames}, source: "onOff"}));
+        generated.push(new ExtendGenerator({extend: m.onOff, args: {endpointNames}, source: "onOff"}));
     }
 
     for (const endpoint of lightEndpoints) {

@@ -552,8 +552,13 @@ export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">>
     });
 }
 
-export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernExtend {
-    const {isSleepy} = args;
+export interface IdentifyArgs {
+    isSleepy?: boolean;
+    endpointNames?: string[];
+}
+
+export function identify(args: IdentifyArgs = {}): ModernExtend {
+    const {isSleepy = false, endpointNames = undefined} = args;
     const normal: Expose = e.enum("identify", ea.SET, ["identify"]).withDescription("Initiate device identification").withCategory("config");
     const sleepy: Expose = e
         .enum("identify", ea.SET, ["identify"])
@@ -563,7 +568,8 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
         )
         .withCategory("config");
 
-    const exposes: Expose[] = isSleepy ? [sleepy] : [normal];
+    const identifyExpose = isSleepy ? sleepy : normal;
+    const exposes: Expose[] = exposeEndpoints(identifyExpose, endpointNames);
 
     const identifyTimeout = e
         .numeric("identify_timeout", ea.SET)
@@ -574,16 +580,16 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
         .withValueMin(1)
         .withValueMax(30);
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ["identify"],
-            options: [identifyTimeout],
-            convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
-                await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
-            },
+    const baseConverter: Tz.Converter = {
+        key: ["identify"],
+        options: [identifyTimeout],
+        convertSet: async (entity, key, value, meta) => {
+            const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
+            await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
         },
-    ];
+    };
+
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...baseConverter, endpoints: endpointNames} : baseConverter];
 
     return {exposes, toZigbee, isModernExtend: true};
 }
