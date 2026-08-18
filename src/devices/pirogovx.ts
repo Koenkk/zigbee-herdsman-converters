@@ -1,3 +1,5 @@
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
 
@@ -21,18 +23,15 @@ const attr = {
 const dataType = {
     boolean: 0x10,
     uint8: 0x20,
-    single: 0x39,
 };
 
 const idToMode = ["off", "auto", "cool", "heat", "dry", "fan_only"];
-const modeToId: {[s: string]: number} = {off: 0, auto: 1, cool: 2, heat: 3, dry: 4, fan_only: 5};
 const idToFan = ["auto", "low", "medium", "high", "quiet"];
 const fanToId: {[s: string]: number} = {auto: 0, low: 1, medium: 2, high: 3, quiet: 4};
 const idToSwing = ["off", "horizontal", "vertical", "both"];
 const swingToId: {[s: string]: number} = {off: 0, horizontal: 1, vertical: 2, both: 3};
 const idToPreset = ["none", "sleep", "turbo"];
 const presetToId: {[s: string]: number} = {none: 0, sleep: 1, turbo: 2};
-const zclSystemModeToMode: {[s: number]: string} = {0: "off", 1: "auto", 3: "cool", 4: "heat", 7: "fan_only", 8: "dry"};
 
 const writeAttr = async (entity: Zh.Endpoint | Zh.Group, attribute: number, value: unknown, type: number) =>
     await entity.write("genAnalogInput", {[attribute]: {value, type}});
@@ -58,19 +57,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
-    thermostat: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg) => {
-            const data = msg.data as KeyValueAny;
-            const result: KeyValueAny = {};
-            if (data.localTemp !== undefined) result.local_temperature = data.localTemp / 100;
-            if (data.occupiedCoolingSetpoint !== undefined) result.occupied_heating_setpoint = data.occupiedCoolingSetpoint / 100;
-            if (data.occupiedHeatingSetpoint !== undefined) result.occupied_heating_setpoint = data.occupiedHeatingSetpoint / 100;
-            if (data.systemMode !== undefined) result.system_mode = zclSystemModeToMode[data.systemMode] ?? "auto";
-            return result;
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -80,30 +66,6 @@ const tzLocal = {
             const on = value === "ON" || value === true;
             await writeAttr(entity, attr.power, on, dataType.boolean);
             return {state: {state: on ? "ON" : "OFF", system_mode: on ? "cool" : "off"}};
-        },
-    } satisfies Tz.Converter,
-    system_mode: {
-        key: ["system_mode"],
-        convertSet: async (entity, key, value) => {
-            const mode = String(value);
-            if (!(mode in modeToId)) throw new Error(`Unsupported system_mode ${mode}`);
-            await writeAttr(entity, attr.mode, modeToId[mode], dataType.uint8);
-            return {state: {system_mode: mode, state: mode === "off" ? "OFF" : "ON"}};
-        },
-        convertGet: async (entity) => {
-            await readAttr(entity, attr.mode);
-        },
-    } satisfies Tz.Converter,
-    occupied_heating_setpoint: {
-        key: ["occupied_heating_setpoint", "occupied_cooling_setpoint", "current_heating_setpoint", "current_cooling_setpoint"],
-        convertSet: async (entity, key, value) => {
-            const temp = Number(value);
-            if (!Number.isFinite(temp) || temp < 16 || temp > 30) throw new Error("Temperature must be between 16 and 30");
-            await writeAttr(entity, attr.targetTemp, temp, dataType.single);
-            return {state: {occupied_heating_setpoint: temp}};
-        },
-        convertGet: async (entity) => {
-            await readAttr(entity, attr.targetTemp);
         },
     } satisfies Tz.Converter,
     fan_mode: {
@@ -161,11 +123,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB-MIDEA-AC",
         vendor: "PirogovX",
         description: "Zigbee air conditioner controller for Midea / Royal Clima / Hommyn / Neoline (ESP32-H2/C6)",
-        fromZigbee: [fzLocal.acAnalog, fzLocal.thermostat],
+        fromZigbee: [fzLocal.acAnalog, fz.thermostat],
         toZigbee: [
             tzLocal.state,
-            tzLocal.system_mode,
-            tzLocal.occupied_heating_setpoint,
+            tz.thermostat_system_mode,
+            tz.thermostat_occupied_heating_setpoint,
             tzLocal.fan_mode,
             tzLocal.swing_mode,
             tzLocal.preset,
