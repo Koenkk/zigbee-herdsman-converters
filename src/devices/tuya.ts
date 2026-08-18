@@ -3386,7 +3386,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vvmbj46n", "_TZE284_vvmbj46n", "_TZE200_w6n8jeuu", "_TZE284_cwyqwqbf"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_vvmbj46n",
+            "_TZE284_vvmbj46n",
+            "_TZE200_w6n8jeuu",
+            "_TZE284_cwyqwqbf",
+            "_TZE2841000000_qf5mzewi", // ONENUO TH05Z - has calibration (DP23/24) instead of DP18
+        ]),
         model: "ZTH05Z",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
@@ -3426,27 +3432,87 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMin(1)
                     .withValueMax(120)
                     .withDescription("Temp periodic report"),
-                e
-                    .numeric("humidity_periodic_report", ea.STATE_SET)
-                    .withUnit("min")
-                    .withValueMin(1)
-                    .withValueMax(120)
-                    .withDescription("Humidity periodic report"),
-                e
-                    .numeric("temperature_sensitivity", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(0.3)
-                    .withValueMax(1)
-                    .withValueStep(0.1)
-                    .withDescription("Sensitivity of temperature"),
-                e
-                    .numeric("humidity_sensitivity", ea.STATE_SET)
-                    .withUnit("%")
-                    .withValueMin(3)
-                    .withValueMax(10)
-                    .withValueStep(1)
-                    .withDescription("Sensitivity of humidity"),
             ];
+
+            if (device.manufacturerName !== "_TZE2841000000_qf5mzewi") {
+                // Original ZTH05Z position for this expose - unchanged.
+                // Not present on the ONENUO TH05Z (_TZE2841000000_qf5mzewi) batch:
+                // this unit never reports DP18, tested empirically.
+                exps.push(
+                    e
+                        .numeric("humidity_periodic_report", ea.STATE_SET)
+                        .withUnit("min")
+                        .withValueMin(1)
+                        .withValueMax(120)
+                        .withDescription("Humidity periodic report"),
+                );
+            }
+
+            if (device.manufacturerName === "_TZE2841000000_qf5mzewi") {
+                // ONENUO TH05Z (this specific firmware batch): wider sensitivity
+                // range than other ZTH05Z batches
+                exps.push(
+                    e
+                        .numeric("temperature_sensitivity", ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(0.6)
+                        .withValueMax(2)
+                        .withValueStep(0.1)
+                        .withDescription("Sensitivity of temperature"),
+                );
+                exps.push(
+                    e
+                        .numeric("humidity_sensitivity", ea.STATE_SET)
+                        .withUnit("%")
+                        .withValueMin(6)
+                        .withValueMax(20)
+                        .withValueStep(1)
+                        .withDescription("Sensitivity of humidity"),
+                );
+            } else {
+                exps.push(
+                    e
+                        .numeric("temperature_sensitivity", ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(0.3)
+                        .withValueMax(1)
+                        .withValueStep(0.1)
+                        .withDescription("Sensitivity of temperature"),
+                );
+                exps.push(
+                    e
+                        .numeric("humidity_sensitivity", ea.STATE_SET)
+                        .withUnit("%")
+                        .withValueMin(3)
+                        .withValueMax(10)
+                        .withValueStep(1)
+                        .withDescription("Sensitivity of humidity"),
+                );
+            }
+
+            if (device.manufacturerName === "_TZE2841000000_qf5mzewi") {
+                // ONENUO TH05Z (this specific firmware batch): has calibration,
+                // which the other ZTH05Z batches don't have. Purely additive -
+                // doesn't move or replace anything for other manufacturerNames.
+                exps.push(
+                    tuya.exposes
+                        .temperatureCalibration()
+                        .withDescription(
+                            "Calibration offset applied to the measured temperature. Takes effect on the device's next report/wake cycle, not instantly.",
+                        ),
+                );
+                exps.push(
+                    e
+                        .numeric("humidity_calibration", ea.STATE_SET)
+                        .withUnit("%")
+                        .withValueMin(-20)
+                        .withValueMax(20)
+                        .withValueStep(1)
+                        .withDescription(
+                            "Calibration offset applied to the measured humidity. Takes effect on the device's next report/wake cycle, not instantly.",
+                        ),
+                );
+            }
 
             if (device && device.manufacturerName === "_TZE284_cwyqwqbf") {
                 exps.push(tuya.exposes.batteryState());
@@ -3489,10 +3555,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [18, "humidity_periodic_report", tuya.valueConverter.raw],
                 [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
                 [20, "humidity_sensitivity", tuya.valueConverter.raw],
+                // DP23/24: only present on the ONENUO _TZE2841000000_qf5mzewi
+                [23, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [24, "humidity_calibration", tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [
-            tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", ["_TZE200_vvmbj46n"]),
+            tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", [
+                "_TZE200_vvmbj46n",
+                "_TZE2841000000_qf5mzewi",
+            ]),
             tuya.whitelabel("Tuya", "TZE284_cwyqwqbf", "Temperature & humidity sensor with LCD clock", ["_TZE284_cwyqwqbf"]),
         ],
     },
