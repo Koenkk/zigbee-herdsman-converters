@@ -4910,7 +4910,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["929004321001"],
+        zigbeeModel: ["929004321001", "929004321101"],
         model: "929004321001",
         vendor: "Philips",
         description: "Hue Play Floor lamp large",
