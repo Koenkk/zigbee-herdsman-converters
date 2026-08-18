@@ -650,7 +650,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.ws01_action, fzLocal.ws01_switch_config],
         toZigbee: [tzLocal.ws01_operation_mode, tzLocal.ws01_wireless_led_status, tzLocal.ws01_led_feedback_mode],
         exposes: (device, options) => ws01Exposes(4),
-        extend: [terncyExtend.addClusterAduroSmart(), m.deviceEndpoints({endpoints: WS01_ENDPOINTS}), m.onOff({endpointNames: ["l1", "l2", "l3", "l4"]})],
+        extend: [
+            terncyExtend.addClusterAduroSmart(),
+            m.deviceEndpoints({endpoints: WS01_ENDPOINTS}),
+            m.onOff({endpointNames: ["l1", "l2", "l3", "l4"]}),
+        ],
         meta: {multiEndpoint: true},
     },
     {
@@ -694,7 +698,11 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fzLocal.ws01_action, fzLocal.ws01_switch_config],
         toZigbee: [tzLocal.ws01_operation_mode, tzLocal.ws01_wireless_led_status, tzLocal.ws01_led_feedback_mode],
         exposes: (device, options) => ws01Exposes(4),
-        extend: [terncyExtend.addClusterAduroSmart(), m.deviceEndpoints({endpoints: WS01_ENDPOINTS}), m.onOff({endpointNames: ["l1", "l2", "l3", "l4"]})],
+        extend: [
+            terncyExtend.addClusterAduroSmart(),
+            m.deviceEndpoints({endpoints: WS01_ENDPOINTS}),
+            m.onOff({endpointNames: ["l1", "l2", "l3", "l4"]}),
+        ],
         meta: {multiEndpoint: true},
     },
     {
