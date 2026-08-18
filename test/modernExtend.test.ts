@@ -283,6 +283,7 @@ describe("ModernExtend", () => {
                 "gradient_scene",
                 "gradient",
                 "gradient_style",
+                "identify",
             ],
             exposes: [
                 "effect",
@@ -293,6 +294,7 @@ describe("ModernExtend", () => {
                 "gradient_scale",
                 "gradient_scene",
                 "gradient_style",
+                "identify",
                 "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
 
                 "power_on_behavior",
