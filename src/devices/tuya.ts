@@ -29765,10 +29765,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
             e
                 .enum("fertility_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Fertility warning status: none=fertility between v0/v1; low=between below v0; high=above v1"),
+                .withDescription("Fertility warning. Low: Fertility is lower than v0 and v1. High: Fertility is higher than v0 and v1"),
             e
                 .enum("moisture_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Moisture warning status: none=moisture between v0/v1; low=below v0; high=above v1"),
+                .withDescription("Moisture warning. Low: Moisture is lower than v0 and v1. High: Moisture is higher than v0 and v1"),
             e
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
@@ -29869,35 +29869,34 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
-                .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
+                .withDescription("Fertility v0 threshold setting"),
             e
                 .numeric("fertility_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
-                .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
+                .withDescription("Fertility v1 threshold setting"),
             e
                 .numeric("moisture_calibration", ea.STATE_SET)
-                .withValueMin(-30)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Moisture calibration value"),
+                .withValueMin(0.2)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withDescription("Coefficient 0.2~1.5. Higher for loose‑hard soil, lower for wet soft clay."),
             e
                 .numeric("moisture_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture low threshold setting"),
+                .withDescription("Moisture v0 threshold setting"),
             e
                 .numeric("moisture_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture high threshold setting"),
+                .withDescription("Moisture v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -29926,7 +29925,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "moisture", tuya.valueConverter.raw],
                 [129, "moisture_v0_set", tuya.valueConverter.raw],
                 [130, "moisture_v1_set", tuya.valueConverter.raw],
-                [131, "moisture_calibration", tuya.valueConverter.raw],
+                [131, "moisture_calibration", tuya.valueConverter.divideBy100],
                 [132, "moisture_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
@@ -29953,7 +29952,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
             e
                 .enum("moisture_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Moisture warning status: none=moisture between v0/v1; low=below v0; high=above v1"),
+                .withDescription("Moisture warning. Low: Moisture is lower than v0 and v1. High: Moisture is higher than v0 and v1"),
             e
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
@@ -30037,25 +30036,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity v1 threshold setting"),
             e
                 .numeric("moisture_calibration", ea.STATE_SET)
-                .withValueMin(-30)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Moisture calibration value"),
+                .withValueMin(0.2)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withDescription("Coefficient 0.2~1.5. Higher for loose‑hard soil, lower for wet soft clay."),
             e
                 .numeric("moisture_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture low threshold setting"),
+                .withDescription("Moisture v0 threshold setting"),
             e
                 .numeric("moisture_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture high threshold setting"),
+                .withDescription("MMoisture v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -30079,7 +30077,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "moisture", tuya.valueConverter.raw],
                 [129, "moisture_v0_set", tuya.valueConverter.raw],
                 [130, "moisture_v1_set", tuya.valueConverter.raw],
-                [131, "moisture_calibration", tuya.valueConverter.raw],
+                [131, "moisture_calibration", tuya.valueConverter.divideBy100],
                 [132, "moisture_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
