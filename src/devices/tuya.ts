@@ -3703,6 +3703,21 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.co2()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_pkpfn9hc"]),
+        model: "TS0601_co2_temperature_humidity_sensor",
+        vendor: "Tuya",
+        description: "CO2/temperature/humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [e.co2(), e.temperature(), e.humidity()],
+        meta: {
+            tuyaDatapoints: [
+                [2, "co2", tuya.valueConverter.raw],
+                [18, "temperature", tuya.valueConverter.divideBy10],
+                [19, "humidity", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7bztmfm1", "_TZE204_7bztmfm1"]),
         model: "DCR-CO",
         vendor: "Tuya",
