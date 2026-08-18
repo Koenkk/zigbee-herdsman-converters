@@ -29877,10 +29877,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("μS/cm")
                 .withDescription("Fertility v1 threshold setting"),
-             e
+            e
                 .numeric("moisture_calibration", ea.STATE_SET)
-                .withValueMin(0.20)
-                .withValueMax(1.50)
+                .withValueMin(0.2)
+                .withValueMax(1.5)
                 .withValueStep(0.01)
                 .withDescription("Coefficient 0.2~1.5. Higher for loose‑hard soil, lower for wet soft clay."),
             e
@@ -30036,8 +30036,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity v1 threshold setting"),
             e
                 .numeric("moisture_calibration", ea.STATE_SET)
-                .withValueMin(0.20)
-                .withValueMax(1.50)
+                .withValueMin(0.2)
+                .withValueMax(1.5)
                 .withValueStep(0.01)
                 .withDescription("Coefficient 0.2~1.5. Higher for loose‑hard soil, lower for wet soft clay."),
             e
