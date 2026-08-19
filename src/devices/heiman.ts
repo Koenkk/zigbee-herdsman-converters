@@ -4144,8 +4144,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["M1-PE"],
-        model: "M1-PE",
+        zigbeeModel: ["M1-PE", "M1P-E"],
+        model: "M1P-E",
         vendor: "Heiman",
         description: "Smart occupancy sensor",
         configure: async (device, cordinatorEndpoint) => {
