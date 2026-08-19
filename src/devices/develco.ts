@@ -830,13 +830,12 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
             {vendor: "Cavius", model: "2103", description: "RF SMOKE ALARM, 5 YEAR 65MM"},
         ],
-        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, develco.fz.fault_status],
-        toZigbee: [tz.warning, tz.warning_simple],
+        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            m.iasWarningMaxDuration(),
             develcoModernExtend.temperature(), // TODO: ep 38
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
@@ -868,6 +867,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.smoke(),
             e.battery_low(),
             e.test(),
+            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
             e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual Start of Siren"),
             e
                 .enum("reliability", ea.STATE, ["no_fault_detected", "unreliable_other", "process_error"])
@@ -907,13 +907,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Develco",
         description: "Fire detector with siren",
         whiteLabel: [{vendor: "Frient", model: "94431", description: "Smart Intelligent Heat Alarm"}],
-        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, develco.fz.fault_status],
-        toZigbee: [tz.warning, tz.warning_simple],
+        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
+        toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
         ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            m.iasWarningMaxDuration(),
             develcoModernExtend.temperature(), // TODO: ep 38
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
@@ -946,6 +945,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.smoke(),
             e.battery_low(),
             e.test(),
+            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
             e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual Start of Siren"),
             e
                 .enum("reliability", ea.STATE, ["no_fault_detected", "unreliable_other", "process_error"])
@@ -1361,12 +1361,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIRZB-110",
         vendor: "Develco",
         description: "Customizable siren",
-        fromZigbee: [fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning, tz.warning_simple, tz.squawk],
+        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
+        toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            m.iasWarningMaxDuration(),
             develcoModernExtend.temperature(),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
@@ -1394,6 +1393,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.test(),
             e.warning(),
             e.squawk(),
+            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Max duration of the siren"),
             e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of the siren"),
         ],
     },
@@ -1402,12 +1402,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIRZB-111",
         vendor: "Develco",
         description: "Customizable siren",
-        fromZigbee: [fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning, tz.warning_simple, tz.squawk],
+        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
+        toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            m.iasWarningMaxDuration(),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
@@ -1434,6 +1433,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.test(),
             e.warning(),
             e.squawk(),
+            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Max duration of the siren"),
             e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of the siren"),
         ],
     },

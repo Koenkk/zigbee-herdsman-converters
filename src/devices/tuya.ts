@@ -928,6 +928,8 @@ const tzLocal = {
             if (key === "light") {
                 utils.assertString(value, "light");
                 await entity.command("genOnOff", value.toLowerCase() === "on" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
+            } else if (key === "duration") {
+                await entity.write("ssIasWd", {maxDuration: value as number}, utils.getOptions(meta.mapped, entity));
             } else if (key === "volume") {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
@@ -16639,10 +16641,16 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart light & sound siren",
         fromZigbee: [],
         toZigbee: [tz.warning, tzLocal.TS0224],
-        extend: [m.iasWarningMaxDuration()],
         exposes: [
             e.warning(),
             e.binary("light", ea.STATE_SET, "ON", "OFF").withDescription("Turn the light of the alarm ON/OFF"),
+            e
+                .numeric("duration", ea.STATE_SET)
+                .withValueMin(60)
+                .withValueMax(3600)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Duration of the alarm"),
             e.enum("volume", ea.STATE_SET, ["mute", "low", "medium", "high"]).withDescription("Volume of the alarm"),
         ],
     },
