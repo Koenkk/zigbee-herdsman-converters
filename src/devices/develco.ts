@@ -907,13 +907,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Develco",
         description: "Fire detector with siren",
         whiteLabel: [{vendor: "Frient", model: "94431", description: "Smart Intelligent Heat Alarm"}],
-        fromZigbee: [develco.fz.ias_smoke_alarm_1_develco, fz.ias_enroll, fz.ias_wd, develco.fz.fault_status],
-        toZigbee: [tz.warning, tz.ias_max_duration, tz.warning_simple],
+        fromZigbee: [],
+        toZigbee: [],
         ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.temperature(), // TODO: ep 38
+            develcoModernExtend.faultStatus(),
+            m.temperature({endpointNames: ["38"]}),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
@@ -922,36 +923,27 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
+                zoneStatusReporting: true,
+            }),
+            m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 600}}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(35);
 
             // Device supports only 4 binds (otherwise you get TABLE_FULL error)
             // https://github.com/Koenkk/zigbee2mqtt/issues/23684
-            if (endpoint.binds.some((b) => b.cluster.name === "genPollCtrl")) {
-                await endpoint.unbind("genPollCtrl", coordinatorEndpoint);
-            }
-
-            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone", "ssIasWd", "genBinaryInput"]);
+            //
+            // Bindings of non-reportable clusters have been removed.
 
             await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
-            await endpoint.read("genBinaryInput", ["reliability", "statusFlags"]);
             await endpoint.read("ssIasWd", ["maxDuration"]);
         },
         endpoint: (device) => {
             return {default: 35};
         },
-        exposes: [
-            e.smoke(),
-            e.battery_low(),
-            e.test(),
-            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
-            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual Start of Siren"),
-            e
-                .enum("reliability", ea.STATE, ["no_fault_detected", "unreliable_other", "process_error"])
-                .withDescription("Indicates reason if any fault"),
-            e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether the device are in fault state"),
-        ],
     },
     {
         zigbeeModel: ["WISZB-120"],

@@ -1878,9 +1878,10 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
 export interface IasWarningArgs {
     reversePayload?: boolean;
+    maxDuration?: boolean | {min?: number; max?: number};
 }
 export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
-    const {reversePayload = false} = args;
+    const {reversePayload = false, maxDuration = false} = args;
     const warningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
     // levels for siren, strobe and squawk are identical
     const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -1895,6 +1896,43 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
             .withFeature(e.numeric("strobe_duty_cycle", ea.SET).withValueMax(10).withValueMin(0).withDescription("Length of the flash cycle"))
             .withFeature(e.numeric("duration", ea.SET).withUnit("s").withDescription("Duration in seconds of the alarm")),
     ];
+
+    const maxDurationArgs = typeof maxDuration === "object" ? maxDuration : {};
+    if (maxDuration) {
+        exposes.push(
+            e
+                .numeric("max_duration", ea.ALL)
+                .withUnit("s")
+                .withValueMin(maxDurationArgs.min ?? 0)
+                .withValueMax(maxDurationArgs.max ?? 600)
+                .withDescription("Max duration in seconds of the alarm"),
+        );
+    }
+
+    const fromZigbee = maxDuration
+        ? [
+              {
+                  cluster: "ssIasWd",
+                  type: ["attributeReport", "readResponse"],
+                  convert: (model, msg, publish, options, meta) => {
+                      const result: KeyValueAny = {};
+                      if (msg.data.maxDuration !== undefined) result.max_duration = msg.data.maxDuration;
+                      return result;
+                  },
+              } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
+          ]
+        : [];
+
+    const maxDurationConverter: Tz.Converter = {
+        key: ["max_duration"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {maxDuration: value as number});
+            return {state: {max_duration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", ["maxDuration"]);
+        },
+    };
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -1912,7 +1950,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     // @ts-expect-error ignore
                     strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, level) : 1,
                 };
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -1933,8 +1971,10 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                 await entity.command("ssIasWd", "startWarning", payload, getOptions(meta.mapped, entity));
             },
         },
+        ...(maxDuration ? [maxDurationConverter] : []),
     ];
-    return {toZigbee, exposes, isModernExtend: true};
+
+    return {fromZigbee, toZigbee, exposes, isModernExtend: true};
 }
 
 // #endregion
