@@ -8015,6 +8015,21 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior(), tuya.exposes.switchType()],
     },
     {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bzzgvet0"]),
+        model: "ZS-US1-LN",
+        vendor: "Moes",
+        description: "Smart light switch - 1 gang",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                backlightModeOffNormalInverted: true,
+                switchType: true,
+                switchMode: true,
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["TS0001"],
         model: "TS0001",
         vendor: "Tuya",
