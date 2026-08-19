@@ -4810,9 +4810,14 @@ function writeW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number,
 }
 
 function getNextW600SensorBindingCounter(entity: Zh.Device | Zh.Endpoint) {
-    const storeKey = getW600DeviceStoreKey(entity);
-    const counter = globalStore.getValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, 0x12);
-    globalStore.putValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, (counter + 1) & 0xff);
+    const device = "ieeeAddr" in entity ? entity : entity.getDevice();
+    const counter =
+        typeof device.meta?.[W600_SENSOR_BINDING_COUNTER_STORE_KEY] === "number" ? device.meta[W600_SENSOR_BINDING_COUNTER_STORE_KEY] : 0x12;
+
+    device.meta ??= {};
+    device.meta[W600_SENSOR_BINDING_COUNTER_STORE_KEY] = (counter + 1) & 0xff;
+    device.save();
+
     return counter;
 }
 
@@ -5629,21 +5634,49 @@ function createW600Thermostat(): ModernExtend {
         .withDescription("Duration in minutes for the current manual override. 0 means until next schedule event, 65535 means indefinitely.");
     extend.exposes?.push(
         e.binary("override_active", ea.STATE, true, false).withLabel("Manual Override").withDescription("Temporary manual override active"),
+        e
+            .numeric("internal_temperature", ea.STATE)
+            .withUnit("°C")
+            .withLabel("Internal radiator temperature")
+            .withDescription("Temperature reported by the W600 physical radiator sensor on endpoint 2")
+            .withCategory("diagnostic"),
+        e
+            .numeric("endpoint_2_occupied_heating_setpoint", ea.STATE)
+            .withUnit("°C")
+            .withLabel("Endpoint 2 heating setpoint")
+            .withDescription("Heating setpoint reported by W600 endpoint 2; kept separate from the active climate target")
+            .withCategory("diagnostic"),
     );
 
     const thermostatConverter = {
         cluster: W600_THERMOSTAT_CLUSTER,
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+            const endpoint2 = msg.endpoint.ID === 2;
+            const data = endpoint2 ? {...msg.data} : msg.data;
+            const diagnostics: KeyValue = {};
 
-            if (result && msg.data.tempSetpointHold !== undefined) {
+            if (endpoint2) {
+                if (typeof data.localTemp === "number") diagnostics.internal_temperature = data.localTemp / 100;
+                if (typeof data.occupiedHeatingSetpoint === "number") {
+                    diagnostics.endpoint_2_occupied_heating_setpoint = data.occupiedHeatingSetpoint / 100;
+                }
+                delete data.localTemp;
+                delete data.occupiedHeatingSetpoint;
+            }
+
+            const result = {
+                ...(fz.thermostat.convert(model, endpoint2 ? {...msg, data} : msg, publish, options, meta) as KeyValueAny | undefined),
+                ...diagnostics,
+            };
+
+            if (msg.data.tempSetpointHold !== undefined) {
                 const holdProperty = postfixWithEndpointName("temperature_setpoint_hold", msg, model, meta);
                 result.override_active = msg.data.tempSetpointHold === 1;
                 delete result[holdProperty];
             }
 
-            return result;
+            return Object.keys(result).length > 0 ? result : undefined;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
 
@@ -5887,15 +5920,6 @@ function createW600Thermostat(): ModernExtend {
     );
 
     extend.configure ??= [];
-    const configureOverrideActive = modernExtend.setupConfigureForReporting(W600_THERMOSTAT_CLUSTER, "tempSetpointHold", {
-        config: {min: "MIN", max: "1_HOUR", change: 0},
-        access: ea.STATE_GET,
-    });
-
-    if (configureOverrideActive) {
-        extend.configure.push(configureOverrideActive);
-    }
-
     extend.configure.push(async (device) => {
         const endpoint = device.getEndpoint(1);
         await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SYSTEM_MODE, W600_ATTR_SCHEDULE, W600_ATTR_PRESET], {manufacturerCode});
