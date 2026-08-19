@@ -608,16 +608,6 @@ export const warning: Tz.Converter = {
         );
     },
 };
-export const ias_max_duration: Tz.Converter = {
-    key: ["max_duration"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {maxDuration: value as number});
-        return {state: {max_duration: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", ["maxDuration"]);
-    },
-};
 export const warning_simple: Tz.Converter = {
     key: ["alarm"],
     convertSet: async (entity, key, value, meta) => {
