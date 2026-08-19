@@ -4569,7 +4569,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             m.identify(),
-            m.light({color: true, effect: false, configureReporting: true}),
+            m.light({
+                color: {modes: ["hs"]},
+                colorTemp: {range: [153, 500]},
+                effect: false,
+                configureReporting: true,
+            }),
             m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
             m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
             heimanExtend.heimanClusterSpecial(),
