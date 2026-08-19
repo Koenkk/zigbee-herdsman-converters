@@ -4811,8 +4811,9 @@ function writeW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number,
 
 function getNextW600SensorBindingCounter(entity: Zh.Device | Zh.Endpoint) {
     const device = "ieeeAddr" in entity ? entity : entity.getDevice();
+    const storedCounter = device.meta?.[W600_SENSOR_BINDING_COUNTER_STORE_KEY];
     const counter =
-        typeof device.meta?.[W600_SENSOR_BINDING_COUNTER_STORE_KEY] === "number" ? device.meta[W600_SENSOR_BINDING_COUNTER_STORE_KEY] : 0x12;
+        typeof storedCounter === "number" && Number.isInteger(storedCounter) && storedCounter >= 0 && storedCounter <= 0xff ? storedCounter : 0x12;
 
     device.meta ??= {};
     device.meta[W600_SENSOR_BINDING_COUNTER_STORE_KEY] = (counter + 1) & 0xff;
