@@ -3386,7 +3386,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vvmbj46n", "_TZE284_vvmbj46n", "_TZE200_w6n8jeuu", "_TZE284_cwyqwqbf"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_vvmbj46n",
+            "_TZE284_vvmbj46n",
+            "_TZE200_w6n8jeuu",
+            "_TZE284_cwyqwqbf",
+            "_TZE2841000000_qf5mzewi", // ONENUO TH05Z - has calibration (DP23/24) instead of DP18
+        ]),
         model: "ZTH05Z",
         vendor: "Tuya",
         description: "Temperature and humidity sensor",
@@ -3426,27 +3432,87 @@ export const definitions: DefinitionWithExtend[] = [
                     .withValueMin(1)
                     .withValueMax(120)
                     .withDescription("Temp periodic report"),
-                e
-                    .numeric("humidity_periodic_report", ea.STATE_SET)
-                    .withUnit("min")
-                    .withValueMin(1)
-                    .withValueMax(120)
-                    .withDescription("Humidity periodic report"),
-                e
-                    .numeric("temperature_sensitivity", ea.STATE_SET)
-                    .withUnit("°C")
-                    .withValueMin(0.3)
-                    .withValueMax(1)
-                    .withValueStep(0.1)
-                    .withDescription("Sensitivity of temperature"),
-                e
-                    .numeric("humidity_sensitivity", ea.STATE_SET)
-                    .withUnit("%")
-                    .withValueMin(3)
-                    .withValueMax(10)
-                    .withValueStep(1)
-                    .withDescription("Sensitivity of humidity"),
             ];
+
+            if (device.manufacturerName !== "_TZE2841000000_qf5mzewi") {
+                // Original ZTH05Z position for this expose - unchanged.
+                // Not present on the ONENUO TH05Z (_TZE2841000000_qf5mzewi) batch:
+                // this unit never reports DP18, tested empirically.
+                exps.push(
+                    e
+                        .numeric("humidity_periodic_report", ea.STATE_SET)
+                        .withUnit("min")
+                        .withValueMin(1)
+                        .withValueMax(120)
+                        .withDescription("Humidity periodic report"),
+                );
+            }
+
+            if (device.manufacturerName === "_TZE2841000000_qf5mzewi") {
+                // ONENUO TH05Z (this specific firmware batch): wider sensitivity
+                // range than other ZTH05Z batches
+                exps.push(
+                    e
+                        .numeric("temperature_sensitivity", ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(0.6)
+                        .withValueMax(2)
+                        .withValueStep(0.1)
+                        .withDescription("Sensitivity of temperature"),
+                );
+                exps.push(
+                    e
+                        .numeric("humidity_sensitivity", ea.STATE_SET)
+                        .withUnit("%")
+                        .withValueMin(6)
+                        .withValueMax(20)
+                        .withValueStep(1)
+                        .withDescription("Sensitivity of humidity"),
+                );
+            } else {
+                exps.push(
+                    e
+                        .numeric("temperature_sensitivity", ea.STATE_SET)
+                        .withUnit("°C")
+                        .withValueMin(0.3)
+                        .withValueMax(1)
+                        .withValueStep(0.1)
+                        .withDescription("Sensitivity of temperature"),
+                );
+                exps.push(
+                    e
+                        .numeric("humidity_sensitivity", ea.STATE_SET)
+                        .withUnit("%")
+                        .withValueMin(3)
+                        .withValueMax(10)
+                        .withValueStep(1)
+                        .withDescription("Sensitivity of humidity"),
+                );
+            }
+
+            if (device.manufacturerName === "_TZE2841000000_qf5mzewi") {
+                // ONENUO TH05Z (this specific firmware batch): has calibration,
+                // which the other ZTH05Z batches don't have. Purely additive -
+                // doesn't move or replace anything for other manufacturerNames.
+                exps.push(
+                    tuya.exposes
+                        .temperatureCalibration()
+                        .withDescription(
+                            "Calibration offset applied to the measured temperature. Takes effect on the device's next report/wake cycle, not instantly.",
+                        ),
+                );
+                exps.push(
+                    e
+                        .numeric("humidity_calibration", ea.STATE_SET)
+                        .withUnit("%")
+                        .withValueMin(-20)
+                        .withValueMax(20)
+                        .withValueStep(1)
+                        .withDescription(
+                            "Calibration offset applied to the measured humidity. Takes effect on the device's next report/wake cycle, not instantly.",
+                        ),
+                );
+            }
 
             if (device && device.manufacturerName === "_TZE284_cwyqwqbf") {
                 exps.push(tuya.exposes.batteryState());
@@ -3489,10 +3555,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [18, "humidity_periodic_report", tuya.valueConverter.raw],
                 [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
                 [20, "humidity_sensitivity", tuya.valueConverter.raw],
+                // DP23/24: only present on the ONENUO _TZE2841000000_qf5mzewi
+                [23, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [24, "humidity_calibration", tuya.valueConverter.raw],
             ],
         },
         whiteLabel: [
-            tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", ["_TZE200_vvmbj46n"]),
+            tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", [
+                "_TZE200_vvmbj46n",
+                "_TZE2841000000_qf5mzewi",
+            ]),
             tuya.whitelabel("Tuya", "TZE284_cwyqwqbf", "Temperature & humidity sensor with LCD clock", ["_TZE284_cwyqwqbf"]),
         ],
     },
@@ -18026,21 +18098,21 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
-                [23, "produced_energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase("l1")],
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("l2")],
+                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [23, "produced_energy", tuya.valueConverter.divideBy100],
                 [29, "power", tuya.valueConverter.raw],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
                 [50, "power_factor", tuya.valueConverter.raw],
-                // [12, 'clear_energy', tuya.valueConverter.onOff],
+                [53, "energy_l1", tuya.valueConverter.divideBy100],
+                [54, "energy_l2", tuya.valueConverter.divideBy100],
+                [57, "energy_produced_l1", tuya.valueConverter.divideBy100],
+                [58, "energy_produced_l2", tuya.valueConverter.divideBy100],
                 [101, "device_locating", tuya.valueConverter.onOff],
                 [102, "update_frequency", tuya.valueConverterBasic.divideBy(1)],
                 [108, "power_factor_l1", tuya.valueConverter.raw],
-                [53, "energy_l1", tuya.valueConverter.divideBy100],
-                [54, "energy_produced_l1", tuya.valueConverter.divideBy100],
                 [117, "power_factor_l2", tuya.valueConverter.raw],
-                [57, "energy_l2", tuya.valueConverter.divideBy100],
-                [58, "energy_produced_l2", tuya.valueConverter.divideBy100],
             ],
         },
     },
@@ -29765,10 +29837,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
             e
                 .enum("fertility_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Fertility warning status: none=fertility between v0/v1; low=between below v0; high=above v1"),
+                .withDescription("Fertility warning. Low: Fertility is lower than v0 and v1. High: Fertility is higher than v0 and v1"),
             e
                 .enum("moisture_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Moisture warning status: none=moisture between v0/v1; low=below v0; high=above v1"),
+                .withDescription("Moisture warning. Low: Moisture is lower than v0 and v1. High: Moisture is higher than v0 and v1"),
             e
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
@@ -29869,35 +29941,34 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
-                .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
+                .withDescription("Fertility v0 threshold setting"),
             e
                 .numeric("fertility_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(5000)
                 .withValueStep(1)
                 .withUnit("μS/cm")
-                .withDescription("When the soil fertility value is lower than what threshold should a warning be issued"),
+                .withDescription("Fertility v1 threshold setting"),
             e
                 .numeric("moisture_calibration", ea.STATE_SET)
-                .withValueMin(-30)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Moisture calibration value"),
+                .withValueMin(0.2)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withDescription("Coefficient 0.2~1.5. Higher for loose‑hard soil, lower for wet soft clay."),
             e
                 .numeric("moisture_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture low threshold setting"),
+                .withDescription("Moisture v0 threshold setting"),
             e
                 .numeric("moisture_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture high threshold setting"),
+                .withDescription("Moisture v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -29926,7 +29997,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "moisture", tuya.valueConverter.raw],
                 [129, "moisture_v0_set", tuya.valueConverter.raw],
                 [130, "moisture_v1_set", tuya.valueConverter.raw],
-                [131, "moisture_calibration", tuya.valueConverter.raw],
+                [131, "moisture_calibration", tuya.valueConverter.divideBy100],
                 [132, "moisture_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
@@ -29953,7 +30024,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity warning. Low: humidity is lower than v0 and v1. High: humidity is higher than v0 and v1"),
             e
                 .enum("moisture_warning", ea.STATE, ["none", "low", "high"])
-                .withDescription("Moisture warning status: none=moisture between v0/v1; low=below v0; high=above v1"),
+                .withDescription("Moisture warning. Low: Moisture is lower than v0 and v1. High: Moisture is higher than v0 and v1"),
             e
                 .numeric("probe_temperature", ea.STATE)
                 .withValueMin(-40)
@@ -30037,25 +30108,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Humidity v1 threshold setting"),
             e
                 .numeric("moisture_calibration", ea.STATE_SET)
-                .withValueMin(-30)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Moisture calibration value"),
+                .withValueMin(0.2)
+                .withValueMax(1.5)
+                .withValueStep(0.01)
+                .withDescription("Coefficient 0.2~1.5. Higher for loose‑hard soil, lower for wet soft clay."),
             e
                 .numeric("moisture_v0_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture low threshold setting"),
+                .withDescription("Moisture v0 threshold setting"),
             e
                 .numeric("moisture_v1_set", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription("Moisture high threshold setting"),
+                .withDescription("MMoisture v1 threshold setting"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -30079,7 +30149,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, "moisture", tuya.valueConverter.raw],
                 [129, "moisture_v0_set", tuya.valueConverter.raw],
                 [130, "moisture_v1_set", tuya.valueConverter.raw],
-                [131, "moisture_calibration", tuya.valueConverter.raw],
+                [131, "moisture_calibration", tuya.valueConverter.divideBy100],
                 [132, "moisture_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), low: tuya.enum(1), high: tuya.enum(2)})],
             ],
         },
