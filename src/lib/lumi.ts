@@ -5635,16 +5635,10 @@ function createW600Thermostat(): ModernExtend {
     extend.exposes?.push(
         e.binary("override_active", ea.STATE, true, false).withLabel("Manual Override").withDescription("Temporary manual override active"),
         e
-            .numeric("internal_temperature", ea.STATE)
+            .numeric("local_temperature_internal", ea.STATE)
             .withUnit("°C")
-            .withLabel("Internal radiator temperature")
-            .withDescription("Temperature reported by the W600 physical radiator sensor on endpoint 2")
-            .withCategory("diagnostic"),
-        e
-            .numeric("endpoint_2_occupied_heating_setpoint", ea.STATE)
-            .withUnit("°C")
-            .withLabel("Endpoint 2 heating setpoint")
-            .withDescription("Heating setpoint reported by W600 endpoint 2; kept separate from the active climate target")
+            .withLabel("Internal sensor temperature")
+            .withDescription("Temperature measured by the thermostat's internal sensor")
             .withCategory("diagnostic"),
     );
 
@@ -5652,31 +5646,19 @@ function createW600Thermostat(): ModernExtend {
         cluster: W600_THERMOSTAT_CLUSTER,
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const endpoint2 = msg.endpoint.ID === 2;
-            const data = endpoint2 ? {...msg.data} : msg.data;
-            const diagnostics: KeyValue = {};
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
 
-            if (endpoint2) {
-                if (typeof data.localTemp === "number") diagnostics.internal_temperature = data.localTemp / 100;
-                if (typeof data.occupiedHeatingSetpoint === "number") {
-                    diagnostics.endpoint_2_occupied_heating_setpoint = data.occupiedHeatingSetpoint / 100;
-                }
-                delete data.localTemp;
-                delete data.occupiedHeatingSetpoint;
+            if (msg.endpoint.ID === 2) {
+                return result?.local_temperature === undefined ? undefined : {local_temperature_internal: result.local_temperature};
             }
 
-            const result = {
-                ...(fz.thermostat.convert(model, endpoint2 ? {...msg, data} : msg, publish, options, meta) as KeyValueAny | undefined),
-                ...diagnostics,
-            };
-
-            if (msg.data.tempSetpointHold !== undefined) {
+            if (result && msg.data.tempSetpointHold !== undefined) {
                 const holdProperty = postfixWithEndpointName("temperature_setpoint_hold", msg, model, meta);
                 result.override_active = msg.data.tempSetpointHold === 1;
                 delete result[holdProperty];
             }
 
-            return Object.keys(result).length > 0 ? result : undefined;
+            return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
 
