@@ -5612,6 +5612,7 @@ function createW600ExternalTempSensor(): ModernExtend {
 
 function createW600Thermostat(): ModernExtend {
     const extend = modernExtend.thermostat({
+        localTemperature: {values: {description: "Current temperature used by the thermostat"}},
         setpoints: {
             values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
         },
