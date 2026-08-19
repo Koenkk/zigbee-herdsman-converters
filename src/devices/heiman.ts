@@ -2640,8 +2640,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-E",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_wd],
-        toZigbee: [tz.warning, tz.ias_max_duration],
+        fromZigbee: [fz.battery],
+        toZigbee: [tz.warning],
+        extend: [m.iasWarningMaxDuration()],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -2651,13 +2652,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [
             e.battery(),
-            e
-                .numeric("max_duration", ea.ALL)
-                .withUnit("s")
-                .withValueMin(0)
-                .withValueMax(600)
-                .withDescription("Max duration of Siren")
-                .withCategory("config"),
             e
                 .warning()
                 .removeFeature("level")
@@ -4117,8 +4111,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-EF",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_wd],
-        toZigbee: [tz.warning, tz.ias_max_duration],
+        fromZigbee: [fz.battery],
+        toZigbee: [tz.warning],
+        extend: [m.iasWarningMaxDuration()],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -4128,13 +4123,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [
             e.battery(),
-            e
-                .numeric("max_duration", ea.ALL)
-                .withUnit("s")
-                .withValueMin(0)
-                .withValueMax(1800)
-                .withDescription("Max duration of Siren")
-                .withCategory("config"),
             e
                 .warning()
                 .removeFeature("strobe_level")
