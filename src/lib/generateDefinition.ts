@@ -3,6 +3,7 @@ import type {Models as ZHModels} from "zigbee-herdsman";
 import {Zcl} from "zigbee-herdsman";
 import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
+import type * as constants from "./constants";
 import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as philips from "./philips";
@@ -112,6 +113,11 @@ const INPUT_EXTENDERS: Extender[] = [
     [["genBinaryOutput"], extenderBinaryOutput],
     [["genAnalogInput"], extenderAnalogInput],
     [["genAnalogOutput"], extenderAnalogOutput],
+    [["hvacThermostat"], extenderThermostat],
+    [["hvacFanCtrl"], extenderFanControl],
+    [["hvacUserInterfaceCfg"], extenderThermostatUi],
+    [["genIdentify"], async (d, eps) => [new ExtendGenerator({extend: m.identify, source: "identify"})]],
+    [["lightingBallastCfg"], async (d, eps) => [new ExtendGenerator({extend: m.lightingBallast, source: "lightingBallast"})]],
 ];
 
 const OUTPUT_EXTENDERS: Extender[] = [
@@ -466,6 +472,89 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
     }
 
     return [new ExtendGenerator({extend: m.electricityMeter, args, source: "electricityMeter"})];
+}
+
+async function extenderThermostat(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+
+    for (const endpoint of endpoints) {
+        const isFirstEndpoint = onlyFirstDeviceEnpoint(device, endpoints);
+
+        // Read ctrlSeqeOfOper to determine thermostat type
+        // ZCL values: 0=occupied, 1=heating_only, 2=cooling_only, 4=heating_cooling
+        const ctrlSeqeOfOper = await getClusterAttributeValue(endpoint, "hvacThermostat", "ctrlSeqeOfOper", 1);
+
+        let setpoints: NonNullable<NonNullable<m.ThermostatArgs["setpoints"]>["values"]>;
+
+        if (ctrlSeqeOfOper === 2) {
+            setpoints = {occupiedCoolingSetpoint: {min: 7, max: 30, step: 0.5}};
+        } else if (ctrlSeqeOfOper === 4) {
+            setpoints = {
+                occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5},
+                occupiedCoolingSetpoint: {min: 7, max: 30, step: 0.5},
+            };
+        } else {
+            // heating_only (default, value 1 or unknown)
+            setpoints = {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}};
+        }
+
+        let systemModeValues: constants.ThermostatSystemMode[];
+        if (ctrlSeqeOfOper === 2) {
+            systemModeValues = ["off", "cool"];
+        } else if (ctrlSeqeOfOper === 4) {
+            systemModeValues = ["off", "heat", "cool", "auto"];
+        } else {
+            systemModeValues = ["off", "heat"];
+        }
+
+        const thermostatArgs: m.ThermostatArgs = {
+            localTemperature: {},
+            runningState: {values: ctrlSeqeOfOper === 4 ? ["idle", "heat", "cool"] : ctrlSeqeOfOper === 2 ? ["idle", "cool"] : ["idle", "heat"]},
+            setpoints: {values: setpoints},
+            systemMode: {values: systemModeValues},
+        };
+
+        if (!isFirstEndpoint) {
+            thermostatArgs.endpoint = endpoint.ID.toString();
+        }
+
+        // Check if hvacFanCtrl is on the same endpoint - add fanMode if so
+        if (endpoint.supportsInputCluster("hvacFanCtrl")) {
+            thermostatArgs.fanMode = ["off", "low", "medium", "high", "auto"];
+        }
+
+        generated.push(new ExtendGenerator({extend: m.thermostat, args: thermostatArgs, source: "thermostat"}));
+    }
+
+    return generated;
+}
+
+function extenderFanControl(device: Zh.Device, endpoints: Zh.Endpoint[]): GeneratedExtend[] {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        // If hvacThermostat is on the same endpoint, fanMode is handled by the thermostat extender
+        if (endpoint.supportsInputCluster("hvacThermostat")) {
+            continue;
+        }
+        let endpointNames: string[] | undefined;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
+        }
+        generated.push(new ExtendGenerator({extend: m.fanControl, args: {endpointNames}, source: "fanControl"}));
+    }
+    return generated;
+}
+
+function extenderThermostatUi(device: Zh.Device, endpoints: Zh.Endpoint[]): GeneratedExtend[] {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        let endpointNames: string[] | undefined;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
+        }
+        generated.push(new ExtendGenerator({extend: m.thermostatUi, args: {endpointNames}, source: "thermostatUi"}));
+    }
+    return generated;
 }
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
