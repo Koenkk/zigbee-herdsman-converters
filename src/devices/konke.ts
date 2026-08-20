@@ -169,9 +169,9 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["3AFE12010402102A"],
-        model: "KK-WA-J01W",
+        model: "KK-WA-J01W-2020",
         vendor: "Konke",
-        description: "Water detector (Customized battery voltage conversion - adapted to 2020 version firmware)",
+        description: "Water detector (2020 firmware with custom battery conversion)",
         fromZigbee: [fz.ias_water_leak_alarm_1, fzLocal.konke_wa_j01w_battery],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
