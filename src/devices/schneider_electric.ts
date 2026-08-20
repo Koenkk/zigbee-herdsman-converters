@@ -811,7 +811,7 @@ const schneiderElectricExtend = {
                 "Load in W when heating is on (between 0-3600 W). The thermostat reports this value as power (instantaneousDemand) when heating is on. The load has to be defined if the device should report running state ('heat' or 'idle').",
             entityCategory: "config",
             unit: "W",
-            valueMin: 1,
+            valueMin: 0,
             valueMax: 3600,
             valueStep: 1,
             ...args,
