@@ -1346,8 +1346,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIRZB-110",
         vendor: "Develco",
         description: "Customizable siren",
-        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
-        toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -1360,6 +1358,17 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
+                zoneStatusReporting: true,
+            }),
+            m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 900}}),
+            {
+                exposes: [e.squawk()],
+                toZigbee: [tz.squawk],
+                isModernExtend: true,
+            },
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(43);
@@ -1373,22 +1382,12 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 43};
         },
-        exposes: [
-            e.battery_low(),
-            e.test(),
-            e.warning(),
-            e.squawk(),
-            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Max duration of the siren"),
-            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of the siren"),
-        ],
     },
     {
         zigbeeModel: ["SIRZB-111"],
         model: "SIRZB-111",
         vendor: "Develco",
         description: "Customizable siren",
-        fromZigbee: [fz.ias_enroll, fz.ias_wd, fz.ias_siren],
-        toZigbee: [tz.warning, tz.warning_simple, tz.ias_max_duration, tz.squawk],
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -1400,6 +1399,17 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
+            m.iasZoneAlarm({
+                zoneType: "smoke",
+                zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
+                zoneStatusReporting: true,
+            }),
+            m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 900}}),
+            {
+                exposes: [e.squawk()],
+                toZigbee: [tz.squawk],
+                isModernExtend: true,
+            },
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(43);
@@ -1413,14 +1423,6 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {default: 43};
         },
-        exposes: [
-            e.battery_low(),
-            e.test(),
-            e.warning(),
-            e.squawk(),
-            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(900).withDescription("Max duration of the siren"),
-            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of the siren"),
-        ],
     },
     {
         zigbeeModel: ["KEPZB-110"],

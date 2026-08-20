@@ -1931,15 +1931,6 @@ export const ias_enroll: Fz.Converter<"ssIasZone", undefined, ["attributeReport"
         };
     },
 };
-export const ias_wd: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasWd",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.maxDuration !== undefined) result.max_duration = msg.data.maxDuration;
-        return result;
-    },
-};
 export const power_source: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genBasic",
     type: ["attributeReport", "readResponse"],

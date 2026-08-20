@@ -16639,19 +16639,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0224",
         vendor: "Tuya",
         description: "Smart light & sound siren",
-        fromZigbee: [],
-        toZigbee: [tz.warning, tzLocal.TS0224],
-        exposes: [
-            e.warning(),
-            e.binary("light", ea.STATE_SET, "ON", "OFF").withDescription("Turn the light of the alarm ON/OFF"),
-            e
-                .numeric("duration", ea.STATE_SET)
-                .withValueMin(60)
-                .withValueMax(3600)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Duration of the alarm"),
-            e.enum("volume", ea.STATE_SET, ["mute", "low", "medium", "high"]).withDescription("Volume of the alarm"),
+        extend: [
+            m.iasWarning(),
+            {
+                exposes: [
+                    e.binary("light", ea.STATE_SET, "ON", "OFF").withDescription("Turn the light of the alarm ON/OFF"),
+                    e
+                        .numeric("duration", ea.STATE_SET)
+                        .withValueMin(60)
+                        .withValueMax(3600)
+                        .withValueStep(1)
+                        .withUnit("s")
+                        .withDescription("Duration of the alarm"),
+                    e.enum("volume", ea.STATE_SET, ["mute", "low", "medium", "high"]).withDescription("Volume of the alarm"),
+                ],
+                toZigbee: [tzLocal.TS0224],
+                isModernExtend: true,
+            },
         ],
     },
     {
