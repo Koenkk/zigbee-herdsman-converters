@@ -5906,6 +5906,14 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.tz.switch_type_curtain,
         ],
         meta: {coverInverted: true},
+        exposes: [
+            e.cover_position(),
+            e.enum("moving", ea.STATE, ["UP", "STOP", "DOWN"]),
+            e.binary("motor_reversal", ea.ALL, "ON", "OFF"),
+            e.binary("calibration", ea.ALL, "ON", "OFF"),
+            e.numeric("calibration_time", ea.ALL).withValueMin(0).withValueMax(500).withUnit("s"),
+            e.enum("switch_type_curtain", ea.ALL, ["flip-switch", "sync-switch", "button-switch"]).withDescription("External switch type"),
+        ],
         extend: [
             tuyaBase(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
@@ -23266,7 +23274,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaSendCommand: "sendData",
             tuyaDatapoints: [
-                //			[1, 'presence', tuya.valueConverter.trueFalse1],
+                //          [1, 'presence', tuya.valueConverter.trueFalse1],
                 [101, "entry_sensitivity", tuya.valueConverter.raw],
                 [102, "entry_distance", tuya.valueConverter.divideBy100],
                 [103, "departure_delay", tuya.valueConverter.raw],
