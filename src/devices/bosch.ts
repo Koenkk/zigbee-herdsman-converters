@@ -21,7 +21,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -603,6 +603,73 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSD-2",
         vendor: "Bosch",
         description: "Smoke alarm II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload: KeyValueAny, options?: KeyValueAny) => {
+                // Override discovery for manual alarm exposes to create a siren entity
+                const exposes = options?.exposes as Expose[] | undefined;
+                const expose = exposes?.find((e: Expose) => e.name === "manual_smoke_alarm" || e.name === "manual_burglar_alarm");
+
+                if (expose) {
+                    // Find the first expose that has a property (should be the device itself)
+                    const firstExpose = exposes?.find((e: Expose) => e.property);
+                    const endpointName = firstExpose?.property;
+
+                    // Simple capitalize function
+                    const capitalize = (str: string | undefined) => (str ? str.charAt(0).toUpperCase() + str.slice(1) : undefined);
+
+                    // Modify the payload in place to create a siren entity
+                    payload.type = "siren";
+                    payload.object_id = endpointName ? `siren_${endpointName}` : "siren";
+                    payload.unique_id = endpointName ? `bsd2_siren_${endpointName}` : "bsd2_siren";
+                    payload.mockProperties = [
+                        {property: "manual_smoke_alarm", value: null},
+                        {property: "manual_burglar_alarm", value: null},
+                    ];
+                    payload.discovery_payload = {
+                        name: endpointName ? capitalize(endpointName) : null,
+                        command_topic: true,
+                        command_topic_prefix: endpointName,
+                        state_topic: true,
+                        optimistic: false,
+                        payload_on: "ON",
+                        payload_off: "OFF",
+                        state_on: "ON",
+                        state_off: "OFF",
+                        available_tones: ["fire", "burglar"],
+                        support_duration: false,
+                        support_volume_set: false,
+                        command_template: `
+                            {% if tone == 'fire' %}
+                            {"manual_smoke_alarm": "ON"}
+                            {% elif tone == 'burglar' %}
+                            {"manual_burglar_alarm": "ON"}
+                            {% else %}
+                            {"manual_smoke_alarm": "OFF", "manual_burglar_alarm": "OFF"}
+                            {% endif %}
+                        `,
+                        command_off_template: '{"manual_smoke_alarm": "OFF", "manual_burglar_alarm": "OFF"}',
+                        value_template: `
+                            {% if value_json.manual_smoke_alarm == "ON" %}
+                            ON
+                            {% elif value_json.manual_burglar_alarm == "ON" %}
+                            ON
+                            {% else %}
+                            OFF
+                            {% endif %}
+                        `,
+                        tone_value_template: `
+                            {% if value_json.manual_smoke_alarm == "ON" %}
+                            fire
+                            {% elif value_json.manual_burglar_alarm == "ON" %}
+                            burglar
+                            {% else %}
+                            {{ none }}
+                            {% endif %}
+                        `,
+                    };
+                }
+            },
+        },
         extend: [
             boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
             boschSmokeAlarmExtend.customIasZoneCluster(),
