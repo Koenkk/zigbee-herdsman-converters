@@ -31,8 +31,8 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 
-    // KK-WA-J01W 3AFE12010402102A battery voltage conversion
-    konke_wa_j01w_battery: {
+    // KK-WA-J01W-2020 3AFE12010402102A battery voltage conversion
+    konke_wa_j01w_2020_battery: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -172,7 +172,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KK-WA-J01W-2020",
         vendor: "Konke",
         description: "Water detector (2020 firmware with custom battery conversion)",
-        fromZigbee: [fz.ias_water_leak_alarm_1, fzLocal.konke_wa_j01w_battery],
+        fromZigbee: [fz.ias_water_leak_alarm_1, fzLocal.konke_wa_j01w_2020_battery],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
