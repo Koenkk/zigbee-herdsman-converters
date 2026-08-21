@@ -978,7 +978,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004295601",
         vendor: "Philips",
         description: "Hue white ambiance B39 Candle E14",
-        extend: [philips.m.light({colorTemp: {range: [50, 1000]}})],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}}), m.identify()],
     },
     {
         zigbeeModel: ["LWA007"],
