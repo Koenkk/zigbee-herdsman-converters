@@ -929,7 +929,6 @@ export const definitions: DefinitionWithExtend[] = [
             //
             // Bindings of non-reportable clusters have been removed.
 
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBinaryInput"]);
             await endpoint.read("ssIasZone", ["iasCieAddr", "zoneState", "zoneId"]);
             await endpoint.read("genBinaryInput", ["reliability", "statusFlags"]);
             await endpoint.read("ssIasWd", ["maxDuration"]);

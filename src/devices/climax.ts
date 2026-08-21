@@ -121,6 +121,12 @@ export const definitions: DefinitionWithExtend[] = [
                 isModernExtend: true,
             },
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
+            await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+        },
     },
     {
         zigbeeModel: ["WS15_00.00.00.14TC"],
