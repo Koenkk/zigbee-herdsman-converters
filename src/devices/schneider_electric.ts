@@ -571,7 +571,7 @@ const schneiderElectricExtend = {
                     convert: (model, msg, publish, options, meta) => {
                         if ("instantaneousDemand" in msg.data) {
                             const w = Math.max(0, Number(msg.data.instantaneousDemand));
-                            return {running_state: w > 10 ? "heat" : "idle"};
+                            return {running_state: w > 0 ? "heat" : "idle"};
                         }
                     },
                 },
@@ -802,20 +802,38 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    fixedLoadDemand: (args?: Partial<m.NumericArgs<"seMetering", SchneiderMeteringCluster>>) =>
-        m.numeric<"seMetering", SchneiderMeteringCluster>({
+    fixedLoadDemand: (args?: Partial<m.NumericArgs<"seMetering", SchneiderMeteringCluster>>) => {
+        const zigbeeCommandOptions = {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
+        const extend = m.numeric<"seMetering", SchneiderMeteringCluster>({
             name: "fixed_load_demand",
             cluster: "seMetering",
             attribute: "fixedLoadDemand",
             description:
-                "Load in W when heating is on (between 0-3600 W). The thermostat reports this value as power (instantaneousDemand) when heating is on. The load has to be defined if the device should report running state ('heat' or 'idle').",
+                "Load in W when heating is on (between 1-3600 W). The thermostat reports this value as power (instantaneousDemand) when heating is on. The load has to be defined if the device should report running state ('heat' or 'idle').",
             entityCategory: "config",
             unit: "W",
             valueMin: 0,
             valueMax: 3600,
             valueStep: 1,
+            zigbeeCommandOptions,
             ...args,
-        }),
+        });
+
+        extend.configure.push(async (device) => {
+            const endpoint = device.getEndpoint(1);
+            const {fixedLoadDemand} = await endpoint.read<"seMetering", SchneiderMeteringCluster>(
+                "seMetering",
+                ["fixedLoadDemand"],
+                zigbeeCommandOptions,
+            );
+
+            if (fixedLoadDemand === 0) {
+                await endpoint.write<"seMetering", SchneiderMeteringCluster>("seMetering", {fixedLoadDemand: 1}, zigbeeCommandOptions);
+            }
+        });
+
+        return extend;
+    },
     customThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
