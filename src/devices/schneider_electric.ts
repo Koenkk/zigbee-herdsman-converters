@@ -12,7 +12,7 @@ import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import {postfixWithEndpointName} from "../lib/utils";
+import {getEndpointsWithCluster, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -820,7 +820,7 @@ const schneiderElectricExtend = {
         });
 
         extend.configure.push(async (device) => {
-            const endpoint = device.getEndpoint(1);
+            const endpoint = getEndpointsWithCluster(device, "seMetering", "input")[0];
             const {fixedLoadDemand} = await endpoint.read<"seMetering", SchneiderMeteringCluster>(
                 "seMetering",
                 ["fixedLoadDemand"],
