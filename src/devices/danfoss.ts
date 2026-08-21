@@ -1593,157 +1593,169 @@ export const definitions: DefinitionWithExtend[] = [
                 l16: 232,
             };
         },
-        exposes: [].concat(
-            ((endpointsCount) => {
-                const features = [];
-
-                for (let i = 1; i <= endpointsCount; i++) {
-                    const epName = `l${i}`;
-
-                    if (i < 16) {
-                        features.push(e.battery().withEndpoint(epName));
-
-                        features.push(
-                            e
-                                .climate()
-                                .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
-                                .withLocalTemperature()
-                                .withSystemMode(["heat"])
-                                .withRunningState(["idle", "heat"], ea.STATE)
-                                .withEndpoint(epName),
-                        );
-
-                        features.push(
-                            e
-                                .numeric("abs_min_heat_setpoint_limit", ea.STATE)
-                                .withUnit("°C")
-                                .withEndpoint(epName)
-                                .withDescription("Absolute min temperature allowed on the device"),
-                        );
-                        features.push(
-                            e
-                                .numeric("abs_max_heat_setpoint_limit", ea.STATE)
-                                .withUnit("°C")
-                                .withEndpoint(epName)
-                                .withDescription("Absolute max temperature allowed on the device"),
-                        );
-
-                        features.push(
-                            e
-                                .numeric("min_heat_setpoint_limit", ea.ALL)
-                                .withValueMin(4)
-                                .withValueMax(35)
-                                .withValueStep(0.5)
-                                .withUnit("°C")
-                                .withEndpoint(epName)
-                                .withDescription("Min temperature limit set on the device"),
-                        );
-                        features.push(
-                            e
-                                .numeric("max_heat_setpoint_limit", ea.ALL)
-                                .withValueMin(4)
-                                .withValueMax(35)
-                                .withValueStep(0.5)
-                                .withUnit("°C")
-                                .withEndpoint(epName)
-                                .withDescription("Max temperature limit set on the device"),
-                        );
-
-                        features.push(e.enum("setpoint_change_source", ea.STATE, ["manual", "schedule", "externally"]).withEndpoint(epName));
-
-                        features.push(
-                            e.enum("output_status", ea.STATE_GET, ["inactive", "active"]).withEndpoint(epName).withDescription("Actuator status"),
-                        );
-
-                        features.push(
-                            e
-                                .enum("room_status_code", ea.STATE_GET, [
-                                    "no_error",
-                                    "missing_rt",
-                                    "rt_touch_error",
-                                    "floor_sensor_short_circuit",
-                                    "floor_sensor_disconnected",
-                                ])
-                                .withEndpoint(epName)
-                                .withDescription("Thermostat status"),
-                        );
-
-                        features.push(
-                            e
-                                .enum("room_floor_sensor_mode", ea.STATE_GET, ["comfort", "floor_only", "dual_mode"])
-                                .withEndpoint(epName)
-                                .withDescription("Floor sensor mode"),
-                        );
-                        features.push(
-                            e
-                                .numeric("floor_min_setpoint", ea.ALL)
-                                .withValueMin(18)
-                                .withValueMax(35)
-                                .withValueStep(0.5)
-                                .withUnit("°C")
-                                .withEndpoint(epName)
-                                .withDescription("Min floor temperature"),
-                        );
-                        features.push(
-                            e
-                                .numeric("floor_max_setpoint", ea.ALL)
-                                .withValueMin(18)
-                                .withValueMax(35)
-                                .withValueStep(0.5)
-                                .withUnit("°C")
-                                .withEndpoint(epName)
-                                .withDescription("Max floor temperature"),
-                        );
-
-                        features.push(
-                            e.numeric("temperature", ea.STATE_GET).withUnit("°C").withEndpoint(epName).withDescription("Floor temperature"),
-                        );
-                    } else {
-                        features.push(
-                            e
-                                .enum("system_status_code", ea.STATE_GET, [
-                                    "no_error",
-                                    "missing_expansion_board",
-                                    "missing_radio_module",
-                                    "missing_command_module",
-                                    "missing_master_rail",
-                                    "missing_slave_rail_no_1",
-                                    "missing_slave_rail_no_2",
-                                    "pt1000_input_short_circuit",
-                                    "pt1000_input_open_circuit",
-                                    "error_on_one_or_more_output",
-                                ])
-                                .withEndpoint("l16")
-                                .withDescription("Main Controller Status"),
-                        );
-                        features.push(
-                            e
-                                .enum("system_status_water", ea.STATE_GET, ["hot_water_flow_in_pipes", "cool_water_flow_in_pipes"])
-                                .withEndpoint("l16")
-                                .withDescription("Main Controller Water Status"),
-                        );
-                        features.push(
-                            e
-                                .enum("multimaster_role", ea.STATE_GET, ["invalid_unused", "master", "slave_1", "slave_2"])
-                                .withEndpoint("l16")
-                                .withDescription("Main Controller Role"),
-                        );
-                        features.push(
-                            e
-                                .enum(
-                                    "icon_application",
-                                    ea.STATE_GET,
-                                    Array.from({length: 21}, (_, n) => `${n}`),
-                                )
-                                .withEndpoint("l16")
-                                .withDescription("Main Controller application"),
-                        );
+        exposes: (device) => {
+            // On a real controller only populated rooms register a Zigbee endpoint
+            // (getEndpoint(i) is undefined for an unwired room), so expose only those.
+            // A dummy device (docs generation) or one not yet interviewed has no usable
+            // endpoint list, so expose the full l1..l15 + l16 set instead.
+            const roomEndpoints: number[] = [];
+            let hasMainController = true;
+            if ("endpoints" in device && device.endpoints.length > 0) {
+                for (let i = 1; i <= 15; i++) {
+                    if (device.getEndpoint(i) !== undefined) {
+                        roomEndpoints.push(i);
                     }
                 }
+                hasMainController = device.getEndpoint(232) !== undefined;
+            } else {
+                for (let i = 1; i <= 15; i++) {
+                    roomEndpoints.push(i);
+                }
+            }
 
-                return features;
-            })(16),
-        ),
+            const features = [];
+
+            for (const i of roomEndpoints) {
+                const epName = `l${i}`;
+                features.push(e.battery().withEndpoint(epName));
+
+                features.push(
+                    e
+                        .climate()
+                        .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
+                        .withLocalTemperature()
+                        .withSystemMode(["heat"])
+                        .withRunningState(["idle", "heat"], ea.STATE)
+                        .withEndpoint(epName),
+                );
+
+                features.push(
+                    e
+                        .numeric("abs_min_heat_setpoint_limit", ea.STATE)
+                        .withUnit("°C")
+                        .withEndpoint(epName)
+                        .withDescription("Absolute min temperature allowed on the device"),
+                );
+                features.push(
+                    e
+                        .numeric("abs_max_heat_setpoint_limit", ea.STATE)
+                        .withUnit("°C")
+                        .withEndpoint(epName)
+                        .withDescription("Absolute max temperature allowed on the device"),
+                );
+
+                features.push(
+                    e
+                        .numeric("min_heat_setpoint_limit", ea.ALL)
+                        .withValueMin(4)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
+                        .withUnit("°C")
+                        .withEndpoint(epName)
+                        .withDescription("Min temperature limit set on the device"),
+                );
+                features.push(
+                    e
+                        .numeric("max_heat_setpoint_limit", ea.ALL)
+                        .withValueMin(4)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
+                        .withUnit("°C")
+                        .withEndpoint(epName)
+                        .withDescription("Max temperature limit set on the device"),
+                );
+
+                features.push(e.enum("setpoint_change_source", ea.STATE, ["manual", "schedule", "externally"]).withEndpoint(epName));
+
+                features.push(e.enum("output_status", ea.STATE_GET, ["inactive", "active"]).withEndpoint(epName).withDescription("Actuator status"));
+
+                features.push(
+                    e
+                        .enum("room_status_code", ea.STATE_GET, [
+                            "no_error",
+                            "missing_rt",
+                            "rt_touch_error",
+                            "floor_sensor_short_circuit",
+                            "floor_sensor_disconnected",
+                        ])
+                        .withEndpoint(epName)
+                        .withDescription("Thermostat status"),
+                );
+
+                features.push(
+                    e
+                        .enum("room_floor_sensor_mode", ea.STATE_GET, ["comfort", "floor_only", "dual_mode"])
+                        .withEndpoint(epName)
+                        .withDescription("Floor sensor mode"),
+                );
+                features.push(
+                    e
+                        .numeric("floor_min_setpoint", ea.ALL)
+                        .withValueMin(18)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
+                        .withUnit("°C")
+                        .withEndpoint(epName)
+                        .withDescription("Min floor temperature"),
+                );
+                features.push(
+                    e
+                        .numeric("floor_max_setpoint", ea.ALL)
+                        .withValueMin(18)
+                        .withValueMax(35)
+                        .withValueStep(0.5)
+                        .withUnit("°C")
+                        .withEndpoint(epName)
+                        .withDescription("Max floor temperature"),
+                );
+
+                features.push(e.numeric("temperature", ea.STATE_GET).withUnit("°C").withEndpoint(epName).withDescription("Floor temperature"));
+            }
+
+            if (hasMainController) {
+                features.push(
+                    e
+                        .enum("system_status_code", ea.STATE_GET, [
+                            "no_error",
+                            "missing_expansion_board",
+                            "missing_radio_module",
+                            "missing_command_module",
+                            "missing_master_rail",
+                            "missing_slave_rail_no_1",
+                            "missing_slave_rail_no_2",
+                            "pt1000_input_short_circuit",
+                            "pt1000_input_open_circuit",
+                            "error_on_one_or_more_output",
+                        ])
+                        .withEndpoint("l16")
+                        .withDescription("Main Controller Status"),
+                );
+                features.push(
+                    e
+                        .enum("system_status_water", ea.STATE_GET, ["hot_water_flow_in_pipes", "cool_water_flow_in_pipes"])
+                        .withEndpoint("l16")
+                        .withDescription("Main Controller Water Status"),
+                );
+                features.push(
+                    e
+                        .enum("multimaster_role", ea.STATE_GET, ["invalid_unused", "master", "slave_1", "slave_2"])
+                        .withEndpoint("l16")
+                        .withDescription("Main Controller Role"),
+                );
+                features.push(
+                    e
+                        .enum(
+                            "icon_application",
+                            ea.STATE_GET,
+                            Array.from({length: 21}, (_, n) => `${n}`),
+                        )
+                        .withEndpoint("l16")
+                        .withDescription("Main Controller application"),
+                );
+            }
+
+            return features;
+        },
         configure: async (device, coordinatorEndpoint) => {
             const options = {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S};
 
