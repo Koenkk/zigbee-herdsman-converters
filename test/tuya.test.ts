@@ -80,4 +80,71 @@ describe("lib/tuya", () => {
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
     });
+
+    describe("phaseVariant2WithPhase", () => {
+        // Regression: the payload is 8 bytes -- voltage (2), current (3), power (3) --
+        // the same layout already decoded by phaseVariant3/phaseVariant4. Only the low
+        // 2 bytes of current and power were read, so:
+        //   - current wrapped above 65.536 A (68.783 A was reported as 3.247 A)
+        //   - the negative power branch used 0x999a, which is the low 16 bits of the
+        //     real 24-bit offset 0x19999a, so it only produced negative values between
+        //     32768 and 39321 and corrupted any legitimate reading above 32767 W
+
+        // voltage in 0.1 V, current in mA, power in W
+        const payload = (voltage: number, current: number, power: number) =>
+            Buffer.from([
+                (voltage >> 8) & 0xff,
+                voltage & 0xff,
+                (current >> 16) & 0xff,
+                (current >> 8) & 0xff,
+                current & 0xff,
+                (power >> 16) & 0xff,
+                (power >> 8) & 0xff,
+                power & 0xff,
+            ]).toString("base64");
+
+        const decode = (phase: string, voltage: number, current: number, power: number) =>
+            tuya.valueConverter.phaseVariant2WithPhase(phase).from(payload(voltage, current, power));
+
+        it("suffixes every key with the phase", () => {
+            expect(decode("b", 1234, 4252, 519)).toStrictEqual({voltage_b: 123.4, current_b: 4.252, power_b: 519});
+        });
+
+        it("decodes readings below the 16 bit boundary", () => {
+            expect(decode("l1", 1234, 4252, 519)).toStrictEqual({voltage_l1: 123.4, current_l1: 4.252, power_l1: 519});
+            expect(decode("l1", 1200, 65535, 1000)).toStrictEqual({voltage_l1: 120, current_l1: 65.535, power_l1: 1000});
+        });
+
+        it.each([
+            // captured on TS0601 / _TZE284_x8diwkqb with a 5.5 kW and a 7.5 kW heater running
+            {voltage: 1190, current: 69610, power: 8270, expected: {voltage_l1: 119, current_l1: 69.61, power_l1: 8270}},
+            {voltage: 1195, current: 65951, power: 7867, expected: {voltage_l1: 119.5, current_l1: 65.951, power_l1: 7867}},
+            // just past the wrap point, previously reported as 0.0 A / 0.001 A
+            {voltage: 1200, current: 65536, power: 1000, expected: {voltage_l1: 120, current_l1: 65.536, power_l1: 1000}},
+            {voltage: 1200, current: 65537, power: 1000, expected: {voltage_l1: 120, current_l1: 65.537, power_l1: 1000}},
+        ])("does not wrap currents above 65.536 A ($current mA)", ({voltage, current, power, expected}) => {
+            expect(decode("l1", voltage, current, power)).toStrictEqual(expected);
+        });
+
+        it("keeps current consistent with power and voltage under high load", () => {
+            const {voltage_l1, current_l1, power_l1} = decode("l1", 1190, 69610, 8270) as Record<string, number>;
+            expect(power_l1).toBeCloseTo(voltage_l1 * current_l1, -2);
+        });
+
+        it.each([
+            // raw values and expected results reported in
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
+            {raw: 1677525, expected: -197},
+            {raw: 1677524, expected: -198},
+            {raw: 1677523, expected: -199},
+        ])("reports negative power ($raw -> $expected W)", ({raw, expected}) => {
+            expect(decode("l1", 1200, 0, raw)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: expected});
+        });
+
+        it("does not turn a large positive power into a negative one", () => {
+            // 40000 W was decoded as 678 W before: 40000 > 0x7fff took the negative
+            // branch, giving (0x999a - 40000) * -1
+            expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
+        });
+    });
 });

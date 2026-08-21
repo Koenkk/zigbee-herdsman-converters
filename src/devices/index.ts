@@ -268,6 +268,7 @@ import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
 import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
+import {definitions as ribag} from "./ribag";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
 import {definitions as rtx} from "./rtx";
@@ -320,6 +321,7 @@ import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
 import {definitions as stelpro} from "./stelpro";
+import {definitions as stuckatprototype} from "./stuckatprototype";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
@@ -646,6 +648,7 @@ const definitions: DefinitionWithExtend[] = [
     ...raex,
     ...repenicLtd,
     ...rgbGenie,
+    ...ribag,
     ...robb,
     ...roome,
     ...lumi,
@@ -699,6 +702,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sprut,
     ...stello,
     ...stelpro,
+    ...stuckatprototype,
     ...sunricher,
     ...superled,
     ...swann,
