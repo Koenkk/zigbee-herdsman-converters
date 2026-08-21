@@ -3320,6 +3320,21 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["LWM007"],
+        model: "929004296901",
+        vendor: "Philips",
+        description: "Hue wired dimmer switch",
+        ota: true,
+        endpoint: () => ({default: 11}),
+        extend: [m.identify(), philips.m.light()],
+        configure: async (device, coordinatorEndpoint) => {
+            const ep = device.getEndpoint(11);
+            await reporting.bind(ep, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+            await reporting.onOff(ep, {min: 0, max: 65000, change: 1});
+            await reporting.brightness(ep, {min: 1, max: 3600, change: 1});
+        },
+    },
+    {
         zigbeeModel: ["LLC014"],
         model: "7099860PH",
         vendor: "Philips",
