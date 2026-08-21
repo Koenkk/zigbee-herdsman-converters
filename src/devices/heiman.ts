@@ -4132,8 +4132,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["M1-PE"],
-        model: "M1-PE",
+        zigbeeModel: ["M1-PE", "M1P-E"],
+        model: "M1P-E",
         vendor: "Heiman",
         description: "Smart occupancy sensor",
         configure: async (device, cordinatorEndpoint) => {
@@ -4557,7 +4557,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
         extend: [
             m.identify(),
-            m.light({color: true, effect: false, configureReporting: true}),
+            m.light({
+                color: {modes: ["hs"]},
+                colorTemp: {range: [153, 500]},
+                effect: false,
+                configureReporting: true,
+            }),
             m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
             m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
             heimanExtend.heimanClusterSpecial(),
