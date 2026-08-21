@@ -1570,6 +1570,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.danfoss_system_status_code,
             tzLocal.danfoss_system_status_water,
             tzLocal.danfoss_multimaster_role,
+            tzLocal.danfoss_icon_application,
         ],
         meta: {multiEndpoint: true, thermostat: {dontMapPIHeatingDemand: true}},
         endpoint: (device) => {
@@ -1727,6 +1728,16 @@ export const definitions: DefinitionWithExtend[] = [
                                 .withEndpoint("l16")
                                 .withDescription("Main Controller Role"),
                         );
+                        features.push(
+                            e
+                                .enum(
+                                    "icon_application",
+                                    ea.STATE_GET,
+                                    Array.from({length: 21}, (_, n) => `${n}`),
+                                )
+                                .withEndpoint("l16")
+                                .withDescription("Main Controller application"),
+                        );
                     }
                 }
 
@@ -1795,6 +1806,10 @@ export const definitions: DefinitionWithExtend[] = [
                 ["danfossSystemStatusCode", "danfossSystemStatusWater", "danfossMultimasterRole"],
                 options,
             );
+
+            // Read separately: older 0x80xx firmware variants may not support this attribute,
+            // so an UNSUPPORTED_ATTRIBUTE must not fail the reads above.
+            await mainController.read<"haDiagnostic", DanfossHaDiagnostic>("haDiagnostic", ["danfossIconApplication"], options);
         },
     },
     {
@@ -1997,28 +2012,11 @@ export const definitions: DefinitionWithExtend[] = [
                         );
                         features.push(
                             e
-                                .enum("icon_application", ea.STATE_GET, [
-                                    "1",
-                                    "2",
-                                    "3",
-                                    "4",
-                                    "5",
-                                    "6",
-                                    "7",
-                                    "8",
-                                    "9",
-                                    "10",
-                                    "11",
-                                    "12",
-                                    "13",
-                                    "14",
-                                    "15",
-                                    "16",
-                                    "17",
-                                    "18",
-                                    "19",
-                                    "20",
-                                ])
+                                .enum(
+                                    "icon_application",
+                                    ea.STATE_GET,
+                                    Array.from({length: 21}, (_, n) => `${n}`),
+                                )
                                 .withEndpoint("232")
                                 .withDescription("Main Controller application"),
                         );
