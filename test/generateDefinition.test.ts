@@ -574,7 +574,7 @@ export default {
         });
     });
 
-    test("input(genBinaryInput), output(genBinaryOutput, genAnalogOutput)", async () => {
+    test("input(genBinaryInput, genAnalogInput), output(genBinaryOutput, genAnalogOutput)", async () => {
         const attr10 = {
             genBinaryInput: {
                 attributes: {
@@ -600,7 +600,7 @@ export default {
                 endpoints: [
                     {
                         ID: 10,
-                        inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"],
+                        inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogInput", "genAnalogOutput"],
                         outputClusters: [],
                         attributes: attr10,
                         read: vi.fn(async () => Promise.reject(new Error("use-fallback"))),
@@ -611,16 +611,24 @@ export default {
             fromZigbee: [
                 expect.objectContaining({cluster: "genBinaryInput"}),
                 expect.objectContaining({cluster: "genBinaryOutput"}),
+                expect.objectContaining({cluster: "genAnalogInput"}),
                 expect.objectContaining({cluster: "genAnalogOutput"}),
             ],
-            toZigbee: ["my_binary_name", "binary_output_10", "my_output_name"],
-            exposes: ["binary_output_10", "my_binary_name", "my_output_name"],
-            bind: {10: ["genBinaryInput", "genBinaryOutput", "genAnalogOutput"]},
+            toZigbee: ["binary_input", "binary_output", "analog_input", "analog_out_temperature"],
+            exposes: ["analog_input", "analog_out_temperature", "binary_input", "binary_output"],
+            bind: {10: ["genBinaryInput", "genBinaryOutput", "genAnalogInput", "genAnalogOutput"]},
             read: {
                 10: [
                     ["genBinaryOutput", ["description"], {sendPolicy: "immediate", disableRecovery: true}],
+                    ["genAnalogInput", ["description"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["applicationType"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["engineeringUnits"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["minPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["maxPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogInput", ["resolution"], {disableRecovery: true, sendPolicy: "immediate"}],
                     ["genBinaryInput", ["presentValue"]],
                     ["genBinaryOutput", ["presentValue"]],
+                    ["genAnalogInput", ["presentValue"]],
                     ["genAnalogOutput", ["presentValue"]],
                 ],
             },
@@ -629,17 +637,34 @@ export default {
                 10: [
                     ["genBinaryInput", [reportingItem("presentValue", 0, 65000, 1)]],
                     ["genBinaryOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]],
                     ["genAnalogOutput", [reportingItem("presentValue", 0, 65000, 1)]],
                 ],
             },
         });
     });
 
-    test("input(genAnalogInput), x2 endpoints", async () => {
+    test("input(genBinaryInput, genAnalogInput), output(genBinaryOutput, genAnalogOutput), x2 endpoints", async () => {
         const attr10 = {
             genAnalogInput: {
                 attributes: {
                     description: "my_custom_name",
+                    applicationType: 0,
+                    engineeringUnits: 62,
+                    minPresentValue: 0.0,
+                    maxPresentValue: 30.0,
+                    resolution: 0.1,
+                    presentValue: 15.0,
+                },
+            },
+            genBinaryInput: {
+                attributes: {
+                    description: "my_binary_name",
+                },
+            },
+            genAnalogOutput: {
+                attributes: {
+                    description: "my_output_name",
                     applicationType: 0,
                     engineeringUnits: 62,
                     minPresentValue: 0.0,
@@ -654,36 +679,85 @@ export default {
             device: mockDevice({
                 modelID: "temp",
                 endpoints: [
-                    {ID: 10, inputClusters: ["genAnalogInput"], outputClusters: [], attributes: attr10},
+                    {
+                        ID: 10,
+                        inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogInput", "genAnalogOutput"],
+                        outputClusters: [],
+                        attributes: attr10,
+                    },
                     {
                         ID: 11,
-                        inputClusters: ["genAnalogInput"],
+                        inputClusters: ["genBinaryInput", "genBinaryOutput", "genAnalogInput", "genAnalogOutput"],
                         outputClusters: [],
                         read: vi.fn(async () => Promise.reject(new Error("use-fallback"))),
                     },
                 ],
             }),
             meta: {multiEndpoint: true},
-            fromZigbee: [expect.objectContaining({cluster: "genAnalogInput"}), expect.objectContaining({cluster: "genAnalogInput"})],
-            toZigbee: ["my_custom_name", "analog_input"],
-            exposes: ["analog_input_11", "my_custom_name_10"],
-            bind: {10: ["genAnalogInput"], 11: ["genAnalogInput"]},
+            fromZigbee: [
+                expect.objectContaining({cluster: "genBinaryInput"}),
+                expect.objectContaining({cluster: "genBinaryOutput"}),
+                expect.objectContaining({cluster: "genAnalogInput"}),
+                expect.objectContaining({cluster: "genAnalogOutput"}),
+            ],
+            toZigbee: ["binary_input", "binary_output", "analog_in_temperature", "analog_input", "analog_out_temperature", "analog_output"],
+            exposes: [
+                "analog_in_temperature_10",
+                "analog_input_11",
+                "analog_out_temperature_10",
+                "analog_output_11",
+                "binary_input_10",
+                "binary_input_11",
+                "binary_output_10",
+                "binary_output_11",
+            ],
+            bind: {
+                10: ["genBinaryInput", "genBinaryOutput", "genAnalogInput", "genAnalogOutput"],
+                11: ["genBinaryInput", "genBinaryOutput", "genAnalogInput", "genAnalogOutput"],
+            },
             read: {
-                10: [["genAnalogInput", ["presentValue"]]],
+                10: [
+                    ["genBinaryOutput", ["description"], {sendPolicy: "immediate", disableRecovery: true}],
+                    ["genBinaryInput", ["presentValue"]],
+                    ["genBinaryOutput", ["presentValue"]],
+                    ["genAnalogInput", ["presentValue"]],
+                    ["genAnalogOutput", ["presentValue"]],
+                ],
                 11: [
+                    ["genBinaryInput", ["description"], {sendPolicy: "immediate", disableRecovery: true}],
+                    ["genBinaryOutput", ["description"], {sendPolicy: "immediate", disableRecovery: true}],
                     ["genAnalogInput", ["description"], {disableRecovery: true, sendPolicy: "immediate"}],
                     ["genAnalogInput", ["applicationType"], {disableRecovery: true, sendPolicy: "immediate"}],
                     ["genAnalogInput", ["engineeringUnits"], {disableRecovery: true, sendPolicy: "immediate"}],
                     ["genAnalogInput", ["minPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
                     ["genAnalogInput", ["maxPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
                     ["genAnalogInput", ["resolution"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogOutput", ["description"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogOutput", ["applicationType"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogOutput", ["engineeringUnits"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogOutput", ["minPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogOutput", ["maxPresentValue"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genAnalogOutput", ["resolution"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["genBinaryInput", ["presentValue"]],
+                    ["genBinaryOutput", ["presentValue"]],
                     ["genAnalogInput", ["presentValue"]],
+                    ["genAnalogOutput", ["presentValue"]],
                 ],
             },
             write: {},
             configureReporting: {
-                10: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
-                11: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
+                10: [
+                    ["genBinaryInput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genBinaryOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                ],
+                11: [
+                    ["genBinaryInput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genBinaryOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]],
+                    ["genAnalogOutput", [reportingItem("presentValue", 0, 65000, 1)]],
+                ],
             },
             endpoints: {"10": 10, "11": 11},
         });
