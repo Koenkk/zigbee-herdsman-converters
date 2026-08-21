@@ -304,6 +304,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.light.acn033"],
+        model: "HCXDD13LM",
+        vendor: "Aqara",
+        description: "Nebula ceiling lamp H1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.light({colorTemp: {range: [153, 370], startup: false}, effect: false, powerOnBehavior: false}),
+            lumiPowerOnBehavior(),
+            lumiZigbeeOTA(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.cwac02", "lumi.light.acn014"],
         model: "ZNLDP13LM",
         vendor: "Aqara",
