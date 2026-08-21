@@ -153,6 +153,12 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
             m.iasWarning({maxDuration: {min: 0, max: 600}}),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
+            await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+        },
     },
     {
         zigbeeModel: ["AD-CTW123001"],
