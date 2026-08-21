@@ -1240,7 +1240,7 @@ const heimanExtend = {
 
         const invalidModes = displayModes.filter((m) => !defaultModes.includes(m));
         if (invalidModes.length > 0) {
-            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")}, 
+            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")},
             Legal values: ${defaultModes.join(", ")}`);
         }
 
@@ -2649,7 +2649,7 @@ export const definitions: DefinitionWithExtend[] = [
                         .numeric("max_duration", ea.ALL)
                         .withUnit("s")
                         .withValueMin(0)
-                        .withValueMax(600)
+                        .withValueMax(65534)
                         .withDescription("Max duration of Siren")
                         .withCategory("config"),
                     e

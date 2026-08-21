@@ -16647,7 +16647,7 @@ export const definitions: DefinitionWithExtend[] = [
                     e
                         .numeric("duration", ea.STATE_SET)
                         .withValueMin(60)
-                        .withValueMax(3600)
+                        .withValueMax(65534)
                         .withValueStep(1)
                         .withUnit("s")
                         .withDescription("Duration of the alarm"),

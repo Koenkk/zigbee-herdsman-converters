@@ -1904,7 +1904,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                 .numeric("max_duration", ea.ALL)
                 .withUnit("s")
                 .withValueMin(maxDurationArgs.min ?? 0)
-                .withValueMax(maxDurationArgs.max ?? 600)
+                .withValueMax(maxDurationArgs.max ?? 65534)
                 .withDescription("Max duration in seconds of the alarm"),
         );
     }
