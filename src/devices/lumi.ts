@@ -408,7 +408,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.sensor_switch.aq3", "lumi.sensor_swit"],
