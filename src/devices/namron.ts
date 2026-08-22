@@ -1083,7 +1083,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("sensor_mode", ea.ALL, ["air", "floor", "both", "percent"])
                 .withLabel("Sensor mode")
-                .withDescription("Sensor the thermostat regulates on. \"percent\" is regulator mode, also set via thermostat_mode."),
+                .withDescription('Sensor the thermostat regulates on. "percent" is regulator mode, also set via thermostat_mode.'),
             e.binary("frost", ea.STATE_SET, "ON", "OFF").withLabel("Frost Mode"),
             e.enum("temperature_display_mode", ea.STATE_SET, ["celsius", "fahrenheit"]).withLabel("Temperature unit"),
             e
