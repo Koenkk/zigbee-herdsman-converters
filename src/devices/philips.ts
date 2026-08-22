@@ -3315,6 +3315,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.onOff(), m.identify()],
     },
     {
+        zigbeeModel: ["LOM013"],
+        model: "929004296701",
+        vendor: "Philips",
+        description: "Hue wired on/off switch (1 channel)",
+        extend: [m.deviceEndpoints({endpoints: {l1: 11}}), m.identify({endpointNames: ["l1"]}), philips.m.onOff({endpointNames: ["l1"]})],
+    },
+    {
         zigbeeModel: ["LOM014"],
         model: "929004296801",
         vendor: "Philips",
