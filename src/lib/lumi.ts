@@ -4810,9 +4810,15 @@ function writeW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number,
 }
 
 function getNextW600SensorBindingCounter(entity: Zh.Device | Zh.Endpoint) {
-    const storeKey = getW600DeviceStoreKey(entity);
-    const counter = globalStore.getValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, 0x12);
-    globalStore.putValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, (counter + 1) & 0xff);
+    const device = "ieeeAddr" in entity ? entity : entity.getDevice();
+    const storedCounter = device.meta?.[W600_SENSOR_BINDING_COUNTER_STORE_KEY];
+    const counter =
+        typeof storedCounter === "number" && Number.isInteger(storedCounter) && storedCounter >= 0 && storedCounter <= 0xff ? storedCounter : 0x12;
+
+    device.meta ??= {};
+    device.meta[W600_SENSOR_BINDING_COUNTER_STORE_KEY] = (counter + 1) & 0xff;
+    device.save();
+
     return counter;
 }
 
@@ -5606,6 +5612,7 @@ function createW600ExternalTempSensor(): ModernExtend {
 
 function createW600Thermostat(): ModernExtend {
     const extend = modernExtend.thermostat({
+        localTemperature: {values: {description: "Current temperature used by the thermostat"}},
         setpoints: {
             values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
         },
@@ -5629,6 +5636,12 @@ function createW600Thermostat(): ModernExtend {
         .withDescription("Duration in minutes for the current manual override. 0 means until next schedule event, 65535 means indefinitely.");
     extend.exposes?.push(
         e.binary("override_active", ea.STATE, true, false).withLabel("Manual Override").withDescription("Temporary manual override active"),
+        e
+            .numeric("local_temperature_internal", ea.STATE)
+            .withUnit("°C")
+            .withLabel("Internal sensor temperature")
+            .withDescription("Temperature measured by the thermostat's internal sensor")
+            .withCategory("diagnostic"),
     );
 
     const thermostatConverter = {
@@ -5636,6 +5649,10 @@ function createW600Thermostat(): ModernExtend {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+
+            if (msg.endpoint.ID === 2) {
+                return result?.local_temperature === undefined ? undefined : {local_temperature_internal: result.local_temperature};
+            }
 
             if (result && msg.data.tempSetpointHold !== undefined) {
                 const holdProperty = postfixWithEndpointName("temperature_setpoint_hold", msg, model, meta);
@@ -5887,15 +5904,6 @@ function createW600Thermostat(): ModernExtend {
     );
 
     extend.configure ??= [];
-    const configureOverrideActive = modernExtend.setupConfigureForReporting(W600_THERMOSTAT_CLUSTER, "tempSetpointHold", {
-        config: {min: "MIN", max: "1_HOUR", change: 0},
-        access: ea.STATE_GET,
-    });
-
-    if (configureOverrideActive) {
-        extend.configure.push(configureOverrideActive);
-    }
-
     extend.configure.push(async (device) => {
         const endpoint = device.getEndpoint(1);
         await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SYSTEM_MODE, W600_ATTR_SCHEDULE, W600_ATTR_PRESET], {manufacturerCode});
