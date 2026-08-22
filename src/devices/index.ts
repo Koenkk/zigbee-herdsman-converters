@@ -772,4 +772,3 @@ const definitions: DefinitionWithExtend[] = [
 ];
 
 export default definitions;
-
