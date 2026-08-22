@@ -7679,7 +7679,7 @@ export const fromZigbee = {
             if (stop) {
                 const button = globalStore.getValue(msg.endpoint, "button").button;
                 const duration = Date.now() - globalStore.getValue(msg.endpoint, "button").start;
-                result = {action: `button_${button}_release`, duration, action_duration: duration};
+                result = {action: `button_${button}_release`, action_duration: duration};
             } else {
                 const button = msg.data.movemode === 3 ? "6" : "5";
                 result = {action: `button_${button}_hold`};

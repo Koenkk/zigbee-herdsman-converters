@@ -27,7 +27,6 @@ const fzLocal = {
                 const direction = globalStore.getValue(msg.endpoint, "direction");
                 const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
                 payload.action = `brightness_${direction}_release`;
-                payload.duration = duration;
                 payload.action_duration = duration;
             } else {
                 // wrap the messages from button2 and button4 into a single function
@@ -86,7 +85,6 @@ const fzLocal = {
                     const direction = globalStore.getValue(msg.endpoint, "direction");
                     const duration = Date.now() - globalStore.getValue(msg.endpoint, "start");
                     payload.action = `${clk}_${direction}_release`;
-                    payload.duration = duration;
                     payload.action_duration = duration;
                 } else {
                     const direction = msg.data.movemode === 3 ? "down" : "up";
