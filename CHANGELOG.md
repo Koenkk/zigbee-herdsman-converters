@@ -1,5 +1,31 @@
 # Changelog
 
+## [26.99.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.98.0...v26.99.0) (2026-08-22)
+
+
+### Features
+
+* **add:** 929004295601 ([#12966](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12966)) ([aac9cbd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aac9cbd46d6dd52052a08c345d5fd75d5ef89f34))
+* **add:** 929004296701 ([#12957](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12957)) ([3d426c4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3d426c4eed3859433fa39838d9d244ccc28c722a))
+* **add:** HCXDD13LM ([#12932](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12932)) ([3eff54f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3eff54f5ab82ca966fefaa92ae4fd5b9130fa69f))
+* **add:** M1P-E ([#12939](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12939)) ([6a8db2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6a8db2cea743236f142116a29a4e8e045d3515cc))
+* **add:** TS0601_co2_temperature_humidity_sensor ([#12949](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12949)) ([61eb76b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/61eb76b914206c55bf0321049fe1eba0e7631a4c))
+* **add:** ZB-MIDEA-AC ([#12918](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12918)) ([159c635](https://github.com/Koenkk/zigbee-herdsman-converters/commit/159c635984e0e822ee1e94fb980c13a561ef94b9))
+* fix IAS max_duration limits and move to modernExtend ([#12941](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12941)) ([70ebcb6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70ebcb65b0550e6e3c5f102015543177d06210d7))
+* SONOFF SNZB-06P24: improve description ([#12958](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12958)) ([1507fa9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1507fa9ad1949b0d7154ff226f8dfa553f4d0901))
+* Ubisys: Expose identify cluster ([#12938](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12938)) ([cb1a22c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cb1a22ccc9d881dc1699a45f73e3d1cc8e6cf9f4))
+
+
+### Bug Fixes
+
+* Aqara W600: improve external temperature handling ([#12942](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12942)) ([1bac9e8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1bac9e88c3c82ad30500cf684b4685e4c6ed49f9))
+* BITUO: enable frequency multiplier/divisor reads for energy meters ([#12951](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12951)) ([56e78e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/56e78e51484c670232786c9d24c117799516ce1e))
+* Danfoss Icon: expose icon_application and only expose populated room endpoints ([#12964](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12964)) ([b75cd72](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b75cd725c0f7721e7b56a3879740d5168a799872))
+* Schneider: allow zero fixed load demand ([#12956](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12956)) ([cf06bc2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf06bc23e8a01f4f9f36936df7e1d3be1f174f77))
+* Securifi PP-WHT-US: allow OTA ([#12954](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12954)) ([4d593e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d593e54ff32f87ed437948f6d6722853b174a83))
+* SODA S8: fix battery_low mapping (string -&gt; boolean) ([#12950](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12950)) ([11f1bd9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/11f1bd936a9b99a2ce4db4b1e57008d3bfa72b73))
+* SONOFF SNZB-02M: fix calibration ranges ([#12959](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12959)) ([aba55f7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aba55f78af20dac7dac3fc808c74e41689b11ae8))
+
 ## [26.98.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.97.0...v26.98.0) (2026-08-18)
 
 
