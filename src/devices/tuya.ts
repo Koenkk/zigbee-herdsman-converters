@@ -16007,8 +16007,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.illuminance(),
             e.battery(),
             e.enum("motion_state", ea.STATE, ["none", "static", "small", "large"]).withDescription("Human body motion state"),
-            e.numeric("distance", ea.STATE).withUnit("m").withDescription("Target distance"),
             e.binary("init", ea.STATE_SET, "ON", "OFF").withDescription("Initialize"),
+            e
+                .numeric("far_detection", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(600)
+                .withValueStep(1)
+                .withUnit("cm")
+                .withDescription("Target distance"),
             e
                 .numeric("fading_time", ea.STATE_SET)
                 .withValueMin(10)
@@ -16033,7 +16039,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
-                [4, "distance", tuya.valueConverter.raw],
+                [4, "far_detection", tuya.valueConverter.raw],
                 [
                     11,
                     "motion_state",
