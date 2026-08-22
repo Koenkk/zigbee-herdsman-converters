@@ -30,6 +30,30 @@ const fzLocal = {
             return lookup[value] ? {action: lookup[value]} : null;
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+
+    // KK-WA-J01W-2020 3AFE12010402102A battery voltage conversion
+    konke_wa_j01w_2020_battery: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+
+            const minVoltage = 2500;
+            const maxVoltage = 3300;
+
+            if (msg.data.batteryVoltage !== undefined) {
+                const rawVoltage = msg.data.batteryVoltage;
+                const voltage = rawVoltage > 100 ? rawVoltage : rawVoltage * 100;
+
+                payload.voltage = voltage;
+                payload.battery = Math.round(((voltage - minVoltage) / (maxVoltage - minVoltage)) * 100);
+
+                payload.battery = Math.max(0, Math.min(100, payload.battery));
+            }
+
+            return payload;
+        },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -135,11 +159,20 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_voltage(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A", "3AFE12010402102A"],
+        zigbeeModel: ["3AFE21100402102A", "3AFE22010402102A"],
         model: "KK-WA-J01W",
         vendor: "Konke",
         description: "Water detector",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+    },
+    {
+        zigbeeModel: ["3AFE12010402102A"],
+        model: "KK-WA-J01W-2020",
+        vendor: "Konke",
+        description: "Water detector (2020 firmware with custom battery conversion)",
+        fromZigbee: [fz.ias_water_leak_alarm_1, fzLocal.konke_wa_j01w_2020_battery],
         toZigbee: [],
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
