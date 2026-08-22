@@ -10913,7 +10913,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Occupancy timeout",
                 cluster: "msOccupancySensing",
                 attribute: "pirOToUDelay",
-                description: "Occupied to unoccupied delay",
+                description: "Occupied to Unoccupied Delay (30 s+ recommended to reduce missed detection.)",
                 valueMin: 15,
                 valueMax: 65535,
                 unit: "s",
