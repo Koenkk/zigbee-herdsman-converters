@@ -2670,9 +2670,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff(),
             m.electricityMeter({
-                power: {multiplier: 1, divisor: 10}, // W
+                power: {multiplier: 1, divisor: 1}, // W
                 voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
-                current: {multiplier: 1, divisor: 100}, // A
+                current: {multiplier: 1, divisor: 1000}, // mA -> 4700 -> 4.7
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],
