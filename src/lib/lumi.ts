@@ -7687,7 +7687,7 @@ export const fromZigbee = {
             if (stop) {
                 const button = globalStore.getValue(msg.endpoint, "button").button;
                 const duration = Date.now() - globalStore.getValue(msg.endpoint, "button").start;
-                result = {action: `button_${button}_release`, duration, action_duration: duration};
+                result = {action: `button_${button}_release`, action_duration: duration};
             } else {
                 const button = msg.data.movemode === 3 ? "6" : "5";
                 result = {action: `button_${button}_hold`};
@@ -7742,7 +7742,7 @@ export const fromZigbee = {
             } else if (state === 1) {
                 if (globalStore.getValue(msg.endpoint, "hold")) {
                     const duration = Date.now() - globalStore.getValue(msg.endpoint, "hold");
-                    publish({action: "release", duration: duration});
+                    publish({action: "release", action_duration: duration});
                     globalStore.putValue(msg.endpoint, "hold", false);
                 }
 
