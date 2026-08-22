@@ -1260,6 +1260,13 @@ export function light(args: LightArgs = {}): ModernExtend {
         toZigbee.push(tz.light_color_mode, tz.light_color_options);
     }
 
+    // Color-temperature-only light: some firmwares still report a color mode (e.g. xy) they have no
+    // capability for. Flag it so `fz.color_colortemp` drops the spurious color/color_mode instead of
+    // forwarding a mode Home Assistant does not expose for this entity.
+    if (colorTemp && !argsColor) {
+        meta.onlyColorTemp = true;
+    }
+
     if (colorTemp) {
         lightExpose.forEach((e) => {
             e.withColorTemp(colorTemp.range);
