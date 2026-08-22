@@ -15,7 +15,7 @@ interface GeneratedExtend {
     getExtend(): ModernExtend;
     getSource(): string;
     lib?: string;
-    skip?: string[];
+    multiEndpointSkip?: string[];
 }
 
 // Generator allows to define instances of GeneratedExtend that have typed arguments to extender.
@@ -24,14 +24,14 @@ class ExtendGenerator<T> implements GeneratedExtend {
     args?: T;
     source: string;
     lib?: string;
-    skip?: string[];
+    multiEndpointSkip?: string[];
 
-    constructor(args: {extend: (a: T) => ModernExtend; args?: T; source: string; lib?: string; skip?: string[]}) {
+    constructor(args: {extend: (a: T) => ModernExtend; args?: T; source: string; lib?: string; multiEndpointSkip?: string[]}) {
         this.extend = args.extend;
         this.args = args.args;
         this.source = args.source;
         this.lib = args.lib;
-        this.skip = args.skip;
+        this.multiEndpointSkip = args.multiEndpointSkip;
     }
 
     getExtend(): ModernExtend {
@@ -104,7 +104,7 @@ const INPUT_EXTENDERS: Extender[] = [
                 extend: m.windowCovering,
                 args: {controls: ["lift", "tilt"]},
                 source: "windowCovering",
-                skip: ["state", "position", "tilt", "cover_mode"],
+                multiEndpointSkip: ["state", "position", "tilt", "cover_mode"],
             }),
         ],
     ],
@@ -122,7 +122,7 @@ const OUTPUT_EXTENDERS: Extender[] = [
                 extend: m.commandsOnOff,
                 args: maybeEndpointArgs(d, eps),
                 source: "commandsOnOff",
-                skip: onlyFirstDeviceEnpoint(d, eps) ? ["on", "off", "toggle"] : undefined,
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps) ? ["on", "off", "toggle"] : undefined,
             }),
         ],
     ],
@@ -133,7 +133,7 @@ const OUTPUT_EXTENDERS: Extender[] = [
                 extend: m.commandsLevelCtrl,
                 args: maybeEndpointArgs(d, eps),
                 source: "commandsLevelCtrl",
-                skip: onlyFirstDeviceEnpoint(d, eps)
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps)
                     ? [
                           "brightness_move_to_level",
                           "brightness_move_up",
@@ -153,7 +153,7 @@ const OUTPUT_EXTENDERS: Extender[] = [
                 extend: m.commandsColorCtrl,
                 args: maybeEndpointArgs(d, eps),
                 source: "commandsColorCtrl",
-                skip: onlyFirstDeviceEnpoint(d, eps)
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps)
                     ? [
                           "color_temperature_move_stop",
                           "color_temperature_move_up",
@@ -186,7 +186,7 @@ const OUTPUT_EXTENDERS: Extender[] = [
                 extend: m.commandsWindowCovering,
                 args: maybeEndpointArgs(d, eps),
                 source: "commandsWindowCovering",
-                skip: onlyFirstDeviceEnpoint(d, eps) ? ["open", "close", "stop"] : undefined,
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps) ? ["open", "close", "stop"] : undefined,
             }),
         ],
     ],
@@ -290,8 +290,8 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
-        // create list with all skipEndpoint properties from generated extenders
-        const multiEndpointSkipArr = generatedExtend.flatMap((e) => e.skip ?? []);
+        // create list with all multiEndpointSkip properties from generated extenders
+        const multiEndpointSkipArr = generatedExtend.flatMap((e) => e.multiEndpointSkip ?? []);
         const multiEndpointSkip = multiEndpointSkipArr.length ? multiEndpointSkipArr : undefined;
         // Add to beginning for better visibility.
         generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints, multiEndpointSkip}, source: "deviceEndpoints"}));
@@ -374,18 +374,18 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
                 extend: m.onOff,
                 args: {endpointNames},
                 source: "onOff",
-                skip: onlyFirstDeviceEnpoint(device, onOffEndpoints) ? ["state", "on", "off", "power_on_behavior"] : undefined,
+                multiEndpointSkip: onlyFirstDeviceEnpoint(device, onOffEndpoints) ? ["state", "on", "off", "power_on_behavior"] : undefined,
             }),
         );
     }
 
     for (const endpoint of lightEndpoints) {
         let endpointNames: string[] | undefined;
-        let skip: string[] | undefined;
+        let multiEndpointSkip: string[] | undefined;
         if (!onlyFirstDeviceEnpoint(device, lightEndpoints)) {
             endpointNames = lightEndpoints.map((e) => e.ID.toString());
         } else {
-            skip = ["state", "on", "off", "brightness", "level_config", "power_on_behavior"];
+            multiEndpointSkip = ["state", "on", "off", "brightness", "level_config", "power_on_behavior"];
         }
         // In case read fails, support all features with 31
         let colorCapabilities = 0;
@@ -403,8 +403,8 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
             const minColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);
             const maxColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMax", 500);
             args.colorTemp = {range: [minColorTemp, maxColorTemp]};
-            if (skip) {
-                skip.push("color_temp", "color_temp_startup");
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("color_temp", "color_temp_startup");
             }
         }
 
@@ -415,19 +415,19 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
                 if (supportsHueSaturation) args.color.modes = ["xy", "hs"];
                 if (supportsEnhancedHueSaturation) args.color.enhancedHue = true;
             }
-            if (skip) {
-                skip.push("color", "color_mode");
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("color", "color_mode");
             }
         }
 
-        if ((supportsColorXY || supportsColorTemperature) && skip) {
-            skip.push("color_mode", "", "color_options");
+        if ((supportsColorXY || supportsColorTemperature) && multiEndpointSkip) {
+            multiEndpointSkip.push("color_mode", "", "color_options");
         }
 
         if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
             generated.push(new ExtendGenerator({extend: philips.m.light, args, source: "m.light", lib: "philips"}));
         } else {
-            generated.push(new ExtendGenerator({extend: m.light, args, source: "light", skip}));
+            generated.push(new ExtendGenerator({extend: m.light, args, source: "light", multiEndpointSkip}));
         }
     }
 
