@@ -1783,7 +1783,7 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
             const value = msg.data.currentPositionLiftPercentage;
             result[postfixWithEndpointName("position", msg, model, meta)] = invert ? value : 100 - value;
             if (!coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invert
                     ? value === 0
                         ? "CLOSE"
                         : "OPEN"
@@ -1796,7 +1796,7 @@ export const cover_position_tilt: Fz.Converter<"closuresWindowCovering", undefin
             const value = msg.data.currentPositionTiltPercentage;
             result[postfixWithEndpointName("tilt", msg, model, meta)] = invert ? value : 100 - value;
             if (coverStateFromTilt) {
-                result[postfixWithEndpointName("state", msg, model, meta)] = metaInvert
+                result[postfixWithEndpointName("state", msg, model, meta)] = invert
                     ? value === 100
                         ? "OPEN"
                         : "CLOSE"
@@ -1929,15 +1929,6 @@ export const ias_enroll: Fz.Converter<"ssIasZone", undefined, ["attributeReport"
             ias_cie_address: iasCieAddr,
             zone_id: zoneId,
         };
-    },
-};
-export const ias_wd: Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "ssIasWd",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        const result: KeyValueAny = {};
-        if (msg.data.maxDuration !== undefined) result.max_duration = msg.data.maxDuration;
-        return result;
     },
 };
 export const power_source: Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]> = {

@@ -8148,7 +8148,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "SONOFF",
         ota: true,
         description: "Zigbee water sensor",
-        extend: [m.battery(), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+        version: "0.0.1",
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
     },
     {
         zigbeeModel: ["SNZB-06P"],
@@ -9448,7 +9453,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart switch",
         exposes: [],
         extend: [
-            m.commandsOnOff({commands: ["toggle"]}),
+            // binding and reporting are handled in configure block, skip duplication
+            m.commandsOnOff({commands: ["toggle"], bind: false}),
             m.onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.binary<"customClusterEwelink", SonoffEwelink>({
@@ -9507,11 +9513,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
-            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
-                "customClusterEwelink",
-                ["radioPower", 0x0001, 0x0014, 0x0015, 0x0016, 0x0017],
-                defaultResponseOptions,
-            );
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["externalTriggerMode"], defaultResponseOptions);
         },
     },
     {
@@ -9718,8 +9720,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
-                name: "motor_run_status",
-                lookup: {Stop: 0, Forward: 1, Reverse: 2},
+                name: "moving",
+                lookup: {stop: 0, forward: 1, reverse: 2},
                 cluster: "customClusterEwelink",
                 attribute: "motorRunStatus",
                 description: "The motor's current operating status, such as forward rotation, reverse rotation, and stop.",
@@ -10570,8 +10572,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -20,
-                valueMax: 60,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "°C",
@@ -10583,8 +10585,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: 5,
-                valueMax: 95,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
@@ -10597,8 +10599,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "Pressure compensation offset applied directly to pressure reading in hPa (positive adds, negative subtracts). Range: -400 to 400 hPa. " +
                     "Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -400,
-                valueMax: 400,
+                valueMin: -200,
+                valueMax: 200,
                 valueStep: 0.1,
                 scale: 100,
                 unit: "hPa",
@@ -10911,7 +10913,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Occupancy timeout",
                 cluster: "msOccupancySensing",
                 attribute: "pirOToUDelay",
-                description: "Occupied to unoccupied delay",
+                description: "Occupied to Unoccupied Delay (30 s+ recommended to reduce missed detection.)",
                 valueMin: 15,
                 valueMax: 65535,
                 unit: "s",
@@ -11922,6 +11924,42 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
             await endpoint.read("seMetering", ["multiplier", "divisor"]);
             await reporting.currentSummDelivered(endpoint);
+        },
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-01(7037)", "CK-TLSR8656-Z123SE24DY-01(7037)"],
+        model: "CK-TLSR8656-SS5-01(7037)",
+        vendor: "eWeLink",
+        whiteLabel: [
+            {
+                model: "CK-TLSR8656-Z123SE24DY-01(7037)",
+                vendor: "eWeLink",
+                fingerprint: [{modelID: "CK-TLSR8656-Z123SE24DY-01(7037)", manufacturerName: "eWeLink"}],
+            },
+        ],
+        description: "Zigbee CO sensor",
+        ota: true,
+        extend: [
+            ewelinkBattery(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1"]}),
+            m.numeric({
+                name: "co",
+                unit: "ppm",
+                valueMin: 0,
+                valueMax: 1000,
+                cluster: "msCarbonMonoxide",
+                attribute: "measuredValue",
+                description: "The measured CO level",
+                access: "STATE_GET",
+            }),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msCarbonMonoxide", "ssIasZone"]);
+            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining", "batteryVoltage"]);
+            await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
     },
 ];

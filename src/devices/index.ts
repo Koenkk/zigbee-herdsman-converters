@@ -251,6 +251,7 @@ import {definitions as peq} from "./peq";
 import {definitions as perenio} from "./perenio";
 import {definitions as philio} from "./philio";
 import {definitions as philips} from "./philips";
+import {definitions as pirogovx} from "./pirogovx";
 import {definitions as plaid} from "./plaid";
 import {definitions as plugwise} from "./plugwise";
 import {definitions as profalux} from "./profalux";
@@ -268,6 +269,7 @@ import {definitions as radium} from "./radium";
 import {definitions as raex} from "./raex";
 import {definitions as repenicLtd} from "./repenic_ltd";
 import {definitions as rgbGenie} from "./rgb_genie";
+import {definitions as ribag} from "./ribag";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
 import {definitions as rtx} from "./rtx";
@@ -320,6 +322,7 @@ import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
 import {definitions as stelpro} from "./stelpro";
+import {definitions as stuckatprototype} from "./stuckatprototype";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
 import {definitions as swann} from "./swann";
@@ -630,6 +633,7 @@ const definitions: DefinitionWithExtend[] = [
     ...perenio,
     ...philio,
     ...philips,
+    ...pirogovx,
     ...plaid,
     ...plugwise,
     ...profalux,
@@ -646,6 +650,7 @@ const definitions: DefinitionWithExtend[] = [
     ...raex,
     ...repenicLtd,
     ...rgbGenie,
+    ...ribag,
     ...robb,
     ...roome,
     ...lumi,
@@ -699,6 +704,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sprut,
     ...stello,
     ...stelpro,
+    ...stuckatprototype,
     ...sunricher,
     ...superled,
     ...swann,

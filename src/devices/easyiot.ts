@@ -6,7 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {utcToDeviceLocal2000Seconds} from "../lib/sonoff";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
-import {assertObject, assertString} from "../lib/utils";
+import {assertObject, assertString, postfixWithEndpointName} from "../lib/utils";
 
 const NS = "zhc:easyiot";
 const ea = exposes.access;
@@ -382,6 +382,63 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"seTunneling", undefined, ["commandTransferData"]>,
 
+    /*
+     * Radar calibration / tunneling status handler
+     * Expected frame format: [Cmd_Low][Cmd_High][DataLen][DataType][Data...]
+     * For calibration responses/callbacks Cmd = 0x0602 (low=0x02, high=0x06)
+     * DataType 0x20 => uint8 progress/status
+     */
+    easyiot_radar_calib_status: {
+        cluster: "seTunneling",
+        type: ["commandTransferData"],
+        convert: (model, msg, publish, options, meta) => {
+            try {
+                const buf: Buffer = msg.data.data;
+                if (!buf || buf.length < 5) return;
+                // Cmd Low/High
+                const cmdLow = buf[0];
+                const cmdHigh = buf[1];
+                // Check for 0x0602
+                if (cmdLow === 0x03 && cmdHigh === 0x06) {
+                    //const dataLen = buf[2];
+                    //const dataType = buf[3];
+                    const value = buf[4];
+                    // DataType 0x20 == uint8 progress value (0-100)
+                    if (value >= 0 && value <= 100) {
+                        return {auto_calibration_progress: value};
+                    }
+                }
+            } catch (err) {
+                logger.error(`Failed to parse radar calib status: ${err}`, NS);
+            }
+        },
+    } satisfies Fz.Converter<"seTunneling", undefined, ["commandTransferData"]>,
+
+    easyiot_occupancy: {
+        cluster: "occupancySensing",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            try {
+                if (!msg?.data) return;
+
+                const data = msg.data as unknown as Record<string, unknown>;
+                if (!Object.hasOwn(data, "occupancy")) return;
+
+                // occupancy may be numeric (bitmask) or boolean
+                const raw = data["occupancy"];
+                const isOccupied = typeof raw === "number" ? (raw as number & 1) === 1 : !!raw;
+
+                const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
+                const payload: Record<string, boolean> = {};
+                payload[propertyName] = isOccupied;
+
+                return payload;
+            } catch (err) {
+                logger.error(`easyiot_occupancy converter error: ${err}`, NS);
+            }
+        },
+    } satisfies Fz.Converter<"occupancySensing", undefined, ["attributeReport", "readResponse"]>,
+
     easyiot_action: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
@@ -700,6 +757,143 @@ const tzLocal = {
                 {disableDefaultResponse: true},
             );
             logger.debug("Sending IR command success.", NS);
+        },
+    } satisfies Tz.Converter,
+    /*
+     * Detection range: occupancy cluster attribute 0xFE02 (uint8)
+     * Value represents range in decimeters (0.7-10.0 m -> 7-100)
+     */
+    easyiot_set_detection_range: {
+        key: ["detection_range"],
+        convertSet: async (entity, key, value, meta) => {
+            const range = Number(value);
+            if (!Number.isFinite(range)) throw new Error("detection_range must be a number");
+            if (range < 0.7 || range > 10) throw new Error("detection_range must be between 0.7 and 10 meters");
+            const encoded = Math.round(range * 10); // convert to decimeters
+            const payloadBuf = Buffer.from([(encoded as number) & 0xff]);
+
+            const frameHeader = Buffer.from([0x07, 0x06, 0x01, 0x20]);
+            const protocolFrame = Buffer.concat([frameHeader, payloadBuf]);
+
+            await entity.command(
+                "seTunneling",
+                "transferData",
+                {
+                    tunnelId: 0x0001,
+                    data: protocolFrame,
+                },
+                {disableDefaultResponse: true},
+            );
+
+            return {state: {detection_range: range}};
+        },
+    } satisfies Tz.Converter,
+
+    /*
+     * Work mode: Occupancy Sensor Mode attribute 0xFE01 (enum8)
+     */
+    easyiot_set_work_mode: {
+        key: ["work_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const modeMap: KeyValueAny = {
+                pirOnly: 1,
+                radarOnly: 2,
+                pirRadarAnd: 3,
+                occupied_first: 4,
+                unoccupied_first: 5,
+            };
+            if (!((value as string) in modeMap)) {
+                throw new Error(`work_mode must be one of: ${Object.keys(modeMap).join(", ")}`);
+            }
+            const modeValue = modeMap[value as string];
+            await entity.write("occupancySensing", {65025: {value: modeValue, type: Zcl.DataType.ENUM8}}, {disableDefaultResponse: true});
+            return {state: {work_mode: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("occupancySensing", [0xfe01]);
+        },
+    } satisfies Tz.Converter,
+
+    easyiot_set_pir_u2o_delay: {
+        key: ["pir_u2o_delay"],
+        convertSet: async (entity, key, value, meta) => {
+            const delay = Number(value);
+            if (!Number.isInteger(delay) || delay < 0 || delay > 0xffff) {
+                throw new Error("pir_u2o_delay must be an integer between 0 and 65535");
+            }
+            await entity.write("occupancySensing", {17: {value: delay, type: Zcl.DataType.UINT16}}, {disableDefaultResponse: true});
+            return {state: {pir_u2o_delay: delay}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("occupancySensing", [0x0011]);
+        },
+    } satisfies Tz.Converter,
+
+    easyiot_set_ultrasonic_o2u_delay: {
+        key: ["ultrasonic_o2u_delay"],
+        convertSet: async (entity, key, value, meta) => {
+            const delay = Number(value);
+            if (!Number.isInteger(delay) || delay < 0 || delay > 0xffff) {
+                throw new Error("ultrasonic_o2u_delay must be an integer between 0 and 65535");
+            }
+            await entity.write("occupancySensing", {32: {value: delay, type: Zcl.DataType.UINT16}}, {disableDefaultResponse: true});
+            return {state: {ultrasonic_o2u_delay: delay}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("occupancySensing", [0x0020]);
+        },
+    } satisfies Tz.Converter,
+
+    easyiot_set_ultrasonic_u2o_delay: {
+        key: ["ultrasonic_u2o_delay"],
+        convertSet: async (entity, key, value, meta) => {
+            const delay = Number(value);
+            if (!Number.isInteger(delay) || delay < 0 || delay > 0xffff) {
+                throw new Error("ultrasonic_u2o_delay must be an integer between 0 and 65535");
+            }
+            await entity.write("occupancySensing", {33: {value: delay, type: Zcl.DataType.UINT16}}, {disableDefaultResponse: true});
+            return {state: {ultrasonic_u2o_delay: delay}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("occupancySensing", [0x0021]);
+        },
+    } satisfies Tz.Converter,
+
+    /*
+     * Start automatic threshold calibration
+     * Command 0x0601: [0x01,0x06,0x06,0x4C][motion_coef(2B LE)][hold_coef(2B LE)][micro_coef(2B LE)]
+     */
+    easyiot_start_auto_calibration: {
+        key: ["auto_calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            assertObject(value, "auto_calibration requires an object");
+            const payload = value as KeyValueAny;
+            const motion = typeof payload.motion_coef === "number" ? payload.motion_coef : 30;
+            const hold = typeof payload.hold_coef === "number" ? payload.hold_coef : 30;
+            const micro = typeof payload.micro_coef === "number" ? payload.micro_coef : 30;
+            if (motion < 0 || motion > 0xffff || hold < 0 || hold > 0xffff || micro < 0 || micro > 0xffff) {
+                throw new Error("coef values must be 0-65535");
+            }
+
+            const payloadBuf = Buffer.alloc(6);
+            payloadBuf.writeUInt16LE(motion & 0xffff, 0);
+            payloadBuf.writeUInt16LE(hold & 0xffff, 2);
+            payloadBuf.writeUInt16LE(micro & 0xffff, 4);
+
+            const frameHeader = Buffer.from([0x01, 0x06, 0x06, 0x4c]);
+            const protocolFrame = Buffer.concat([frameHeader, payloadBuf]);
+
+            await entity.command(
+                "seTunneling",
+                "transferData",
+                {
+                    tunnelId: 0x0001,
+                    data: protocolFrame,
+                },
+                {disableDefaultResponse: true},
+            );
+
+            return {state: {auto_calibration_started: true, auto_calibration: {motion_coef: motion, hold_coef: hold, micro_coef: micro}}};
         },
     } satisfies Tz.Converter,
     easyiot_zl01_open_door: {
@@ -1291,5 +1485,67 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "easyiot",
         description: "Zigbee light and temperature sensor",
         extend: [m.temperature(), m.humidity(), m.illuminance(), m.battery()],
+    },
+    {
+        fingerprint: [{modelID: "ZB-24GMS02", manufacturerName: "easyiot"}],
+        model: "ZB-24GMS02",
+        vendor: "easyiot",
+        description: "Zigbee motion and radar sensor",
+        fromZigbee: [fzLocal.easyiot_radar_calib_status, fzLocal.easyiot_occupancy],
+        toZigbee: [
+            tzLocal.easyiot_set_detection_range,
+            tzLocal.easyiot_set_work_mode,
+            tzLocal.easyiot_set_pir_u2o_delay,
+            tzLocal.easyiot_set_ultrasonic_o2u_delay,
+            tzLocal.easyiot_set_ultrasonic_u2o_delay,
+            tzLocal.easyiot_start_auto_calibration,
+        ],
+        exposes: [
+            e.occupancy(),
+            e
+                .numeric("detection_range", ea.ALL)
+                .withDescription("Detection range in meters (0.7 - 10.0, step 0.1)")
+                .withValueMin(0.7)
+                .withValueMax(10)
+                .withValueStep(0.1),
+            e.numeric("pir_u2o_delay", ea.ALL).withDescription("PIR unoccupied to occupied delay in seconds").withValueMin(0).withValueMax(65534),
+            e
+                .numeric("ultrasonic_o2u_delay", ea.ALL)
+                .withDescription("Ultrasonic occupied to unoccupied delay in seconds")
+                .withValueMin(0)
+                .withValueMax(65534),
+            e
+                .numeric("ultrasonic_u2o_delay", ea.ALL)
+                .withDescription("Ultrasonic unoccupied to occupied delay in seconds")
+                .withValueMin(0)
+                .withValueMax(65534),
+            e
+                .composite("auto_calibration", "auto_calibration", ea.SET)
+                .withDescription(
+                    "Start automatic threshold calibration: motion_coef/hold_coef/micro_coef (The threshold generation process takes approximately 90 seconds. The room should remain unoccupied during this time, and the device should not be pointed at moving objects such as curtains or electric fans.)",
+                )
+                .withFeature(e.numeric("motion_coef", ea.SET).withDescription("Motion coefficient,defaults:30").withValueMin(10).withValueMax(200))
+                .withFeature(e.numeric("hold_coef", ea.SET).withDescription("Hold coefficient,defaults:30").withValueMin(10).withValueMax(200))
+                .withFeature(
+                    e.numeric("micro_coef", ea.SET).withDescription("Micro-movement coefficient,defaults:30").withValueMin(10).withValueMax(200),
+                ),
+            e.numeric("auto_calibration_progress", ea.STATE).withDescription("Auto-calibration progress (0-100)").withValueMin(0).withValueMax(100),
+            e
+                .enum("work_mode", ea.SET, ["pirOnly", "radarOnly", "pirRadarAnd", "occupied_first", "unoccupied_first"])
+                .withDescription("Work mode: pirOnly/radarOnly/pirRadarAnd/occupied_first/unoccupied_first"),
+        ],
+        extend: [
+            m.deviceAddCustomCluster("occupancySensing", {
+                name: "occupancySensing",
+                ID: 0x0406,
+                attributes: {
+                    occupancy: {name: "occupancy", ID: 0x0000, type: Zcl.DataType.BITMAP8, report: true, required: true},
+                    occupancySensorMode: {name: "occupancySensorMode", ID: 0xfe01, type: Zcl.DataType.ENUM8, write: true},
+                    occupancySensorRange: {name: "occupancySensorRange", ID: 0xfe02, type: Zcl.DataType.UINT8, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
 ];

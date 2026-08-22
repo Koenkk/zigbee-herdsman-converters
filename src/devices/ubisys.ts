@@ -33,6 +33,12 @@ const manufacturerOptions = {
     ubisysNull: {manufacturerCode: null},
 };
 
+// Maximum payload of a single structured write. The adapter reports the limit it can send, but it
+// is not exposed to converters, and the usable APS payload shrinks further with source routing.
+// Use the largest payload the previous per-template chunking already produced (`dimmer_single`,
+// four records) so that no request is larger than one that already worked.
+const MAX_STRUCTURED_WRITE_BYTES = 56;
+
 const ubisys = {
     fz: {
         dimmer_setup: {
@@ -103,6 +109,20 @@ const ubisys = {
                 return {configure_device_setup: result};
             },
         } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup, ["attributeReport", "readResponse"]>,
+        operational_status: {
+            cluster: "closuresWindowCovering",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                if (msg.data.operationalStatus !== undefined) {
+                    const status = msg.data.operationalStatus;
+                    const operationalStatus = status & 3;
+                    const operationalStatusValues = {0: "stopped", 1: "opening", 2: "closing"};
+                    return {
+                        motor_state: utils.getFromLookup(operationalStatus, operationalStatusValues),
+                    };
+                }
+            },
+        } satisfies Fz.Converter<"closuresWindowCovering", UbisysClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     },
     tz: {
         configure_j1: {
@@ -600,6 +620,8 @@ const ubisys = {
                     // XXX: input_action_templates is not validated
                     //      it could potentially write values that don't fit OCTET_STR (e.g. value at x index is > 0xff)
 
+                    const flatInputActions = resultingInputActions.flat();
+
                     // write length of octet str array at index 0
                     await devMgmtEp.writeStructured(
                         "manuSpecificUbisysDeviceSetup",
@@ -608,29 +630,46 @@ const ubisys = {
                                 attrId: attributeInputActions.ID,
                                 selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [0]},
                                 dataType: Zcl.DataType.UINT16,
-                                elementData: resultingInputActions.flat().length,
+                                elementData: flatInputActions.length,
                             },
                         ],
                         manufacturerOptions.ubisysNull,
                     );
 
+                    // Write in chunks to prevent frame overflow. Chunking per template is not
+                    // enough: a single `dimmer_double` produces six records of 82 bytes total,
+                    // which exceeds the APS payload limit once the ZCL header is added and
+                    // fails with MESSAGE_TOO_LONG before the request is sent.
+                    let chunk: Parameters<typeof devMgmtEp.writeStructured>[1] = [];
+                    let chunkBytes = 0;
                     let index = 1;
 
-                    // write in chunks to prevent frame overflow
-                    // XXX: depends entirely on the values inside the nested array as far as "not overflowing"
-                    //      it also is not optimized for "minimum writes", since count is based on nesting
-                    for (const inputAction of resultingInputActions) {
-                        await devMgmtEp.writeStructured(
-                            "manuSpecificUbisysDeviceSetup",
-                            inputAction.map((a) => ({
-                                attrId: attributeInputActions.ID,
-                                selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [index++]},
-                                dataType: Zcl.DataType.OCTET_STR,
-                                elementData: Buffer.from(a),
-                            })),
-                            manufacturerOptions.ubisysNull,
-                        );
+                    const writeChunk = async () => {
+                        if (chunk.length === 0) return;
+
+                        await devMgmtEp.writeStructured("manuSpecificUbisysDeviceSetup", chunk, manufacturerOptions.ubisysNull);
+                        chunk = [];
+                        chunkBytes = 0;
+                    };
+
+                    for (const inputAction of flatInputActions) {
+                        // attrId (2) + selector indicator (1) + one index (2) + data type (1) + octet string length (1)
+                        const recordBytes = 7 + inputAction.length;
+
+                        if (chunkBytes + recordBytes > MAX_STRUCTURED_WRITE_BYTES) {
+                            await writeChunk();
+                        }
+
+                        chunk.push({
+                            attrId: attributeInputActions.ID,
+                            selector: {indicatorType: Zcl.StructuredIndicatorType.Whole, indexes: [index++]},
+                            dataType: Zcl.DataType.OCTET_STR,
+                            elementData: Buffer.from(inputAction),
+                        });
+                        chunkBytes += recordBytes;
                     }
+
+                    await writeChunk();
                 }
             },
         } satisfies Tz.Converter,
@@ -649,7 +688,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, s1: 2};
         },
         extend: [
-            // NOTE: identify is supported but no visual indicator so omitted here
+            m.identify({endpointNames: ["l1"]}),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering", configureReporting: false}),
             m.commandsOnOff({endpointNames: ["2"]}),
@@ -694,7 +733,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, s1: 2, s2: 3};
         },
         extend: [
-            m.identify(),
+            m.identify({endpointNames: ["l1"]}),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering", configureReporting: false}),
             m.commandsOnOff({endpointNames: ["2", "3"]}),
@@ -776,7 +815,11 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 3, s2: 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["power", "energy"]},
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(), ubisysModernExtend.pollCurrentSummDelivered(5)],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.pollCurrentSummDelivered(5),
+            m.identify({endpointNames: ["l1", "l2"]}),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
@@ -954,6 +997,7 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDimmerSetup(),
             ubisysModernExtend.addCustomClusterGenLevelCtrl(),
             ubisysModernExtend.pollCurrentSummDelivered(4),
+            m.identify({endpointNames: ["default"]}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -986,7 +1030,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "J1",
         vendor: "Ubisys",
         description: "Shutter control J1",
-        fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup],
+        fromZigbee: [fz.cover_position_tilt, fz.metering, ubisys.fz.configure_device_setup, ubisys.fz.operational_status],
         toZigbee: [
             tz.cover_state,
             tz.cover_position_tilt,
@@ -1026,6 +1070,8 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
             ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
             ubisysModernExtend.pollCurrentSummDelivered(3),
+            ubisysModernExtend.operationalStatus(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
@@ -1035,6 +1081,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.instantaneousDemand(endpoint3);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["closuresWindowCovering"]);
             await reporting.currentPositionLiftPercentage(endpoint1);
+            const payload = reporting.payload<"closuresWindowCovering", UbisysClosuresWindowCovering>("operationalStatus", 0, 65000, 0);
+            await endpoint1.configureReporting("closuresWindowCovering", payload);
         },
         onEvent: (event) => {
             /*
