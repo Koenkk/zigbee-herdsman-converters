@@ -2649,6 +2649,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2863,6 +2864,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl({endpointNames: ["4"]}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
