@@ -29144,7 +29144,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_apiu8k13"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_apiu8k13", "_TZE284_q9qytwfa"]),
         model: "TS0601_power_monitoring_switch",
         vendor: "Tuya",
         description: "Touch panel switch with power monitoring and timer",
