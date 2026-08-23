@@ -38,6 +38,29 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
+            // longPollInterval ships at 8 qs (2 s); the ZHA driver writes 24 qs (6 s).
+            // At 2 s: 43,200 MAC polls/day vs 14,400/day at 6 s — 3× drain difference.
+            // longPollInterval is read-only; must be set via setLongPollInterval command (0x02).
+            try {
+                await endpoint.command("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 24});
+                await endpoint.write("genPollCtrl", {checkinInterval: 13200});
+            } catch {
+                // Sleepy device may not ack before going to sleep; not fatal.
+            }
+        },
+        onEvent: async (event) => {
+            // Battery replacement resets longPollInterval to factory default (8 qs / 2 s).
+            // Reapply on deviceAnnounce to restore the correct value after every battery swap.
+            if (event.type === "deviceAnnounce") {
+                const endpoint = event.data?.device?.getEndpoint(1);
+                if (!endpoint) return;
+                try {
+                    await endpoint.command("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 24});
+                    await endpoint.write("genPollCtrl", {checkinInterval: 13200});
+                } catch {
+                    // Will retry on next announce.
+                }
+            }
         },
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
