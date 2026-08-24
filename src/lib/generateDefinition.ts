@@ -474,6 +474,8 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
     return [new ExtendGenerator({extend: m.electricityMeter, args, source: "electricityMeter"})];
 }
 
+const THERMOSTAT_CTRL_SEQ_OF_OPER_META = "ctrlSeqeOfOper";
+
 async function extenderThermostat(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
     const generated: GeneratedExtend[] = [];
 
@@ -481,27 +483,51 @@ async function extenderThermostat(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         const isFirstEndpoint = onlyFirstDeviceEnpoint(device, endpoints);
 
         // Read ctrlSeqeOfOper to determine thermostat type
-        // ZCL values: 0=occupied, 1=heating_only, 2=cooling_only, 4=heating_cooling
-        const ctrlSeqeOfOper = await getClusterAttributeValue(endpoint, "hvacThermostat", "ctrlSeqeOfOper", 1);
+        // ZCL values: 0=cooling_only, 1=cooling_with_reheat, 2=heating_only, 3=heating_with_reheat,
+        // 4=heating_cooling_4_pipes, 5=heating_cooling_4_pipes_with_reheat
+        // The value is persisted in device meta, so on subsequent generations (e.g. after a
+        // restart) it is not read from the device again.
+        let ctrlSeqeOfOper: number;
+        const storedCtrlSeqeOfOper = device.meta?.[THERMOSTAT_CTRL_SEQ_OF_OPER_META]?.[endpoint.ID];
+        if (typeof storedCtrlSeqeOfOper === "number") {
+            ctrlSeqeOfOper = storedCtrlSeqeOfOper;
+        } else {
+            const readCtrlSeqeOfOper = await getClusterAttributeValue(endpoint, "hvacThermostat", "ctrlSeqeOfOper", undefined);
+            if (typeof readCtrlSeqeOfOper === "number") {
+                ctrlSeqeOfOper = readCtrlSeqeOfOper;
+                if (!device.meta) device.meta = {};
+                if (typeof device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META] !== "object" || device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META] === null) {
+                    device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META] = {};
+                }
+                device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META][endpoint.ID] = readCtrlSeqeOfOper;
+            } else {
+                // Read failed - use the default without persisting, so a transient failure
+                // does not bake the fallback value into the meta.
+                ctrlSeqeOfOper = 2;
+            }
+        }
+
+        const coolingOnly = ctrlSeqeOfOper === 0 || ctrlSeqeOfOper === 1;
+        const heatingAndCooling = ctrlSeqeOfOper === 4 || ctrlSeqeOfOper === 5;
 
         let setpoints: NonNullable<NonNullable<m.ThermostatArgs["setpoints"]>["values"]>;
 
-        if (ctrlSeqeOfOper === 2) {
+        if (coolingOnly) {
             setpoints = {occupiedCoolingSetpoint: {min: 7, max: 30, step: 0.5}};
-        } else if (ctrlSeqeOfOper === 4) {
+        } else if (heatingAndCooling) {
             setpoints = {
                 occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5},
                 occupiedCoolingSetpoint: {min: 7, max: 30, step: 0.5},
             };
         } else {
-            // heating_only (default, value 1 or unknown)
+            // heating_only (2, 3 or unknown - default)
             setpoints = {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}};
         }
 
         let systemModeValues: constants.ThermostatSystemMode[];
-        if (ctrlSeqeOfOper === 2) {
+        if (coolingOnly) {
             systemModeValues = ["off", "cool"];
-        } else if (ctrlSeqeOfOper === 4) {
+        } else if (heatingAndCooling) {
             systemModeValues = ["off", "heat", "cool", "auto"];
         } else {
             systemModeValues = ["off", "heat"];
@@ -509,7 +535,7 @@ async function extenderThermostat(device: Zh.Device, endpoints: Zh.Endpoint[]): 
 
         const thermostatArgs: m.ThermostatArgs = {
             localTemperature: {},
-            runningState: {values: ctrlSeqeOfOper === 4 ? ["idle", "heat", "cool"] : ctrlSeqeOfOper === 2 ? ["idle", "cool"] : ["idle", "heat"]},
+            runningState: {values: heatingAndCooling ? ["idle", "heat", "cool"] : coolingOnly ? ["idle", "cool"] : ["idle", "heat"]},
             setpoints: {values: setpoints},
             systemMode: {values: systemModeValues},
         };

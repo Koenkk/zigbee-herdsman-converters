@@ -791,7 +791,7 @@ export default {
         const attributes = {
             hvacThermostat: {
                 attributes: {
-                    ctrlSeqeOfOper: 2,
+                    ctrlSeqeOfOper: 0,
                 },
             },
         };
@@ -819,6 +819,45 @@ export default {
                 1: [
                     ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
                     ["hvacThermostat", [reportingItem("occupiedCoolingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(hvacThermostat) heating only (ctrlSeqeOfOper=2)", async () => {
+        const attributes = {
+            hvacThermostat: {
+                attributes: {
+                    ctrlSeqeOfOper: 2,
+                },
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "thermo_heat2",
+                endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: [], attributes}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"})],
+            toZigbee: ["local_temperature", "occupied_heating_setpoint", "system_mode", "running_state"],
+            exposes: ["climate(local_temperature,occupied_heating_setpoint,system_mode,running_state)"],
+            bind: {1: ["hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat"]},
+            read: {
+                1: [
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedHeatingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedHeatingSetpoint", 0, repInterval.HOUR, 10)]],
                     ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
                     ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
                 ],
@@ -865,6 +904,22 @@ export default {
                 ],
             },
         });
+    });
+
+    test("input(hvacThermostat) ctrlSeqeOfOper persisted in device meta", async () => {
+        const device = mockDevice({
+            modelID: "thermo_meta",
+            endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: [], read: vi.fn(async () => ({ctrlSeqeOfOper: 2}))}],
+        });
+
+        await findByDevice(device, true);
+        expect(device.endpoints[0].read).toHaveBeenCalled();
+        expect(device.meta.ctrlSeqeOfOper).toEqual({1: 2});
+
+        // Second generation must reuse the persisted value without reading from the device again.
+        vi.mocked(device.endpoints[0].read).mockClear();
+        await findByDevice(device, true);
+        expect(device.endpoints[0].read).not.toHaveBeenCalled();
     });
 
     test("input(hvacThermostat, hvacFanCtrl, hvacUserInterfaceCfg) full HVAC", async () => {
