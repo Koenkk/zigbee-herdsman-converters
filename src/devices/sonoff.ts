@@ -67,8 +67,11 @@ interface SonoffBasicZB1GSP {
     commands: {
         clearHistory: {deviceType: number; deviceLength: number; eventType: number};
         readRecord: {data: number[]};
+        readElectricityRecords: {data: number[]};
     };
-    commandResponses: never;
+    commandResponses: {
+        readRecordResp: {data: number[]};
+    };
 }
 
 interface SonoffSnzb02d {
@@ -361,6 +364,31 @@ const SWVZNEIrrigationAmountUnitToDeviceCode = (unit: unknown, device?: Zh.Devic
     if (SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) return SWVZNEUnifiedIrrigationAmountUnitCodeByName[normalizedUnit];
     if (normalizedUnit === "imperial_gallon") return undefined;
     return SWVZNELegacyIrrigationAmountUnitCodeByName[normalizedUnit];
+};
+
+/**
+ * Checks whether a device firmware version supports a feature.
+ * When version-gating parameters are omitted, the feature is treated as supported.
+ * @param device Device whose firmware version should be checked.
+ * @param targetVersion Firmware version threshold.
+ * @param model Model for which the threshold applies.
+ * @param type Whether the current version must be lower than, or equal to/higher than, the threshold.
+ * @returns Whether the feature should be exposed.
+ */
+const firmwareSupportFeaturesVersion = (device?: Zh.Device, targetVersion?: string, model?: string, type?: "lower" | "higher"): boolean => {
+    if (device === undefined || targetVersion === undefined || model === undefined || type === undefined) return true;
+    if (!device.softwareBuildID) return false;
+    if (device.modelID !== model) return true;
+    const currentParts = device.softwareBuildID.split(".").map((part) => Number(part));
+    const targetParts = targetVersion.split(".").map((part) => Number(part));
+    const length = Math.max(currentParts.length, targetParts.length);
+    for (let i = 0; i < length; i++) {
+        const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
+        const targetPart = Number.isFinite(targetParts[i]) ? targetParts[i] : 0;
+        if (currentPart < targetPart) return type === "lower";
+        if (currentPart > targetPart) return type === "higher";
+    }
+    return type === "higher";
 };
 
 interface SonoffSnzb02ul {
@@ -6492,34 +6520,39 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    readConsumptionRecord(clusterName: "customClusterEwelink", commandName: "readRecord"): ModernExtend {
-        const exposes = [
-            e.text("consumption_records", ea.STATE),
-            e.text("consumption_records_dst", ea.STATE),
-            e
-                .composite("read_consumption_records", "read_consumption_records", ea.SET)
-                .withDescription("Read power-consumption history records (24h / monthly days / halfyear months).")
-                .withFeature(
-                    e
-                        .enum("type", ea.SET, ["get24Hours", "get30Days", "get180Days"])
-                        .withDescription("Record type: get24Hours, get30Days or get180Days."),
-                )
-                .withFeature(
-                    e
-                        .numeric("index", ea.SET)
-                        .withValueMin(0)
-                        .withValueMax(240)
-                        .withValueStep(1)
-                        .withDescription("Block index: 24h => 0/1/240(DST), 30d => 0/1, 180d => 0. For 24h/30d, index=0 auto-fetches block 0+1."),
-                )
-                .withFeature(
-                    e
-                        .numeric("offset", ea.SET)
-                        .withValueMin(0)
-                        .withValueMax(6)
-                        .withDescription("Offset: 24h => 0..6(days), 30d => 0..5(months), 180d => 0."),
-                ),
-        ];
+    readConsumptionRecord(clusterName: "customClusterEwelink", commandName: "readRecord", model?: string, targetVersion?: string): ModernExtend {
+        const expose: DefinitionExposesFunction = (device) =>
+            utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device as Zh.Device, targetVersion, model, "lower")
+                ? [
+                      e.text("consumption_records", ea.STATE),
+                      e.text("consumption_records_dst", ea.STATE),
+                      e
+                          .composite("read_consumption_records", "read_consumption_records", ea.SET)
+                          .withDescription("Read power-consumption history records (24h / monthly days / halfyear months).")
+                          .withFeature(
+                              e
+                                  .enum("type", ea.SET, ["get24Hours", "get30Days", "get180Days"])
+                                  .withDescription("Record type: get24Hours, get30Days or get180Days."),
+                          )
+                          .withFeature(
+                              e
+                                  .numeric("index", ea.SET)
+                                  .withValueMin(0)
+                                  .withValueMax(240)
+                                  .withValueStep(1)
+                                  .withDescription(
+                                      "Block index: 24h => 0/1/240(DST), 30d => 0/1, 180d => 0. For 24h/30d, index=0 auto-fetches block 0+1.",
+                                  ),
+                          )
+                          .withFeature(
+                              e
+                                  .numeric("offset", ea.SET)
+                                  .withValueMin(0)
+                                  .withValueMax(6)
+                                  .withDescription("Offset: 24h => 0..6(days), 30d => 0..5(months), 180d => 0."),
+                          ),
+                  ]
+                : [];
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["raw"]>[] = [
             {
@@ -6779,7 +6812,7 @@ const sonoffExtend = {
         ];
 
         return {
-            exposes,
+            exposes: [expose],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -7233,7 +7266,7 @@ const sonoffExtend = {
             fromZigbee: [fzLocal.snzb_09p_battery],
         };
     },
-    readRecordMiniZB1GSP: (): ModernExtend => {
+    readRecordWithMultiConsumption: (args: {withCost: boolean; model?: string; target?: string}): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
         const commandName = "readElectricityRecords" as const;
         const recordTypes = {
@@ -7487,52 +7520,59 @@ const sonoffExtend = {
             return formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(deviceSeconds, cache.offsetSeconds), cache.offsetSeconds);
         };
 
+        const readElectricityRecordsExpose = e
+            .composite("read_electricity_records", "read_electricity_records", ea.SET)
+            .withDescription(`Read electricity${args.withCost ? ", cost" : ""} or power history records from the plug.`)
+            .withFeature(e.enum("type", ea.SET, Object.keys(recordTypes)).withDescription("History record type to read."))
+            .withFeature(
+                e
+                    .numeric("page", ea.SET)
+                    .withValueMin(0)
+                    .withValueMax(0xffff)
+                    .withDescription("History page index. Used only by energy_record_24h reads."),
+            )
+            .withFeature(e.binary("with_energy", ea.SET, true, false).withDescription("Request consumed energy. Used by hour/day/month/year reads."))
+            .withFeature(
+                e.binary("with_reverse_energy", ea.SET, true, false).withDescription("Request reverse energy. Used by hour/day/month/year reads."),
+            );
+        if (args.withCost) {
+            readElectricityRecordsExpose.withFeature(
+                e.binary("with_cost", ea.SET, true, false).withDescription("Request electricity cost. Used by hour/day/month/year reads."),
+            );
+        }
+        readElectricityRecordsExpose
+            .withFeature(e.binary("with_timestamp", ea.SET, true, false).withDescription("Request the last timestamp in the response package."))
+            .withFeature(
+                e
+                    .text("start_time", ea.SET)
+                    .withDescription("Record start time in ISO 8601 format with timezone. Example: 2026-05-20T12:00:00+08:00."),
+            )
+            .withFeature(
+                e.text("end_time", ea.SET).withDescription("Record end time in ISO 8601 format with timezone. Example: 2026-05-21T12:00:00+08:00."),
+            );
+
+        const readAllElectricityRecordsExpose = e
+            .composite("read_all_electricity_records", "read_all_electricity_records", ea.SET)
+            .withDescription(`Read one page of full electricity${args.withCost ? ", cost" : ""} or reverse energy history records from the plug.`)
+            .withFeature(e.enum("type", ea.SET, ["hour", "day"]).withDescription("Full history record type to read."))
+            .withFeature(e.numeric("page", ea.SET).withValueMin(0).withValueMax(0xffff).withDescription("History page index to read."))
+            .withFeature(e.binary("with_energy", ea.SET, true, false).withDescription("Request consumed energy."))
+            .withFeature(e.binary("with_reverse_energy", ea.SET, true, false).withDescription("Request reverse energy."));
+        if (args.withCost) {
+            readAllElectricityRecordsExpose.withFeature(e.binary("with_cost", ea.SET, true, false).withDescription("Request electricity cost."));
+        }
+        readAllElectricityRecordsExpose.withFeature(
+            e.binary("with_timestamp", ea.SET, true, false).withDescription("Request the last timestamp in the response package."),
+        );
+
         const exposes = [
-            e
-                .composite("read_electricity_records", "read_electricity_records", ea.SET)
-                .withDescription("Read electricity, cost or power history records from the plug.")
-                .withFeature(e.enum("type", ea.SET, Object.keys(recordTypes)).withDescription("History record type to read."))
-                .withFeature(
-                    e
-                        .numeric("page", ea.SET)
-                        .withValueMin(0)
-                        .withValueMax(0xffff)
-                        .withDescription("History page index. Used only by energy_record_24h reads."),
-                )
-                .withFeature(
-                    e.binary("with_energy", ea.SET, true, false).withDescription("Request consumed energy. Used by hour/day/month/year reads."),
-                )
-                .withFeature(
-                    e
-                        .binary("with_reverse_energy", ea.SET, true, false)
-                        .withDescription("Request reverse energy. Used by hour/day/month/year reads."),
-                )
-                .withFeature(
-                    e.binary("with_cost", ea.SET, true, false).withDescription("Request electricity cost. Used by hour/day/month/year reads."),
-                )
-                .withFeature(e.binary("with_timestamp", ea.SET, true, false).withDescription("Request the last timestamp in the response package."))
-                .withFeature(
-                    e
-                        .text("start_time", ea.SET)
-                        .withDescription("Record start time in ISO 8601 format with timezone. Example: 2026-05-20T12:00:00+08:00."),
-                )
-                .withFeature(
-                    e
-                        .text("end_time", ea.SET)
-                        .withDescription("Record end time in ISO 8601 format with timezone. Example: 2026-05-21T12:00:00+08:00."),
-                ),
-            e
-                .composite("read_all_electricity_records", "read_all_electricity_records", ea.SET)
-                .withDescription("Read one page of full electricity, cost or reverse energy history records from the plug.")
-                .withFeature(e.enum("type", ea.SET, ["hour", "day"]).withDescription("Full history record type to read."))
-                .withFeature(e.numeric("page", ea.SET).withValueMin(0).withValueMax(0xffff).withDescription("History page index to read."))
-                .withFeature(e.binary("with_energy", ea.SET, true, false).withDescription("Request consumed energy."))
-                .withFeature(e.binary("with_reverse_energy", ea.SET, true, false).withDescription("Request reverse energy."))
-                .withFeature(e.binary("with_cost", ea.SET, true, false).withDescription("Request electricity cost."))
-                .withFeature(e.binary("with_timestamp", ea.SET, true, false).withDescription("Request the last timestamp in the response package.")),
+            readElectricityRecordsExpose,
+            readAllElectricityRecordsExpose,
             e.text("electricity_records", ea.STATE).withDescription("Last electricity history response as JSON."),
             e.text("all_electricity_records", ea.STATE).withDescription("Last full electricity history page response as JSON."),
         ];
+        const expose: DefinitionExposesFunction = (device) =>
+            utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device as Zh.Device, args.target, args.model, "higher") ? exposes : [];
 
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffEwelink, ["raw"]>[] = [
             {
@@ -7830,14 +7870,17 @@ const sonoffExtend = {
                     if (electricityRecordSubCommands.includes(subCommand)) {
                         const withEnergy = payload.with_energy;
                         const withReverseEnergy = payload.with_reverse_energy;
-                        const withCost = payload.with_cost;
+                        const withCost = args.withCost ? payload.with_cost : false;
                         const withTimestamp = payload.with_timestamp;
                         if (!utils.isBoolean(withEnergy)) throw new Error(`Invalid ${key}.with_energy, expected boolean`);
                         if (!utils.isBoolean(withReverseEnergy)) throw new Error(`Invalid ${key}.with_reverse_energy, expected boolean`);
-                        if (!utils.isBoolean(withCost)) throw new Error(`Invalid ${key}.with_cost, expected boolean`);
+                        if (args.withCost && !utils.isBoolean(withCost)) throw new Error(`Invalid ${key}.with_cost, expected boolean`);
                         if (!utils.isBoolean(withTimestamp)) throw new Error(`Invalid ${key}.with_timestamp, expected boolean`);
                         if (!withEnergy && !withReverseEnergy && !withCost) {
-                            throw new Error(`Invalid ${key}, at least one of with_energy, with_reverse_energy or with_cost must be true`);
+                            const supportedFields = args.withCost
+                                ? "with_energy, with_reverse_energy or with_cost"
+                                : "with_energy or with_reverse_energy";
+                            throw new Error(`Invalid ${key}, at least one of ${supportedFields} must be true`);
                         }
 
                         const startOffsetSeconds = getRecordTimeOffsetSeconds(payload.start_time, "start_time");
@@ -7898,14 +7941,17 @@ const sonoffExtend = {
                     const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
                     const withEnergy = payload.with_energy;
                     const withReverseEnergy = payload.with_reverse_energy;
-                    const withCost = payload.with_cost;
+                    const withCost = args.withCost ? payload.with_cost : false;
                     const withTimestamp = payload.with_timestamp;
                     if (!utils.isBoolean(withEnergy)) throw new Error(`Invalid ${key}.with_energy, expected boolean`);
                     if (!utils.isBoolean(withReverseEnergy)) throw new Error(`Invalid ${key}.with_reverse_energy, expected boolean`);
-                    if (!utils.isBoolean(withCost)) throw new Error(`Invalid ${key}.with_cost, expected boolean`);
+                    if (args.withCost && !utils.isBoolean(withCost)) throw new Error(`Invalid ${key}.with_cost, expected boolean`);
                     if (!utils.isBoolean(withTimestamp)) throw new Error(`Invalid ${key}.with_timestamp, expected boolean`);
                     if (!withEnergy && !withReverseEnergy && !withCost) {
-                        throw new Error(`Invalid ${key}, at least one of with_energy, with_reverse_energy or with_cost must be true`);
+                        const supportedFields = args.withCost
+                            ? "with_energy, with_reverse_energy or with_cost"
+                            : "with_energy or with_reverse_energy";
+                        throw new Error(`Invalid ${key}, at least one of ${supportedFields} must be true`);
                     }
                     const page = payload.page;
                     if (typeof page !== "number" || !Number.isInteger(page) || page < 0 || page > 0xffff) {
@@ -7943,7 +7989,7 @@ const sonoffExtend = {
         ];
 
         return {
-            exposes,
+            exposes: [expose],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -11375,8 +11421,19 @@ export const definitions: DefinitionWithExtend[] = [
                         ],
                     },
                     readRecord: {name: "readRecord", ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    readElectricityRecords: {
+                        name: "readElectricityRecords",
+                        ID: 0x0d,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
                 },
-                commandsResponse: {},
+                commandsResponse: {
+                    readRecordResp: {
+                        name: "readRecordResp",
+                        ID: 0x0d,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
             }),
             m.onOff({
                 powerOnBehavior: true,
@@ -11439,31 +11496,9 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 1000,
             }),
-            m.numeric<"seMetering">({
-                name: "total_energy_consumption",
-                cluster: "seMetering",
-                attribute: "currentSummDelivered",
-                description: "CurrentSummationDelivered",
-                unit: "kWh",
-                access: "STATE_GET",
-                fzConvert: (model, msg) => {
-                    if (msg.data.currentSummDelivered === undefined) {
-                        return;
-                    }
-                    const value = msg.data.currentSummDelivered;
-                    const numericValue = typeof value === "bigint" ? Number(value) : value;
-                    if (typeof numericValue !== "number" || numericValue === 0xffffffffffff || Number.isNaN(numericValue)) {
-                        return;
-                    }
-
-                    const multiplier = (msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number) || 1;
-                    const divisor = (msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number) || 1000;
-                    const factor = divisor ? multiplier / divisor : 1;
-                    return {total_energy_consumption: numericValue * factor};
-                },
-            }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
+                label: "Energy today",
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -11483,6 +11518,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
+                label: "Energy this month",
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -11606,15 +11642,15 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            // sonoffExtend.readConsumptionRecord("customClusterEwelink", "readRecord"),
-            sonoffExtend.readRecordMiniZB1GSP(),
+            sonoffExtend.readConsumptionRecord("customClusterEwelink", "readRecord", "BASIC-ZB1GSP", "1.3.0"),
+            sonoffExtend.readRecordWithMultiConsumption({withCost: false, model: "BASIC-ZB1GSP", target: "1.3.0"}),
             sonoffExtend.clearConsumptionHistory(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
-            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            // await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
                 ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],
