@@ -758,19 +758,7 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
         // handle color property sync
         // NOTE: this should the last thing we do, as we need to have processed all attributes,
         //       we use assign here so we do not lose other attributes.
-        const output = Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
-
-        // For color-temperature-only lights, ignore a color mode the device has no capability for
-        // (some firmwares report e.g. xy), which Home Assistant would reject as an invalid color mode.
-        if (model?.meta?.onlyColorTemp) {
-            delete output[`color${epPostfix}`];
-            const colorModeKey = `color_mode${epPostfix}`;
-            if (output[colorModeKey] !== undefined && output[colorModeKey] !== "color_temp") {
-                output[colorModeKey] = "color_temp";
-            }
-        }
-
-        return output;
+        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
 };
 export const meter_identification: Fz.Converter<"seMeterIdentification", undefined, ["readResponse"]> = {

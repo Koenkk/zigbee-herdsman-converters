@@ -42,7 +42,7 @@ describe("ModernExtend", () => {
     test("light({colorTemp: {range: undefined}})", async () => {
         await assertDefinition({
             device: mockDevice({modelID: "TWGU10Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
-            meta: {onlyColorTemp: true},
+            meta: {},
             fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
             toZigbee: [
                 "state",

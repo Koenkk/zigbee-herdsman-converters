@@ -97,12 +97,6 @@ export type BatteryNonLinearVoltage = "3V_2100" | "3V_1500_2800";
 export interface DefinitionMeta {
     separateWhite?: boolean;
     /**
-     * For lights that only expose color temperature: drop any reported `color`/xy and coerce a
-     * reported `color_mode` other than `color_temp` to `color_temp`, so Home Assistant does not
-     * receive a color mode the entity does not support. Set automatically by `light()`.
-     */
-    onlyColorTemp?: boolean;
-    /**
      * Enables the multi endpoint functionality in e.g. `fromZigbee.on_off`, example: normally this converter would return `{"state": "OFF"}`, when
      * multiEndpoint is enabled the `endpoint` method of the device definition will be called to determine the endpoint name which is then used as ke
      * y e.g. `{"state_left": "OFF"}`. Only needed when device sends the same attribute from multiple endpoints.
