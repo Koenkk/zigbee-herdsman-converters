@@ -1749,7 +1749,7 @@ const heimanExtend = {
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
             name: "shielding_sensor_detection",
             unit: "min",
-            valueMin: 1,
+            valueMin: 0,
             valueMax: 20,
             cluster: "heimanClusterSpecial",
             attribute: "shieldingSensorDetection",
@@ -3738,6 +3738,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "rebootedCount",
                     "rejoinedCount",
                     "reportedPackages",
+                ],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                [
                     "humidityOffset",
                     "temperatureOffset",
                     "shieldingSensorDetection",
