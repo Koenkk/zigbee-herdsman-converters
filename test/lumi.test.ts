@@ -39,6 +39,62 @@ describe("lib/lumi", () => {
         });
     });
 
+    describe("WP-P09D optional exposes", () => {
+        const properties = (extend: {exposes: unknown[]}) => (extend.exposes as {property: string}[]).map((e) => e.property);
+
+        it("keeps device_temperature and power_outage_count on lumiOnOff by default", () => {
+            expect(properties(lumiModernExtend.lumiOnOff())).toEqual(expect.arrayContaining(["device_temperature", "power_outage_count"]));
+        });
+
+        it("drops only the exposes that are turned off on lumiOnOff", () => {
+            const props = properties(lumiModernExtend.lumiOnOff({deviceTemperature: false}));
+            expect(props).not.toContain("device_temperature");
+            expect(props).toContain("power_outage_count");
+        });
+
+        it("still publishes the full lumi_specific payload when an expose is turned off", async () => {
+            const extend = lumiModernExtend.lumiOnOff({deviceTemperature: false});
+            const converter = extend.fromZigbee.find(({cluster}) => cluster === "manuSpecificLumi");
+            expect(converter).toBeDefined();
+            // tag 3 (0x03), int8 (0x28) = 31 degrees device temperature
+            const result = await converter?.convert(
+                {model: "WP-P09D"} as Definition,
+                // @ts-expect-error mock
+                {data: {247: Buffer.from([0x03, 0x28, 0x1f])}, device: mockDevice({modelID: "lumi.plug.aeu002", endpoints: [{ID: 1}]})},
+                null,
+                {},
+                {} as Fz.Meta,
+            );
+            expect(result).toMatchObject({device_temperature: 31});
+        });
+
+        it("keeps energy, voltage and current on lumiElectricityMeter by default", () => {
+            expect(properties(lumiModernExtend.lumiElectricityMeter())).toStrictEqual(["energy", "voltage", "current"]);
+        });
+
+        it("drops only the exposes that are turned off on lumiElectricityMeter", () => {
+            expect(properties(lumiModernExtend.lumiElectricityMeter({voltage: false}))).toStrictEqual(["energy", "current"]);
+        });
+    });
+
+    describe("lumiChildLock", () => {
+        it("uses the standard LOCK/UNLOCK values on attribute 0x0285", async () => {
+            const extend = lumiModernExtend.lumiChildLock();
+            expect(extend.exposes[0]).toMatchObject({property: "child_lock", value_on: "LOCK", value_off: "UNLOCK"});
+
+            const result = await extend.fromZigbee[0].convert(
+                {model: "WP-P09D"} as Definition,
+                // @ts-expect-error mock
+                // 645 = attribute 0x0285
+                {data: {645: 1}, device: mockDevice({modelID: "lumi.plug.aeu002", endpoints: [{ID: 1}]})},
+                null,
+                {},
+                {} as Fz.Meta,
+            );
+            expect(result).toStrictEqual({child_lock: "LOCK"});
+        });
+    });
+
     describe("ZNYB01LM bathroom heater", () => {
         const definition = {model: "ZNYB01LM"} as Definition;
         const extend = lumiModernExtend.lumiBathroomHeaterT1();
