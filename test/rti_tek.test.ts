@@ -181,6 +181,23 @@ describe("Rti-Tek STH1Z converter", () => {
         expect(endpoint.write).not.toHaveBeenCalled();
     });
 
+    it("rejects an invalid humidity alarm pair before writing FD22", async () => {
+        const endpoint = device.getEndpoint(1);
+        const meta = buildMeta(device, definition, {state: {humidity_alarm_lower: 50, humidity_alarm_upper: 60}});
+
+        await expect(findTz("humidity_alarm_upper").convertSet?.(endpoint, "humidity_alarm_upper", 51, meta)).rejects.toThrow("2 %RH");
+        expect(endpoint.write).not.toHaveBeenCalled();
+    });
+
+    it("keeps humidity alarm limits while normalizing Fahrenheit state", async () => {
+        device.meta.rtiTekTemperatureUnit = "fahrenheit";
+        const endpoint = device.getEndpoint(1);
+        const meta = buildMeta(device, definition, {state: {humidity_alarm_lower: 50, humidity_alarm_upper: 60}});
+
+        await expect(findTz("humidity_alarm_upper").convertSet?.(endpoint, "humidity_alarm_upper", 51, meta)).rejects.toThrow("2 %RH");
+        expect(endpoint.write).not.toHaveBeenCalled();
+    });
+
     it("writes valid alarm limits as Celsius FD22 values", async () => {
         const endpoint = device.getEndpoint(1);
         const meta = buildMeta(device, definition, {state: {temperature_alarm_lower: 20}});

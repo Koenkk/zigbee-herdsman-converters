@@ -109,7 +109,7 @@ function convertTemperatureState(state: KeyValue, fromFahrenheit: boolean, toFah
 }
 
 function normalizeTemperatureState(state: KeyValue, fahrenheit: boolean): KeyValue {
-    return convertTemperatureState(state, fahrenheit, false);
+    return {...state, ...convertTemperatureState(state, fahrenheit, false)};
 }
 
 function setTemperatureUnit(device: Zh.Device | undefined, fahrenheit: boolean) {
