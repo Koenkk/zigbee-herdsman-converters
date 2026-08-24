@@ -34,6 +34,7 @@ function buildMeta(device: ReturnType<typeof mockDevice>, definition: Definition
         mapped: definition,
         options: {},
         endpoint_name: undefined,
+        deviceExposesChanged: () => {},
         ...overrides,
     };
 }
@@ -202,8 +203,8 @@ describe("Rti-Tek STH1Z converter", () => {
                 comfort_temperature_lower_limit: 20,
                 comfort_temperature_upper_limit: 26,
             },
-        }) as Tz.Meta & {deviceExposesChanged: () => void};
-        meta.deviceExposesChanged = deviceExposesChanged;
+            deviceExposesChanged,
+        });
 
         const result = await findTz("temperature_unit").convertSet?.(endpoint, "temperature_unit", "fahrenheit", meta);
 
