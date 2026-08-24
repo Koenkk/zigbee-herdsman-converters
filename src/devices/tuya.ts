@@ -928,8 +928,6 @@ const tzLocal = {
             if (key === "light") {
                 utils.assertString(value, "light");
                 await entity.command("genOnOff", value.toLowerCase() === "on" ? "on" : "off", {}, utils.getOptions(meta.mapped, entity));
-            } else if (key === "duration") {
-                await entity.write("ssIasWd", {maxDuration: value as number}, utils.getOptions(meta.mapped, entity));
             } else if (key === "volume") {
                 const lookup: KeyValue = {mute: 0, low: 10, medium: 30, high: 50};
                 utils.assertString(value, "volume");
@@ -3701,6 +3699,21 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fromZigbee.tuya_air_quality],
         toZigbee: [],
         exposes: [e.co2()],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_pkpfn9hc"]),
+        model: "TS0601_co2_temperature_humidity_sensor",
+        vendor: "Tuya",
+        description: "CO2/temperature/humidity sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [e.co2(), e.temperature(), e.humidity()],
+        meta: {
+            tuyaDatapoints: [
+                [2, "co2", tuya.valueConverter.raw],
+                [18, "temperature", tuya.valueConverter.divideBy10],
+                [19, "humidity", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7bztmfm1", "_TZE204_7bztmfm1"]),
@@ -11455,12 +11468,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("BSEED", "_TZ3210_5ct6e7ye", "Wall-mounted electrical EU/FR/UK socket with power monitoring and USB", [
                 "_TZ3210_5ct6e7ye",
             ]),
-            tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", [
-                "_TZ3000_2putqrmw",
-                "_TZ3210_2putqrmw",
-                "_TZ3000_ksw8qtmt",
-                "_TZ3000_w0qqde0g",
-            ]),
+            tuya.whitelabel("Nous", "A1Z", "Smart plug (with power monitoring)", ["_TZ3000_2putqrmw", "_TZ3210_2putqrmw", "_TZ3000_ksw8qtmt"]),
             tuya.whitelabel("Moes", "Moes_plug", "Smart plug (with power monitoring)", ["_TZ3000_yujkchbz"]),
             tuya.whitelabel("Moes", "ZK-EU", "Smart wallsocket (with power monitoring)", ["_TZ3000_ss98ec5d"]),
             tuya.whitelabel("Elivco", "LSPA9", "Smart plug (with power monitoring)", ["_TZ3000_okaz9tjs"]),
@@ -15510,14 +15518,7 @@ export const definitions: DefinitionWithExtend[] = [
                         ON: tuya.enum(1),
                     }),
                 ],
-                [
-                    112,
-                    "battery_low",
-                    tuya.valueConverterBasic.lookup({
-                        ON: tuya.enum(0),
-                        OFF: tuya.enum(1),
-                    }),
-                ],
+                [112, "battery_low", tuya.valueConverter.trueFalse0],
                 [113, "duration", tuya.valueConverter.raw],
                 [
                     114,
@@ -16641,16 +16642,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart light & sound siren",
         fromZigbee: [],
         toZigbee: [tz.warning, tzLocal.TS0224],
+        extend: [m.iasWarningMaxDuration()],
         exposes: [
             e.warning(),
             e.binary("light", ea.STATE_SET, "ON", "OFF").withDescription("Turn the light of the alarm ON/OFF"),
-            e
-                .numeric("duration", ea.STATE_SET)
-                .withValueMin(60)
-                .withValueMax(3600)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Duration of the alarm"),
             e.enum("volume", ea.STATE_SET, ["mute", "low", "medium", "high"]).withDescription("Volume of the alarm"),
         ],
     },

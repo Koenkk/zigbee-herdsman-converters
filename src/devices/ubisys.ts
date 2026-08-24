@@ -688,7 +688,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, s1: 2};
         },
         extend: [
-            // NOTE: identify is supported but no visual indicator so omitted here
+            m.identify({endpointNames: ["l1"]}),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering", configureReporting: false}),
             m.commandsOnOff({endpointNames: ["2"]}),
@@ -733,7 +733,7 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, s1: 2, s2: 3};
         },
         extend: [
-            m.identify(),
+            m.identify({endpointNames: ["l1"]}),
             m.onOff({powerOnBehavior: true}),
             m.electricityMeter({cluster: "metering", configureReporting: false}),
             m.commandsOnOff({endpointNames: ["2", "3"]}),
@@ -815,7 +815,11 @@ export const definitions: DefinitionWithExtend[] = [
             return {l1: 1, l2: 2, s1: 3, s2: 4};
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["power", "energy"]},
-        extend: [ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(), ubisysModernExtend.pollCurrentSummDelivered(5)],
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            ubisysModernExtend.pollCurrentSummDelivered(5),
+            m.identify({endpointNames: ["l1", "l2"]}),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(5);
             await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering"]);
@@ -993,6 +997,7 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.addCustomClusterManuSpecificUbisysDimmerSetup(),
             ubisysModernExtend.addCustomClusterGenLevelCtrl(),
             ubisysModernExtend.pollCurrentSummDelivered(4),
+            m.identify({endpointNames: ["default"]}),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(4);
@@ -1066,6 +1071,7 @@ export const definitions: DefinitionWithExtend[] = [
             ubisysModernExtend.addCustomClusterClosuresWindowCovering(),
             ubisysModernExtend.pollCurrentSummDelivered(3),
             ubisysModernExtend.operationalStatus(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);

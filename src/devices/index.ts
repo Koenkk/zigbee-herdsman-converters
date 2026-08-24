@@ -251,6 +251,7 @@ import {definitions as peq} from "./peq";
 import {definitions as perenio} from "./perenio";
 import {definitions as philio} from "./philio";
 import {definitions as philips} from "./philips";
+import {definitions as pirogovx} from "./pirogovx";
 import {definitions as plaid} from "./plaid";
 import {definitions as plugwise} from "./plugwise";
 import {definitions as profalux} from "./profalux";
@@ -632,6 +633,7 @@ const definitions: DefinitionWithExtend[] = [
     ...perenio,
     ...philio,
     ...philips,
+    ...pirogovx,
     ...plaid,
     ...plugwise,
     ...profalux,
