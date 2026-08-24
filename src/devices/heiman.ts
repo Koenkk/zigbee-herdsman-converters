@@ -3745,11 +3745,7 @@ export const definitions: DefinitionWithExtend[] = [
             );
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
-                [
-                    "humidityOffset",
-                    "temperatureOffset",
-                    "shieldingSensorDetection",
-                ],
+                ["humidityOffset", "temperatureOffset", "shieldingSensorDetection"],
                 {
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
