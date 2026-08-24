@@ -5090,7 +5090,9 @@ export const definitions: DefinitionWithExtend[] = [
             lumiAction({endpointNames: ["1", "2"], actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiChildLock({description: "Disables the socket 1 button", endpointName: "1"}),
             lumiChildLock({description: "Disables the socket 2 button", endpointName: "2"}),
-            lumiOverloadProtection({valueMax: 3250}),
+            // access is STATE_SET rather than the default ALL: reading this attribute back was reported to
+            // fail on this device, see https://github.com/Koenkk/zigbee-herdsman-converters/pull/11123
+            lumiOverloadProtection({valueMax: 3250, access: "STATE_SET"}),
             lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             m.identify(),
