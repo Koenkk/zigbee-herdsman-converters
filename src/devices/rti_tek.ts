@@ -4,6 +4,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionExposesFunction, DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const NS = "zhc:rti-tek";
 const e = exposes.presets;
@@ -190,19 +191,18 @@ const delay = async (milliseconds: number) => new Promise<void>((resolve) => set
 async function configureReporting(endpoint: Zh.Endpoint, cluster: "msTemperatureMeasurement" | "msRelativeHumidity") {
     const isTemperature = cluster === "msTemperatureMeasurement";
 
-    try {
-        await endpoint.configureReporting(cluster, [
-            {
-                attribute: "measuredValue",
-                minimumReportInterval: 5,
-                maximumReportInterval: 3600,
-                reportableChange: isTemperature ? 50 : 200,
-            },
-        ]);
-    } catch (error) {
-        // Some firmware revisions report UNSUPPORTED_ATTRIBUTE for this standard command.
-        logger.warning(`STHZB '${endpoint.deviceIeeeAddress}' rejected ${cluster} reporting configuration: ${error}`, NS);
-    }
+    await utils.ignoreUnsupportedAttribute(
+        async () =>
+            await endpoint.configureReporting(cluster, [
+                {
+                    attribute: "measuredValue",
+                    minimumReportInterval: 5,
+                    maximumReportInterval: 3600,
+                    reportableChange: isTemperature ? 50 : 200,
+                },
+            ]),
+        `STHZB '${endpoint.deviceIeeeAddress}' ${cluster} reporting configuration`,
+    );
 }
 
 async function readFd22Attributes(endpoint: Zh.Endpoint, attributes: number[]) {
@@ -705,9 +705,10 @@ export const definitions: DefinitionWithExtend[] = [
 
             await configureReporting(endpoint, "msTemperatureMeasurement");
             await configureReporting(endpoint, "msRelativeHumidity");
-            await reporting
-                .batteryPercentageRemaining(endpoint)
-                .catch((error) => logger.warning(`STHZB '${device.ieeeAddr}' battery reporting configuration failed: ${error}`, NS));
+            await utils.ignoreUnsupportedAttribute(
+                async () => await reporting.batteryPercentageRemaining(endpoint),
+                `STHZB '${device.ieeeAddr}' battery reporting configuration`,
+            );
 
             await Promise.all([
                 endpoint

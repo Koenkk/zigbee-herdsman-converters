@@ -350,4 +350,25 @@ describe("Rti-Tek STH1Z converter", () => {
             vi.useRealTimers();
         }
     });
+
+    it("propagates standard reporting errors so Z2M can retry configuration", async () => {
+        const endpoint = device.getEndpoint(1);
+        vi.mocked(endpoint.configureReporting).mockRejectedValueOnce(new Error("TIMEOUT"));
+        const configure = definition.configure;
+        if (!configure) throw new Error("STH1Z definition is missing configure");
+
+        await expect(configure(device, endpoint, definition)).rejects.toThrow("TIMEOUT");
+    });
+
+    it("propagates battery reporting errors so Z2M can retry configuration", async () => {
+        const endpoint = device.getEndpoint(1);
+        vi.mocked(endpoint.configureReporting)
+            .mockResolvedValueOnce(undefined)
+            .mockResolvedValueOnce(undefined)
+            .mockRejectedValueOnce(new Error("NO_ROUTE"));
+        const configure = definition.configure;
+        if (!configure) throw new Error("STH1Z definition is missing configure");
+
+        await expect(configure(device, endpoint, definition)).rejects.toThrow("NO_ROUTE");
+    });
 });
