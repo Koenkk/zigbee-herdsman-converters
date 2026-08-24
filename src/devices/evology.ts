@@ -1,6 +1,7 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -12,8 +13,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PSE03-V1.1.0",
         vendor: "EVOLOGY",
         description: "Sound and flash siren",
-        fromZigbee: [fz.ias_wd, fz.ias_enroll, fz.ias_siren],
+        fromZigbee: [fz.ias_enroll, fz.ias_siren],
         toZigbee: [tz.warning],
+        extend: [m.iasWarningMaxDuration()],
         meta: {disableDefaultResponse: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

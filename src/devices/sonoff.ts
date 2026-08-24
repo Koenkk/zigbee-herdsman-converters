@@ -10572,8 +10572,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -20,
-                valueMax: 60,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "°C",
@@ -10585,8 +10585,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: 5,
-                valueMax: 95,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
@@ -10599,8 +10599,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "Pressure compensation offset applied directly to pressure reading in hPa (positive adds, negative subtracts). Range: -400 to 400 hPa. " +
                     "Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -400,
-                valueMax: 400,
+                valueMin: -200,
+                valueMax: 200,
                 valueStep: 0.1,
                 scale: 100,
                 unit: "hPa",
@@ -10913,7 +10913,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Occupancy timeout",
                 cluster: "msOccupancySensing",
                 attribute: "pirOToUDelay",
-                description: "Occupied to unoccupied delay",
+                description: "Occupied to Unoccupied Delay (30 s+ recommended to reduce missed detection.)",
                 valueMin: 15,
                 valueMax: 65535,
                 unit: "s",

@@ -974,6 +974,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}}), m.identify()],
     },
     {
+        zigbeeModel: ["LTE009"],
+        model: "929004295601",
+        vendor: "Philips",
+        description: "Hue white ambiance B39 Candle E14",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}}), m.identify()],
+    },
+    {
         zigbeeModel: ["LWA007"],
         model: "929002277501",
         vendor: "Philips",
@@ -3306,6 +3313,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Philips",
         description: "Hue smart plug - EU",
         extend: [philips.m.onOff(), m.identify()],
+    },
+    {
+        zigbeeModel: ["LOM013"],
+        model: "929004296701",
+        vendor: "Philips",
+        description: "Hue wired on/off switch (1 channel)",
+        extend: [m.deviceEndpoints({endpoints: {l1: 11}}), m.identify({endpointNames: ["l1"]}), philips.m.onOff({endpointNames: ["l1"]})],
     },
     {
         zigbeeModel: ["LOM014"],
