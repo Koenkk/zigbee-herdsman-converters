@@ -332,10 +332,9 @@ function defaultComfortState(state: KeyValue, fahrenheit: boolean): KeyValue {
     for (const [key, defaultValue] of Object.entries(humidityComfortDefaults)) {
         const stateKey = comfortStateKeys[key as keyof typeof comfortStateKeys];
         if (state[stateKey] !== undefined && state[stateKey] !== null) continue;
-        defaults[stateKey] = round(
-            toDisplayTemperature(defaultValue, temperatureKinds[stateKey as TemperatureKey] ?? "absolute", fahrenheit),
-            isTemperatureKey(stateKey) ? 1 : 0,
-        );
+        defaults[stateKey] = isTemperatureKey(stateKey)
+            ? round(toDisplayTemperature(defaultValue, temperatureKinds[stateKey], fahrenheit), 1)
+            : defaultValue;
     }
     return defaults;
 }
@@ -440,10 +439,7 @@ function sth1zDerivedEnvironment(): ModernExtend {
                 if (humidityLower >= humidityUpper) throw new Error("comfort humidity lower limit must be below upper limit");
                 if (temperatureLower >= temperatureUpper) throw new Error("comfort temperature lower limit must be below upper limit");
 
-                const nextValue = round(
-                    toDisplayTemperature(normalized, isTemperatureKey(key) ? temperatureKinds[key] : "absolute", fahrenheit),
-                    isTemperatureKey(key) ? 1 : 0,
-                );
+                const nextValue = isTemperatureKey(key) ? round(toDisplayTemperature(normalized, temperatureKinds[key], fahrenheit), 1) : normalized;
                 const nextState = {...meta.state, [key]: nextValue};
                 return {
                     state: {
@@ -462,17 +458,10 @@ function sth1zDerivedEnvironment(): ModernExtend {
                     ([, stateKey]) => stateKey === key,
                 )?.[0] as keyof typeof humidityComfortDefaults;
                 const currentValue = meta.state[key];
-                const value =
-                    currentValue === undefined || currentValue === null
-                        ? round(
-                              toDisplayTemperature(
-                                  humidityComfortDefaults[fallbackKey],
-                                  isTemperatureKey(key) ? temperatureKinds[key] : "absolute",
-                                  isFahrenheit(meta.device),
-                              ),
-                              isTemperatureKey(key) ? 1 : 0,
-                          )
-                        : Number(currentValue);
+                const fallbackValue = isTemperatureKey(key)
+                    ? round(toDisplayTemperature(humidityComfortDefaults[fallbackKey], temperatureKinds[key], isFahrenheit(meta.device)), 1)
+                    : humidityComfortDefaults[fallbackKey];
+                const value = currentValue === undefined || currentValue === null ? fallbackValue : Number(currentValue);
                 return Promise.resolve({
                     state: {
                         [key]: value,

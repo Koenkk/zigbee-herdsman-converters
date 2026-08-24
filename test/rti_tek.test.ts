@@ -247,6 +247,51 @@ describe("Rti-Tek STH1Z converter", () => {
         expect(result).toStrictEqual({state: {comfort_temperature_lower_limit: 68}});
     });
 
+    it("keeps comfort humidity defaults in %RH when temperature unit is Fahrenheit", async () => {
+        device.meta.rtiTekTemperatureUnit = "fahrenheit";
+
+        const {result} = runFz("msTemperatureMeasurement", {measuredValue: 2200}, {humidity: 40});
+        expect(result).toMatchObject({comfort_humidity_lower_limit: 30, comfort_humidity_upper_limit: 60});
+
+        const meta = buildMeta(device, definition);
+        await expect(
+            findTz("comfort_humidity_lower_limit").convertGet?.(device.getEndpoint(1), "comfort_humidity_lower_limit", meta),
+        ).resolves.toStrictEqual({state: {comfort_humidity_lower_limit: 30}});
+    });
+
+    it("keeps set comfort humidity limits in %RH when temperature unit is Fahrenheit", () => {
+        device.meta.rtiTekTemperatureUnit = "fahrenheit";
+        const result = findTz("comfort_humidity_lower_limit").convertSet?.(
+            device.getEndpoint(1),
+            "comfort_humidity_lower_limit",
+            35,
+            buildMeta(device, definition, {state: {comfort_humidity_upper_limit: 60, temperature: 71.6, humidity: 40}}),
+        );
+
+        expect(result).toMatchObject({state: {comfort_humidity_lower_limit: 35}});
+    });
+
+    it("validates comfort humidity limits against their stored counterpart", () => {
+        const endpoint = device.getEndpoint(1);
+
+        expect(() =>
+            findTz("comfort_humidity_lower_limit").convertSet?.(
+                endpoint,
+                "comfort_humidity_lower_limit",
+                50,
+                buildMeta(device, definition, {state: {comfort_humidity_lower_limit: 30, comfort_humidity_upper_limit: 40}}),
+            ),
+        ).toThrow("comfort humidity lower limit must be below upper limit");
+        expect(() =>
+            findTz("comfort_humidity_upper_limit").convertSet?.(
+                endpoint,
+                "comfort_humidity_upper_limit",
+                40,
+                buildMeta(device, definition, {state: {comfort_humidity_lower_limit: 50, comfort_humidity_upper_limit: 60}}),
+            ),
+        ).toThrow("comfort humidity lower limit must be below upper limit");
+    });
+
     it("registers only the documented STH1Z FD22 attributes", async () => {
         vi.useFakeTimers();
         try {
