@@ -1287,6 +1287,17 @@ const tuyaExposes = {
 
 export {tuyaExposes as exposes};
 
+const tuyaOptions = {
+    timeStart: (defaultOption: string) =>
+        e
+            .enum("time_start", ea.SET, ["1970", "2000", "off"])
+            .withDescription(
+                `Reply to Tuya-specific time synchronization requests: "1970" - Reply with seconds since 1970/01/01 (recommended, should stop the device from asking), "2000" - Reply with seconds since 2000/01/01 (use if the weekday is wrong with 1970), "off" - Don't reply (use if replying causes too much traffic). Default for this device: "${defaultOption}"`,
+            ),
+};
+
+export {tuyaOptions as options};
+
 export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
@@ -4488,9 +4499,20 @@ const tuyaModernExtend = {
                     forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
                 }
 
-                if (timeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
+                let selectedTimeStart = timeStart;
+
+                const timeStartOption = options.time_start as string;
+                if (timeStartOption) {
+                    if (["1970", "2000", "off"].includes(timeStartOption as string)) {
+                        selectedTimeStart = timeStartOption;
+                    } else {
+                        logger.warning(`Invalid option "${timeStartOption}" for ${meta.device.ieeeAddr}.time_start, using default`, NS);
+                    }
+                }
+
+                if (selectedTimeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
                     globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const offset = selectedTimeStart === "2000" ? constants.OneJanuary2000 : 0;
                     const utcTime = Math.round((Date.now() - offset) / 1000);
                     const localTime = utcTime - new Date().getTimezoneOffset() * 60;
                     const payload = {
@@ -4521,6 +4543,7 @@ const tuyaModernExtend = {
             isModernExtend: true,
             fromZigbee: [fzConverter],
             toZigbee: [],
+            options: [tuyaOptions.timeStart(timeStart)],
         };
 
         if (queryOnConfigure) {
