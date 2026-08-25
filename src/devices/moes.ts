@@ -492,9 +492,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        // DP mapping from the official Moes protocol document shared by @adeelnawaz
-        // in Koenkk/zigbee2mqtt#31244 (2026-07). DP 7 (backlight_switch) tested and
-        // confirmed on _TZE28C1000000_i8sdouy0 hardware. See #12731 for background.
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0", "_TZE28C1000000_i8sdouy0"]),
         model: "ZS-SF-EUC-WH-MS",
         vendor: "Moes",
