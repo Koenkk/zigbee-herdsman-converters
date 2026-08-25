@@ -1312,26 +1312,27 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         description: "Zigbee smart switch with power metering",
         extend: [
-          m.onOff(),
-          m.electricityMeter({
-            powerFactor: true,
-            power: {
-                cluster: "metering",
-                divisor: 1,
-                multiplier: 1,
-            },
-            voltage: {
-                divisor: 10,
-                multiplier: 1,
-            },
-            current: {
-                divisor: 1000,
-                multiplier: 1,
-            },
-          }),
-          m.forcePowerSource({
-            powerSource: "Mains (single phase)",
-          }),],
+            m.onOff(),
+            m.electricityMeter({
+                powerFactor: true,
+                power: {
+                    cluster: "metering",
+                    divisor: 1,
+                    multiplier: 1,
+                },
+                voltage: {
+                    divisor: 10,
+                    multiplier: 1,
+                },
+                current: {
+                    divisor: 1000,
+                    multiplier: 1,
+                },
+            }),
+            m.forcePowerSource({
+                powerSource: "Mains (single phase)",
+            }),
+        ],
     },
     {
         zigbeeModel: ["SLC631"],
