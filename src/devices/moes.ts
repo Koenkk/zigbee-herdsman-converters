@@ -492,23 +492,35 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // DP mapping from the official Moes protocol document shared by @adeelnawaz
+        // in Koenkk/zigbee2mqtt#31244 (2026-07). DP 7 (backlight_switch) tested and
+        // confirmed on _TZE28C1000000_i8sdouy0 hardware. See #12731 for background.
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0", "_TZE28C1000000_i8sdouy0"]),
         model: "ZS-SF-EUC-WH-MS",
         vendor: "Moes",
         description: "Star feather Zigbee curtain switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition()],
+        exposes: [
+            te.coverPosition(),
+            e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibration mode"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable button backlight"),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Direction of motor movement"),
+            e
+                .numeric("motor_working_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(10)
+                .withValueMax(180)
+                .withDescription("Full travel time of the motor (10-180s)"),
+        ],
         meta: {
-            // DP 10 (u32 seconds, likely calibration_time by common Tuya convention) accepts writes
-            // with echoed dataReport, but writing it induces an intermittent electrical hang on
-            // _TZE28C1000000_i8sdouy0: the internal relay clicks but the motor does not move,
-            // recoverable only by physically inverting the switched leg (a mains power-cycle alone
-            // does NOT clear it). Left unmapped pending investigation. Additional unmapped DPs
-            // observed spontaneously (static values): 3=1, 7=1, 8=0, 101=1. See #12731.
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
+                [3, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
+                [7, "backlight_switch", tuya.valueConverter.onOff],
+                [8, "motor_direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+                [10, "motor_working_time", tuya.valueConverter.raw],
             ],
         },
     },
