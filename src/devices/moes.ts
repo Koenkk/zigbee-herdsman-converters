@@ -492,7 +492,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0", "_TZE28C1000000_i8sdouy0"]),
         model: "ZS-SF-EUC-WH-MS",
         vendor: "Moes",
         description: "Star feather Zigbee curtain switch",
@@ -500,6 +500,12 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         exposes: [te.coverPosition()],
         meta: {
+            // DP 10 (u32 seconds, likely calibration_time by common Tuya convention) accepts writes
+            // with echoed dataReport, but writing it induces an intermittent electrical hang on
+            // _TZE28C1000000_i8sdouy0: the internal relay clicks but the motor does not move,
+            // recoverable only by physically inverting the switched leg (a mains power-cycle alone
+            // does NOT clear it). Left unmapped pending investigation. Additional unmapped DPs
+            // observed spontaneously (static values): 3=1, 7=1, 8=0, 101=1. See #12731.
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
