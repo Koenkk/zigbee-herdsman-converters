@@ -585,7 +585,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k", "_TZE28C1000000_hwv3by9k"]),
         model: "MH03-8Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 8 Gang",
