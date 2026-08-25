@@ -296,9 +296,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
-        // create list with all multiEndpointSkip properties from generated extenders
+
+        // Collect multiEndpointSkip from extends that declare it.
         const multiEndpointSkipArr = generatedExtend.flatMap((e) => e.multiEndpointSkip ?? []);
         const multiEndpointSkip = multiEndpointSkipArr.length ? multiEndpointSkipArr : undefined;
+
         // Add to beginning for better visibility.
         generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints, multiEndpointSkip}, source: "deviceEndpoints"}));
         extenders.unshift(generatedExtend[0].getExtend());
@@ -550,6 +552,24 @@ async function extenderThermostat(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         }
 
         generated.push(new ExtendGenerator({extend: m.thermostat, args: thermostatArgs, source: "thermostat"}));
+    }
+
+    // When the thermostat is on only one endpoint but the device has multiple,
+    // declare its properties to be skipped from endpoint suffixing.
+    // This prevents fz.thermostat from producing suffixed keys that clash with
+    // the unsuffixed keys returned by tz.thermostat_* converters.
+    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
+    if (endpoints.length === 1 && endpointsWithoutGreenPower.length > 1) {
+        generated[0].multiEndpointSkip = [
+            "local_temperature",
+            "occupied_heating_setpoint",
+            "occupied_cooling_setpoint",
+            "system_mode",
+            "running_state",
+            "keypad_lockout",
+            "temperature_display_mode",
+            "programming_operation_mode",
+        ];
     }
 
     return generated;
