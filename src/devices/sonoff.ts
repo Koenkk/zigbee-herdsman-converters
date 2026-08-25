@@ -7230,6 +7230,23 @@ const sonoffExtend = {
     },
 };
 
+// Filter out 0 value for timer_mode_target_temp, as 0 indicates "no timer target temperature set"
+// and would be outside the valid range of 4-35°C, causing Home Assistant validation errors.
+// See: https://github.com/Koenkk/zigbee-herdsman-converters/issues/12847
+const trvzbTimerModeTempFzConvert: Fz.Converter<"customSonoffTrvzb", SonoffTrvzb, ["attributeReport", "readResponse"]>["convert"] = (
+    model,
+    msg,
+    publish,
+    options,
+    meta,
+) => {
+    const value = msg.data["temporaryModeTemp"];
+    if (value !== undefined && value !== 0) {
+        return {timer_mode_target_temp: value / 100};
+    }
+    return undefined;
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["NSPanelP-Router", "Cuber ZLI Router"],
@@ -8299,6 +8316,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.5,
                 unit: "°C",
                 scale: 100,
+                fzConvert: trvzbTimerModeTempFzConvert,
             }),
             m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "temporary_mode_duration",
