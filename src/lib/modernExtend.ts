@@ -1293,7 +1293,6 @@ export function light(args: LightArgs = {}): ModernExtend {
         lightExpose.forEach((e) => {
             levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
         });
-        toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;

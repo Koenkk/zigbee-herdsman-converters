@@ -160,7 +160,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,
-                timeStart: "2000",
+                timeStart: "1970", // confirmed on _TZE284_nnhwcvbk
                 queryOnConfigure: true,
                 queryOnDeviceAnnounce: true,
             }),

@@ -3341,6 +3341,15 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["LWM007"],
+        model: "929004296901",
+        vendor: "Philips",
+        description: "Hue wired dimmer switch",
+        ota: true,
+        endpoint: () => ({default: 11}),
+        extend: [m.identify(), philips.m.light({configureReporting: true})],
+    },
+    {
         zigbeeModel: ["LLC014"],
         model: "7099860PH",
         vendor: "Philips",
