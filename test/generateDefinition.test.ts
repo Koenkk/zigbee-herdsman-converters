@@ -168,7 +168,7 @@ export default {
                     {ID: 2, inputClusters: ["msTemperatureMeasurement"], outputClusters: []},
                 ],
             }),
-            meta: {multiEndpoint: true},
+            meta: {multiEndpoint: true, multiEndpointSkip: ["state", "on", "off", "power_on_behavior"]},
             endpoints: {"1": 1, "2": 2},
             fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
             toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
@@ -198,7 +198,7 @@ export default {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff()],
+    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2},"multiEndpointSkip":["state","on","off","power_on_behavior"]}), m.temperature({"endpointNames":["1","2"]}), m.onOff()],
 };
             `,
         });
