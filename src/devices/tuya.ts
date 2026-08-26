@@ -16727,6 +16727,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 childLock: true,
             }),
+            m.identify(),
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
         toZigbee: [tzLocal.TS011F_threshold],
@@ -24698,7 +24699,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.identify({isSleepy: true})],
         whiteLabel: [
             {
                 model: "AY-303Z",
