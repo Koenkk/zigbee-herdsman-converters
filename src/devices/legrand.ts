@@ -247,12 +247,19 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
+        fromZigbee: [fzLegrand.cover_moving_state, fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
+        toZigbee: [
+            tzLegrand.cover_state_with_moving,
+            tzLegrand.cover_position_with_moving,
+            tzLegrand.identify,
+            tzLegrand.led_mode,
+            tzLegrand.calibration_mode(true),
+        ],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
-                e.action(["identify", "open", "close", "stop", "moving", "stopped"]),
+                e.action(["opening", "closing", "stopped"]),
+                e.binary("moving", ea.STATE_GET, true, false).withDescription("Indicates if the cover is currently moving"),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
