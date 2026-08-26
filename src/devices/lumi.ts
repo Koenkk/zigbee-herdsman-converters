@@ -5303,7 +5303,12 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             lumiPowerOnBehavior(),
-            m.light({powerOnBehavior: false}),
+            m.light({
+                powerOnBehavior: false,
+                levelConfig: {
+                    features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
+                },
+            }),
             lumiKnobRotation({withButtonState: false}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
