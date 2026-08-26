@@ -2609,6 +2609,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(2);
@@ -2658,6 +2659,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(2);
@@ -2678,6 +2680,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            m.identify(),
         ],
     },
     {
@@ -2696,6 +2699,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2759,6 +2763,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMCoverInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             for (const epID of [2, 3]) {
@@ -2835,6 +2840,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMSwitchInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             for (const epID of [3, 4]) {
@@ -2857,6 +2863,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2881,6 +2888,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI", "PowerstripPowerOnBehavior"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2903,6 +2911,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({percentageReportingConfig: false}),
             m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
             ...shellyModernExtend.shellyCustomClusters(),
+            m.identify({isSleepy: true}),
         ],
     },
     {
@@ -3036,6 +3045,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             // Calculated values (added by PR #11437)
             shellyModernExtend.ws90CalculatedValues(),
+            m.identify({isSleepy: true}),
         ],
     },
     {
@@ -3051,6 +3061,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -3067,6 +3078,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl({endpointNames: ["4"]}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -3074,14 +3086,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBHT-203C",
         vendor: "Shelly",
         description: "Humidity & temperature sensor",
-        extend: [m.battery(), m.temperature(), m.humidity()],
+        extend: [m.battery(), m.temperature(), m.humidity(), m.identify({isSleepy: true})],
     },
     {
         fingerprint: [{modelID: "BLU H&T Display ZB", manufacturerName: "Shelly"}],
         model: "SBHT-103C",
         vendor: "Shelly",
         description: "BLU H&T display Zigbee",
-        extend: [m.battery(), m.temperature(), m.humidity(), ...shellyModernExtend.shellyLightLevel()],
+        extend: [m.battery(), m.temperature(), m.humidity(), ...shellyModernExtend.shellyLightLevel(), m.identify({isSleepy: true})],
     },
     {
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
