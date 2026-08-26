@@ -6981,6 +6981,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_9r5jaajv",
             "_TZ3000_nxdziqzc",
             "_TZ3000_irwuzilv",
+            "_TZ3000_gjiggmio",
         ]),
         model: "TS0215A_sos",
         vendor: "Tuya",
