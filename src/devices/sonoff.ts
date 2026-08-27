@@ -3511,7 +3511,6 @@ const sonoffExtend = {
                 key: ["remote_sensors_state"],
                 convertSet: async (entity, key, value, meta) => {
                     if (value === "enable") {
-                        // 从离线变为在线：不下发，仅更新状态
                         return {state: {remote_sensors_state: value}};
                     }
                     const stateCode = STATE_CODE[value as string] ?? 0x01;
