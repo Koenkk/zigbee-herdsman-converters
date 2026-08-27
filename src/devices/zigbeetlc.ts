@@ -281,6 +281,32 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        // ZTH05 (TS0601/_TZE204_upagmta9) with ZigbeeTLc firmware; requires hardware mod
+        // https://pvvx.github.io/TS0601_TZE204/
+        zigbeeModel: ["TH05-z"],
+        model: "TH05-z",
+        vendor: "Tuya",
+        description: "ZTH05 temperature & humidity sensor (pvvx/ZigbeeTLc)",
+        extend: [
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity(),
+            extend.enableDisplay,
+            extend.temperatureDisplayMode,
+            extend.comfortSmiley,
+            extend.comfortTemperatureMin,
+            extend.comfortTemperatureMax,
+            extend.comfortHumidityMin,
+            extend.comfortHumidityMax,
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
+        ota: true,
+    },
     /*
         ZigbeeTLc devices supporting:
         - Temperature (+calibration)
