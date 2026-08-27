@@ -13,6 +13,7 @@ const rtiTekFd22 = "rtiTekFd22";
 const rtiTekFd22Id = 0xfd22;
 const fastPollTimeout = 120; // Poll Control uses quarter-seconds, so this is 30 seconds.
 const temperatureUnitMetaKey = "rtiTekTemperatureUnit";
+const productNameMetaKey = "rtiTekProductName";
 
 const faultBits: Record<number, string> = {
     0: "internal_sensor_fault",
@@ -53,6 +54,7 @@ interface RtiTekFd22Cluster {
     attributes: {
         temperatureUnit: number;
         faultCode: number;
+        productName: string;
         internalTemperatureCalibration: number;
         internalHumidityCalibration: number;
         sampleInterval: number;
@@ -62,6 +64,10 @@ interface RtiTekFd22Cluster {
         humidityAlarmLower: number;
         temperatureAlarmStatus: number;
         humidityAlarmStatus: number;
+        sth2zHumidityComfortLower: number;
+        sth2zHumidityComfortUpper: number;
+        sth2zHumidityComfortTemperatureLower: number;
+        sth2zHumidityComfortTemperatureUpper: number;
     };
     commands: never;
     commandResponses: never;
@@ -120,6 +126,25 @@ function setTemperatureUnit(device: Zh.Device | undefined, fahrenheit: boolean) 
     device.save();
 }
 
+function normalizeProductName(value: unknown): string {
+    return Buffer.isBuffer(value)
+        ? value.toString("utf8").trim().toUpperCase()
+        : String(value ?? "")
+              .trim()
+              .toUpperCase();
+}
+
+function isSth2z(device: Zh.Device | DummyDevice | undefined): boolean {
+    return Boolean(device && "meta" in device && device.meta?.[productNameMetaKey] === "STH2Z");
+}
+
+function setProductName(device: Zh.Device | undefined, productName: string) {
+    if (!device) return;
+    device.meta ??= {};
+    device.meta[productNameMetaKey] = productName;
+    device.save();
+}
+
 export function validateAlarmLimits(state: Record<string, number>): void {
     if (
         state.temperature_alarm_lower !== undefined &&
@@ -175,6 +200,7 @@ export function computeHumidityComfort(
 const rtiTekFd22Attributes = {
     temperatureUnit: {ID: 0x0000, type: Zcl.DataType.ENUM8},
     faultCode: {ID: 0x0002, type: Zcl.DataType.UINT32},
+    productName: {ID: 0x0003, type: Zcl.DataType.CHAR_STR},
     internalTemperatureCalibration: {ID: 0xe005, type: Zcl.DataType.INT8},
     internalHumidityCalibration: {ID: 0xe006, type: Zcl.DataType.INT8},
     sampleInterval: {ID: 0xe009, type: Zcl.DataType.UINT16},
@@ -184,6 +210,10 @@ const rtiTekFd22Attributes = {
     humidityAlarmLower: {ID: 0xe00d, type: Zcl.DataType.UINT16},
     temperatureAlarmStatus: {ID: 0xe00e, type: Zcl.DataType.ENUM8},
     humidityAlarmStatus: {ID: 0xe00f, type: Zcl.DataType.ENUM8},
+    sth2zHumidityComfortLower: {ID: 0xe014, type: Zcl.DataType.UINT16},
+    sth2zHumidityComfortUpper: {ID: 0xe015, type: Zcl.DataType.UINT16},
+    sth2zHumidityComfortTemperatureLower: {ID: 0xe016, type: Zcl.DataType.INT16},
+    sth2zHumidityComfortTemperatureUpper: {ID: 0xe017, type: Zcl.DataType.INT16},
 } as const;
 
 const delay = async (milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds));
@@ -233,12 +263,44 @@ async function readFd22Attributes(endpoint: Zh.Endpoint, attributes: number[]) {
     }
 }
 
+async function readProductName(endpoint: Zh.Endpoint, device: Zh.Device) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const {productName} = await endpoint.read<typeof rtiTekFd22, RtiTekFd22Cluster>(rtiTekFd22, ["productName"]);
+            const normalized = normalizeProductName(productName);
+            if (normalized) {
+                setProductName(device, normalized);
+            } else {
+                logger.warning(`STHZB '${device.ieeeAddr}' did not return product name; using STH1Z-compatible settings`, NS);
+            }
+            return;
+        } catch (error) {
+            logger.debug(`STHZB '${device.ieeeAddr}' product name read failed: ${error}`, NS);
+        }
+        if (attempt < 2) await delay(1000);
+    }
+
+    logger.warning(`STHZB '${device.ieeeAddr}' did not return product name; using STH1Z-compatible settings`, NS);
+}
+
 const comfortStateKeys = {
     humidityLower: "comfort_humidity_lower_limit",
     humidityUpper: "comfort_humidity_upper_limit",
     temperatureLower: "comfort_temperature_lower_limit",
     temperatureUpper: "comfort_temperature_upper_limit",
 } as const;
+
+type ComfortStateKey = (typeof comfortStateKeys)[keyof typeof comfortStateKeys];
+
+const sth2zComfortAttributes = {
+    [comfortStateKeys.humidityLower]: "sth2zHumidityComfortLower",
+    [comfortStateKeys.humidityUpper]: "sth2zHumidityComfortUpper",
+    [comfortStateKeys.temperatureLower]: "sth2zHumidityComfortTemperatureLower",
+    [comfortStateKeys.temperatureUpper]: "sth2zHumidityComfortTemperatureUpper",
+} as const satisfies Record<ComfortStateKey, keyof RtiTekFd22Cluster["attributes"]>;
+
+const sth1zFd22AttributeIds = [0x0000, 0x0002, 0xe005, 0xe006, 0xe009, 0xe00a, 0xe00b, 0xe00c, 0xe00d, 0xe00e, 0xe00f];
+const sth2zComfortAttributeIds = [0xe014, 0xe015, 0xe016, 0xe017];
 
 const alarmStatusLookup = {normal: 0, low: 1, high: 2} as const;
 
@@ -402,23 +464,12 @@ function sth1zDerivedEnvironment(): ModernExtend {
                 );
             },
         } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
-        {
-            cluster: "genPowerCfg",
-            type: ["attributeReport", "readResponse"],
-            convert: (_model, _msg, _publish, _options, meta) =>
-                deriveEnvironment(
-                    getCelsiusStateNumber(meta.state, "temperature", Number.NaN, isFahrenheit(meta.device)),
-                    Number(meta.state.humidity),
-                    meta.state,
-                    isFahrenheit(meta.device),
-                ),
-        } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     ];
 
     const toZigbee: Tz.Converter[] = [
         {
             key: Object.values(comfortStateKeys),
-            convertSet: (_entity, key, value, meta) => {
+            convertSet: (entity, key, value, meta) => {
                 const fahrenheit = isFahrenheit(meta.device);
                 const displayValue = Number(value);
                 const normalized = isTemperatureKey(key) ? toCelsiusTemperature(displayValue, temperatureKinds[key], fahrenheit) : displayValue;
@@ -439,6 +490,30 @@ function sth1zDerivedEnvironment(): ModernExtend {
                 if (humidityLower >= humidityUpper) throw new Error("comfort humidity lower limit must be below upper limit");
                 if (temperatureLower >= temperatureUpper) throw new Error("comfort temperature lower limit must be below upper limit");
 
+                const attribute = sth2zComfortAttributes[key as ComfortStateKey];
+                if (isSth2z(meta.device) && attribute) {
+                    const raw = isTemperatureKey(key) ? Math.round(normalized * 10) * 10 : Math.round(normalized) * 100;
+                    const deviceValue = raw / 100;
+                    const nextValue = isTemperatureKey(key)
+                        ? round(toDisplayTemperature(deviceValue, temperatureKinds[key], fahrenheit), 1)
+                        : deviceValue;
+                    const nextState = {...meta.state, [key]: nextValue};
+                    return (async () => {
+                        await entity.write<typeof rtiTekFd22, RtiTekFd22Cluster>(rtiTekFd22, {[attribute]: raw} as never);
+                        return {
+                            state: {
+                                [key]: nextValue,
+                                ...deriveEnvironment(
+                                    getCelsiusStateNumber(nextState, "temperature", Number.NaN, fahrenheit),
+                                    Number(nextState.humidity),
+                                    nextState,
+                                    fahrenheit,
+                                ),
+                            },
+                        };
+                    })();
+                }
+
                 const nextValue = isTemperatureKey(key) ? round(toDisplayTemperature(normalized, temperatureKinds[key], fahrenheit), 1) : normalized;
                 const nextState = {...meta.state, [key]: nextValue};
                 return {
@@ -453,7 +528,12 @@ function sth1zDerivedEnvironment(): ModernExtend {
                     },
                 };
             },
-            convertGet: (_entity, key, meta) => {
+            convertGet: async (entity, key, meta) => {
+                const attribute = sth2zComfortAttributes[key as ComfortStateKey];
+                if (isSth2z(meta.device) && attribute) {
+                    await entity.read<typeof rtiTekFd22, RtiTekFd22Cluster>(rtiTekFd22, [attribute]);
+                    return;
+                }
                 const fallbackKey = Object.entries(comfortStateKeys).find(
                     ([, stateKey]) => stateKey === key,
                 )?.[0] as keyof typeof humidityComfortDefaults;
@@ -462,11 +542,11 @@ function sth1zDerivedEnvironment(): ModernExtend {
                     ? round(toDisplayTemperature(humidityComfortDefaults[fallbackKey], temperatureKinds[key], isFahrenheit(meta.device)), 1)
                     : humidityComfortDefaults[fallbackKey];
                 const value = currentValue === undefined || currentValue === null ? fallbackValue : Number(currentValue);
-                return Promise.resolve({
+                return {
                     state: {
                         [key]: value,
                     },
-                });
+                };
             },
         },
     ];
@@ -494,6 +574,68 @@ function sth1zDerivedEnvironment(): ModernExtend {
     ];
 
     return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+}
+
+function sthzbProductName(): ModernExtend {
+    const fromZigbee = {
+        cluster: rtiTekFd22,
+        type: ["attributeReport", "readResponse"],
+        convert: (_model, msg, _publish, _options, meta) => {
+            if (msg.data.productName === undefined) return;
+            const productName = normalizeProductName(msg.data.productName);
+            const previousProductName = meta.device.meta?.[productNameMetaKey];
+            setProductName(meta.device, productName);
+            if (previousProductName !== productName) meta.deviceExposesChanged();
+            return {product_name: productName};
+        },
+    } satisfies Fz.Converter<typeof rtiTekFd22, RtiTekFd22Cluster, ["attributeReport", "readResponse"]>;
+
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ["product_name"],
+            convertGet: async (entity) => {
+                await entity.read<typeof rtiTekFd22, RtiTekFd22Cluster>(rtiTekFd22, ["productName"]);
+            },
+        },
+    ];
+
+    return {
+        exposes: [e.text("product_name", ea.STATE_GET).withCategory("diagnostic")],
+        fromZigbee: [fromZigbee],
+        toZigbee,
+        isModernExtend: true,
+    };
+}
+
+function sth2zComfortSettings(): ModernExtend {
+    const fromZigbee = {
+        cluster: rtiTekFd22,
+        type: ["attributeReport", "readResponse"],
+        convert: (_model, msg, _publish, _options, meta) => {
+            if (!isSth2z(meta.device)) return;
+
+            const fahrenheit = isFahrenheit(meta.device);
+            const result: KeyValue = {};
+            for (const [key, attribute] of Object.entries(sth2zComfortAttributes) as [
+                ComfortStateKey,
+                (typeof sth2zComfortAttributes)[ComfortStateKey],
+            ][]) {
+                const raw = msg.data[attribute];
+                if (raw === undefined) continue;
+                const value = Number(raw) / 100;
+                result[key] = isTemperatureKey(key) ? round(toDisplayTemperature(value, temperatureKinds[key], fahrenheit), 1) : Math.round(value);
+            }
+
+            if (Object.keys(result).length === 0) return;
+            const state = {...meta.state, ...result};
+            return {
+                ...result,
+                ...deriveEnvironment(getCelsiusStateNumber(state, "temperature", Number.NaN, fahrenheit), Number(state.humidity), state, fahrenheit),
+            };
+        },
+    } satisfies Fz.Converter<typeof rtiTekFd22, RtiTekFd22Cluster, ["attributeReport", "readResponse"]>;
+
+    return {fromZigbee: [fromZigbee], isModernExtend: true};
 }
 
 function sth1zPrivateSettings(): ModernExtend {
@@ -642,7 +784,7 @@ function sth1zPrivateSettings(): ModernExtend {
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["STHZB"],
-        model: "STH1Z",
+        model: "STHZB",
         vendor: "Rti-Tek",
         description: "Temperature and humidity sensor",
         ota: true,
@@ -653,6 +795,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     temperatureUnit: {name: "temperatureUnit", ...rtiTekFd22Attributes.temperatureUnit, write: true, max: 0xff},
                     faultCode: {name: "faultCode", ...rtiTekFd22Attributes.faultCode, max: 0xffffffff},
+                    productName: {name: "productName", ...rtiTekFd22Attributes.productName},
                     internalTemperatureCalibration: {
                         name: "internalTemperatureCalibration",
                         ...rtiTekFd22Attributes.internalTemperatureCalibration,
@@ -682,6 +825,30 @@ export const definitions: DefinitionWithExtend[] = [
                     humidityAlarmLower: {name: "humidityAlarmLower", ...rtiTekFd22Attributes.humidityAlarmLower, write: true, max: 0xffff},
                     temperatureAlarmStatus: {name: "temperatureAlarmStatus", ...rtiTekFd22Attributes.temperatureAlarmStatus, max: 0xff},
                     humidityAlarmStatus: {name: "humidityAlarmStatus", ...rtiTekFd22Attributes.humidityAlarmStatus, max: 0xff},
+                    sth2zHumidityComfortLower: {
+                        name: "sth2zHumidityComfortLower",
+                        ...rtiTekFd22Attributes.sth2zHumidityComfortLower,
+                        write: true,
+                        max: 0xffff,
+                    },
+                    sth2zHumidityComfortUpper: {
+                        name: "sth2zHumidityComfortUpper",
+                        ...rtiTekFd22Attributes.sth2zHumidityComfortUpper,
+                        write: true,
+                        max: 0xffff,
+                    },
+                    sth2zHumidityComfortTemperatureLower: {
+                        name: "sth2zHumidityComfortTemperatureLower",
+                        ...rtiTekFd22Attributes.sth2zHumidityComfortTemperatureLower,
+                        write: true,
+                        min: -32768,
+                    },
+                    sth2zHumidityComfortTemperatureUpper: {
+                        name: "sth2zHumidityComfortTemperatureUpper",
+                        ...rtiTekFd22Attributes.sth2zHumidityComfortTemperatureUpper,
+                        write: true,
+                        min: -32768,
+                    },
                 },
                 commands: {},
                 commandsResponse: {},
@@ -689,7 +856,9 @@ export const definitions: DefinitionWithExtend[] = [
             sth1zTemperatureDisplay(),
             m.humidity({reporting: false}),
             m.battery({percentageReporting: false}),
+            sthzbProductName(),
             sth1zPrivateSettings(),
+            sth2zComfortSettings(),
             sth1zDerivedEnvironment(),
         ],
         configure: async (device) => {
@@ -723,10 +892,9 @@ export const definitions: DefinitionWithExtend[] = [
             ]);
 
             await delay(3000);
-            await readFd22Attributes(
-                endpoint,
-                Object.values(rtiTekFd22Attributes).map((attribute) => attribute.ID),
-            );
+            await readProductName(endpoint, device);
+            await readFd22Attributes(endpoint, sth1zFd22AttributeIds);
+            if (isSth2z(device)) await readFd22Attributes(endpoint, sth2zComfortAttributeIds);
         },
     },
 ];
