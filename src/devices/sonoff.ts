@@ -27,6 +27,7 @@ import type {
     Configure,
     DefinitionExposesFunction,
     DefinitionWithExtend,
+    DummyDevice,
     Expose,
     Fz,
     KeyValue,
@@ -122,6 +123,7 @@ interface SonoffSnzb02dr2 {
         temperatureSensorSelect: number;
         externalTemperature: number;
         externalHumidity: number;
+        remoteSourceItems: number[];
     };
     commands: never;
     commandResponses: never;
@@ -1513,7 +1515,480 @@ export interface SonoffEwelink {
     };
 }
 
+const snzb02dr2ClusterName = "customSonoffSnzb02dr2";
+const snzb02dr2RemoteSourceMinFirmware = "1.0.5";
+const snzb02dr2RemoteSourceTemperatureRange = {min: -20, max: 60};
+const snzb02dr2RemoteSourceHumidityRange = {min: 0, max: 99.9};
+const snzb02dr2SensorStateLookup = {unbound: 0x00, online: 0x01, offline: 0x02, restored: 0x03} as const;
+const snzb02dr2StatusLookup = {unbound: 0x00, using: 0x01, offline: 0x02} as const;
+const snzb02dr2SourceTemperatureKeys: string[] = ["source_1_temperature", "source_2_temperature"];
+const snzb02dr2SourceHumidityKeys: string[] = ["source_1_humidity", "source_2_humidity"];
+const snzb02dr2SourceTemperatureStateKeys: string[] = ["source_1_temperature_state", "source_2_temperature_state"];
+const snzb02dr2SourceHumidityStateKeys: string[] = ["source_1_humidity_state", "source_2_humidity_state"];
+const snzb02dr2SourceStateKeys: string[] = [...snzb02dr2SourceTemperatureStateKeys, ...snzb02dr2SourceHumidityStateKeys];
+
+const firmwareAtLeast = (device: Zh.Device | DummyDevice | null | undefined, targetVersion: string): boolean => {
+    if (!device) return false;
+    if (utils.isDummyDevice(device)) return true;
+    if (!device?.softwareBuildID) return false;
+    const currentParts = device.softwareBuildID.split(".").map((part) => Number(part));
+    const targetParts = targetVersion.split(".").map((part) => Number(part));
+    const length = Math.max(currentParts.length, targetParts.length);
+    for (let i = 0; i < length; i++) {
+        const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
+        const targetPart = Number.isFinite(targetParts[i]) ? targetParts[i] : 0;
+        if (currentPart > targetPart) return true;
+        if (currentPart < targetPart) return false;
+    }
+    return true;
+};
+const snzb02dr2GateExposesByFirmware = (extend: ModernExtend, remoteSourceItems: boolean): ModernExtend => {
+    const originalExposes = extend.exposes ?? [];
+    const toZigbee = extend.toZigbee?.map((converter) => {
+        const convertSet = converter.convertSet;
+        const convertGet = converter.convertGet;
+        const assertFirmware = (key: string, meta: Tz.Meta): void => {
+            if (firmwareAtLeast(meta.device, snzb02dr2RemoteSourceMinFirmware) === remoteSourceItems) return;
+            if (remoteSourceItems) {
+                throw new Error(`SNZB-02DR2 ${key} requires firmware ${snzb02dr2RemoteSourceMinFirmware} or later`);
+            }
+            throw new Error(
+                `SNZB-02DR2 ${key} uses the legacy remote source protocol; use source_1/source_2 properties on firmware ${snzb02dr2RemoteSourceMinFirmware} or later`,
+            );
+        };
+
+        return {
+            ...converter,
+            convertSet:
+                convertSet === undefined
+                    ? undefined
+                    : async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+                          assertFirmware(key, meta);
+                          return await convertSet(entity, key, value, meta);
+                      },
+            convertGet:
+                convertGet === undefined
+                    ? undefined
+                    : async (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => {
+                          assertFirmware(key, meta);
+                          return await convertGet(entity, key, meta);
+                      },
+        };
+    });
+    return {
+        ...extend,
+        toZigbee,
+        exposes: [
+            (device, options) => {
+                if (firmwareAtLeast(device, snzb02dr2RemoteSourceMinFirmware) !== remoteSourceItems) return [];
+
+                const result: Expose[] = [];
+                for (const expose of originalExposes) {
+                    result.push(...(typeof expose === "function" ? expose(device, options) : [expose]));
+                }
+                return result;
+            },
+        ],
+    };
+};
+
+interface SonoffSnzb02dr2RemoteSourceItem {
+    type: 0x00 | 0x01;
+    id: 0x00 | 0x01;
+    state: 0x00 | 0x01 | 0x02 | 0x03;
+    value?: number[];
+}
+
+const snzb02dr2RemoteSourceItemDefinitions = [
+    {type: 0x00, id: 0x00, valueKey: "source_1_temperature", stateKey: "source_1_temperature_state"},
+    {type: 0x00, id: 0x01, valueKey: "source_2_temperature", stateKey: "source_2_temperature_state"},
+    {type: 0x01, id: 0x00, valueKey: "source_1_humidity", stateKey: "source_1_humidity_state"},
+    {type: 0x01, id: 0x01, valueKey: "source_2_humidity", stateKey: "source_2_humidity_state"},
+] as const;
+
+const snzb02dr2ReadInt16LE = (data: ArrayLike<number>, index: number): number => {
+    const unsigned = (data[index] ?? 0) | ((data[index + 1] ?? 0) << 8);
+    return unsigned >= 0x8000 ? unsigned - 0x10000 : unsigned;
+};
+
+/** Build the UINT8 elements contained by the 0x601E ZCL ARRAY value. */
+const buildSonoffSnzb02dr2RemoteSourceElements = (items: SonoffSnzb02dr2RemoteSourceItem[]): number[] => {
+    if (items.length === 0 || items.length > 4) {
+        throw new Error(`Invalid remote source SensorCount: ${items.length}`);
+    }
+
+    const seen = new Set<string>();
+    for (const item of items) {
+        const key = `${item.type}:${item.id}`;
+        if (seen.has(key)) {
+            throw new Error(`Duplicate remote source item (type=${item.type}, id=${item.id})`);
+        }
+        seen.add(key);
+
+        if (item.value !== undefined && item.value.length !== 2) {
+            throw new Error("Remote source item value must be 2 bytes when present");
+        }
+    }
+
+    const tlvLength = 1 + items.reduce((sum, item) => sum + 4 + (item.value?.length ?? 0), 0);
+    const elements = [0x01, 0x01, 0x00, 0x03, tlvLength, items.length];
+    for (const item of items) {
+        elements.push(item.type, item.id, item.state, item.value?.length ?? 0, ...(item.value ?? []));
+    }
+    return elements;
+};
+
+const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined): SonoffSnzb02dr2RemoteSourceItem[] | undefined => {
+    if (
+        elements === undefined ||
+        elements.length < 6 ||
+        elements[0] !== 0x01 ||
+        elements[1] !== 0x01 ||
+        elements[2] !== 0x00 ||
+        elements[3] !== 0x03 ||
+        elements[4] + 5 !== elements.length
+    ) {
+        return;
+    }
+
+    const sensorCount = elements[5];
+    if (sensorCount > 4) return;
+
+    const items: SonoffSnzb02dr2RemoteSourceItem[] = [];
+    const seen = new Set<string>();
+    let offset = 6;
+    for (let index = 0; index < sensorCount; index++) {
+        if (offset + 4 > elements.length) return;
+
+        const type = elements[offset];
+        const id = elements[offset + 1];
+        const state = elements[offset + 2];
+        const valueLength = elements[offset + 3];
+        if ((type !== 0x00 && type !== 0x01) || (id !== 0x00 && id !== 0x01) || ![0x00, 0x01, 0x02, 0x03].includes(state)) return;
+        if ((valueLength !== 0 && valueLength !== 2) || offset + 4 + valueLength > elements.length) return;
+        const key = `${type}:${id}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+
+        offset += 4;
+        const value = valueLength === 2 ? elements.slice(offset, offset + valueLength) : undefined;
+        if (type === 0x01 && value !== undefined && ((value[0] ?? 0) | ((value[1] ?? 0) << 8)) > 10000) return;
+        offset += valueLength;
+        items.push({type, id, state, value} as SonoffSnzb02dr2RemoteSourceItem);
+    }
+
+    return offset === elements.length ? items : undefined;
+};
+
 const sonoffExtend = {
+    snzb02dr2RemoteSource: (): ModernExtend => {
+        const clusterName = snzb02dr2ClusterName;
+        const remoteSourceExposes = [
+            e
+                .enum("remote_source_status", ea.ALL, Object.keys(snzb02dr2StatusLookup))
+                .withCategory("config")
+                .withDescription("Overall remote source status. Setting unbound clears all items, offline marks every bound item offline."),
+            e
+                .numeric("source_1_temperature", ea.ALL)
+                .withValueMin(snzb02dr2RemoteSourceTemperatureRange.min)
+                .withValueMax(snzb02dr2RemoteSourceTemperatureRange.max)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription(
+                    "Displays the bound remote sensor's temperature on the device screen, updating automatically every 30 minutes or manually by briefly pressing the button on the back of the SNZB-02DR2.",
+                ),
+            e
+                .enum("source_1_temperature_state", ea.ALL, Object.keys(snzb02dr2SensorStateLookup))
+                .withDescription(
+                    "State of the source 1 temperature item. State-only online/restored updates do not overwrite the stored measurement.",
+                ),
+            e
+                .numeric("source_1_humidity", ea.ALL)
+                .withValueMin(snzb02dr2RemoteSourceHumidityRange.min)
+                .withValueMax(snzb02dr2RemoteSourceHumidityRange.max)
+                .withValueStep(0.1)
+                .withUnit("%")
+                .withDescription(
+                    "Displays the bound remote sensor's humidity on the device screen, updating automatically every 30 minutes or manually by briefly pressing the button on the back of the SNZB-02DR2.",
+                ),
+            e
+                .enum("source_1_humidity_state", ea.ALL, Object.keys(snzb02dr2SensorStateLookup))
+                .withDescription("State of the source 1 humidity item. State-only online/restored updates do not overwrite the stored measurement."),
+            e
+                .numeric("source_2_temperature", ea.ALL)
+                .withValueMin(snzb02dr2RemoteSourceTemperatureRange.min)
+                .withValueMax(snzb02dr2RemoteSourceTemperatureRange.max)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription(
+                    "Displays the bound remote sensor's temperature on the device screen, updating automatically every 30 minutes or manually by briefly pressing the button on the back of the SNZB-02DR2.",
+                ),
+            e
+                .enum("source_2_temperature_state", ea.ALL, Object.keys(snzb02dr2SensorStateLookup))
+                .withDescription(
+                    "State of the source 2 temperature item. State-only online/restored updates do not overwrite the stored measurement.",
+                ),
+            e
+                .numeric("source_2_humidity", ea.ALL)
+                .withValueMin(snzb02dr2RemoteSourceHumidityRange.min)
+                .withValueMax(snzb02dr2RemoteSourceHumidityRange.max)
+                .withValueStep(0.1)
+                .withUnit("%")
+                .withDescription(
+                    "Displays the bound remote sensor's humidity on the device screen, updating automatically every 30 minutes or manually by briefly pressing the button on the back of the SNZB-02DR2.",
+                ),
+            e
+                .enum("source_2_humidity_state", ea.ALL, Object.keys(snzb02dr2SensorStateLookup))
+                .withDescription("State of the source 2 humidity item. State-only online/restored updates do not overwrite the stored measurement."),
+        ];
+
+        const encodeRemoteSourceValue = (type: 0x00 | 0x01, value: number, key: string): number[] => {
+            utils.assertNumber(value, key);
+            const raw = Math.round(value * 100);
+            if (type === 0x00 && (raw < snzb02dr2RemoteSourceTemperatureRange.min * 100 || raw > snzb02dr2RemoteSourceTemperatureRange.max * 100)) {
+                throw new Error(
+                    `Invalid ${key}: temperature must be between ${snzb02dr2RemoteSourceTemperatureRange.min} and ${snzb02dr2RemoteSourceTemperatureRange.max}`,
+                );
+            }
+            if (type === 0x01 && (raw < snzb02dr2RemoteSourceHumidityRange.min * 100 || raw > snzb02dr2RemoteSourceHumidityRange.max * 100)) {
+                throw new Error(
+                    `Invalid ${key}: humidity must be between ${snzb02dr2RemoteSourceHumidityRange.min} and ${snzb02dr2RemoteSourceHumidityRange.max}`,
+                );
+            }
+            return [raw & 0xff, (raw >> 8) & 0xff];
+        };
+
+        const readRemoteSource = async (entity: Zh.Endpoint | Zh.Group): Promise<void> => {
+            await entity.read<typeof clusterName, SonoffSnzb02dr2>(clusterName, [0x600e, 0x601e]);
+        };
+
+        const writeRemoteSourceStatus = async (entity: Zh.Endpoint | Zh.Group, status: 0x00 | 0x01 | 0x02): Promise<void> => {
+            await entity.write<typeof clusterName, SonoffSnzb02dr2>(clusterName, {[0x600e]: {value: status, type: Zcl.DataType.UINT8}}, undefined);
+        };
+
+        const writeRemoteSourceItems = async (entity: Zh.Endpoint | Zh.Group, items: SonoffSnzb02dr2RemoteSourceItem[]): Promise<void> => {
+            await entity.write<typeof clusterName, SonoffSnzb02dr2>(
+                clusterName,
+                {
+                    [0x601e]: {
+                        value: {
+                            elementType: Zcl.DataType.UINT8,
+                            elements: buildSonoffSnzb02dr2RemoteSourceElements(items),
+                        },
+                        type: Zcl.DataType.ARRAY,
+                    },
+                },
+                undefined,
+            );
+        };
+
+        const buildCachedRemoteSourceSnapshot = (meta: Tz.Meta, overrides: SonoffSnzb02dr2RemoteSourceItem[]): SonoffSnzb02dr2RemoteSourceItem[] => {
+            const overrideKeys = new Set(overrides.map((item) => `${item.type}:${item.id}`));
+            const snapshot = [...overrides];
+            for (const definition of snzb02dr2RemoteSourceItemDefinitions) {
+                if (overrideKeys.has(`${definition.type}:${definition.id}`)) continue;
+
+                const cachedValue = meta.state?.[definition.valueKey];
+                const cachedState = meta.state?.[definition.stateKey];
+                const state =
+                    typeof cachedState === "string"
+                        ? snzb02dr2SensorStateLookup[cachedState as keyof typeof snzb02dr2SensorStateLookup]
+                        : typeof cachedValue === "number"
+                          ? snzb02dr2SensorStateLookup.online
+                          : undefined;
+                if (state === undefined || state === snzb02dr2SensorStateLookup.unbound) continue;
+
+                const value =
+                    typeof cachedValue === "number" && (state === snzb02dr2SensorStateLookup.online || state === snzb02dr2SensorStateLookup.restored)
+                        ? encodeRemoteSourceValue(definition.type, cachedValue, definition.valueKey)
+                        : undefined;
+                snapshot.push({type: definition.type, id: definition.id, state, value});
+            }
+            return snapshot;
+        };
+
+        const writeRemoteSource = async (
+            entity: Zh.Endpoint | Zh.Group,
+            meta: Tz.Meta,
+            items: SonoffSnzb02dr2RemoteSourceItem[],
+        ): Promise<boolean> => {
+            const cachedStatus = meta.state?.remote_source_status;
+            let gateWasEnabled = cachedStatus !== "using" && cachedStatus !== "offline";
+            let itemsToWrite = items;
+            if (gateWasEnabled) {
+                itemsToWrite = buildCachedRemoteSourceSnapshot(meta, items);
+                await writeRemoteSourceStatus(entity, snzb02dr2StatusLookup.using);
+            }
+
+            try {
+                await writeRemoteSourceItems(entity, itemsToWrite);
+            } catch (error) {
+                // Z2M can restore a stale cached 'using' status while the device has already
+                // returned to UNBOUND. Re-enable the gate and restore a complete cached snapshot.
+                if (!gateWasEnabled && error instanceof Error && error.message.includes("INVALID_VALUE")) {
+                    await writeRemoteSourceStatus(entity, snzb02dr2StatusLookup.using);
+                    gateWasEnabled = true;
+                    itemsToWrite = buildCachedRemoteSourceSnapshot(meta, items);
+                    await writeRemoteSourceItems(entity, itemsToWrite);
+                    return gateWasEnabled;
+                }
+                if (error instanceof Error && error.message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                    throw new Error(
+                        "The device rejected remote source attribute 0x601E: firmware 1.0.5 or later is required. Update the device via OTA and retry.",
+                    );
+                }
+                throw error;
+            }
+
+            return gateWasEnabled;
+        };
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffSnzb02dr2, ["attributeReport", "readResponse"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (!firmwareAtLeast(meta.device, snzb02dr2RemoteSourceMinFirmware)) return;
+
+                    const result: KeyValue = {};
+                    const statusRaw = msg.data.temperatureSensorSelect;
+                    if (statusRaw !== undefined && Object.values(snzb02dr2StatusLookup).includes(statusRaw as 0 | 1 | 2)) {
+                        result.remote_source_status = utils.getFromLookupByValue(statusRaw, snzb02dr2StatusLookup);
+                    }
+
+                    if (msg.data.remoteSourceItems !== undefined) {
+                        const items = parseSonoffSnzb02dr2RemoteSourceElements(msg.data.remoteSourceItems);
+                        if (items?.length === 0) {
+                            // A read after writing 0x600E=USING can contain the new aggregate status and an
+                            // empty 0x601E snapshot in the same response. In that case 0x600E is authoritative;
+                            // the empty snapshot only means that no source items have been written yet.
+                            if (result.remote_source_status === undefined) {
+                                result.remote_source_status = "unbound";
+                            }
+                            for (const definition of snzb02dr2RemoteSourceItemDefinitions) {
+                                result[definition.stateKey] = "unbound";
+                                result[definition.valueKey] = null;
+                            }
+                        } else if (items !== undefined) {
+                            for (const item of items) {
+                                const sourcePrefix = `source_${item.id + 1}`;
+                                const measurement = item.type === 0x00 ? "temperature" : "humidity";
+                                const valueKey = `${sourcePrefix}_${measurement}`;
+                                result[`${valueKey}_state`] = utils.getFromLookupByValue(item.state, snzb02dr2SensorStateLookup);
+                                if (
+                                    result.remote_source_status === undefined &&
+                                    (item.state === snzb02dr2SensorStateLookup.online || item.state === snzb02dr2SensorStateLookup.restored)
+                                ) {
+                                    result.remote_source_status = "using";
+                                }
+
+                                if (item.state === snzb02dr2SensorStateLookup.unbound) {
+                                    result[valueKey] = null;
+                                } else if (item.value !== undefined) {
+                                    const raw =
+                                        item.type === 0x00 ? snzb02dr2ReadInt16LE(item.value, 0) : (item.value[0] ?? 0) | ((item.value[1] ?? 0) << 8);
+                                    result[valueKey] = utils.precisionRound(raw / 100, 2);
+                                }
+                            }
+                        }
+                    }
+
+                    return Object.keys(result).length > 0 ? result : undefined;
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [...snzb02dr2SourceTemperatureKeys, ...snzb02dr2SourceHumidityKeys, ...snzb02dr2SourceStateKeys, "remote_source_status"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!firmwareAtLeast(meta.device, snzb02dr2RemoteSourceMinFirmware)) {
+                        throw new Error(
+                            `SNZB-02DR2 ${key} requires firmware ${snzb02dr2RemoteSourceMinFirmware} or later; use external_temperature/external_humidity on older firmware`,
+                        );
+                    }
+
+                    const returnState: KeyValue = {};
+
+                    if (key === "remote_source_status") {
+                        utils.assertString(value, key);
+                        const status = snzb02dr2StatusLookup[value as keyof typeof snzb02dr2StatusLookup];
+                        if (status === undefined) {
+                            throw new Error(`Invalid ${key}: expected one of ${Object.keys(snzb02dr2StatusLookup).join(", ")}`);
+                        }
+
+                        if (status === snzb02dr2StatusLookup.using) {
+                            const snapshot = buildCachedRemoteSourceSnapshot(meta, []);
+                            await writeRemoteSourceStatus(entity, status);
+                            if (snapshot.length > 0) {
+                                await writeRemoteSourceItems(entity, snapshot);
+                            }
+                            returnState.remote_source_status = "using";
+                        } else {
+                            await writeRemoteSourceStatus(entity, status);
+                            returnState.remote_source_status = value;
+                            if (status === snzb02dr2StatusLookup.unbound) {
+                                for (const definition of snzb02dr2RemoteSourceItemDefinitions) {
+                                    returnState[definition.stateKey] = "unbound";
+                                    returnState[definition.valueKey] = null;
+                                }
+                            }
+                        }
+                        await readRemoteSource(entity);
+                        return {state: returnState};
+                    }
+
+                    const source = key.includes("source_1") ? 1 : 2;
+                    const id = (source - 1) as 0x00 | 0x01;
+                    const type = key.includes("temperature") ? 0x00 : 0x01;
+                    const valueKey = `source_${source}_${type === 0x00 ? "temperature" : "humidity"}`;
+                    const stateKey = `${valueKey}_state`;
+                    const items: SonoffSnzb02dr2RemoteSourceItem[] = [];
+
+                    if (snzb02dr2SourceTemperatureKeys.includes(key) || snzb02dr2SourceHumidityKeys.includes(key)) {
+                        utils.assertNumber(value, key);
+                        items.push({type, id, state: snzb02dr2SensorStateLookup.online, value: encodeRemoteSourceValue(type, value, key)});
+                        returnState[key] = value;
+                        returnState[stateKey] = "online";
+                    } else if (snzb02dr2SourceStateKeys.includes(key)) {
+                        utils.assertString(value, key);
+                        const state = snzb02dr2SensorStateLookup[value as keyof typeof snzb02dr2SensorStateLookup];
+                        if (state === undefined) {
+                            throw new Error(`Invalid ${key}: expected one of ${Object.keys(snzb02dr2SensorStateLookup).join(", ")}`);
+                        }
+
+                        items.push({type, id, state});
+                        if (state === snzb02dr2SensorStateLookup.unbound) {
+                            returnState[valueKey] = null;
+                        }
+                        returnState[key] = value;
+                    } else {
+                        throw new Error(`Unsupported SNZB-02DR2 remote source key: ${key}`);
+                    }
+
+                    await writeRemoteSource(entity, meta, items);
+                    await readRemoteSource(entity);
+                    if (items[0].state === snzb02dr2SensorStateLookup.online || items[0].state === snzb02dr2SensorStateLookup.restored) {
+                        returnState.remote_source_status = "using";
+                    }
+                    return {state: returnState};
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (!firmwareAtLeast(meta.device, snzb02dr2RemoteSourceMinFirmware)) {
+                        throw new Error(`SNZB-02DR2 ${key} requires firmware ${snzb02dr2RemoteSourceMinFirmware} or later`);
+                    }
+                    await readRemoteSource(entity);
+                },
+            },
+        ];
+
+        return {
+            exposes: [(device) => (firmwareAtLeast(device, snzb02dr2RemoteSourceMinFirmware) ? remoteSourceExposes : [])],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
+        };
+    },
     addCustomClusterEwelink: () => {
         return m.deviceAddCustomCluster("customClusterEwelink", {
             name: "customClusterEwelink",
@@ -7693,6 +8168,7 @@ export const definitions: DefinitionWithExtend[] = [
                     temperatureSensorSelect: {name: "temperatureSensorSelect", ID: 0x600e, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     externalTemperature: {name: "externalTemperature", ID: 0x600d, type: Zcl.DataType.INT16, write: true, min: -32768},
                     externalHumidity: {name: "externalHumidity", ID: 0x6018, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    remoteSourceItems: {name: "remoteSourceItems", ID: 0x601e, type: Zcl.DataType.ARRAY, write: true},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -7701,41 +8177,56 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
-            m.enumLookup<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
-                name: "temperature_sensor_select",
-                lookup: {internal: 0, external: 1},
-                cluster: "customSonoffSnzb02dr2",
-                attribute: "temperatureSensorSelect",
-                entityCategory: "config",
-                description:
-                    "Data source shown on the display. Set to 'external' to enable the external display and show the values written to external_temperature and external_humidity; set to 'internal' to show the built-in sensor again.",
-            }),
-            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
-                name: "external_temperature",
-                cluster: "customSonoffSnzb02dr2",
-                attribute: "externalTemperature",
-                description:
-                    "Temperature value to display when temperature_sensor_select is set to 'external'. Push readings here from another sensor (e.g. via an automation).",
-                access: "STATE_SET",
-                valueMin: -50,
-                valueMax: 125,
-                scale: 100,
-                valueStep: 0.1,
-                unit: "°C",
-            }),
-            m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
-                name: "external_humidity",
-                cluster: "customSonoffSnzb02dr2",
-                attribute: "externalHumidity",
-                description:
-                    "Relative humidity value to display when temperature_sensor_select is set to 'external'. Push readings here from another sensor. Requires device firmware 1.0.4 or later.",
-                access: "STATE_SET",
-                valueMin: 0,
-                valueMax: 100,
-                scale: 100,
-                valueStep: 0.1,
-                unit: "%",
-            }),
+            snzb02dr2GateExposesByFirmware(
+                m.enumLookup<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                    name: "temperature_sensor_select",
+                    lookup: {internal: 0, external: 1},
+                    cluster: "customSonoffSnzb02dr2",
+                    attribute: "temperatureSensorSelect",
+                    entityCategory: "config",
+                    description:
+                        "Data source shown on the display. Set to 'external' to enable the external display and show the values written to external_temperature and external_humidity; set to 'internal' to show the built-in sensor again.",
+                    fzConvert: (model, msg, publish, options, meta) => {
+                        if (firmwareAtLeast(meta.device, snzb02dr2RemoteSourceMinFirmware)) return;
+                        if (msg.data.temperatureSensorSelect === 0) return {temperature_sensor_select: "internal"};
+                        if (msg.data.temperatureSensorSelect === 1) return {temperature_sensor_select: "external"};
+                    },
+                }),
+                false,
+            ),
+            snzb02dr2GateExposesByFirmware(
+                m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                    name: "external_temperature",
+                    cluster: "customSonoffSnzb02dr2",
+                    attribute: "externalTemperature",
+                    description:
+                        "Temperature value to display when temperature_sensor_select is set to 'external'. Push readings here from another sensor (e.g. via an automation).",
+                    access: "STATE_SET",
+                    valueMin: -50,
+                    valueMax: 125,
+                    scale: 100,
+                    valueStep: 0.1,
+                    unit: "°C",
+                }),
+                false,
+            ),
+            snzb02dr2GateExposesByFirmware(
+                m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
+                    name: "external_humidity",
+                    cluster: "customSonoffSnzb02dr2",
+                    attribute: "externalHumidity",
+                    description:
+                        "Relative humidity value to display when temperature_sensor_select is set to 'external'. Push readings here from another sensor. Requires device firmware 1.0.4 or later.",
+                    access: "STATE_SET",
+                    valueMin: 0,
+                    valueMax: 100,
+                    scale: 100,
+                    valueStep: 0.1,
+                    unit: "%",
+                }),
+                false,
+            ),
+            sonoffExtend.snzb02dr2RemoteSource(),
             m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
                 name: "comfort_temperature_min",
                 cluster: "customSonoffSnzb02dr2",
