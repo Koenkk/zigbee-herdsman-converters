@@ -15,6 +15,7 @@ interface GeneratedExtend {
     getExtend(): ModernExtend;
     getSource(): string;
     lib?: string;
+    multiEndpointSkip?: string[];
 }
 
 // Generator allows to define instances of GeneratedExtend that have typed arguments to extender.
@@ -23,12 +24,14 @@ class ExtendGenerator<T> implements GeneratedExtend {
     args?: T;
     source: string;
     lib?: string;
+    multiEndpointSkip?: string[];
 
-    constructor(args: {extend: (a: T) => ModernExtend; args?: T; source: string; lib?: string}) {
+    constructor(args: {extend: (a: T) => ModernExtend; args?: T; source: string; lib?: string; multiEndpointSkip?: string[]}) {
         this.extend = args.extend;
         this.args = args.args;
         this.source = args.source;
         this.lib = args.lib;
+        this.multiEndpointSkip = args.multiEndpointSkip;
     }
 
     getExtend(): ModernExtend {
@@ -96,7 +99,14 @@ const INPUT_EXTENDERS: Extender[] = [
     [["msSoilMoisture"], async (d, eps) => [new ExtendGenerator({extend: m.soilMoisture, args: maybeEndpointArgs(d, eps), source: "soilMoisture"})]],
     [
         ["closuresWindowCovering"],
-        async (d, eps) => [new ExtendGenerator({extend: m.windowCovering, args: {controls: ["lift", "tilt"]}, source: "windowCovering"})],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.windowCovering,
+                args: {controls: ["lift", "tilt"]},
+                source: "windowCovering",
+                multiEndpointSkip: ["state", "position", "tilt", "cover_mode"],
+            }),
+        ],
     ],
     [["genBinaryInput"], extenderBinaryInput],
     [["genBinaryOutput"], extenderBinaryOutput],
@@ -105,19 +115,79 @@ const INPUT_EXTENDERS: Extender[] = [
 ];
 
 const OUTPUT_EXTENDERS: Extender[] = [
-    [["genOnOff"], async (d, eps) => [new ExtendGenerator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: "commandsOnOff"})]],
+    [
+        ["genOnOff"],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.commandsOnOff,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsOnOff",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps) ? ["on", "off", "toggle"] : undefined,
+            }),
+        ],
+    ],
     [
         ["genLevelCtrl"],
-        async (d, eps) => [new ExtendGenerator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: "commandsLevelCtrl"})],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.commandsLevelCtrl,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsLevelCtrl",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps)
+                    ? [
+                          "brightness_move_to_level",
+                          "brightness_move_up",
+                          "brightness_move_down",
+                          "brightness_step_up",
+                          "brightness_step_down",
+                          "brightness_stop",
+                      ]
+                    : undefined,
+            }),
+        ],
     ],
     [
         ["lightingColorCtrl"],
-        async (d, eps) => [new ExtendGenerator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: "commandsColorCtrl"})],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.commandsColorCtrl,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsColorCtrl",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps)
+                    ? [
+                          "color_temperature_move_stop",
+                          "color_temperature_move_up",
+                          "color_temperature_move_down",
+                          "color_temperature_step_up",
+                          "color_temperature_step_down",
+                          "enhanced_move_to_hue_and_saturation",
+                          "move_to_hue_and_saturation",
+                          "color_hue_step_up",
+                          "color_hue_step_down",
+                          "color_saturation_step_up",
+                          "color_saturation_step_down",
+                          "color_loop_set",
+                          "color_temperature_move",
+                          "color_move",
+                          "hue_move",
+                          "hue_stop",
+                          "move_to_saturation",
+                          "move_to_hue",
+                          "stop_move_step",
+                      ]
+                    : undefined,
+            }),
+        ],
     ],
     [
         ["closuresWindowCovering"],
         async (d, eps) => [
-            new ExtendGenerator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: "commandsWindowCovering"}),
+            new ExtendGenerator({
+                extend: m.commandsWindowCovering,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsWindowCovering",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps) ? ["open", "close", "stop"] : undefined,
+            }),
         ],
     ],
 ];
@@ -220,8 +290,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
+        // create list with all multiEndpointSkip properties from generated extenders
+        const multiEndpointSkipArr = generatedExtend.flatMap((e) => e.multiEndpointSkip ?? []);
+        const multiEndpointSkip = multiEndpointSkipArr.length ? multiEndpointSkipArr : undefined;
         // Add to beginning for better visibility.
-        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints}, source: "deviceEndpoints"}));
+        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints, multiEndpointSkip}, source: "deviceEndpoints"}));
         extenders.unshift(generatedExtend[0].getExtend());
     }
 
@@ -296,13 +369,23 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         if (!onlyFirstDeviceEnpoint(device, onOffEndpoints)) {
             endpointNames = onOffEndpoints.map((e) => e.ID.toString());
         }
-        generated.push(new ExtendGenerator({extend: m.onOff, args: {endpointNames}, source: "onOff"}));
+        generated.push(
+            new ExtendGenerator({
+                extend: m.onOff,
+                args: {endpointNames},
+                source: "onOff",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(device, onOffEndpoints) ? ["state", "on", "off", "power_on_behavior"] : undefined,
+            }),
+        );
     }
 
     for (const endpoint of lightEndpoints) {
         let endpointNames: string[] | undefined;
+        let multiEndpointSkip: string[] | undefined;
         if (!onlyFirstDeviceEnpoint(device, lightEndpoints)) {
             endpointNames = lightEndpoints.map((e) => e.ID.toString());
+        } else {
+            multiEndpointSkip = ["state", "on", "off", "brightness", "level_config", "power_on_behavior"];
         }
         // In case read fails, support all features with 31
         let colorCapabilities = 0;
@@ -320,6 +403,9 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
             const minColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);
             const maxColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMax", 500);
             args.colorTemp = {range: [minColorTemp, maxColorTemp]};
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("color_temp", "color_temp_startup");
+            }
         }
 
         if (supportsColorXY) {
@@ -329,12 +415,19 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
                 if (supportsHueSaturation) args.color.modes = ["xy", "hs"];
                 if (supportsEnhancedHueSaturation) args.color.enhancedHue = true;
             }
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("color", "color_mode");
+            }
+        }
+
+        if ((supportsColorXY || supportsColorTemperature) && multiEndpointSkip) {
+            multiEndpointSkip.push("color_mode", "", "color_options");
         }
 
         if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
             generated.push(new ExtendGenerator({extend: philips.m.light, args, source: "m.light", lib: "philips"}));
         } else {
-            generated.push(new ExtendGenerator({extend: m.light, args, source: "light"}));
+            generated.push(new ExtendGenerator({extend: m.light, args, source: "light", multiEndpointSkip}));
         }
     }
 

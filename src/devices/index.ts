@@ -251,6 +251,7 @@ import {definitions as peq} from "./peq";
 import {definitions as perenio} from "./perenio";
 import {definitions as philio} from "./philio";
 import {definitions as philips} from "./philips";
+import {definitions as pirogovx} from "./pirogovx";
 import {definitions as plaid} from "./plaid";
 import {definitions as plugwise} from "./plugwise";
 import {definitions as profalux} from "./profalux";
@@ -271,6 +272,7 @@ import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as ribag} from "./ribag";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
+import {definitions as rtiTek} from "./rti_tek";
 import {definitions as rtx} from "./rtx";
 import {definitions as salusControls} from "./salus_controls";
 import {definitions as samotech} from "./samotech";
@@ -632,6 +634,7 @@ const definitions: DefinitionWithExtend[] = [
     ...perenio,
     ...philio,
     ...philips,
+    ...pirogovx,
     ...plaid,
     ...plugwise,
     ...profalux,
@@ -652,6 +655,7 @@ const definitions: DefinitionWithExtend[] = [
     ...robb,
     ...roome,
     ...lumi,
+    ...rtiTek,
     ...rtx,
     ...salusControls,
     ...samotech,

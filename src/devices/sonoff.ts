@@ -1,4 +1,4 @@
-﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
+import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -508,6 +508,8 @@ const sonoffTpWgzbaRelayOutputLookup = {normally_open_no: 0, normally_closed_nc:
 const sonoffTpWgzbaBrightnessRange = {min: 0, max: 8, step: 1};
 const sonoffTpWgzbaHysteresisLowRange = {min: -2.6, max: -0.2, step: 0.2};
 const sonoffTpWgzbaHysteresisHighRange = {min: 0, max: 2.6, step: 0.2};
+const sonoffTpWgzbaHysteresisLowDefault = -2;
+const sonoffTpWgzbaHysteresisHighDefault = 2;
 const sonoffTpWgzbaExternalTemperatureInputRange = {min: 0.0, max: 99.9, step: 0.1, precision: 1};
 const sonoffTpWgzbaTemperatureSensorSelectLookup = {internal: 0, external: 1, external_2: 2, external_3: 3} as const;
 type SonoffTpWgzbaTemperatureSensorSelect = keyof typeof sonoffTpWgzbaTemperatureSensorSelectLookup;
@@ -1165,6 +1167,19 @@ const parseSonoffTpWgzbaTimeValue = (value: unknown, key: string): number => {
     }
 
     return Number.parseInt(matches[1], 10) * 60 + Number.parseInt(matches[2], 10);
+};
+
+const parseSonoffTpWgzbaTimePeriod = (value: unknown, key: string): [number, number] => {
+    if (!utils.isString(value)) {
+        throw new Error(`Invalid ${key}: expected HH:mm-HH:mm`);
+    }
+
+    const parts = value.split("-");
+    if (parts.length !== 2) {
+        throw new Error(`Invalid ${key}: expected HH:mm-HH:mm`);
+    }
+
+    return [parseSonoffTpWgzbaTimeValue(parts[0], `${key} start`), parseSonoffTpWgzbaTimeValue(parts[1], `${key} end`)];
 };
 
 const formatSonoffTpWgzbaTimeValue = (value: number): string => {
@@ -3401,34 +3416,27 @@ const sonoffExtend = {
     },
     tpWgzbaTemperatureHysteresis: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
-        const key = "temperature_hysteresis";
-        const lowKey = "low_threshold";
-        const highKey = "high_threshold";
+        const lowKey = "hysteresis_low";
+        const highKey = "hysteresis_high";
         const exposes = [
             e
-                .composite(key, key, ea.ALL)
+                .numeric(lowKey, ea.ALL)
                 .withCategory("config")
-                .withDescription("Temperature hysteresis thresholds.")
-                .withFeature(
-                    e
-                        .numeric(lowKey, ea.ALL)
-                        .withLabel("Minimum heating start threshold")
-                        .withUnit("°C")
-                        .withValueMin(sonoffTpWgzbaHysteresisLowRange.min)
-                        .withValueMax(sonoffTpWgzbaHysteresisLowRange.max)
-                        .withValueStep(sonoffTpWgzbaHysteresisLowRange.step)
-                        .withDescription("Heating starts when the room temperature falls below the target temperature plus this offset."),
-                )
-                .withFeature(
-                    e
-                        .numeric(highKey, ea.ALL)
-                        .withLabel("Maximum heating stop threshold")
-                        .withUnit("°C")
-                        .withValueMin(sonoffTpWgzbaHysteresisHighRange.min)
-                        .withValueMax(sonoffTpWgzbaHysteresisHighRange.max)
-                        .withValueStep(sonoffTpWgzbaHysteresisHighRange.step)
-                        .withDescription("Heating stops when the room temperature rises above the target temperature plus this offset."),
-                ),
+                .withLabel("Minimum heating start threshold")
+                .withUnit("°C")
+                .withValueMin(sonoffTpWgzbaHysteresisLowRange.min)
+                .withValueMax(sonoffTpWgzbaHysteresisLowRange.max)
+                .withValueStep(sonoffTpWgzbaHysteresisLowRange.step)
+                .withDescription("Heating starts when the room temperature falls below the target temperature plus this offset."),
+            e
+                .numeric(highKey, ea.ALL)
+                .withCategory("config")
+                .withLabel("Maximum heating stop threshold")
+                .withUnit("°C")
+                .withValueMin(sonoffTpWgzbaHysteresisHighRange.min)
+                .withValueMax(sonoffTpWgzbaHysteresisHighRange.max)
+                .withValueStep(sonoffTpWgzbaHysteresisHighRange.step)
+                .withDescription("Heating stops when the room temperature rises above the target temperature plus this offset."),
         ];
 
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
@@ -3442,25 +3450,24 @@ const sonoffExtend = {
                     const high = getSonoffStructNumber(value, 1, Zcl.DataType.INT16);
                     if (low === undefined || high === undefined) return;
 
-                    return {[key]: {[lowKey]: low / 100, [highKey]: high / 100}};
+                    return {[lowKey]: low / 100, [highKey]: high / 100};
                 },
             },
         ];
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: [key],
-                convertSet: async (entity, key, value) => {
-                    utils.assertObject(value, key);
-                    utils.assertNumber(value[lowKey], `${key}.${lowKey}`);
-                    utils.assertNumber(value[highKey], `${key}.${highKey}`);
+                key: [lowKey, highKey],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertNumber(value, key);
+                    const currentLow = typeof meta.state[lowKey] === "number" ? meta.state[lowKey] : sonoffTpWgzbaHysteresisLowDefault;
+                    const currentHigh = typeof meta.state[highKey] === "number" ? meta.state[highKey] : sonoffTpWgzbaHysteresisHighDefault;
+                    const low = key === lowKey ? value : currentLow;
+                    const high = key === highKey ? value : currentHigh;
                     await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, {
-                        temperatureControlThreshold: buildSonoffStruct(Zcl.DataType.INT16, [
-                            Math.round(value[lowKey] * 100),
-                            Math.round(value[highKey] * 100),
-                        ]),
+                        temperatureControlThreshold: buildSonoffStruct(Zcl.DataType.INT16, [Math.round(low * 100), Math.round(high * 100)]),
                     });
-                    return {state: {[key]: {[lowKey]: value[lowKey], [highKey]: value[highKey]}}};
+                    return {state: {[lowKey]: low, [highKey]: high}};
                 },
                 convertGet: async (entity) => {
                     await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, ["temperatureControlThreshold"]);
@@ -3476,14 +3483,7 @@ const sonoffExtend = {
         description: string,
     ): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
-        const exposes = [
-            e
-                .composite(key, key, ea.ALL)
-                .withCategory("config")
-                .withDescription(description)
-                .withFeature(e.text("start", ea.ALL).withDescription("Start time in HH:mm."))
-                .withFeature(e.text("end", ea.ALL).withDescription("End time in HH:mm.")),
-        ];
+        const exposes = [e.text(key, ea.ALL).withCategory("config").withDescription(`${description} Format: HH:mm-HH:mm, e.g. 00:00-06:00.`)];
 
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
             {
@@ -3496,7 +3496,7 @@ const sonoffExtend = {
                     const end = getSonoffStructNumber(value, 1, Zcl.DataType.UINT16);
                     if (start === undefined || end === undefined) return;
 
-                    return {[key]: {start: formatSonoffTpWgzbaTimeValue(start), end: formatSonoffTpWgzbaTimeValue(end)}};
+                    return {[key]: `${formatSonoffTpWgzbaTimeValue(start)}-${formatSonoffTpWgzbaTimeValue(end)}`};
                 },
             },
         ];
@@ -3505,13 +3505,11 @@ const sonoffExtend = {
             {
                 key: [key],
                 convertSet: async (entity, key, value) => {
-                    utils.assertObject(value, key);
-                    const start = parseSonoffTpWgzbaTimeValue(value.start, `${key}.start`);
-                    const end = parseSonoffTpWgzbaTimeValue(value.end, `${key}.end`);
+                    const [start, end] = parseSonoffTpWgzbaTimePeriod(value, key);
                     const period = buildSonoffStruct(Zcl.DataType.UINT16, [start, end]);
                     const payload = attribute === "radarDoNotDisturbPeriod" ? {radarDoNotDisturbPeriod: period} : {screenNightModePeriod: period};
                     await entity.write<typeof clusterName, SonoffTpWgzba>(clusterName, payload);
-                    return {state: {[key]: {start: value.start, end: value.end}}};
+                    return {state: {[key]: value}};
                 },
                 convertGet: async (entity) => {
                     await entity.read<typeof clusterName, SonoffTpWgzba>(clusterName, [attribute]);
@@ -7230,6 +7228,23 @@ const sonoffExtend = {
     },
 };
 
+// Filter out 0 value for timer_mode_target_temp, as 0 indicates "no timer target temperature set"
+// and would be outside the valid range of 4-35°C, causing Home Assistant validation errors.
+// See: https://github.com/Koenkk/zigbee-herdsman-converters/issues/12847
+const trvzbTimerModeTempFzConvert: Fz.Converter<"customSonoffTrvzb", SonoffTrvzb, ["attributeReport", "readResponse"]>["convert"] = (
+    model,
+    msg,
+    publish,
+    options,
+    meta,
+) => {
+    const value = msg.data["temporaryModeTemp"];
+    if (value !== undefined && value !== 0) {
+        return {timer_mode_target_temp: value / 100};
+    }
+    return undefined;
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["NSPanelP-Router", "Cuber ZLI Router"],
@@ -8299,6 +8314,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 0.5,
                 unit: "°C",
                 scale: 100,
+                fzConvert: trvzbTimerModeTempFzConvert,
             }),
             m.numeric<"customSonoffTrvzb", SonoffTrvzb>({
                 name: "temporary_mode_duration",
@@ -10581,8 +10597,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated temperature target value (supports 0.1°C step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -20,
-                valueMax: 60,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "°C",
@@ -10594,8 +10610,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: 5,
-                valueMax: 95,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
@@ -10608,8 +10624,8 @@ export const definitions: DefinitionWithExtend[] = [
                 description:
                     "Pressure compensation offset applied directly to pressure reading in hPa (positive adds, negative subtracts). Range: -400 to 400 hPa. " +
                     "Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -400,
-                valueMax: 400,
+                valueMin: -200,
+                valueMax: 200,
                 valueStep: 0.1,
                 scale: 100,
                 unit: "hPa",
@@ -10922,7 +10938,7 @@ export const definitions: DefinitionWithExtend[] = [
                 label: "Occupancy timeout",
                 cluster: "msOccupancySensing",
                 attribute: "pirOToUDelay",
-                description: "Occupied to unoccupied delay",
+                description: "Occupied to Unoccupied Delay (30 s+ recommended to reduce missed detection.)",
                 valueMin: 15,
                 valueMax: 65535,
                 unit: "s",

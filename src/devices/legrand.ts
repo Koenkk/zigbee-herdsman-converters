@@ -817,4 +817,18 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl", "genScenes"]);
         },
     },
+    {
+        zigbeeModel: [" Wired Scenes Command\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
+        model: "WNRCB46WH",
+        vendor: "Legrand",
+        description: "Wired 4 scenes control",
+        meta: {publishDuplicateTransaction: true},
+        fromZigbee: [fz.identify, fzLocal.command_recall_by_groupid],
+        toZigbee: [],
+        exposes: [e.action(["identify", "button_1", "button_2", "button_3", "button_4"])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genScenes"]);
+        },
+    },
 ];

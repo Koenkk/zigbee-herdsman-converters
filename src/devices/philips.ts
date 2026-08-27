@@ -974,6 +974,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}}), m.identify()],
     },
     {
+        zigbeeModel: ["LTE009"],
+        model: "929004295601",
+        vendor: "Philips",
+        description: "Hue white ambiance B39 Candle E14",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}}), m.identify()],
+    },
+    {
         zigbeeModel: ["LWA007"],
         model: "929002277501",
         vendor: "Philips",
@@ -3308,6 +3315,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.onOff(), m.identify()],
     },
     {
+        zigbeeModel: ["LOM013"],
+        model: "929004296701",
+        vendor: "Philips",
+        description: "Hue wired on/off switch (1 channel)",
+        extend: [m.deviceEndpoints({endpoints: {l1: 11}}), m.identify({endpointNames: ["l1"]}), philips.m.onOff({endpointNames: ["l1"]})],
+    },
+    {
         zigbeeModel: ["LOM014"],
         model: "929004296801",
         vendor: "Philips",
@@ -3318,6 +3332,15 @@ export const definitions: DefinitionWithExtend[] = [
             philips.m.onOff({endpointNames: ["l1", "l2"], powerOnBehavior: true}),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["LWM007"],
+        model: "929004296901",
+        vendor: "Philips",
+        description: "Hue wired dimmer switch",
+        ota: true,
+        endpoint: () => ({default: 11}),
+        extend: [m.identify(), philips.m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ["LLC014"],
