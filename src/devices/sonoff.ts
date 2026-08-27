@@ -371,9 +371,15 @@ interface SonoffSnzb02ul {
         comfortHumidityMax: number;
         temperatureCalibration: number;
         humidityCalibration: number;
+        longitude: number;
+        latitude: number;
     };
-    commands: never;
-    commandResponses: never;
+    commands: {
+        getCurrentWeatherInfo: {data: number[]};
+    };
+    commandResponses: {
+        getCurrentWeatherInfoReply: {data: number[]};
+    };
 }
 
 type SonoffStructElement = {elmType: number; elmVal: unknown};
@@ -3888,6 +3894,221 @@ const sonoffExtend = {
         ];
 
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    },
+    remoteSensorData: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const ATTR_ID = 0x601e;
+
+        const STATE_CODE: Record<string, number> = {enable: 0x01, disable: 0x00};
+
+        const buildItem = (sensorType: number, sensorState: number, valueLen: number, writeFn?: (buf: Buffer, offset: number) => void): Buffer => {
+            const item = Buffer.alloc(4 + valueLen);
+            item[0] = sensorType;
+            item[1] = 0x00; // SensorId (default 0)
+            item[2] = sensorState;
+            item[3] = valueLen;
+            if (valueLen > 0 && writeFn) writeFn(item, 4);
+            return item;
+        };
+
+        const writePayload = async (entity: Zh.Endpoint | Zh.Group, items: Buffer[], meta: Tz.Meta) => {
+            const totalItemBytes = items.reduce((sum, item) => sum + item.length, 0);
+            const L = 1 + totalItemBytes;
+            const header = [0x01, 0x01, 0x00, 0x03, L, items.length];
+            const payload = [...header, ...items.flatMap((item) => Array.from(item))];
+            await entity.write(
+                clusterName,
+                {[ATTR_ID]: {value: {elementType: Zcl.DataType.UINT8, elements: payload}, type: Zcl.DataType.ARRAY}},
+                utils.getOptions(meta.mapped, entity),
+            );
+        };
+
+        const isOnline = (meta: Tz.Meta): boolean => meta.state.remote_sensors_state !== "disable";
+
+        const exposes = [
+            e
+                .enum("remote_sensors_state", ea.STATE_SET, ["enable", "disable"])
+                .withDescription(
+                    "The remote temperature‑humidity source shares the same display area with the date. When the remote temperature‑humidity source is enabled, the date will no longer be shown. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("remote_temperature", ea.STATE_SET)
+                .withValueMin(-20)
+                .withValueMax(60)
+                .withUnit("°C")
+                .withValueStep(0.1)
+                .withDescription(
+                    "Remote temperature value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("remote_humidity", ea.STATE_SET)
+                .withValueMin(5)
+                .withValueMax(95)
+                .withUnit("%")
+                .withDescription(
+                    "Remote humidity value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+            e
+                .numeric("remote_pressure", ea.STATE_SET)
+                .withValueMin(700)
+                .withValueMax(1100)
+                .withUnit("hPa")
+                .withValueStep(0.1)
+                .withDescription(
+                    "Remote atmospheric pressure value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
+                )
+                .withCategory("config"),
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["remote_temperature"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!isOnline(meta)) {
+                        return {state: {remote_temperature: value}};
+                    }
+                    const scaled = Math.round((value as number) * 100);
+                    await writePayload(entity, [buildItem(0x00, 0x01, 2, (buf, offset) => buf.writeInt16LE(scaled, offset))], meta);
+                    return {state: {remote_temperature: value}};
+                },
+            },
+            {
+                key: ["remote_humidity"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!isOnline(meta)) {
+                        return {state: {remote_humidity: value}};
+                    }
+                    const scaled = Math.round((value as number) * 100);
+                    await writePayload(entity, [buildItem(0x01, 0x01, 2, (buf, offset) => buf.writeUInt16LE(scaled, offset))], meta);
+                    return {state: {remote_humidity: value}};
+                },
+            },
+            {
+                key: ["remote_pressure"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (!isOnline(meta)) {
+                        return {state: {remote_pressure: value}};
+                    }
+                    const scaled = Math.round((value as number) * 100);
+                    await writePayload(entity, [buildItem(0x02, 0x01, 4, (buf, offset) => buf.writeInt32LE(scaled, offset))], meta);
+                    return {state: {remote_pressure: value}};
+                },
+            },
+            {
+                key: ["remote_sensors_state"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (value === "enable") {
+                        return {state: {remote_sensors_state: value}};
+                    }
+                    const stateCode = STATE_CODE[value as string] ?? 0x01;
+                    await writePayload(
+                        entity,
+                        [0x00, 0x01, 0x02].map((type) => buildItem(type, stateCode, 0)),
+                        meta,
+                    );
+                    return {state: {remote_sensors_state: value}};
+                },
+            },
+        ];
+
+        return {exposes, fromZigbee: [], toZigbee, isModernExtend: true};
+    },
+    getCurrentWeatherInfo02UL: (): ModernExtend => {
+        const clusterName = "customClusterEwelink";
+        const commandId = 0x14;
+        const replyCommandName = "getCurrentWeatherInfoReply";
+        const weatherKey = "weather";
+        const DEFAULT_LONGITUDE_MICRO = 114057900;
+        const DEFAULT_LATITUDE_MICRO = 22543100;
+        const WEATHER_TO_VALUE: Record<string, number> = {
+            sunny: 0x00,
+            partly_cloudy: 0x01,
+            overcast: 0x02,
+            rain: 0x03,
+            snow: 0x04,
+            windy: 0x05,
+        };
+
+        const expose = e
+            .enum(weatherKey, ea.STATE_SET, Object.keys(WEATHER_TO_VALUE))
+            .withCategory("config")
+            .withDescription(
+                "Weather shown on the E-ink screen. Selecting a value sends the default coordinates to the device and is applied on its next weather request. Note: wake up the device by pressing the button on the back before changing this value.",
+            );
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: [weatherKey],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.write<"customClusterEwelink", SonoffSnzb02ul>(
+                        clusterName,
+                        {longitude: DEFAULT_LONGITUDE_MICRO, latitude: DEFAULT_LATITUDE_MICRO},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    return {state: {[weatherKey]: value}};
+                },
+            },
+        ];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffSnzb02ul, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: async (model, msg, publish, options, meta) => {
+                    if (!(msg.data instanceof Buffer)) return;
+
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    if (!parsedRawCommand || parsedRawCommand.commandId !== commandId) return;
+
+                    const payload = parsedRawCommand.payload;
+                    if (payload.length !== 9) {
+                        logger.warning(`getCurrentWeatherInfo02UL: invalid payload length=${payload.length}`, NS);
+                        return;
+                    }
+
+                    const type = payload.readUInt8(0);
+                    if (type !== 0x00) {
+                        logger.warning(`getCurrentWeatherInfo02UL: unsupported device type=${type}`, NS);
+                        return;
+                    }
+
+                    const selectedWeather = meta.state?.[weatherKey];
+                    const weatherValue = typeof selectedWeather === "string" ? WEATHER_TO_VALUE[selectedWeather] : undefined;
+                    if (weatherValue === undefined) {
+                        logger.warning(
+                            `getCurrentWeatherInfo02UL: no weather selected (weather=${JSON.stringify(selectedWeather)}), falling back to sunny`,
+                            NS,
+                        );
+                    }
+
+                    const requestTransactionSequenceNumber = msg.meta.zclTransactionSequenceNumber;
+                    const requestDirection = msg.meta.frameControl?.direction ?? Zcl.Direction.SERVER_TO_CLIENT;
+                    const responseDirection =
+                        requestDirection === Zcl.Direction.CLIENT_TO_SERVER ? Zcl.Direction.SERVER_TO_CLIENT : Zcl.Direction.CLIENT_TO_SERVER;
+
+                    await msg.endpoint.commandResponse<typeof clusterName, typeof replyCommandName, SonoffSnzb02ul>(
+                        clusterName,
+                        replyCommandName,
+                        {data: [type, 0x01, weatherValue ?? 0x00]},
+                        {
+                            disableDefaultResponse: true,
+                            direction: responseDirection,
+                            manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+                        },
+                        requestTransactionSequenceNumber,
+                    );
+                    logger.info(
+                        `getCurrentWeatherInfo02UL: response sent type=${type} weather=${JSON.stringify(selectedWeather)} weatherValue=${weatherValue ?? 0x00}`,
+                        NS,
+                    );
+                },
+            },
+        ];
+
+        return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
     },
     tpWgzbaTemperatureHysteresis: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
@@ -12071,14 +12292,31 @@ export const definitions: DefinitionWithExtend[] = [
                     temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
                     temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
                     humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                    remoteSensorData: {name: "remoteSensorData", ID: 0x601e, type: Zcl.DataType.ARRAY, write: true},
+                    longitude: {name: "longitude", ID: 0x5016, type: Zcl.DataType.INT32, write: true, min: -2147483648},
+                    latitude: {name: "latitude", ID: 0x5017, type: Zcl.DataType.INT32, write: true, min: -2147483648},
                 },
-                commands: {},
-                commandsResponse: {},
+                commands: {
+                    getCurrentWeatherInfo: {
+                        name: "getCurrentWeatherInfo",
+                        ID: 0x14,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
+                commandsResponse: {
+                    getCurrentWeatherInfoReply: {
+                        name: "getCurrentWeatherInfoReply",
+                        ID: 0x14,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
             }),
             m.battery(),
-            m.temperature({valueMin: 0, valueMax: 50}),
-            m.humidity({valueMin: 5, valueMax: 95}),
+            m.temperature({reporting: {min: 5, max: 1800, change: 20}}),
+            m.humidity({reporting: {min: 5, max: 1800, change: 100}}),
             sonoffExtend.temperatureHumidityCalculatedValues(),
+            sonoffExtend.remoteSensorData(),
+            sonoffExtend.getCurrentWeatherInfo02UL(),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
                 name: "comfort_temperature_min",
@@ -12086,7 +12324,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortTemperatureMin",
                 entityCategory: "config",
                 description:
-                    "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Minimum temperature that is considered comfortable. The device will display a snowflake icon❄ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 0,
                 valueMax: 50,
                 scale: 100,
@@ -12099,7 +12337,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortTemperatureMax",
                 entityCategory: "config",
                 description:
-                    "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Maximum temperature that is considered comfortable. The device will display a flame icon🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 0,
                 valueMax: 50,
                 scale: 100,
@@ -12121,7 +12359,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortHumidityMin",
                 entityCategory: "config",
                 description:
-                    "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Minimum humidity that is considered comfortable. The device will display an empty droplet icon💧 when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
                 valueMax: 95,
                 scale: 100,
@@ -12134,7 +12372,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortHumidityMax",
                 entityCategory: "config",
                 description:
-                    "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Maximum humidity that is considered comfortable. The device will display a half‑filled droplet icon💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
                 valueMax: 95,
                 scale: 100,
@@ -12161,8 +12399,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -95,
-                valueMax: 95,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
