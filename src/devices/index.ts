@@ -272,6 +272,7 @@ import {definitions as rgbGenie} from "./rgb_genie";
 import {definitions as ribag} from "./ribag";
 import {definitions as robb} from "./robb";
 import {definitions as roome} from "./roome";
+import {definitions as rtiTek} from "./rti_tek";
 import {definitions as rtx} from "./rtx";
 import {definitions as salusControls} from "./salus_controls";
 import {definitions as samotech} from "./samotech";
@@ -654,6 +655,7 @@ const definitions: DefinitionWithExtend[] = [
     ...robb,
     ...roome,
     ...lumi,
+    ...rtiTek,
     ...rtx,
     ...salusControls,
     ...samotech,

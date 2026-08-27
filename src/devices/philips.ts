@@ -1699,6 +1699,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true}), m.identify()],
     },
     {
+        zigbeeModel: ["LCE007"],
+        model: "929004295401",
+        vendor: "Philips",
+        description: "Hue White and Color Ambiance E12 Full Spectrum Light",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
+    },
+    {
         zigbeeModel: ["LCT002", "LCT011"],
         model: "9290002579A",
         vendor: "Philips",
@@ -3332,6 +3339,15 @@ export const definitions: DefinitionWithExtend[] = [
             philips.m.onOff({endpointNames: ["l1", "l2"], powerOnBehavior: true}),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["LWM007"],
+        model: "929004296901",
+        vendor: "Philips",
+        description: "Hue wired dimmer switch",
+        ota: true,
+        endpoint: () => ({default: 11}),
+        extend: [m.identify(), philips.m.light({configureReporting: true})],
     },
     {
         zigbeeModel: ["LLC014"],

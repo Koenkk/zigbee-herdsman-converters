@@ -3389,7 +3389,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_vvmbj46n",
             "_TZE200_w6n8jeuu",
             "_TZE284_cwyqwqbf",
-            "_TZE2841000000_qf5mzewi", // ONENUO TH05Z - has calibration (DP23/24) instead of DP18
+            "_TZE284_qf5mzewi", // ONENUO TH05Z - has calibration (DP23/24) instead of DP18
         ]),
         model: "ZTH05Z",
         vendor: "Tuya",
@@ -3432,9 +3432,9 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Temp periodic report"),
             ];
 
-            if (device.manufacturerName !== "_TZE2841000000_qf5mzewi") {
+            if (device.manufacturerName !== "_TZE284_qf5mzewi") {
                 // Original ZTH05Z position for this expose - unchanged.
-                // Not present on the ONENUO TH05Z (_TZE2841000000_qf5mzewi) batch:
+                // Not present on the ONENUO TH05Z (_TZE284_qf5mzewi) batch:
                 // this unit never reports DP18, tested empirically.
                 exps.push(
                     e
@@ -3446,7 +3446,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             }
 
-            if (device.manufacturerName === "_TZE2841000000_qf5mzewi") {
+            if (device.manufacturerName === "_TZE284_qf5mzewi") {
                 // ONENUO TH05Z (this specific firmware batch): wider sensitivity
                 // range than other ZTH05Z batches
                 exps.push(
@@ -3488,7 +3488,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             }
 
-            if (device.manufacturerName === "_TZE2841000000_qf5mzewi") {
+            if (device.manufacturerName === "_TZE284_qf5mzewi") {
                 // ONENUO TH05Z (this specific firmware batch): has calibration,
                 // which the other ZTH05Z batches don't have. Purely additive -
                 // doesn't move or replace anything for other manufacturerNames.
@@ -3553,7 +3553,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [18, "humidity_periodic_report", tuya.valueConverter.raw],
                 [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
                 [20, "humidity_sensitivity", tuya.valueConverter.raw],
-                // DP23/24: only present on the ONENUO _TZE2841000000_qf5mzewi
+                // DP23/24: only present on the ONENUO _TZE284_qf5mzewi
                 [23, "temperature_calibration", tuya.valueConverter.divideBy10],
                 [24, "humidity_calibration", tuya.valueConverter.raw],
             ],
@@ -3561,7 +3561,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", [
                 "_TZE200_vvmbj46n",
-                "_TZE2841000000_qf5mzewi",
+                "_TZE284_qf5mzewi",
             ]),
             tuya.whitelabel("Tuya", "TZE284_cwyqwqbf", "Temperature & humidity sensor with LCD clock", ["_TZE284_cwyqwqbf"]),
         ],
@@ -6799,6 +6799,47 @@ export const definitions: DefinitionWithExtend[] = [
                 [21, "current", tuya.valueConverter.divideBy1000],
                 [22, "power", tuya.valueConverter.divideBy10],
                 [23, "voltage", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_lq0ffndf"]),
+        model: "MG-AU03GPOZLP-XX",
+        vendor: "Tuya",
+        description:
+            "Double GPO power point with USB-C and energy monitoring (also sold as Smartlink Automation 'Glass smart double power point with USB-C')",
+        whiteLabel: [
+            tuya.whitelabel("EyZEE", "0403-MG-GPO04ZSLP", "Double GPO socket + USB-C + backlight with energy metering", ["_TZE284_lq0ffndf"]),
+        ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {left: 1, right: 1}})],
+        exposes: [
+            e.switch().withEndpoint("left").setAccess("state", ea.STATE_SET).withDescription("Left socket"),
+            e.switch().withEndpoint("right").setAccess("state", ea.STATE_SET).withDescription("Right socket"),
+            e.voltage(),
+            e.current(),
+            e.power(),
+            e.energy(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e.child_lock(),
+            tuya.exposes
+                .backlightModeOffOn()
+                .withAccess(ea.STATE_SET)
+                .withDescription(
+                    "Touch-panel LED behaviour when the outlet is switched off: ON keeps a dim standby glow, OFF " +
+                        "goes fully dark. Has no visible effect while the outlet is switched on.",
+                ),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state_left", tuya.valueConverter.onOff],
+                [2, "state_right", tuya.valueConverter.onOff],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+                [20, "energy", tuya.valueConverter.divideBy1000],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
             ],
         },
     },
@@ -16686,6 +16727,7 @@ export const definitions: DefinitionWithExtend[] = [
                 onOffCountdown: true,
                 childLock: true,
             }),
+            m.identify(),
         ],
         fromZigbee: [fz.temperature, fzLocal.TS011F_threshold],
         toZigbee: [tzLocal.TS011F_threshold],
@@ -24657,7 +24699,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CS-201Z",
         vendor: "COOLO",
         description: "Soil moisture sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.identify({isSleepy: true})],
         whiteLabel: [
             {
                 model: "AY-303Z",
@@ -29694,7 +29736,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.illuminance(),
             e.numeric("uv", ea.STATE).withValueMin(0).withValueMax(3300).withUnit("Volt").withDescription("uv Value"),
-            e.numeric("uv_level", ea.STATE).withValueMin(0).withValueMax(15.0).withValueStep(0.1).withDescription("uv level from 0.0 to 15.0"),
+            e.numeric("uv_level", ea.STATE).withValueMin(0).withValueMax(15.0).withValueStep(0.1).withDescription("uv level from 0.0 to 11.0"),
             e
                 .numeric("pressure", ea.STATE)
                 .withValueMin(300)
