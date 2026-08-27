@@ -559,7 +559,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Lighting relay switch",
         extend: [
             m.identify(),
-            m.deviceEndpoints({endpoints: {default: 1, l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, default: 1}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
