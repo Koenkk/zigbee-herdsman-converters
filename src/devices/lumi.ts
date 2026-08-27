@@ -2216,6 +2216,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiSetEventMode(),
             m.forceDeviceType({type: "Router"}),
             lumiZigbeeOTA(),
             m.poll({
