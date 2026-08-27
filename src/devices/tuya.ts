@@ -29736,7 +29736,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.temperature(),
             e.illuminance(),
             e.numeric("uv", ea.STATE).withValueMin(0).withValueMax(3300).withUnit("Volt").withDescription("uv Value"),
-            e.numeric("uv_level", ea.STATE).withValueMin(0).withValueMax(15.0).withValueStep(0.1).withDescription("uv level from 0.0 to 15.0"),
+            e.numeric("uv_level", ea.STATE).withValueMin(0).withValueMax(15.0).withValueStep(0.1).withDescription("uv level from 0.0 to 11.0"),
             e
                 .numeric("pressure", ea.STATE)
                 .withValueMin(300)
