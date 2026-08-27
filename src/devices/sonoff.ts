@@ -27,7 +27,6 @@ import type {
     Configure,
     DefinitionExposesFunction,
     DefinitionWithExtend,
-    DummyDevice,
     Expose,
     Fz,
     KeyValue,
@@ -325,12 +324,11 @@ const SWVZNELitersPerWaterFlowUnit: Record<SWVZNEWaterFlowUnit, number> = {
     imperial_gallon: 4.54609,
 };
 
-// Compares a device's firmware version against a minimum version, segment by segment.
-// Missing/non-numeric segments count as 0; equal versions count as supported.
-const firmwareAtLeast = (device: Zh.Device | undefined, targetVersion: string): boolean => {
+// Single-channel SWV-ZF* with flow meter supports unified imperial gallon from 1.1.0, while dual-channel SWV-ZF2 supports it from 1.0.9
+const SWVZNEFirmwareSupportsUnifiedImperialGallon = (device?: Zh.Device): boolean => {
     if (!device?.softwareBuildID) return false;
     const currentParts = device.softwareBuildID.split(".").map((part) => Number(part));
-    const targetParts = targetVersion.split(".").map((part) => Number(part));
+    const targetParts = (device.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0").split(".").map((part) => Number(part));
     const length = Math.max(currentParts.length, targetParts.length);
     for (let i = 0; i < length; i++) {
         const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
@@ -340,10 +338,6 @@ const firmwareAtLeast = (device: Zh.Device | undefined, targetVersion: string): 
     }
     return true;
 };
-
-// Single-channel SWV-ZF* with flow meter supports unified imperial gallon from 1.1.0, while dual-channel SWV-ZF2 supports it from 1.0.9
-const SWVZNEFirmwareSupportsUnifiedImperialGallon = (device?: Zh.Device): boolean =>
-    firmwareAtLeast(device, device?.modelID === "SWV-ZF2" ? "1.0.9" : "1.1.0");
 
 const SWVZNENormalizeWaterFlowUnit = (value: unknown): SWVZNEWaterFlowUnit | undefined => {
     if (value === "gallon" || value === "US gallon" || value === "us_gallon") return "us_gallon";
@@ -365,11 +359,6 @@ const SWVZNEIrrigationAmountUnitToDeviceCode = (unit: unknown, device?: Zh.Devic
     if (normalizedUnit === "imperial_gallon") return undefined;
     return SWVZNELegacyIrrigationAmountUnitCodeByName[normalizedUnit];
 };
-
-// SNZB-02UL: the remote sensor data source and the weather display on the E-ink screen
-// are only available on firmware >= 1.0.1
-const SNZB02ULFirmwareSupportsRemoteFeatures = (device: Zh.Device | DummyDevice): boolean =>
-    utils.isDummyDevice(device) || firmwareAtLeast(device, "1.0.1");
 
 interface SonoffSnzb02ul {
     attributes: {
@@ -3416,29 +3405,12 @@ const sonoffExtend = {
 
         return {exposes, fromZigbee, toZigbee, isModernExtend: true};
     },
-    // SNZB-02UL 远程属性联动 - 通用传感器数据属性 (T=0x03)
-    // 网关将远程传感器数据(温度/湿度/气压)分别下发到设备, 显示在 E-ink 屏上。
-    // 属性结构: 帧头(3B) + T(1B) + L(1B) + SensorCount(1B) + SensorItem*
-    // SensorItem = SensorType(1B) SensorId(1B) SensorState(1B) ValueLength(1B) Value(NB)
-    // 温度(值):            | 01 01 00 | 03 07 01 | 00 00 01 02 XX XX |
-    // 湿度(值):            | 01 01 00 | 03 07 01 | 01 00 01 02 XX XX |
-    // 气压(值):            | 01 01 00 | 03 09 01 | 02 00 01 04 XX XX XX XX |
-    // 统一状态(SensorCount=3, valueLen=0):
-    //                      | 01 01 00 | 03 0D 03 | 00 00 XX 00 | 01 00 XX 00 | 02 00 XX 00 |
     remoteSensorData: (): ModernExtend => {
         const clusterName = "customClusterEwelink";
         const ATTR_ID = 0x601e;
 
-        const STATE_CODE: Record<string, number> = {enable: 0x01, disable: 0x02};
+        const STATE_CODE: Record<string, number> = {enable: 0x01, disable: 0x00};
 
-        // SensorType → {expose key, 值字节数, 写值函数}
-        const SENSOR_CFG: Record<number, {valueKey: string; bytes: number; write: (buf: Buffer, offset: number, v: number) => void}> = {
-            0: {valueKey: "remote_temperature", bytes: 2, write: (buf, o, v) => buf.writeInt16LE(v, o)},
-            1: {valueKey: "remote_humidity", bytes: 2, write: (buf, o, v) => buf.writeUInt16LE(v, o)},
-            2: {valueKey: "remote_pressure", bytes: 4, write: (buf, o, v) => buf.writeInt32LE(v, o)},
-        };
-
-        // 构造单个 SensorItem
         const buildItem = (sensorType: number, sensorState: number, valueLen: number, writeFn?: (buf: Buffer, offset: number) => void): Buffer => {
             const item = Buffer.alloc(4 + valueLen);
             item[0] = sensorType;
@@ -3449,15 +3421,6 @@ const sonoffExtend = {
             return item;
         };
 
-        // 从缓存构造 SensorItem (带数值, state=online)
-        const buildCachedValueItem = (meta: Tz.Meta, sensorType: number): Buffer | null => {
-            const cfg = SENSOR_CFG[sensorType];
-            const cachedValue = meta.state[cfg.valueKey] as number | undefined;
-            if (cachedValue === undefined) return null;
-            return buildItem(sensorType, 0x01, cfg.bytes, (buf, offset) => cfg.write(buf, offset, Math.round(cachedValue * 100)));
-        };
-
-        // 构造完整 T=0x03 负载并写入设备
         const writePayload = async (entity: Zh.Endpoint | Zh.Group, items: Buffer[], meta: Tz.Meta) => {
             const totalItemBytes = items.reduce((sum, item) => sum + item.length, 0);
             const L = 1 + totalItemBytes;
@@ -3470,7 +3433,6 @@ const sonoffExtend = {
             );
         };
 
-        // 检查当前远程源是否在线
         const isOnline = (meta: Tz.Meta): boolean => meta.state.remote_sensors_state !== "disable";
 
         const exposes = [
@@ -3482,9 +3444,10 @@ const sonoffExtend = {
                 .withCategory("config"),
             e
                 .numeric("remote_temperature", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(50)
+                .withValueMin(-20)
+                .withValueMax(60)
                 .withUnit("°C")
+                .withValueStep(0.1)
                 .withDescription(
                     "Remote temperature value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
                 )
@@ -3503,6 +3466,7 @@ const sonoffExtend = {
                 .withValueMin(700)
                 .withValueMax(1100)
                 .withUnit("hPa")
+                .withValueStep(0.1)
                 .withDescription(
                     "Remote atmospheric pressure value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
                 )
@@ -3510,19 +3474,17 @@ const sonoffExtend = {
         ];
 
         const toZigbee: Tz.Converter[] = [
-            // ---- 温度值 ----
             {
                 key: ["remote_temperature"],
                 convertSet: async (entity, key, value, meta) => {
                     if (!isOnline(meta)) {
-                        return {state: {remote_temperature: value}}; // 离线: 仅缓存, 不下发
+                        return {state: {remote_temperature: value}};
                     }
                     const scaled = Math.round((value as number) * 100);
                     await writePayload(entity, [buildItem(0x00, 0x01, 2, (buf, offset) => buf.writeInt16LE(scaled, offset))], meta);
                     return {state: {remote_temperature: value}};
                 },
             },
-            // ---- 湿度值 ----
             {
                 key: ["remote_humidity"],
                 convertSet: async (entity, key, value, meta) => {
@@ -3534,7 +3496,6 @@ const sonoffExtend = {
                     return {state: {remote_humidity: value}};
                 },
             },
-            // ---- 气压值 ----
             {
                 key: ["remote_pressure"],
                 convertSet: async (entity, key, value, meta) => {
@@ -3546,41 +3507,33 @@ const sonoffExtend = {
                     return {state: {remote_pressure: value}};
                 },
             },
-            // ---- 统一状态 ----
             {
                 key: ["remote_sensors_state"],
                 convertSet: async (entity, key, value, meta) => {
-                    const stateCode = STATE_CODE[value as string] ?? 0x01;
                     if (value === "enable") {
-                        // 切回在线: 从缓存拿已缓存的值, 拼成完整负载下发
-                        const items = [0x00, 0x01, 0x02].map((type) => buildCachedValueItem(meta, type) ?? buildItem(type, stateCode, 0));
-                        await writePayload(entity, items, meta);
-                    } else {
-                        // 离线: 下发纯状态 (valueLen=0)
-                        await writePayload(
-                            entity,
-                            [0x00, 0x01, 0x02].map((type) => buildItem(type, stateCode, 0)),
-                            meta,
-                        );
+                        // 从离线变为在线：不下发，仅更新状态
+                        return {state: {remote_sensors_state: value}};
                     }
+                    const stateCode = STATE_CODE[value as string] ?? 0x01;
+                    await writePayload(
+                        entity,
+                        [0x00, 0x01, 0x02].map((type) => buildItem(type, stateCode, 0)),
+                        meta,
+                    );
                     return {state: {remote_sensors_state: value}};
                 },
             },
         ];
 
-        const gated: DefinitionExposesFunction = (device) => (SNZB02ULFirmwareSupportsRemoteFeatures(device) ? exposes : []);
-
-        return {exposes: [gated], fromZigbee: [], toZigbee, isModernExtend: true};
+        return {exposes, fromZigbee: [], toZigbee, isModernExtend: true};
     },
     getCurrentWeatherInfo02UL: (): ModernExtend => {
         const clusterName = "customClusterEwelink";
         const commandId = 0x14;
         const replyCommandName = "getCurrentWeatherInfoReply";
         const weatherKey = "weather";
-        // 默认坐标(微度, 1e-6°): 深圳. 设备拿到有效经纬度后才会携带坐标发 0x14 天气请求.
         const DEFAULT_LONGITUDE_MICRO = 114057900;
         const DEFAULT_LATITUDE_MICRO = 22543100;
-        // 映射: 晴/多云/阴/雨/雪/风 -> 0x00-0x05
         const WEATHER_TO_VALUE: Record<string, number> = {
             sunny: 0x00,
             partly_cloudy: 0x01,
@@ -3666,9 +3619,7 @@ const sonoffExtend = {
             },
         ];
 
-        const gated: DefinitionExposesFunction = (device) => (SNZB02ULFirmwareSupportsRemoteFeatures(device) ? [expose] : []);
-
-        return {exposes: [gated], fromZigbee, toZigbee, isModernExtend: true};
+        return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
     },
     tpWgzbaTemperatureHysteresis: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
@@ -11858,8 +11809,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
             m.battery(),
-            m.temperature({valueMin: 0, valueMax: 50}),
-            m.humidity({valueMin: 5, valueMax: 95}),
+            m.temperature({reporting: {min: 5, max: 1800, change: 20}}),
+            m.humidity({reporting: {min: 5, max: 1800, change: 100}}),
             sonoffExtend.temperatureHumidityCalculatedValues(),
             sonoffExtend.remoteSensorData(),
             sonoffExtend.getCurrentWeatherInfo02UL(),
@@ -11870,7 +11821,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortTemperatureMin",
                 entityCategory: "config",
                 description:
-                    "Minimum temperature that is considered comfortable. The device will display ❄️ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Minimum temperature that is considered comfortable. The device will display a snowflake icon❄ when the temperature is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 0,
                 valueMax: 50,
                 scale: 100,
@@ -11883,7 +11834,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortTemperatureMax",
                 entityCategory: "config",
                 description:
-                    "Maximum temperature that is considered comfortable. The device will display 🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Maximum temperature that is considered comfortable. The device will display a flame icon🔥 when the temperature is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 0,
                 valueMax: 50,
                 scale: 100,
@@ -11905,7 +11856,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortHumidityMin",
                 entityCategory: "config",
                 description:
-                    "Minimum relative humidity that is considered comfortable. The device will display ☀️ when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Minimum humidity that is considered comfortable. The device will display an empty droplet icon💧 when the humidity is lower than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
                 valueMax: 95,
                 scale: 100,
@@ -11918,7 +11869,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "comfortHumidityMax",
                 entityCategory: "config",
                 description:
-                    "Maximum relative humidity that is considered comfortable. The device will display 💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Maximum humidity that is considered comfortable. The device will display a half‑filled droplet icon💧 when the humidity is higher than this value. Note: wake up the device by pressing the button on the back before changing this value.",
                 valueMin: 5,
                 valueMax: 95,
                 scale: 100,
@@ -11945,8 +11896,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 description:
                     "Calibrated relative humidity target value (supports 0.1% step). Note: wake up the device by pressing the button on the back before changing this value.",
-                valueMin: -95,
-                valueMax: 95,
+                valueMin: -50,
+                valueMax: 50,
                 scale: 100,
                 valueStep: 0.1,
                 unit: "%",
