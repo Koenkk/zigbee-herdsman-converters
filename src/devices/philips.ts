@@ -5101,8 +5101,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LWA034"],
         model: "929003856201",
         vendor: "Philips",
-        description: "Hue White Ambiance — dimmable white light",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}}), m.identify()],
+        description: "Hue White E27 1600lm",
+        extend: [philips.m.light(), m.identify()],
     },
     {
         zigbeeModel: ["929004610401", "929004610402", "929004610403", "929004610502", "929004610601", "929004610602", "929004610702", "929004610802"],
