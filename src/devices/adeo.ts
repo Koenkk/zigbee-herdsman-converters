@@ -4,7 +4,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueNumberString, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, KeyValueNumberString, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -48,6 +48,27 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["raw"]>,
+    command_step_color_temperature: {
+        cluster: "lightingColorCtrl",
+        type: "commandStepColorTemp",
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+            // The physical up/down buttons use the opposite ZCL step modes.
+            const direction = msg.data.stepmode === 3 ? "up" : "down";
+            const payload: KeyValueAny = {
+                action: utils.postfixWithEndpointName(`color_temperature_step_${direction}`, msg, model, meta),
+                action_step_size: msg.data.stepsize,
+                action_color_temperature_delta: direction === "up" ? msg.data.stepsize : -1 * msg.data.stepsize,
+            };
+
+            if (msg.data.transtime !== undefined) {
+                payload.action_transition_time = msg.data.transtime / 10;
+            }
+
+            utils.addActionGroup(payload, msg, model);
+            return payload;
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "commandStepColorTemp">,
 };
 
 const tzLocal = {
@@ -294,7 +315,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_off,
             fz.command_step,
             fz.command_stop,
-            fz.command_step_color_temperature,
+            fzLocal.command_step_color_temperature,
             fz.command_step_hue,
             fz.command_step_saturation,
             fzLocal.color_stop_raw,
