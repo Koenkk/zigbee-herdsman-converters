@@ -2434,7 +2434,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee movement sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        exposes: [e.occupancy()],
+        exposes: [e.occupancy(), e.tamper()],
+        extend: [m.battery({voltage: true, lowStatus: true})],
     },
     {
         zigbeeModel: ["4512764"],
