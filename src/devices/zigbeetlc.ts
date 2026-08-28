@@ -364,4 +364,51 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    /*
+        ZigbeeTLc PIR devices supporting:
+        - Occupancy
+        - Remote On/Off binding (genOnOff state)
+        - PIR timeout
+    */
+    {
+        // Tuya ZP01 (TS0202/_TZ3000_*) with ZigbeeTLc firmware
+        // https://pvvx.github.io/TS0202_TZ3000/
+        zigbeeModel: ["TS202PIR1-z"],
+        model: "TS202PIR1-z",
+        vendor: "Tuya",
+        description: "ZP01 PIR motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery({voltage: true}),
+            m.occupancy(),
+            m.onOff({
+                powerOnBehavior: false,
+                description:
+                    'Enable remote On/Off binding. ON: occupancy occupied sends action "on", clear sends action "off". OFF: no occupancy actions.',
+            }),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior for state (remote On/Off enable)",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR occupancy timeout in seconds (firmware default ~35s; board R5/R6 may limit minimum)",
+            }),
+            m.commandsOnOff(),
+        ],
+    },
 ];
