@@ -25,6 +25,20 @@ const ea = exposes.access;
 
 const defaultResponseOptions = {disableDefaultResponse: false};
 
+function heimanRawData(): ModernExtend {
+    return {
+        exposes: [e.text("raw_message", ea.STATE).withDescription("Unparsed raw Zigbee message in hexadecimal")],
+        fromZigbee: [
+            {
+                cluster: "genBasic",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => ({raw_message: (msg.data as Buffer).toString("hex")}),
+            } satisfies Fz.Converter<"genBasic", undefined, ["raw"]>,
+        ],
+        isModernExtend: true,
+    };
+}
+
 interface RadarSensorHeimanZcl {
     attributes: {
         enableIndicator: number;
@@ -3807,6 +3821,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         exposes: [],
         extend: [
+            heimanRawData(),
             m.battery(),
             m.identify(),
             m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
