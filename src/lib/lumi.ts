@@ -2446,11 +2446,20 @@ export const lumiModernExtend = {
             ],
         };
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
-        args = {operationMode: false, lockRelay: false, ...args};
+    lumiOnOff: (
+        args?: modernExtend.OnOffArgs & {
+            operationMode?: boolean;
+            powerOutageMemory?: "binary" | "enum";
+            lockRelay?: boolean;
+            deviceTemperature?: boolean;
+            powerOutageCount?: boolean;
+        },
+    ) => {
+        args = {operationMode: false, lockRelay: false, deviceTemperature: true, powerOutageCount: true, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
-        result.exposes.push(e.device_temperature(), e.power_outage_count());
+        if (args.deviceTemperature) result.exposes.push(e.device_temperature());
+        if (args.powerOutageCount) result.exposes.push(e.power_outage_count());
         if (args.powerOutageMemory === "binary") {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
             result.toZigbee.push(...extend.toZigbee);
@@ -2876,8 +2885,9 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiElectricityMeter: (): ModernExtend => {
-        const exposes = [e.energy(), e.voltage(), e.current()];
+    lumiElectricityMeter: (args?: {energy?: boolean; voltage?: boolean; current?: boolean}): ModernExtend => {
+        const {energy = true, voltage = true, current = true} = args ?? {};
+        const exposes = [...(energy ? [e.energy()] : []), ...(voltage ? [e.voltage()] : []), ...(current ? [e.current()] : [])];
         const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
@@ -3004,6 +3014,19 @@ export const lumiModernExtend = {
             valueOn: ["ON", 0],
             valueOff: ["OFF", 1],
             description: "Disables the physical switch button",
+            access: "ALL",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        }),
+    lumiChildLock: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi", ManuSpecificLumi>>) =>
+        modernExtend.binary<"manuSpecificLumi", ManuSpecificLumi>({
+            name: "child_lock",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0285, type: 0x20},
+            valueOn: ["LOCK", 1],
+            valueOff: ["UNLOCK", 0],
+            description: "Disables the physical button",
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode},
