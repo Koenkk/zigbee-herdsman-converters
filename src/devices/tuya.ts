@@ -12320,7 +12320,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "ZXB3-125",
         vendor: "SMTONOFF",
-        description: "SMTONOFF ZXB3-125 three-phase breaker",
+        description: "Three-phase breaker",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
