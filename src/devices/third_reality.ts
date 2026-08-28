@@ -220,13 +220,7 @@ interface ThirdScaleSensor {
         attr4: number;
         attr5: number;
     };
-    commands: {
-        reset: never;
-        startReport: never;
-        stopReport: never;
-        setWeight: {uint: number};
-        convertGramToPoundOunce: never;
-    };
+    commands: never;
     commandResponses: never;
 }
 
@@ -331,13 +325,14 @@ export const fzLocal = {
         cluster: "3rScaleSensorcluster",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
+            const data = msg.data as KeyValue;
             let gram: number | undefined;
-            if (msg.data.readWeight !== undefined) {
-                gram = msg.data.readWeight;
-            } else if (msg.data["1"] !== undefined) {
-                gram = msg.data["1"];
-            } else if (msg.data[1] !== undefined) {
-                gram = msg.data[1];
+            if (data.readWeight !== undefined) {
+                gram = data.readWeight as number;
+            } else if (data["1"] !== undefined) {
+                gram = Number(data["1"]);
+            } else if (data[1] !== undefined) {
+                gram = Number(data[1]);
             }
 
             if (gram !== undefined) {
@@ -1819,36 +1814,41 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 key: ["reset_button"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command("3rScaleSensorcluster", "reset", {}, {});
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "reset", {} as unknown as never, {});
                     return {state: {[key]: "RESET_INITIATED"}};
                 },
             },
             {
                 key: ["start_report_button"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command("3rScaleSensorcluster", "startReport", {}, {});
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "startReport", {} as unknown as never, {});
                     return {state: {[key]: "START_REPORT_INITIATED"}};
                 },
             },
             {
                 key: ["stop_report_button"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command("3rScaleSensorcluster", "stopReport", {}, {});
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "stopReport", {} as unknown as never, {});
                     return {state: {[key]: "STOP_REPORT_INITIATED"}};
                 },
             },
             {
                 key: ["set_weight_button"],
                 convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
                     const uint = Number(value);
-                    await entity.command("3rScaleSensorcluster", "setWeight", {uint}, {});
+                    await endpoint.command("3rScaleSensorcluster", "setWeight", {uint} as unknown as never, {});
                     return {state: {[key]: "SET_WEIGHT_INITIATED"}};
                 },
             },
             {
                 key: ["convert_gram_to_pound_ounce"],
                 convertSet: async (entity, key, value, meta) => {
-                    await entity.command("3rScaleSensorcluster", "convertGramToPoundOunce", {}, {});
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "convertGramToPoundOunce", {} as unknown as never, {});
                     return {state: {[key]: "CONVERT_INITIATED"}};
                 },
             },
@@ -1867,7 +1867,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["3rScaleSensorcluster"]);
             await endpoint.configureReporting("3rScaleSensorcluster", [
                 {
-                    attribute: "readWeight",
+                    attribute: {ID: 0x0001, type: Zcl.DataType.INT16},
                     minimumReportInterval: 0,
                     maximumReportInterval: 3600,
                     reportableChange: 1,
@@ -1887,18 +1887,17 @@ export const definitions: DefinitionWithExtend[] = [
                     attr5: {name: "attr5", ID: 0x0005, type: Zcl.DataType.INT16},
                 },
                 commands: {
-                    reset: {ID: 0x00, parameters: []},
-                    startReport: {ID: 0x01, parameters: []},
-                    stopReport: {ID: 0x02, parameters: []},
-                    setWeight: {ID: 0x03, parameters: [{name: "uint", type: Zcl.DataType.UINT8}]},
-                    convertGramToPoundOunce: {ID: 0x04, parameters: []},
+                    reset: {name: "reset", ID: 0x00, parameters: []},
+                    startReport: {name: "startReport", ID: 0x01, parameters: []},
+                    stopReport: {name: "stopReport", ID: 0x02, parameters: []},
+                    setWeight: {name: "setWeight", ID: 0x03, parameters: [{name: "uint", type: Zcl.DataType.UINT8}]},
+                    convertGramToPoundOunce: {name: "convertGramToPoundOunce", ID: 0x04, parameters: []},
                 },
                 commandsResponse: {},
             }),
         ],
         meta: {
             disableActionGroup: true,
-            configureKey: 1,
         },
     },
 ];
