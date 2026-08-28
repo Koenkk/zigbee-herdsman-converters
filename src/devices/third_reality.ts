@@ -331,7 +331,7 @@ export const fzLocal = {
         cluster: "3rScaleSensorcluster",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            let gram: number | undefined = undefined;
+            let gram: number | undefined;
             if (msg.data.readWeight !== undefined) {
                 gram = msg.data.readWeight;
             } else if (msg.data["1"] !== undefined) {
@@ -343,7 +343,7 @@ export const fzLocal = {
             if (gram !== undefined) {
                 const totalOunces = gram / 28.3495;
                 const pound = Math.floor(totalOunces / 16);
-                const ounce = parseFloat((totalOunces % 16).toFixed(2));
+                const ounce = Number.parseFloat((totalOunces % 16).toFixed(2));
                 return {
                     weight: gram,
                     weight_pound_ounce: `${pound}lb ${ounce}oz`,
