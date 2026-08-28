@@ -384,6 +384,7 @@ interface SonoffSnzb02ul {
 
 type SonoffStructElement = {elmType: number; elmVal: unknown};
 type SonoffStructValue = SonoffStructElement[];
+const test = [];
 
 interface SonoffTpWgzba {
     attributes: {
