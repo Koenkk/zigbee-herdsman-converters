@@ -492,17 +492,32 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_upt8lzi0", "_TZE28C1000000_i8sdouy0"]),
         model: "ZS-SF-EUC-WH-MS",
         vendor: "Moes",
         description: "Star feather Zigbee curtain switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition()],
+        exposes: [
+            te.coverPosition(),
+            e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibration mode"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable button backlight"),
+            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Direction of motor movement"),
+            e
+                .numeric("motor_working_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(10)
+                .withValueMax(180)
+                .withDescription("Full travel time of the motor (10-180s)"),
+        ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
+                [3, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
+                [7, "backlight_switch", tuya.valueConverter.onOff],
+                [8, "motor_direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+                [10, "motor_working_time", tuya.valueConverter.raw],
             ],
         },
     },
@@ -515,9 +530,6 @@ export const definitions: DefinitionWithExtend[] = [
         // response to a dataQuery. Without polling, `battery` stays null forever. Confirmed
         // on hardware: dp 13 -> 100 only arrives after a dataQuery. Poll periodically and on
         // device announce so the battery level is reported reliably.
-        // respondToMcuVersionResponse is left at its default (false): with it enabled, one
-        // of the units gets stuck in an mcuVersionRequest/Response ping-pong (~3x/s) that
-        // floods the network/MQTT (see https://github.com/Koenkk/zigbee2mqtt/issues/28367).
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,

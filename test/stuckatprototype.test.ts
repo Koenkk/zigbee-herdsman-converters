@@ -34,7 +34,7 @@ describe("StuckAtPrototype AirCube", () => {
         expect(definition.model).toBe("AirCube");
 
         expect(exposeNames(definition, device)).toEqual(
-            expect.arrayContaining(["temperature", "humidity", "eco2", "voc", "aqi", "brightness", "co2", "illuminance"]),
+            expect.arrayContaining(["temperature", "humidity", "eco2", "voc", "aqi", "brightness", "co2", "illuminance", "identify"]),
         );
         // Brightness is the only writable value.
         expect(definition.toZigbee?.find((converter) => converter.key.includes("brightness"))?.convertSet).toBeDefined();
@@ -53,7 +53,7 @@ describe("StuckAtPrototype AirCube", () => {
         expect(definition.model).toBe("AirCube");
 
         const names = exposeNames(definition, device);
-        expect(names).toEqual(expect.arrayContaining(["temperature", "humidity", "eco2", "voc", "aqi", "brightness"]));
+        expect(names).toEqual(expect.arrayContaining(["temperature", "humidity", "eco2", "voc", "aqi", "brightness", "identify"]));
         expect(names).not.toContain("co2");
         expect(names).not.toContain("illuminance");
 

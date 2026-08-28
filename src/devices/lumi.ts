@@ -29,6 +29,7 @@ const {
     lumiOverloadProtection,
     lumiLedIndicator,
     lumiButtonLock,
+    lumiChildLock,
     lumiMotorSpeed,
     lumiCurtainSpeed,
     lumiCurtainManualOpenClose,
@@ -304,6 +305,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.light.acn033"],
+        model: "HCXDD13LM",
+        vendor: "Aqara",
+        description: "Nebula ceiling lamp H1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.light({colorTemp: {range: [153, 370], startup: false}, effect: false, powerOnBehavior: false}),
+            lumiPowerOnBehavior(),
+            lumiZigbeeOTA(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.cwac02", "lumi.light.acn014"],
         model: "ZNLDP13LM",
         vendor: "Aqara",
@@ -396,7 +409,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.sensor_switch.aq3", "lumi.sensor_swit"],
@@ -2058,7 +2071,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false), e.trigger_count()],
-        extend: [m.quirkCheckinInterval("1_HOUR"), m.forcePowerSource({powerSource: "Battery"})],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.forcePowerSource({powerSource: "Battery"}), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.sensor_wleak.aq1"],
@@ -2204,6 +2217,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiSetEventMode(),
             m.forceDeviceType({type: "Router"}),
             lumiZigbeeOTA(),
             m.poll({
@@ -2730,6 +2744,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            m.identify({isSleepy: true}),
         ],
     },
     {
@@ -2972,7 +2987,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genBasic", ["powerSource"]);
             await endpoint.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
         },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA()],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.relay.c2acn01"],
@@ -3735,7 +3750,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}, multiEndpoint: true},
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR")],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -4046,6 +4061,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.quirkCheckinInterval("1_HOUR"),
             lumiZigbeeOTA(),
             m.illuminance({reporting: false}),
+            m.identify({isSleepy: true}),
         ],
     },
     {
@@ -5027,6 +5043,65 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.plug.aeu002"],
+        model: "WP-P09D",
+        vendor: "Aqara",
+        description: "Wall outlet H2 UK",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, usb: 3}}),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            lumiZigbeeOTA(),
+            // This model has no device temperature sensor.
+            lumiOnOff({endpointNames: ["1", "2", "usb"], powerOutageMemory: "enum", deviceTemperature: false}),
+            // The three haElectricalMeasurement endpoints do not line up with the on/off endpoints:
+            // endpoint 1 measures the whole outlet, endpoint 2 socket 1 + USB combined and endpoint 3 socket 2.
+            m.numeric({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "activePower",
+                endpointNames: ["1"],
+                label: "Power",
+                description: "Total power consumption of the outlet",
+                unit: "W",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "activePower",
+                endpointNames: ["2"],
+                label: "Power socket 1 + USB",
+                description: "Combined power consumption of socket 1 and the USB ports",
+                unit: "W",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "activePower",
+                endpointNames: ["usb"],
+                label: "Power socket 2",
+                description: "Power consumption of socket 2",
+                unit: "W",
+                access: "STATE",
+            }),
+            // Voltage is not reported by this model.
+            lumiElectricityMeter({voltage: false}),
+            lumiMultiClick({description: "Multi-click mode for the socket 1 button", endpointName: "1"}),
+            lumiMultiClick({description: "Multi-click mode for the socket 2 button", endpointName: "2"}),
+            lumiAction({endpointNames: ["1", "2"], actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
+            lumiChildLock({description: "Disables the socket 1 button", endpointName: "1"}),
+            lumiChildLock({description: "Disables the socket 2 button", endpointName: "2"}),
+            // access is STATE_SET rather than the default ALL: reading this attribute back was reported to
+            // fail on this device, see https://github.com/Koenkk/zigbee-herdsman-converters/pull/11123
+            lumiOverloadProtection({valueMax: 3250, access: "STATE_SET"}),
+            lumiLedIndicator(),
+            lumiFlipIndicatorLight(),
+            m.identify(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
@@ -5244,6 +5319,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLockRelay({description: "Lock right switch", endpointName: "right"}),
             lumiMultiClick({description: "Multi-click mode for left down button", endpointName: "left_down"}),
             lumiMultiClick({description: "Multi-click mode for right down button", endpointName: "right_down"}),
+            m.identify(),
         ],
     },
     {
@@ -5291,7 +5367,12 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             lumiPowerOnBehavior(),
-            m.light({powerOnBehavior: false}),
+            m.light({
+                powerOnBehavior: false,
+                levelConfig: {
+                    features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
+                },
+            }),
             lumiKnobRotation({withButtonState: false}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),

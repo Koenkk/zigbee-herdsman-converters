@@ -248,7 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint2 = device.getEndpoint(2);
             // Bind clusters
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closureWindowCovering"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closuresWindowCovering"]);
             // Configure battery voltage reporting from endpoint 2
             await reporting.batteryVoltage(endpoint2, {min: 3600, max: repInterval.MAX, change: 1});
         },

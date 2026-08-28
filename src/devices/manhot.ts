@@ -12,7 +12,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BL82-TYZ1",
         vendor: "Manhot",
         description: "Cover motor LPD",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.battery(),
             te.coverPosition(),
@@ -35,7 +35,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-1Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 1 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.numeric("countdown_1", ea.STATE_SET).withValueMin(0).withValueMax(43200).withUnit("s").withDescription("Timer for switch 1"),
@@ -107,7 +107,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-2Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 2 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -205,7 +205,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-3Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 3 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -317,7 +317,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-4Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 4 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -437,7 +437,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MH03-6Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 6 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -585,11 +585,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k", "_TZE28C1000000_hwv3by9k"]),
         model: "MH03-8Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 8 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),

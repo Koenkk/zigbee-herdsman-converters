@@ -111,8 +111,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SRAC-23B-ZBSR",
         vendor: "Climax",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_wd, fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning_simple, tz.ias_max_duration, tz.warning, tz.squawk],
+        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_siren],
+        toZigbee: [tz.warning_simple, tz.warning, tz.squawk],
+        extend: [m.iasWarningMaxDuration()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "ssIasZone", "ssIasWd"]);
@@ -124,7 +125,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.tamper(),
             e.warning(),
             e.squawk(),
-            e.numeric("max_duration", ea.ALL).withUnit("s").withValueMin(0).withValueMax(600).withDescription("Duration of Siren"),
             e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of siren"),
         ],
     },
