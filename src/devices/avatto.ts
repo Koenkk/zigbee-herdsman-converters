@@ -180,7 +180,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV26",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true})],
         ota: true,
         exposes: [
             e.battery(),
