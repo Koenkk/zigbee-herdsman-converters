@@ -20454,8 +20454,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase({
                 dp: true,
                 queryOnConfigure: true,
-                queryIntervalSeconds: 10,
-                respondToMcuVersionResponse: true,
+                // respondToMcuVersionResponse omitted (defaults to false): when enabled this MCU emits an
+                // avalanche of commandMcuVersionResponse messages every second. Same fix already applied to
+                // the sibling Tongou TOQCB2-80 breaker below.
+                queryIntervalSeconds: 3 * 60,
             }),
         ],
         whiteLabel: [
