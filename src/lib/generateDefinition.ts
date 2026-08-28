@@ -391,7 +391,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
-            labelHomeAssistant = {name: "preserve"} as const satisfies HomeAssistant;
+            labelHomeAssistant = {name: label};
         }
         const description = `Binary Input ${label ?? name} on endpoint ${endpoint.ID}`;
         labels.push(label);
@@ -427,14 +427,14 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     }
 
     for (const endpoint of endpoints) {
-        const endpointLabel = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
+        const label = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
-        if (endpointLabel) {
-            labelHomeAssistant = {name: "preserve"} as const satisfies HomeAssistant;
+        if (label) {
+            labelHomeAssistant = {name: label};
         }
-        const description = `Binary Output ${endpointLabel ?? name} on endpoint ${endpoint.ID}`;
-        labels.push(endpointLabel);
+        const description = `Binary Output ${label ?? name} on endpoint ${endpoint.ID}`;
+        labels.push(label);
         descriptions.push(description);
         homeassistants.push(labelHomeAssistant);
     }
@@ -768,7 +768,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
-            labelHomeAssistant = {name: "preserve"};
+            labelHomeAssistant = {name: label};
         }
 
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogInput", "applicationType", undefined);
@@ -843,7 +843,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
 
         let labelHomeAssistant: HomeAssistant | undefined;
         if (label) {
-            labelHomeAssistant = {name: "preserve"};
+            labelHomeAssistant = {name: label};
         }
 
         const applicationType = await getClusterAttributeValue(endpoint, "genAnalogOutput", "applicationType", undefined);

@@ -21,7 +21,7 @@ export interface HomeAssistant {
     deviceClass?: string;
     enabledByDefault?: boolean;
     icon?: string;
-    name?: "preserve" | null;
+    name?: string | null;
     valueTemplate?: string | null;
 }
 
