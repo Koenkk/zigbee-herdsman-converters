@@ -6,6 +6,22 @@ import type {Definition, Fz, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
+    describe("SP-EUC01 event mode", () => {
+        it("enables event mode during configure", async () => {
+            const device = mockDevice({modelID: "lumi.plug.maeu01", endpoints: [{ID: 1}]});
+            const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+            const definition = await findByDevice(device);
+
+            await definition.configure?.(device, coordinatorEndpoint, definition);
+
+            expect(device.getEndpoint(1).write).toHaveBeenCalledWith(
+                "manuSpecificLumi",
+                {mode: 1},
+                {manufacturerCode: 0x115f, disableResponse: true},
+            );
+        });
+    });
+
     describe("PS-S04D battery", () => {
         it("decodes battery percentage (tag 24) and voltage (tag 23) from the 0x00F7 struct", () => {
             const extend = lumiModernExtend.lumiBattery({voltageAttribute: 0x0017, percentageAttribute: 0x0018});
