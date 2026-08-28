@@ -30227,7 +30227,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_rovbuqdo"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rovbuqdo"]),
         model: "MS032Z",
         vendor: "Tuya",
         description: "LED smart stair light controller (32 steps)",
