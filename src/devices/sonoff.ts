@@ -7274,14 +7274,12 @@ const sonoffExtend = {
             day: 0x01,
             month: 0x02,
             year: 0x03,
-            energy_record_24h: 0x04,
         } as const;
         const recordTypeBySubCommand: {[key: number]: keyof typeof recordTypes} = {
             0: "hour",
             1: "day",
             2: "month",
             3: "year",
-            4: "energy_record_24h",
         };
 
         const electricityRecordSubCommands = [0, 1, 2, 3];
@@ -7335,11 +7333,6 @@ const sonoffExtend = {
                 .flatMap((packetIndex) => cache.recordsByPacket.get(packetIndex) ?? []);
         };
 
-        const readInt32LE = (data: ArrayLike<number>, index: number): number => {
-            const value = readUInt32LE(data, index);
-            return value > 0x7fffffff ? value - 0x100000000 : value;
-        };
-
         const getMonthStartUtcSeconds = (utcSeconds: number, monthOffset: number, offsetSeconds: number): number => {
             const localDate = new Date((utcSeconds + offsetSeconds) * 1000);
             const monthStartLocalMs = Date.UTC(localDate.getUTCFullYear(), localDate.getUTCMonth() + monthOffset, 1);
@@ -7390,8 +7383,6 @@ const sonoffExtend = {
                     let interval = 3600;
                     if (subCommand === recordTypes.day || subCommand === recordTypes.month) {
                         interval = 24 * 3600;
-                    } else if (subCommand === recordTypes.energy_record_24h) {
-                        interval = 60;
                     }
                     if (subCommand === recordTypes.day || subCommand === recordTypes.month) {
                         end = timeAnchor - (records.length - 1 - index) * interval;
@@ -7687,37 +7678,6 @@ const sonoffExtend = {
                                 );
                             }
                         }
-                    } else if (subCommand === recordTypes.energy_record_24h) {
-                        if (responseData.length < 4) {
-                            logger.error(
-                                `readRecordResp energy_record_24h payload too short, expected at least 4 bytes but got ${responseData.length}`,
-                                NS,
-                            );
-                            return;
-                        }
-
-                        // 24-hour records contain total/current packet indexes, per-minute power, and a trailing timestamp.
-                        totalPacket = readUInt16LE(responseData, 0);
-                        currentPacket = readUInt16LE(responseData, 2);
-                        let dataEndIndex = responseData.length;
-                        if (dataEndIndex >= 8) {
-                            dataEndIndex -= 4;
-                            const packetLastPackageTime = readUInt32LE(responseData, dataEndIndex);
-                            if (packetLastPackageTime !== 0) {
-                                lastPackageTime = packetLastPackageTime;
-                            }
-                        }
-
-                        for (let index = 4; index + 3 < dataEndIndex; index += 4) {
-                            records.push({power: readInt32LE(responseData, index)});
-                        }
-                        const leftoverBytes = (dataEndIndex - 4) % 4;
-                        if (leftoverBytes !== 0) {
-                            logger.warning(
-                                `readRecordResp ${type} packet=${currentPacket} has ${leftoverBytes} leftover bytes, expected 4 bytes per record`,
-                                NS,
-                            );
-                        }
                     } else {
                         logger.error(`readRecordResp unknown sub command: ${subCommand}`, NS);
                         return;
@@ -7903,12 +7863,6 @@ const sonoffExtend = {
                         cache.endTime = endTime;
                     }
                     const page = payload.page ?? 0;
-                    if (subCommand === energyRecord24hSubCommand) {
-                        if (typeof page !== "number" || !Number.isInteger(page) || page < 0 || page > 0xffff) {
-                            throw new Error(`Invalid ${key}.page, expected integer between 0 and 65535`);
-                        }
-                        cache.isPagedRecordRead = true;
-                    }
 
                     const cacheKey = getReadRecordCacheKey(entity, subCommand);
                     // A new read replaces an unfinished read of the same type.
@@ -11459,12 +11413,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 reporting: {min: "10_SECONDS", max: "MAX", change: 0},
                 fzConvert: (model, msg, publish, options, meta) => {
-                    // Device keeps reporting a acCurrentPowerValue after turning OFF.
-                    // Make sure power = 0 when turned OFF
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
                     if ("acCurrentPowerValue" in msg.data) {
-                        const power = meta.state?.state === "ON" ? msg.data.acCurrentPowerValue / 1000 : 0;
-                        return {power, ac_current_power_value: power};
+                        return {power: signedInt32MilliToValue(msg.data.acCurrentPowerValue)};
                     }
                 },
             }),
