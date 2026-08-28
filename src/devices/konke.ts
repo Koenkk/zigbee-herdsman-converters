@@ -144,18 +144,18 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
-    zigbeeModel: ["3AFE12010402102A"],
-    model: "KK-WA-J01W-2020",
-    vendor: "Konke",
-    description: "Water detector (2020 firmware)",
-    fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
-    toZigbee: [],
-    meta: {
-        battery: {
-            voltageToPercentage: { min: 2500, max: 3300 }
-        }
-    },
-    exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
+        zigbeeModel: ["3AFE12010402102A"],
+        model: "KK-WA-J01W-2020",
+        vendor: "Konke",
+        description: "Water detector (2020 firmware)",
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        meta: {
+            battery: {
+                voltageToPercentage: {min: 2500, max: 3300},
+            },
+        },
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()],
     },
     {
         zigbeeModel: ["3AFE221004021015"],
