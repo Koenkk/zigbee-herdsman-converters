@@ -70,6 +70,79 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("XBee");
     });
 
+    it("finds HPZERAD-V1 by its fingerprint", async () => {
+        const device = mockDevice(
+            {
+                modelID: "Thermostat_RF_Model_00000000000",
+                manufacturerName: "Eurevia",
+                endpoints: [{ID: 25, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+            },
+            "Router",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("HPZERAD-V1");
+        expect(definition.endpoint?.(device)).toStrictEqual({default: 25});
+    });
+
+    it("decodes the HPZERAD-V1 manufacturer setpoint attribute", async () => {
+        const device = mockDevice({modelID: "test", endpoints: [{ID: 25}]});
+        const definition = baseDefinitions.find((candidate) => candidate.model === "HPZERAD-V1");
+        const converter = definition?.fromZigbee?.find((candidate) => candidate.cluster === "hvacThermostat");
+        if (!definition || !converter?.convert) throw new Error("HPZERAD-V1 thermostat converter is missing");
+
+        const result = converter.convert(definition, {data: {heiwaSetpoint: 220}, device} as never, () => {}, {}, {device, state: {}} as never);
+
+        expect(result).toStrictEqual({current_heating_setpoint: 22});
+    });
+
+    it("writes the HPZERAD-V1 setpoint and coherent standard bounds", async () => {
+        const device = mockDevice({modelID: "test", endpoints: [{ID: 25}]});
+        const definition = baseDefinitions.find((candidate) => candidate.model === "HPZERAD-V1");
+        const converter = definition?.toZigbee?.find((candidate) => candidate.key?.includes("current_heating_setpoint"));
+        if (!definition || !converter?.convertSet) throw new Error("HPZERAD-V1 setpoint converter is missing");
+
+        await converter.convertSet(device.endpoints[0], "current_heating_setpoint", 22, {
+            device,
+            endpoint_name: undefined,
+            mapped: definition,
+            message: {},
+            options: {},
+            publish: () => {},
+            state: {},
+            deviceExposesChanged: () => {},
+        });
+
+        expect(device.endpoints[0].write).toHaveBeenNthCalledWith(1, "hvacThermostat", {heiwaSetpoint: 220});
+        expect(device.endpoints[0].write).toHaveBeenNthCalledWith(2, "hvacThermostat", {
+            occupiedCoolingSetpoint: 2050,
+            occupiedHeatingSetpoint: 2350,
+        });
+        expect(device.endpoints[0].read).toHaveBeenNthCalledWith(1, "hvacThermostat", ["heiwaSetpoint"]);
+        expect(device.endpoints[0].read).toHaveBeenNthCalledWith(2, "hvacThermostat", ["occupiedCoolingSetpoint", "occupiedHeatingSetpoint"]);
+    });
+
+    it.each([17.5, 27.5, 22.25])("rejects HPZERAD-V1 user setpoint %s outside its supported range", async (value) => {
+        const device = mockDevice({modelID: "test", endpoints: [{ID: 25}]});
+        const definition = baseDefinitions.find((candidate) => candidate.model === "HPZERAD-V1");
+        const converter = definition?.toZigbee?.find((candidate) => candidate.key?.includes("current_heating_setpoint"));
+        if (!definition || !converter?.convertSet) throw new Error("HPZERAD-V1 setpoint converter is missing");
+
+        await expect(
+            converter.convertSet(device.endpoints[0], "current_heating_setpoint", value, {
+                device,
+                endpoint_name: undefined,
+                mapped: definition,
+                message: {},
+                options: {},
+                publish: () => {},
+                state: {},
+                deviceExposesChanged: () => {},
+            }),
+        ).rejects.toThrow("current_heating_setpoint must be between 18 and 27 °C in 0.5 °C increments");
+        expect(device.endpoints[0].write).not.toHaveBeenCalled();
+    });
+
     it("finds definition with white label by fingerprint", async () => {
         const device1 = mockDevice(
             {

@@ -125,6 +125,7 @@ import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
+import {definitions as heiwa} from "./heiwa";
 import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
@@ -512,6 +513,7 @@ const definitions: DefinitionWithExtend[] = [
     ...heatit,
     ...heiman,
     ...heimgardTechnologies,
+    ...heiwa,
     ...hej,
     ...hfh,
     ...hilux,
