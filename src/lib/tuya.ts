@@ -1287,6 +1287,17 @@ const tuyaExposes = {
 
 export {tuyaExposes as exposes};
 
+const tuyaOptions = {
+    timeStart: (defaultOption: string) =>
+        e
+            .enum("time_start", ea.SET, ["1970", "2000", "off"])
+            .withDescription(
+                `Reply to Tuya-specific time synchronization requests: "1970" - Reply with seconds since 1970/01/01 (recommended, should stop the device from asking), "2000" - Reply with seconds since 2000/01/01 (use if the weekday is wrong with 1970), "off" - Don't reply (use if replying causes too much traffic). Default for this device: "${defaultOption}"`,
+            ),
+};
+
+export {tuyaOptions as options};
+
 export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
@@ -4436,7 +4447,6 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "1970";
@@ -4453,9 +4463,6 @@ const tuyaModernExtend = {
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
             timeStart = "off",
-            // Disable by default as with many Tuya devices it doesn't work well.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
-            respondToMcuVersionResponse = false,
         } = args;
 
         const fzConverter: Fz.Converter<
@@ -4488,9 +4495,20 @@ const tuyaModernExtend = {
                     forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
                 }
 
-                if (timeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
+                let selectedTimeStart = timeStart;
+
+                const timeStartOption = options.time_start as string;
+                if (timeStartOption) {
+                    if (["1970", "2000", "off"].includes(timeStartOption as string)) {
+                        selectedTimeStart = timeStartOption;
+                    } else {
+                        logger.warning(`Invalid option "${timeStartOption}" for ${meta.device.ieeeAddr}.time_start, using default`, NS);
+                    }
+                }
+
+                if (selectedTimeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
                     globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const offset = selectedTimeStart === "2000" ? constants.OneJanuary2000 : 0;
                     const utcTime = Math.round((Date.now() - offset) / 1000);
                     const localTime = utcTime - new Date().getTimezoneOffset() * 60;
                     const payload = {
@@ -4500,10 +4518,6 @@ const tuyaModernExtend = {
                     msg.endpoint
                         .command("manuSpecificTuya", "mcuSyncTime", payload, {})
                         .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
-                } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
-                    msg.endpoint
-                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
-                        .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
                 } else if (msg.type === "commandMcuGatewayConnectionStatus") {
                     // "payload" can have the following values:
                     // 0x00: The gateway is not connected to the internet.
@@ -4521,6 +4535,7 @@ const tuyaModernExtend = {
             isModernExtend: true,
             fromZigbee: [fzConverter],
             toZigbee: [],
+            options: [tuyaOptions.timeStart(timeStart)],
         };
 
         if (queryOnConfigure) {

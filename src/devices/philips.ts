@@ -2114,6 +2114,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}}), m.identify()],
     },
     {
+        zigbeeModel: ["4440156P6"],
+        model: "4440156P6",
+        vendor: "Philips",
+        description: "Hue Wellner white ambiance E27 806lm with Bluetooth",
+        extend: [philips.m.light({colorTemp: {range: [153, 454]}}), m.identify()],
+    },
+    {
         zigbeeModel: ["3261330P6"],
         model: "3261330P6",
         vendor: "Philips",
@@ -5101,8 +5108,8 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LWA034"],
         model: "929003856201",
         vendor: "Philips",
-        description: "Hue White Ambiance — dimmable white light",
-        extend: [philips.m.light({colorTemp: {range: [153, 500]}}), m.identify()],
+        description: "Hue White E27 1600lm",
+        extend: [philips.m.light(), m.identify()],
     },
     {
         zigbeeModel: ["929004610401", "929004610402", "929004610403", "929004610502", "929004610601", "929004610602", "929004610702", "929004610802"],

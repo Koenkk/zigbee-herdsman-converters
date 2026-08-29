@@ -65,7 +65,8 @@ pnpm run clean
 2. Import required modules at top (fz, tz, exposes, m, vendor libs)
 3. Add device definition to the `definitions` array using modern extends
 4. Prefer modern extends over manual converter arrays
-5. Test the device definition
+5. If adding just a definition or updating a converter, do not add tests for it
+6. PR title should be `feat(add): MODEL`
 
 **Code formatting:**
 - Indent: 4 spaces
