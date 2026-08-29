@@ -13,10 +13,12 @@ import {
     getRuntimeLocalOffsetSeconds,
     parseIsoWithOffsetToUtcSeconds,
     parseSWVZFRawZclCommand,
+    readUInt16LE,
     readUInt32LE,
     shiftUtcSecondsByOffsetMonths,
     signedInt32MilliToValue,
     toBigEndianUInt32,
+    toUInt16LEBytes,
     toUInt32LEBytes,
     utcToDeviceLocal2000Seconds,
     YEAR_2000_IN_UTC,
@@ -34,6 +36,7 @@ import type {
     KeyValueAny,
     ModernExtend,
     OnEvent,
+    Publish,
     Tz,
     Zh,
 } from "../lib/types";
@@ -65,8 +68,11 @@ interface SonoffBasicZB1GSP {
     commands: {
         clearHistory: {deviceType: number; deviceLength: number; eventType: number};
         readRecord: {data: number[]};
+        readElectricityRecords: {data: number[]};
     };
-    commandResponses: never;
+    commandResponses: {
+        readRecordResp: {data: number[]};
+    };
 }
 
 interface SonoffSnzb02d {
@@ -360,6 +366,31 @@ const SWVZNEIrrigationAmountUnitToDeviceCode = (unit: unknown, device?: Zh.Devic
     if (SWVZNEFirmwareSupportsUnifiedImperialGallon(device)) return SWVZNEUnifiedIrrigationAmountUnitCodeByName[normalizedUnit];
     if (normalizedUnit === "imperial_gallon") return undefined;
     return SWVZNELegacyIrrigationAmountUnitCodeByName[normalizedUnit];
+};
+
+/**
+ * Checks whether a device firmware version supports a feature.
+ * When version-gating parameters are omitted, the feature is treated as supported.
+ * @param device Device whose firmware version should be checked.
+ * @param targetVersion Firmware version threshold.
+ * @param model Model for which the threshold applies.
+ * @param type Whether the current version must be lower than, or equal to/higher than, the threshold.
+ * @returns Whether the feature should be exposed.
+ */
+const firmwareSupportFeaturesVersion = (device?: Zh.Device, targetVersion?: string, model?: string, type?: "lower" | "higher"): boolean => {
+    if (device === undefined || targetVersion === undefined || model === undefined || type === undefined) return true;
+    if (!device.softwareBuildID) return false;
+    if (device.modelID !== model) return true;
+    const currentParts = device.softwareBuildID.split(".").map((part) => Number(part));
+    const targetParts = targetVersion.split(".").map((part) => Number(part));
+    const length = Math.max(currentParts.length, targetParts.length);
+    for (let i = 0; i < length; i++) {
+        const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
+        const targetPart = Number.isFinite(targetParts[i]) ? targetParts[i] : 0;
+        if (currentPart < targetPart) return type === "lower";
+        if (currentPart > targetPart) return type === "higher";
+    }
+    return type === "higher";
 };
 
 interface SonoffSnzb02ul {
@@ -1523,6 +1554,8 @@ export interface SonoffEwelink {
         sceneValueReport: number[];
         electricalMessageNotification: number[];
         energyRecordStatus: number[];
+        outputEnergyConsumptionOfDay: number;
+        outputEnergyConsumptionOfMonth: number;
     };
     commands: {
         protocolData: {data: number[]};
@@ -7181,34 +7214,39 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    readConsumptionRecord(clusterName: "customClusterEwelink", commandName: "readRecord"): ModernExtend {
-        const exposes = [
-            e.text("consumption_records", ea.STATE),
-            e.text("consumption_records_dst", ea.STATE),
-            e
-                .composite("read_consumption_records", "read_consumption_records", ea.SET)
-                .withDescription("Read power-consumption history records (24h / monthly days / halfyear months).")
-                .withFeature(
-                    e
-                        .enum("type", ea.SET, ["get24Hours", "get30Days", "get180Days"])
-                        .withDescription("Record type: get24Hours, get30Days or get180Days."),
-                )
-                .withFeature(
-                    e
-                        .numeric("index", ea.SET)
-                        .withValueMin(0)
-                        .withValueMax(240)
-                        .withValueStep(1)
-                        .withDescription("Block index: 24h => 0/1/240(DST), 30d => 0/1, 180d => 0. For 24h/30d, index=0 auto-fetches block 0+1."),
-                )
-                .withFeature(
-                    e
-                        .numeric("offset", ea.SET)
-                        .withValueMin(0)
-                        .withValueMax(6)
-                        .withDescription("Offset: 24h => 0..6(days), 30d => 0..5(months), 180d => 0."),
-                ),
-        ];
+    readConsumptionRecord(clusterName: "customClusterEwelink", commandName: "readRecord", model?: string, targetVersion?: string): ModernExtend {
+        const expose: DefinitionExposesFunction = (device) =>
+            utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device as Zh.Device, targetVersion, model, "lower")
+                ? [
+                      e.text("consumption_records", ea.STATE),
+                      e.text("consumption_records_dst", ea.STATE),
+                      e
+                          .composite("read_consumption_records", "read_consumption_records", ea.SET)
+                          .withDescription("Read power-consumption history records (24h / monthly days / halfyear months).")
+                          .withFeature(
+                              e
+                                  .enum("type", ea.SET, ["get24Hours", "get30Days", "get180Days"])
+                                  .withDescription("Record type: get24Hours, get30Days or get180Days."),
+                          )
+                          .withFeature(
+                              e
+                                  .numeric("index", ea.SET)
+                                  .withValueMin(0)
+                                  .withValueMax(240)
+                                  .withValueStep(1)
+                                  .withDescription(
+                                      "Block index: 24h => 0/1/240(DST), 30d => 0/1, 180d => 0. For 24h/30d, index=0 auto-fetches block 0+1.",
+                                  ),
+                          )
+                          .withFeature(
+                              e
+                                  .numeric("offset", ea.SET)
+                                  .withValueMin(0)
+                                  .withValueMax(6)
+                                  .withDescription("Offset: 24h => 0..6(days), 30d => 0..5(months), 180d => 0."),
+                          ),
+                  ]
+                : [];
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffEwelink, ["raw"]>[] = [
             {
@@ -7468,7 +7506,7 @@ const sonoffExtend = {
         ];
 
         return {
-            exposes,
+            exposes: [expose],
             fromZigbee,
             toZigbee,
             isModernExtend: true,
@@ -7920,6 +7958,689 @@ const sonoffExtend = {
         return {
             ...batteryExtend,
             fromZigbee: [fzLocal.snzb_09p_battery],
+        };
+    },
+    readRecordWithMultiConsumption: (args: {withCost: boolean; model?: string; target?: string}): ModernExtend => {
+        const clusterName = "customClusterEwelink" as const;
+        const commandName = "readElectricityRecords" as const;
+        const recordTypes = {
+            hour: 0x00,
+            day: 0x01,
+            month: 0x02,
+            year: 0x03,
+        } as const;
+        const recordTypeBySubCommand: {[key: number]: keyof typeof recordTypes} = {
+            0: "hour",
+            1: "day",
+            2: "month",
+            3: "year",
+        };
+
+        const electricityRecordSubCommands = [0, 1, 2, 3];
+        const energyRecord24hSubCommand = 0x04;
+        const readRecordTimeout = 10 * 1000;
+        const readAllRecordTime = 0xffffffff;
+
+        type RecordType = keyof typeof recordTypes;
+
+        // Collect multi-packet responses before publishing the complete result.
+        type ReadRecordCache = {
+            type: RecordType;
+            subCommand: number;
+            recordsByPacket: Map<number, KeyValueAny[]>;
+            electricalFlag?: number;
+            startTime?: number;
+            endTime?: number;
+            totalPacket?: number;
+            requestedPacket?: number;
+            offsetSeconds: number;
+            isPagedAllRecordRead?: boolean;
+            isPagedRecordRead?: boolean;
+            timeout?: ReturnType<typeof setTimeout>;
+        };
+
+        const readRecordCaches = new Map<string, ReadRecordCache>();
+
+        // Isolate concurrent reads by endpoint and record type.
+        const getReadRecordCacheKey = (endpoint: Zh.Endpoint, subCommand: number): string => {
+            return `${endpoint.deviceIeeeAddress}_${endpoint.ID}_${subCommand}`;
+        };
+
+        const clearReadRecordCacheTimeout = (cache: ReadRecordCache): void => {
+            if (cache.timeout !== undefined) {
+                clearTimeout(cache.timeout);
+                delete cache.timeout;
+            }
+        };
+
+        const clearReadRecordCache = (cacheKey: string): void => {
+            const cache = readRecordCaches.get(cacheKey);
+            if (cache !== undefined) {
+                clearReadRecordCacheTimeout(cache);
+            }
+            readRecordCaches.delete(cacheKey);
+        };
+
+        const getReadRecordRecords = (cache: ReadRecordCache): KeyValueAny[] => {
+            return Array.from(cache.recordsByPacket.keys())
+                .sort((a, b) => a - b)
+                .flatMap((packetIndex) => cache.recordsByPacket.get(packetIndex) ?? []);
+        };
+
+        const getMonthStartUtcSeconds = (utcSeconds: number, monthOffset: number, offsetSeconds: number): number => {
+            const localDate = new Date((utcSeconds + offsetSeconds) * 1000);
+            const monthStartLocalMs = Date.UTC(localDate.getUTCFullYear(), localDate.getUTCMonth() + monthOffset, 1);
+            return Math.floor(monthStartLocalMs / 1000) - offsetSeconds;
+        };
+
+        const getRecordsTimeRangeLog = (records: KeyValueAny[]): string => {
+            const recordsWithTime = records.filter((record) => utils.isString(record.start) && utils.isString(record.end));
+            if (recordsWithTime.length === 0) {
+                return "";
+            }
+
+            const firstRecord = recordsWithTime[0];
+            const lastRecord = recordsWithTime[recordsWithTime.length - 1];
+            return `, time range ${firstRecord.start} - ${lastRecord.end}`;
+        };
+
+        const attachReadRecordTimeRange = (
+            records: KeyValueAny[],
+            subCommand: number,
+            cache: ReadRecordCache,
+            lastPackageTime?: number,
+        ): KeyValueAny[] => {
+            if (records.length === 0) {
+                return records;
+            }
+
+            // Year responses omit last_package_time_stamp, so use the requested end month as the anchor.
+            const timeAnchor = subCommand === recordTypes.year ? (lastPackageTime ?? cache.endTime) : lastPackageTime;
+            if (timeAnchor === undefined) {
+                return records;
+            }
+
+            return records.map((record, index) => {
+                let start: number;
+                let end: number;
+                if (subCommand === recordTypes.year) {
+                    const lastPackageUtcSeconds = deviceLocal2000ToUTCSeconds(timeAnchor, cache.offsetSeconds);
+                    start =
+                        getMonthStartUtcSeconds(lastPackageUtcSeconds, -(records.length - 1 - index), cache.offsetSeconds) -
+                        YEAR_2000_IN_UTC +
+                        cache.offsetSeconds;
+                    end =
+                        getMonthStartUtcSeconds(lastPackageUtcSeconds, -(records.length - 2 - index), cache.offsetSeconds) -
+                        YEAR_2000_IN_UTC +
+                        cache.offsetSeconds;
+                } else {
+                    let interval = 3600;
+                    if (subCommand === recordTypes.day || subCommand === recordTypes.month) {
+                        interval = 24 * 3600;
+                    }
+                    if (subCommand === recordTypes.day || subCommand === recordTypes.month) {
+                        end = timeAnchor - (records.length - 1 - index) * interval;
+                        start = end - interval;
+                    } else {
+                        start = timeAnchor - (records.length - 1 - index) * interval;
+                        end = start + interval;
+                    }
+                }
+
+                return {
+                    ...record,
+                    start: formatRecordTime(start, cache),
+                    end: formatRecordTime(end, cache),
+                };
+            });
+        };
+
+        // Publish any records already received if the next packet does not arrive.
+        const startReadRecordCacheWithTimeout = (cacheKey: string, cache: ReadRecordCache, publish: Publish): void => {
+            clearReadRecordCacheTimeout(cache);
+            cache.timeout = setTimeout(() => {
+                if (readRecordCaches.get(cacheKey) !== cache) {
+                    return;
+                }
+
+                readRecordCaches.delete(cacheKey);
+                const timeoutRecords =
+                    cache.subCommand === recordTypes.year
+                        ? attachReadRecordTimeRange(getReadRecordRecords(cache), cache.subCommand, cache)
+                        : getReadRecordRecords(cache);
+                if (cache.isPagedAllRecordRead) {
+                    publish({
+                        all_electricity_records: JSON.stringify({
+                            type: cache.type,
+                            page: cache.requestedPacket ?? 0,
+                            total: cache.totalPacket ?? 0,
+                            status: "partial",
+                            records: timeoutRecords,
+                        }),
+                    });
+                    return;
+                }
+                if (cache.isPagedRecordRead) {
+                    publish({
+                        electricity_records: JSON.stringify({
+                            type: cache.type,
+                            page: cache.requestedPacket ?? 0,
+                            total: cache.totalPacket ?? 0,
+                            status: "partial",
+                            records: timeoutRecords,
+                        }),
+                    });
+                    return;
+                }
+                publish({electricity_records: JSON.stringify({type: cache.type, status: "partial", records: timeoutRecords})});
+            }, readRecordTimeout);
+        };
+
+        const sendReadRecordPacket = async (entity: Zh.Endpoint | Zh.Group, cache: ReadRecordCache, packetIndex: number): Promise<void> => {
+            const data: number[] = [cache.subCommand];
+            cache.requestedPacket = packetIndex;
+
+            if (electricityRecordSubCommands.includes(cache.subCommand)) {
+                if (cache.electricalFlag === undefined || cache.startTime === undefined || cache.endTime === undefined) {
+                    throw new Error(`Cannot read ${cache.type} packet ${packetIndex}, missing request parameters`);
+                }
+                data.push(
+                    cache.electricalFlag,
+                    ...toUInt32LEBytes(cache.startTime),
+                    ...toUInt32LEBytes(cache.endTime),
+                    ...toUInt16LEBytes(packetIndex),
+                );
+            } else if (cache.subCommand === energyRecord24hSubCommand) {
+                data.push(...toUInt16LEBytes(packetIndex));
+            } else {
+                throw new Error(`Cannot read ${cache.type} packet ${packetIndex}, unsupported sub command ${cache.subCommand}`);
+            }
+
+            await entity.command<typeof clusterName, typeof commandName, SonoffEwelink>(
+                clusterName,
+                commandName,
+                {data},
+                {disableDefaultResponse: true, disableResponse: false},
+            );
+        };
+
+        // The device encodes local wall-clock time as seconds since 2000-01-01.
+        const parseRecordTime = (value: unknown, field: string, offsetSeconds: number): number => {
+            if (!utils.isString(value)) {
+                throw new Error(`Invalid read_electricity_records.${field}, expected ISO 8601 datetime with timezone`);
+            }
+            const utcSeconds = parseIsoWithOffsetToUtcSeconds(value);
+            if (utcSeconds === undefined || utcSeconds < YEAR_2000_IN_UTC) {
+                throw new Error(
+                    `Invalid read_electricity_records.${field}, expected ISO 8601 datetime with timezone at or after 2000-01-01T00:00:00Z`,
+                );
+            }
+            return utcToDeviceLocal2000Seconds(utcSeconds, offsetSeconds);
+        };
+
+        const getRecordTimeOffsetSeconds = (value: unknown, field: string): number => {
+            if (!utils.isString(value)) {
+                throw new Error(`Invalid read_electricity_records.${field}, expected ISO 8601 datetime with timezone`);
+            }
+            if (value.endsWith("Z")) {
+                return 0;
+            }
+
+            const offsetMatch = value.match(/([+-])(\d{2}):(\d{2})$/);
+            if (offsetMatch === null) {
+                throw new Error(`Invalid read_electricity_records.${field}, expected ISO 8601 datetime with timezone`);
+            }
+
+            const offsetHours = Number(offsetMatch[2]);
+            const offsetMinutes = Number(offsetMatch[3]);
+            if (offsetHours > 23 || offsetMinutes > 59) {
+                throw new Error(`Invalid read_electricity_records.${field}, expected a valid timezone offset`);
+            }
+
+            const sign = offsetMatch[1] === "+" ? 1 : -1;
+            return sign * (offsetHours * 60 + offsetMinutes) * 60;
+        };
+
+        const formatRecordTime = (deviceSeconds: number, cache: ReadRecordCache): string => {
+            return formatUtcSecondsToIsoWithOffset(deviceLocal2000ToUTCSeconds(deviceSeconds, cache.offsetSeconds), cache.offsetSeconds);
+        };
+
+        const readElectricityRecordsExpose = e
+            .composite("read_electricity_records", "read_electricity_records", ea.SET)
+            .withDescription(`Read electricity${args.withCost ? ", cost" : ""} or power history records from the plug.`)
+            .withFeature(e.enum("type", ea.SET, Object.keys(recordTypes)).withDescription("History record type to read."))
+            .withFeature(
+                e
+                    .numeric("page", ea.SET)
+                    .withValueMin(0)
+                    .withValueMax(0xffff)
+                    .withDescription("History page index. Used only by energy_record_24h reads."),
+            )
+            .withFeature(e.binary("with_energy", ea.SET, true, false).withDescription("Request consumed energy. Used by hour/day/month/year reads."))
+            .withFeature(
+                e.binary("with_reverse_energy", ea.SET, true, false).withDescription("Request reverse energy. Used by hour/day/month/year reads."),
+            );
+        if (args.withCost) {
+            readElectricityRecordsExpose.withFeature(
+                e.binary("with_cost", ea.SET, true, false).withDescription("Request electricity cost. Used by hour/day/month/year reads."),
+            );
+        }
+        readElectricityRecordsExpose
+            .withFeature(e.binary("with_timestamp", ea.SET, true, false).withDescription("Request the last timestamp in the response package."))
+            .withFeature(
+                e
+                    .text("start_time", ea.SET)
+                    .withDescription("Record start time in ISO 8601 format with timezone. Example: 2026-05-20T12:00:00+08:00."),
+            )
+            .withFeature(
+                e.text("end_time", ea.SET).withDescription("Record end time in ISO 8601 format with timezone. Example: 2026-05-21T12:00:00+08:00."),
+            );
+
+        const readAllElectricityRecordsExpose = e
+            .composite("read_all_electricity_records", "read_all_electricity_records", ea.SET)
+            .withDescription(`Read one page of full electricity${args.withCost ? ", cost" : ""} or reverse energy history records from the plug.`)
+            .withFeature(e.enum("type", ea.SET, ["hour", "day"]).withDescription("Full history record type to read."))
+            .withFeature(e.numeric("page", ea.SET).withValueMin(0).withValueMax(0xffff).withDescription("History page index to read."))
+            .withFeature(e.binary("with_energy", ea.SET, true, false).withDescription("Request consumed energy."))
+            .withFeature(e.binary("with_reverse_energy", ea.SET, true, false).withDescription("Request reverse energy."));
+        if (args.withCost) {
+            readAllElectricityRecordsExpose.withFeature(e.binary("with_cost", ea.SET, true, false).withDescription("Request electricity cost."));
+        }
+        readAllElectricityRecordsExpose.withFeature(
+            e.binary("with_timestamp", ea.SET, true, false).withDescription("Request the last timestamp in the response package."),
+        );
+
+        const exposes = [
+            readElectricityRecordsExpose,
+            readAllElectricityRecordsExpose,
+            e.text("electricity_records", ea.STATE).withDescription("Last electricity history response as JSON."),
+            e.text("all_electricity_records", ea.STATE).withDescription("Last full electricity history page response as JSON."),
+        ];
+        const expose: DefinitionExposesFunction = (device) =>
+            utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device as Zh.Device, args.target, args.model, "higher") ? exposes : [];
+
+        const fromZigbee: Fz.Converter<typeof clusterName, SonoffEwelink, ["raw"]>[] = [
+            {
+                cluster: clusterName,
+                type: ["raw"],
+                convert: (model, msg, publish) => {
+                    if (!(msg.data instanceof Buffer)) {
+                        return;
+                    }
+                    const parsedRawCommand = parseSWVZFRawZclCommand(msg.data);
+                    const isServerToClient = (msg.data[0] & 0b1000) !== 0;
+                    if (parsedRawCommand?.commandId !== 0x0d || !isServerToClient) {
+                        return;
+                    }
+                    const bytes = Array.from(parsedRawCommand.payload);
+                    if (bytes.length === 0) {
+                        logger.error("readRecordResp payload is empty", NS);
+                        return;
+                    }
+                    logger.info(`Received readRecordResp with payload: ${bytes.map((b) => b.toString(16).padStart(2, "0")).join(" ")}`, NS);
+                    if (bytes.length < 2) {
+                        logger.error(`readRecordResp payload too short, expected at least 2 bytes but got ${bytes.length}`, NS);
+                        return;
+                    }
+
+                    // Payload: sub-command (uint8), status (uint8), followed by record data.
+                    const subCommand = bytes[0];
+                    const type = recordTypeBySubCommand[subCommand];
+                    if (type === undefined) {
+                        logger.error(`readRecordResp unknown sub command: ${subCommand}`, NS);
+                        return;
+                    }
+
+                    const cacheKey = getReadRecordCacheKey(msg.endpoint, subCommand);
+                    const status = bytes[1];
+                    const cache = readRecordCaches.get(cacheKey);
+                    if (cache === undefined) {
+                        logger.warning(`Ignoring readRecordResp ${type} because no active read is waiting for it`, NS);
+                        return;
+                    }
+
+                    if (status !== 0) {
+                        logger.error(`readRecordResp failed with status=${status}, type=${type}`, NS);
+                        clearReadRecordCache(cacheKey);
+                        const property = cache.isPagedAllRecordRead ? "all_electricity_records" : "electricity_records";
+                        publish({[property]: JSON.stringify({type, status: "failed", status_code: status})});
+                        return;
+                    }
+
+                    const responseData = bytes.slice(2);
+                    let totalPacket: number | undefined;
+                    let currentPacket: number | undefined;
+                    let lastPackageTime: number | undefined;
+                    const records: KeyValueAny[] = [];
+                    let packetElectricalFlag: number | undefined;
+
+                    if (electricityRecordSubCommands.includes(subCommand)) {
+                        if (responseData.length < 5) {
+                            logger.error(`readRecordResp ${type} payload too short, expected at least 5 bytes but got ${responseData.length}`, NS);
+                            return;
+                        }
+
+                        const electricalFlag = responseData[0];
+                        packetElectricalFlag = electricalFlag;
+                        // electricalFlag: bit 0 energy, bit 1 reverse energy, bit 2 cost, bit 3 trailing timestamp.
+                        const withEnergy = (electricalFlag & 0b0001) !== 0;
+                        const withReverseEnergy = (electricalFlag & 0b0010) !== 0;
+                        const withCost = (electricalFlag & 0b0100) !== 0;
+                        const withTimestamp = (electricalFlag & 0b1000) !== 0;
+                        const valueByteLength = 4;
+                        const recordByteLength =
+                            (withEnergy ? valueByteLength : 0) + (withReverseEnergy ? valueByteLength : 0) + (withCost ? valueByteLength : 0);
+
+                        totalPacket = readUInt16LE(responseData, 1);
+                        currentPacket = readUInt16LE(responseData, 3);
+
+                        if (recordByteLength === 0) {
+                            logger.error(`readRecordResp ${type} has no requested value fields`, NS);
+                        } else {
+                            let dataEndIndex = responseData.length;
+                            // Year responses omit the timestamp; otherwise bit 3 reserves the last four bytes for it.
+                            if (withTimestamp && subCommand !== recordTypes.year && dataEndIndex >= 9) {
+                                dataEndIndex -= 4;
+                                const packetLastPackageTime = readUInt32LE(responseData, dataEndIndex);
+                                if (packetLastPackageTime !== 0) {
+                                    lastPackageTime = packetLastPackageTime;
+                                }
+                            }
+
+                            let index = 5;
+                            while (index + recordByteLength <= dataEndIndex) {
+                                const record: KeyValueAny = {};
+                                if (withEnergy) {
+                                    record.energy = readUInt32LE(responseData, index);
+                                    index += valueByteLength;
+                                }
+                                if (withReverseEnergy) {
+                                    record.reverse_energy = readUInt32LE(responseData, index);
+                                    index += valueByteLength;
+                                }
+                                if (withCost) {
+                                    record.cost = readUInt32LE(responseData, index) / 100;
+                                    index += valueByteLength;
+                                }
+                                records.push(record);
+                            }
+                            if (index < dataEndIndex) {
+                                logger.warning(
+                                    `readRecordResp ${type} packet=${currentPacket} has ${dataEndIndex - index} leftover bytes, ` +
+                                        `expected ${recordByteLength} bytes per record`,
+                                    NS,
+                                );
+                            }
+                        }
+                    } else {
+                        logger.error(`readRecordResp unknown sub command: ${subCommand}`, NS);
+                        return;
+                    }
+
+                    // Ignore stale and out-of-order packets from earlier reads.
+                    if (currentPacket === undefined || totalPacket === undefined) {
+                        logger.error(`readRecordResp ${type} is missing packet indexes`, NS);
+                        return;
+                    }
+                    if (totalPacket === 0 || currentPacket >= totalPacket) {
+                        logger.warning(`Ignoring readRecordResp ${type} packet=${currentPacket}, total packets=${totalPacket}`, NS);
+                        return;
+                    }
+                    if (currentPacket !== cache.requestedPacket) {
+                        logger.warning(`Ignoring readRecordResp ${type} packet=${currentPacket}, expected packet=${cache.requestedPacket}`, NS);
+                        return;
+                    }
+                    if (packetElectricalFlag !== undefined && cache.electricalFlag !== undefined && packetElectricalFlag !== cache.electricalFlag) {
+                        logger.warning(
+                            `Ignoring readRecordResp ${type} packet=${currentPacket} with unexpected electrical flag ${packetElectricalFlag}`,
+                            NS,
+                        );
+                        return;
+                    }
+                    if (
+                        lastPackageTime !== undefined &&
+                        (electricityRecordSubCommands.includes(cache.subCommand) || cache.subCommand === energyRecord24hSubCommand) &&
+                        cache.startTime !== undefined &&
+                        cache.endTime !== undefined &&
+                        !(cache.startTime === readAllRecordTime && cache.endTime === readAllRecordTime) &&
+                        (lastPackageTime < cache.startTime || lastPackageTime > cache.endTime)
+                    ) {
+                        // The timestamp marks the packet boundary, which is not always the final record's start.
+                        logger.warning(
+                            `readRecordResp unexpected last timestamp ${cache.type} packet=${currentPacket} has ` +
+                                `${formatRecordTime(lastPackageTime, cache)}, expected between ` +
+                                `${formatRecordTime(cache.startTime, cache)} and ` +
+                                `${formatRecordTime(cache.endTime, cache)}`,
+                            NS,
+                        );
+                    }
+
+                    clearReadRecordCacheTimeout(cache);
+                    // Day/month timestamps are record end times; the other types report record start times.
+                    cache.totalPacket = totalPacket;
+                    const packetRecords = attachReadRecordTimeRange(records, subCommand, cache, lastPackageTime);
+                    cache.recordsByPacket.set(currentPacket, packetRecords);
+
+                    if (cache.isPagedAllRecordRead) {
+                        clearReadRecordCache(cacheKey);
+                        logger.info(
+                            `readRecordResp ${type} paged packet ${currentPacket}/${totalPacket - 1}${getRecordsTimeRangeLog(packetRecords)}, ` +
+                                `publishing ${packetRecords.length} records`,
+                            NS,
+                        );
+                        publish({
+                            all_electricity_records: JSON.stringify({
+                                type,
+                                page: currentPacket,
+                                total: totalPacket,
+                                records: packetRecords,
+                            }),
+                        });
+                        return;
+                    }
+                    if (cache.isPagedRecordRead) {
+                        clearReadRecordCache(cacheKey);
+                        logger.info(
+                            `readRecordResp ${type} paged packet ${currentPacket}/${totalPacket - 1}${getRecordsTimeRangeLog(packetRecords)}, ` +
+                                `publishing ${packetRecords.length} records`,
+                            NS,
+                        );
+                        publish({
+                            electricity_records: JSON.stringify({
+                                type,
+                                page: currentPacket,
+                                total: totalPacket,
+                                records: packetRecords,
+                            }),
+                        });
+                        return;
+                    }
+
+                    if (currentPacket + 1 < totalPacket) {
+                        const nextPacket = currentPacket + 1;
+                        logger.info(
+                            `readRecordResp ${type} packet ${currentPacket}/${totalPacket - 1}${getRecordsTimeRangeLog(packetRecords)}, ` +
+                                `requesting packet ${nextPacket}`,
+                            NS,
+                        );
+                        setTimeout(() => {
+                            if (readRecordCaches.get(cacheKey) !== cache) {
+                                return;
+                            }
+                            sendReadRecordPacket(msg.endpoint, cache, nextPacket)
+                                .then(() => startReadRecordCacheWithTimeout(cacheKey, cache, publish))
+                                .catch((error) => {
+                                    clearReadRecordCache(cacheKey);
+                                    logger.error(`readRecordResp failed to request next packet for ${type}: ${String(error)}`, NS);
+                                    publish({electricity_records: JSON.stringify({type, status: "failed", error: String(error)})});
+                                });
+                        }, 0);
+                        return;
+                    }
+
+                    clearReadRecordCache(cacheKey);
+                    const collectedRecords =
+                        subCommand === recordTypes.year
+                            ? attachReadRecordTimeRange(getReadRecordRecords(cache), subCommand, cache, lastPackageTime)
+                            : getReadRecordRecords(cache);
+                    const publishedRecords = subCommand === recordTypes.year ? collectedRecords.slice(0, 12) : collectedRecords;
+                    logger.info(
+                        `readRecordResp ${type} final packet ${currentPacket}/${totalPacket - 1}${getRecordsTimeRangeLog(publishedRecords)}, ` +
+                            `publishing ${publishedRecords.length} records`,
+                        NS,
+                    );
+                    const publishedPayload: KeyValueAny = {
+                        type,
+                        records: publishedRecords,
+                    };
+                    if (cache.startTime !== undefined) publishedPayload.start = formatRecordTime(cache.startTime, cache);
+                    if (cache.endTime !== undefined) publishedPayload.end = formatRecordTime(cache.endTime, cache);
+                    publish({electricity_records: JSON.stringify(publishedPayload)});
+                },
+            },
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["read_electricity_records"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const payload = value as KeyValueAny;
+                    const subCommand = recordTypes[payload.type as keyof typeof recordTypes];
+                    if (subCommand === undefined) {
+                        throw new Error(`Invalid ${key}.type, expected one of: ${Object.keys(recordTypes).join(", ")}`);
+                    }
+                    if (!utils.isEndpoint(entity)) {
+                        throw new Error(`${key} can only be used on a device endpoint`);
+                    }
+                    let offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+
+                    const cache: ReadRecordCache = {
+                        type: payload.type as RecordType,
+                        subCommand,
+                        recordsByPacket: new Map<number, KeyValueAny[]>(),
+                        offsetSeconds,
+                    };
+                    if (electricityRecordSubCommands.includes(subCommand)) {
+                        const withEnergy = payload.with_energy;
+                        const withReverseEnergy = payload.with_reverse_energy;
+                        const withCost = args.withCost ? payload.with_cost : false;
+                        const withTimestamp = payload.with_timestamp;
+                        if (!utils.isBoolean(withEnergy)) throw new Error(`Invalid ${key}.with_energy, expected boolean`);
+                        if (!utils.isBoolean(withReverseEnergy)) throw new Error(`Invalid ${key}.with_reverse_energy, expected boolean`);
+                        if (args.withCost && !utils.isBoolean(withCost)) throw new Error(`Invalid ${key}.with_cost, expected boolean`);
+                        if (!utils.isBoolean(withTimestamp)) throw new Error(`Invalid ${key}.with_timestamp, expected boolean`);
+                        if (!withEnergy && !withReverseEnergy && !withCost) {
+                            const supportedFields = args.withCost
+                                ? "with_energy, with_reverse_energy or with_cost"
+                                : "with_energy or with_reverse_energy";
+                            throw new Error(`Invalid ${key}, at least one of ${supportedFields} must be true`);
+                        }
+
+                        const startOffsetSeconds = getRecordTimeOffsetSeconds(payload.start_time, "start_time");
+                        const endOffsetSeconds = getRecordTimeOffsetSeconds(payload.end_time, "end_time");
+                        if (startOffsetSeconds !== endOffsetSeconds) {
+                            throw new Error(`Invalid ${key}, start_time and end_time must use the same timezone offset`);
+                        }
+                        offsetSeconds = startOffsetSeconds;
+                        cache.offsetSeconds = offsetSeconds;
+                        const startTime = parseRecordTime(payload.start_time, "start_time", offsetSeconds);
+                        const endTime = parseRecordTime(payload.end_time, "end_time", offsetSeconds);
+                        if (endTime < startTime) {
+                            throw new Error(`Invalid ${key}.end_time, expected end_time to be greater than or equal to start_time`);
+                        }
+
+                        const electricalFlag =
+                            (withEnergy ? 0b0001 : 0) | (withReverseEnergy ? 0b0010 : 0) | (withCost ? 0b0100 : 0) | (withTimestamp ? 0b1000 : 0);
+                        cache.electricalFlag = electricalFlag;
+                        cache.startTime = startTime;
+                        cache.endTime = endTime;
+                    }
+                    const page = payload.page ?? 0;
+
+                    const cacheKey = getReadRecordCacheKey(entity, subCommand);
+                    // A new read replaces an unfinished read of the same type.
+                    clearReadRecordCache(cacheKey);
+                    readRecordCaches.set(cacheKey, cache);
+                    try {
+                        const firstPacket = cache.isPagedRecordRead ? page : 0;
+                        await sendReadRecordPacket(entity, cache, firstPacket);
+                        startReadRecordCacheWithTimeout(cacheKey, cache, meta.publish);
+                    } catch (error) {
+                        clearReadRecordCache(cacheKey);
+                        throw error;
+                    }
+
+                    return {state: {[key]: payload}};
+                },
+            },
+            {
+                key: ["read_all_electricity_records"],
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertObject(value, key);
+                    const payload = value as KeyValueAny;
+                    const subCommand = recordTypes[payload.type as keyof typeof recordTypes];
+                    if (subCommand === undefined || !["hour", "day"].includes(String(payload.type))) {
+                        throw new Error(`Invalid ${key}.type, expected one of: hour, day`);
+                    }
+                    if (!utils.isEndpoint(entity)) {
+                        throw new Error(`${key} can only be used on a device endpoint`);
+                    }
+                    const offsetSeconds = getRuntimeLocalOffsetSeconds(Math.floor(Date.now() / 1000));
+                    const withEnergy = payload.with_energy;
+                    const withReverseEnergy = payload.with_reverse_energy;
+                    const withCost = args.withCost ? payload.with_cost : false;
+                    const withTimestamp = payload.with_timestamp;
+                    if (!utils.isBoolean(withEnergy)) throw new Error(`Invalid ${key}.with_energy, expected boolean`);
+                    if (!utils.isBoolean(withReverseEnergy)) throw new Error(`Invalid ${key}.with_reverse_energy, expected boolean`);
+                    if (args.withCost && !utils.isBoolean(withCost)) throw new Error(`Invalid ${key}.with_cost, expected boolean`);
+                    if (!utils.isBoolean(withTimestamp)) throw new Error(`Invalid ${key}.with_timestamp, expected boolean`);
+                    if (!withEnergy && !withReverseEnergy && !withCost) {
+                        const supportedFields = args.withCost
+                            ? "with_energy, with_reverse_energy or with_cost"
+                            : "with_energy or with_reverse_energy";
+                        throw new Error(`Invalid ${key}, at least one of ${supportedFields} must be true`);
+                    }
+                    const page = payload.page;
+                    if (typeof page !== "number" || !Number.isInteger(page) || page < 0 || page > 0xffff) {
+                        throw new Error(`Invalid ${key}.page, expected integer between 0 and 65535`);
+                    }
+
+                    const electricalFlag =
+                        (withEnergy ? 0b0001 : 0) | (withReverseEnergy ? 0b0010 : 0) | (withCost ? 0b0100 : 0) | (withTimestamp ? 0b1000 : 0);
+                    const cache: ReadRecordCache = {
+                        type: payload.type as RecordType,
+                        subCommand,
+                        recordsByPacket: new Map<number, KeyValueAny[]>(),
+                        offsetSeconds,
+                        electricalFlag,
+                        // Full-history page reads require both time fields to be 0xffffffff.
+                        startTime: readAllRecordTime,
+                        endTime: readAllRecordTime,
+                        isPagedAllRecordRead: true,
+                    };
+
+                    const cacheKey = getReadRecordCacheKey(entity, subCommand);
+                    clearReadRecordCache(cacheKey);
+                    readRecordCaches.set(cacheKey, cache);
+                    try {
+                        await sendReadRecordPacket(entity, cache, page);
+                        startReadRecordCacheWithTimeout(cacheKey, cache, meta.publish);
+                    } catch (error) {
+                        clearReadRecordCache(cacheKey);
+                        throw error;
+                    }
+
+                    return {state: {[key]: payload}};
+                },
+            },
+        ];
+
+        return {
+            exposes: [expose],
+            fromZigbee,
+            toZigbee,
+            isModernExtend: true,
         };
     },
 };
@@ -11372,6 +12093,9 @@ export const definitions: DefinitionWithExtend[] = [
                     acPowerMaxOverloadEnable: {name: "acPowerMaxOverloadEnable", ID: 0x7010, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     acPowerMaxOverload: {name: "acPowerMaxOverload", ID: 0x7011, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                     totalEnergyConsumption: {name: "totalEnergyConsumption", ID: 0x701e, type: Zcl.DataType.UINT32, max: 0xffffffff},
+                    outputEnergyToday: {name: "outputEnergyToday", ID: 0x7018, type: Zcl.DataType.UINT32},
+                    outputEnergyMonth: {name: "outputEnergyMonth", ID: 0x7019, type: Zcl.DataType.UINT32},
+                    totalOutputEnergyConsumption: {name: "totalOutputEnergyConsumption", ID: 0x701f, type: Zcl.DataType.UINT32},
                 },
                 commands: {
                     protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -11385,8 +12109,19 @@ export const definitions: DefinitionWithExtend[] = [
                         ],
                     },
                     readRecord: {name: "readRecord", ID: 0x02, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
+                    readElectricityRecords: {
+                        name: "readElectricityRecords",
+                        ID: 0x0d,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
                 },
-                commandsResponse: {},
+                commandsResponse: {
+                    readRecordResp: {
+                        name: "readRecordResp",
+                        ID: 0x0d,
+                        parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}],
+                    },
+                },
             }),
             m.onOff({
                 powerOnBehavior: true,
@@ -11412,12 +12147,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 reporting: {min: "10_SECONDS", max: "MAX", change: 0},
                 fzConvert: (model, msg, publish, options, meta) => {
-                    // Device keeps reporting a acCurrentPowerValue after turning OFF.
-                    // Make sure power = 0 when turned OFF
-                    // https://github.com/Koenkk/zigbee2mqtt/issues/28470
                     if ("acCurrentPowerValue" in msg.data) {
-                        const power = meta.state?.state === "ON" ? msg.data.acCurrentPowerValue / 1000 : 0;
-                        return {power, ac_current_power_value: power};
+                        return {power: signedInt32MilliToValue(msg.data.acCurrentPowerValue)};
                     }
                 },
             }),
@@ -11449,31 +12180,9 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 scale: 1000,
             }),
-            m.numeric<"seMetering">({
-                name: "total_energy_consumption",
-                cluster: "seMetering",
-                attribute: "currentSummDelivered",
-                description: "CurrentSummationDelivered",
-                unit: "kWh",
-                access: "STATE_GET",
-                fzConvert: (model, msg) => {
-                    if (msg.data.currentSummDelivered === undefined) {
-                        return;
-                    }
-                    const value = msg.data.currentSummDelivered;
-                    const numericValue = typeof value === "bigint" ? Number(value) : value;
-                    if (typeof numericValue !== "number" || numericValue === 0xffffffffffff || Number.isNaN(numericValue)) {
-                        return;
-                    }
-
-                    const multiplier = (msg.endpoint.getClusterAttributeValue("seMetering", "multiplier") as number) || 1;
-                    const divisor = (msg.endpoint.getClusterAttributeValue("seMetering", "divisor") as number) || 1000;
-                    const factor = divisor ? multiplier / divisor : 1;
-                    return {total_energy_consumption: numericValue * factor};
-                },
-            }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
+                label: "Energy today",
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -11482,10 +12191,31 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "output_energy_today",
+                label: "Export energy today",
+                cluster: "customClusterEwelink",
+                attribute: "outputEnergyToday",
+                description: "Energy fed back today through the plug.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
+                label: "Energy this month",
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "output_energy_month",
+                label: "Export energy this month",
+                cluster: "customClusterEwelink",
+                attribute: "outputEnergyMonth",
+                description: "Energy fed back this month through the plug.",
                 unit: "kWh",
                 scale: 1000,
                 access: "STATE_GET",
@@ -11505,6 +12235,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "customClusterEwelink",
                 attribute: "totalEnergyConsumption",
                 description: "Total energy used since the device started.",
+                unit: "kWh",
+                scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "total_output_energy",
+                label: "Total export energy",
+                cluster: "customClusterEwelink",
+                attribute: "totalOutputEnergyConsumption",
+                description: "Total energy fed back through the plug.",
                 unit: "kWh",
                 scale: 1000,
                 access: "STATE_GET",
@@ -11586,14 +12326,15 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 entityCategory: "config",
             }),
-            sonoffExtend.readConsumptionRecord("customClusterEwelink", "readRecord"),
+            sonoffExtend.readConsumptionRecord("customClusterEwelink", "readRecord", "BASIC-ZB1GSP", "1.3.0"),
+            sonoffExtend.readRecordWithMultiConsumption({withCost: false, model: "BASIC-ZB1GSP", target: "1.3.0"}),
             sonoffExtend.clearConsumptionHistory(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
-            await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            // await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
                 ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],

@@ -2434,7 +2434,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee movement sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        exposes: [e.occupancy()],
+        exposes: [e.occupancy(), e.tamper()],
+        extend: [m.battery({voltage: true, lowStatus: true})],
     },
     {
         zigbeeModel: ["4512764"],
@@ -2697,12 +2698,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512792",
         vendor: "Namron",
         description: "Simplify 1-2p relay (Zigbee / BT)",
+        version: "0.0.1",
         extend: [
             m.onOff(),
             m.electricityMeter({
-                power: {multiplier: 1, divisor: 10}, // W
+                power: {multiplier: 1, divisor: 1}, // W
                 voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
-                current: {multiplier: 1, divisor: 100}, // A
+                current: {multiplier: 1, divisor: 1000}, // mA -> 4700 -> 4.7
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],
