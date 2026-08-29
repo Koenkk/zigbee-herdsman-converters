@@ -85,6 +85,40 @@ const valueConverterLocal = {
                 .join("");
         },
     },
+    // Screen name for the ZMZ609-2: length-prefixed UTF-8 (0x00, 2-byte BE length, payload),
+    // unlike `name` above which is a plain UTF-8 byte array.
+    screenName: {
+        to: (v: string) => {
+            const bytes = Array.from(Buffer.from(String(v ?? ""), "utf8"));
+            return [0x00, (bytes.length >> 8) & 0xff, bytes.length & 0xff, ...bytes];
+        },
+        from: (v: number) => {
+            const buffer = Buffer.from(Object.values(v) as number[]);
+            if (buffer.length >= 3 && buffer[0] === 0x00) {
+                const declaredLength = buffer.readUInt16BE(1);
+                return buffer
+                    .subarray(3, 3 + declaredLength)
+                    .toString("utf8")
+                    .replace(/\0+$/g, "");
+            }
+            return buffer.toString("utf8").replace(/\0+$/g, "");
+        },
+    },
+    radarDistance: tuya.valueConverterBasic.lookup({
+        short: tuya.enum(0),
+        medium_short: tuya.enum(1),
+        medium: tuya.enum(2),
+        medium_long: tuya.enum(3),
+        long: tuya.enum(4),
+    }),
+    screenOffTime: tuya.valueConverterBasic.lookup({
+        none: tuya.enum(0),
+        "10": tuya.enum(1),
+        "20": tuya.enum(2),
+        "30": tuya.enum(3),
+        "45": tuya.enum(4),
+        "60": tuya.enum(5),
+    }),
 };
 
 const tzLocal = {
@@ -208,6 +242,13 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+    // ZMZ609-2 sends an unsolicited raw reply on cluster 0xe000 after tuya.configureMagicPacket;
+    // ignore it to avoid a "No converter available" warning.
+    ignoreTuyaConfigureResponse: {
+        cluster: 0xe000,
+        type: ["raw"],
+        convert: () => undefined,
+    } satisfies Fz.Converter<number, undefined, ["raw"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1145,6 +1186,82 @@ export const definitions: DefinitionWithExtend[] = [
                     ),
                 ],
                 [13, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_o409r73p", "_TZE28C1000000_o409r73p"]),
+        model: "ZMZ609-2",
+        vendor: "Zemismart",
+        description: "Zigbee neutral touchscreen switch 2 gang with power monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"}), tuya.modernExtend.tuyaWeatherForecast()],
+        fromZigbee: [tuya.fz.datapoints, fzLocal.ignoreTuyaConfigureResponse],
+        toZigbee: [tuya.tz.datapoints],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
+        exposes: [
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
+            e
+                .numeric("countdown_l1", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription("Countdown for gang 1"),
+            e
+                .numeric("countdown_l2", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription("Countdown for gang 2"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e.power_on_behavior().withEndpoint("l1").withAccess(ea.STATE_SET),
+            e.power_on_behavior().withEndpoint("l2").withAccess(ea.STATE_SET),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.child_lock(),
+            e
+                .numeric("backlight", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Backlight brightness"),
+            e.enum("radar_distance", ea.STATE_SET, ["short", "medium_short", "medium", "medium_long", "long"]).withDescription("Radar distance"),
+            e.enum("screen_off_time", ea.STATE_SET, ["none", "10", "20", "30", "45", "60"]).withDescription("Screen off time"),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Display name for gang 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Display name for gang 2"),
+            e.energy(),
+            e.current(),
+            e.power(),
+            e.voltage(),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [7, "countdown_l1", tuya.valueConverter.countdown],
+                [8, "countdown_l2", tuya.valueConverter.countdown],
+                [13, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [16, "radar_switch", tuya.valueConverter.onOff],
+                [20, "energy", tuya.valueConverter.divideBy1000],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [29, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [30, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "child_lock", tuya.valueConverter.onOff],
+                [102, "backlight", tuya.valueConverter.raw],
+                [104, "radar_distance", valueConverterLocal.radarDistance],
+                [105, "name_l1", valueConverterLocal.screenName],
+                [106, "name_l2", valueConverterLocal.screenName],
+                [111, "screen_off_time", valueConverterLocal.screenOffTime],
+                [112, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
+                [113, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
             ],
         },
     },
