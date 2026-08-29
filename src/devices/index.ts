@@ -186,6 +186,7 @@ import {definitions as lincukoo} from "./lincukoo";
 import {definitions as linkind} from "./linkind";
 import {definitions as linknlink} from "./linknlink";
 import {definitions as linptech} from "./linptech";
+import {definitions as linxura} from "./linxura";
 import {definitions as livingwise} from "./livingwise";
 import {definitions as livolo} from "./livolo";
 import {definitions as lixee} from "./lixee";
@@ -572,6 +573,7 @@ const definitions: DefinitionWithExtend[] = [
     ...linkind,
     ...linknlink,
     ...linptech,
+    ...linxura,
     ...livingwise,
     ...livolo,
     ...lixee,
