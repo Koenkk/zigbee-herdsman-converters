@@ -30423,7 +30423,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-227ZP","ZG-227ZH"],
+        zigbeeModel: ["ZG-227ZP", "ZG-227ZH"],
         model: "ZG-227ZP",
         vendor: "HOBEIAN",
         description: "Temperature(NTC) & humidity sensor",
