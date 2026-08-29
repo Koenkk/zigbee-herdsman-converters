@@ -11178,7 +11178,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.externalSwitchTriggerMode(),
         ],
-        ota: true,
+        ota: {
+            // imageType is duplicated with SWV-ZFE/ZNE, so modelId is added to prevent OTA firmware error detection
+            modelId: "MINI-ZBRBS",
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             try {
@@ -11645,7 +11648,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.readSWVZFRecord(true),
         ],
-        ota: true,
+        ota: {
+            // imageType is duplicated with MINI-ZBRBS, so modelId is added to prevent OTA firmware error detection
+            modelId: "SWV-ZFE",
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {
@@ -11910,7 +11916,10 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.readSWVZFRecord(false),
         ],
-        ota: true,
+        ota: {
+            // imageType is duplicated with MINI-ZBRBS, so modelId is added to prevent OTA firmware error detection
+            modelId: "SWV-ZFE",
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {
