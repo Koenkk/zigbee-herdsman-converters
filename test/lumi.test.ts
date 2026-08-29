@@ -1,8 +1,8 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
-import type {Definition, Fz, Tz} from "../src/lib/types";
+import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
@@ -1077,6 +1077,51 @@ describe("lib/lumi", () => {
                 );
                 expect(result).toStrictEqual({});
             });
+        });
+    });
+
+    describe("WXKG01LM hold length", () => {
+        const definition = {model: "WXKG01LM"} as Definition;
+
+        const message = (onOff: number, sequence: number, device: ReturnType<typeof mockDevice>) =>
+            ({
+                device,
+                endpoint: device.endpoints[0],
+                data: {onOff},
+                meta: {zclTransactionSequenceNumber: sequence},
+            }) as unknown as Fz.Message<"genOnOff", undefined, "attributeReport">;
+
+        beforeEach(() => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date("2026-08-22T00:00:00Z"));
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it("reports the hold length under action_duration, which is not part of the device state", () => {
+            const device = mockDevice({modelID: "lumi.sensor_switch", endpoints: [{ID: 1}]}, "EndDevice");
+            const published: KeyValueAny[] = [];
+
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(0, 1, device), (payload) => published.push(payload), {}, null);
+            // The converter calls a press a hold once 1000 ms pass without a release.
+            vi.advanceTimersByTime(1000);
+            vi.advanceTimersByTime(1500);
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(1, 2, device), (payload) => published.push(payload), {}, null);
+
+            expect(published).toStrictEqual([{action: "hold"}, {action: "release", action_duration: 1500}]);
+        });
+
+        it("leaves a short press without a duration at all", () => {
+            const device = mockDevice({modelID: "lumi.sensor_switch", endpoints: [{ID: 1}], ieeeAddr: "0x87654321"}, "EndDevice");
+            const published: KeyValueAny[] = [];
+
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(0, 3, device), (payload) => published.push(payload), {}, null);
+            vi.advanceTimersByTime(200);
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(1, 4, device), (payload) => published.push(payload), {}, null);
+
+            expect(published).toStrictEqual([{action: "single"}]);
         });
     });
 });
