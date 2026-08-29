@@ -30429,40 +30429,35 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature(NTC) & humidity sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e
-                .numeric("ntc_temperature", ea.STATE)
-                .withUnit("°C")
-                .withDescription("External NTC temperature"),
+            e.numeric("ntc_temperature", ea.STATE).withUnit("°C").withDescription("External NTC temperature"),
             e.temperature(),
             e.humidity(),
+            e.enum("ntc_alarm", ea.STATE, ["loweralarm", "upperalarm", "cancel"]).withDescription("NTC temperature alarm"),
             e
-                .enum("ntc_alarm", ea.STATE, ["loweralarm", "upperalarm", "cancel"])
-                .withDescription("NTC temperature alarm"),
-            e
-            .numeric("ntc_temperature_calibration", ea.STATE_SET)
-            .withValueMin(-5.0)
-            .withValueMax(5.0)
-            .withValueStep(0.1)
-            .withUnit("°C")
-            .withDescription("NTC temperature calibration"),
+                .numeric("ntc_temperature_calibration", ea.STATE_SET)
+                .withValueMin(-5.0)
+                .withValueMax(5.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("NTC temperature calibration"),
             tuya.exposes.temperatureUnit(),
             tuya.exposes.temperatureCalibration(),
             tuya.exposes.humidityCalibration(),
             tuya.exposes.temperatureSampling(),
             e
-            .numeric("ntc_high_temp_alarm_threshold", ea.STATE_SET)
-            .withValueMin(-20.0)
-            .withValueMax(130.0)
-            .withValueStep(0.1)
-            .withUnit("°C")
-            .withDescription("NTC high temp alarm threshold"),
-           e
-            .numeric("ntc_low_temp_alarm_threshold", ea.STATE_SET)
-            .withValueMin(-20.0)
-            .withValueMax(130.0)
-            .withValueStep(0.1)
-            .withUnit("°C")
-            .withDescription("NTC high temp alarm threshold"),
+                .numeric("ntc_high_temp_alarm_threshold", ea.STATE_SET)
+                .withValueMin(-20.0)
+                .withValueMax(130.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("NTC high temp alarm threshold"),
+            e
+                .numeric("ntc_low_temp_alarm_threshold", ea.STATE_SET)
+                .withValueMin(-20.0)
+                .withValueMax(130.0)
+                .withValueStep(0.1)
+                .withUnit("°C")
+                .withDescription("NTC high temp alarm threshold"),
             e.battery(),
         ],
         meta: {
@@ -30478,7 +30473,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [10, "ntc_high_temp_alarm_threshold", tuya.valueConverter.localTempCalibration3],
                 [11, "ntc_low_temp_alarm_threshold", tuya.valueConverter.localTempCalibration3],
                 [14, "ntc_alarm", tuya.valueConverterBasic.lookup({loweralarm: tuya.enum(0), upperalarm: tuya.enum(1), cancel: tuya.enum(2)})],
-                [105,"ntc_temperature",tuya.valueConverter.divideBy10],
+                [105, "ntc_temperature", tuya.valueConverter.divideBy10],
             ],
         },
     },
