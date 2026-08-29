@@ -284,6 +284,7 @@ import {definitions as schneiderElectric} from "./schneider_electric";
 import {definitions as schwaiger} from "./schwaiger";
 import {definitions as seastarIntelligence} from "./seastar_intelligence";
 import {definitions as securifi} from "./securifi";
+import {definitions as selena} from "./selena";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
 import {definitions as sercomm} from "./sercomm";
@@ -667,6 +668,7 @@ const definitions: DefinitionWithExtend[] = [
     ...schwaiger,
     ...seastarIntelligence,
     ...securifi,
+    ...selena,
     ...sengled,
     ...senoro,
     ...sercomm,
