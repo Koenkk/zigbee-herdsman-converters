@@ -1,5 +1,24 @@
 # Changelog
 
+## [26.101.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.100.0...v26.101.0) (2026-08-29)
+
+
+### Features
+
+* **add:** LF101W2-Mod ([#13038](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13038)) ([9d4772c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9d4772c38496cde08bdd151838e2fcb3c988a826))
+* **add:** SC0002 ([#13035](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13035)) ([02ffb58](https://github.com/Koenkk/zigbee-herdsman-converters/commit/02ffb5876a2325c56c6feca08733ded356a67844))
+* **add:** SCHA-1-MO, SHCB-1-MO ([#12981](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12981)) ([de407f2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/de407f2f0cd4fef0c4f0f897db4b1529e239519a))
+* **add:** Zemismart ZMZ609-2 ([#13044](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13044)) ([05f0ae8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/05f0ae806eb9d1cf290684708443cb8b0e6740fb))
+* **add:** ZG-227ZP ([#13037](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13037)) ([6881c28](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6881c28747d9551f5798e2730f352db10c794038))
+
+
+### Bug Fixes
+
+* Fix unspecified error with `unknown` Parameter in utils.ts ([#13036](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13036)) ([9cedcc0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cedcc0091759e68074bc76c8f45364c598e71f4))
+* Konke KK-WA-J01W-2020: add battery support ([#12953](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12953)) ([3ba0a8a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3ba0a8ac7ac1b25ea107ccc3e070ed1ac79092b2))
+* Publish button hold length as action_duration, not duration ([#12968](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12968)) ([cc83152](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc83152b09fd50a11fb23ee3b95a7d54cfdc3d14))
+* SONOFF MINI-ZBRBS and SWV-ZF* / ZN* OTA matching ([#12960](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12960)) ([b60f41d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b60f41d98167a01d3d84c1dd7676a3da87f3fc0a))
+
 ## [26.100.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.99.0...v26.100.0) (2026-08-28)
 
 
