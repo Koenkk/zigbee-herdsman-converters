@@ -30469,7 +30469,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, "temperature_sampling", tuya.valueConverter.raw],
                 [23, "temperature_calibration", tuya.valueConverter.divideBy10],
                 [24, "humidity_calibration", tuya.valueConverter.raw],
-                [104, "ntc_temperature_calibration",tuya.valueConverter.divideBy10],
+                [104, "ntc_temperature_calibration", tuya.valueConverter.divideBy10],
                 [10, "ntc_high_temp_alarm_threshold", tuya.valueConverter.divideBy10],
                 [11, "ntc_low_temp_alarm_threshold", tuya.valueConverter.divideBy10],
                 [14, "ntc_alarm", tuya.valueConverterBasic.lookup({loweralarm: tuya.enum(0), upperalarm: tuya.enum(1), cancel: tuya.enum(2)})],
