@@ -663,6 +663,55 @@ const ar331ProHolidayTimeConverter = {
 };
 
 const tzLocal = {
+    mgDim02zLight: {
+        key: ["state", "brightness"],
+
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "state") {
+                const on = String(value).toUpperCase() === "ON";
+
+                await tuya.sendDataPointBool(entity, 141, on);
+
+                return {
+                    state: {
+                        state: on ? "ON" : "OFF",
+                    },
+                };
+            }
+
+            if (key === "brightness") {
+                const brightness = Number(value);
+
+                // 0% = truly off
+                if (brightness <= 0) {
+                    await tuya.sendDataPointBool(entity, 141, false);
+
+                    return {
+                        state: {
+                            state: "OFF",
+                            brightness: 0,
+                        },
+                    };
+                }
+
+                // Z2M brightness: 0-254
+                // Tuya DP142: 0-1000
+                const clamped = Math.min(254, Math.max(1, brightness));
+                const tuyaBrightness = Math.round((clamped * 1000) / 254);
+
+                // Ensure the device is ON before changing brightness
+                await tuya.sendDataPointBool(entity, 141, true);
+                await tuya.sendDataPointValue(entity, 142, tuyaBrightness);
+
+                return {
+                    state: {
+                        state: "ON",
+                        brightness: clamped,
+                    },
+                };
+            }
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -1986,6 +2035,66 @@ const ms032zLedChips = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_da26abzz"]),
+        model: "MG-DIM02Z",
+        vendor: "Tuya",
+        description: "Zigbee dimmer module with power monitoring",
+
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tzLocal.mgDim02zLight, tuya.tz.datapoints],
+
+        configure: tuya.configureMagicPacket,
+
+        exposes: [
+            e.light_brightness(),
+
+            e
+                .numeric("min_brightness", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(1000)
+                .withValueStep(10)
+                .withDescription("Minimum brightness limit"),
+
+            e
+                .numeric("max_brightness", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(1000)
+                .withValueStep(10)
+                .withDescription("Maximum brightness limit"),
+
+            e
+                .enum("power_on_state", ea.STATE_SET, ["memory", "power_on", "power_off"])
+                .withDescription("Power-on state after power loss"),
+
+            e.power(),
+            e.current(),
+            e.voltage(),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [141, "state", tuya.valueConverter.onOff],
+                [142, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [143, "min_brightness", tuya.valueConverter.raw],
+                [144, "max_brightness", tuya.valueConverter.raw],
+
+                [
+                    146,
+                    "power_on_state",
+                    tuya.valueConverterBasic.lookup({
+                        power_off: tuya.enum(0),
+                        power_on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rjjsib2d"]),
         model: "ZSN-03P",
