@@ -2063,9 +2063,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(10)
                 .withDescription("Maximum brightness limit"),
 
-            e
-                .enum("power_on_state", ea.STATE_SET, ["memory", "power_on", "power_off"])
-                .withDescription("Power-on state after power loss"),
+            e.enum("power_on_state", ea.STATE_SET, ["memory", "power_on", "power_off"]).withDescription("Power-on state after power loss"),
 
             e.power(),
             e.current(),
