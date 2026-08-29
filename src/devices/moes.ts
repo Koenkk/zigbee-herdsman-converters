@@ -549,7 +549,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         // Star Feather dimmer. Shares the same board/firmware family as the
         // SFL02-Z switches (induction/vibration/indicator), plus the standard
         // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
