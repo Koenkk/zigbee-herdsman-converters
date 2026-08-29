@@ -13,7 +13,7 @@ import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 function buildDevice() {
-    return mockDevice({
+    const device = mockDevice({
         modelID: "STHZB",
         manufacturerName: "Rti-Tek",
         endpoints: [
@@ -24,6 +24,12 @@ function buildDevice() {
             },
         ],
     });
+
+    for (const endpoint of device.endpoints) {
+        vi.spyOn(endpoint, "readReportingConfig").mockImplementation(async () => []);
+    }
+
+    return device;
 }
 
 function buildMeta(device: ReturnType<typeof mockDevice>, definition: Definition, overrides?: Partial<Tz.Meta>): Tz.Meta {
@@ -265,14 +271,13 @@ describe("Rti-Tek STHZB converter", () => {
         expect(result).toMatchObject({comfort_humidity_lower_limit: 30, comfort_humidity_upper_limit: 60});
 
         const meta = buildMeta(device, definition);
-        await expect(
-            findTz("comfort_humidity_lower_limit").convertGet?.(device.getEndpoint(1), "comfort_humidity_lower_limit", meta),
-        ).resolves.toStrictEqual({state: {comfort_humidity_lower_limit: 30}});
+        const getResult = await findTz("comfort_humidity_lower_limit").convertGet?.(device.getEndpoint(1), "comfort_humidity_lower_limit", meta);
+        expect(getResult).toStrictEqual({state: {comfort_humidity_lower_limit: 30}});
     });
 
-    it("keeps set comfort humidity limits in %RH when temperature unit is Fahrenheit", () => {
+    it("keeps set comfort humidity limits in %RH when temperature unit is Fahrenheit", async () => {
         device.meta.rtiTekTemperatureUnit = "fahrenheit";
-        const result = findTz("comfort_humidity_lower_limit").convertSet?.(
+        const result = await findTz("comfort_humidity_lower_limit").convertSet?.(
             device.getEndpoint(1),
             "comfort_humidity_lower_limit",
             35,
@@ -282,25 +287,25 @@ describe("Rti-Tek STHZB converter", () => {
         expect(result).toMatchObject({state: {comfort_humidity_lower_limit: 35}});
     });
 
-    it("validates comfort humidity limits against their stored counterpart", () => {
+    it("validates comfort humidity limits against their stored counterpart", async () => {
         const endpoint = device.getEndpoint(1);
 
-        expect(() =>
+        await expect(
             findTz("comfort_humidity_lower_limit").convertSet?.(
                 endpoint,
                 "comfort_humidity_lower_limit",
                 50,
                 buildMeta(device, definition, {state: {comfort_humidity_lower_limit: 30, comfort_humidity_upper_limit: 40}}),
             ),
-        ).toThrow("comfort humidity lower limit must be below upper limit");
-        expect(() =>
+        ).rejects.toThrow("comfort humidity lower limit must be below upper limit");
+        await expect(
             findTz("comfort_humidity_upper_limit").convertSet?.(
                 endpoint,
                 "comfort_humidity_upper_limit",
                 40,
                 buildMeta(device, definition, {state: {comfort_humidity_lower_limit: 50, comfort_humidity_upper_limit: 60}}),
             ),
-        ).toThrow("comfort humidity lower limit must be below upper limit");
+        ).rejects.toThrow("comfort humidity lower limit must be below upper limit");
     });
 
     it("registers the shared STHZB FD22 attributes", async () => {
@@ -308,6 +313,8 @@ describe("Rti-Tek STHZB converter", () => {
         try {
             const configure = definition.configure;
             if (!configure) throw new Error("STH1Z definition is missing configure");
+            const endpoint = device.getEndpoint(1);
+            vi.mocked(endpoint.read).mockImplementation(async (cluster) => (cluster === "rtiTekFd22" ? {productName: "STH1Z"} : {}));
             const configurePromise = configure(device, device.getEndpoint(1), definition);
             await vi.advanceTimersByTimeAsync(3000);
             await configurePromise;
@@ -321,11 +328,12 @@ describe("Rti-Tek STHZB converter", () => {
         }
     });
 
-    it("continues initial reads when the device rejects standard reporting configuration", async () => {
+    it("continues initial reads when standard reporting configuration reads fail", async () => {
         vi.useFakeTimers();
         try {
             const endpoint = device.getEndpoint(1);
-            vi.mocked(endpoint.configureReporting).mockRejectedValueOnce(new Error("UNSUPPORTED_ATTRIBUTE"));
+            vi.mocked(endpoint.read).mockImplementation(async (cluster) => (cluster === "rtiTekFd22" ? {productName: "STH1Z"} : {}));
+            vi.mocked(endpoint.readReportingConfig).mockRejectedValue(new Error("UNSUPPORTED_ATTRIBUTE"));
             const configure = definition.configure;
             if (!configure) throw new Error("STH1Z definition is missing configure");
 
@@ -333,12 +341,7 @@ describe("Rti-Tek STHZB converter", () => {
             await vi.advanceTimersByTimeAsync(3000);
             await expect(configurePromise).resolves.toBeUndefined();
 
-            expect(endpoint.configureReporting).toHaveBeenNthCalledWith(1, "msTemperatureMeasurement", [
-                {attribute: "measuredValue", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 50},
-            ]);
-            expect(endpoint.configureReporting).toHaveBeenNthCalledWith(2, "msRelativeHumidity", [
-                {attribute: "measuredValue", minimumReportInterval: 5, maximumReportInterval: 3600, reportableChange: 200},
-            ]);
+            expect(endpoint.readReportingConfig).toHaveBeenCalledTimes(3);
             expect(endpoint.read).toHaveBeenCalledWith("rtiTekFd22", ["productName"]);
             expect(endpoint.read).toHaveBeenCalledWith(0xfd22, [0x0000, 0x0002, 0xe005, 0xe006]);
             expect(endpoint.read).not.toHaveBeenCalledWith(0xfd22, [0xe014, 0xe015, 0xe016, 0xe017]);
@@ -366,25 +369,13 @@ describe("Rti-Tek STHZB converter", () => {
         }
     });
 
-    it("propagates standard reporting errors so Z2M can retry configuration", async () => {
+    it("propagates measurement read errors so Z2M can retry configuration", async () => {
         const endpoint = device.getEndpoint(1);
-        vi.mocked(endpoint.configureReporting).mockRejectedValueOnce(new Error("TIMEOUT"));
+        vi.mocked(endpoint.read).mockRejectedValueOnce(new Error("TIMEOUT"));
         const configure = definition.configure;
         if (!configure) throw new Error("STH1Z definition is missing configure");
 
         await expect(configure(device, endpoint, definition)).rejects.toThrow("TIMEOUT");
-    });
-
-    it("propagates battery reporting errors so Z2M can retry configuration", async () => {
-        const endpoint = device.getEndpoint(1);
-        vi.mocked(endpoint.configureReporting)
-            .mockResolvedValueOnce(undefined)
-            .mockResolvedValueOnce(undefined)
-            .mockRejectedValueOnce(new Error("NO_ROUTE"));
-        const configure = definition.configure;
-        if (!configure) throw new Error("STH1Z definition is missing configure");
-
-        await expect(configure(device, endpoint, definition)).rejects.toThrow("NO_ROUTE");
     });
 
     it("identifies STH2Z from the FD22 product name", () => {
