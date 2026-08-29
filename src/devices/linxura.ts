@@ -53,7 +53,7 @@ function linxuraButton(buttonCount: number): ModernExtend {
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "Aura Smart Button", manufacturerName: "Linxura"}],
-        model: "Aura Smart Button",
+        model: "SHCB-1-MO",
         vendor: "Linxura",
         description: "Aura 12-button smart controller",
         extend: [
@@ -65,7 +65,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "Smart Controller", manufacturerName: "Linxura"}],
-        model: "Smart Controller",
+        model: "SCHA-1-MO",
         vendor: "Linxura",
         description: "4-button smart controller",
         extend: [linxuraButton(4)],
