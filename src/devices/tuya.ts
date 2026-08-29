@@ -4398,7 +4398,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Zigbee RGBW light",
         toZigbee: [tzLocal.TS0504B_color],
-        extend: [tuya.modernExtend.tuyaLight({color: true})],
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [454, 500], startup: false}, color: true})],
     },
     {
         zigbeeModel: ["TS0501A"],
