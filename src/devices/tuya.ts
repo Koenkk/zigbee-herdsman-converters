@@ -200,6 +200,31 @@ const storeLocal = {
 };
 
 const convLocal = {
+    mgDim02zBrightness: {
+        from: (value: number) => {
+            return tvc.scale0_254to0_1000.from(value);
+        },
+
+        to: async (value: unknown, meta: Tz.Meta) => {
+            utils.assertNumber(value, "brightness");
+
+            const entity = meta.device.endpoints[0];
+
+            if (value <= 0) {
+                await tuya.sendDataPointBool(entity, 141, false, "dataRequest", 1);
+                return;
+            }
+
+            const clamped = Math.min(254, Math.max(1, value));
+
+            if (meta.message.state == null) {
+                await tuya.sendDataPointBool(entity, 141, true, "dataRequest", 1);
+            }
+
+            return tvc.scale0_254to0_1000.to(clamped);
+        },
+    },
+
     novaDigitalToDmBrightness: {
         from: (value: unknown) => {
             const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
@@ -663,55 +688,6 @@ const ar331ProHolidayTimeConverter = {
 };
 
 const tzLocal = {
-    mgDim02zLight: {
-        key: ["state", "brightness"],
-
-        convertSet: async (entity, key, value, meta) => {
-            if (key === "state") {
-                const on = String(value).toUpperCase() === "ON";
-
-                await tuya.sendDataPointBool(entity, 141, on);
-
-                return {
-                    state: {
-                        state: on ? "ON" : "OFF",
-                    },
-                };
-            }
-
-            if (key === "brightness") {
-                const brightness = Number(value);
-
-                // 0% = truly off
-                if (brightness <= 0) {
-                    await tuya.sendDataPointBool(entity, 141, false);
-
-                    return {
-                        state: {
-                            state: "OFF",
-                            brightness: 0,
-                        },
-                    };
-                }
-
-                // Z2M brightness: 0-254
-                // Tuya DP142: 0-1000
-                const clamped = Math.min(254, Math.max(1, brightness));
-                const tuyaBrightness = Math.round((clamped * 1000) / 254);
-
-                // Ensure the device is ON before changing brightness
-                await tuya.sendDataPointBool(entity, 141, true);
-                await tuya.sendDataPointValue(entity, 142, tuyaBrightness);
-
-                return {
-                    state: {
-                        state: "ON",
-                        brightness: clamped,
-                    },
-                };
-            }
-        },
-    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -2042,7 +2018,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee dimmer module with power monitoring",
 
         fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tzLocal.mgDim02zLight, tuya.tz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
 
         configure: tuya.configureMagicPacket,
 
@@ -2072,8 +2048,8 @@ export const definitions: DefinitionWithExtend[] = [
 
         meta: {
             tuyaDatapoints: [
-                [141, "state", tuya.valueConverter.onOff],
-                [142, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [141, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [142, "brightness", convLocal.mgDim02zBrightness],
                 [143, "min_brightness", tuya.valueConverter.raw],
                 [144, "max_brightness", tuya.valueConverter.raw],
 
