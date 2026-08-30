@@ -8015,26 +8015,18 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.power_on_behavior(), tuya.exposes.switchType()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_bzzgvet0"]),
-        model: "ZS-US1-LN",
-        vendor: "Moes",
-        description: "Smart light switch - 1 gang",
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: true,
-                backlightModeOffNormalInverted: true,
-                switchType: true,
-                switchMode: true,
-            }),
-        ],
-    },
-    {
         zigbeeModel: ["TS0001"],
         model: "TS0001",
         vendor: "Tuya",
         description: "1 gang switch",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: (manufacturerName) => manufacturerName === "_TZ3000_bzzgvet0",
+                switchType: (manufacturerName) => manufacturerName === "_TZ3000_bzzgvet0",
+                backlightModeOffOn: (manufacturerName) => manufacturerName === "_TZ3000_bzzgvet0",
+            }),
+        ],
         whiteLabel: [
             {
                 vendor: "CR Smart Home",
@@ -8047,6 +8039,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "XMSJ", "Zigbee USB power switch", ["_TZ3000_8n7lqbm0"]),
             tuya.whitelabel("Tuya", "ZG-001", "Smart home relay module", ["_TZ3000_g8n1n7lg"]),
             tuya.whitelabel("Nova Digital", "SA-1", "Safira smart light switch - 1 gang", ["_TZ3000_udl7uyd2"]),
+            tuya.whitelabel("Moes", "ZS-US1-LN", "Smart light switch - 1 gang", ["_TZ3000_bzzgvet0"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
