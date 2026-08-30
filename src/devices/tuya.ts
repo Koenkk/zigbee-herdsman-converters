@@ -209,6 +209,31 @@ const storeLocal = {
 };
 
 const convLocal = {
+    mgDim02zBrightness: {
+        from: (value: number) => {
+            return tvc.scale0_254to0_1000.from(value);
+        },
+
+        to: async (value: unknown, meta: Tz.Meta) => {
+            utils.assertNumber(value, "brightness");
+
+            const entity = meta.device.endpoints[0];
+
+            if (value <= 0) {
+                await tuya.sendDataPointBool(entity, 141, false, "dataRequest", 1);
+                return;
+            }
+
+            const clamped = Math.min(254, Math.max(1, value));
+
+            if (meta.message.state == null) {
+                await tuya.sendDataPointBool(entity, 141, true, "dataRequest", 1);
+            }
+
+            return tvc.scale0_254to0_1000.to(clamped);
+        },
+    },
+
     novaDigitalToDmBrightness: {
         from: (value: unknown) => {
             const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
@@ -2000,6 +2025,55 @@ const ms032zLedChips = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_da26abzz"]),
+        model: "MG-DIM02Z",
+        vendor: "Tuya",
+        description: "Zigbee dimmer module with power monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.light_brightness(),
+            e
+                .numeric("min_brightness", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(1000)
+                .withValueStep(10)
+                .withDescription("Minimum brightness limit"),
+            e
+                .numeric("max_brightness", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(1000)
+                .withValueStep(10)
+                .withDescription("Maximum brightness limit"),
+            e.enum("power_on_state", ea.STATE_SET, ["memory", "power_on", "power_off"]).withDescription("Power-on state after power loss"),
+            e.power(),
+            e.current(),
+            e.voltage(),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [141, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [142, "brightness", convLocal.mgDim02zBrightness],
+                [143, "min_brightness", tuya.valueConverter.raw],
+                [144, "max_brightness", tuya.valueConverter.raw],
+
+                [
+                    146,
+                    "power_on_state",
+                    tuya.valueConverterBasic.lookup({
+                        power_off: tuya.enum(0),
+                        power_on: tuya.enum(1),
+                        memory: tuya.enum(2),
+                    }),
+                ],
+
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rjjsib2d"]),
         model: "ZSN-03P",
