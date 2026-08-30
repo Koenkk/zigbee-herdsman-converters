@@ -85,7 +85,7 @@ describe("ZHC", () => {
         expect(definition.endpoint?.(device)).toStrictEqual({default: 25});
     });
 
-    it("decodes the HPZERAD-V1 manufacturer attributes", async () => {
+    it("decodes the HPZERAD-V1 manufacturer attributes", () => {
         const device = mockDevice({modelID: "test", endpoints: [{ID: 25}]});
         const definition = baseDefinitions.find((candidate) => candidate.model === "HPZERAD-V1");
         const converter = definition?.fromZigbee?.find((candidate) => candidate.cluster === "hvacThermostat");

@@ -179,7 +179,15 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     manufacturer_settings: {
-        key: ["display_brightness", "language", "temperature_unit", "humidity_display", "co2_display", "display_temperature_source", "setpoint_only_ui"],
+        key: [
+            "display_brightness",
+            "language",
+            "temperature_unit",
+            "humidity_display",
+            "co2_display",
+            "display_temperature_source",
+            "setpoint_only_ui",
+        ],
         convertSet: async (entity, key, value) => {
             const definitions: Record<string, {attribute: keyof HeiwaHvacThermostat["attributes"]; values?: Record<string, number>}> = {
                 display_brightness: {attribute: "heiwaDisplayBrightness"},
@@ -202,10 +210,7 @@ const tzLocal = {
                 if (mapped === undefined) throw new Error(`Unsupported ${key} value: ${value}`);
                 rawValue = mapped;
             }
-            await entity.write<"hvacThermostat", HeiwaHvacThermostat>(
-                "hvacThermostat",
-                {[definition.attribute]: rawValue} as never,
-            );
+            await entity.write<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", {[definition.attribute]: rawValue} as never);
             await entity.read<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", [definition.attribute]);
             return {state: {[key]: value}};
         },
@@ -236,10 +241,7 @@ const tzLocal = {
                 throw new Error(`${key} must be between ${definition.min} and ${definition.max}`);
             }
             const rawValue = Math.round(value * definition.scale);
-            await entity.write<"hvacThermostat", HeiwaHvacThermostat>(
-                "hvacThermostat",
-                {[definition.attribute]: rawValue} as never,
-            );
+            await entity.write<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", {[definition.attribute]: rawValue} as never);
             await entity.read<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", [definition.attribute]);
             return {state: {[key]: rawValue / definition.scale}};
         },
@@ -272,10 +274,7 @@ const tzLocal = {
                 throw new Error(`${key} must be between 18 and 27 °C in 0.5 °C increments`);
             }
             const rawValue = value * 10;
-            await entity.write<"hvacThermostat", HeiwaHvacThermostat>(
-                "hvacThermostat",
-                {[attributes[key]]: rawValue} as never,
-            );
+            await entity.write<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", {[attributes[key]]: rawValue} as never);
             await entity.read<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", [attributes[key]]);
             return {state: {[key]: value}};
         },
@@ -320,10 +319,10 @@ const tzLocal = {
                 await entity.write<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", {heiwaHeatingDemandIcon: target.heating});
                 await entity.write<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", {heiwaCoolingDemandIcon: target.cooling});
             }
-            const current = await entity.read<"hvacThermostat", HeiwaHvacThermostat>(
-                "hvacThermostat",
-                ["heiwaHeatingDemandIcon", "heiwaCoolingDemandIcon"],
-            );
+            const current = await entity.read<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", [
+                "heiwaHeatingDemandIcon",
+                "heiwaCoolingDemandIcon",
+            ]);
             if (current.heiwaHeatingDemandIcon !== target.heating || current.heiwaCoolingDemandIcon !== target.cooling) {
                 throw new Error(`Zone demand icon ${value} was not confirmed by the thermostat`);
             }
@@ -345,11 +344,29 @@ const tzLocal = {
         convertSet: async (entity, key, value) => {
             if (value !== "press") throw new Error(`${key} only supports press`);
             await entity.read<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", [
-                "heiwaBatteryVoltage", "heiwaLanguage", "heiwaTemperatureUnit", "heiwaDisplayTemperature", "heiwaTemperatureOffset",
-                "heiwaHumidity", "heiwaHumidityOffset", "heiwaCo2", "heiwaCo2Offset", "heiwaDisplayBrightness", "heiwaRoomName",
-                "heiwaHumidityDisplay", "heiwaCo2Display", "heiwaDisplayTemperatureSource", "heiwaCentralSetpoint", "heiwaSetpointStep",
-                "heiwaMaximumSetpoint", "heiwaMinimumSetpoint", "heiwaDisplayedSetpoint", "heiwaSetpointOnlyUi", "heiwaActiveProfile",
-                "heiwaHeatingDemandIcon", "heiwaCoolingDemandIcon",
+                "heiwaBatteryVoltage",
+                "heiwaLanguage",
+                "heiwaTemperatureUnit",
+                "heiwaDisplayTemperature",
+                "heiwaTemperatureOffset",
+                "heiwaHumidity",
+                "heiwaHumidityOffset",
+                "heiwaCo2",
+                "heiwaCo2Offset",
+                "heiwaDisplayBrightness",
+                "heiwaRoomName",
+                "heiwaHumidityDisplay",
+                "heiwaCo2Display",
+                "heiwaDisplayTemperatureSource",
+                "heiwaCentralSetpoint",
+                "heiwaSetpointStep",
+                "heiwaMaximumSetpoint",
+                "heiwaMinimumSetpoint",
+                "heiwaDisplayedSetpoint",
+                "heiwaSetpointOnlyUi",
+                "heiwaActiveProfile",
+                "heiwaHeatingDemandIcon",
+                "heiwaCoolingDemandIcon",
             ]);
             return {state: {refresh: "press"}};
         },
@@ -389,7 +406,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("humidity_display", ea.ALL, ["hidden", "shown"]).withCategory("config"),
             e.enum("co2_display", ea.ALL, ["hidden", "shown"]).withCategory("config"),
             e.enum("display_temperature_source", ea.ALL, ["temperature_1", "temperature_2"]).withCategory("config"),
-            e.binary("setpoint_only_ui", ea.ALL, "ON", "OFF").withCategory("config").withDescription("Hide the local M/profile menu while keeping the setpoint arrows"),
+            e
+                .binary("setpoint_only_ui", ea.ALL, "ON", "OFF")
+                .withCategory("config")
+                .withDescription("Hide the local M/profile menu while keeping the setpoint arrows"),
             e.numeric("setpoint_central", ea.ALL).withUnit("°C").withValueMin(18).withValueMax(27).withValueStep(0.5).withCategory("config"),
             e.numeric("setpoint_minimum", ea.ALL).withUnit("°C").withValueMin(18).withValueMax(27).withValueStep(0.5).withCategory("config"),
             e.numeric("setpoint_maximum", ea.ALL).withUnit("°C").withValueMin(18).withValueMax(27).withValueStep(0.5).withCategory("config"),
@@ -414,11 +434,29 @@ export const definitions: DefinitionWithExtend[] = [
                 {attribute: "heiwaActiveProfile", minimumReportInterval: 1, maximumReportInterval: 65000, reportableChange: null},
             ]);
             await endpoint.read<"hvacThermostat", HeiwaHvacThermostat>("hvacThermostat", [
-                "heiwaBatteryVoltage", "heiwaLanguage", "heiwaTemperatureUnit", "heiwaDisplayTemperature", "heiwaTemperatureOffset",
-                "heiwaHumidity", "heiwaHumidityOffset", "heiwaCo2", "heiwaCo2Offset", "heiwaDisplayBrightness", "heiwaRoomName",
-                "heiwaHumidityDisplay", "heiwaCo2Display", "heiwaDisplayTemperatureSource", "heiwaCentralSetpoint", "heiwaSetpointStep",
-                "heiwaMaximumSetpoint", "heiwaMinimumSetpoint", "heiwaDisplayedSetpoint", "heiwaSetpointOnlyUi", "heiwaActiveProfile",
-                "heiwaHeatingDemandIcon", "heiwaCoolingDemandIcon",
+                "heiwaBatteryVoltage",
+                "heiwaLanguage",
+                "heiwaTemperatureUnit",
+                "heiwaDisplayTemperature",
+                "heiwaTemperatureOffset",
+                "heiwaHumidity",
+                "heiwaHumidityOffset",
+                "heiwaCo2",
+                "heiwaCo2Offset",
+                "heiwaDisplayBrightness",
+                "heiwaRoomName",
+                "heiwaHumidityDisplay",
+                "heiwaCo2Display",
+                "heiwaDisplayTemperatureSource",
+                "heiwaCentralSetpoint",
+                "heiwaSetpointStep",
+                "heiwaMaximumSetpoint",
+                "heiwaMinimumSetpoint",
+                "heiwaDisplayedSetpoint",
+                "heiwaSetpointOnlyUi",
+                "heiwaActiveProfile",
+                "heiwaHeatingDemandIcon",
+                "heiwaCoolingDemandIcon",
             ]);
         },
     },
