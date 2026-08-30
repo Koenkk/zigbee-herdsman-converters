@@ -2016,31 +2016,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MG-DIM02Z",
         vendor: "Tuya",
         description: "Zigbee dimmer module with power monitoring",
-
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-
-        configure: tuya.configureMagicPacket,
-
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.light_brightness(),
-
             e
                 .numeric("min_brightness", ea.STATE_SET)
                 .withValueMin(10)
                 .withValueMax(1000)
                 .withValueStep(10)
                 .withDescription("Minimum brightness limit"),
-
             e
                 .numeric("max_brightness", ea.STATE_SET)
                 .withValueMin(10)
                 .withValueMax(1000)
                 .withValueStep(10)
                 .withDescription("Maximum brightness limit"),
-
             e.enum("power_on_state", ea.STATE_SET, ["memory", "power_on", "power_off"]).withDescription("Power-on state after power loss"),
-
             e.power(),
             e.current(),
             e.voltage(),
