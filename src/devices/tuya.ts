@@ -3423,7 +3423,8 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_vvmbj46n",
             "_TZE200_w6n8jeuu",
             "_TZE284_cwyqwqbf",
-            "_TZE284_qf5mzewi", // ONENUO TH05Z - has calibration (DP23/24) instead of DP18
+            "_TZE284_qf5mzewi",
+            "_TZE2841000000_qf5mzewi", // ONENUO TH05Z - has calibration (DP23/24) instead of DP18
         ]),
         model: "ZTH05Z",
         vendor: "Tuya",
@@ -3465,9 +3466,9 @@ export const definitions: DefinitionWithExtend[] = [
                     .withDescription("Temp periodic report"),
             ];
 
-            if (device.manufacturerName !== "_TZE284_qf5mzewi") {
+            if (!["_TZE284_qf5mzewi", "_TZE2841000000_qf5mzewi"].includes(device.manufacturerName)) {
                 // Original ZTH05Z position for this expose - unchanged.
-                // Not present on the ONENUO TH05Z (_TZE284_qf5mzewi) batch:
+                // Not present on the ONENUO TH05Z (_TZE2841000000_qf5mzewi) batch:
                 // this unit never reports DP18, tested empirically.
                 exps.push(
                     e
@@ -3479,7 +3480,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             }
 
-            if (device.manufacturerName === "_TZE284_qf5mzewi") {
+            if (["_TZE284_qf5mzewi", "_TZE2841000000_qf5mzewi"].includes(device.manufacturerName)) {
                 // ONENUO TH05Z (this specific firmware batch): wider sensitivity
                 // range than other ZTH05Z batches
                 exps.push(
@@ -3521,7 +3522,7 @@ export const definitions: DefinitionWithExtend[] = [
                 );
             }
 
-            if (device.manufacturerName === "_TZE284_qf5mzewi") {
+            if (["_TZE284_qf5mzewi", "_TZE2841000000_qf5mzewi"].includes(device.manufacturerName)) {
                 // ONENUO TH05Z (this specific firmware batch): has calibration,
                 // which the other ZTH05Z batches don't have. Purely additive -
                 // doesn't move or replace anything for other manufacturerNames.
@@ -3586,7 +3587,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [18, "humidity_periodic_report", tuya.valueConverter.raw],
                 [19, "temperature_sensitivity", tuya.valueConverter.divideBy10],
                 [20, "humidity_sensitivity", tuya.valueConverter.raw],
-                // DP23/24: only present on the ONENUO _TZE284_qf5mzewi
+                // DP23/24: only present on the ONENUO _TZE2841000000_qf5mzewi
                 [23, "temperature_calibration", tuya.valueConverter.divideBy10],
                 [24, "humidity_calibration", tuya.valueConverter.raw],
             ],
@@ -3595,6 +3596,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("ONENUO", "TH05Z", "Temperature & humidity sensor with clock and humidity display", [
                 "_TZE200_vvmbj46n",
                 "_TZE284_qf5mzewi",
+                "_TZE2841000000_qf5mzewi",
             ]),
             tuya.whitelabel("Tuya", "TZE284_cwyqwqbf", "Temperature & humidity sensor with LCD clock", ["_TZE284_cwyqwqbf"]),
         ],
