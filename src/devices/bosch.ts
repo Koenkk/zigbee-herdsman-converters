@@ -21,7 +21,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -603,6 +603,56 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSD-2",
         vendor: "Bosch",
         description: "Smoke alarm II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload: KeyValueAny) => {
+                // Override discovery for the alarm_control enum to expose it as a HA siren entity.
+                // The BSD-2 does not implement IAS WD, so we manually map the alarm_control
+                // enum (off/smoke/burglar) to HA's siren entity model.
+                //
+                // HA siren integration reference:
+                // https://www.home-assistant.io/integrations/siren.mqtt/
+                payload.type = "siren";
+                payload.object_id = "alarm_control";
+                payload.mockProperties = [{property: "alarm_control", value: null}];
+                payload.discovery_payload = {
+                    name: null,
+                    command_topic: true,
+                    command_topic_prefix: "alarm_control",
+                    state_topic: true,
+                    optimistic: false,
+                    payload_on: "ON",
+                    payload_off: "OFF",
+                    state_on: "ON",
+                    state_off: "OFF",
+                    available_tones: ["smoke", "burglar"],
+                    support_duration: false,
+                    support_volume_set: false,
+                    // When HA turns on the siren with a tone (e.g. "smoke" or "burglar"),
+                    // send the corresponding alarm_control value. When turning off,
+                    // send "off" to deactivate the alarm.
+                    command_template:
+                        '{% if value == "OFF" %}' +
+                        '{"alarm_control": "off"}' +
+                        '{% elif tone == "smoke" or tone == "burglar" %}' +
+                        '{"alarm_control": "{{ tone }}"}' +
+                        "{% else %}" +
+                        '{"alarm_control": "smoke"}' +
+                        "{% endif %}",
+                    command_off_template: '{"alarm_control": "off"}',
+                    // Map the alarm_control enum state back to HA siren on/off + tone.
+                    // When alarm_control is "smoke" or "burglar", the siren is ON with
+                    // the matching tone. Otherwise it is OFF.
+                    value_template:
+                        '{% if value_json.alarm_control == "smoke" %}' +
+                        '{"state": "ON", "tone": "smoke"}' +
+                        '{% elif value_json.alarm_control == "burglar" %}' +
+                        '{"state": "ON", "tone": "burglar"}' +
+                        "{% else %}" +
+                        '{"state": "OFF"}' +
+                        "{% endif %}",
+                };
+            },
+        },
         extend: [
             boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
             boschSmokeAlarmExtend.customIasZoneCluster(),
