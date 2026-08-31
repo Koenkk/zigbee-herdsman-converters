@@ -1,8 +1,13 @@
 import {Zcl} from "zigbee-herdsman";
 
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+
+const e = exposes.presets;
+const ea = exposes.access;
 
 const heiwaAttributes = {
     batteryVoltage: {ID: 0x040f, type: Zcl.DataType.UINT16},
@@ -35,23 +40,42 @@ const reporting = {
     displayTemperature: {min: "MIN", max: "1_HOUR", change: 1},
     humidity: {min: "10_SECONDS", max: "1_HOUR", change: 1},
     displayedSetpoint: {min: 1, max: "MAX", change: 5},
-    activeProfile: {min: 1, max: "MAX", change: null},
 } as const;
 
+const profileLookup = {off: 0, eco: 1, reduced: 2, comfort: 3};
+const profileNames: Record<number, keyof typeof profileLookup> = {0: "off", 1: "eco", 2: "reduced", 3: "comfort"};
+
+function withNumericValidation(result: ModernExtend, validate: (value: number, key: string) => void): ModernExtend {
+    const converter = result.toZigbee[0];
+    const convertSet = converter?.convertSet;
+    if (!converter || !convertSet) throw new Error("Validated numeric extend must be writable");
+    // m.numeric exposes constraints to UIs but does not enforce them before writing.
+    converter.convertSet = async (entity, key, value, meta) => {
+        utils.assertNumber(value, key);
+        validate(value, key);
+        return await convertSet(entity, key, value, meta);
+    };
+    return result;
+}
+
+function validateRange(min: number, max: number, step?: number): (value: number, key: string) => void {
+    return (value, key) => {
+        if (!Number.isFinite(value) || value < min || value > max) throw new Error(`${key} must be between ${min} and ${max}`);
+        if (step !== undefined) {
+            const steps = (value - min) / step;
+            if (Math.abs(steps - Math.round(steps)) > 1e-9) throw new Error(`${key} must use ${step} increments`);
+        }
+    };
+}
+
 function heiwaThermostat(): ModernExtend {
-    const result = m.thermostat({
-        localTemperature: {
-            values: {description: "Temperature used by the stock display"},
-            fromZigbee: {skip: true},
-            toZigbee: {skip: true},
-            configure: {skip: true},
-        },
-        setpoints: {
-            values: {occupiedHeatingSetpoint: {min: 18, max: 27, step: 0.5}},
-            toZigbee: {skip: true},
-            configure: {skip: true},
-        },
-    });
+    const result: ModernExtend = {
+        exposes: [e.climate().withSetpoint("current_heating_setpoint", 18, 27, 0.5).withLocalTemperature()],
+        fromZigbee: [],
+        toZigbee: [],
+        configure: [],
+        isModernExtend: true,
+    };
 
     const localTemperature = m.numeric({
         name: "local_temperature",
@@ -59,12 +83,12 @@ function heiwaThermostat(): ModernExtend {
         attribute: heiwaAttributes.displayTemperature,
         description: "Temperature used by the stock display",
         unit: "°C",
-        access: "STATE_GET",
+        access: "STATE",
         scale: 10,
         reporting: reporting.displayTemperature,
     });
-    const occupiedHeatingSetpoint = m.numeric({
-        name: "occupied_heating_setpoint",
+    const currentHeatingSetpoint = m.numeric({
+        name: "current_heating_setpoint",
         cluster: "hvacThermostat",
         attribute: heiwaAttributes.displayedSetpoint,
         description: "Setpoint currently displayed by the thermostat",
@@ -74,26 +98,35 @@ function heiwaThermostat(): ModernExtend {
         reporting: reporting.displayedSetpoint,
     });
 
-    result.fromZigbee.push(...localTemperature.fromZigbee, ...occupiedHeatingSetpoint.fromZigbee);
-    result.toZigbee.push(...localTemperature.toZigbee, ...occupiedHeatingSetpoint.toZigbee);
-    result.configure.push(...localTemperature.configure, ...occupiedHeatingSetpoint.configure);
-    result.toZigbee.push({
-        key: ["occupied_heating_setpoint"],
-        convertSet: async (entity, key, value) => {
-            utils.assertNumber(value, key);
-            if (!Number.isFinite(value) || value < 18 || value > 27 || Math.round(value * 2) !== value * 2) {
-                throw new Error(`${key} must be between 18 and 27 °C in 0.5 °C increments, got ${value}`);
+    result.fromZigbee.push(...localTemperature.fromZigbee, ...currentHeatingSetpoint.fromZigbee);
+    result.toZigbee.push(...localTemperature.toZigbee, ...currentHeatingSetpoint.toZigbee);
+    result.configure.push(...localTemperature.configure, ...currentHeatingSetpoint.configure);
+    const setpointConverter = result.toZigbee.find((converter) => converter.key.includes("current_heating_setpoint"));
+    if (!setpointConverter) throw new Error("Missing Heiwa setpoint converter");
+    setpointConverter.convertSet = async (entity, key, value) => {
+        utils.assertNumber(value, key);
+        if (!Number.isFinite(value) || value < 18 || value > 27 || Math.round(value * 2) !== value * 2) {
+            throw new Error(`${key} must be between 18 and 27 °C in 0.5 °C increments, got ${value}`);
+        }
+        await entity.write("hvacThermostat", {
+            occupiedCoolingSetpoint: (value - 1.5) * 100,
+            occupiedHeatingSetpoint: (value + 1.5) * 100,
+        });
+        const current = (await entity.read("hvacThermostat", [heiwaAttributes.displayedSetpoint.ID])) as KeyValueAny;
+        const confirmed = current[heiwaAttributes.displayedSetpoint.ID];
+        if (confirmed !== value * 10) throw new Error(`Setpoint ${value} °C was not confirmed by the thermostat`);
+        return {state: {current_heating_setpoint: confirmed / 10}};
+    };
+    result.fromZigbee.push({
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const standard = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+            if (standard?.system_mode !== undefined) {
+                return {system_mode: standard.system_mode, remote_power: standard.system_mode === "off" ? "OFF" : "ON"};
             }
-            await entity.write("hvacThermostat", {
-                occupiedCoolingSetpoint: (value - 1.5) * 100,
-                occupiedHeatingSetpoint: (value + 1.5) * 100,
-            });
-            const current = (await entity.read("hvacThermostat", [heiwaAttributes.displayedSetpoint.ID])) as KeyValueAny;
-            const confirmed = current[heiwaAttributes.displayedSetpoint.ID];
-            if (confirmed !== value * 10) throw new Error(`Setpoint ${value} °C was not confirmed by the thermostat`);
-            return {state: {occupied_heating_setpoint: confirmed / 10}};
         },
-    } satisfies Tz.Converter);
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>);
 
     return result;
 }
@@ -109,7 +142,6 @@ function batteryPercentage(): ModernExtend {
         valueMin: 0,
         valueMax: 100,
         valueStep: 25,
-        entityCategory: "diagnostic",
         reporting: false,
         fzConvert: (model, msg) => {
             const raw = msg.data[heiwaAttributes.batteryVoltage.ID];
@@ -119,6 +151,168 @@ function batteryPercentage(): ModernExtend {
             return {battery: voltage >= 6.0 ? 100 : voltage >= 5.9 ? 75 : voltage >= 5.8 ? 50 : voltage >= 5.7 ? 25 : 0};
         },
     });
+}
+
+function profileControl(): ModernExtend {
+    const result = m.enumLookup({
+        name: "profile",
+        cluster: "hvacThermostat",
+        attribute: heiwaAttributes.profileRequest,
+        description: "Request a stock thermostat profile",
+        lookup: profileLookup,
+        reporting: false,
+    });
+    const converter = result.toZigbee[0];
+    result.fromZigbee = [];
+    converter.convertSet = async (entity, key, value) => {
+        utils.assertString(value, key);
+        const requested = profileLookup[value as keyof typeof profileLookup];
+        if (requested === undefined) throw new Error(`Unsupported profile: ${value}`);
+        await entity.write("hvacThermostat", {
+            [heiwaAttributes.profileRequest.ID]: {value: requested, type: heiwaAttributes.profileRequest.type},
+        });
+        for (let attempt = 0; attempt < 4; attempt++) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            const current = (await entity.read("hvacThermostat", [heiwaAttributes.activeProfile.ID])) as KeyValueAny;
+            if (current[heiwaAttributes.activeProfile.ID] === requested) {
+                return {state: {profile: value, active_profile: value, remote_power: requested === 0 ? "OFF" : "ON"}};
+            }
+        }
+        throw new Error(`Profile request ${value} was not confirmed by the thermostat`);
+    };
+    converter.convertGet = async (entity) => {
+        await entity.read("hvacThermostat", [heiwaAttributes.activeProfile.ID]);
+    };
+    return result;
+}
+
+function activeProfile(): ModernExtend {
+    return m.enumLookup({
+        name: "active_profile",
+        cluster: "hvacThermostat",
+        attribute: heiwaAttributes.activeProfile,
+        description: "Stock thermostat profile currently active",
+        lookup: profileLookup,
+        access: "STATE",
+        reporting: {min: 1, max: "MAX", change: null},
+        fzConvert: (model, msg) => {
+            const raw = msg.data[heiwaAttributes.activeProfile.ID];
+            if (raw === undefined) return;
+            utils.assertNumber(raw);
+            const profile = profileNames[raw];
+            if (profile === undefined) return;
+            return {profile, active_profile: profile, remote_power: profile === "off" ? "OFF" : "ON"};
+        },
+    });
+}
+
+function remotePower(): ModernExtend {
+    return {
+        exposes: [e.binary("remote_power", ea.STATE, "ON", "OFF")],
+        fromZigbee: [],
+        toZigbee: [],
+        configure: [],
+        isModernExtend: true,
+    };
+}
+
+function zoneDemandIcon(): ModernExtend {
+    return {
+        exposes: [e.enum("zone_demand_icon", ea.ALL, ["none", "heating", "cooling"])],
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    const heating = msg.data[heiwaAttributes.heatingDemandIcon.ID];
+                    const cooling = msg.data[heiwaAttributes.coolingDemandIcon.ID];
+                    if (heating === undefined && cooling === undefined) return;
+                    return {
+                        zone_demand_icon:
+                            heating !== 0 && heating !== undefined ? "heating" : cooling !== 0 && cooling !== undefined ? "cooling" : "none",
+                    };
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["zone_demand_icon"],
+                convertSet: async (entity, key, value) => {
+                    utils.assertString(value, key);
+                    const states: Record<string, {heating: number; cooling: number}> = {
+                        none: {heating: 0, cooling: 0},
+                        heating: {heating: 1, cooling: 0},
+                        cooling: {heating: 0, cooling: 1},
+                    };
+                    const target = states[value];
+                    if (!target) throw new Error(`Unsupported ${key} value: ${value}`);
+                    const write = async (attribute: (typeof heiwaAttributes)[keyof typeof heiwaAttributes], raw: number) => {
+                        await entity.write("hvacThermostat", {[attribute.ID]: {value: raw, type: attribute.type}});
+                    };
+                    if (value === "heating") {
+                        await write(heiwaAttributes.coolingDemandIcon, target.cooling);
+                        await write(heiwaAttributes.heatingDemandIcon, target.heating);
+                    } else {
+                        await write(heiwaAttributes.heatingDemandIcon, target.heating);
+                        await write(heiwaAttributes.coolingDemandIcon, target.cooling);
+                    }
+                    const current = (await entity.read("hvacThermostat", [
+                        heiwaAttributes.heatingDemandIcon.ID,
+                        heiwaAttributes.coolingDemandIcon.ID,
+                    ])) as KeyValueAny;
+                    if (
+                        current[heiwaAttributes.heatingDemandIcon.ID] !== target.heating ||
+                        current[heiwaAttributes.coolingDemandIcon.ID] !== target.cooling
+                    ) {
+                        throw new Error(`Zone demand icon ${value} was not confirmed by the thermostat`);
+                    }
+                    return {state: {zone_demand_icon: value}};
+                },
+                convertGet: async (entity) => {
+                    await entity.read("hvacThermostat", [heiwaAttributes.heatingDemandIcon.ID, heiwaAttributes.coolingDemandIcon.ID]);
+                },
+            } satisfies Tz.Converter,
+        ],
+        configure: [],
+        isModernExtend: true,
+    };
+}
+
+const refreshAttributeIds = Object.values(heiwaAttributes)
+    .filter((attribute) => attribute.ID !== heiwaAttributes.profileRequest.ID)
+    .map((attribute) => attribute.ID);
+
+function refreshControl(): ModernExtend {
+    return {
+        exposes: [e.enum("refresh", ea.SET, ["press"])],
+        fromZigbee: [],
+        toZigbee: [
+            {
+                key: ["refresh"],
+                convertSet: async (entity, key, value) => {
+                    if (value !== "press") throw new Error(`${key} only supports press`);
+                    await entity.read("hvacThermostat", refreshAttributeIds);
+                    return {state: {refresh: "press"}};
+                },
+            } satisfies Tz.Converter,
+        ],
+        configure: [],
+        isModernExtend: true,
+    };
+}
+
+function initialRead(): ModernExtend {
+    return {
+        exposes: [],
+        fromZigbee: [],
+        toZigbee: [],
+        configure: [
+            async (device) => {
+                await device.getEndpoint(25).read("hvacThermostat", refreshAttributeIds);
+            },
+        ],
+        isModernExtend: true,
+    };
 }
 
 export const definitions: DefinitionWithExtend[] = [
@@ -136,79 +330,89 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: heiwaAttributes.displayTemperature,
                 description: "Temperature used by the stock display",
                 unit: "°C",
-                access: "STATE_GET",
+                access: "STATE",
                 scale: 10,
                 reporting: false,
             }),
-            m.numeric({
-                name: "temperature_offset",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.temperatureOffset,
-                description: "Temperature sensor offset",
-                unit: "°C",
-                valueMin: -5,
-                valueMax: 5,
-                valueStep: 0.1,
-                scale: 10,
-                entityCategory: "config",
-                reporting: false,
-            }),
+            withNumericValidation(
+                m.numeric({
+                    name: "temperature_offset",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.temperatureOffset,
+                    description: "Temperature sensor offset",
+                    unit: "°C",
+                    valueMin: -5,
+                    valueMax: 5,
+                    valueStep: 0.1,
+                    scale: 10,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(-5, 5, 0.1),
+            ),
             m.numeric({
                 name: "humidity",
                 cluster: "hvacThermostat",
                 attribute: heiwaAttributes.humidity,
                 description: "Measured relative humidity",
                 unit: "%",
-                access: "STATE_GET",
+                access: "STATE",
                 reporting: reporting.humidity,
             }),
-            m.numeric({
-                name: "humidity_offset",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.humidityOffset,
-                description: "Humidity sensor offset",
-                unit: "%",
-                valueMin: -20,
-                valueMax: 20,
-                valueStep: 1,
-                entityCategory: "config",
-                reporting: false,
-            }),
+            withNumericValidation(
+                m.numeric({
+                    name: "humidity_offset",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.humidityOffset,
+                    description: "Humidity sensor offset",
+                    unit: "%",
+                    valueMin: -20,
+                    valueMax: 20,
+                    valueStep: 1,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(-20, 20, 1),
+            ),
             m.numeric({
                 name: "co2",
                 cluster: "hvacThermostat",
                 attribute: heiwaAttributes.co2,
-                description: "CO2 concentration; remains zero on variants without a CO2 sensor",
+                description: "Remains zero on variants without a CO2 sensor",
                 unit: "ppm",
-                access: "STATE_GET",
-                reporting: false,
-                label: "CO2",
-            }),
-            m.numeric({
-                name: "co2_offset",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.co2Offset,
-                description: "CO2 sensor offset",
-                unit: "ppm",
-                valueMin: -1000,
-                valueMax: 1000,
-                valueStep: 1,
-                entityCategory: "config",
-                reporting: false,
-                label: "CO2 offset",
-            }),
-            m.numeric({
-                name: "display_brightness",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.displayBrightness,
-                description: "Stock display brightness",
-                valueMin: 0,
-                valueMax: 10,
-                valueStep: 1,
-                scale: 5,
-                entityCategory: "config",
+                access: "STATE",
                 reporting: false,
             }),
+            withNumericValidation(
+                m.numeric({
+                    name: "co2_offset",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.co2Offset,
+                    description: "CO2 sensor offset",
+                    unit: "ppm",
+                    valueMin: -1000,
+                    valueMax: 1000,
+                    valueStep: 1,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(-1000, 1000, 1),
+            ),
+            withNumericValidation(
+                m.numeric({
+                    name: "display_brightness",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.displayBrightness,
+                    description: "Stock display brightness",
+                    valueMin: 0,
+                    valueMax: 10,
+                    valueStep: 1,
+                    scale: 5,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(0, 10, 1),
+            ),
             m.enumLookup({
                 name: "language",
                 cluster: "hvacThermostat",
@@ -244,7 +448,6 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {hidden: 0, shown: 1},
                 entityCategory: "config",
                 reporting: false,
-                label: "CO2 display",
             }),
             m.enumLookup({
                 name: "display_temperature_source",
@@ -265,45 +468,54 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 reporting: false,
             }),
-            m.numeric({
-                name: "setpoint_central",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.centralSetpoint,
-                description: "Central setpoint",
-                unit: "°C",
-                valueMin: 18,
-                valueMax: 27,
-                valueStep: 0.5,
-                scale: 10,
-                entityCategory: "config",
-                reporting: false,
-            }),
-            m.numeric({
-                name: "setpoint_minimum",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.minimumSetpoint,
-                description: "Minimum local setpoint",
-                unit: "°C",
-                valueMin: 18,
-                valueMax: 27,
-                valueStep: 0.5,
-                scale: 10,
-                entityCategory: "config",
-                reporting: false,
-            }),
-            m.numeric({
-                name: "setpoint_maximum",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.maximumSetpoint,
-                description: "Maximum local setpoint",
-                unit: "°C",
-                valueMin: 18,
-                valueMax: 27,
-                valueStep: 0.5,
-                scale: 10,
-                entityCategory: "config",
-                reporting: false,
-            }),
+            withNumericValidation(
+                m.numeric({
+                    name: "setpoint_central",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.centralSetpoint,
+                    description: "Central setpoint",
+                    unit: "°C",
+                    valueMin: 18,
+                    valueMax: 27,
+                    valueStep: 0.5,
+                    scale: 10,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(18, 27, 0.5),
+            ),
+            withNumericValidation(
+                m.numeric({
+                    name: "setpoint_minimum",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.minimumSetpoint,
+                    description: "Minimum local setpoint",
+                    unit: "°C",
+                    valueMin: 18,
+                    valueMax: 27,
+                    valueStep: 0.5,
+                    scale: 10,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(18, 27, 0.5),
+            ),
+            withNumericValidation(
+                m.numeric({
+                    name: "setpoint_maximum",
+                    cluster: "hvacThermostat",
+                    attribute: heiwaAttributes.maximumSetpoint,
+                    description: "Maximum local setpoint",
+                    unit: "°C",
+                    valueMin: 18,
+                    valueMax: 27,
+                    valueStep: 0.5,
+                    scale: 10,
+                    entityCategory: "config",
+                    reporting: false,
+                }),
+                validateRange(18, 27, 0.5),
+            ),
             m.numeric({
                 name: "setpoint_step",
                 cluster: "hvacThermostat",
@@ -333,41 +545,10 @@ export const definitions: DefinitionWithExtend[] = [
                     if ([...value].length > 16) throw new Error("room_name must contain at most 16 characters");
                 },
             }),
-            m.enumLookup({
-                name: "profile",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.profileRequest,
-                description: "Request a stock thermostat profile",
-                lookup: {off: 0, eco: 1, reduced: 2, comfort: 3},
-                reporting: false,
-            }),
-            m.enumLookup({
-                name: "active_profile",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.activeProfile,
-                description: "Stock thermostat profile currently active",
-                lookup: {off: 0, eco: 1, reduced: 2, comfort: 3},
-                access: "STATE_GET",
-                reporting: reporting.activeProfile,
-            }),
-            m.binary({
-                name: "heating_demand_icon",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.heatingDemandIcon,
-                description: "Heating demand icon shown by the stock UI",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                reporting: false,
-            }),
-            m.binary({
-                name: "cooling_demand_icon",
-                cluster: "hvacThermostat",
-                attribute: heiwaAttributes.coolingDemandIcon,
-                description: "Cooling demand icon shown by the stock UI",
-                valueOn: ["ON", 1],
-                valueOff: ["OFF", 0],
-                reporting: false,
-            }),
+            profileControl(),
+            activeProfile(),
+            remotePower(),
+            zoneDemandIcon(),
             batteryPercentage(),
             m.numeric({
                 name: "battery_voltage",
@@ -380,6 +561,8 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "diagnostic",
                 reporting: false,
             }),
+            refreshControl(),
+            initialRead(),
         ],
     },
 ];
