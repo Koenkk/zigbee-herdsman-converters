@@ -18259,6 +18259,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.currentWithPhase("c"),
             e.power_factor().withUnit("%").withDescription("Total power factor"),
             e.power().withDescription("Total active power"),
+            e.ac_frequency(),
             e.energy().withDescription("Total forward active energy"),
             e.produced_energy().withDescription("Total reverse active energy"),
             tuya.exposes.energyWithPhase("a"),
