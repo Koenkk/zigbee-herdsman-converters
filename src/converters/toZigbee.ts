@@ -886,8 +886,10 @@ export const level_config: Tz.Converter = {
         ] as const) {
             try {
                 await entity.read("genLevelCtrl", [attribute]);
-            } catch {
-                // continue regardless of error, all these are optional in ZCL
+            } catch (error) {
+                // all these are optional in ZCL, so a failed read is not fatal; log at debug so a
+                // missing sub-field (e.g. on_off_transition_time / execute_if_off) is diagnosable
+                logger.debug(`Failed to read '${attribute}' from genLevelCtrl: ${error}`, NS);
             }
         }
     },
