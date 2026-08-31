@@ -2993,7 +2993,8 @@ export const boschSmokeAlarmExtend = {
                 .withDescription(
                     "Manually controls the alarm siren of the device. Set to 'smoke' or 'burglar' to activate the " +
                         "respective alarm, or 'off' to deactivate it.",
-                ),
+                )
+                .withHomeAssistant({type: "siren"}),
             e
                 .binary("broadcast_alarms", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
                 .withLabel("Broadcast alarms")
@@ -3002,7 +3003,8 @@ export const boschSmokeAlarmExtend = {
                         "that a detected smoke alarm is not being transmitted automatically to other devices. " +
                         "To achieve that, you must set up an automation, e.g., in Home Assistant.",
                 )
-                .withCategory("config"),
+                .withCategory("config")
+                .withHomeAssistant({icon: "mdi:broadcast"}),
         ];
 
         const fromZigbee = [
