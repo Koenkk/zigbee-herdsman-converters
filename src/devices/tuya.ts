@@ -1326,7 +1326,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             await entity.command("manuSpecificTuya", "dataQuery", {});
         },
-    } satisfies Tz.Converter,    
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
