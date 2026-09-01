@@ -30,6 +30,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_9m4kmbfu",
                 "_TZE284_9m4kmbfu",
                 "_TZE200_3yp57tby",
+                "_TZE204_3yp57tby",
                 "_TZE200_7p8ugv8d",
                 "_TZE284_3yp57tby",
             ]),
