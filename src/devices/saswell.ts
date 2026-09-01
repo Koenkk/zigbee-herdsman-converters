@@ -33,6 +33,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE204_3yp57tby",
                 "_TZE200_7p8ugv8d",
                 "_TZE284_3yp57tby",
+                "_TZE2841000000_3yp57tby",
             ]),
             ...tuya.fingerprint("aj4jz0i\u0000", ["_TYST11_caj4jz0i"]),
         ],
