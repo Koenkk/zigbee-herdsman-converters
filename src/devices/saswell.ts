@@ -46,6 +46,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "RTX", model: "ZB-RT1"},
             {vendor: "SETTI+", model: "TRV001"},
             {vendor: "Royal Thermo", model: "RTE 77.001B"},
+            {vendor: "Nous", model: "H1Z"}, // 3yp57tby
         ],
         fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, legacy.fz.tuya_thermostat_weekly_schedule_2],
         toZigbee: [
