@@ -6,6 +6,54 @@ import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
+    describe("tuyaWeatherForecast", () => {
+        it("uses forecast fields 1 through 3 and includes their humidity in the payload", async () => {
+            const {toZigbee} = tuya.modernExtend.tuyaWeatherForecast();
+            const converter = toZigbee?.[0];
+            expect(converter?.key).toStrictEqual([
+                "temperature_0",
+                "humidity_0",
+                "condition_0",
+                "temperature_1",
+                "humidity_1",
+                "condition_1",
+                "temperature_2",
+                "humidity_2",
+                "condition_2",
+                "temperature_3",
+                "humidity_3",
+                "condition_3",
+            ]);
+
+            const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE28C1000000_o409r73p", endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const state = {
+                temperature_0: 27,
+                humidity_0: 78,
+                condition_0: "sunny",
+                temperature_1: 31,
+                humidity_1: 80,
+                condition_1: "rain",
+                temperature_2: 29,
+                humidity_2: 75,
+                condition_2: "yin",
+                temperature_3: 28,
+                humidity_3: 85,
+                condition_3: "thunder_shower",
+            };
+            const meta: Tz.Meta = {state, device, message: null, mapped: definition, options: null, publish: null, endpoint_name: null};
+
+            await converter?.convertSet?.(device.endpoints[0], "humidity_3", 85, meta);
+
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("manuSpecificTuya", "tuyaWeatherSync", {
+                payload: Buffer.from([
+                    0x11, 0x00, 0x12, 0x03, 0x13, 0x01, 0x01, 0x00, 27, 0x00, 31, 0x00, 29, 0x00, 28, 0x02, 0x00, 78, 0x00, 80, 0x00, 75, 0x00, 85,
+                    0x03, 100, 118, 114, 143, 0x00,
+                ]),
+            });
+        });
+    });
+
     describe("dpTHZBSettings", () => {
         const {toZigbee, fromZigbee} = tuya.modernExtend.dpTHZBSettings();
 

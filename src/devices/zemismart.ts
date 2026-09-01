@@ -1194,7 +1194,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMZ609-2",
         vendor: "Zemismart",
         description: "Zigbee neutral touchscreen switch 2 gang with power monitoring",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"}), tuya.modernExtend.tuyaWeatherForecast()],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970", // needed else date/time doesn't sync with z2m > 2.6.2
+                forceTimeUpdates: true,
+                queryOnConfigure: true,
+            }),
+            tuya.modernExtend.tuyaWeatherForecast(),
+        ],
         fromZigbee: [tuya.fz.datapoints, fzLocal.ignoreTuyaConfigureResponse],
         toZigbee: [tuya.tz.datapoints],
         endpoint: (device) => {
