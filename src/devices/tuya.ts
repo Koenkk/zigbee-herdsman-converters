@@ -1310,6 +1310,23 @@ const tzLocal = {
             return {state: {sensitivity: value}};
         },
     } satisfies Tz.Converter,
+    // TS0601_TZE284_grxx6qek: DP 2 (on/off) uses this dedicated converter instead of
+    // the generic meta.tuyaDatapoints mapping because tuya.tz.datapoints has no `key`
+    // filter (it runs for every SET) and its onOff lookup does not support TOGGLE.
+    ts0601Grxx6qekState: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            let newState = value;
+            if (value === "TOGGLE") {
+                newState = meta.state.state === "ON" ? "OFF" : "ON";
+            }
+            await tuya.sendDataPointBool(entity, 2, newState === "ON", "dataRequest", 1);
+            return {state: {state: newState}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.command("manuSpecificTuya", "dataQuery", {});
+        },
+    } satisfies Tz.Converter,    
 };
 
 const fzLocal = {
@@ -1987,6 +2004,40 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
+    // TS0601_TZE284_grxx6qek: answer the MCU time-sync handshake (8-byte payload:
+    // UTC + local time, both as Unix epoch seconds). Without an answer the device
+    // stops reporting after a while.
+    ts0601Grxx6qekMcuSyncTime: {
+        cluster: "manuSpecificTuya",
+        type: ["commandMcuSyncTime"],
+        convert: (model, msg, publish, options, meta) => {
+            const toBytes = (v: number) => [(v >> 24) & 0xff, (v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
+            const now = Math.floor(Date.now() / 1000);
+            msg.endpoint
+                .command(
+                    "manuSpecificTuya",
+                    "mcuSyncTime",
+                    {payloadSize: 8, payload: [...toBytes(now), ...toBytes(now)]},
+                    {
+                        disableDefaultResponse: true,
+                    },
+                )
+                .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuSyncTime"]>,
+    // TS0601_TZE284_grxx6qek: DP 2 (on/off) reports. Kept out of meta.tuyaDatapoints
+    // together with the SET side (see tzLocal.ts0601Grxx6qekState).
+    ts0601Grxx6qekState: {
+        cluster: "manuSpecificTuya",
+        type: ["commandDataReport", "commandDataResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            for (const dpValue of msg.data.dpValues) {
+                if (dpValue.dp === 2) {
+                    return {state: dpValue.data[0] === 1 ? "ON" : "OFF"};
+                }
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>,
 };
 
 // MS032Z stair light controller - DP 125, the six running-light effects.
@@ -27526,6 +27577,24 @@ export const definitions: DefinitionWithExtend[] = [
                         to: (v: string) => ({normal: 0, slight: 1, strong: 2, severe: 3})[v] ?? 0,
                     },
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_grxx6qek"]),
+        model: "TS0601_TZE284_grxx6qek",
+        vendor: "Tuya",
+        description: "Temperature & humidity smart switch 16A",
+        fromZigbee: [fzLocal.ts0601Grxx6qekMcuSyncTime, fzLocal.ts0601Grxx6qekState, tuya.fz.datapoints],
+        toZigbee: [tzLocal.ts0601Grxx6qekState],
+        configure: tuya.configureMagicPacket,
+        exposes: [e.switch(), e.temperature(), e.humidity()],
+        meta: {
+            tuyaDatapoints: [
+                // DP 2 (state) is handled by the dedicated fzLocal/tzLocal converters above.
+                [27, "temperature", tuya.valueConverter.divideBy10],
+                // DP 28 tracks temperature*1.8+32 (Fahrenheit duplicate of DP 27) - not mapped, redundant.
+                [46, "humidity", tuya.valueConverter.raw],
             ],
         },
     },
