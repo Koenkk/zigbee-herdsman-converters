@@ -407,16 +407,16 @@ describe("toZigbee converters", () => {
             expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
         });
 
-        test("device-level coverInverted meta swaps commands the same way invert_cover does", async () => {
+        test("device-level coverInverted meta does not affect which raw command is sent", async () => {
             const converter = zhc.toZigbee.cover_state;
             await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({}, {coverInverted: true}));
-            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
         });
 
-        test("invert_cover on a coverInverted device cancels back to the normal commands", async () => {
+        test("invert_cover still swaps commands on a coverInverted device", async () => {
             const converter = zhc.toZigbee.cover_state;
             await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({invert_cover: true}, {coverInverted: true}));
-            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
         });
     });
 
