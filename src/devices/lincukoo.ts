@@ -1,16 +1,36 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValueAny} from "../lib/types";
+
 
 const e = exposes.presets;
 const ea = exposes.access;
 const te = tuya.exposes;
 const tvc = tuya.valueConverter;
 
+const fzTuyaAction = {
+    cluster: "manuSpecificTuya",
+    type: ["commandDataReport", "commandDataResponse"],
+    convert: (model, msg, publishModel, options, meta) => {
+        const result: KeyValueAny = {};
+        const dpValues = msg.data.dpValues || [];
+        for (const dpValue of dpValues) {
+            if (dpValue.dp === 104) {
+                const lookup: Record<number, string> = {0: "single_click", 1: "double_click", 2: "long_press"};
+                const value = lookup[dpValue.data.readUInt8(0)];
+                if (value) {
+                    result["action"] = value;
+                }
+            }
+        }
+        return result;
+    },
+} satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>;
+
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_ajhu0zqb"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ajhu0zqb", "_TZE2841000000_ajhu0zqb"]),
         model: "SZW08",
         vendor: "Lincukoo",
         description: "Smart water leakage/lack alarm sensor",
@@ -35,7 +55,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_lw5ny7tp"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lw5ny7tp", "_TZE28C1000000_lw5ny7tp"]),
         model: "SZLR08",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
@@ -88,7 +108,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ovska9w", "_TZE284_bquwrqh1"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_9ovska9w", "_TZE284_bquwrqh1", "_TZE2841000000_9ovska9w", "_TZE2841000000_bquwrqh1"]),
         model: "SZLM04U",
         vendor: "Lincukoo",
         description: "Motion and brightness sensor",
@@ -113,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sndkanfr", "_TZE204_bjf8qum1", "_TZE284_sndkanfr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sndkanfr", "_TZE204_bjf8qum1", "_TZE28C1000000_sndkanfr", "_TZE28C1000000_bjf8qum1"]),
         model: "SZLMR10",
         vendor: "Lincukoo",
         description: "Human Motion & Presence Sensor",
@@ -149,7 +169,14 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_gw05grph", "_TZE284_chcnj5st", "_TZE284_pislt0wa"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_gw05grph",
+            "_TZE284_chcnj5st",
+            "_TZE284_pislt0wa",
+            "_TZE2841000000_gw05grph",
+            "_TZE2841000000_chcnj5st",
+            "_TZE2841000000_pislt0wa",
+        ]),
         model: "CZF02",
         vendor: "Lincukoo",
         description: "Finger Robot", //fingerbot
@@ -219,7 +246,14 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rs62zxk8", "_TZE284_4dosadbh", "_TZE284_mpzuabwk"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_rs62zxk8",
+            "_TZE284_4dosadbh",
+            "_TZE284_mpzuabwk",
+            "_TZE2841000000_rs62zxk8",
+            "_TZE2841000000_4dosadbh",
+            "_TZE2841000000_mpzuabwk",
+        ]),
         model: "SZT04",
         vendor: "Lincukoo",
         description: "Temperature and humidity sensor with clock",
@@ -278,7 +312,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_khoqss0a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_khoqss0a", "_TZE28C1000000_khoqss0a"]),
         model: "SZR07",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
@@ -312,7 +346,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_b8vxct9l"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_b8vxct9l", "_TZE28C1000000_b8vxct9l"]),
         model: "SZLR08T",
         vendor: "Lincukoo",
         description: "24GHz millimeter wave radar",
@@ -368,7 +402,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vbgmewta", "_TZE284_iunyuzwe"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_vbgmewta", "_TZE284_iunyuzwe", "_TZE2841000000_vbgmewta", "_TZE2841000000_iunyuzwe"]),
         model: "W04-Z10T",
         vendor: "Lincukoo",
         description: "Smart water leakage alarm sensor",
@@ -379,7 +413,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("alarm_switch", ea.STATE_SET, ["mute", "alarm"]).withDescription("switch of the alarm"),
             ];
 
-            if (["_TZE284_iunyuzwe"].includes(device.manufacturerName)) {
+            if (["_TZE284_iunyuzwe", "_TZE2841000000_iunyuzwe"].includes(device.manufacturerName)) {
                 exps.push(
                     e
                         .enum("battery_state", ea.STATE, ["low", "middle", "high"])
@@ -401,20 +435,29 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "alarm_ringtone", tuya.valueConverterBasic.lookup({ring1: tuya.enum(0), ring2: tuya.enum(1), ring3: tuya.enum(2)})],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Lincukoo", "W10-Z10T", "Smart water leakage alarm sensor", ["_TZE284_iunyuzwe"])],
+        whiteLabel: [tuya.whitelabel("Lincukoo", "W10-Z10T", "Smart water leakage alarm sensor", ["_TZE284_iunyuzwe", "_TZE2841000000_iunyuzwe"])],
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_aghfucwi", "_TZE284_2qx7sivb", "_TZE284_8sejxcue", "_TZE284_7trh4ihp"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE284_aghfucwi",
+            "_TZE284_2qx7sivb",
+            "_TZE284_8sejxcue",
+            "_TZE284_7trh4ihp",
+            "_TZE2841000000_aghfucwi",
+            "_TZE2841000000_2qx7sivb",
+            "_TZE2841000000_8sejxcue",
+            "_TZE2841000000_7trh4ihp",
+        ]),
         model: "TS0601_vibration_alarm_sensor",
         vendor: "Tuya",
         description: "Vibration alarm sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: (device) => {
             const exps: Expose[] = [te.alarmStatus(), te.sensitivity()];
-            if (["_TZE284_2qx7sivb"].includes(device.manufacturerName)) {
+            if (["_TZE284_2qx7sivb", "_TZE2841000000_2qx7sivb"].includes(device.manufacturerName)) {
                 exps.push(te.batteryState());
-            } else if (["_TZE284_aghfucwi"].includes(device.manufacturerName)) {
+            } else if (["_TZE284_aghfucwi", "_TZE2841000000_aghfucwi"].includes(device.manufacturerName)) {
                 exps.push(te.dismissAlarm(), te.silentMode(), e.battery());
             } else {
                 exps.push(te.dismissAlarm(), te.silentMode(), te.batteryState());
@@ -433,8 +476,8 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [
-            tuya.whitelabel("Lincukoo", "V04-Z10T", "Vibration alarm sensor", ["_TZE284_aghfucwi"]),
-            tuya.whitelabel("Lincukoo", "V06-Z10T", "Mini vibration sensor", ["_TZE284_2qx7sivb"]),
+            tuya.whitelabel("Lincukoo", "V04-Z10T", "Vibration alarm sensor", ["_TZE284_aghfucwi", "_TZE2841000000_aghfucwi"]),
+            tuya.whitelabel("Lincukoo", "V06-Z10T", "Mini vibration sensor", ["_TZE284_2qx7sivb", "_TZE2841000000_2qx7sivb"]),
             {vendor: "Lincukoo", model: "V04-Z20T"}, // _TZE284_8sejxcue
             {vendor: "Nous", model: "E14"}, // _TZE284_7trh4ihp
         ],
@@ -447,7 +490,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hqys6frs"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hqys6frs", "_TZE2841000000_hqys6frs"]),
         model: "R12LM-Z10T",
         vendor: "Lincukoo",
         description: "Human motion & presence sensor",
@@ -490,7 +533,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hyt4iucb"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_hyt4iucb", "_TZE28C1000000_hyt4iucb"]),
         model: "E02C-Z10T",
         vendor: "Lincukoo",
         description: "Smart air quality monitor (CO2)",
@@ -552,7 +595,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_isvlaage"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_isvlaage", "_TZE28C1000000_isvlaage"]),
         model: "EZC04",
         vendor: "Lincukoo",
         description: "Smart air quality monitor (CO2)",
@@ -597,7 +640,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fpwtjlfh"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fpwtjlfh", "_TZE28C1000000_fpwtjlfh"]),
         model: "EZCP04",
         vendor: "Lincukoo",
         description: "Smart air quality monitor (CO2+PM2.5)",
@@ -650,7 +693,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ra9zfiwr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ra9zfiwr", "_TZE28C1000000_ra9zfiwr"]),
         model: "E04CF-Z10T",
         vendor: "Lincukoo",
         description: "Smart gas and CO sensor",
@@ -701,7 +744,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_l4daccga"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_l4daccga", "_TZE28C1000000_l4daccga"]),
         model: "A08-Z10T",
         vendor: "Lincukoo",
         description: "Smart sound and flash siren",
@@ -791,7 +834,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
 
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zzm83zpz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zzm83zpz", "_TZE2841000000_zzm83zpz"]),
         model: "R12LM-Z11T",
         vendor: "Lincukoo",
         description: "Human motion & presence sensor",
@@ -832,5 +875,110 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "switch_night_light", tuya.valueConverter.onOff],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_h7oalfxa", "_TZE2841000000_h7oalfxa"]),
+        model: "R12LM-Z20T",
+        vendor: "Lincukoo",
+        description: "Human Motion & Presence Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.enum("scan_environment", ea.STATE_SET, ["start"]).withDescription("Set no one environment"),
+            e
+                .enum("scan_result", ea.STATE, ["normal", "scanning", "scan_success", "scan_failure", "scan_start"])
+                .withDescription("Environment scan result"),
+            e.enum("mode", ea.STATE_SET, ["radar_mode", "fusion_mode"]).withDescription("Device mode"),
+            e.presence(),
+            e.illuminance(),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e
+                .numeric("set_detection_distance", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(9)
+                .withValueStep(1.5)
+                .withUnit("m")
+                .withDescription("Detection distance"),
+            e.numeric("fading_time", ea.STATE_SET).withValueMin(10).withValueMax(60).withValueStep(1).withDescription("Fading time").withUnit("s"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high", "USB"]).withDescription("Battery status"),
+            e.binary("switch_night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light switch"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [8, "scan_result", tuya.valueConverterBasic.lookup({normal: 0, scanning: 1, scan_success: 2, scan_failure: 3, scan_start: 4})],
+                [101, "illuminance", tuya.valueConverter.raw],
+                [102, "mode", tuya.valueConverterBasic.lookup({radar_mode: tuya.enum(0), fusion_mode: tuya.enum(1)})],
+                [103, "radar_switch", tuya.valueConverter.onOff],
+                [105, "scan_environment", tuya.valueConverterBasic.lookup({start: tuya.enum(0)})],
+                [106, "set_detection_distance", tuya.valueConverter.divideBy100],
+                [33, "fading_time", tuya.valueConverter.raw],
+                [
+                    108,
+                    "battery_state",
+                    tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2), USB: tuya.enum(3)}),
+                ],
+                [109, "switch_night_light", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cipobaav", "_TZE2841000000_cipobaav"]),
+        model: "B08LRT-Z10T",
+        vendor: "Lincukoo",
+        description: "5in1 Sensor Button Switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        fromZigbee: [fzTuyaAction],
+        exposes: [
+            e.presence(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            e.action(["single_click", "double_click", "long_press"]).withDescription("Scene switch action"),
+            e.enum("scene_switch", ea.STATE_SET, ["single_click", "double_click", "long_press"]).withDescription("Scene switch click"),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.enum("scan_environment", ea.STATE_SET, ["start"]).withDescription("Set no one environment"),
+            e
+                .enum("scan_result", ea.STATE, ["normal", "scanning", "scan_success", "scan_failure", "scan_start"])
+                .withDescription("Environment scan result"),
+            e
+                .numeric("set_detection_distance", ea.STATE_SET)
+                .withValueMin(3)
+                .withValueMax(6)
+                .withValueStep(1.5)
+                .withUnit("m")
+                .withDescription("Detection distance"),
+            e.numeric("hold_time", ea.STATE_SET).withValueMin(10).withValueMax(60).withValueStep(5).withDescription("Hold time").withUnit("s"),
+            e.enum("temp_unit", ea.STATE_SET, ["c", "f"]).withDescription("Temperature unit"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery state"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse0],
+                [101, "illuminance", tuya.valueConverter.raw],
+                [22, "temperature", tuya.valueConverter.divideBy10],
+                [23, "humidity", tuya.valueConverter.raw],
+                [
+                    104,
+                    "scene_switch",
+                    tuya.valueConverterBasic.lookup({single_click: tuya.enum(0), double_click: tuya.enum(1), long_press: tuya.enum(2)}),
+                ],
+                [103, "radar_switch", tuya.valueConverter.onOff],
+                [105, "scan_environment", tuya.valueConverterBasic.lookup({start: tuya.enum(0)})],
+                [8, "scan_result", tuya.valueConverterBasic.lookup({normal: 0, scanning: 1, scan_success: 2, scan_failure: 3, scan_start: 4})],
+                [106, "set_detection_distance", tuya.valueConverter.divideBy100],
+                [33, "hold_time", tuya.valueConverter.raw],
+                [26, "temp_unit", tuya.valueConverterBasic.lookup({c: tuya.enum(0), f: tuya.enum(1)})],
+                [108, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+            ],
+        },
+    },
+
+    {
+        zigbeeModel: ["CK-BL702-MSW-01(7011)"],
+        model: "PZE2612",
+        vendor: "Lincukoo",
+        description: "Outdoor Smart Plug",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"]})],
     },
 ];
