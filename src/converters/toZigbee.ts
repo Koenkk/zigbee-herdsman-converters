@@ -657,7 +657,7 @@ export const squawk: Tz.Converter = {
 };
 export const cover_state: Tz.Converter = {
     key: ["state"],
-    options: [exposes.options.invert_cover()],
+    options: [exposes.options.invert_cover_state()],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {
             open: "upOpen" as const,
@@ -674,10 +674,7 @@ export const cover_state: Tz.Converter = {
             off: "upOpen" as const,
         };
         utils.assertString(value, key);
-        const invert = utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover;
-        const commandLookup = invert ? invertedLookup : lookup;
+        const commandLookup = meta.options.invert_cover_state ? invertedLookup : lookup;
         await entity.command(
             "closuresWindowCovering",
             utils.getFromLookup(value.toLowerCase(), commandLookup),
