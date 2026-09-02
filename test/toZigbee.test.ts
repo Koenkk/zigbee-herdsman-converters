@@ -411,12 +411,48 @@ describe("toZigbee converters", () => {
             const converter = zhc.toZigbee.cover_state;
             await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({}, {coverInverted: true}));
             expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
         });
 
         test("invert_cover still swaps commands on a coverInverted device", async () => {
             const converter = zhc.toZigbee.cover_state;
             await converter.convertSet(device.endpoints[0], "state", "open", makeMeta({invert_cover: true}, {coverInverted: true}));
             expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "downClose", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "close", makeMeta({invert_cover: true}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
+        });
+
+        test("stop is unaffected by coverInverted meta, with or without invert_cover", async () => {
+            const converter = zhc.toZigbee.cover_state;
+            await converter.convertSet(device.endpoints[0], "state", "stop", makeMeta({}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
+
+            await converter.convertSet(device.endpoints[0], "state", "stop", makeMeta({invert_cover: true}, {coverInverted: true}));
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "stop", {}, {});
+        });
+
+        test("real coverInverted device (Smartwings WM25L-Z) sends unswapped commands by default, through its actual wired-up definition", async () => {
+            const smartwingsDevice = mockDevice({
+                modelID: "WM25/L-Z",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering", "genPowerCfg"]}],
+            });
+            const definition = await zhc.findByDevice(smartwingsDevice);
+            expect(definition?.meta?.coverInverted).toBe(true);
+
+            const meta: Tz.Meta = {
+                state: {},
+                device: smartwingsDevice,
+                message: null,
+                mapped: definition,
+                options: {},
+                publish: null,
+                endpoint_name: null,
+            };
+            await zhc.toZigbee.cover_state.convertSet(smartwingsDevice.endpoints[0], "state", "open", meta);
+            expect(smartwingsDevice.endpoints[0].command).toHaveBeenCalledWith("closuresWindowCovering", "upOpen", {}, {});
         });
     });
 
