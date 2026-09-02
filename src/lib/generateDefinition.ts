@@ -3,6 +3,7 @@ import type {Models as ZHModels} from "zigbee-herdsman";
 import {Zcl} from "zigbee-herdsman";
 import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 
+import type * as constants from "./constants";
 import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as philips from "./philips";
@@ -15,6 +16,7 @@ interface GeneratedExtend {
     getExtend(): ModernExtend;
     getSource(): string;
     lib?: string;
+    multiEndpointSkip?: string[];
 }
 
 // Generator allows to define instances of GeneratedExtend that have typed arguments to extender.
@@ -23,12 +25,14 @@ class ExtendGenerator<T> implements GeneratedExtend {
     args?: T;
     source: string;
     lib?: string;
+    multiEndpointSkip?: string[];
 
-    constructor(args: {extend: (a: T) => ModernExtend; args?: T; source: string; lib?: string}) {
+    constructor(args: {extend: (a: T) => ModernExtend; args?: T; source: string; lib?: string; multiEndpointSkip?: string[]}) {
         this.extend = args.extend;
         this.args = args.args;
         this.source = args.source;
         this.lib = args.lib;
+        this.multiEndpointSkip = args.multiEndpointSkip;
     }
 
     getExtend(): ModernExtend {
@@ -96,28 +100,100 @@ const INPUT_EXTENDERS: Extender[] = [
     [["msSoilMoisture"], async (d, eps) => [new ExtendGenerator({extend: m.soilMoisture, args: maybeEndpointArgs(d, eps), source: "soilMoisture"})]],
     [
         ["closuresWindowCovering"],
-        async (d, eps) => [new ExtendGenerator({extend: m.windowCovering, args: {controls: ["lift", "tilt"]}, source: "windowCovering"})],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.windowCovering,
+                args: {controls: ["lift", "tilt"]},
+                source: "windowCovering",
+                multiEndpointSkip: ["state", "position", "tilt", "cover_mode"],
+            }),
+        ],
     ],
     [["genBinaryInput"], extenderBinaryInput],
     [["genBinaryOutput"], extenderBinaryOutput],
     [["genAnalogInput"], extenderAnalogInput],
     [["genAnalogOutput"], extenderAnalogOutput],
+    [["hvacThermostat"], extenderThermostat],
+    [["hvacFanCtrl"], extenderFanControl],
+    [["hvacUserInterfaceCfg"], extenderThermostatUi],
+    [["genIdentify"], async (d, eps) => [new ExtendGenerator({extend: m.identify, source: "identify"})]],
+    [["lightingBallastCfg"], async (d, eps) => [new ExtendGenerator({extend: m.lightingBallast, source: "lightingBallast"})]],
 ];
 
 const OUTPUT_EXTENDERS: Extender[] = [
-    [["genOnOff"], async (d, eps) => [new ExtendGenerator({extend: m.commandsOnOff, args: maybeEndpointArgs(d, eps), source: "commandsOnOff"})]],
+    [
+        ["genOnOff"],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.commandsOnOff,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsOnOff",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps) ? ["on", "off", "toggle"] : undefined,
+            }),
+        ],
+    ],
     [
         ["genLevelCtrl"],
-        async (d, eps) => [new ExtendGenerator({extend: m.commandsLevelCtrl, args: maybeEndpointArgs(d, eps), source: "commandsLevelCtrl"})],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.commandsLevelCtrl,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsLevelCtrl",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps)
+                    ? [
+                          "brightness_move_to_level",
+                          "brightness_move_up",
+                          "brightness_move_down",
+                          "brightness_step_up",
+                          "brightness_step_down",
+                          "brightness_stop",
+                      ]
+                    : undefined,
+            }),
+        ],
     ],
     [
         ["lightingColorCtrl"],
-        async (d, eps) => [new ExtendGenerator({extend: m.commandsColorCtrl, args: maybeEndpointArgs(d, eps), source: "commandsColorCtrl"})],
+        async (d, eps) => [
+            new ExtendGenerator({
+                extend: m.commandsColorCtrl,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsColorCtrl",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps)
+                    ? [
+                          "color_temperature_move_stop",
+                          "color_temperature_move_up",
+                          "color_temperature_move_down",
+                          "color_temperature_step_up",
+                          "color_temperature_step_down",
+                          "enhanced_move_to_hue_and_saturation",
+                          "move_to_hue_and_saturation",
+                          "color_hue_step_up",
+                          "color_hue_step_down",
+                          "color_saturation_step_up",
+                          "color_saturation_step_down",
+                          "color_loop_set",
+                          "color_temperature_move",
+                          "color_move",
+                          "hue_move",
+                          "hue_stop",
+                          "move_to_saturation",
+                          "move_to_hue",
+                          "stop_move_step",
+                      ]
+                    : undefined,
+            }),
+        ],
     ],
     [
         ["closuresWindowCovering"],
         async (d, eps) => [
-            new ExtendGenerator({extend: m.commandsWindowCovering, args: maybeEndpointArgs(d, eps), source: "commandsWindowCovering"}),
+            new ExtendGenerator({
+                extend: m.commandsWindowCovering,
+                args: maybeEndpointArgs(d, eps),
+                source: "commandsWindowCovering",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(d, eps) ? ["open", "close", "stop"] : undefined,
+            }),
         ],
     ],
 ];
@@ -220,8 +296,13 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         for (const endpoint of endpointsWithoutGreenPower) {
             endpoints[endpoint.ID.toString()] = endpoint.ID;
         }
+
+        // Collect multiEndpointSkip from extends that declare it.
+        const multiEndpointSkipArr = generatedExtend.flatMap((e) => e.multiEndpointSkip ?? []);
+        const multiEndpointSkip = multiEndpointSkipArr.length ? multiEndpointSkipArr : undefined;
+
         // Add to beginning for better visibility.
-        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints}, source: "deviceEndpoints"}));
+        generatedExtend.unshift(new ExtendGenerator({extend: m.deviceEndpoints, args: {endpoints, multiEndpointSkip}, source: "deviceEndpoints"}));
         extenders.unshift(generatedExtend[0].getExtend());
     }
 
@@ -296,13 +377,23 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
         if (!onlyFirstDeviceEnpoint(device, onOffEndpoints)) {
             endpointNames = onOffEndpoints.map((e) => e.ID.toString());
         }
-        generated.push(new ExtendGenerator({extend: m.onOff, args: {endpointNames}, source: "onOff"}));
+        generated.push(
+            new ExtendGenerator({
+                extend: m.onOff,
+                args: {endpointNames},
+                source: "onOff",
+                multiEndpointSkip: onlyFirstDeviceEnpoint(device, onOffEndpoints) ? ["state", "on", "off", "power_on_behavior"] : undefined,
+            }),
+        );
     }
 
     for (const endpoint of lightEndpoints) {
         let endpointNames: string[] | undefined;
+        let multiEndpointSkip: string[] | undefined;
         if (!onlyFirstDeviceEnpoint(device, lightEndpoints)) {
             endpointNames = lightEndpoints.map((e) => e.ID.toString());
+        } else {
+            multiEndpointSkip = ["state", "on", "off", "brightness", "level_config", "power_on_behavior"];
         }
         // In case read fails, support all features with 31
         let colorCapabilities = 0;
@@ -320,6 +411,9 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
             const minColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMin", 150);
             const maxColorTemp = await getClusterAttributeValue(endpoint, "lightingColorCtrl", "colorTempPhysicalMax", 500);
             args.colorTemp = {range: [minColorTemp, maxColorTemp]};
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("color_temp", "color_temp_startup");
+            }
         }
 
         if (supportsColorXY) {
@@ -329,12 +423,19 @@ async function extenderOnOffLight(device: Zh.Device, endpoints: Zh.Endpoint[]): 
                 if (supportsHueSaturation) args.color.modes = ["xy", "hs"];
                 if (supportsEnhancedHueSaturation) args.color.enhancedHue = true;
             }
+            if (multiEndpointSkip) {
+                multiEndpointSkip.push("color", "color_mode");
+            }
+        }
+
+        if ((supportsColorXY || supportsColorTemperature) && multiEndpointSkip) {
+            multiEndpointSkip.push("color_mode", "", "color_options");
         }
 
         if (endpoint.getDevice().manufacturerID === Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V) {
             generated.push(new ExtendGenerator({extend: philips.m.light, args, source: "m.light", lib: "philips"}));
         } else {
-            generated.push(new ExtendGenerator({extend: m.light, args, source: "light"}));
+            generated.push(new ExtendGenerator({extend: m.light, args, source: "light", multiEndpointSkip}));
         }
     }
 
@@ -373,6 +474,133 @@ async function extenderElectricityMeter(device: Zh.Device, endpoints: Zh.Endpoin
     }
 
     return [new ExtendGenerator({extend: m.electricityMeter, args, source: "electricityMeter"})];
+}
+
+const THERMOSTAT_CTRL_SEQ_OF_OPER_META = "ctrlSeqeOfOper";
+
+async function extenderThermostat(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    const generated: GeneratedExtend[] = [];
+
+    for (const endpoint of endpoints) {
+        const isFirstEndpoint = onlyFirstDeviceEnpoint(device, endpoints);
+
+        // Read ctrlSeqeOfOper to determine thermostat type
+        // ZCL values: 0=cooling_only, 1=cooling_with_reheat, 2=heating_only, 3=heating_with_reheat,
+        // 4=heating_cooling_4_pipes, 5=heating_cooling_4_pipes_with_reheat
+        // The value is persisted in device meta, so on subsequent generations (e.g. after a
+        // restart) it is not read from the device again.
+        let ctrlSeqeOfOper: number;
+        const storedCtrlSeqeOfOper = device.meta?.[THERMOSTAT_CTRL_SEQ_OF_OPER_META]?.[endpoint.ID];
+        if (typeof storedCtrlSeqeOfOper === "number") {
+            ctrlSeqeOfOper = storedCtrlSeqeOfOper;
+        } else {
+            const readCtrlSeqeOfOper = await getClusterAttributeValue(endpoint, "hvacThermostat", "ctrlSeqeOfOper", undefined);
+            if (typeof readCtrlSeqeOfOper === "number") {
+                ctrlSeqeOfOper = readCtrlSeqeOfOper;
+                if (!device.meta) device.meta = {};
+                if (typeof device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META] !== "object" || device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META] === null) {
+                    device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META] = {};
+                }
+                device.meta[THERMOSTAT_CTRL_SEQ_OF_OPER_META][endpoint.ID] = readCtrlSeqeOfOper;
+            } else {
+                // Read failed - use the default without persisting, so a transient failure
+                // does not bake the fallback value into the meta.
+                ctrlSeqeOfOper = 2;
+            }
+        }
+
+        const coolingOnly = ctrlSeqeOfOper === 0 || ctrlSeqeOfOper === 1;
+        const heatingAndCooling = ctrlSeqeOfOper === 4 || ctrlSeqeOfOper === 5;
+
+        let setpoints: NonNullable<NonNullable<m.ThermostatArgs["setpoints"]>["values"]>;
+
+        if (coolingOnly) {
+            setpoints = {occupiedCoolingSetpoint: {min: 7, max: 30, step: 0.5}};
+        } else if (heatingAndCooling) {
+            setpoints = {
+                occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5},
+                occupiedCoolingSetpoint: {min: 7, max: 30, step: 0.5},
+            };
+        } else {
+            // heating_only (2, 3 or unknown - default)
+            setpoints = {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}};
+        }
+
+        let systemModeValues: constants.ThermostatSystemMode[];
+        if (coolingOnly) {
+            systemModeValues = ["off", "cool"];
+        } else if (heatingAndCooling) {
+            systemModeValues = ["off", "heat", "cool", "auto"];
+        } else {
+            systemModeValues = ["off", "heat"];
+        }
+
+        const thermostatArgs: m.ThermostatArgs = {
+            localTemperature: {},
+            runningState: {values: heatingAndCooling ? ["idle", "heat", "cool"] : coolingOnly ? ["idle", "cool"] : ["idle", "heat"]},
+            setpoints: {values: setpoints},
+            systemMode: {values: systemModeValues},
+        };
+
+        if (!isFirstEndpoint) {
+            thermostatArgs.endpoint = endpoint.ID.toString();
+        }
+
+        // Check if hvacFanCtrl is on the same endpoint - add fanMode if so
+        if (endpoint.supportsInputCluster("hvacFanCtrl")) {
+            thermostatArgs.fanMode = ["off", "low", "medium", "high", "auto"];
+        }
+
+        generated.push(new ExtendGenerator({extend: m.thermostat, args: thermostatArgs, source: "thermostat"}));
+    }
+
+    // When the thermostat is on only one endpoint but the device has multiple,
+    // declare its properties to be skipped from endpoint suffixing.
+    // This prevents fz.thermostat from producing suffixed keys that clash with
+    // the unsuffixed keys returned by tz.thermostat_* converters.
+    const endpointsWithoutGreenPower = device.endpoints.filter((e) => e.ID !== 242);
+    if (endpoints.length === 1 && endpointsWithoutGreenPower.length > 1) {
+        generated[0].multiEndpointSkip = [
+            "local_temperature",
+            "occupied_heating_setpoint",
+            "occupied_cooling_setpoint",
+            "system_mode",
+            "running_state",
+            "keypad_lockout",
+            "temperature_display_mode",
+            "programming_operation_mode",
+        ];
+    }
+
+    return generated;
+}
+
+function extenderFanControl(device: Zh.Device, endpoints: Zh.Endpoint[]): GeneratedExtend[] {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        // If hvacThermostat is on the same endpoint, fanMode is handled by the thermostat extender
+        if (endpoint.supportsInputCluster("hvacThermostat")) {
+            continue;
+        }
+        let endpointNames: string[] | undefined;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
+        }
+        generated.push(new ExtendGenerator({extend: m.fanControl, args: {endpointNames}, source: "fanControl"}));
+    }
+    return generated;
+}
+
+function extenderThermostatUi(device: Zh.Device, endpoints: Zh.Endpoint[]): GeneratedExtend[] {
+    const generated: GeneratedExtend[] = [];
+    for (const endpoint of endpoints) {
+        let endpointNames: string[] | undefined;
+        if (!onlyFirstDeviceEnpoint(device, endpoints)) {
+            endpointNames = [endpoint.ID.toString()];
+        }
+        generated.push(new ExtendGenerator({extend: m.thermostatUi, args: {endpointNames}, source: "thermostatUi"}));
+    }
+    return generated;
 }
 
 async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {

@@ -118,6 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             whenClusterPresent("msCO2", m.co2()),
             whenClusterPresent("msIlluminanceMeasurement", m.illuminance()),
+            m.identify(),
         ],
     },
 ];

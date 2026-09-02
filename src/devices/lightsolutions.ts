@@ -3,6 +3,13 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["42-050"],
+        model: "42-050",
+        vendor: "Light Solutions",
+        description: "LED driver CCT",
+        extend: [m.light({colorTemp: {range: [160, 450]}})],
+    },
+    {
         zigbeeModel: ["91-947"],
         model: "200403V2-B",
         vendor: "Light Solutions",

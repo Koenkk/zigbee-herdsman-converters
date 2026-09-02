@@ -2446,11 +2446,20 @@ export const lumiModernExtend = {
             ],
         };
     },
-    lumiOnOff: (args?: modernExtend.OnOffArgs & {operationMode?: boolean; powerOutageMemory?: "binary" | "enum"; lockRelay?: boolean}) => {
-        args = {operationMode: false, lockRelay: false, ...args};
+    lumiOnOff: (
+        args?: modernExtend.OnOffArgs & {
+            operationMode?: boolean;
+            powerOutageMemory?: "binary" | "enum";
+            lockRelay?: boolean;
+            deviceTemperature?: boolean;
+            powerOutageCount?: boolean;
+        },
+    ) => {
+        args = {operationMode: false, lockRelay: false, deviceTemperature: true, powerOutageCount: true, ...args};
         const result = modernExtend.onOff({powerOnBehavior: false, ...args});
         result.fromZigbee.push(fromZigbee.lumi_specific);
-        result.exposes.push(e.device_temperature(), e.power_outage_count());
+        if (args.deviceTemperature) result.exposes.push(e.device_temperature());
+        if (args.powerOutageCount) result.exposes.push(e.power_outage_count());
         if (args.powerOutageMemory === "binary") {
             const extend = lumiModernExtend.lumiPowerOutageMemory();
             result.toZigbee.push(...extend.toZigbee);
@@ -2876,8 +2885,9 @@ export const lumiModernExtend = {
             zigbeeCommandOptions: {manufacturerCode},
             ...args,
         }),
-    lumiElectricityMeter: (): ModernExtend => {
-        const exposes = [e.energy(), e.voltage(), e.current()];
+    lumiElectricityMeter: (args?: {energy?: boolean; voltage?: boolean; current?: boolean}): ModernExtend => {
+        const {energy = true, voltage = true, current = true} = args ?? {};
+        const exposes = [...(energy ? [e.energy()] : []), ...(voltage ? [e.voltage()] : []), ...(current ? [e.current()] : [])];
         const fromZigbee = [
             {
                 cluster: "manuSpecificLumi",
@@ -3004,6 +3014,19 @@ export const lumiModernExtend = {
             valueOn: ["ON", 0],
             valueOff: ["OFF", 1],
             description: "Disables the physical switch button",
+            access: "ALL",
+            entityCategory: "config",
+            zigbeeCommandOptions: {manufacturerCode},
+            ...args,
+        }),
+    lumiChildLock: (args?: Partial<modernExtend.BinaryArgs<"manuSpecificLumi", ManuSpecificLumi>>) =>
+        modernExtend.binary<"manuSpecificLumi", ManuSpecificLumi>({
+            name: "child_lock",
+            cluster: "manuSpecificLumi",
+            attribute: {ID: 0x0285, type: 0x20},
+            valueOn: ["LOCK", 1],
+            valueOff: ["UNLOCK", 0],
+            description: "Disables the physical button",
             access: "ALL",
             entityCategory: "config",
             zigbeeCommandOptions: {manufacturerCode},
@@ -4810,9 +4833,15 @@ function writeW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number,
 }
 
 function getNextW600SensorBindingCounter(entity: Zh.Device | Zh.Endpoint) {
-    const storeKey = getW600DeviceStoreKey(entity);
-    const counter = globalStore.getValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, 0x12);
-    globalStore.putValue(storeKey, W600_SENSOR_BINDING_COUNTER_STORE_KEY, (counter + 1) & 0xff);
+    const device = "ieeeAddr" in entity ? entity : entity.getDevice();
+    const storedCounter = device.meta?.[W600_SENSOR_BINDING_COUNTER_STORE_KEY];
+    const counter =
+        typeof storedCounter === "number" && Number.isInteger(storedCounter) && storedCounter >= 0 && storedCounter <= 0xff ? storedCounter : 0x12;
+
+    device.meta ??= {};
+    device.meta[W600_SENSOR_BINDING_COUNTER_STORE_KEY] = (counter + 1) & 0xff;
+    device.save();
+
     return counter;
 }
 
@@ -5606,6 +5635,7 @@ function createW600ExternalTempSensor(): ModernExtend {
 
 function createW600Thermostat(): ModernExtend {
     const extend = modernExtend.thermostat({
+        localTemperature: {values: {description: "Current temperature used by the thermostat"}},
         setpoints: {
             values: {occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5}},
         },
@@ -5629,6 +5659,12 @@ function createW600Thermostat(): ModernExtend {
         .withDescription("Duration in minutes for the current manual override. 0 means until next schedule event, 65535 means indefinitely.");
     extend.exposes?.push(
         e.binary("override_active", ea.STATE, true, false).withLabel("Manual Override").withDescription("Temporary manual override active"),
+        e
+            .numeric("local_temperature_internal", ea.STATE)
+            .withUnit("°C")
+            .withLabel("Internal sensor temperature")
+            .withDescription("Temperature measured by the thermostat's internal sensor")
+            .withCategory("diagnostic"),
     );
 
     const thermostatConverter = {
@@ -5636,6 +5672,10 @@ function createW600Thermostat(): ModernExtend {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+
+            if (msg.endpoint.ID === 2) {
+                return result?.local_temperature === undefined ? undefined : {local_temperature_internal: result.local_temperature};
+            }
 
             if (result && msg.data.tempSetpointHold !== undefined) {
                 const holdProperty = postfixWithEndpointName("temperature_setpoint_hold", msg, model, meta);
@@ -5887,15 +5927,6 @@ function createW600Thermostat(): ModernExtend {
     );
 
     extend.configure ??= [];
-    const configureOverrideActive = modernExtend.setupConfigureForReporting(W600_THERMOSTAT_CLUSTER, "tempSetpointHold", {
-        config: {min: "MIN", max: "1_HOUR", change: 0},
-        access: ea.STATE_GET,
-    });
-
-    if (configureOverrideActive) {
-        extend.configure.push(configureOverrideActive);
-    }
-
     extend.configure.push(async (device) => {
         const endpoint = device.getEndpoint(1);
         await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SYSTEM_MODE, W600_ATTR_SCHEDULE, W600_ATTR_PRESET], {manufacturerCode});
@@ -7734,7 +7765,7 @@ export const fromZigbee = {
             } else if (state === 1) {
                 if (globalStore.getValue(msg.endpoint, "hold")) {
                     const duration = Date.now() - globalStore.getValue(msg.endpoint, "hold");
-                    publish({action: "release", duration: duration});
+                    publish({action: "release", action_duration: duration});
                     globalStore.putValue(msg.endpoint, "hold", false);
                 }
 

@@ -247,12 +247,19 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true), fzLegrand.command_cover],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt, tzLegrand.identify, tzLegrand.led_mode, tzLegrand.calibration_mode(true)],
+        fromZigbee: [fzLegrand.cover_moving_state, fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
+        toZigbee: [
+            tzLegrand.cover_state_with_moving,
+            tzLegrand.cover_position_with_moving,
+            tzLegrand.identify,
+            tzLegrand.led_mode,
+            tzLegrand.calibration_mode(true),
+        ],
         exposes: (device, options) => {
             return [
                 eLegrand.getCover(device),
-                e.action(["identify", "open", "close", "stop", "moving", "stopped"]),
+                e.action(["opening", "closing", "stopped"]),
+                e.binary("moving", ea.STATE_GET, true, false).withDescription("Indicates if the cover is currently moving"),
                 eLegrand.identify(),
                 eLegrand.ledInDark(),
                 eLegrand.ledIfOn(),
@@ -772,7 +779,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Legrand", model: "600090A"}],
         ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        toZigbee: [tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config, tzLegrand.light_state_device_mode_aware],
         exposes: [
             e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
             e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
@@ -815,6 +822,20 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genOnOff", "genLevelCtrl", "genScenes"]);
+        },
+    },
+    {
+        zigbeeModel: [" Wired Scenes Command\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
+        model: "WNRCB46WH",
+        vendor: "Legrand",
+        description: "Wired 4 scenes control",
+        meta: {publishDuplicateTransaction: true},
+        fromZigbee: [fz.identify, fzLocal.command_recall_by_groupid],
+        toZigbee: [],
+        exposes: [e.action(["identify", "button_1", "button_2", "button_3", "button_4"])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genScenes"]);
         },
     },
 ];

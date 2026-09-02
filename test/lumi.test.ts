@@ -1,11 +1,27 @@
-import {beforeEach, describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
-import type {Definition, Fz, Tz} from "../src/lib/types";
+import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
+    describe("SP-EUC01 event mode", () => {
+        it("enables event mode during configure", async () => {
+            const device = mockDevice({modelID: "lumi.plug.maeu01", endpoints: [{ID: 1}]});
+            const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+            const definition = await findByDevice(device);
+
+            await definition.configure?.(device, coordinatorEndpoint, definition);
+
+            expect(device.getEndpoint(1).write).toHaveBeenCalledWith(
+                "manuSpecificLumi",
+                {mode: 1},
+                {manufacturerCode: 0x115f, disableResponse: true},
+            );
+        });
+    });
+
     describe("PS-S04D battery", () => {
         it("decodes battery percentage (tag 24) and voltage (tag 23) from the 0x00F7 struct", () => {
             const extend = lumiModernExtend.lumiBattery({voltageAttribute: 0x0017, percentageAttribute: 0x0018});
@@ -36,6 +52,62 @@ describe("lib/lumi", () => {
                 null,
             );
             expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeGreaterThanOrEqual(before);
+        });
+    });
+
+    describe("WP-P09D optional exposes", () => {
+        const properties = (extend: {exposes: unknown[]}) => (extend.exposes as {property: string}[]).map((e) => e.property);
+
+        it("keeps device_temperature and power_outage_count on lumiOnOff by default", () => {
+            expect(properties(lumiModernExtend.lumiOnOff())).toEqual(expect.arrayContaining(["device_temperature", "power_outage_count"]));
+        });
+
+        it("drops only the exposes that are turned off on lumiOnOff", () => {
+            const props = properties(lumiModernExtend.lumiOnOff({deviceTemperature: false}));
+            expect(props).not.toContain("device_temperature");
+            expect(props).toContain("power_outage_count");
+        });
+
+        it("still publishes the full lumi_specific payload when an expose is turned off", async () => {
+            const extend = lumiModernExtend.lumiOnOff({deviceTemperature: false});
+            const converter = extend.fromZigbee.find(({cluster}) => cluster === "manuSpecificLumi");
+            expect(converter).toBeDefined();
+            // tag 3 (0x03), int8 (0x28) = 31 degrees device temperature
+            const result = await converter?.convert(
+                {model: "WP-P09D"} as Definition,
+                // @ts-expect-error mock
+                {data: {247: Buffer.from([0x03, 0x28, 0x1f])}, device: mockDevice({modelID: "lumi.plug.aeu002", endpoints: [{ID: 1}]})},
+                null,
+                {},
+                {} as Fz.Meta,
+            );
+            expect(result).toMatchObject({device_temperature: 31});
+        });
+
+        it("keeps energy, voltage and current on lumiElectricityMeter by default", () => {
+            expect(properties(lumiModernExtend.lumiElectricityMeter())).toStrictEqual(["energy", "voltage", "current"]);
+        });
+
+        it("drops only the exposes that are turned off on lumiElectricityMeter", () => {
+            expect(properties(lumiModernExtend.lumiElectricityMeter({voltage: false}))).toStrictEqual(["energy", "current"]);
+        });
+    });
+
+    describe("lumiChildLock", () => {
+        it("uses the standard LOCK/UNLOCK values on attribute 0x0285", async () => {
+            const extend = lumiModernExtend.lumiChildLock();
+            expect(extend.exposes[0]).toMatchObject({property: "child_lock", value_on: "LOCK", value_off: "UNLOCK"});
+
+            const result = await extend.fromZigbee[0].convert(
+                {model: "WP-P09D"} as Definition,
+                // @ts-expect-error mock
+                // 645 = attribute 0x0285
+                {data: {645: 1}, device: mockDevice({modelID: "lumi.plug.aeu002", endpoints: [{ID: 1}]})},
+                null,
+                {},
+                {} as Fz.Meta,
+            );
+            expect(result).toStrictEqual({child_lock: "LOCK"});
         });
     });
 
@@ -1005,6 +1077,51 @@ describe("lib/lumi", () => {
                 );
                 expect(result).toStrictEqual({});
             });
+        });
+    });
+
+    describe("WXKG01LM hold length", () => {
+        const definition = {model: "WXKG01LM"} as Definition;
+
+        const message = (onOff: number, sequence: number, device: ReturnType<typeof mockDevice>) =>
+            ({
+                device,
+                endpoint: device.endpoints[0],
+                data: {onOff},
+                meta: {zclTransactionSequenceNumber: sequence},
+            }) as unknown as Fz.Message<"genOnOff", undefined, "attributeReport">;
+
+        beforeEach(() => {
+            vi.useFakeTimers();
+            vi.setSystemTime(new Date("2026-08-22T00:00:00Z"));
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it("reports the hold length under action_duration, which is not part of the device state", () => {
+            const device = mockDevice({modelID: "lumi.sensor_switch", endpoints: [{ID: 1}]}, "EndDevice");
+            const published: KeyValueAny[] = [];
+
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(0, 1, device), (payload) => published.push(payload), {}, null);
+            // The converter calls a press a hold once 1000 ms pass without a release.
+            vi.advanceTimersByTime(1000);
+            vi.advanceTimersByTime(1500);
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(1, 2, device), (payload) => published.push(payload), {}, null);
+
+            expect(published).toStrictEqual([{action: "hold"}, {action: "release", action_duration: 1500}]);
+        });
+
+        it("leaves a short press without a duration at all", () => {
+            const device = mockDevice({modelID: "lumi.sensor_switch", endpoints: [{ID: 1}], ieeeAddr: "0x87654321"}, "EndDevice");
+            const published: KeyValueAny[] = [];
+
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(0, 3, device), (payload) => published.push(payload), {}, null);
+            vi.advanceTimersByTime(200);
+            fromZigbee.lumi_action_WXKG01LM.convert(definition, message(1, 4, device), (payload) => published.push(payload), {}, null);
+
+            expect(published).toStrictEqual([{action: "single"}]);
         });
     });
 });
