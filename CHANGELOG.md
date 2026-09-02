@@ -1,5 +1,23 @@
 # Changelog
 
+## [26.104.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.103.0...v26.104.0) (2026-09-02)
+
+
+### Features
+
+* **add:** RDZ101ZB ([#13084](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13084)) ([422cc11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/422cc111c48c24ea3912dd84fd33d60d0ce1a1fc))
+* **add:** ZCMR-1 ([#13078](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13078)) ([cef773f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cef773f9c81e63e7152a7d3b21d3e63ca0dffaae))
+
+
+### Bug Fixes
+
+* Fix cover state reversing open/close buttons for coverInverted devices ([#13086](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13086)) ([baebafa](https://github.com/Koenkk/zigbee-herdsman-converters/commit/baebafae02477a249706d2ec2a0a2c2481f624ac))
+* Legrand 067797: keep on/off working in dimmer_off (relay) mode ([#13073](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13073)) ([94648df](https://github.com/Koenkk/zigbee-herdsman-converters/commit/94648df20c2ed6d276fef4c8dbd00d67f8776581))
+* Manhot: add new modelIds ([#13077](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13077)) ([73dc50d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/73dc50dc809b4b5e2dd60b2a9a701d2c1f7f30e6))
+* Schneider Electric S520567: restore cover `state` ([#13087](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13087)) ([fb93c50](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb93c50350e8b294b5601284c44b3f5e822d22d2))
+* Tuya: fix power-on behaviour not available ([#13081](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13081)) ([97dcbe0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/97dcbe05361e05937a69b32e4e81cb30e42247eb))
+* Ubisys: add convertGet for configure_device_setup so input actions/configs can be read back ([#13065](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13065)) ([0b35048](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0b350482c51f3f842925f8ecadf4a55a6b767052))
+
 ## [26.103.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.102.0...v26.103.0) (2026-09-01)
 
 
