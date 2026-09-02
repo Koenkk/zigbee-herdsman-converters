@@ -419,6 +419,24 @@ export const tzLegrand = {
             await entity.read("manuSpecificLegrandDevices", [0x0000, 0x0001, 0x0002], legrandOptions);
         },
     } satisfies Tz.Converter,
+    // On dimmer modules that expose `device_mode` (dimmer_on/dimmer_off), the level control
+    // cluster does not respond while the module is in relay mode (`dimmer_off`). `m.light()`
+    // always drives `state` through `tz.light_onoff_brightness`, which uses `genLevelCtrl`, so
+    // in that mode on/off no longer has any effect. This converter keeps the transition-aware
+    // light converter for dimmer mode, and falls back to plain `tz.on_off` in relay mode.
+    light_state_device_mode_aware: {
+        key: ["state"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.state.device_mode === "dimmer_off") {
+                return await tz.on_off.convertSet(entity, key, value, meta);
+            }
+            return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+        },
+    } satisfies Tz.Converter,
     pilot_wire_mode: {
         key: ["pilot_wire_mode"],
         convertSet: async (entity, key, value, meta) => {
