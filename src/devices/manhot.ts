@@ -8,7 +8,7 @@ const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr"， "_TZE2841000000_7qc2wlqr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr", "_TZE2841000000_7qc2wlqr"]),
         model: "BL82-TYZ1",
         vendor: "Manhot",
         description: "Cover motor LPD",
