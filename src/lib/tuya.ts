@@ -1294,6 +1294,12 @@ const tuyaOptions = {
             .withDescription(
                 `Reply to Tuya-specific time synchronization requests: "1970" - Reply with seconds since 1970/01/01 (recommended, should stop the device from asking), "2000" - Reply with seconds since 2000/01/01 (use if the weekday is wrong with 1970), "off" - Don't reply (use if replying causes too much traffic). Default for this device: "${defaultOption}"`,
             ),
+    queryOnAnnounce: (defaultOption: boolean) =>
+        e
+            .binary("query_on_announce", ea.SET, true, false)
+            .withDescription(
+                `Query the full device state whenever it re-announces itself on the network. Some devices need this to resume reporting after a rejoin, but on devices that announce frequently this can cause excessive traffic and battery drain. Default for this device: "${defaultOption}"`,
+            ),
 };
 
 export {tuyaOptions as options};
@@ -4550,14 +4556,25 @@ const tuyaModernExtend = {
             result.configure.push(configureBindBasic);
         }
 
+        if (queryOnDeviceAnnounce) {
+            result.options.push(tuyaOptions.queryOnAnnounce(queryOnDeviceAnnounce));
+        }
+
         if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
             result.onEvent = [
                 (event) => {
                     // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-                    if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
-                        event.data.device.endpoints[0]
-                            .command("manuSpecificTuya", "dataQuery", {})
-                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                    if (event.type === "deviceAnnounce") {
+                        let effectiveQueryOnAnnounce = queryOnDeviceAnnounce;
+                        const optionValue = event.data.options?.query_on_announce;
+                        if (typeof optionValue === "boolean") {
+                            effectiveQueryOnAnnounce = optionValue;
+                        }
+                        if (effectiveQueryOnAnnounce) {
+                            event.data.device.endpoints[0]
+                                .command("manuSpecificTuya", "dataQuery", {})
+                                .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                        }
                     }
 
                     if (queryIntervalSeconds !== undefined) {
