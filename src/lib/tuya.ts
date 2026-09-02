@@ -1252,9 +1252,51 @@ const tuyaExposes = {
     version: () => e.text("version", ea.STATE).withCategory("diagnostic"),
     alarmDuration: () =>
         e.numeric("alarm_duration", ea.STATE_SET).withUnit("min").withValueMin(1).withValueMax(60).withValueStep(1).withCategory("config"),
+    coverPosition: () => e.cover_position().setAccess("position", ea.STATE_SET),
+    motorState: () =>
+        e
+            .enum("motor_state", ea.STATE, ["opening", "closing", "stopped"])
+            .withDescription("Current motor movement status")
+            .withCategory("diagnostic"),
+    motorDirection: () =>
+        e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor rotation direction").withCategory("config"),
+    motorDirectionSide: () => e.enum("motor_direction", ea.STATE_SET, ["left", "right"]).withDescription("Motor side").withCategory("config"),
+    slowMode: () =>
+        e.binary("slow_mode", ea.STATE_SET, "ON", "OFF").withDescription("Operate the motor slower and quieter than normal").withCategory("config"),
+    coverType: () =>
+        e
+            .enum("cover_type", ea.STATE_SET, ["roman_pole", "roller_blind", "canopy_curtain", "roman_blind", "honeycomb_curtain"])
+            .withDescription("Type of window covers installed")
+            .withCategory("config"),
+    favoritePosition: () =>
+        e
+            .numeric("favorite_position", ea.STATE_SET)
+            .withUnit("%")
+            .withValueMin(0)
+            .withValueMax(100)
+            .withValueStep(1)
+            .withDescription("Store the preferred cover position")
+            .withCategory("config"),
+    coverLimit: () =>
+        e
+            .enum("cover_limit", ea.STATE_SET, ["set_up", "set_down", "delete_up", "delete_down", "delete_both"])
+            .withDescription("Set current position as the limit position")
+            .withCategory("config"),
+    clickControl: () => e.enum("click_control", ea.STATE_SET, ["up", "down"]).withDescription("Step control"),
 };
 
 export {tuyaExposes as exposes};
+
+const tuyaOptions = {
+    timeStart: (defaultOption: string) =>
+        e
+            .enum("time_start", ea.SET, ["1970", "2000", "off"])
+            .withDescription(
+                `Reply to Tuya-specific time synchronization requests: "1970" - Reply with seconds since 1970/01/01 (recommended, should stop the device from asking), "2000" - Reply with seconds since 2000/01/01 (use if the weekday is wrong with 1970), "off" - Don't reply (use if replying causes too much traffic). Default for this device: "${defaultOption}"`,
+            ),
+};
+
+export {tuyaOptions as options};
 
 export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
@@ -1617,7 +1659,25 @@ export const valueConverter = {
             return position;
         },
     },
+    coverAction: valueConverterBasic.lookup({OPEN: new Enum(0), STOP: new Enum(1), CLOSE: new Enum(2), CONTINUE: new Enum(3)}),
+    motorState: valueConverterBasic.lookup({opening: new Enum(0), closing: new Enum(1), stopped: new Enum(2)}),
     tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
+    motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
+    coverType: valueConverterBasic.lookup({
+        roman_pole: new Enum(0),
+        roller_blind: new Enum(1),
+        canopy_curtain: new Enum(2),
+        roman_blind: new Enum(3),
+        honeycomb_curtain: new Enum(4),
+    }),
+    coverLimit: valueConverterBasic.lookup({
+        set_up: new Enum(0),
+        set_down: new Enum(1),
+        delete_up: new Enum(2),
+        delete_down: new Enum(3),
+        delete_both: new Enum(4),
+    }),
+    clickControl: valueConverterBasic.lookup({up: new Enum(0), down: new Enum(1)}),
     plus1: {
         from: (v: number) => v + 1,
         to: (v: number) => v - 1,
@@ -1642,19 +1702,30 @@ export const valueConverter = {
         },
     },
     phaseVariant2WithPhase: (phase: string) => {
+        // Payload is 8 bytes: voltage (2), current (3), power (3), same layout as
+        // phaseVariant3/phaseVariant4. Reading only the low 2 bytes of current and
+        // power made the current wrap above 65.536 A.
+        //
+        // Support negative power readings
+        // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
+        // Negative values are not two's complement: they are reported as
+        // NEGATIVE_POWER_OFFSET + power, so the sign bit cannot be used and the
+        // branch is taken on an implausibly high reading instead. The 0x999a
+        // constant previously used here is the low 16 bits of this offset, i.e. an
+        // artifact of the same truncation.
+        const NEGATIVE_POWER_OFFSET = 0x19999a;
+        const IMPLAUSIBLE_POWER = 0x100000; // 1048576 W on a single phase
         return {
             from: (v: string) => {
-                // Support negative power readings
-                // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
                 const buf = Buffer.from(v, "base64");
-                let power = buf[7] | (buf[6] << 8);
-                if (power > 0x7fff) {
-                    power = (0x999a - power) * -1;
+                let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
+                if (power > IMPLAUSIBLE_POWER) {
+                    power -= NEGATIVE_POWER_OFFSET;
                 }
 
                 return {
                     [`voltage_${phase}`]: (buf[1] | (buf[0] << 8)) / 10,
-                    [`current_${phase}`]: (buf[4] | (buf[3] << 8)) / 1000,
+                    [`current_${phase}`]: (buf[4] | (buf[3] << 8) | (buf[2] << 16)) / 1000,
                     [`power_${phase}`]: power,
                 };
             },
@@ -3296,23 +3367,33 @@ const tuyaTz = {
         key: ["state", "brightness"],
         convertSet: async (entity, key, value, meta) => {
             const {message, state} = meta;
+            const brightnessKey =
+                Object.keys(state).find((k) => k.startsWith("brightness_l")) && "ID" in entity ? `brightness_l${entity.ID}` : "brightness";
+            const stateKey = Object.keys(state).find((k) => k.startsWith("state_l")) && "ID" in entity ? `state_l${entity.ID}` : "state";
             if (message.state === "OFF" || (message.state != null && message.brightness == null)) {
                 return await tz.on_off.convertSet(entity, key, value, meta);
             }
             if (message.brightness != null) {
-                // set brightness
-                if (state.state === "OFF") {
+                // If state includes brightness assume we need to use a custom lookup
+                const brightness = utils.toNumber(message.brightness, "brightness");
+                // we allow at most 1 incase its a rounding/ float precision issue
+                const brightnessUnchanged =
+                    Math.abs(utils.mapNumberRange(brightness, 0, 254, 0, 254) - utils.toNumber(state[brightnessKey], "brightness")) <= 1;
+                // if the brightness is unchanged then we need to force it on due to weirdness with moveToLevelTuya
+                if (state[stateKey] === "OFF" && brightnessUnchanged) {
                     await entity.command("genOnOff", "on", {}, utils.getOptions(meta.mapped, entity));
+                } else {
+                    const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
+
+                    // set brightness
+                    await entity.command<"genLevelCtrl", "moveToLevelTuya", TuyaGenLevelCtrl>(
+                        "genLevelCtrl",
+                        "moveToLevelTuya",
+                        {level, transtime: 100},
+                        utils.getOptions(meta.mapped, entity),
+                    );
                 }
 
-                const brightness = utils.toNumber(message.brightness, "brightness");
-                const level = utils.mapNumberRange(brightness, 0, 254, 0, 1000);
-                await entity.command<"genLevelCtrl", "moveToLevelTuya", TuyaGenLevelCtrl>(
-                    "genLevelCtrl",
-                    "moveToLevelTuya",
-                    {level, transtime: 100},
-                    utils.getOptions(meta.mapped, entity),
-                );
                 return {state: {state: "ON", brightness}};
             }
         },
@@ -4366,7 +4447,6 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "1970";
@@ -4383,9 +4463,6 @@ const tuyaModernExtend = {
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
             timeStart = "off",
-            // Disable by default as with many Tuya devices it doesn't work well.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
-            respondToMcuVersionResponse = false,
         } = args;
 
         const fzConverter: Fz.Converter<
@@ -4418,9 +4495,20 @@ const tuyaModernExtend = {
                     forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
                 }
 
-                if (timeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
+                let selectedTimeStart = timeStart;
+
+                const timeStartOption = options.time_start as string;
+                if (timeStartOption) {
+                    if (["1970", "2000", "off"].includes(timeStartOption as string)) {
+                        selectedTimeStart = timeStartOption;
+                    } else {
+                        logger.warning(`Invalid option "${timeStartOption}" for ${meta.device.ieeeAddr}.time_start, using default`, NS);
+                    }
+                }
+
+                if (selectedTimeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
                     globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const offset = selectedTimeStart === "2000" ? constants.OneJanuary2000 : 0;
                     const utcTime = Math.round((Date.now() - offset) / 1000);
                     const localTime = utcTime - new Date().getTimezoneOffset() * 60;
                     const payload = {
@@ -4430,10 +4518,6 @@ const tuyaModernExtend = {
                     msg.endpoint
                         .command("manuSpecificTuya", "mcuSyncTime", payload, {})
                         .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
-                } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
-                    msg.endpoint
-                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
-                        .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
                 } else if (msg.type === "commandMcuGatewayConnectionStatus") {
                     // "payload" can have the following values:
                     // 0x00: The gateway is not connected to the internet.
@@ -4451,6 +4535,7 @@ const tuyaModernExtend = {
             isModernExtend: true,
             fromZigbee: [fzConverter],
             toZigbee: [],
+            options: [tuyaOptions.timeStart(timeStart)],
         };
 
         if (queryOnConfigure) {
@@ -4840,7 +4925,7 @@ const tuyaModernExtend = {
             powerOnBehavior3?: boolean;
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
-            switchTypeButton?: boolean;
+            switchTypeButton?: boolean | ((manufacturerName: string) => boolean);
             backlightModeLowMediumHigh?: boolean;
             indicatorMode?: boolean | ((manufacturerName: string) => boolean);
             indicatorModeNoneRelayPos?: boolean;
@@ -5141,7 +5226,7 @@ const tuyaModernExtend = {
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
-        for (let i = 0; i < numberOfForecastDays; ++i) {
+        for (let i = 1; i <= numberOfForecastDays; ++i) {
             tz_fileds.push(`temperature_${i}`);
             tz_fileds.push(`humidity_${i}`);
             tz_fileds.push(`condition_${i}`);
@@ -5183,7 +5268,7 @@ const tuyaModernExtend = {
                 weather_values[TuyaWeatherID.Temperature].push(
                     `temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0,
                 );
-                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity_${i}`] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
                     `condition_${i}` in meta.state ? weatherConditionMap[meta.state[`condition_${i}`] as keyof typeof weatherConditionMap] : 0,
                 );

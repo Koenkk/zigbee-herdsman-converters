@@ -18,6 +18,17 @@ const switchTypesList = {
     "multi-click": 0x02,
 };
 
+// genOnOffSwitchCfg.switchType is defined as read-only. Allow override with write: true.
+const genOnOffSwitchCfgSwitchTypeWritable = m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+    name: "genOnOffSwitchCfg",
+    ID: 0x0007,
+    attributes: {
+        switchType: {name: "switchType", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, min: 0x00, max: 0x02},
+    },
+    commands: {},
+    commandsResponse: {},
+});
+
 export const tzLocal = {
     tirouter: {
         key: ["transmit_power"],
@@ -621,11 +632,18 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "ZBT-2", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MU", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG24U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG26U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR1U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR2U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR3U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR4U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR5U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "DONGLE-E", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "Dongle-LMG21", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "Dongle-M", manufacturerName: "SONOFF", applicationVersion: 200},
@@ -1141,6 +1159,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Multi switch from Smarthjemmet.dk",
         fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
             ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
@@ -1380,6 +1399,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "FUGA compatible switch from Smarthjemmet.dk",
         fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
             ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
@@ -1654,6 +1674,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 description: "PIR timeout in seconds",
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["LIGHT-CCT-TRK", "LIGHT-CCT-STR", "LIGHT-CCT-CUST"],
+        model: "TLSR-DIY-ZR01-LIGHT-CCT",
+        vendor: "Custom devices (DiY)",
+        description: "CCT LED lamp/dimmer with custom firmware",
+        ota: true,
+        extend: [
+            m.light({
+                colorTemp: {range: [130, 560], startup: false},
+                configureReporting: true,
+            }),
+            m.identify(),
         ],
     },
 ];

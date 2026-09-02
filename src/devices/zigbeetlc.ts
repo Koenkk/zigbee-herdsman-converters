@@ -281,6 +281,32 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        // ZTH05 (TS0601/_TZE204_upagmta9) with ZigbeeTLc firmware; requires hardware mod
+        // https://pvvx.github.io/TS0601_TZE204/
+        zigbeeModel: ["TH05-z"],
+        model: "TH05-z",
+        vendor: "Tuya",
+        description: "ZTH05 temperature & humidity sensor (pvvx/ZigbeeTLc)",
+        extend: [
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity(),
+            extend.enableDisplay,
+            extend.temperatureDisplayMode,
+            extend.comfortSmiley,
+            extend.comfortTemperatureMin,
+            extend.comfortTemperatureMax,
+            extend.comfortHumidityMin,
+            extend.comfortHumidityMax,
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
+        ota: true,
+    },
     /*
         ZigbeeTLc devices supporting:
         - Temperature (+calibration)
@@ -324,7 +350,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["MC-z", "TH01-z", "TH01-2-z"],
         model: "MC-z",
-        vendor: "ZBeacon",
+        vendor: "Zbeacon",
         description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
@@ -337,5 +363,52 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    /*
+        ZigbeeTLc PIR devices supporting:
+        - Occupancy
+        - Remote On/Off binding (genOnOff state)
+        - PIR timeout
+    */
+    {
+        // Tuya ZP01 (TS0202/_TZ3000_*) with ZigbeeTLc firmware
+        // https://pvvx.github.io/TS0202_TZ3000/
+        zigbeeModel: ["TS202PIR1-z"],
+        model: "TS202PIR1-z",
+        vendor: "Tuya",
+        description: "ZP01 PIR motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery({voltage: true}),
+            m.occupancy(),
+            m.onOff({
+                powerOnBehavior: false,
+                description:
+                    'Enable remote On/Off binding. ON: occupancy occupied sends action "on", clear sends action "off". OFF: no occupancy actions.',
+            }),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior for state (remote On/Off enable)",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR occupancy timeout in seconds (firmware default ~35s; board R5/R6 may limit minimum)",
+            }),
+            m.commandsOnOff(),
+        ],
     },
 ];

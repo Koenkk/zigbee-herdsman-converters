@@ -87,14 +87,15 @@ describe("GenerateDefinition", () => {
                 endpoints: [{inputClusters: ["msTemperatureMeasurement", "genOnOff"], outputClusters: []}],
             }),
             meta: undefined,
-            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
-            toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature"],
+            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
+            toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
+            exposes: ["power_on_behavior", "switch(state)", "temperature"],
             bind: {1: ["msTemperatureMeasurement", "genOnOff"]},
             read: {
                 1: [
                     ["msTemperatureMeasurement", ["measuredValue"]],
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                 ],
             },
             write: {},
@@ -112,7 +113,7 @@ export default {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
+    extend: [m.temperature(), m.onOff()],
 };
             `,
         });
@@ -126,14 +127,15 @@ export default {
                 endpoints: [{ID: 2, inputClusters: ["msTemperatureMeasurement", "genOnOff"], outputClusters: []}],
             }),
             meta: undefined,
-            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
-            toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature"],
+            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
+            toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
+            exposes: ["power_on_behavior", "switch(state)", "temperature"],
             bind: {2: ["msTemperatureMeasurement", "genOnOff"]},
             read: {
                 2: [
                     ["msTemperatureMeasurement", ["measuredValue"]],
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                 ],
             },
             write: {},
@@ -151,7 +153,7 @@ export default {
     model: 'combo',
     vendor: 'vendor',
     description: 'Automatically generated definition',
-    extend: [m.temperature(), m.onOff({"powerOnBehavior":false})],
+    extend: [m.temperature(), m.onOff()],
 };
             `,
         });
@@ -166,16 +168,17 @@ export default {
                     {ID: 2, inputClusters: ["msTemperatureMeasurement"], outputClusters: []},
                 ],
             }),
-            meta: {multiEndpoint: true},
+            meta: {multiEndpoint: true, multiEndpointSkip: ["state", "on", "off", "power_on_behavior"]},
             endpoints: {"1": 1, "2": 2},
-            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off],
-            toZigbee: ["temperature", "state", "on_time", "off_wait_time"],
-            exposes: ["switch(state)", "temperature_1", "temperature_2"],
+            fromZigbee: [expect.objectContaining({cluster: "msTemperatureMeasurement"}), fz.on_off, fz.power_on_behavior],
+            toZigbee: ["temperature", "state", "on_time", "off_wait_time", "power_on_behavior"],
+            exposes: ["power_on_behavior", "switch(state)", "temperature_1", "temperature_2"],
             bind: {1: ["msTemperatureMeasurement", "genOnOff"], 2: ["msTemperatureMeasurement"]},
             read: {
                 1: [
                     ["msTemperatureMeasurement", ["measuredValue"]],
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                 ],
                 2: [["msTemperatureMeasurement", ["measuredValue"]]],
             },
@@ -195,7 +198,7 @@ export default {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.temperature({"endpointNames":["1","2"]}), m.onOff({"powerOnBehavior":false})],
+    extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2},"multiEndpointSkip":["state","on","off","power_on_behavior"]}), m.temperature({"endpointNames":["1","2"]}), m.onOff()],
 };
             `,
         });
@@ -454,11 +457,12 @@ export default {
                 endpoints: [{inputClusters: ["genOnOff", "seMetering", "haElectricalMeasurement"], outputClusters: [], attributes}],
             }),
             meta: undefined,
-            fromZigbee: [fz.on_off, fz.electrical_measurement, fz.metering],
+            fromZigbee: [fz.on_off, fz.power_on_behavior, fz.electrical_measurement, fz.metering],
             toZigbee: [
                 "state",
                 "on_time",
                 "off_wait_time",
+                "power_on_behavior",
                 "power",
                 "voltage",
                 "current",
@@ -467,11 +471,12 @@ export default {
                 "ac_frequency",
                 "power_factor",
             ],
-            exposes: ["current", "energy", "power", "switch(state)", "voltage"],
+            exposes: ["current", "energy", "power", "power_on_behavior", "switch(state)", "voltage"],
             bind: {1: ["genOnOff", "haElectricalMeasurement", "seMetering"]},
             read: {
                 1: [
                     ["genOnOff", ["onOff"]],
+                    ["genOnOff", ["startUpOnOff"]],
                     ["haElectricalMeasurement", ["acPowerDivisor", "acPowerMultiplier"]],
                     ["haElectricalMeasurement", ["acCurrentDivisor", "acCurrentMultiplier"]],
                     ["haElectricalMeasurement", ["acVoltageDivisor", "acVoltageMultiplier"]],
@@ -503,7 +508,7 @@ export default {
     model: 'combo',
     vendor: '',
     description: 'Automatically generated definition',
-    extend: [m.onOff({"powerOnBehavior":false}), m.electricityMeter()],
+    extend: [m.onOff(), m.electricityMeter()],
 };
             `,
         });
@@ -681,6 +686,328 @@ export default {
                 11: [["genAnalogInput", [reportingItem("presentValue", 0, 65000, 1)]]],
             },
             endpoints: {"10": 10, "11": 11},
+        });
+    });
+
+    test("input(hvacFanCtrl)", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({modelID: "fan", endpoints: [{inputClusters: ["hvacFanCtrl"], outputClusters: []}]}),
+            meta: undefined,
+            fromZigbee: [expect.objectContaining({cluster: "hvacFanCtrl"})],
+            toZigbee: ["fan_mode", "fan_state"],
+            exposes: ["fan(state,mode)"],
+            bind: {1: ["hvacFanCtrl", "hvacFanCtrl"]},
+            read: {1: [["hvacFanCtrl", ["fanMode"]]]},
+            write: {},
+            configureReporting: {
+                1: [["hvacFanCtrl", [reportingItem("fanMode", 0, repInterval.HOUR, 0)]]],
+            },
+        });
+    });
+
+    test("input(hvacUserInterfaceCfg)", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({modelID: "thermostat_ui", endpoints: [{inputClusters: ["hvacUserInterfaceCfg"], outputClusters: []}]}),
+            meta: undefined,
+            fromZigbee: [expect.objectContaining({cluster: "hvacUserInterfaceCfg"})],
+            toZigbee: ["temperature_display_mode", "keypad_lockout"],
+            exposes: ["keypad_lockout", "temperature_display_mode"],
+            bind: {1: ["hvacUserInterfaceCfg", "hvacUserInterfaceCfg"]},
+            read: {1: [["hvacUserInterfaceCfg", ["keypadLockout"]]]},
+            write: {},
+            configureReporting: {
+                1: [["hvacUserInterfaceCfg", [reportingItem("keypadLockout", 10, repInterval.HOUR, 0)]]],
+            },
+        });
+    });
+
+    test("input(hvacThermostat) heating only", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "thermo_heat",
+                endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: []}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"})],
+            toZigbee: ["local_temperature", "occupied_heating_setpoint", "system_mode", "running_state"],
+            exposes: ["climate(local_temperature,occupied_heating_setpoint,system_mode,running_state)"],
+            bind: {1: ["hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat"]},
+            read: {
+                1: [
+                    ["hvacThermostat", ["ctrlSeqeOfOper"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedHeatingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedHeatingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(hvacThermostat, hvacFanCtrl) on same endpoint", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "thermo_fan",
+                endpoints: [{inputClusters: ["hvacThermostat", "hvacFanCtrl"], outputClusters: []}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"})],
+            toZigbee: ["local_temperature", "occupied_heating_setpoint", "system_mode", "running_state", "fan_mode", "fan_state"],
+            exposes: ["climate(local_temperature,occupied_heating_setpoint,system_mode,running_state,fan_mode)"],
+            bind: {1: ["hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacFanCtrl", "hvacFanCtrl"]},
+            read: {
+                1: [
+                    ["hvacThermostat", ["ctrlSeqeOfOper"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedHeatingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                    ["hvacFanCtrl", ["fanMode"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedHeatingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                    ["hvacFanCtrl", [reportingItem("fanMode", 0, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(hvacThermostat) cooling only", async () => {
+        const attributes = {
+            hvacThermostat: {
+                attributes: {
+                    ctrlSeqeOfOper: 0,
+                },
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "thermo_cool",
+                endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: [], attributes}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"})],
+            toZigbee: ["local_temperature", "occupied_cooling_setpoint", "system_mode", "running_state"],
+            exposes: ["climate(local_temperature,occupied_cooling_setpoint,system_mode,running_state)"],
+            bind: {1: ["hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat"]},
+            read: {
+                1: [
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedCoolingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedCoolingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(hvacThermostat) heating only (ctrlSeqeOfOper=2)", async () => {
+        const attributes = {
+            hvacThermostat: {
+                attributes: {
+                    ctrlSeqeOfOper: 2,
+                },
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "thermo_heat2",
+                endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: [], attributes}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"})],
+            toZigbee: ["local_temperature", "occupied_heating_setpoint", "system_mode", "running_state"],
+            exposes: ["climate(local_temperature,occupied_heating_setpoint,system_mode,running_state)"],
+            bind: {1: ["hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat"]},
+            read: {
+                1: [
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedHeatingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedHeatingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(hvacThermostat) heating and cooling", async () => {
+        const attributes = {
+            hvacThermostat: {
+                attributes: {
+                    ctrlSeqeOfOper: 4,
+                },
+            },
+        };
+
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "thermo_both",
+                endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: [], attributes}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"})],
+            toZigbee: ["local_temperature", "occupied_heating_setpoint", "occupied_cooling_setpoint", "system_mode", "running_state"],
+            exposes: ["climate(local_temperature,occupied_heating_setpoint,occupied_cooling_setpoint,system_mode,running_state)"],
+            bind: {1: ["hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat", "hvacThermostat"]},
+            read: {
+                1: [
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedHeatingSetpoint"]],
+                    ["hvacThermostat", ["occupiedCoolingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedHeatingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedCoolingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(hvacThermostat) ctrlSeqeOfOper persisted in device meta", async () => {
+        const device = mockDevice({
+            modelID: "thermo_meta",
+            endpoints: [{inputClusters: ["hvacThermostat"], outputClusters: [], read: vi.fn(async () => ({ctrlSeqeOfOper: 2}))}],
+        });
+
+        await findByDevice(device, true);
+        expect(device.endpoints[0].read).toHaveBeenCalled();
+        expect(device.meta.ctrlSeqeOfOper).toEqual({1: 2});
+
+        // Second generation must reuse the persisted value without reading from the device again.
+        vi.mocked(device.endpoints[0].read).mockClear();
+        await findByDevice(device, true);
+        expect(device.endpoints[0].read).not.toHaveBeenCalled();
+    });
+
+    test("input(hvacThermostat, hvacFanCtrl, hvacUserInterfaceCfg) full HVAC", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({
+                modelID: "full_hvac",
+                endpoints: [{inputClusters: ["hvacThermostat", "hvacFanCtrl", "hvacUserInterfaceCfg"], outputClusters: []}],
+            }),
+            meta: {thermostat: {}},
+            fromZigbee: [expect.objectContaining({cluster: "hvacThermostat"}), expect.objectContaining({cluster: "hvacUserInterfaceCfg"})],
+            toZigbee: [
+                "local_temperature",
+                "occupied_heating_setpoint",
+                "system_mode",
+                "running_state",
+                "fan_mode",
+                "fan_state",
+                "temperature_display_mode",
+                "keypad_lockout",
+            ],
+            exposes: [
+                "climate(local_temperature,occupied_heating_setpoint,system_mode,running_state,fan_mode)",
+                "keypad_lockout",
+                "temperature_display_mode",
+            ],
+            bind: {
+                1: [
+                    "hvacThermostat",
+                    "hvacThermostat",
+                    "hvacThermostat",
+                    "hvacThermostat",
+                    "hvacThermostat",
+                    "hvacFanCtrl",
+                    "hvacFanCtrl",
+                    "hvacUserInterfaceCfg",
+                    "hvacUserInterfaceCfg",
+                ],
+            },
+            read: {
+                1: [
+                    ["hvacThermostat", ["ctrlSeqeOfOper"], {disableRecovery: true, sendPolicy: "immediate"}],
+                    ["hvacThermostat", ["localTemp"]],
+                    ["hvacThermostat", ["occupiedHeatingSetpoint"]],
+                    ["hvacThermostat", ["systemMode"]],
+                    ["hvacThermostat", ["runningState"]],
+                    ["hvacFanCtrl", ["fanMode"]],
+                    ["hvacUserInterfaceCfg", ["keypadLockout"]],
+                ],
+            },
+            write: {},
+            configureReporting: {
+                1: [
+                    ["hvacThermostat", [reportingItem("localTemp", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("occupiedHeatingSetpoint", 0, repInterval.HOUR, 10)]],
+                    ["hvacThermostat", [reportingItem("systemMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacThermostat", [reportingItem("runningState", 0, repInterval.HOUR, 0)]],
+                    ["hvacFanCtrl", [reportingItem("fanMode", 0, repInterval.HOUR, 0)]],
+                    ["hvacUserInterfaceCfg", [reportingItem("keypadLockout", 10, repInterval.HOUR, 0)]],
+                ],
+            },
+        });
+    });
+
+    test("input(genIdentify)", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({modelID: "identify_device", endpoints: [{inputClusters: ["genIdentify"], outputClusters: []}]}),
+            meta: undefined,
+            fromZigbee: [],
+            toZigbee: ["identify"],
+            exposes: ["identify"],
+            bind: {},
+            read: {},
+            write: {},
+            configureReporting: {},
+        });
+    });
+
+    test("input(lightingBallastCfg)", async () => {
+        await assertGeneratedDefinition({
+            device: mockDevice({modelID: "ballast_device", endpoints: [{inputClusters: ["lightingBallastCfg"], outputClusters: []}]}),
+            meta: undefined,
+            fromZigbee: [expect.objectContaining({cluster: "lightingBallastCfg"})],
+            toZigbee: ["ballast_config", "ballast_minimum_level", "ballast_maximum_level", "ballast_power_on_level"],
+            exposes: ["ballast_maximum_level", "ballast_minimum_level"],
+            bind: {},
+            read: {1: [["lightingBallastCfg", ["minLevel", "maxLevel"]]]},
+            write: {},
+            configureReporting: {},
         });
     });
 });

@@ -256,6 +256,20 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("PTM 216Z");
     });
 
+    it("finds definition by fingerprint - GP - PTM 215Z Friends of Hue range", async () => {
+        const device = mockDevice(
+            {
+                modelID: "GreenPower_2",
+                endpoints: [{ID: 242, profileID: undefined, deviceID: undefined, inputClusters: [], outputClusters: []}],
+                ieeeAddr: "0x0000000001a41678",
+            },
+            "GreenPower",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("PTM 215Z");
+    });
+
     it("does not throw when exposes function throws", async () => {
         const illuminanceRawSpy = vi.spyOn(presets, "illuminance_raw").mockImplementationOnce(() => {
             throw new Error("Failed");
@@ -404,6 +418,33 @@ describe("ZHC", () => {
         expect(definitionWithExtPresent.model).toStrictEqual("ZY-M100-S_1");
     });
 
+    it("finds definition by NUL padded model ID", async () => {
+        const device = mockDevice({modelID: "lumi.sensor_motion\u0000", endpoints: []}, "Router");
+
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
+    it("finds definition by NUL padded model ID when an external converter adds a second candidate", async () => {
+        const device = mockDevice({modelID: "lumi.sensor_motion\u0000", endpoints: []}, "Router");
+
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+
+        addExternalDefinition({
+            zigbeeModel: ["lumi.sensor_motion"],
+            model: "mock-model",
+            vendor: "dummy",
+            description: "dummy",
+            fromZigbee: [],
+            toZigbee: [],
+            exposes: [],
+            externalConverterName: "mock-model.js",
+        });
+
+        expect((await findByDevice(device))?.model).toStrictEqual("mock-model");
+        removeExternalDefinitions("mock-model.js");
+        expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
     it("exposes light with endpoint", () => {
         const expected = {
             type: "light",
@@ -474,6 +515,7 @@ describe("ZHC", () => {
         const ts0601SoilDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []});
         const ts0601Soil = await findByDevice(ts0601SoilDevice);
         expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
+            "time_start",
             "temperature_calibration",
             "temperature_precision",
             "soil_moisture_calibration",
@@ -496,6 +538,7 @@ describe("ZHC", () => {
         const ts0111fPlug1Device = mockDevice({modelID: "TS011F", endpoints: []});
         const ts011fPlug1 = await findByDevice(ts0111fPlug1Device);
         expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
+            "time_start",
             "power_calibration",
             "power_precision",
             "current_calibration",

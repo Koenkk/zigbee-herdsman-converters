@@ -98,9 +98,27 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
+interface ThirdMotionSensorGen2 {
+    attributes: {
+        sensitivity: number;
+        coolDownTime: number;
+        ledIndicator: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface ThirdAirQualitySensor {
     attributes: {
         vocIndex: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdDoorSensor {
+    attributes: {
+        delayOpenAttrId: number;
     };
     commands: never;
     commandResponses: never;
@@ -189,6 +207,18 @@ interface Third24gRadar {
     attributes: {
         sensorSensitive: number;
         sensorCalibration: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdScaleSensor {
+    attributes: {
+        readWeight: number;
+        attr2: number;
+        attr3: number;
+        attr4: number;
+        attr5: number;
     };
     commands: never;
     commandResponses: never;
@@ -291,6 +321,32 @@ export const fzLocal = {
             return {action};
         },
     } satisfies Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]>,
+    scale_weight: {
+        cluster: "3rScaleSensorcluster",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data as KeyValue;
+            let gram: number | undefined;
+            if (data.readWeight !== undefined) {
+                gram = data.readWeight as number;
+            } else if (data["1"] !== undefined) {
+                gram = Number(data["1"]);
+            } else if (data[1] !== undefined) {
+                gram = Number(data[1]);
+            }
+
+            if (gram !== undefined) {
+                const totalOunces = gram / 28.3495;
+                const pound = Math.floor(totalOunces / 16);
+                const ounce = Number.parseFloat((totalOunces % 16).toFixed(2));
+                return {
+                    weight: gram,
+                    weight_pound_ounce: `${pound}lb ${ounce}oz`,
+                };
+            }
+            return {};
+        },
+    } satisfies Fz.Converter<"3rScaleSensorcluster", ThirdScaleSensor, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -456,6 +512,59 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["3RMS26Z"],
+        model: "3RMS26Z",
+        vendor: "Third Reality",
+        description: "Smart PIR Sensor Gen2",
+        ota: true,
+        extend: [
+            m.forcePowerSource({powerSource: "Battery"}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.battery(),
+            m.illuminance(),
+            m.deviceAddCustomCluster("3rMotionV2SpecialCluster", {
+                name: "3rMotionV2SpecialCluster",
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    sensitivity: {name: "sensitivity", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, min: 1, max: 5},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, min: 0, max: 3600},
+                    ledIndicator: {name: "ledIndicator", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, min: 0, max: 1},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "sensitivity",
+                valueMin: 1,
+                valueMax: 5,
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "sensitivity",
+                description: "PIR sensor sensitivity level (1=lowest, 5=highest)",
+                access: "ALL",
+            }),
+            m.numeric<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "cooldown",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 3600,
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "coolDownTime",
+                description: "Cooldown time between motion detections (seconds)",
+                access: "ALL",
+            }),
+            m.binary<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "led_indicator",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "ledIndicator",
+                description: "LED indicator on motion detection",
+                access: "ALL",
             }),
         ],
     },
@@ -651,6 +760,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rDoorSpecialCluster", ThirdDoorSensor>({
+                name: "delay_open",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                cluster: "3rDoorSpecialCluster",
+                attribute: "delayOpenAttrId",
+                description: "Delay open time",
+                access: "ALL",
             }),
         ],
     },
@@ -1520,7 +1640,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         extend: [
-            m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
+            m.light({colorTemp: {range: [142, 454]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
             m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
                 name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
@@ -1682,5 +1802,102 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["3RKS030Z"],
+        model: "3RKS030Z",
+        vendor: "Third Reality",
+        description: "Smart Scale",
+        ota: true,
+        fromZigbee: [fzLocal.scale_weight],
+        toZigbee: [
+            {
+                key: ["reset_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "reset", {} as unknown as never, {});
+                    return {state: {[key]: "RESET_INITIATED"}};
+                },
+            },
+            {
+                key: ["start_report_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "startReport", {} as unknown as never, {});
+                    return {state: {[key]: "START_REPORT_INITIATED"}};
+                },
+            },
+            {
+                key: ["stop_report_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "stopReport", {} as unknown as never, {});
+                    return {state: {[key]: "STOP_REPORT_INITIATED"}};
+                },
+            },
+            {
+                key: ["set_weight_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    const uint = Number(value);
+                    await endpoint.command("3rScaleSensorcluster", "setWeight", {uint} as unknown as never, {});
+                    return {state: {[key]: "SET_WEIGHT_INITIATED"}};
+                },
+            },
+            {
+                key: ["convert_gram_to_pound_ounce"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "convertGramToPoundOunce", {} as unknown as never, {});
+                    return {state: {[key]: "CONVERT_INITIATED"}};
+                },
+            },
+        ],
+        exposes: [
+            e.numeric("weight", ea.STATE).withUnit("g").withDescription("Current weight (gram)"),
+            e.text("weight_pound_ounce", ea.STATE).withDescription("Weight (pound + ounce)"),
+            e.enum("reset_button", ea.SET, ["RESET"]).withDescription("Reset weight (tare)"),
+            e.enum("start_report_button", ea.SET, ["START"]).withDescription("Start auto weight reporting"),
+            e.enum("stop_report_button", ea.SET, ["STOP"]).withDescription("Stop auto weight reporting"),
+            e.text("set_weight_button", ea.SET).withDescription("Manually set weight (input number, unit: gram)"),
+            e.enum("convert_gram_to_pound_ounce", ea.SET, ["CONVERT"]).withDescription("Manually trigger gram to pound/ounce conversion"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["3rScaleSensorcluster"]);
+            await endpoint.configureReporting("3rScaleSensorcluster", [
+                {
+                    attribute: {ID: 0x0001, type: Zcl.DataType.INT16},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 1,
+                },
+            ]);
+        },
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster("3rScaleSensorcluster", {
+                name: "3rScaleSensorcluster",
+                ID: 0xff0c,
+                attributes: {
+                    readWeight: {name: "readWeight", ID: 0x0001, type: Zcl.DataType.INT16},
+                    attr2: {name: "attr2", ID: 0x0002, type: Zcl.DataType.INT16},
+                    attr3: {name: "attr3", ID: 0x0003, type: Zcl.DataType.UINT8},
+                    attr4: {name: "attr4", ID: 0x0004, type: Zcl.DataType.UINT8},
+                    attr5: {name: "attr5", ID: 0x0005, type: Zcl.DataType.INT16},
+                },
+                commands: {
+                    reset: {name: "reset", ID: 0x00, parameters: []},
+                    startReport: {name: "startReport", ID: 0x01, parameters: []},
+                    stopReport: {name: "stopReport", ID: 0x02, parameters: []},
+                    setWeight: {name: "setWeight", ID: 0x03, parameters: [{name: "uint", type: Zcl.DataType.UINT8}]},
+                    convertGramToPoundOunce: {name: "convertGramToPoundOunce", ID: 0x04, parameters: []},
+                },
+                commandsResponse: {},
+            }),
+        ],
+        meta: {
+            disableActionGroup: true,
+        },
     },
 ];

@@ -180,7 +180,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV26",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true})],
         ota: true,
         exposes: [
             e.battery(),
@@ -378,15 +378,18 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE204_5cuocqty",
             "_TZE204_nqqylykc",
+            "_TZE28C1000000_nqqylykc",
             "_TZE204_2cyb66xl",
             "_TZE204_tgdnh7pw",
             "_TZE284_nqqylykc",
             "_TZE204_huu3td85",
             "_TZE284_huu3td85",
+            "_TZE28C1000000_huu3td85",
         ]),
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
+        whiteLabel: [tuya.whitelabel("NovaDigital", "MS-DM-ZB", "Zigbee Module 1 channel Dimmer", ["_TZE28C1000000_huu3td85"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),

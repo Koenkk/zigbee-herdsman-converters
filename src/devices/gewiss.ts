@@ -1,20 +1,97 @@
-import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
+import {Zcl} from "zigbee-herdsman";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, ModernExtend, Zh} from "../lib/types";
 
 const e = exposes.presets;
+const MFR = 0x1994; // Gewiss S.p.A.
+
+const gewissShutterConfigure: ModernExtend = {
+    configure: [
+        async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                try {
+                    await endpoint.bind("closuresWindowCovering", coordinatorEndpoint);
+                    await endpoint.configureReporting("closuresWindowCovering", [
+                        {
+                            attribute: "currentPositionLiftPercentage",
+                            minimumReportInterval: 1,
+                            maximumReportInterval: 600,
+                            reportableChange: 1,
+                        },
+                    ]);
+                } catch {
+                    // Silently catch errors if device rejects other reporting parameters
+                }
+            }
+        },
+    ],
+    isModernExtend: true,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["GWA1201_TWO_WAY_SWITCH"],
-        model: "GWA1201_TWO_WAY_SWITCH",
+        model: "GWA1201",
         vendor: "Gewiss",
-        description: "GWA1201",
-        extend: [m.onOff(), m.electricityMeter(), m.identify()],
+        description: "Chorus on/off switch",
+        extend: [
+            m.onOff({powerOnBehavior: true}),
+            m.identify(),
+            m.deviceAddCustomCluster("gewissLed", {
+                ID: 0xfd79,
+                name: "gewissLed",
+                manufacturerCode: MFR,
+                attributes: {
+                    ledStandby: {ID: 0x0001, type: Zcl.DataType.UINT8, name: "ledStandby"},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric({
+                name: "led_standby_brightness",
+                cluster: "gewissLed",
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                description: "LED standby brightness",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 255 / 100,
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: MFR},
+            }),
+        ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["GWA1241_PUSH_BUTTON_2_CH"],
+        model: "GWA1241",
+        vendor: "Gewiss",
+        description: "ChorusSmart 2-channel push button controller",
+        endpoint: (device) => {
+            return {top: 1, bottom: 10};
+        },
+        fromZigbee: [
+            {
+                cluster: "genBinaryInput",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (Object.hasOwn(msg.data, "presentValue")) {
+                        if (msg.data["presentValue"] === 1 || msg.data["presentValue"] === true) {
+                            const button = msg.endpoint.ID === 1 ? "top" : msg.endpoint.ID === 10 ? "bottom" : "unknown";
+                            if (button !== "unknown") {
+                                return {action: `press_${button}`};
+                            }
+                        }
+                    }
+                },
+            },
+        ],
+        toZigbee: [],
+        exposes: [e.action(["press_top", "press_bottom"])],
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["GWA1521_Actuator_1_CH_PF"],
@@ -32,19 +109,75 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["GWA1531_Shutter", "GWA1231_SHUTTER"],
-        model: "GWA1531",
-        description: "Shutter actuator",
+        model: "GWA1231",
         vendor: "Gewiss",
-        whiteLabel: [{model: "GWA1231", fingerprint: [{modelID: "GWA1231_SHUTTER"}]}],
-        fromZigbee: [fz.cover_position_tilt],
-        toZigbee: [tz.cover_state, tz.cover_position_tilt],
-        meta: {coverInverted: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresWindowCovering"]);
-            await reporting.currentPositionLiftPercentage(endpoint);
-        },
-        exposes: [e.cover_position()],
+        description: "Chorus roller shutter module",
+        whiteLabel: [{model: "GWA1531", fingerprint: [{modelID: "GWA1531_Shutter"}]}],
+        extend: [
+            m.windowCovering({controls: ["lift"], coverInverted: true, configureReporting: false}),
+            m.deviceAddCustomCluster("gewissLed", {
+                ID: 0xfd79,
+                name: "gewissLed",
+                manufacturerCode: MFR,
+                attributes: {
+                    ledStandby: {ID: 0x0001, type: Zcl.DataType.UINT8, name: "ledStandby"},
+                    ledMovimento: {ID: 0x0003, type: Zcl.DataType.UINT8, name: "ledMovimento"},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            gewissShutterConfigure,
+            m.numeric({
+                name: "opening_time",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x0101, type: Zcl.DataType.UINT16},
+                description: "Opening/ascent time in seconds",
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 1,
+                unit: "s",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: MFR},
+            }),
+            m.numeric({
+                name: "closing_time",
+                cluster: "closuresWindowCovering",
+                attribute: {ID: 0x0102, type: Zcl.DataType.UINT16},
+                description: "Closing/descent time in seconds",
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 1,
+                unit: "s",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: MFR},
+            }),
+            m.numeric({
+                name: "led_standby_brightness",
+                cluster: "gewissLed",
+                attribute: {ID: 0x0001, type: Zcl.DataType.UINT8},
+                description: "LED standby brightness",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 255 / 100,
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: MFR},
+            }),
+            m.numeric({
+                name: "led_moving_brightness",
+                cluster: "gewissLed",
+                attribute: {ID: 0x0003, type: Zcl.DataType.UINT8},
+                description: "LED brightness while moving",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                unit: "%",
+                scale: 255 / 100,
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode: MFR},
+            }),
+        ],
     },
     {
         zigbeeModel: ["GWA1502_BinaryInput230V"],

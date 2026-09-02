@@ -214,7 +214,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "900024/12253",
         vendor: "EGLO",
         description: "RGB light",
-        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [{vendor: "EGLO", model: "900878", description: "ANDREAS-Z pendant light"}],
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"]}}), m.identify()],
     },
     {
         zigbeeModel: ["EGLO_ZM_TW_CLP"],

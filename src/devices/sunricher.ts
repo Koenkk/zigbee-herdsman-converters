@@ -1418,14 +1418,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG2835RAC-UK",
         vendor: "Sunricher",
         description: "Push compatible zigBee knob smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.externalSwitchType(), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["ZG2837RAC-K4"],
         model: "SR-ZG2835RAC-NK4",
         vendor: "Sunricher",
         description: "4-Key zigbee rotary & push button smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter(), m.commandsScenes()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), m.commandsScenes(), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["HK-ZRC-K5&RS-TL"],
@@ -1730,7 +1730,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG2835PAC-AU",
         vendor: "Sunricher",
         description: "Zigbee push button smart dimmer",
-        extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType(), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), sunricher.extend.externalSwitchType(), m.electricityMeter(), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["HK-SL-DIM-CLN"],
@@ -1798,7 +1798,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SL-DIM-US-A",
         vendor: "Sunricher",
         description: "Keypad smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["HK-SENSOR-4IN1-A"],
@@ -2019,7 +2019,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG2835RAC",
         vendor: "Sunricher",
         description: "Zigbee knob smart dimmer",
-        extend: [m.light({configureReporting: true}), m.electricityMeter()],
+        extend: [m.light({configureReporting: true}), m.electricityMeter(), sunricher.extend.minimumPWM()],
         whiteLabel: [
             {vendor: "YPHIX", model: "50208695"},
             {vendor: "Samotech", model: "SM311"},
@@ -2030,7 +2030,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HK-SL-DIM-AU-R-A",
         vendor: "Sunricher",
         description: "Zigbee knob smart dimmer",
-        extend: [m.identify(), m.electricityMeter(), m.light({configureReporting: true}), sunricher.extend.externalSwitchType()],
+        extend: [
+            m.identify(),
+            m.electricityMeter(),
+            m.light({configureReporting: true}),
+            sunricher.extend.externalSwitchType(),
+            sunricher.extend.minimumPWM(),
+        ],
     },
     {
         zigbeeModel: ["ZG2835"],
@@ -2115,7 +2121,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9040A-S",
         vendor: "Sunricher",
         description: "Zigbee AC phase-cut dimmer single-line",
-        extend: [m.light({configureReporting: true})],
+        extend: [m.light({configureReporting: true}), sunricher.extend.minimumPWM()],
     },
     {
         zigbeeModel: ["Micro Smart OnOff", "HK-SL-RELAY-A"],
@@ -2839,7 +2845,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SR-ZG9101SAC-HP2",
         vendor: "Sunricher",
         description: "Zigbee 2 channel AC phase-cut dimmer",
-        extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.light({endpointNames: ["l1", "l2"], configureReporting: true})],
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.light({endpointNames: ["l1", "l2"], configureReporting: true}),
+            sunricher.extend.minimumPWM(),
+        ],
     },
     {
         zigbeeModel: ["ZG2855-RGB"],

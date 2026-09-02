@@ -11,6 +11,7 @@ import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 const NS = "zhc:zemismart";
 
@@ -84,6 +85,40 @@ const valueConverterLocal = {
                 .join("");
         },
     },
+    // Screen name for the ZMZ609-2: length-prefixed UTF-8 (0x00, 2-byte BE length, payload),
+    // unlike `name` above which is a plain UTF-8 byte array.
+    screenName: {
+        to: (v: string) => {
+            const bytes = Array.from(Buffer.from(String(v ?? ""), "utf8"));
+            return [0x00, (bytes.length >> 8) & 0xff, bytes.length & 0xff, ...bytes];
+        },
+        from: (v: number) => {
+            const buffer = Buffer.from(Object.values(v) as number[]);
+            if (buffer.length >= 3 && buffer[0] === 0x00) {
+                const declaredLength = buffer.readUInt16BE(1);
+                return buffer
+                    .subarray(3, 3 + declaredLength)
+                    .toString("utf8")
+                    .replace(/\0+$/g, "");
+            }
+            return buffer.toString("utf8").replace(/\0+$/g, "");
+        },
+    },
+    radarDistance: tuya.valueConverterBasic.lookup({
+        short: tuya.enum(0),
+        medium_short: tuya.enum(1),
+        medium: tuya.enum(2),
+        medium_long: tuya.enum(3),
+        long: tuya.enum(4),
+    }),
+    screenOffTime: tuya.valueConverterBasic.lookup({
+        none: tuya.enum(0),
+        "10": tuya.enum(1),
+        "20": tuya.enum(2),
+        "30": tuya.enum(3),
+        "45": tuya.enum(4),
+        "60": tuya.enum(5),
+    }),
 };
 
 const tzLocal = {
@@ -207,6 +242,13 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["attributeReport", "readResponse"]>,
+    // ZMZ609-2 sends an unsolicited raw reply on cluster 0xe000 after tuya.configureMagicPacket;
+    // ignore it to avoid a "No converter available" warning.
+    ignoreTuyaConfigureResponse: {
+        cluster: 0xe000,
+        type: ["raw"],
+        convert: () => undefined,
+    } satisfies Fz.Converter<number, undefined, ["raw"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -219,8 +261,8 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [legacy.toZigbee.tuya_cover_control],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction").withCategory("config"),
+            te.coverPosition(),
+            te.motorDirection(),
             e
                 .enum("motor_working_mode", ea.STATE_SET, ["continuous", "intermittently"])
                 .withDescription("Motor operating mode")
@@ -361,14 +403,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
-            e.text("work_state", ea.STATE),
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
+            te.motorState(),
             e.battery(),
             e.enum("program", ea.SET, ["set_bottom", "set_upper", "reset"]).withDescription("Set the upper/bottom limit"),
             e
                 .enum("click_control", ea.SET, ["upper", "upper_micro", "lower", "lower_micro"])
                 .withDescription("Control motor in steps (ignores set limits; normal/micro = 120deg/5deg movement)"),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
+            te.motorDirection(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -386,7 +428,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     7,
-                    "work_state",
+                    "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
@@ -426,7 +468,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.ZMAM02_cover],
         toZigbee: [legacy.tz.ZMAM02_cover],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e
                 .composite("options", "options", ea.STATE)
                 .withFeature(e.numeric("motor_speed", ea.STATE).withValueMin(0).withValueMax(255).withDescription("Motor speed")),
@@ -452,7 +494,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [legacy.fz.tuya_cover],
         toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the upper stroke limit").withCategory("config"),
             e
                 .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
@@ -609,7 +651,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip", "_TZE204_3ctwoaip", "_TZE284_dmckrsxg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3ctwoaip", "_TZE204_3ctwoaip", "_TZE284_dmckrsxg", "_TZE28C1000000_dmckrsxg"]),
         model: "ZMS-206EU-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
@@ -812,6 +854,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_y4jqpry8",
             "_TZE204_xibaabmu",
             "_TZE284_xibaabmu",
+            "_TZE28C1000000_xibaabmu",
             "_TZE204_08qc13ct",
             "_TZE28C1000000_y4jqpry8",
         ]),
@@ -985,7 +1028,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xvywzhmi", "_TZE28C1000000_xvywzhmi"]),
         model: "ZMS-208US-3",
         vendor: "Zemismart",
         description: "Smart screen switch 3 gang",
@@ -1053,7 +1096,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
+            te.coverPosition(),
             e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
             e
                 .numeric("calibration_time", ea.STATE_SET)
@@ -1064,15 +1107,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [
                     8,
@@ -1110,30 +1145,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Tubular motor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Motor direction"),
-            e.enum("border", ea.STATE_SET, ["up", "down", "up_delete", "down_delete", "remove_top_bottom"]).withDescription("Limit setting"),
-            e.battery(),
-        ],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)})],
+                [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPosition], // Percent control - set position (0-100)
                 [8, "position", tuya.valueConverter.coverPosition], // Percent state - current position (0-100)
-                [11, "motor_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
-                [
-                    16,
-                    "border",
-                    tuya.valueConverterBasic.lookup({
-                        up: tuya.enum(0),
-                        down: tuya.enum(1),
-                        up_delete: tuya.enum(2),
-                        down_delete: tuya.enum(3),
-                        remove_top_bottom: tuya.enum(4),
-                    }),
-                ],
+                [16, "cover_limit", tuya.valueConverter.coverLimit],
             ],
         },
     },
@@ -1144,12 +1164,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Blind driver",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
-        exposes: [
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.text("work_state", ea.STATE),
-            e.battery(),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor direction"),
-        ],
+        exposes: [te.coverPosition(), te.motorState(), e.battery(), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [
@@ -1166,12 +1181,96 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [
                     7,
-                    "work_state",
+                    "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
                         options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
                     ),
                 ],
                 [13, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_o409r73p", "_TZE28C1000000_o409r73p"]),
+        model: "ZMZ609-2",
+        vendor: "Zemismart",
+        description: "Zigbee neutral touchscreen switch 2 gang with power monitoring",
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970", // needed else date/time doesn't sync with z2m > 2.6.2
+                forceTimeUpdates: true,
+                queryOnConfigure: true,
+            }),
+            tuya.modernExtend.tuyaWeatherForecast(),
+        ],
+        fromZigbee: [tuya.fz.datapoints, fzLocal.ignoreTuyaConfigureResponse],
+        toZigbee: [tuya.tz.datapoints],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1};
+        },
+        exposes: [
+            e.switch().withEndpoint("l1").setAccess("state", ea.STATE_SET),
+            e.switch().withEndpoint("l2").setAccess("state", ea.STATE_SET),
+            e
+                .numeric("countdown_l1", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription("Countdown for gang 1"),
+            e
+                .numeric("countdown_l2", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(43200)
+                .withValueStep(1)
+                .withDescription("Countdown for gang 2"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e.power_on_behavior().withEndpoint("l1").withAccess(ea.STATE_SET),
+            e.power_on_behavior().withEndpoint("l2").withAccess(ea.STATE_SET),
+            e.binary("radar_switch", ea.STATE_SET, "ON", "OFF").withDescription("Radar switch"),
+            e.child_lock(),
+            e
+                .numeric("backlight", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Backlight brightness"),
+            e.enum("radar_distance", ea.STATE_SET, ["short", "medium_short", "medium", "medium_long", "long"]).withDescription("Radar distance"),
+            e.enum("screen_off_time", ea.STATE_SET, ["none", "10", "20", "30", "45", "60"]).withDescription("Screen off time"),
+            e.text("name", ea.STATE_SET).withEndpoint("l1").withDescription("Display name for gang 1"),
+            e.text("name", ea.STATE_SET).withEndpoint("l2").withDescription("Display name for gang 2"),
+            e.energy(),
+            e.current(),
+            e.power(),
+            e.voltage(),
+        ],
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [7, "countdown_l1", tuya.valueConverter.countdown],
+                [8, "countdown_l2", tuya.valueConverter.countdown],
+                [13, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [16, "radar_switch", tuya.valueConverter.onOff],
+                [20, "energy", tuya.valueConverter.divideBy1000],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [29, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [30, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "child_lock", tuya.valueConverter.onOff],
+                [102, "backlight", tuya.valueConverter.raw],
+                [104, "radar_distance", valueConverterLocal.radarDistance],
+                [105, "name_l1", valueConverterLocal.screenName],
+                [106, "name_l2", valueConverterLocal.screenName],
+                [111, "screen_off_time", valueConverterLocal.screenOffTime],
+                [112, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
+                [113, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
             ],
         },
     },

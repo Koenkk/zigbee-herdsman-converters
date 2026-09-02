@@ -903,6 +903,31 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.electricityMeter({cluster: "metering"})],
     },
     {
+        fingerprint: [
+            {
+                modelID: "PIR313",
+                manufacturerName: "OWON",
+                endpoints: [
+                    {
+                        ID: 2,
+                        profileID: 260,
+                        deviceID: 262,
+                        inputClusters: [1, 0, 3, 1024],
+                        outputClusters: [3],
+                    },
+                ],
+            },
+        ],
+        model: "PIR313-L",
+        vendor: "OWON",
+        description: "Light sensor",
+        extend: [
+            m.illuminance({
+                reporting: {min: 300, max: 3600, change: 100},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["PIR313-E", "PIR313"],
         model: "PIR313-E",
         vendor: "OWON",
@@ -1271,6 +1296,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OWON",
         description: "Door/window sensor",
         extend: [m.battery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low", "tamper"]})],
+        whiteLabel: [{vendor: "OWON", model: "DWS332-E", description: "Door/window sensor"}],
     },
     {
         zigbeeModel: ["SPM915"],
@@ -1304,6 +1330,34 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.bind("genBasic", coordinatorEndpoint);
             await endpoint.bind("fallDetectionOwon", coordinatorEndpoint);
         },
+    },
+    {
+        zigbeeModel: ["SLC611"],
+        model: "SLC611",
+        vendor: "OWON",
+        description: "Zigbee smart switch with power metering",
+        extend: [
+            m.onOff(),
+            m.electricityMeter({
+                powerFactor: true,
+                power: {
+                    cluster: "metering",
+                    divisor: 1,
+                    multiplier: 1,
+                },
+                voltage: {
+                    divisor: 10,
+                    multiplier: 1,
+                },
+                current: {
+                    divisor: 1000,
+                    multiplier: 1,
+                },
+            }),
+            m.forcePowerSource({
+                powerSource: "Mains (single phase)",
+            }),
+        ],
     },
     {
         zigbeeModel: ["SLC631"],

@@ -296,6 +296,7 @@ export function setupConfigureForReading<Cl extends string | number, Custom exte
     cluster: Cl,
     attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
     endpointNames?: string[],
+    options?: Record<string, unknown>,
 ) {
     const configure: Configure = async (device, coordinatorEndpoint, definition) => {
         if (endpointNames) {
@@ -303,12 +304,20 @@ export function setupConfigureForReading<Cl extends string | number, Custom exte
             const endpointIds = endpointNames.map((e) => definitionEndpoints[e]);
             const endpoints = device.endpoints.filter((e) => endpointIds.includes(e.ID));
             for (const endpoint of endpoints) {
-                await endpoint.read<Cl, Custom>(cluster, attributes);
+                if (options !== undefined) {
+                    await endpoint.read<Cl, Custom>(cluster, attributes, options);
+                } else {
+                    await endpoint.read<Cl, Custom>(cluster, attributes);
+                }
             }
         } else {
             const endpoints = getEndpointsWithCluster(device, cluster, "input");
             for (const endpoint of endpoints) {
-                await endpoint.read<Cl, Custom>(cluster, attributes);
+                if (options !== undefined) {
+                    await endpoint.read<Cl, Custom>(cluster, attributes, options);
+                } else {
+                    await endpoint.read<Cl, Custom>(cluster, attributes);
+                }
             }
         }
     };
@@ -543,8 +552,13 @@ export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">>
     });
 }
 
-export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernExtend {
-    const {isSleepy} = args;
+export interface IdentifyArgs {
+    isSleepy?: boolean;
+    endpointNames?: string[];
+}
+
+export function identify(args: IdentifyArgs = {}): ModernExtend {
+    const {isSleepy = false, endpointNames = undefined} = args;
     const normal: Expose = e.enum("identify", ea.SET, ["identify"]).withDescription("Initiate device identification").withCategory("config");
     const sleepy: Expose = e
         .enum("identify", ea.SET, ["identify"])
@@ -554,7 +568,8 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
         )
         .withCategory("config");
 
-    const exposes: Expose[] = isSleepy ? [sleepy] : [normal];
+    const identifyExpose = isSleepy ? sleepy : normal;
+    const exposes: Expose[] = exposeEndpoints(identifyExpose, endpointNames);
 
     const identifyTimeout = e
         .numeric("identify_timeout", ea.SET)
@@ -565,16 +580,16 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
         .withValueMin(1)
         .withValueMax(30);
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ["identify"],
-            options: [identifyTimeout],
-            convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
-                await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
-            },
+    const baseConverter: Tz.Converter = {
+        key: ["identify"],
+        options: [identifyTimeout],
+        convertSet: async (entity, key, value, meta) => {
+            const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
+            await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
         },
-    ];
+    };
+
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...baseConverter, endpoints: endpointNames} : baseConverter];
 
     return {exposes, toZigbee, isModernExtend: true};
 }
@@ -640,6 +655,88 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
             configureSetPowerSourceWhenUnknown("Mains (single phase)"),
         ];
     }
+    return result;
+}
+
+export interface FanControlArgs<Cl extends string | number = "hvacFanCtrl", _Custom extends TCustomCluster | undefined = undefined> {
+    cluster?: Cl;
+    endpointNames?: string[];
+    reporting?: false | ReportingConfigWithoutAttribute;
+    bind?: boolean;
+}
+export function fanControl<Cl extends string | number = "hvacFanCtrl", Custom extends TCustomCluster | undefined = undefined>(
+    args: FanControlArgs<Cl, Custom> = {},
+): ModernExtend {
+    const {cluster = "hvacFanCtrl" as Cl, endpointNames = undefined, reporting = {min: 0, max: "1_HOUR", change: 0}, bind = true} = args;
+
+    const fanExpose = e.fan().withState("state").withModes(Object.keys(constants.fanMode));
+    const exposes: Expose[] = exposeEndpoints(fanExpose, endpointNames);
+
+    const fromZigbee = [fz.fan];
+    const toZigbee: Tz.Converter[] = [tz.fan_mode];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    const configure: Configure[] = [];
+    if (bind) {
+        configure.push(setupConfigureForBinding(cluster, "input", endpointNames));
+    }
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting<Cl, Custom>(cluster, "fanMode" as ClusterOrRawAttributeKeys<Cl, Custom>[number], {
+                config: reporting,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+    result.configure = configure;
+
+    return result;
+}
+
+export interface ThermostatUiArgs<Cl extends string | number = "hvacUserInterfaceCfg", _Custom extends TCustomCluster | undefined = undefined> {
+    cluster?: Cl;
+    endpointNames?: string[];
+    reporting?: false | ReportingConfigWithoutAttribute;
+    bind?: boolean;
+}
+export function thermostatUi<Cl extends string | number = "hvacUserInterfaceCfg", Custom extends TCustomCluster | undefined = undefined>(
+    args: ThermostatUiArgs<Cl, Custom> = {},
+): ModernExtend {
+    const {cluster = "hvacUserInterfaceCfg" as Cl, endpointNames = undefined, reporting = {min: 10, max: "1_HOUR", change: 0}, bind = true} = args;
+
+    const exposes: Expose[] = [
+        ...exposeEndpoints(
+            e.enum("temperature_display_mode", ea.ALL, Object.values(constants.temperatureDisplayMode)).withDescription("Temperature display mode"),
+            endpointNames,
+        ),
+        ...exposeEndpoints(
+            e.enum("keypad_lockout", ea.ALL, Object.values(constants.keypadLockoutMode)).withDescription("Keypad lockout mode"),
+            endpointNames,
+        ),
+    ];
+
+    const fromZigbee = [fz.hvac_user_interface];
+    const toZigbee: Tz.Converter[] = [tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    const configure: Configure[] = [];
+    if (bind) {
+        configure.push(setupConfigureForBinding(cluster, "input", endpointNames));
+    }
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting<Cl, Custom>(cluster, "keypadLockout" as ClusterOrRawAttributeKeys<Cl, Custom>[number], {
+                config: reporting,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+    result.configure = configure;
+
     return result;
 }
 
@@ -973,10 +1070,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
         endpointNames = undefined,
     } = args;
 
-    const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: (Expose | DefinitionExposesFunction)[] = endpointNames
-        ? templateExposes.flatMap((exp) => endpointNames.map((ep) => exp.withEndpoint(ep)))
-        : templateExposes;
+    const exposes: (Expose | DefinitionExposesFunction)[] = exposeEndpoints(e.occupancy().withAccess(ea.STATE_GET), endpointNames);
 
     const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
         {
@@ -985,7 +1079,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             options: [opt.no_occupancy_since_false()],
             convert: (model, msg, publish, options, meta) => {
                 if ("occupancy" in msg.data && (!endpointNames || endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
-                    const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
+                    const propertyName = endpointNames ? postfixWithEndpointName("occupancy", msg, model, meta) : "occupancy";
                     const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
                     return payload;
@@ -1281,7 +1375,6 @@ export function light(args: LightArgs = {}): ModernExtend {
         lightExpose.forEach((e) => {
             levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
         });
-        toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
@@ -1700,7 +1793,7 @@ export interface IasArgs {
     zoneAttributes: IasZoneAttribute[];
     alarmTimeout?: boolean;
     keepAliveTimeout?: (device: Device) => number;
-    zoneStatusReporting?: boolean;
+    zoneStatusReporting?: boolean | Partial<ReportingConfigWithoutAttribute>;
     description?: string;
     invertAlarm?: true;
     manufacturerZoneAttributes?: ManufacturerZoneAttribute[];
@@ -1851,9 +1944,12 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
     let configure: Configure[];
     if (args.zoneStatusReporting) {
+        const zoneStatusReportingConfig = isObject(args.zoneStatusReporting) ? args.zoneStatusReporting : {};
         configure = [
             async (device, coordinatorEndpoint) => {
-                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [{attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0}]);
+                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [
+                    {attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0, ...zoneStatusReportingConfig},
+                ]);
             },
         ];
     }
@@ -1922,6 +2018,47 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
     return {toZigbee, exposes, isModernExtend: true};
 }
 
+export function iasWarningMaxDuration(): ModernExtend {
+    const exposes: Expose[] = [
+        e
+            .numeric("max_duration", ea.ALL)
+            .withUnit("s")
+            .withValueMin(0)
+            .withValueMax(65534)
+            .withValueStep(1)
+            .withDescription("Maximum time that the alarm will be active"),
+    ];
+
+    // previously tz.ias_max_duration
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ["max_duration"],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write("ssIasWd", {maxDuration: value as number});
+                return {state: {max_duration: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read("ssIasWd", ["maxDuration"]);
+            },
+        },
+    ];
+
+    // previously fz.ias_wd
+    const fromZigbee = [
+        {
+            cluster: "ssIasWd",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValueAny = {};
+                if (msg.data.maxDuration !== undefined) result.max_duration = msg.data.maxDuration;
+                return result;
+            },
+        } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
+    ];
+
+    return {toZigbee, fromZigbee, exposes, isModernExtend: true};
+}
+
 // #endregion
 
 // #region Smart Energy
@@ -1948,7 +2085,8 @@ interface MeterArgs {
     threePhase?: boolean;
     producedEnergy?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
     acFrequency?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
-    powerFactor?: boolean;
+    apparentPower?: false | true | (MultiplierDivisor & Partial<ReportingConfigWithoutAttribute>);
+    powerFactor?: false | true | Partial<ReportingConfigWithoutAttribute>;
     tariffs?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic
     fzElectricalMeasurement?: Fz.Converter<"haElectricalMeasurement", any, any>;
@@ -2053,7 +2191,16 @@ function genericMeter(args: MeterArgs = {}) {
             },
             power_factor: {
                 attribute: "powerFactor" as const,
+                forced: isObject(args.powerFactor) ? args.powerFactor : (false as const),
                 change: 10,
+            },
+            // Report change with every 5VA change
+            apparent_power: {
+                attribute: "apparentPower" as const,
+                divisor: "acPowerDivisor",
+                multiplier: "acPowerMultiplier",
+                forced: isObject(args.apparentPower) ? args.apparentPower : (false as const),
+                change: 5,
             },
             // Report change with every 5V change
             voltage: {
@@ -2196,6 +2343,9 @@ function genericMeter(args: MeterArgs = {}) {
     if (args.acFrequency === false) {
         delete configureLookup.haElectricalMeasurement.ac_frequency;
     }
+    if (args.apparentPower === false) {
+        delete configureLookup.haElectricalMeasurement.apparent_power;
+    }
     if (args.threePhase === false) {
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
@@ -2211,6 +2361,7 @@ function genericMeter(args: MeterArgs = {}) {
         delete configureLookup.haElectricalMeasurement.current;
         delete configureLookup.haElectricalMeasurement.power_factor;
         delete configureLookup.haElectricalMeasurement.ac_frequency;
+        delete configureLookup.haElectricalMeasurement.apparent_power;
         delete configureLookup.haElectricalMeasurement.power_phase_b;
         delete configureLookup.haElectricalMeasurement.power_phase_c;
         delete configureLookup.haElectricalMeasurement.current_phase_b;
@@ -2243,6 +2394,7 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.voltage !== false) exposes.push(e.voltage().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
+        if (args.apparentPower !== false) exposes.push(e.power_apparent());
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.energy !== false) exposes.push(e.energy().withAccess(ea.STATE_GET));
         if (args.producedEnergy !== false) exposes.push(e.produced_energy().withAccess(ea.STATE_GET));
@@ -2326,6 +2478,7 @@ function genericMeter(args: MeterArgs = {}) {
         if (args.current !== false) exposes.push(e.current().withAccess(ea.STATE_GET));
         if (args.acFrequency !== false) exposes.push(e.ac_frequency().withAccess(ea.STATE_GET).withHomeAssistant(diagnosticHomeAssistant));
         if (args.powerFactor !== false) exposes.push(e.power_factor().withAccess(ea.STATE_GET));
+        if (args.apparentPower !== false) exposes.push(e.power_apparent());
         fromZigbee = [args.fzElectricalMeasurement ?? fz.electrical_measurement];
 
         toZigbee = [tz.electrical_measurement_power, tz.acvoltage, tz.accurrent, tz.frequency, tz.powerfactor];
@@ -2429,6 +2582,7 @@ export function electricityMeter(args: ElectricityMeterArgs = {}): ModernExtend 
         producedEnergy: false,
         acFrequency: false,
         powerFactor: false,
+        apparentPower: false,
         status: false,
         extendedStatus: false,
         ...args,
