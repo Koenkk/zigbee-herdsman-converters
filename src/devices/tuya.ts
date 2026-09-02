@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -695,6 +695,95 @@ const ar331ProHolidayTimeConverter = {
         return [0, ...parseTS(startStr), ...parseTS(endStr)];
     },
 };
+
+const sixGangIndicatorEndpoints = ["button_1", "button_2", "button_3", "button_4", "button_5", "button_6"] as const;
+
+const sixGangIndicatorColorExpose = (endpoint: (typeof sixGangIndicatorEndpoints)[number]) =>
+    new exposes.Composite("color_hs", "color", ea.STATE_SET)
+        .withLabel("Color")
+        .withFeature(e.numeric("hue", ea.STATE_SET).withValueMin(0).withValueMax(360))
+        .withFeature(e.numeric("saturation", ea.STATE_SET).withValueMin(0).withValueMax(100))
+        .withEndpoint(endpoint)
+        .withCategory("config");
+
+const sixGangIndicatorPayload = (state: KeyValue, endpoint: string, key: string, value: unknown) => {
+    const payload = Buffer.alloc(61);
+
+    for (const [index, indicatorEndpoint] of sixGangIndicatorEndpoints.entries()) {
+        const colorKey = `color_${indicatorEndpoint}`;
+        const onBrightnessKey = `brightness_on_${indicatorEndpoint}`;
+        const offBrightnessKey = `brightness_off_${indicatorEndpoint}`;
+        const colorValue = key === "color" && endpoint === indicatorEndpoint ? value : state[colorKey];
+        const onBrightnessValue = key === "brightness_on" && endpoint === indicatorEndpoint ? value : state[onBrightnessKey];
+        const offBrightnessValue = key === "brightness_off" && endpoint === indicatorEndpoint ? value : state[offBrightnessKey];
+        const parsedColor =
+            colorValue === undefined ? libColor.Color.fromConverterArg({hue: 0, saturation: 100}) : libColor.Color.fromConverterArg(colorValue);
+        if (parsedColor.isRGB()) parsedColor.hsv = parsedColor.rgb.gammaCorrected().toXY().toHSV();
+        const color = parsedColor.hsv;
+        const onBrightness = onBrightnessValue === undefined ? 100 : utils.toNumber(onBrightnessValue, onBrightnessKey);
+        const offBrightness = offBrightnessValue === undefined ? 10 : utils.toNumber(offBrightnessValue, offBrightnessKey);
+        const offset = 1 + index * 10;
+        const hue = Math.round(color.hue);
+        const saturation = Math.round(color.saturation * 10);
+
+        // DP107 contains two HSB slots with independent ON/OFF brightness. The ring/color
+        // semantics are not fully mapped, so write one predictable shared color to both.
+        for (const [halfOffset, brightness] of [
+            [0, onBrightness],
+            [5, offBrightness],
+        ] as const) {
+            payload[offset + halfOffset] = utils.numberWithinRange(brightness, 0, 100);
+            payload.writeUInt16BE(hue, offset + halfOffset + 1);
+            payload.writeUInt16BE(saturation, offset + halfOffset + 3);
+        }
+    }
+
+    return payload;
+};
+
+const sixGangIndicatorValueConverter = {
+    from: (value: number[]) => {
+        const result: KeyValue = {};
+        const data = Buffer.from(value);
+        if (data.length !== 61) return result;
+
+        for (const [index, endpoint] of sixGangIndicatorEndpoints.entries()) {
+            const offset = 1 + index * 10;
+            result[`brightness_on_${endpoint}`] = data[offset];
+            result[`brightness_off_${endpoint}`] = data[offset + 5];
+            result[`color_${endpoint}`] = {
+                hue: data.readUInt16BE(offset + 6),
+                saturation: data.readUInt16BE(offset + 8) / 10,
+            };
+        }
+
+        return result;
+    },
+};
+
+const sixGangIndicatorToValueConverter = (key: "brightness_off" | "brightness_on" | "color") => ({
+    to: (value: unknown, meta: Tz.Meta) => {
+        const endpoint = meta.endpoint_name;
+        if (!sixGangIndicatorEndpoints.includes(endpoint as (typeof sixGangIndicatorEndpoints)[number])) {
+            throw new Error(`Unknown indicator endpoint '${endpoint}'`);
+        }
+        if (key !== "color") utils.assertNumber(value, key);
+
+        return [...sixGangIndicatorPayload(meta.state ?? {}, endpoint, key, value)];
+    },
+});
+
+const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
+    [107, null, sixGangIndicatorValueConverter],
+    ...sixGangIndicatorEndpoints.flatMap(
+        (endpoint) =>
+            [
+                [107, `color_${endpoint}`, sixGangIndicatorToValueConverter("color")],
+                [107, `brightness_on_${endpoint}`, sixGangIndicatorToValueConverter("brightness_on")],
+                [107, `brightness_off_${endpoint}`, sixGangIndicatorToValueConverter("brightness_off")],
+            ] satisfies Tuya.MetaTuyaDataPoints,
+    ),
+];
 
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
@@ -29361,6 +29450,91 @@ export const definitions: DefinitionWithExtend[] = [
                 [31, "restart_status_3", tuya.valueConverter.powerOnBehaviorEnum],
                 [32, "restart_status_4", tuya.valueConverter.powerOnBehaviorEnum],
                 [33, "restart_status_5", tuya.valueConverter.powerOnBehaviorEnum],
+            ],
+        },
+    },
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_hbxadcl0"}],
+        model: "TS0601_6gang_switch_2",
+        vendor: "Tuya",
+        description: "6 gang touch panel switch with power monitoring and configurable indicator colors",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.switch().withEndpoint("button_1"),
+            tuya.exposes.switch().withEndpoint("button_2"),
+            tuya.exposes.switch().withEndpoint("button_3"),
+            tuya.exposes.switch().withEndpoint("button_4"),
+            tuya.exposes.switch().withEndpoint("button_5"),
+            tuya.exposes.switch().withEndpoint("button_6"),
+            tuya.exposes.switch().withEndpoint("all"),
+            e.energy(),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.child_lock(),
+            e.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Indicator backlight"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+            tuya.exposes.powerOnBehavior(),
+            e.enum("power_on_behavior_1", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 1 power-on behavior"),
+            e.enum("power_on_behavior_2", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 2 power-on behavior"),
+            e.enum("power_on_behavior_3", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 3 power-on behavior"),
+            e.enum("power_on_behavior_4", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 4 power-on behavior"),
+            e.enum("power_on_behavior_5", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 5 power-on behavior"),
+            e.enum("power_on_behavior_6", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 6 power-on behavior"),
+            ...sixGangIndicatorEndpoints.flatMap((endpoint) => [
+                sixGangIndicatorColorExpose(endpoint),
+                e
+                    .numeric("brightness_on", ea.STATE_SET)
+                    .withLabel("On brightness")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withUnit("%")
+                    .withEndpoint(endpoint)
+                    .withCategory("config"),
+                e
+                    .numeric("brightness_off", ea.STATE_SET)
+                    .withLabel("Off brightness")
+                    .withValueMin(0)
+                    .withValueMax(100)
+                    .withUnit("%")
+                    .withEndpoint(endpoint)
+                    .withCategory("config"),
+            ]),
+        ],
+        endpoint: () => ({
+            button_1: 1,
+            button_2: 1,
+            button_3: 1,
+            button_4: 1,
+            button_5: 1,
+            button_6: 1,
+            all: 1,
+        }),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_button_1", tuya.valueConverter.onOff],
+                [2, "state_button_2", tuya.valueConverter.onOff],
+                [3, "state_button_3", tuya.valueConverter.onOff],
+                [4, "state_button_4", tuya.valueConverter.onOff],
+                [5, "state_button_5", tuya.valueConverter.onOff],
+                [6, "state_button_6", tuya.valueConverter.onOff],
+                [15, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
+                [16, "backlight", tuya.valueConverter.onOff],
+                [20, "energy", tuya.valueConverter.divideBy100],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                [29, "power_on_behavior_1", tuya.valueConverter.powerOnBehaviorEnum],
+                [30, "power_on_behavior_2", tuya.valueConverter.powerOnBehaviorEnum],
+                [31, "power_on_behavior_3", tuya.valueConverter.powerOnBehaviorEnum],
+                [32, "power_on_behavior_4", tuya.valueConverter.powerOnBehaviorEnum],
+                [33, "power_on_behavior_5", tuya.valueConverter.powerOnBehaviorEnum],
+                [34, "power_on_behavior_6", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                ...sixGangIndicatorDatapoints,
+                [109, "indicator", tuya.valueConverter.onOff],
+                [136, "state_all", tuya.valueConverter.onOff],
             ],
         },
     },
