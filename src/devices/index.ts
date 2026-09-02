@@ -125,6 +125,7 @@ import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
+import {definitions as heiwa} from "./heiwa";
 import {definitions as hej} from "./hej";
 import {definitions as hfh} from "./hfh";
 import {definitions as hilux} from "./hilux";
@@ -212,6 +213,7 @@ import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
+import {definitions as mowe} from "./mowe";
 import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
@@ -512,6 +514,7 @@ const definitions: DefinitionWithExtend[] = [
     ...heatit,
     ...heiman,
     ...heimgardTechnologies,
+    ...heiwa,
     ...hej,
     ...hfh,
     ...hilux,
@@ -597,6 +600,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mindy,
     ...modular,
     ...moes,
+    ...mowe,
     ...msh,
     ...mullerLicht,
     ...multir,
