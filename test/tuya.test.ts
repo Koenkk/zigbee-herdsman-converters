@@ -195,4 +195,45 @@ describe("lib/tuya", () => {
             expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
         });
     });
+    describe("tuyaOnOff power-on behaviour selection", () => {
+        const resolveExposes = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS0003", manufacturerName, endpoints: [{ID: 1}, {ID: 2}, {ID: 3}]});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            return {definition, properties: exposes.map((expose) => expose.property)};
+        };
+
+        it("exposes power_on_behavior for manufacturers using the manuSpecificTuya3 attribute", async () => {
+            // `TS0003_switch_3_gang_with_backlight` passes `powerOutageMemory` and `powerOnBehavior2` as
+            // complementary predicates. Both are functions, so branching on the option itself always chose
+            // `powerOutageMemory`, whose expose is then gated off for these manufacturers, leaving them with
+            // no power-on control at all.
+            const {properties} = await resolveExposes("_TZ3000_uilitwsy");
+
+            expect(properties).toContain("power_on_behavior_l1");
+            expect(properties).toContain("power_on_behavior_l2");
+            expect(properties).toContain("power_on_behavior_l3");
+            expect(properties).not.toContain("power_outage_memory");
+        });
+
+        it("still exposes power_outage_memory for the legacy manufacturers on the same definition", async () => {
+            const {properties} = await resolveExposes("_TZ3000_nwidmc4n");
+
+            expect(properties).toContain("power_outage_memory");
+            expect(properties).not.toContain("power_on_behavior_l1");
+        });
+
+        it("lets power_on_behavior_2 win the shared power_on_behavior key", async () => {
+            // Both converters answer to `power_on_behavior`; the first match wins, so the manuSpecificTuya3
+            // one has to be registered first or these devices would write moesStartUpOnOff instead.
+            const {definition} = await resolveExposes("_TZ3000_uilitwsy");
+            const keys = definition.toZigbee.map((converter) => converter.key);
+            const powerOnBehavior2 = keys.findIndex((key) => key?.includes("power_on_behavior") && !key.includes("power_outage_memory"));
+            const powerOnBehavior1 = keys.findIndex((key) => key?.includes("power_outage_memory"));
+
+            expect(powerOnBehavior2).toBeGreaterThanOrEqual(0);
+            expect(powerOnBehavior1).toBeGreaterThanOrEqual(0);
+            expect(powerOnBehavior2).toBeLessThan(powerOnBehavior1);
+        });
+    });
 });
