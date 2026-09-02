@@ -297,6 +297,7 @@ import {definitions as shelly} from "./shelly";
 import {definitions as shenzhenHoma} from "./shenzhen_homa";
 import {definitions as shinasystem} from "./shinasystem";
 import {definitions as shyugj} from "./shyugj";
+import {definitions as siemens} from "./siemens";
 import {definitions as siglis} from "./siglis";
 import {definitions as sikom} from "./sikom";
 import {definitions as siliconLabs} from "./silicon_labs";
@@ -684,6 +685,7 @@ const definitions: DefinitionWithExtend[] = [
     ...shenzhenHoma,
     ...shinasystem,
     ...shyugj,
+    ...siemens,
     ...siglis,
     ...siliconLabs,
     ...sikom,
