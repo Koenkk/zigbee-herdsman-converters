@@ -844,6 +844,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.displaySwitchOnDuration(),
             boschThermostatExtend.activityLedState(),
             boschThermostatExtend.errorState({enableReporting: true}),
+            boschThermostatExtend.humidityAlarmLed(),
         ],
         ota: true,
     },

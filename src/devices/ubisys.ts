@@ -672,6 +672,16 @@ const ubisys = {
                     await writeChunk();
                 }
             },
+            convertGet: async (entity, key, meta) => {
+                const devMgmtEp = meta.device.getEndpoint(232);
+                const customCluster = meta.device.customClusters["manuSpecificUbisysDeviceSetup"];
+                assert(customCluster);
+                await devMgmtEp.read(
+                    "manuSpecificUbisysDeviceSetup",
+                    [customCluster.attributes.inputConfigurations.ID, customCluster.attributes.inputActions.ID],
+                    manufacturerOptions.ubisysNull,
+                );
+            },
         } satisfies Tz.Converter,
     },
 };
