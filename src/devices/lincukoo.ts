@@ -3,7 +3,6 @@ import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Expose, Fz, KeyValueAny} from "../lib/types";
 
-
 const e = exposes.presets;
 const ea = exposes.access;
 const te = tuya.exposes;
