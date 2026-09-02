@@ -36,6 +36,7 @@ export class Base {
     features?: Feature[];
     category?: "config" | "diagnostic";
     homeassistant?: HomeAssistant;
+    default?: string | number | boolean;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -75,6 +76,11 @@ export class Base {
 
     withDescription(description: string) {
         this.description = description;
+        return this;
+    }
+
+    withDefault(value: string | number | boolean) {
+        this.default = value;
         return this;
     }
 
@@ -138,6 +144,7 @@ export class Base {
         }
         target.category = this.category;
         target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
+        target.default = this.default;
     }
 }
 

@@ -35,6 +35,7 @@ import {
     type KeyValue,
     type OnEvent,
     Option,
+    type OptionFactory,
     Tz,
     type Zh,
 } from "./lib/types";
@@ -253,7 +254,7 @@ function validateDefinition(definition: Definition): asserts definition is Defin
     assert.ok(Array.isArray(definition.exposes) || typeof definition.exposes === "function", "Exposes incorrect");
 }
 
-function processExtensions(definition: DefinitionWithExtend): Definition {
+function processExtensions(definition: DefinitionWithExtend, device?: Zh.Device): Definition {
     if ("extend" in definition) {
         if (!Array.isArray(definition.extend)) {
             assert.fail(`'${definition.model}' has legacy extend which is not supported anymore`);
@@ -291,6 +292,7 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
         toZigbee = [...(toZigbee ?? [])];
         fromZigbee = [...(fromZigbee ?? [])];
+        const optionFactories: OptionFactory[] = [];
         options = [...(options ?? [])];
 
         const configures: Configure[] = definitionConfigure ? [definitionConfigure] : [];
@@ -311,6 +313,10 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
 
             if (ext.options) {
                 options.push(...ext.options);
+            }
+
+            if (ext.optionsFactory) {
+                optionFactories.push(ext.optionsFactory);
             }
 
             if (ext.exposes) {
@@ -411,14 +417,17 @@ function processExtensions(definition: DefinitionWithExtend): Definition {
             };
         }
 
+        const optionDevice = device ?? {isDummyDevice: true as const};
+        options.push(...optionFactories.flatMap((factory) => factory(optionDevice)));
+
         return {version: "0.0.0", toZigbee, fromZigbee, exposes, meta, configure, endpoint, onEvent, ota, options, ...definitionWithoutExtend};
     }
 
     return {version: "0.0.0", ...definition};
 }
 
-export function prepareDefinition(definition: DefinitionWithExtend): Definition {
-    const finalDefinition = processExtensions(definition);
+export function prepareDefinition(definition: DefinitionWithExtend, device?: Zh.Device): Definition {
+    const finalDefinition = processExtensions(definition, device);
 
     finalDefinition.toZigbee = [
         toZigbee.scene_store,
@@ -518,7 +527,7 @@ export async function findByDevice(device: Zh.Device, generateForUnknown = false
             }
         }
 
-        return prepareDefinition(definition);
+        return prepareDefinition(definition, device);
     }
 }
 
@@ -599,7 +608,7 @@ export async function generateExternalDefinitionSource(device: Zh.Device): Promi
 export async function generateExternalDefinition(device: Zh.Device): Promise<Definition> {
     const {definition} = await generateDefinition(device);
 
-    return prepareDefinition(definition);
+    return prepareDefinition(definition, device);
 }
 
 function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolean {

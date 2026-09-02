@@ -51,6 +51,7 @@ export type Expose =
     | exposes.Fan
     | exposes.Text;
 export type Option = exposes.Numeric | exposes.Binary | exposes.Composite | exposes.Enum | exposes.List | exposes.Text;
+export type OptionFactory = (device: Zh.Device | DummyDevice) => Option[];
 export interface Fingerprint {
     applicationVersion?: number;
     manufacturerID?: number;
@@ -254,6 +255,7 @@ export interface ModernExtend {
     meta?: Definition["meta"];
     ota?: Definition["ota"];
     options?: Option[];
+    optionsFactory?: OptionFactory;
     onEvent?: Definition["onEvent"][];
     endpoint?: Definition["endpoint"];
     isModernExtend: true;
