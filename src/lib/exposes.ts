@@ -36,6 +36,7 @@ export class Base {
     features?: Feature[];
     category?: "config" | "diagnostic";
     homeassistant?: HomeAssistant;
+    legacyNames?: string[];
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -89,6 +90,11 @@ export class Base {
         return this;
     }
 
+    withLegacyNames(...names: string[]) {
+        this.legacyNames = names;
+        return this;
+    }
+
     validateCategory() {
         switch (this.category) {
             case "config":
@@ -138,6 +144,7 @@ export class Base {
         }
         target.category = this.category;
         target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
+        target.legacyNames = this.legacyNames ? [...this.legacyNames] : undefined;
     }
 }
 
