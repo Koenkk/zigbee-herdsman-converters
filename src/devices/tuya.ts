@@ -6183,6 +6183,7 @@ export const definitions: DefinitionWithExtend[] = [
                         back: tuya.enum(1),
                     }),
                 ],
+                [13, "battery", tuya.valueConverter.raw],
             ],
         },
     },
@@ -7303,6 +7304,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("EcoDim", "ED-10032", "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K", ["_TZ3210_09hzmirw"]),
             tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
+            tuya.whitelabel("ECODO", "ECD-SS12", "Sunset smart downlight 12 W, 1800-5700K", ["_TZ3210_rnj5wxxg"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
