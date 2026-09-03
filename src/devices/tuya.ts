@@ -6095,8 +6095,6 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [13, 'battery', tuya.valueConverter.raw]
-                
-                
             ],
         },
     },
