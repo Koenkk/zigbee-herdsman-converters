@@ -1,4 +1,4 @@
-import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
+﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -1339,6 +1339,18 @@ const sendSonoffTpWgzbaScheduleReadCommand = async (entity: Zh.Endpoint | Zh.Gro
         {data: payload},
         disableDefaultResponseOptions,
     );
+};
+
+const withConditionalExpose = (extend: ModernExtend, predicate: (device: Zh.Device | DummyDevice) => boolean): ModernExtend => {
+    const originalExposes = extend.exposes ?? [];
+
+    const expose: DefinitionExposesFunction = (device, options) => {
+        if (!predicate(device)) return [];
+
+        return originalExposes.flatMap((item) => (typeof item === "function" ? item(device, options) : [item]));
+    };
+
+    return {...extend, exposes: [expose]};
 };
 
 const fzLocal = {
@@ -12190,16 +12202,21 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric<"customClusterEwelink", SonoffEwelink>({
-                name: "output_energy_today",
-                label: "Export energy today",
-                cluster: "customClusterEwelink",
-                attribute: "outputEnergyToday",
-                description: "Energy fed back today through the plug.",
-                unit: "kWh",
-                scale: 1000,
-                access: "STATE_GET",
-            }),
+            withConditionalExpose(
+                m.numeric<"customClusterEwelink", SonoffEwelink>({
+                    name: "output_energy_today",
+                    label: "Export energy today",
+                    cluster: "customClusterEwelink",
+                    attribute: "outputEnergyToday",
+                    description: "Energy fed back today through the plug.",
+                    unit: "kWh",
+                    scale: 1000,
+                    access: "STATE_GET",
+                }),
+                (device) =>
+                    utils.isDummyDevice(device) ||
+                    (device.modelID === "BASIC-ZB1GSP" && firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")),
+            ),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 label: "Energy this month",
@@ -12210,16 +12227,21 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric<"customClusterEwelink", SonoffEwelink>({
-                name: "output_energy_month",
-                label: "Export energy this month",
-                cluster: "customClusterEwelink",
-                attribute: "outputEnergyMonth",
-                description: "Energy fed back this month through the plug.",
-                unit: "kWh",
-                scale: 1000,
-                access: "STATE_GET",
-            }),
+            withConditionalExpose(
+                m.numeric<"customClusterEwelink", SonoffEwelink>({
+                    name: "output_energy_month",
+                    label: "Export energy this month",
+                    cluster: "customClusterEwelink",
+                    attribute: "outputEnergyMonth",
+                    description: "Energy fed back this month through the plug.",
+                    unit: "kWh",
+                    scale: 1000,
+                    access: "STATE_GET",
+                }),
+                (device) =>
+                    utils.isDummyDevice(device) ||
+                    (device.modelID === "BASIC-ZB1GSP" && firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")),
+            ),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
                 cluster: "customClusterEwelink",
@@ -12239,16 +12261,21 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 1000,
                 access: "STATE_GET",
             }),
-            m.numeric<"customClusterEwelink", SonoffEwelink>({
-                name: "total_output_energy",
-                label: "Total export energy",
-                cluster: "customClusterEwelink",
-                attribute: "totalOutputEnergyConsumption",
-                description: "Total energy fed back through the plug.",
-                unit: "kWh",
-                scale: 1000,
-                access: "STATE_GET",
-            }),
+            withConditionalExpose(
+                m.numeric<"customClusterEwelink", SonoffEwelink>({
+                    name: "total_output_energy",
+                    label: "Total export energy",
+                    cluster: "customClusterEwelink",
+                    attribute: "totalOutputEnergyConsumption",
+                    description: "Total energy fed back through the plug.",
+                    unit: "kWh",
+                    scale: 1000,
+                    access: "STATE_GET",
+                }),
+                (device) =>
+                    utils.isDummyDevice(device) ||
+                    (device.modelID === "BASIC-ZB1GSP" && firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")),
+            ),
             m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "outlet_control_protect",
                 cluster: "customClusterEwelink",
