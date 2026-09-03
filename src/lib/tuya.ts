@@ -4970,23 +4970,33 @@ const tuyaModernExtend = {
         } else {
             toZigbee.push(tz.on_off);
         }
-        if (powerOutageMemory) {
-            // Legacy, powerOnBehavior is preferred
-            fromZigbee.push(tuyaFz.power_outage_memory);
-            toZigbee.push(tuyaTz.power_on_behavior_1);
-            if (typeof powerOutageMemory === "function") {
-                exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
-            } else {
-                exposes.push(tuyaExposes.powerOutageMemory());
+        if (powerOutageMemory || powerOnBehavior2) {
+            // `powerOutageMemory` and `powerOnBehavior2` can both be set, as complementary per-manufacturer
+            // predicates, when one definition covers devices that use either mechanism. The manufacturer is
+            // only known once the exposes are resolved, so both converter sets are registered here and the
+            // lazy exposes decide which key is reachable for a given device. Selecting a branch on the
+            // option itself would always pick the first, since a predicate is truthy regardless of outcome.
+            if (powerOnBehavior2) {
+                // Registered before `power_on_behavior_1` below: both handle the `power_on_behavior` key
+                // and the first match wins, so this must take precedence for the devices that expose it.
+                fromZigbee.push(tuyaFz.power_on_behavior_2);
+                toZigbee.push(tuyaTz.power_on_behavior_2);
+                const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
+                if (typeof powerOnBehavior2 === "function") {
+                    exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
+                } else {
+                    exposes.push(...expose);
+                }
             }
-        } else if (powerOnBehavior2) {
-            fromZigbee.push(tuyaFz.power_on_behavior_2);
-            toZigbee.push(tuyaTz.power_on_behavior_2);
-            const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
-            if (typeof powerOnBehavior2 === "function") {
-                exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
-            } else {
-                exposes.push(...expose);
+            if (powerOutageMemory) {
+                // Legacy, powerOnBehavior is preferred
+                fromZigbee.push(tuyaFz.power_outage_memory);
+                toZigbee.push(tuyaTz.power_on_behavior_1);
+                if (typeof powerOutageMemory === "function") {
+                    exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
+                } else {
+                    exposes.push(tuyaExposes.powerOutageMemory());
+                }
             }
         } else if (powerOnBehavior3) {
             const endpointList = args.endpoints || [];
@@ -5226,7 +5236,7 @@ const tuyaModernExtend = {
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
-        for (let i = 0; i < numberOfForecastDays; ++i) {
+        for (let i = 1; i <= numberOfForecastDays; ++i) {
             tz_fileds.push(`temperature_${i}`);
             tz_fileds.push(`humidity_${i}`);
             tz_fileds.push(`condition_${i}`);
@@ -5268,7 +5278,7 @@ const tuyaModernExtend = {
                 weather_values[TuyaWeatherID.Temperature].push(
                     `temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0,
                 );
-                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity_${i}`] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
                     `condition_${i}` in meta.state ? weatherConditionMap[meta.state[`condition_${i}`] as keyof typeof weatherConditionMap] : 0,
                 );

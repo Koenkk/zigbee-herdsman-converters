@@ -779,7 +779,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [{vendor: "Legrand", model: "600090A"}],
         ota: true,
         fromZigbee: [fz.identify, fz.lighting_ballast_configuration, fzLegrand.cluster_fc01],
-        toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config],
+        toZigbee: [tzLegrand.led_mode, tzLegrand.legrand_device_mode, tzLegrand.identify, tz.ballast_config, tzLegrand.light_state_device_mode_aware],
         exposes: [
             e.numeric("ballast_minimum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the minimum brightness value"),
             e.numeric("ballast_maximum_level", ea.ALL).withValueMin(1).withValueMax(254).withDescription("Specifies the maximum brightness value"),
