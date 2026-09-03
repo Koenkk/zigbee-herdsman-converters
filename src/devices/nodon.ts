@@ -8,11 +8,16 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Fz, KeyValue, ModernExtend, Zh} from "../lib/types";
 import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+// The manufacturer specific configuration attributes were only introduced in firmware 3.4.0,
+// exposing them on older firmwares results in unsupported attribute errors.
+const supportsConfigurationAttributes = (device: Zh.Device | DummyDevice): boolean =>
+    !isDummyDevice(device) && !!device.softwareBuildID && !!semverValid(device.softwareBuildID) && semverGt(device.softwareBuildID, "3.4.0");
 
 const nodonModernExtend = {
     calibrationVerticalRunTimeUp: (args?: Partial<m.NumericArgs<"closuresWindowCovering">>) =>
@@ -84,7 +89,9 @@ const nodonModernExtend = {
         const resultUnit = "ms";
         const resultValueMin = 0;
         const resultValueMax = 10000;
-        const resultDescription = "Set the impulse duration in milliseconds (set value to 0 to deactivate the impulse mode).";
+        const resultDescription =
+            "Set the duration in milliseconds after which the output automatically switches off once turned on " +
+            "(set value to 0 to deactivate the impulse mode).";
 
         const result: ModernExtend = m.numeric({
             name: resultName,
@@ -96,27 +103,25 @@ const nodonModernExtend = {
             scale: 1,
             description: resultDescription,
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            ...args,
         });
+
+        const createExpose = (endpointName?: string) => {
+            const expose = e
+                .numeric(resultName, ea.ALL)
+                .withDescription(resultDescription)
+                .withUnit(resultUnit)
+                .withValueMin(resultValueMin)
+                .withValueMax(resultValueMax);
+
+            return endpointName ? expose.withEndpoint(endpointName) : expose;
+        };
 
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGt(device.softwareBuildID, "3.4.0")
-                ) {
-                    return [
-                        e
-                            .numeric(resultName, ea.ALL)
-                            .withDescription(resultDescription)
-                            .withUnit(resultUnit)
-                            .withValueMin(resultValueMin)
-                            .withValueMax(resultValueMax),
-                    ];
-                }
-                return [];
+                if (!supportsConfigurationAttributes(device)) return [];
+                return args?.endpointNames ? args.endpointNames.map((endpointName) => createExpose(endpointName)) : [createExpose()];
             },
         ];
 
@@ -140,15 +145,9 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGt(device.softwareBuildID, "3.4.0")
-                ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
-                }
-                return [];
+                if (!supportsConfigurationAttributes(device)) return [];
+                const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                return [args?.endpointName ? expose.withEndpoint(args.endpointName) : expose];
             },
         ];
 
@@ -172,15 +171,9 @@ const nodonModernExtend = {
         // NOTE: make exposes dynamic based on fw version
         result.exposes = [
             (device, options) => {
-                if (
-                    !isDummyDevice(device) &&
-                    device.softwareBuildID &&
-                    semverValid(device.softwareBuildID) &&
-                    semverGt(device.softwareBuildID, "3.4.0")
-                ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
-                }
-                return [];
+                if (!supportsConfigurationAttributes(device)) return [];
+                const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                return [args?.endpointName ? expose.withEndpoint(args.endpointName) : expose];
             },
         ];
 
@@ -561,6 +554,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, default: 1}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
+            nodonModernExtend.impulseMode({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
         ],
