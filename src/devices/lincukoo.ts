@@ -1,31 +1,20 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValueAny} from "../lib/types";
+import type {DefinitionWithExtend, Expose} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
 const te = tuya.exposes;
 const tvc = tuya.valueConverter;
 
-const fzTuyaAction = {
-    cluster: "manuSpecificTuya",
-    type: ["commandDataReport", "commandDataResponse"],
-    convert: (model, msg, publishModel, options, meta) => {
-        const result: KeyValueAny = {};
-        const dpValues = msg.data.dpValues || [];
-        for (const dpValue of dpValues) {
-            if (dpValue.dp === 104) {
-                const lookup: Record<number, string> = {0: "single_click", 1: "double_click", 2: "long_press"};
-                const value = lookup[dpValue.data.readUInt8(0)];
-                if (value) {
-                    result["action"] = value;
-                }
-            }
-        }
-        return result;
+const tuyaActionSceneSwitch = {
+    from: (value: number) => {
+        const lookup: Record<number, string> = {0: "single_click", 1: "double_click", 2: "long_press"};
+        const v = lookup[value];
+        return v ? {action: v, scene_switch: v} : null;
     },
-} satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>;
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -927,7 +916,6 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lincukoo",
         description: "5in1 Sensor Button Switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        fromZigbee: [fzTuyaAction],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -957,6 +945,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "illuminance", tuya.valueConverter.raw],
                 [22, "temperature", tuya.valueConverter.divideBy10],
                 [23, "humidity", tuya.valueConverter.raw],
+                [104, null, tuyaActionSceneSwitch],
                 [
                     104,
                     "scene_switch",
