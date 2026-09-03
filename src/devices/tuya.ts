@@ -6183,6 +6183,7 @@ export const definitions: DefinitionWithExtend[] = [
                         back: tuya.enum(1),
                     }),
                 ],
+                [13, "battery", tuya.valueConverter.raw],
             ],
         },
     },
