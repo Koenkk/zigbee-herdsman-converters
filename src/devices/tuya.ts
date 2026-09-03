@@ -29172,7 +29172,7 @@ export const definitions: DefinitionWithExtend[] = [
                             return meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw;
                         },
                     },
-                ],                
+                ],
                 [110, "humidity", tuya.valueConverter.raw],
                 [112, "battery", tuya.valueConverter.raw],
                 [111, "temperature_unit", tuya.valueConverter.temperatureUnit],
