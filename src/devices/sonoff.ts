@@ -1,4 +1,4 @@
-﻿import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
+import {getTimeClusterAttributes, Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
@@ -1352,6 +1352,9 @@ const withConditionalExpose = (extend: ModernExtend, predicate: (device: Zh.Devi
 
     return {...extend, exposes: [expose]};
 };
+
+const isBasicZB1GSPFirmwareAtLeast130 = (device: Zh.Device | DummyDevice): boolean =>
+    utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher");
 
 const fzLocal = {
     key_action_event: {
@@ -12213,9 +12216,7 @@ export const definitions: DefinitionWithExtend[] = [
                     scale: 1000,
                     access: "STATE_GET",
                 }),
-                (device) =>
-                    utils.isDummyDevice(device) ||
-                    (device.modelID === "BASIC-ZB1GSP" && firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")),
+                isBasicZB1GSPFirmwareAtLeast130,
             ),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
@@ -12238,9 +12239,7 @@ export const definitions: DefinitionWithExtend[] = [
                     scale: 1000,
                     access: "STATE_GET",
                 }),
-                (device) =>
-                    utils.isDummyDevice(device) ||
-                    (device.modelID === "BASIC-ZB1GSP" && firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")),
+                isBasicZB1GSPFirmwareAtLeast130,
             ),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
@@ -12272,9 +12271,7 @@ export const definitions: DefinitionWithExtend[] = [
                     scale: 1000,
                     access: "STATE_GET",
                 }),
-                (device) =>
-                    utils.isDummyDevice(device) ||
-                    (device.modelID === "BASIC-ZB1GSP" && firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")),
+                isBasicZB1GSPFirmwareAtLeast130,
             ),
             m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "outlet_control_protect",
