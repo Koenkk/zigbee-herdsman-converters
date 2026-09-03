@@ -197,11 +197,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-    zigbeeModel: ["lumi.curtain.acn011"],
-    model: "ZNMHLDJ01LM",
-    vendor: "Aqara",
-    description: "Smart vertical blinds motor H1",
-    extend: [m.identify(), m.windowCovering({controls: ["lift", "tilt"], coverInverted: true})],
+        zigbeeModel: ["lumi.curtain.acn011"],
+        model: "ZNMHLDJ01LM",
+        vendor: "Aqara",
+        description: "Smart vertical blinds motor H1",
+        extend: [m.identify(), m.windowCovering({controls: ["lift", "tilt"], coverInverted: true})],
     },
     {
         zigbeeModel: ["lumi.flood.acn001"],
