@@ -2148,7 +2148,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.identify(),
-            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}}),
+            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}, multiEndpointSkip: ["state", "position", "tilt", "cover_mode"]}),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             schneiderElectricExtend.addSchneiderClosuresWindowCoveringCluster(),
             m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
@@ -2167,7 +2167,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_up",
-                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveUpTime",
                 unit: "s",
@@ -2180,7 +2179,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_down",
-                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveDownTime",
                 unit: "s",
@@ -2194,7 +2192,6 @@ export const definitions: DefinitionWithExtend[] = [
             (() => {
                 const extend: ModernExtend = m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                     name: "tilt_duration",
-                    endpointNames: ["cover"],
                     cluster: "closuresWindowCovering",
                     attribute: "tiltOpenCloseAndStepTime",
                     unit: "s",
@@ -2323,9 +2320,9 @@ export const definitions: DefinitionWithExtend[] = [
             const tilt_enabled = !(options.no_tilt === true);
 
             if (tilt_enabled) {
-                exposesList.push(e.cover_position_tilt().withEndpoint("cover"));
+                exposesList.push(e.cover_position_tilt());
             } else {
-                exposesList.push(e.cover_position().withEndpoint("cover"));
+                exposesList.push(e.cover_position());
             }
 
             exposesList.push(

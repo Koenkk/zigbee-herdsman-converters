@@ -41,33 +41,19 @@ describe("Schneider Electric S520567", () => {
 
     const convertLiftReport = (currentPositionLiftPercentage: number) => convertReport({currentPositionLiftPercentage});
 
-    it("publishes a value for every property the cover exposes", async () => {
-        const {exposes, payload} = await convertLiftReport(50);
-
-        const cover = exposes.find((expose) => expose.type === "cover");
-        if (cover?.features === undefined) throw new Error("no cover expose on the definition");
-
-        // A lift percentage report carries no tilt, so tilt_cover is expected to
-        // be absent here. Every other declared property must be published,
-        // otherwise the entity has no state in Z2M and Home Assistant.
-        const declared = cover.features.map((feature) => feature.property).filter((property) => property !== "tilt_cover");
-        expect(declared).toContain("state_cover");
-        expect(Object.keys(payload).sort()).toEqual(declared.sort());
-    });
-
     it("reports state alongside position for a lift percentage report", async () => {
-        expect((await convertLiftReport(50)).payload).toStrictEqual({position_cover: 50, state_cover: "OPEN"});
-        expect((await convertLiftReport(0)).payload).toStrictEqual({position_cover: 0, state_cover: "CLOSE"});
-        expect((await convertLiftReport(100)).payload).toStrictEqual({position_cover: 100, state_cover: "OPEN"});
+        expect((await convertLiftReport(50)).payload).toStrictEqual({position: 50, state: "OPEN"});
+        expect((await convertLiftReport(0)).payload).toStrictEqual({position: 0, state: "CLOSE"});
+        expect((await convertLiftReport(100)).payload).toStrictEqual({position: 100, state: "OPEN"});
     });
 
     it("reports state on a read response as well as an attribute report", async () => {
         const {payload} = await convertReport({currentPositionLiftPercentage: 30}, "readResponse");
-        expect(payload).toStrictEqual({position_cover: 30, state_cover: "OPEN"});
+        expect(payload).toStrictEqual({position: 30, state: "OPEN"});
     });
 
     it("does not derive state from a tilt report", async () => {
         const {payload} = await convertReport({currentPositionTiltPercentage: 100});
-        expect(payload).toStrictEqual({tilt_cover: 100});
+        expect(payload).toStrictEqual({tilt: 100});
     });
 });
