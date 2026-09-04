@@ -78,7 +78,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "genBinaryInput",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    if (Object.hasOwn(msg.data, "presentValue")) {
+                    if (msg.data.hasOwnProperty("presentValue")) {
                         if (msg.data["presentValue"] === 1 || msg.data["presentValue"] === true) {
                             const button = msg.endpoint.ID === 1 ? "top" : msg.endpoint.ID === 10 ? "bottom" : "unknown";
                             if (button !== "unknown") {
