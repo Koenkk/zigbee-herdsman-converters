@@ -221,14 +221,17 @@ describe("converters/fromZigbee", () => {
         });
     });
 
-    it("XHS2-UE uses voltage curve instead of stale reported battery percentage", async () => {
+    it("XHS2-UE uses voltage curve (3V_2100) instead of stale reported battery percentage", async () => {
         const definition = await findByDevice(mockDevice({modelID: "URC4460BC0-X-R", endpoints: []}));
 
+        // batteryVoltage 29 (2900mV) → 42% on the 3V_2100 curve.
+        // batteryPercentageRemaining 54 → 27% (÷2). The two paths diverge,
+        // so the expected value proves which one won.
         const payload = fromZigbee.battery.convert(
             definition,
             {
                 data: {
-                    batteryVoltage: 28,
+                    batteryVoltage: 29,
                     batteryPercentageRemaining: 54,
                 },
                 endpoint: null,
@@ -247,8 +250,8 @@ describe("converters/fromZigbee", () => {
         );
 
         expect(payload).toStrictEqual({
-            battery: 100,
-            voltage: 2800,
+            battery: 42,
+            voltage: 2900,
         });
     });
 
