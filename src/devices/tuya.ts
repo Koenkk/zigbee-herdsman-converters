@@ -27534,7 +27534,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "_TZE284_grxx6qek",
         vendor: "Tuya",
         description: "Temperature & humidity smart switch 16A",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        // timeStart "1970": this MCU sanity-checks the mcuSyncTime answer and only
+        // accepts Unix epoch - with the Tuya-2000-epoch answer its sensor reporting
+        // freezes after every device reboot (validated on hardware). With no answer
+        // at all (default "off") it stops reporting as well.
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [e.switch(), e.temperature(), e.humidity()],
         meta: {
             tuyaDatapoints: [
