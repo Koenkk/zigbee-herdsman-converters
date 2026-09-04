@@ -598,6 +598,19 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
+/**
+ * Example: 101 = 1×64 + 2×16 + 5×1 -> v1.2.5
+ *
+ * Bits: 7-6 = major, 5-4 = minor, 3-0 = patch
+ */
+function decodeTuyaVersion(value: number) {
+    const major = value >> 6;
+    const minor = (value & 0b00110000) >> 4;
+    const patch = value & 0b00001111;
+
+    return `${major}.${minor}.${patch}`;
+}
+
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
@@ -4200,6 +4213,30 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
+    /** Continues tuyaFirmwareId configuration */
+    mcu_version: {
+        cluster: "manuSpecificTuya",
+        type: ["commandMcuVersionResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.device.genBasic.swBuildId && !msg.device.meta.hasCustomFirmwareId) {
+                return; // leave default Firmware ID, if it exists
+            }
+
+            const z = msg.device.genBasic.appVersion;
+            const m = msg.data.version;
+
+            if (!z || !m) {
+                return;
+            }
+
+            const zVer = decodeTuyaVersion(z);
+            const mVer = decodeTuyaVersion(m);
+
+            msg.device.genBasic.swBuildId = `Zigbee module: ${zVer}, MCU module: ${mVer}`;
+            msg.device.save();
+            msg.device.meta.hasCustomFirmwareId = true;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuVersionResponse"]>,
 };
 
 export {tuyaFz as fz};
@@ -4334,6 +4371,30 @@ export interface TuyaDPLightArgs {
     // color?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     endpoint?: string;
 }
+/**
+ * - Decodes "Zigbee module version" from `appVersion`
+ * - Also requests "MCU module version" on TS0601 models
+ * - Populates Firmware ID with the results (if the device does not provide `swBuildId`)
+ */
+const tuyaFirmwareId = async (device: Zh.Device) => {
+    if (device.genBasic.swBuildId && !device.meta.hasCustomFirmwareId) {
+        return; // leave default Firmware ID, if it exists
+    }
+
+    if (device.modelID === "TS0601") {
+        await device.endpoints[0].command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+        return; // wait for response, continue in tuyaFz.mcu_version
+    }
+
+    const z = device.genBasic.appVersion;
+    if (!z) {
+        return;
+    }
+
+    device.genBasic.swBuildId = decodeTuyaVersion(z);
+    device.save();
+    device.meta.hasCustomFirmwareId = true;
+};
 
 const tuyaModernExtend = {
     electricityMeasurementPoll(
@@ -4514,7 +4575,7 @@ const tuyaModernExtend = {
         const result: ModernExtend = {
             configure: [configureMagicPacket],
             isModernExtend: true,
-            fromZigbee: [fzConverter],
+            fromZigbee: [fzConverter, tuyaFz.mcu_version],
             toZigbee: [],
             options: [tuyaOptions.timeStart(timeStart)],
         };
@@ -4523,6 +4584,7 @@ const tuyaModernExtend = {
             result.configure.push(configureQuery);
         }
 
+        result.configure.push(tuyaFirmwareId);
 
         if (bindBasicOnConfigure) {
             result.configure.push(configureBindBasic);
