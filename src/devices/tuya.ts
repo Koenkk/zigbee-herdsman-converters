@@ -785,7 +785,62 @@ const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
     ),
 ];
 
+// Convert HA raw IR timings (microseconds) to a Broadlink IR packet.
+// HOBEIAN ZG-IR01 only accepts Broadlink-encoded strings via ir_code_to_send,
+// but HA's native infrared.* platform sends raw {timings: [...]} through
+// ir_emitter, which the stock zosung converter would otherwise encode
+// Tuya-style instead.
+function zgIr01TimingsToBroadlinkBase64(timings: number[], repeatCount = 0): string {
+    if (!Array.isArray(timings) || timings.length === 0) {
+        throw new Error("IR timings must be a non-empty array");
+    }
+
+    const encoded: number[] = [];
+
+    for (const timing of timings) {
+        const duration = Math.abs(Number(timing));
+
+        if (!Number.isFinite(duration) || duration <= 0) {
+            throw new Error(`Invalid IR timing: ${timing}`);
+        }
+
+        const ticks = Math.max(1, Math.round((duration * 269) / 8192));
+
+        if (ticks > 0xffff) {
+            throw new Error(`IR timing too long: ${timing}`);
+        }
+
+        if (ticks < 0x100) {
+            encoded.push(ticks);
+        } else {
+            encoded.push(0x00, (ticks >> 8) & 0xff, ticks & 0xff);
+        }
+    }
+
+    const repeats = Math.max(0, Math.min(255, Math.trunc(Number(repeatCount) || 0)));
+
+    const packet = [0x26, repeats, encoded.length & 0xff, (encoded.length >> 8) & 0xff, ...encoded, 0x0d, 0x05];
+
+    while ((packet.length + 4) % 16 !== 0) {
+        packet.push(0x00);
+    }
+
+    return Buffer.from(packet).toString("base64");
+}
+
 const tzLocal = {
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    zgIr01IrCodeToSend: {
+        key: ["ir_code_to_send", "ir_emitter"],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "ir_emitter" && value && typeof value === "object" && Array.isArray((value as KeyValueAny).timings)) {
+                const raw = value as KeyValueAny;
+                const broadlinkCode = zgIr01TimingsToBroadlinkBase64(raw.timings, raw.repeat_count ?? 0);
+                return await tzZosung.zosung_ir_code_to_send.convertSet(entity, key, broadlinkCode, meta);
+            }
+            return await tzZosung.zosung_ir_code_to_send.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -29195,7 +29250,7 @@ export const definitions: DefinitionWithExtend[] = [
             fzZosung.zosung_send_ir_code_05,
             fz.battery,
         ],
-        toZigbee: [tzZosung.zosung_ir_code_to_send, tzZosung.zosung_learn_ir_code],
+        toZigbee: [tzLocal.zgIr01IrCodeToSend, tzZosung.zosung_learn_ir_code],
         exposes: [
             e.binary("switch1", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch1"),
             e.binary("switch2", ea.STATE_SET, "ON", "OFF").withDescription("IR Switch2"),
