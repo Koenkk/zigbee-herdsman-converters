@@ -431,6 +431,10 @@ interface ShellyLightLevel {
 // not queue every RPC transaction behind one global lock.
 const shellyRpcBusy = new Set<string>();
 
+const preserveNameHA = (name: string): exposes.HomeAssistant => {
+    return {name: name};
+};
+
 const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
     const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
     while (shellyRpcBusy.has(key)) {
@@ -1735,10 +1739,26 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
-            e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
-            e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
-            e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),
+            e
+                .numeric("dew_point", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated dew point temperature")
+                .withHomeAssistant(preserveNameHA("Dew Point")),
+            e
+                .numeric("wind_chill", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated wind chill temperature")
+                .withHomeAssistant(preserveNameHA("Wind Chill")),
+            e
+                .numeric("humidex", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated humidex (feels-like for warm conditions)")
+                .withHomeAssistant(preserveNameHA("Humidex")),
+            e
+                .numeric("apparent_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated apparent temperature")
+                .withHomeAssistant(preserveNameHA("Apparent Temperature")),
             e.numeric("heat_stress", ea.STATE).withUnit("%").withDescription("Calculated heat stress percentage (0-100%)"),
             e.numeric("rain_rate", ea.STATE).withUnit("mm/h").withDescription("Calculated rainfall rate"),
             e.numeric("pressure_trend", ea.STATE).withUnit("hPa/h").withDescription("Pressure change rate (negative = falling)"),
@@ -2993,6 +3013,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 unit: "m/s",
                 access: "STATE_GET",
+                homeassistant: preserveNameHA("Gust Speed"),
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
                 name: "shellyWS90UV",

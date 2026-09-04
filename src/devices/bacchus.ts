@@ -96,9 +96,10 @@ function binaryWithOnOffCommand(args: m.BinaryArgs<"genOnOff", undefined>): Mode
         },
     ];
 
+    const endpoints = Array.isArray(endpointName) ? endpointName : [endpointName];
     const configure: Configure[] = [];
     if (reporting) {
-        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: [endpointName]}));
+        configure.push(m.setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints}));
     }
 
     return {...mExtend, toZigbee, configure, isModernExtend: true};
@@ -109,6 +110,8 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
     const mExtend = m.numeric(args);
+    const precisionValue = Array.isArray(precision) ? precision[0] : precision;
+    const nameValue = Array.isArray(name) ? name[0] : name;
 
     const fromZigbee = [
         {
@@ -123,9 +126,9 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
                         value = typeof scale === "number" ? value / scale : scale(value, "from");
                     }
                     assertNumber(value);
-                    if (precision != null) value = precisionRound(value, precision);
+                    if (precisionValue != null) value = precisionRound(value, precisionValue);
 
-                    return {[name]: value};
+                    return {[nameValue]: value};
                 }
             },
         } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
@@ -133,7 +136,7 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
 
     const toZigbee: Tz.Converter[] = [
         {
-            key: [name],
+            key: [nameValue],
             convertSet:
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
@@ -143,7 +146,7 @@ function energy(args: m.NumericArgs<"seMetering">): ModernExtend {
                               payloadValue = typeof scale === "number" ? payloadValue * scale : scale(payloadValue, "to");
                           }
                           assertNumber(payloadValue);
-                          if (precision != null) payloadValue = precisionRound(payloadValue, precision);
+                          if (precisionValue != null) payloadValue = precisionRound(payloadValue, precisionValue);
                           const payload: TPartialClusterAttributes<"genTime"> | RawClusterAttributes = isString(attribute)
                               ? {[attribute]: payloadValue}
                               : {[attribute.ID]: {value: payloadValue, type: attribute.type}};
