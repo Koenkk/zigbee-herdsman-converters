@@ -608,16 +608,6 @@ export const warning: Tz.Converter = {
         );
     },
 };
-export const ias_max_duration: Tz.Converter = {
-    key: ["max_duration"],
-    convertSet: async (entity, key, value, meta) => {
-        await entity.write("ssIasWd", {maxDuration: value as number});
-        return {state: {max_duration: value}};
-    },
-    convertGet: async (entity, key, meta) => {
-        await entity.read("ssIasWd", ["maxDuration"]);
-    },
-};
 export const warning_simple: Tz.Converter = {
     key: ["alarm"],
     convertSet: async (entity, key, value, meta) => {
@@ -684,10 +674,7 @@ export const cover_state: Tz.Converter = {
             off: "upOpen" as const,
         };
         utils.assertString(value, key);
-        const invert = utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover;
-        const commandLookup = invert ? invertedLookup : lookup;
+        const commandLookup = meta.options.invert_cover ? invertedLookup : lookup;
         await entity.command(
             "closuresWindowCovering",
             utils.getFromLookup(value.toLowerCase(), commandLookup),
@@ -896,8 +883,10 @@ export const level_config: Tz.Converter = {
         ] as const) {
             try {
                 await entity.read("genLevelCtrl", [attribute]);
-            } catch {
-                // continue regardless of error, all these are optional in ZCL
+            } catch (error) {
+                // all these are optional in ZCL, so a failed read is not fatal; log at debug so a
+                // missing sub-field (e.g. on_off_transition_time / execute_if_off) is diagnosable
+                logger.debug(`Failed to read '${attribute}' from genLevelCtrl: ${error}`, NS);
             }
         }
     },

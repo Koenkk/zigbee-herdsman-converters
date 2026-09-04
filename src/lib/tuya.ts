@@ -1287,6 +1287,17 @@ const tuyaExposes = {
 
 export {tuyaExposes as exposes};
 
+const tuyaOptions = {
+    timeStart: (defaultOption: string) =>
+        e
+            .enum("time_start", ea.SET, ["1970", "2000", "off"])
+            .withDescription(
+                `Reply to Tuya-specific time synchronization requests: "1970" - Reply with seconds since 1970/01/01 (recommended, should stop the device from asking), "2000" - Reply with seconds since 2000/01/01 (use if the weekday is wrong with 1970), "off" - Don't reply (use if replying causes too much traffic). Default for this device: "${defaultOption}"`,
+            ),
+};
+
+export {tuyaOptions as options};
+
 export const skip = {
     // Prevent state from being published when already ON and brightness is also published.
     // This prevents 100% -> X% brightness jumps when the switch is already on
@@ -4425,7 +4436,6 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            respondToMcuVersionResponse?: true;
             mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "1970";
@@ -4442,9 +4452,6 @@ const tuyaModernExtend = {
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
             timeStart = "off",
-            // Disable by default as with many Tuya devices it doesn't work well.
-            // https://github.com/Koenkk/zigbee2mqtt/issues/28367#issuecomment-3363460429
-            respondToMcuVersionResponse = false,
         } = args;
 
         const fzConverter: Fz.Converter<
@@ -4477,9 +4484,20 @@ const tuyaModernExtend = {
                     forceTimeUpdate = nextLocalTimeUpdate == null || nextLocalTimeUpdate < Date.now();
                 }
 
-                if (timeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
+                let selectedTimeStart = timeStart;
+
+                const timeStartOption = options.time_start as string;
+                if (timeStartOption) {
+                    if (["1970", "2000", "off"].includes(timeStartOption as string)) {
+                        selectedTimeStart = timeStartOption;
+                    } else {
+                        logger.warning(`Invalid option "${timeStartOption}" for ${meta.device.ieeeAddr}.time_start, using default`, NS);
+                    }
+                }
+
+                if (selectedTimeStart !== "off" && (msg.type === "commandMcuSyncTime" || forceTimeUpdate)) {
                     globalStore.putValue(msg.device, "nextLocalTimeUpdate", Date.now() + 3600 * 1000);
-                    const offset = timeStart === "2000" ? constants.OneJanuary2000 : 0;
+                    const offset = selectedTimeStart === "2000" ? constants.OneJanuary2000 : 0;
                     const utcTime = Math.round((Date.now() - offset) / 1000);
                     const localTime = utcTime - new Date().getTimezoneOffset() * 60;
                     const payload = {
@@ -4489,10 +4507,6 @@ const tuyaModernExtend = {
                     msg.endpoint
                         .command("manuSpecificTuya", "mcuSyncTime", payload, {})
                         .catch((error) => logger.error(`Failed to sync time with '${msg.device.ieeeAddr}' (${error})`, NS));
-                } else if (respondToMcuVersionResponse && msg.type === "commandMcuVersionResponse") {
-                    msg.endpoint
-                        .command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002})
-                        .catch((error) => logger.error(`Failed respond to version response '${msg.device.ieeeAddr}' (${error})`, NS));
                 } else if (msg.type === "commandMcuGatewayConnectionStatus") {
                     // "payload" can have the following values:
                     // 0x00: The gateway is not connected to the internet.
@@ -4510,6 +4524,7 @@ const tuyaModernExtend = {
             isModernExtend: true,
             fromZigbee: [fzConverter],
             toZigbee: [],
+            options: [tuyaOptions.timeStart(timeStart)],
         };
 
         if (queryOnConfigure) {
@@ -4944,23 +4959,33 @@ const tuyaModernExtend = {
         } else {
             toZigbee.push(tz.on_off);
         }
-        if (powerOutageMemory) {
-            // Legacy, powerOnBehavior is preferred
-            fromZigbee.push(tuyaFz.power_outage_memory);
-            toZigbee.push(tuyaTz.power_on_behavior_1);
-            if (typeof powerOutageMemory === "function") {
-                exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
-            } else {
-                exposes.push(tuyaExposes.powerOutageMemory());
+        if (powerOutageMemory || powerOnBehavior2) {
+            // `powerOutageMemory` and `powerOnBehavior2` can both be set, as complementary per-manufacturer
+            // predicates, when one definition covers devices that use either mechanism. The manufacturer is
+            // only known once the exposes are resolved, so both converter sets are registered here and the
+            // lazy exposes decide which key is reachable for a given device. Selecting a branch on the
+            // option itself would always pick the first, since a predicate is truthy regardless of outcome.
+            if (powerOnBehavior2) {
+                // Registered before `power_on_behavior_1` below: both handle the `power_on_behavior` key
+                // and the first match wins, so this must take precedence for the devices that expose it.
+                fromZigbee.push(tuyaFz.power_on_behavior_2);
+                toZigbee.push(tuyaTz.power_on_behavior_2);
+                const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
+                if (typeof powerOnBehavior2 === "function") {
+                    exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
+                } else {
+                    exposes.push(...expose);
+                }
             }
-        } else if (powerOnBehavior2) {
-            fromZigbee.push(tuyaFz.power_on_behavior_2);
-            toZigbee.push(tuyaTz.power_on_behavior_2);
-            const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
-            if (typeof powerOnBehavior2 === "function") {
-                exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
-            } else {
-                exposes.push(...expose);
+            if (powerOutageMemory) {
+                // Legacy, powerOnBehavior is preferred
+                fromZigbee.push(tuyaFz.power_outage_memory);
+                toZigbee.push(tuyaTz.power_on_behavior_1);
+                if (typeof powerOutageMemory === "function") {
+                    exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
+                } else {
+                    exposes.push(tuyaExposes.powerOutageMemory());
+                }
             }
         } else if (powerOnBehavior3) {
             const endpointList = args.endpoints || [];
@@ -5200,7 +5225,7 @@ const tuyaModernExtend = {
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
-        for (let i = 0; i < numberOfForecastDays; ++i) {
+        for (let i = 1; i <= numberOfForecastDays; ++i) {
             tz_fileds.push(`temperature_${i}`);
             tz_fileds.push(`humidity_${i}`);
             tz_fileds.push(`condition_${i}`);
@@ -5242,7 +5267,7 @@ const tuyaModernExtend = {
                 weather_values[TuyaWeatherID.Temperature].push(
                     `temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0,
                 );
-                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity_${i}`] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
                     `condition_${i}` in meta.state ? weatherConditionMap[meta.state[`condition_${i}`] as keyof typeof weatherConditionMap] : 0,
                 );

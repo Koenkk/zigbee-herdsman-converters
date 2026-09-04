@@ -554,6 +554,7 @@ function deriveEdgeThermostatMode(frost: string, vacationMode: string, sensorMod
 }
 
 const edgeSensorModeLookup: KeyValue = {"0": "air", "1": "floor", "2": "both", "3": "air2", "4": "both2", "5": "floor_percent", "6": "percent"};
+const edgeSensorModeValueLookup: KeyValue = {air: 0, floor: 1, both: 2, air2: 3, both2: 4, floor_percent: 5, percent: 6};
 const edgeOnOffLookup: KeyValue = {OFF: 0, ON: 1};
 const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
 const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "60s", "3": "30s"};
@@ -741,6 +742,30 @@ const tzEdge = {
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8001, 0x8004, 0x801f, 0x8023]);
             await entity.read("hvacThermostat", ["programingOperMode"]);
+        },
+    } satisfies Tz.Converter,
+
+    sensor_mode: {
+        key: ["sensor_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            const raw = edgeSensorModeValueLookup[value as string];
+            if (raw === undefined) throw new Error(`Invalid sensor_mode: ${value}`);
+            await writeEdgeHvac(entity, 0x8004, raw as number, Zcl.DataType.ENUM8);
+            const state: KeyValue = {sensor_mode: value};
+            // "percent" is how this device represents regulator mode, and thermostat_mode is
+            // derived from it, so keep the derived value in step with the write.
+            const merged = Object.assign({}, (meta.state as KeyValue) ?? {}, state) as KeyValue;
+            state["thermostat_mode"] = deriveEdgeThermostatMode(
+                merged["frost"] as string,
+                merged["vacation_mode"] as string,
+                merged["sensor_mode"] as string,
+                merged["programming_operation_mode"] as string,
+                (merged["boost_time_set"] as number) ?? 0,
+            );
+            return {state};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8004]);
         },
     } satisfies Tz.Converter,
 
@@ -939,6 +964,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_programming_operation_mode,
             tz.thermostat_temperature_display_mode,
             tzEdge.thermostat_mode,
+            tzEdge.sensor_mode,
             tzEdge.frost,
             tzEdge.keypad_lockout,
             tzEdge.regulator_percentage,
@@ -1054,6 +1080,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("max_heat_temp", ea.ALL).withUnit("°C").withValueMin(15).withValueMax(35).withValueStep(0.5).withLabel("Max heat temperature"),
             e.enum("thermostat_mode", ea.ALL, ["manual", "schedule", "regulator"]).withLabel("Thermostat mode"),
             e.enum("thermostat_mode_extra", ea.ALL, ["eco", "frost", "holiday"]).withLabel("Special mode"),
+            e
+                .enum("sensor_mode", ea.ALL, ["air", "floor", "both", "percent"])
+                .withLabel("Sensor mode")
+                .withDescription('Sensor the thermostat regulates on. "percent" is regulator mode, also set via thermostat_mode.'),
             e.binary("frost", ea.STATE_SET, "ON", "OFF").withLabel("Frost Mode"),
             e.enum("temperature_display_mode", ea.STATE_SET, ["celsius", "fahrenheit"]).withLabel("Temperature unit"),
             e
@@ -2404,7 +2434,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee movement sensor",
         fromZigbee: [fz.ias_occupancy_alarm_1],
         toZigbee: [],
-        exposes: [e.occupancy()],
+        exposes: [e.occupancy(), e.tamper()],
+        extend: [m.battery({voltage: true, lowStatus: true})],
     },
     {
         zigbeeModel: ["4512764"],
@@ -2667,12 +2698,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512792",
         vendor: "Namron",
         description: "Simplify 1-2p relay (Zigbee / BT)",
+        version: "0.0.1",
         extend: [
             m.onOff(),
             m.electricityMeter({
-                power: {multiplier: 1, divisor: 10}, // W
+                power: {multiplier: 1, divisor: 1}, // W
                 voltage: {multiplier: 1, divisor: 10}, // V -> 2383 -> 238.3
-                current: {multiplier: 1, divisor: 100}, // A
+                current: {multiplier: 1, divisor: 1000}, // mA -> 4700 -> 4.7
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],

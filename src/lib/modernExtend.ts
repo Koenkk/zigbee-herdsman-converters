@@ -658,6 +658,88 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
     return result;
 }
 
+export interface FanControlArgs<Cl extends string | number = "hvacFanCtrl", _Custom extends TCustomCluster | undefined = undefined> {
+    cluster?: Cl;
+    endpointNames?: string[];
+    reporting?: false | ReportingConfigWithoutAttribute;
+    bind?: boolean;
+}
+export function fanControl<Cl extends string | number = "hvacFanCtrl", Custom extends TCustomCluster | undefined = undefined>(
+    args: FanControlArgs<Cl, Custom> = {},
+): ModernExtend {
+    const {cluster = "hvacFanCtrl" as Cl, endpointNames = undefined, reporting = {min: 0, max: "1_HOUR", change: 0}, bind = true} = args;
+
+    const fanExpose = e.fan().withState("state").withModes(Object.keys(constants.fanMode));
+    const exposes: Expose[] = exposeEndpoints(fanExpose, endpointNames);
+
+    const fromZigbee = [fz.fan];
+    const toZigbee: Tz.Converter[] = [tz.fan_mode];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    const configure: Configure[] = [];
+    if (bind) {
+        configure.push(setupConfigureForBinding(cluster, "input", endpointNames));
+    }
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting<Cl, Custom>(cluster, "fanMode" as ClusterOrRawAttributeKeys<Cl, Custom>[number], {
+                config: reporting,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+    result.configure = configure;
+
+    return result;
+}
+
+export interface ThermostatUiArgs<Cl extends string | number = "hvacUserInterfaceCfg", _Custom extends TCustomCluster | undefined = undefined> {
+    cluster?: Cl;
+    endpointNames?: string[];
+    reporting?: false | ReportingConfigWithoutAttribute;
+    bind?: boolean;
+}
+export function thermostatUi<Cl extends string | number = "hvacUserInterfaceCfg", Custom extends TCustomCluster | undefined = undefined>(
+    args: ThermostatUiArgs<Cl, Custom> = {},
+): ModernExtend {
+    const {cluster = "hvacUserInterfaceCfg" as Cl, endpointNames = undefined, reporting = {min: 10, max: "1_HOUR", change: 0}, bind = true} = args;
+
+    const exposes: Expose[] = [
+        ...exposeEndpoints(
+            e.enum("temperature_display_mode", ea.ALL, Object.values(constants.temperatureDisplayMode)).withDescription("Temperature display mode"),
+            endpointNames,
+        ),
+        ...exposeEndpoints(
+            e.enum("keypad_lockout", ea.ALL, Object.values(constants.keypadLockoutMode)).withDescription("Keypad lockout mode"),
+            endpointNames,
+        ),
+    ];
+
+    const fromZigbee = [fz.hvac_user_interface];
+    const toZigbee: Tz.Converter[] = [tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    const configure: Configure[] = [];
+    if (bind) {
+        configure.push(setupConfigureForBinding(cluster, "input", endpointNames));
+    }
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting<Cl, Custom>(cluster, "keypadLockout" as ClusterOrRawAttributeKeys<Cl, Custom>[number], {
+                config: reporting,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+    result.configure = configure;
+
+    return result;
+}
+
 export interface CommandsOnOffArgs {
     commands?: ("on" | "off" | "toggle")[];
     bind?: boolean;
@@ -988,10 +1070,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
         endpointNames = undefined,
     } = args;
 
-    const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: (Expose | DefinitionExposesFunction)[] = endpointNames
-        ? templateExposes.flatMap((exp) => endpointNames.map((ep) => exp.withEndpoint(ep)))
-        : templateExposes;
+    const exposes: (Expose | DefinitionExposesFunction)[] = exposeEndpoints(e.occupancy().withAccess(ea.STATE_GET), endpointNames);
 
     const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
         {
@@ -1000,7 +1079,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             options: [opt.no_occupancy_since_false()],
             convert: (model, msg, publish, options, meta) => {
                 if ("occupancy" in msg.data && (!endpointNames || endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
-                    const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
+                    const propertyName = endpointNames ? postfixWithEndpointName("occupancy", msg, model, meta) : "occupancy";
                     const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
                     return payload;
@@ -1296,7 +1375,6 @@ export function light(args: LightArgs = {}): ModernExtend {
         lightExpose.forEach((e) => {
             levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
         });
-        toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
@@ -1938,6 +2016,47 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
         },
     ];
     return {toZigbee, exposes, isModernExtend: true};
+}
+
+export function iasWarningMaxDuration(): ModernExtend {
+    const exposes: Expose[] = [
+        e
+            .numeric("max_duration", ea.ALL)
+            .withUnit("s")
+            .withValueMin(0)
+            .withValueMax(65534)
+            .withValueStep(1)
+            .withDescription("Maximum time that the alarm will be active"),
+    ];
+
+    // previously tz.ias_max_duration
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ["max_duration"],
+            convertSet: async (entity, key, value, meta) => {
+                await entity.write("ssIasWd", {maxDuration: value as number});
+                return {state: {max_duration: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read("ssIasWd", ["maxDuration"]);
+            },
+        },
+    ];
+
+    // previously fz.ias_wd
+    const fromZigbee = [
+        {
+            cluster: "ssIasWd",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValueAny = {};
+                if (msg.data.maxDuration !== undefined) result.max_duration = msg.data.maxDuration;
+                return result;
+            },
+        } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
+    ];
+
+    return {toZigbee, fromZigbee, exposes, isModernExtend: true};
 }
 
 // #endregion

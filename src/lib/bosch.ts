@@ -3289,6 +3289,8 @@ export interface BoschThermostatCluster {
         heatingDemand: number;
         /** ID: 16418 | Type: ENUM8 | Only used on BTH-RA */
         valveAdaptStatus: number;
+        /** ID: 16419 | Type: ENUM8 | Only used on BTH-RM230Z, controls humidity/temperature warning LEDs */
+        humidityAlarmLed: number;
         /** ID: 16421 | Type: ENUM8 | Only used on BTH-RM230Z with value depending on heaterType */
         unknownAttribute0: number;
         /** ID: 16448 | Type: INT16 | Only used on BTH-RA */
@@ -3378,6 +3380,14 @@ export const boschThermostatExtend = {
                 valveAdaptStatus: {
                     name: "valveAdaptStatus",
                     ID: 0x4022,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                    max: 0xff,
+                },
+                humidityAlarmLed: {
+                    name: "humidityAlarmLed",
+                    ID: 0x4023,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: manufacturerOptions.manufacturerCode,
                     write: true,
@@ -3621,6 +3631,22 @@ export const boschThermostatExtend = {
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
             reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
+        }),
+    humidityAlarmLed: () =>
+        m.binary<"hvacThermostat", BoschThermostatCluster>({
+            name: "humidity_alarm_led",
+            cluster: "hvacThermostat",
+            attribute: "humidityAlarmLed",
+            description:
+                "Enables/disables the LED warning when measured humidity is outside the comfortable range " +
+                "(below 30% or above 70%). Only the two observed raw values (0x07 on / 0x06 off) are supported; " +
+                "the meaning of the other bits of this attribute is not confirmed. The attribute is present on " +
+                "firmware 0x03086a90 (0.3.8) as well (confirmed by reading it on an unupgraded device); seemd the Bosch app " +
+                "only added a UI toggle for it in 0x03096a90 (0.3.9).",
+            valueOn: ["ON", 0x07],
+            valueOff: ["OFF", 0x06],
+            reporting: false,
+            entityCategory: "config",
         }),
     childLock: () =>
         m.binary({
