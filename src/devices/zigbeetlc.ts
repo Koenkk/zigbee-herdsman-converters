@@ -377,7 +377,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG-303Z-z"],
         model: "ZG-303Z-z",
         vendor: "HOBEIAN",
-        description: "ZG-303Z soil moisture sensor (pvvx/ZigbeeTLc)",
+        description: "Soil moisture sensor (pvvx/ZigbeeTLc)",
         extend: [
             m.deviceEndpoints({
                 endpoints: {1: 1, 2: 2},
