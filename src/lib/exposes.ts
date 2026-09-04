@@ -451,6 +451,15 @@ export class Light extends Base {
                 ),
             );
         }
+        if (features.includes("dim_to_warm")) {
+            levelConfig = levelConfig.withFeature(
+                new Binary("dim_to_warm", access.ALL, true, false)
+                    .withLabel("Dim to warm")
+                    .withDescription(
+                        "A brightness change in color temperature mode also moves the color temperature between the warmest supported value and the value of the CoupleColorTempToLevelMinMireds attribute",
+                    ),
+            );
+        }
         if (features.includes("on_level")) {
             levelConfig = levelConfig.withFeature(
                 new Numeric("on_level", access.ALL)

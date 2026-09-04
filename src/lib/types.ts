@@ -499,6 +499,7 @@ export type LevelConfigFeatures = (
     | "on_transition_time"
     | "off_transition_time"
     | "execute_if_off"
+    | "dim_to_warm"
     | "on_level"
     | "current_level_startup"
 )[];
