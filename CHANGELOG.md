@@ -1,5 +1,28 @@
 # Changelog
 
+## [26.106.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.105.0...v26.106.0) (2026-09-04)
+
+
+### Features
+
+* **add:** EKGD-T4085P-4Z ([#13099](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13099)) ([d2b0845](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d2b08458250dc3e4d9ff0c15ce2bbde989751145))
+* **add:** MS-63A ([#13101](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13101)) ([f6b4cce](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f6b4ccea7f7de2f621c298f0046f8e086246fb0f))
+* **add:** ZG-303Z-z ([#13094](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13094)) ([cfbf074](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cfbf074c9daadef5ca8211252a2cec015ab8affc))
+
+
+### Bug Fixes
+
+* Definition generator: fix names of generated binary/analog clusters and use apptype to get the device class ([#12723](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12723)) ([40f1109](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40f1109b2e052e7a5d62beca272e06b98ef4da7b))
+* **detect:** Detect `_TZE284_sndkanfr` as Lincukoo SZLMR10 https://github.com/Koenkk/zigbee2mqtt/issues/33029 ([4d32101](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4d321017fa454d795fd4d0804075000ba80ce71c))
+* **detect:** Detect `_TZE2841000000_6ycgarab` as Tuya TS0601_smoke_co https://github.com/Koenkk/zigbee2mqtt/issues/33032 ([967935c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/967935c61b8d59d2b6dfc4f335bbde712e920a6b))
+* IAS*: Convert various devices to `modernExtend` ([#12944](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12944)) ([6d4a8eb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6d4a8eb241593873f17af11ca1ad27448625b1f6))
+* Lumi ZNJLBL01LM: fix cover state https://github.com/Koenkk/zigbee2mqtt/issues/33001 ([5421e4d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5421e4d4ecf7be52e96810894214bf117d80a46a))
+* Moes GM25TEQ-TYZ-2/25: fix `motor_direction`  ([#13097](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13097)) ([cc1c7e5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc1c7e575182adfc5a1965b9b8a13fc7da241885))
+* NodOn SEM-4-3-20: correct zigbeeModel to match real hardware variants ([#13108](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13108)) ([a60350b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a60350bf8c7c5b74010c1cac215a62e1dbefa17a))
+* Shelly Gen4 devices: fix `switch_mode` values and `switch_type` write ([#13107](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13107)) ([76daf76](https://github.com/Koenkk/zigbee-herdsman-converters/commit/76daf7646ee095b7b1bd485eb9ea43466d4ec10b))
+* Universal Electronics Inc XHS2-UE: use correct 3V_2100 voltage curve for battery percentage ([#13110](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13110)) ([5cec4b5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5cec4b52312d81892231032403f329a46e80b2e5))
+* ZHT-002-Correct-HVAC-to-Heat-Only  ([#13106](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13106)) ([adf3951](https://github.com/Koenkk/zigbee-herdsman-converters/commit/adf3951302812b840b88c83250d396586fcca3be))
+
 ## [26.105.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.104.0...v26.105.0) (2026-09-03)
 
 
