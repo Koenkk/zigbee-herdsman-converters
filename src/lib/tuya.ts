@@ -1320,10 +1320,6 @@ export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.
     await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
 };
 
-export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-    await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-};
-
 export const configureBindBasic = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     await device.getEndpoint(1).bind("genBasic", coordinatorEndpoint);
 };
@@ -4436,7 +4432,6 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "1970";
         } = {},
@@ -4447,7 +4442,6 @@ const tuyaModernExtend = {
             queryOnConfigure = false,
             bindBasicOnConfigure = false,
             queryIntervalSeconds = undefined,
-            mcuVersionRequestOnConfigure = false,
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
@@ -4459,7 +4453,6 @@ const tuyaModernExtend = {
             undefined,
             [
                 "commandMcuSyncTime",
-                "commandMcuVersionResponse",
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
@@ -4469,7 +4462,6 @@ const tuyaModernExtend = {
         > = {
             type: [
                 "commandMcuSyncTime",
-                "commandMcuVersionResponse",
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
@@ -4531,9 +4523,6 @@ const tuyaModernExtend = {
             result.configure.push(configureQuery);
         }
 
-        if (mcuVersionRequestOnConfigure) {
-            result.configure.push(configureMcuVersionRequest);
-        }
 
         if (bindBasicOnConfigure) {
             result.configure.push(configureBindBasic);
