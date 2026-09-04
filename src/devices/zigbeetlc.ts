@@ -379,23 +379,30 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "HOBEIAN",
         description: "ZG-303Z soil moisture sensor (pvvx/ZigbeeTLc)",
         extend: [
-            m.deviceEndpoints({endpoints: {1: 1, 2: 2}}),
+            m.deviceEndpoints({
+                endpoints: {1: 1, 2: 2},
+                multiEndpointSkip: ["humidity", "temperature", "soil_moisture"],
+            }),
             m.battery({voltage: true}),
             m.identify(),
-            m.temperature({
-                endpointNames: ["1"],
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10},
-            }),
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity({
-                endpointNames: ["1"],
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+                // EP1 air humidity; EP2 also uses RH cluster for soil moisture
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 1 || msg.data.measuredValue === undefined) return;
+                    return {humidity: msg.data.measuredValue / 100};
+                },
             }),
             // FW exposes soil moisture on EP2 as Relative Humidity Measurement
             m.humidity({
                 name: "soil_moisture",
                 description: "Measured soil moisture",
-                endpointNames: ["2"],
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 2 || msg.data.measuredValue === undefined) return;
+                    return {soil_moisture: msg.data.measuredValue / 100};
+                },
             }),
             extend.temperatureCalibration,
             extend.humidityCalibration,
