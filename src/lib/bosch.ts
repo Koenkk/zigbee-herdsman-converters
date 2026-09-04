@@ -3058,21 +3058,28 @@ export const boschSmokeAlarmExtend = {
                         utils.assertEndpoint(entity);
 
                         if (value === "off") {
-                            // To deactivate an active alarm, we send both alarm modes with
-                            // timeout 0 to ensure the device stops regardless of which
-                            // alarm was previously triggered.
-                            for (const alarmMode of Object.values(alarmModeLookup)) {
+                            const existingAlarmTimer = globalStore.getValue("boschSmokeAlarm", "alarmTimer");
+                            clearTimeout(existingAlarmTimer);
+                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
+
+                            const activeAlarm = meta.state?.alarm_control;
+                            const alarmModesToStop =
+                                typeof activeAlarm === "string" && activeAlarm in alarmModeLookup
+                                    ? [alarmModeLookup[activeAlarm as keyof typeof alarmModeLookup]]
+                                    : Object.values(alarmModeLookup);
+
+                            for (const alarmMode of alarmModesToStop) {
                                 await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, 0);
                             }
-                            clearTimeout(globalStore.getValue("boschSmokeAlarm", "alarmTimer"));
-                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
                         } else {
+                            const existingAlarmTimer = globalStore.getValue("boschSmokeAlarm", "alarmTimer");
+                            clearTimeout(existingAlarmTimer);
+                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
+
                             const alarmMode = utils.getFromLookup(value, alarmModeLookup);
                             const timeoutInSeconds = 0xf0;
 
                             await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
-                            clearTimeout(globalStore.getValue("boschSmokeAlarm", "alarmTimer"));
-
                             const alarmTimer = setTimeout(
                                 async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
                                 (timeoutInSeconds - 60) * 1000,
