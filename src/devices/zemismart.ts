@@ -399,7 +399,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25RX-08/30",
         vendor: "Zemismart",
         description: "Tubular motor",
-        // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [

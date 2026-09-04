@@ -41,7 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]),
             e.enum("power_type", ea.STATE, ["battery_full", "battery_high", "battery_medium", "battery_low", "usb"]),
         ],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_t1blo2bj", "_TZE204_t1blo2bj", "_TZE204_q76rtoa9"]),
@@ -63,7 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]),
             e.numeric("battpercentage", ea.STATE).withUnit("%"),
         ],
-        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true})],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_7hfcudw5"]),
@@ -72,7 +72,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Motion, temperature & humidity sensor",
         fromZigbee: [legacy.fz.neo_nas_pd07, fz.ignore_tuya_set_time],
         toZigbee: [legacy.tz.neo_nas_pd07],
-        extend: [tuya.modernExtend.tuyaBase({mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase()],
         exposes: [
             e.occupancy(),
             e.humidity(),
