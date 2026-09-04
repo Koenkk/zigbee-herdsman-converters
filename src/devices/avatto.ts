@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWSH16",
         vendor: "AVATTO",
         description: "Smart temperature and humidity detector",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
