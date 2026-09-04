@@ -829,7 +829,6 @@ function zgIr01TimingsToBroadlinkBase64(timings: number[], repeatCount = 0): str
 }
 
 const tzLocal = {
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     zgIr01IrCodeToSend: {
         key: ["ir_code_to_send", "ir_emitter"],
         convertSet: async (entity, key, value, meta) => {
