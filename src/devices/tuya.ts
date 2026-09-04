@@ -11427,7 +11427,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_xalsoe3m"]),
         model: "ZHT-002",
         vendor: "Moes",
@@ -11469,9 +11469,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ];
                 let composite = e
                     .composite("programming_mode", "programming_mode", ea.STATE_SET)
-                    .withDescription(
-                        "Schedule: Weekdays, Saturday and Sunday. 4 slots each with hour(h), minute(m), temperature(t).",
-                    );
+                    .withDescription("Schedule: Weekdays, Saturday and Sunday. 4 slots each with hour(h), minute(m), temperature(t).");
                 for (const group of groups) {
                     for (let slot = 0; slot < 4; slot++) {
                         const offset = group.start + slot * 4;
