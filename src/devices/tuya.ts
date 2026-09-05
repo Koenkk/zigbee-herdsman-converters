@@ -17051,7 +17051,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart light & sound siren",
         extend: [
-            m.iasWarning(),
+            m.iasWarning({maxDuration: true}),
             {
                 exposes: [
                     e.binary("light", ea.STATE_SET, "ON", "OFF").withDescription("Turn the light of the alarm ON/OFF"),
