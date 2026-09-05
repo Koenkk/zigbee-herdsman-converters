@@ -4396,6 +4396,28 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_cnicaghm"]),
+        model: "GKZ-LB431RGBCW-E26",
+        vendor: "Hejhome",
+        description: "Z26 RGB+CCT light bulb",
+        extend: [
+            tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: true}),
+            // This firmware leaves the network after roughly 10 minutes without Basic-cluster keep-alive reads.
+            // GOQUAL documents the same workaround at https://homey.app/en-us/app/com.hejhome.iot/Hejhome/.
+            m.poll({
+                key: "hejhome_z26_app_version_keepalive",
+                defaultIntervalSeconds: 120,
+                poll: async (device) => {
+                    await device.getEndpoint(1).read("genBasic", ["appVersion"]);
+                },
+            }),
+        ],
+        meta: {applyRedFix: true},
+        configure: (device) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
+        },
+    },
+    {
         zigbeeModel: ["TS0505B"],
         model: "TS0505B_1",
         vendor: "Tuya",
