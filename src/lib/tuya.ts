@@ -4432,7 +4432,7 @@ const tuyaModernExtend = {
     tuyaBase(
         args: {
             dp?: true;
-            queryOnDeviceAnnounce?: true;
+            queryOnDeviceAnnounce?: true | ((device: Zh.Device) => boolean);
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
@@ -4543,10 +4543,14 @@ const tuyaModernExtend = {
             result.onEvent = [
                 (event) => {
                     // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-                    if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
-                        event.data.device.endpoints[0]
-                            .command("manuSpecificTuya", "dataQuery", {})
-                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                    if (event.type === "deviceAnnounce") {
+                        const shouldQuery =
+                            typeof queryOnDeviceAnnounce === "function" ? queryOnDeviceAnnounce(event.data.device) : queryOnDeviceAnnounce;
+                        if (shouldQuery) {
+                            event.data.device.endpoints[0]
+                                .command("manuSpecificTuya", "dataQuery", {})
+                                .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                        }
                     }
 
                     if (queryIntervalSeconds !== undefined) {
