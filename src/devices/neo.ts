@@ -99,7 +99,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Outdoor solar alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "normal"]).withDescription("Alarm status"),
+            e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "no_alarm"]).withDescription("Alarm status"),
             e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm"),
             e.binary("tamper_alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable tamper alarm"),
             e.binary("tamper_alarm", ea.STATE, "ON", "OFF").withDescription("Indicates whether the device is tampered"),
