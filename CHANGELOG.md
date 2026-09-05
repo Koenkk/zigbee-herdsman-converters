@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.107.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.106.0...v26.107.0) (2026-09-05)
+
+
+### Features
+
+* allow Tuya queryOnDeviceAnnounce to be a per-device function ([#13112](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13112)) ([cf6e659](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf6e6596facaf36cc850e4e904f55748492ce13d))
+
 ## [26.106.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.105.0...v26.106.0) (2026-09-04)
 
 
