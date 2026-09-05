@@ -24539,7 +24539,9 @@ export const definitions: DefinitionWithExtend[] = [
                 backlightModeOffOn: true,
                 indicatorModeNoneRelayPos: true,
                 onOffCountdown: true,
+                inchingSwitch: (m) => m === "_TZ300A_rncj86af",
             }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -24620,8 +24622,10 @@ export const definitions: DefinitionWithExtend[] = [
                 backlightModeOffOn: true,
                 indicatorModeNoneRelayPos: true,
                 onOffCountdown: true,
+                inchingSwitch: (m) => m === "_TZ300A_vqrs45nj",
                 endpoints: ["l1", "l2", "l3"],
             }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
         meta: {
