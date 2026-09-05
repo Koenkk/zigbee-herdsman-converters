@@ -24906,7 +24906,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZV", "AY204T"],
+        zigbeeModel: ["ZG-204ZV"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
