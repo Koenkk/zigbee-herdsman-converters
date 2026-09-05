@@ -24523,6 +24523,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("BSEED", "EC-GL86ZPCS11", "1 gang switch with scene and backlight", ["_TZ3002_jn2x20tg"]),
             tuya.whitelabel("BSEED", "EC-SL-FK86ZPCS11", "1 gang switch with scene and backlight (Neutral line optional)", ["_TZ3002_xkxgfxsg"]),
+            tuya.whitelabel("Mowe", "MW781Z", "1 gang switch with scene and backlight", ["_TZ300A_rncj86af"]),
         ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1"])],
@@ -24604,6 +24605,7 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZ3000_r2fgo9ks",
             ]),
             tuya.whitelabel("Zemismart", "KES-606US-L3-EESS", "3 gang switch with neutral", ["_TZ3000_cziew6eu"]),
+            tuya.whitelabel("Mowe", "MW783Z", "3 gang switch with scene and backlight", ["_TZ300A_vqrs45nj"]),
         ],
         fromZigbee: [fzLocal.TS0726_action],
         exposes: [e.action(["scene_1", "scene_2", "scene_3"])],
