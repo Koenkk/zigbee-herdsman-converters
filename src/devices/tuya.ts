@@ -1401,6 +1401,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const ts130fPositionKey = "ts130f_position";
+
 const fzLocal = {
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
     // as raw lightingColorCtrl frames without updating colorTemperature.
@@ -2076,6 +2078,42 @@ const fzLocal = {
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
+    // The Nous B4Z reports the position it started the movement from instead of the position it
+    // reached when reporting `moving: STOP`, publish the last position reported while moving instead.
+    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/12887
+    // biome-ignore lint/style/useNamingConvention: existing
+    TS130F_cover_position_tilt: {
+        ...fz.cover_position_tilt,
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.cover_position_tilt.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
+            const property = postfixWithEndpointName("position", msg, model, meta);
+            const position = result?.[property];
+            const moving = msg.data.tuyaMovingState;
+            if (meta.device.manufacturerName !== "_TZ3000_yruungrl" || moving === undefined || !utils.isNumber(position)) return result;
+
+            if (moving !== 1 /* STOP */) {
+                // Remember the position the movement started from and the position reported while moving.
+                const start = globalStore.getValue(msg.endpoint, ts130fPositionKey)?.start ?? meta.state[property];
+                globalStore.putValue(msg.endpoint, ts130fPositionKey, {start, position, raw: msg.data.currentPositionLiftPercentage});
+                return result;
+            }
+
+            const moved = globalStore.getValue(msg.endpoint, ts130fPositionKey);
+            globalStore.clearValue(msg.endpoint, ts130fPositionKey);
+            // Only correct when the reported position is exactly the one the movement started from,
+            // any other position is a legitimate (e.g. manual) stop.
+            if (moved !== undefined && position === moved.start && position !== moved.position) {
+                logger.debug(`Correcting stale position ${position} to ${moved.position}`, NS);
+                result[property] = moved.position;
+                result[postfixWithEndpointName("state", msg, model, meta)] = moved.position === 0 ? "CLOSE" : "OPEN";
+                // Also correct the position on the device itself, it keeps reporting the stale one otherwise.
+                msg.endpoint
+                    .write("closuresWindowCovering", {currentPositionLiftPercentage: moved.raw}, utils.getOptions(model, msg.endpoint))
+                    .catch((error) => logger.warning(`Failed to correct stale position: ${error}`, NS));
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
 };
 
 // MS032Z stair light controller - DP 125, the six running-light effects.
@@ -5986,7 +6024,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Curtain/blind switch",
         fromZigbee: [
-            fz.cover_position_tilt,
+            fzLocal.TS130F_cover_position_tilt,
             tuya.fz.indicator_mode,
             tuya.fz.cover_options,
             tuya.fz.backlight_mode_off_on,
