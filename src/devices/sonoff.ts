@@ -10995,7 +10995,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee Smart one-channel wall switch (type 120)",
         ota: true,
         extend: [
-            m.commandsOnOff({commands: ["toggle"]}),
+            m.commandsOnOff({commands: ["toggle"], bind: false}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11018,11 +11018,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            try {
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            } catch {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
-            }
+            utils.attachOutputCluster(device, endpoint1, "genOnOff");
+            device.save();
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
@@ -11045,7 +11043,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
+            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"], bind: false}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11068,20 +11066,15 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            try {
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            } catch {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
-            }
+            utils.attachOutputCluster(device, endpoint1, "genOnOff");
+            const endpoint2 = device.getEndpoint(2);
+            utils.attachOutputCluster(device, endpoint2, "genOnOff");
+            device.save();
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-            const endpoint2 = device.getEndpoint(2);
-            try {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            } catch {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
-            }
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
@@ -11103,7 +11096,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"]}),
+            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"], bind: false}),
             m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11126,28 +11119,20 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
-            try {
-                await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
-            } catch {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
-            }
+            utils.attachOutputCluster(device, endpoint1, "genOnOff");
+            const endpoint2 = device.getEndpoint(2);
+            utils.attachOutputCluster(device, endpoint2, "genOnOff");
+            const endpoint3 = device.getEndpoint(3);
+            utils.attachOutputCluster(device, endpoint3, "genOnOff");
+            device.save();
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint1, {min: 1, max: 1800, change: 0});
             await endpoint1.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
             await endpoint1.read("customClusterEwelink", [0x0010, 0x0018, 0x0019], defaultResponseOptions);
-            const endpoint2 = device.getEndpoint(2);
-            try {
-                await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
-            } catch {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
-            }
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint2, {min: 1, max: 1805, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            const endpoint3 = device.getEndpoint(3);
-            try {
-                await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
-            } catch {
-                // https://github.com/Koenkk/zigbee2mqtt/issues/32679
-            }
+            await reporting.bind(endpoint3, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint3, {min: 1, max: 1810, change: 0});
             await endpoint3.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
         },
