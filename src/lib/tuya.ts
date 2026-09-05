@@ -2781,10 +2781,9 @@ export const valueConverter = {
                     state += 2 ** (i - 1);
                 }
                 const secs: number = Number.parseInt(value[`inching_time_${i}`], 10);
-                const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
-                const byte2 = secs % 256;
-                const ascii = String.fromCharCode(state, byte1, byte2);
-                result += Buffer.from(ascii).toString("base64");
+                // Build the 3 bytes directly: going via String.fromCharCode() and the default utf8
+                // encoding turns any byte >= 0x80 into a 2 byte sequence, corrupting the payload.
+                result += Buffer.from([state, secs >> 8, secs % 256]).toString("base64");
             }
             return result;
         },
@@ -2793,11 +2792,10 @@ export const valueConverter = {
             // break the value into 4 char encoded char which will give 3 char when decoded
             const data: KeyValue = {};
             for (let i = 0; i < value.length; i += 4) {
-                const b64asc = value.substring(i, i + 4);
-                const str = Buffer.from(b64asc, "base64").toString("utf8");
-                const cca0 = str.charCodeAt(0);
-                const cca1 = str.charCodeAt(1);
-                const cca2 = str.charCodeAt(2);
+                const bytes = Buffer.from(value.substring(i, i + 4), "base64");
+                const cca0 = bytes[0];
+                const cca1 = bytes[1];
+                const cca2 = bytes[2];
                 let tmp = 0;
                 let status = "";
                 // first value indicates the endpoint and if it is on or off
