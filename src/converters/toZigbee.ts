@@ -860,12 +860,19 @@ export const level_config: Tz.Converter = {
         // options - 8-bit map
         //   bit 0: ExecuteIfOff - when 0, Move commands are ignored if the device is off;
         //          when 1, CurrentLevel can be changed while the device is off.
-        //   bit 1: CoupleColorTempToLevel - when 1, changes to level also change color temperature.
-        //          (What this means is not defined, but it's most likely to be "dim to warm".)
-        if (value.execute_if_off != null) {
-            const executeIfOffValue = !!value.execute_if_off;
-            await entity.write("genLevelCtrl", {options: executeIfOffValue ? 1 : 0}, utils.getOptions(meta.mapped, entity));
-            Object.assign(state, {execute_if_off: executeIfOffValue});
+        //   bit 1: CoupleColorTempToLevel - when 1, a level change in color temperature mode also moves the
+        //          color temperature between ColorTempPhysicalMaxMireds and CoupleColorTempToLevelMinMireds
+        //          of the Color Control cluster (ZCL "dim to warm").
+        // Both bits are written together so that setting one does not clear the other; a bit that is not in
+        // the payload keeps its last known value from the state.
+        if (value.execute_if_off != null || value.couple_color_temp_to_level != null) {
+            const current: KeyValueAny = utils.getObjectProperty(meta.state, "level_config", {});
+            const executeIfOffValue = value.execute_if_off != null ? !!value.execute_if_off : !!current.execute_if_off;
+            const coupleColorTempToLevelValue =
+                value.couple_color_temp_to_level != null ? !!value.couple_color_temp_to_level : !!current.couple_color_temp_to_level;
+            const options = (executeIfOffValue ? 1 : 0) | (coupleColorTempToLevelValue ? 2 : 0);
+            await entity.write("genLevelCtrl", {options}, utils.getOptions(meta.mapped, entity));
+            Object.assign(state, {execute_if_off: executeIfOffValue, couple_color_temp_to_level: coupleColorTempToLevelValue});
         }
 
         if (Object.keys(state).length > 0) {

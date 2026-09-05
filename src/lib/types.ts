@@ -495,6 +495,7 @@ export type LevelConfigFeatures = (
     | "on_transition_time"
     | "off_transition_time"
     | "execute_if_off"
+    | "couple_color_temp_to_level"
     | "on_level"
     | "current_level_startup"
 )[];
