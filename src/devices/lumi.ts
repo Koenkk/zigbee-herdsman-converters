@@ -211,7 +211,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiCurtainTraverseTime({access: "STATE_GET"}),
             lumiCurtainCalibrationStatus({access: "STATE_GET"}),
             lumiCurtainCalibrated({access: "STATE_GET"}),
-            lumiCurtainIdentifyBeep({lookup: {off: 0, "short": 1, "long": 2}}),
+            lumiCurtainIdentifyBeep({lookup: {off: 0, short: 1, long: 2}}),
         ],
     },
     {
