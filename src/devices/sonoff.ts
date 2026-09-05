@@ -10995,7 +10995,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee Smart one-channel wall switch (type 120)",
         ota: true,
         extend: [
-            m.commandsOnOff({commands: ["toggle"]}),
+            m.commandsOnOff({commands: ["toggle"], bind: false}),
             m.onOff(),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11043,7 +11043,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
+            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"], bind: false}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
@@ -11096,7 +11096,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"]}),
+            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2", "l3"], bind: false}),
             m.onOff({endpointNames: ["l1", "l2", "l3"]}),
             sonoffExtend.addCustomClusterEwelink(),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
