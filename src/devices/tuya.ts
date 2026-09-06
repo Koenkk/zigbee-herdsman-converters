@@ -8378,6 +8378,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "ZG-001", "Smart home relay module", ["_TZ3000_g8n1n7lg"]),
             tuya.whitelabel("Nova Digital", "SA-1", "Safira smart light switch - 1 gang", ["_TZ3000_udl7uyd2"]),
             tuya.whitelabel("Moes", "ZS-US1-LN", "Smart light switch - 1 gang", ["_TZ3000_bzzgvet0"]),
+            tuya.whitelabel("Mowe", "MW786Z", "Water heater switch", ["_TZ3000_cb3aangp"]),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
