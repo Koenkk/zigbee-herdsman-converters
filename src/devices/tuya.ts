@@ -2571,6 +2571,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "E3", "Door sensor", ["_TZ3000_v7chgqso"]),
             tuya.whitelabel("Woox", "R7047", "Smart Door & Window Sensor", ["_TZ3000_timx9ivq"]),
             tuya.whitelabel("Wing", "WZDA1", "Door sensor", ["_TZ3000_rid8lzvo"]),
+            tuya.whitelabel("Mowe", "MW811D", "Door and window sensor", ["_TZ3000_0lvv1d5b"]),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
