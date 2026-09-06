@@ -1,5 +1,35 @@
 # Changelog
 
+## [26.107.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.106.0...v26.107.0) (2026-09-06)
+
+
+### Features
+
+* **add:** _TZE284_grxx6qek ([#13074](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13074)) ([70d02b2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70d02b22940995ca30901383148a3f165de57c26))
+* **add:** GKZ-LB431RGBCW-E26 ([#13122](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13122)) ([ebfbe62](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ebfbe62a048c0796597df0fa60a09e0d9c567ee0))
+* allow Tuya queryOnDeviceAnnounce to be a per-device function ([#13112](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13112)) ([cf6e659](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cf6e6596facaf36cc850e4e904f55748492ce13d))
+* Aqara ZNMHLDJ01LM: support more features ([#13116](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13116)) ([20b7a53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/20b7a53198c656496e9fd61fecfcc3383b77bec9))
+* Bosch BSD-2: Add HA siren discovery  ([#12955](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12955)) ([8dced6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8dced6a1c2eb1fd0c5dcb1ff0b4770adb4a999cc))
+* Decode Tuya firmware IDs ([#13114](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13114)) ([46799d7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/46799d79398849f392b35c6b05aa1822377e4989))
+* Tuya TS0726 1 and 3 gang scene switches: expose switch_inching on  ([#13118](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13118)) ([e8def6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8def6a516b34149a45967d2716f10db4eb98e58))
+
+
+### Bug Fixes
+
+* Bituo SDM02-U01: add energy tier1&2 ([#13115](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13115)) ([b03ce2c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b03ce2cc54f72c2764f9e59f10aec6210c69d4b9))
+* Cover: fix OPEN/CLOSE commands with `invert_cover: true` https://github.com/Koenkk/zigbee2mqtt/issues/33004 ([e9437ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e9437ee9efd9ef16bb017810003d723ef135059a))
+* **detect:** Detect `_TZE284_lyqazpe6` and `_TZE204_lyqazpe6` as Tongou TOQCB2-80 ([#13125](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13125)) ([385588b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/385588b05dfb548836285629bd221ffd51c93ece))
+* Fix illuminance 0 ([#13124](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13124)) ([f566ec6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f566ec610d1a722b4861c51036a70abdb975aee7))
+* **ignore:** bump the minor-patch group with 2 updates ([#13127](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13127)) ([0f0bd4c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0f0bd4c1dd60411e9bca7ed790f4afc2d61fdf1f))
+* **ignore:** ZNJLBL01LM invert state https://github.com/Koenkk/zigbee2mqtt/issues/33001 ([20975da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/20975da4a9c14aeb4f234810d62dbfe5c260d61f))
+* Mowe MW781Z and MW783Z: add as white labels of TS0726 ([#13117](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13117)) ([b35574c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b35574c522ffd46797dca5b839e6d68b288cca8b))
+* Neo NAS-AB06B2: fix `alarm_state` enum value ([#13121](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13121)) ([4fb7310](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4fb7310c3ae788633fd00da572c8b75581265a8a))
+* Nous B4Z: fix stale position after movement to absolute position ([#12887](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12887)) ([caf9b8c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/caf9b8cfd97bb44bcbb5e4af69c3a32696514f61))
+* Philips gradient effect arguments ([#13126](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13126)) ([a42d9bb](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a42d9bbdaad5564c326cc6a0eb336eb432aad23e))
+* SONOFF ZBM5 no-Neutral: fix configure still failing ([#12931](https://github.com/Koenkk/zigbee-herdsman-converters/issues/12931)) ([9cf068d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9cf068d3286d51ef5968d17c19fc07dc1df8b4e8))
+* Tuya TS0224: add back `max_duration` ([#13123](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13123)) ([504311e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/504311e30245472ec53b3a2ef8672eed5164dc62))
+* Tuya: fix inching payload corrupted by utf8 encoding of bytes &gt;= 0x80 ([#13119](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13119)) ([7f1492c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f1492c0d90a297f3de390decddaa953f556950c))
+
 ## [26.106.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.105.0...v26.106.0) (2026-09-04)
 
 
