@@ -112,7 +112,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MOT-C1ZxxC/F",
         vendor: "Profalux",
         description: "Cover",
-        extend: [profaluxExtend.addManuSpecificProfalux1Cluster()],
+        // Motor reports its internal temperature (genDeviceTempCfg) from endpoint 2
+        extend: [profaluxExtend.addManuSpecificProfalux1Cluster(), m.deviceTemperature()],
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
