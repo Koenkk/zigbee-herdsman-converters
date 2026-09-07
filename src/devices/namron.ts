@@ -1316,9 +1316,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("°F")
                 .withDescription("Device's own Fahrenheit-mode cooling setpoint mirror."),
             e.numeric("local_temperature_f", ea.STATE_GET).withUnit("°F").withDescription("Device's own Fahrenheit-mode temperature mirror."),
-            e.numeric("energy", ea.STATE).withUnit("kWh"),
-            e.numeric("current", ea.STATE).withUnit("A"),
-            e.numeric("power", ea.STATE).withUnit("W"),
         ],
     },
     {
