@@ -719,7 +719,7 @@ const fzEdge = {
                         result["auto_time"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         break;
                     case 0x8023:
-                        // 5-minute steps (0-24 -> 0-120 min), confirmed against Namron's own Homey driver.
+                        // 5-minute steps (0-24 -> 0-120 min), confirmed against real hardware.
                         result["countdown_set"] = (value as number) * 5;
                         break;
                     case 0x8024:
@@ -772,11 +772,11 @@ const tzEdge = {
             };
             if (value === "eco") {
                 await clearVacationMode();
-                await (entity as any).request("hvacThermostat", 0x08, Buffer.from([0x01]), {direction: 0});
+                await entity.request("hvacThermostat", 0x08, Buffer.from([0x01]), {direction: 0});
             } else {
-                await (entity as any).request("hvacThermostat", 0x08, Buffer.from([0x00]), {direction: 0});
+                await entity.request("hvacThermostat", 0x08, Buffer.from([0x00]), {direction: 0});
                 await clearVacationMode();
-                await (entity as any).request("hvacThermostat", 0x07, Buffer.from([value === "schedule" ? 0x01 : 0x00]), {direction: 0});
+                await entity.request("hvacThermostat", 0x07, Buffer.from([value === "schedule" ? 0x01 : 0x00]), {direction: 0});
             }
             return {state: {programming_operation_mode: value}};
         },
@@ -913,10 +913,20 @@ const tzEdge = {
                 throw new Error("Cannot set the countdown timer while in cooling mode");
             }
             await readThenWriteEdgeHvac(entity, 0x8023, minutes / 5, Zcl.DataType.ENUM8);
-            return {state: {countdown_set: minutes}};
+            // This device doesn't respond to reads on countdownLeft (0x8024) -
+            // reset it here so a fresh countdown starts from a sane value
+            // instead of a stale/garbled figure.
+            return {state: {countdown_set: minutes, countdown_left: minutes}};
         },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8023, 0x8024]);
+        },
+    } satisfies Tz.Converter,
+
+    countdown_left: {
+        key: ["countdown_left"],
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8024]);
         },
     } satisfies Tz.Converter,
 
@@ -1050,7 +1060,7 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 };
-// ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
+// ─── Namron Zigbee Edge Thermostat END Definision────────────────────────────────────
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4566702", "4566703", "4512783", "4512784"],
@@ -1079,6 +1089,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzEdge.auto_time,
             tzEdge.sync_time,
             tzEdge.countdown_set,
+            tzEdge.countdown_left,
             tzEdge.screen_on_time,
             tzEdge.panel_brightness,
             tzEdge.regulator_percentage,
@@ -1153,11 +1164,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature()
                 .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
-                .withSetpoint("occupied_cooling_setpoint", 10, 40, 0.5)
                 .withSystemMode(["off", "heat", "cool"])
                 .withRunningState(["idle", "heat", "cool"])
                 .withLocalTemperatureCalibration(-3, 3, 0.1)
                 .withPiHeatingDemand(),
+            // Kept separate from climate() (not chained via withSetpoint()):
+            // exposing both heating and cooling setpoints on the same
+            // climate entity makes Home Assistant, and through it Google
+            // Home, treat the device as a dual-setpoint range thermostat and
+            // enforce "lower setpoint <= upper setpoint" - a rule that only
+            // makes sense for an actual auto/range mode, not for a device
+            // that is always in either heat or cool, never both.
+            e
+                .numeric("occupied_cooling_setpoint", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(10)
+                .withValueMax(40)
+                .withValueStep(0.5)
+                .withDescription("Cooling setpoint."),
             e
                 .enum("programming_operation_mode", ea.ALL, ["setpoint", "schedule", "eco"])
                 .withDescription('Run mode. "setpoint" = manual, "schedule" = follow the weekly program, "eco" = ECO mode.'),
@@ -1215,7 +1239,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("power", ea.STATE).withUnit("W"),
         ],
     },
-
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
