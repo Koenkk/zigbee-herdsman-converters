@@ -657,7 +657,6 @@ export const squawk: Tz.Converter = {
 };
 export const cover_state: Tz.Converter = {
     key: ["state"],
-    options: [exposes.options.invert_cover()],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {
             open: "upOpen" as const,
@@ -666,24 +665,8 @@ export const cover_state: Tz.Converter = {
             on: "upOpen" as const,
             off: "downClose" as const,
         };
-        const invertedLookup = {
-            open: "downClose" as const,
-            close: "upOpen" as const,
-            stop: "stop" as const,
-            on: "downClose" as const,
-            off: "upOpen" as const,
-        };
         utils.assertString(value, key);
-        const invert = utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover;
-        const commandLookup = invert ? invertedLookup : lookup;
-        await entity.command(
-            "closuresWindowCovering",
-            utils.getFromLookup(value.toLowerCase(), commandLookup),
-            {},
-            utils.getOptions(meta.mapped, entity),
-        );
+        await entity.command("closuresWindowCovering", utils.getFromLookup(value.toLowerCase(), lookup), {}, utils.getOptions(meta.mapped, entity));
     },
 };
 export const cover_position_tilt: Tz.Converter = {
@@ -886,8 +869,10 @@ export const level_config: Tz.Converter = {
         ] as const) {
             try {
                 await entity.read("genLevelCtrl", [attribute]);
-            } catch {
-                // continue regardless of error, all these are optional in ZCL
+            } catch (error) {
+                // all these are optional in ZCL, so a failed read is not fatal; log at debug so a
+                // missing sub-field (e.g. on_off_transition_time / execute_if_off) is diagnosable
+                logger.debug(`Failed to read '${attribute}' from genLevelCtrl: ${error}`, NS);
             }
         }
     },

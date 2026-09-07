@@ -339,7 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["SEM-4-3-20"],
+        zigbeeModel: ["SEM-4-3-20_70A", "SEM-4-3-20_120A"],
         model: "SEM-4-3-20",
         vendor: "NodOn",
         description: "3CT Energy Meter",

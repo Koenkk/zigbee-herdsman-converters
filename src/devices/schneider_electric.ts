@@ -10,7 +10,7 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Publish, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {getEndpointsWithCluster, postfixWithEndpointName} from "../lib/utils";
 
@@ -1151,6 +1151,220 @@ const schneiderElectricExtend = {
         }),
 };
 
+// #region CCTFR6400 hub-less boost handling
+//
+// The CCTFR6400 keeps no boost state of its own: ~8 seconds after the last
+// center-button press it sends a single schneiderWiserThermostatBoost command
+// and forgets about the boost. It even drops an unhonoured boost locally when
+// the setpoint it reads back does not reflect the boost temperature. The full
+// boost lifecycle is therefore the controller's job: save the pre-boost
+// setpoint, apply the boost temperature and restore the saved setpoint when
+// the boost duration ends or when the boost is cancelled on the device
+// (option `boost_auto_honor`, enabled by default).
+//
+// Precedence rules (the last written setpoint always wins):
+// - an external occupied_heating_setpoint write cancels a pending restore,
+// - a +/- press after the boost commit is a normal setpoint change for the
+//   user and also cancels the pending restore,
+// - only an undisturbed expiry or a boost cancel on the device restores the
+//   saved pre-boost setpoint.
+
+const cctfr6400BoostTimerStoreKey = "cctfr6400_boost_timer";
+const cctfr6400PublishStoreKey = "cctfr6400_publish";
+const cctfr6400PendingPublishStoreKey = "cctfr6400_pending_publish";
+const cctfr6400BoostBaseMetaKey = "cctfr6400BoostSavedSetpoint";
+const cctfr6400BoostEndMetaKey = "cctfr6400BoostEndTime";
+
+const cctfr6400Options = {
+    boostAutoHonor: () =>
+        e
+            .binary("boost_auto_honor", ea.SET, true, false)
+            .withLabel("Auto honor boost")
+            .withDescription(
+                "Handle a boost started from the device's center button by temporarily applying the boost temperature as the setpoint and " +
+                    "restoring the previous setpoint when the boost duration ends or the boost is cancelled on the device (default true). " +
+                    "Disable this when an external automation implements its own boost policy based on the boost_set/boost_cancel actions.",
+            ),
+};
+
+function cctfr6400BoostAutoHonorEnabled(options: KeyValue): boolean {
+    return options?.boost_auto_honor !== false;
+}
+
+// Remember the publish callback so that a boost restore that happens outside
+// of a message context (timer expiry after a restart, or an end time that
+// passed while the controller was down) can still update the exposed state.
+// If no callback has been captured yet the restore payload is parked and
+// published with the next incoming message of this device (it wakes and
+// reports roughly every minute).
+function cctfr6400RememberPublish(device: Zh.Device, publish: Publish): void {
+    globalStore.putValue(device.ieeeAddr, cctfr6400PublishStoreKey, publish);
+    const pending = globalStore.getValue(device.ieeeAddr, cctfr6400PendingPublishStoreKey);
+    if (pending !== undefined) {
+        globalStore.clearValue(device.ieeeAddr, cctfr6400PendingPublishStoreKey);
+        publish(pending);
+    }
+}
+
+function cctfr6400PublishOrDefer(device: Zh.Device, payload: KeyValue): void {
+    const publish: Publish | undefined = globalStore.getValue(device.ieeeAddr, cctfr6400PublishStoreKey);
+    if (publish) {
+        publish(payload);
+    } else {
+        globalStore.putValue(device.ieeeAddr, cctfr6400PendingPublishStoreKey, payload);
+    }
+}
+
+// Forget a pending boost without touching the setpoint (external setpoint
+// write, +/- press after the commit, or auto honor disabled).
+function cctfr6400BoostWipe(device: Zh.Device): void {
+    clearTimeout(globalStore.getValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey));
+    globalStore.clearValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey);
+    if (device.meta[cctfr6400BoostBaseMetaKey] !== undefined || device.meta[cctfr6400BoostEndMetaKey] !== undefined) {
+        delete device.meta[cctfr6400BoostBaseMetaKey];
+        delete device.meta[cctfr6400BoostEndMetaKey];
+        device.save();
+    }
+}
+
+// Restore the saved pre-boost setpoint (undisturbed expiry or device cancel).
+// Returns the state payload of the restore, or undefined when no boost was
+// pending.
+function cctfr6400BoostRestore(device: Zh.Device): KeyValue | undefined {
+    const base = device.meta[cctfr6400BoostBaseMetaKey] as number | undefined;
+    cctfr6400BoostWipe(device);
+    if (base === undefined) {
+        return undefined;
+    }
+    device.getEndpoint(1).saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: base});
+    return {occupied_heating_setpoint: base / 100};
+}
+
+function cctfr6400BoostStartTimer(device: Zh.Device, timeoutMs: number): void {
+    clearTimeout(globalStore.getValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey));
+    const timer = setTimeout(
+        () => {
+            globalStore.clearValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey);
+            const payload = cctfr6400BoostRestore(device);
+            if (payload) {
+                cctfr6400PublishOrDefer(device, payload);
+            }
+        },
+        Math.max(timeoutMs, 0),
+    ).unref();
+    globalStore.putValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey, timer);
+}
+
+// Honor a boost commit: save the pre-boost setpoint (a new commit during a
+// running boost keeps the originally saved setpoint and restarts the timer),
+// apply the boost temperature and arm the restore timer. The bookkeeping is
+// persisted in device.meta so a restart resumes the boost (see onEvent).
+function cctfr6400BoostArm(device: Zh.Device, durationMinutes: number, temperature: number): void {
+    const endpoint = device.getEndpoint(1);
+    if (device.meta[cctfr6400BoostBaseMetaKey] === undefined) {
+        const current = Number(endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
+        if (Number.isFinite(current)) {
+            device.meta[cctfr6400BoostBaseMetaKey] = current;
+        }
+    }
+    if (device.meta[cctfr6400BoostBaseMetaKey] !== undefined) {
+        device.meta[cctfr6400BoostEndMetaKey] = Date.now() + durationMinutes * 60000;
+        device.save();
+        cctfr6400BoostStartTimer(device, durationMinutes * 60000);
+    }
+    endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: temperature});
+}
+
+// Resume or finish a persisted boost after a restart.
+function cctfr6400BoostResume(device: Zh.Device, options: KeyValue): void {
+    const endTime = device.meta[cctfr6400BoostEndMetaKey] as number | undefined;
+    if (endTime === undefined) {
+        return;
+    }
+    if (!cctfr6400BoostAutoHonorEnabled(options)) {
+        // Auto honor was disabled while a boost was pending: forget it without
+        // touching the setpoint, an external automation is in charge now.
+        cctfr6400BoostWipe(device);
+        return;
+    }
+    if (endTime <= Date.now()) {
+        const payload = cctfr6400BoostRestore(device);
+        if (payload) {
+            cctfr6400PublishOrDefer(device, payload);
+        }
+    } else {
+        cctfr6400BoostStartTimer(device, endTime - Date.now());
+    }
+}
+
+// Attributes the device reads from the coordinator while its screen is awake
+// (measured on the wire): occupiedHeatingSetpoint/systemMode/ctrlSeqeOfOper/
+// pIHeatingDemand in one frame plus schneiderWiserSpecific in a separate
+// manufacturer-specific frame.
+type Cctfr6400ReadAttribute = "occupiedHeatingSetpoint" | "systemMode" | "ctrlSeqeOfOper" | "pIHeatingDemand" | "schneiderWiserSpecific";
+function cctfr6400HvacReadAttribute(attrId: number): Cctfr6400ReadAttribute | undefined {
+    switch (attrId) {
+        case 0x0012:
+            return "occupiedHeatingSetpoint";
+        case 0x001c:
+            return "systemMode";
+        case 0x001b:
+            return "ctrlSeqeOfOper";
+        case 0x0008:
+            return "pIHeatingDemand";
+        case 0xe110:
+            return "schneiderWiserSpecific";
+        default:
+            return undefined;
+    }
+}
+
+// Since zigbee-herdsman 10.0.3 device reads are no longer answered from the
+// coordinator attribute cache; everything except genTime/genBasic gets
+// UNSUPPORTED_ATTRIBUTE. The CCTFR6400 is a thermostat *client*: it polls the
+// attributes above every ~5 seconds while its screen is awake and needs real
+// answers for its display (and its local setpoint/boost UI) to work. Answer
+// the reads from the endpoint attribute cache, which the cctfr6400_thermostat
+// toZigbee converters and the +/- emulation keep up to date.
+function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
+    if (device.customReadResponse) {
+        return;
+    }
+    device.customReadResponse = (frame, endpoint) => {
+        if (!frame.isCluster("hvacThermostat")) {
+            // genBasic/genTime reads are answered by zigbee-herdsman itself.
+            return false;
+        }
+        const attributes: Partial<Record<Cctfr6400ReadAttribute, number>> = {};
+        for (const item of frame.payload as {attrId: number}[]) {
+            const name = cctfr6400HvacReadAttribute(item.attrId);
+            const value = name === undefined ? undefined : endpoint.getClusterAttributeValue("hvacThermostat", name);
+            if (typeof value !== "number") {
+                // Unknown attribute or no cached value yet: let zigbee-herdsman
+                // answer the whole frame with UNSUPPORTED_ATTRIBUTE instead of
+                // sending a partial response.
+                return false;
+            }
+            attributes[name] = value;
+        }
+        // Measured on the wire: the device targets these reads at coordinator
+        // endpoint 3 and expects the response to come from that endpoint, so
+        // mirror it (like the default zigbee-herdsman read response path does).
+        const options: {srcEndpoint: number; manufacturerCode?: number} = {srcEndpoint: 3};
+        if (frame.header.manufacturerCode !== undefined) {
+            options.manufacturerCode = frame.header.manufacturerCode;
+        }
+        endpoint
+            .readResponse<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", frame.header.transactionSequenceNumber, attributes, options)
+            .catch((error) => {
+                logger.warning(`CCTFR6400 read response failed for '${device.ieeeAddr}': ${error}`, NS);
+            });
+        return true;
+    };
+}
+
+// #endregion
+
 const tzLocal = {
     lift_duration: {
         key: ["lift_duration"],
@@ -1304,6 +1518,13 @@ const tzLocal = {
         convertSet: (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             utils.assertEndpoint(entity);
+            if (meta.device) {
+                // An external setpoint write overrules a pending boost: the new
+                // value applies and the pre-boost setpoint is no longer
+                // restored, so a schedule can never be overwritten by a stale
+                // boost restore.
+                cctfr6400BoostWipe(meta.device);
+            }
             const occupiedHeatingSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             entity.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
             return {state: {occupied_heating_setpoint: value}};
@@ -1371,6 +1592,7 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
 
+            cctfr6400RememberPublish(msg.device, publish);
             const data = msg.data.deviceInfo.split(",");
             if (data[0] === "UI" && data[1]) {
                 const result: KeyValueAny = {action: utils.toSnakeCase(data[1])};
@@ -1379,19 +1601,43 @@ const fzLocal = {
                 screenAwake = screenAwake !== undefined ? screenAwake : false;
                 const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
                 const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+                // While the boost selection UI is open (center press seen,
+                // clock icon shown), +/- presses adjust the device's local
+                // boost target, not the setpoint. Emulating them against the
+                // setpoint cache would leak boost adjustments into the
+                // setpoint. The window ends at the boost commit (~8 s after
+                // the last press) or at screen sleep. No time based guard is
+                // needed: the device drops an uncommitted boost by itself.
+                const boostSelecting = globalStore.getValue(msg.endpoint, "boostSelecting") === true;
 
                 // Emulate UI temperature update
                 if (data[1] === "ScreenWake") {
                     globalStore.putValue(msg.endpoint, "screenAwake", true);
                 } else if (data[1] === "ScreenSleep") {
                     globalStore.putValue(msg.endpoint, "screenAwake", false);
-                } else if (screenAwake && !keypadLocked) {
+                    globalStore.putValue(msg.endpoint, "boostSelecting", false);
+                } else if (data[1] === "ButtonPressCenterDown") {
+                    if (screenAwake && !keypadLocked) {
+                        globalStore.putValue(msg.endpoint, "boostSelecting", true);
+                    }
+                } else if (
+                    (data[1] === "ButtonPressMinusDown" || data[1] === "ButtonPressPlusDown") &&
+                    screenAwake &&
+                    !keypadLocked &&
+                    !boostSelecting
+                ) {
+                    // A +/- press after the boost commit is a normal setpoint
+                    // change for the user: like an external setpoint write it
+                    // cancels a pending boost restore (the last written
+                    // setpoint always wins).
+                    cctfr6400BoostWipe(msg.device);
                     let occupiedHeatingSetpoint = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
-                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
+                    occupiedHeatingSetpoint =
+                        occupiedHeatingSetpoint != null && !Number.isNaN(occupiedHeatingSetpoint) ? occupiedHeatingSetpoint : 400;
 
                     if (data[1] === "ButtonPressMinusDown") {
                         occupiedHeatingSetpoint -= 50;
-                    } else if (data[1] === "ButtonPressPlusDown") {
+                    } else {
                         occupiedHeatingSetpoint += 50;
                     }
 
@@ -1403,6 +1649,57 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
+    cctfr6400_boost: {
+        cluster: "hvacThermostat",
+        type: ["commandSchneiderWiserThermostatBoost"],
+        options: [cctfr6400Options.boostAutoHonor()],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+
+            cctfr6400RememberPublish(msg.device, publish);
+            // The commit closes the boost selection window of the +/- guard.
+            globalStore.putValue(msg.endpoint, "boostSelecting", false);
+            const enable = Number(msg.data.enable) === 1;
+            // Cancel = enable 0, duration 0, temperature 0xFFF.
+            const result: KeyValueAny = {
+                action: enable ? "boost_set" : "boost_cancel",
+                boost_duration: enable ? Number(msg.data.duration) : 0,
+                boost_temperature: enable ? Number(msg.data.temperature) / 100 : null,
+            };
+            if (cctfr6400BoostAutoHonorEnabled(options)) {
+                if (enable) {
+                    const temperature = Number(msg.data.temperature);
+                    cctfr6400BoostArm(msg.device, Number(msg.data.duration), temperature);
+                    result.occupied_heating_setpoint = temperature / 100;
+                } else {
+                    const restored = cctfr6400BoostRestore(msg.device);
+                    if (restored) {
+                        Object.assign(result, restored);
+                    }
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSchneiderWiserThermostatBoost"]>,
+    cctfr6400_ignore_thermostat_read: {
+        // The display poll reads answered by customReadResponse (see
+        // cctfr6400InstallCustomReadResponse) also pass through the fromZigbee
+        // pipeline; absorb them silently to avoid "No converter available"
+        // log spam every ~5 seconds while the screen is awake.
+        cluster: "hvacThermostat",
+        type: ["read"],
+        convert: () => {},
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["read"]>,
+    cctfr6400_ignore_setpoint_raise_lower: {
+        // Once its reads are answered the device also sends a standard
+        // setpointRaiseLower command (amount in 0.1 °C steps, e.g. -5 for
+        // -0.5 °C) for every +/- press. The schneider_ui_action emulation
+        // above already applies the same step to the setpoint cache, so acting
+        // on this command as well would double count every press.
+        cluster: "hvacThermostat",
+        type: ["commandSetpointRaiseLower"],
+        convert: () => {},
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSetpointRaiseLower"]>,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -1851,7 +2148,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.identify(),
-            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}}),
+            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}, multiEndpointSkip: ["state", "position", "tilt", "cover_mode"]}),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             schneiderElectricExtend.addSchneiderClosuresWindowCoveringCluster(),
             m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
@@ -1870,7 +2167,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_up",
-                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveUpTime",
                 unit: "s",
@@ -1883,7 +2179,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_down",
-                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveDownTime",
                 unit: "s",
@@ -1897,7 +2192,6 @@ export const definitions: DefinitionWithExtend[] = [
             (() => {
                 const extend: ModernExtend = m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                     name: "tilt_duration",
-                    endpointNames: ["cover"],
                     cluster: "closuresWindowCovering",
                     attribute: "tiltOpenCloseAndStepTime",
                     unit: "s",
@@ -1918,15 +2212,7 @@ export const definitions: DefinitionWithExtend[] = [
             })(),
         ],
         fromZigbee: [
-            {
-                ...fz.cover_position_tilt,
-                convert: async (model, msg, publish, options, meta) => {
-                    const result = await fz.cover_position_tilt.convert(model, msg, publish, options, meta);
-                    if (!result) return result;
-                    delete result[postfixWithEndpointName("state", msg, model, meta)];
-                    return result;
-                },
-            },
+            fz.cover_position_tilt,
             {
                 cluster: "closuresWindowCovering",
                 type: ["attributeReport", "readResponse"],
@@ -2034,9 +2320,9 @@ export const definitions: DefinitionWithExtend[] = [
             const tilt_enabled = !(options.no_tilt === true);
 
             if (tilt_enabled) {
-                exposesList.push(e.cover_position_tilt().withEndpoint("cover"));
+                exposesList.push(e.cover_position_tilt());
             } else {
-                exposesList.push(e.cover_position().withEndpoint("cover"));
+                exposesList.push(e.cover_position());
             }
 
             exposesList.push(
@@ -2835,8 +3121,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6400",
         vendor: "Schneider Electric",
         description: "Temperature/Humidity measurement with thermostat interface",
-        extend: [schneiderElectricExtend.customThermostatCluster()],
-        fromZigbee: [fz.battery, fzLocal.schneider_temperature, fz.humidity, fz.thermostat, fzLocal.schneider_ui_action],
+        extend: [schneiderElectricExtend.customThermostatCluster(), schneiderElectricExtend.addWiserDeviceInfoCluster()],
+        fromZigbee: [
+            fz.battery,
+            fzLocal.schneider_temperature,
+            fz.humidity,
+            fz.thermostat,
+            fzLocal.schneider_ui_action,
+            fzLocal.cctfr6400_boost,
+            fzLocal.cctfr6400_ignore_thermostat_read,
+            fzLocal.cctfr6400_ignore_setpoint_raise_lower,
+            fz.ignore_haDiagnostic,
+        ],
         toZigbee: [
             tzLocal.cctfr6400_thermostat_system_mode,
             tzLocal.cctfr6400_thermostat_occupied_heating_setpoint,
@@ -2849,10 +3145,38 @@ export const definitions: DefinitionWithExtend[] = [
             e.humidity(),
             e.battery(),
             e.battery_voltage(),
-            e.action(["screen_sleep", "screen_wake", "button_press_plus_down", "button_press_center_down", "button_press_minus_down"]),
+            e.action([
+                "screen_sleep",
+                "screen_wake",
+                "button_press_plus_down",
+                "button_press_center_down",
+                "button_press_minus_down",
+                "boost_set",
+                "boost_cancel",
+            ]),
+            e
+                .numeric("boost_duration", ea.STATE)
+                .withUnit("min")
+                .withDescription("Duration in minutes of the last boost committed on the device (0 when cancelled)"),
+            e.numeric("boost_temperature", ea.STATE).withUnit("°C").withDescription("Target temperature of the last boost committed on the device"),
             e.climate().withSetpoint("occupied_heating_setpoint", 4, 30, 0.5, ea.SET).withLocalTemperature(ea.STATE).withPiHeatingDemand(ea.SET),
         ],
         meta: {battery: {dontDividePercentage: true}},
+        onEvent: (event) => {
+            if (event.type === "stop") {
+                clearTimeout(globalStore.getValue(event.data.ieeeAddr, cctfr6400BoostTimerStoreKey));
+                globalStore.clearValue(event.data.ieeeAddr, cctfr6400BoostTimerStoreKey);
+                globalStore.clearValue(event.data.ieeeAddr, cctfr6400PublishStoreKey);
+                globalStore.clearValue(event.data.ieeeAddr, cctfr6400PendingPublishStoreKey);
+            } else if (event.type === "start") {
+                cctfr6400InstallCustomReadResponse(event.data.device);
+                cctfr6400BoostResume(event.data.device, event.data.options);
+            } else if (event.type === "deviceOptionsChanged" && event.data.to.boost_auto_honor === false) {
+                // Auto honor was turned off: forget a pending boost without
+                // touching the setpoint, an external automation is in charge.
+                cctfr6400BoostWipe(event.data.device);
+            }
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "msTemperatureMeasurement", "msRelativeHumidity"]);

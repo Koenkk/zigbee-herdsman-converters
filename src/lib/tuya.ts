@@ -598,6 +598,19 @@ function convertDecimalValueTo2ByteHexArray(value: number) {
     return [chunk1, chunk2].map((hexVal) => Number.parseInt(hexVal, 16));
 }
 
+/**
+ * Example: 101 = 1×64 + 2×16 + 5×1 -> v1.2.5
+ *
+ * Bits: 7-6 = major, 5-4 = minor, 3-0 = patch
+ */
+function decodeTuyaVersion(value: number) {
+    const major = value >> 6;
+    const minor = (value & 0b00110000) >> 4;
+    const patch = value & 0b00001111;
+
+    return `${major}.${minor}.${patch}`;
+}
+
 // Return `seq` - transaction ID for handling concrete response
 async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
@@ -1320,10 +1333,6 @@ export const configureQuery = async (device: Zh.Device, coordinatorEndpoint: Zh.
     await device.getEndpoint(1).command("manuSpecificTuya", "dataQuery", {});
 };
 
-export const configureMcuVersionRequest = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
-    await device.getEndpoint(1).command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
-};
-
 export const configureBindBasic = async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
     await device.getEndpoint(1).bind("genBasic", coordinatorEndpoint);
 };
@@ -1702,30 +1711,19 @@ export const valueConverter = {
         },
     },
     phaseVariant2WithPhase: (phase: string) => {
-        // Payload is 8 bytes: voltage (2), current (3), power (3), same layout as
-        // phaseVariant3/phaseVariant4. Reading only the low 2 bytes of current and
-        // power made the current wrap above 65.536 A.
-        //
-        // Support negative power readings
-        // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
-        // Negative values are not two's complement: they are reported as
-        // NEGATIVE_POWER_OFFSET + power, so the sign bit cannot be used and the
-        // branch is taken on an implausibly high reading instead. The 0x999a
-        // constant previously used here is the low 16 bits of this offset, i.e. an
-        // artifact of the same truncation.
-        const NEGATIVE_POWER_OFFSET = 0x19999a;
-        const IMPLAUSIBLE_POWER = 0x100000; // 1048576 W on a single phase
         return {
             from: (v: string) => {
+                // Support negative power readings
+                // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
                 const buf = Buffer.from(v, "base64");
-                let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
-                if (power > IMPLAUSIBLE_POWER) {
-                    power -= NEGATIVE_POWER_OFFSET;
+                let power = buf[7] | (buf[6] << 8);
+                if (power > 0x7fff) {
+                    power = (0x999a - power) * -1;
                 }
 
                 return {
                     [`voltage_${phase}`]: (buf[1] | (buf[0] << 8)) / 10,
-                    [`current_${phase}`]: (buf[4] | (buf[3] << 8) | (buf[2] << 16)) / 1000,
+                    [`current_${phase}`]: (buf[4] | (buf[3] << 8)) / 1000,
                     [`power_${phase}`]: power,
                 };
             },
@@ -2792,10 +2790,9 @@ export const valueConverter = {
                     state += 2 ** (i - 1);
                 }
                 const secs: number = Number.parseInt(value[`inching_time_${i}`], 10);
-                const byte1 = secs >> 8; // Equivalent to Math.truc(secs / 256)
-                const byte2 = secs % 256;
-                const ascii = String.fromCharCode(state, byte1, byte2);
-                result += Buffer.from(ascii).toString("base64");
+                // Build the 3 bytes directly: going via String.fromCharCode() and the default utf8
+                // encoding turns any byte >= 0x80 into a 2 byte sequence, corrupting the payload.
+                result += Buffer.from([state, secs >> 8, secs % 256]).toString("base64");
             }
             return result;
         },
@@ -2804,11 +2801,10 @@ export const valueConverter = {
             // break the value into 4 char encoded char which will give 3 char when decoded
             const data: KeyValue = {};
             for (let i = 0; i < value.length; i += 4) {
-                const b64asc = value.substring(i, i + 4);
-                const str = Buffer.from(b64asc, "base64").toString("utf8");
-                const cca0 = str.charCodeAt(0);
-                const cca1 = str.charCodeAt(1);
-                const cca2 = str.charCodeAt(2);
+                const bytes = Buffer.from(value.substring(i, i + 4), "base64");
+                const cca0 = bytes[0];
+                const cca1 = bytes[1];
+                const cca2 = bytes[2];
                 let tmp = 0;
                 let status = "";
                 // first value indicates the endpoint and if it is on or off
@@ -4215,6 +4211,30 @@ const tuyaFz = {
             return result;
         },
     } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
+    /** Continues tuyaFirmwareId configuration */
+    mcu_version: {
+        cluster: "manuSpecificTuya",
+        type: ["commandMcuVersionResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.device.genBasic.swBuildId && !msg.device.meta.hasCustomFirmwareId) {
+                return; // leave default Firmware ID, if it exists
+            }
+
+            const z = msg.device.genBasic.appVersion;
+            const m = msg.data.version;
+
+            if (!z || !m) {
+                return;
+            }
+
+            const zVer = decodeTuyaVersion(z);
+            const mVer = decodeTuyaVersion(m);
+
+            msg.device.genBasic.swBuildId = `Zigbee module: ${zVer}, MCU module: ${mVer}`;
+            msg.device.save();
+            msg.device.meta.hasCustomFirmwareId = true;
+        },
+    } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuVersionResponse"]>,
 };
 
 export {tuyaFz as fz};
@@ -4349,6 +4369,30 @@ export interface TuyaDPLightArgs {
     // color?: {dp: number, type: number, scale?: number | [number, number, number, number]},
     endpoint?: string;
 }
+/**
+ * - Decodes "Zigbee module version" from `appVersion`
+ * - Also requests "MCU module version" on TS0601 models
+ * - Populates Firmware ID with the results (if the device does not provide `swBuildId`)
+ */
+const tuyaFirmwareId = async (device: Zh.Device) => {
+    if (device.genBasic.swBuildId && !device.meta.hasCustomFirmwareId) {
+        return; // leave default Firmware ID, if it exists
+    }
+
+    if (device.modelID === "TS0601") {
+        await device.endpoints[0].command("manuSpecificTuya", "mcuVersionRequest", {seq: 0x0002});
+        return; // wait for response, continue in tuyaFz.mcu_version
+    }
+
+    const z = device.genBasic.appVersion;
+    if (!z) {
+        return;
+    }
+
+    device.genBasic.swBuildId = decodeTuyaVersion(z);
+    device.save();
+    device.meta.hasCustomFirmwareId = true;
+};
 
 const tuyaModernExtend = {
     electricityMeasurementPoll(
@@ -4443,11 +4487,10 @@ const tuyaModernExtend = {
     tuyaBase(
         args: {
             dp?: true;
-            queryOnDeviceAnnounce?: true;
+            queryOnDeviceAnnounce?: true | ((device: Zh.Device) => boolean);
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
-            mcuVersionRequestOnConfigure?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "1970";
         } = {},
@@ -4458,7 +4501,6 @@ const tuyaModernExtend = {
             queryOnConfigure = false,
             bindBasicOnConfigure = false,
             queryIntervalSeconds = undefined,
-            mcuVersionRequestOnConfigure = false,
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
@@ -4470,7 +4512,6 @@ const tuyaModernExtend = {
             undefined,
             [
                 "commandMcuSyncTime",
-                "commandMcuVersionResponse",
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
@@ -4480,7 +4521,6 @@ const tuyaModernExtend = {
         > = {
             type: [
                 "commandMcuSyncTime",
-                "commandMcuVersionResponse",
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
@@ -4533,7 +4573,7 @@ const tuyaModernExtend = {
         const result: ModernExtend = {
             configure: [configureMagicPacket],
             isModernExtend: true,
-            fromZigbee: [fzConverter],
+            fromZigbee: [fzConverter, tuyaFz.mcu_version],
             toZigbee: [],
             options: [tuyaOptions.timeStart(timeStart)],
         };
@@ -4542,9 +4582,7 @@ const tuyaModernExtend = {
             result.configure.push(configureQuery);
         }
 
-        if (mcuVersionRequestOnConfigure) {
-            result.configure.push(configureMcuVersionRequest);
-        }
+        result.configure.push(tuyaFirmwareId);
 
         if (bindBasicOnConfigure) {
             result.configure.push(configureBindBasic);
@@ -4554,10 +4592,14 @@ const tuyaModernExtend = {
             result.onEvent = [
                 (event) => {
                     // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-                    if (queryOnDeviceAnnounce && event.type === "deviceAnnounce") {
-                        event.data.device.endpoints[0]
-                            .command("manuSpecificTuya", "dataQuery", {})
-                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                    if (event.type === "deviceAnnounce") {
+                        const shouldQuery =
+                            typeof queryOnDeviceAnnounce === "function" ? queryOnDeviceAnnounce(event.data.device) : queryOnDeviceAnnounce;
+                        if (shouldQuery) {
+                            event.data.device.endpoints[0]
+                                .command("manuSpecificTuya", "dataQuery", {})
+                                .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
+                        }
                     }
 
                     if (queryIntervalSeconds !== undefined) {
@@ -4970,23 +5012,33 @@ const tuyaModernExtend = {
         } else {
             toZigbee.push(tz.on_off);
         }
-        if (powerOutageMemory) {
-            // Legacy, powerOnBehavior is preferred
-            fromZigbee.push(tuyaFz.power_outage_memory);
-            toZigbee.push(tuyaTz.power_on_behavior_1);
-            if (typeof powerOutageMemory === "function") {
-                exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
-            } else {
-                exposes.push(tuyaExposes.powerOutageMemory());
+        if (powerOutageMemory || powerOnBehavior2) {
+            // `powerOutageMemory` and `powerOnBehavior2` can both be set, as complementary per-manufacturer
+            // predicates, when one definition covers devices that use either mechanism. The manufacturer is
+            // only known once the exposes are resolved, so both converter sets are registered here and the
+            // lazy exposes decide which key is reachable for a given device. Selecting a branch on the
+            // option itself would always pick the first, since a predicate is truthy regardless of outcome.
+            if (powerOnBehavior2) {
+                // Registered before `power_on_behavior_1` below: both handle the `power_on_behavior` key
+                // and the first match wins, so this must take precedence for the devices that expose it.
+                fromZigbee.push(tuyaFz.power_on_behavior_2);
+                toZigbee.push(tuyaTz.power_on_behavior_2);
+                const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
+                if (typeof powerOnBehavior2 === "function") {
+                    exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
+                } else {
+                    exposes.push(...expose);
+                }
             }
-        } else if (powerOnBehavior2) {
-            fromZigbee.push(tuyaFz.power_on_behavior_2);
-            toZigbee.push(tuyaTz.power_on_behavior_2);
-            const expose = args.endpoints ? args.endpoints.map((ee) => e.power_on_behavior().withEndpoint(ee)) : [e.power_on_behavior()];
-            if (typeof powerOnBehavior2 === "function") {
-                exposes.push((d) => (powerOnBehavior2(d.manufacturerName) ? expose : []));
-            } else {
-                exposes.push(...expose);
+            if (powerOutageMemory) {
+                // Legacy, powerOnBehavior is preferred
+                fromZigbee.push(tuyaFz.power_outage_memory);
+                toZigbee.push(tuyaTz.power_on_behavior_1);
+                if (typeof powerOutageMemory === "function") {
+                    exposes.push((d) => (powerOutageMemory(d.manufacturerName) ? [tuyaExposes.powerOutageMemory()] : []));
+                } else {
+                    exposes.push(tuyaExposes.powerOutageMemory());
+                }
             }
         } else if (powerOnBehavior3) {
             const endpointList = args.endpoints || [];
@@ -5226,7 +5278,7 @@ const tuyaModernExtend = {
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
 
-        for (let i = 0; i < numberOfForecastDays; ++i) {
+        for (let i = 1; i <= numberOfForecastDays; ++i) {
             tz_fileds.push(`temperature_${i}`);
             tz_fileds.push(`humidity_${i}`);
             tz_fileds.push(`condition_${i}`);
@@ -5268,7 +5320,7 @@ const tuyaModernExtend = {
                 weather_values[TuyaWeatherID.Temperature].push(
                     `temperature_${i}` in meta.state ? (_vCorr(meta.state[`temperature_${i}`] as number) as number) : 0,
                 );
-                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity${i}`] as number) : 0);
+                weather_values[TuyaWeatherID.Humidity].push(`humidity_${i}` in meta.state ? (meta.state[`humidity_${i}`] as number) : 0);
                 weather_values[TuyaWeatherID.Condition].push(
                     `condition_${i}` in meta.state ? weatherConditionMap[meta.state[`condition_${i}`] as keyof typeof weatherConditionMap] : 0,
                 );

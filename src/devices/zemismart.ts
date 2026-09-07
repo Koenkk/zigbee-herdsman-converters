@@ -399,7 +399,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25RX-08/30",
         vendor: "Zemismart",
         description: "Tubular motor",
-        // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
@@ -854,6 +853,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_y4jqpry8",
             "_TZE204_xibaabmu",
             "_TZE284_xibaabmu",
+            "_TZE28C1000000_xibaabmu",
             "_TZE204_08qc13ct",
             "_TZE28C1000000_y4jqpry8",
         ]),
@@ -1194,7 +1194,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMZ609-2",
         vendor: "Zemismart",
         description: "Zigbee neutral touchscreen switch 2 gang with power monitoring",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"}), tuya.modernExtend.tuyaWeatherForecast()],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                timeStart: "1970", // needed else date/time doesn't sync with z2m > 2.6.2
+                forceTimeUpdates: true,
+                queryOnConfigure: true,
+            }),
+            tuya.modernExtend.tuyaWeatherForecast(),
+        ],
         fromZigbee: [tuya.fz.datapoints, fzLocal.ignoreTuyaConfigureResponse],
         toZigbee: [tuya.tz.datapoints],
         endpoint: (device) => {

@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWSH16",
         vendor: "AVATTO",
         description: "Smart temperature and humidity detector",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
@@ -384,10 +384,12 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_nqqylykc",
             "_TZE204_huu3td85",
             "_TZE284_huu3td85",
+            "_TZE28C1000000_huu3td85",
         ]),
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
+        whiteLabel: [tuya.whitelabel("NovaDigital", "MS-DM-ZB", "Zigbee Module 1 channel Dimmer", ["_TZE28C1000000_huu3td85"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),

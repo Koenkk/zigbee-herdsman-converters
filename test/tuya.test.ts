@@ -6,6 +6,54 @@ import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
+    describe("tuyaWeatherForecast", () => {
+        it("uses forecast fields 1 through 3 and includes their humidity in the payload", async () => {
+            const {toZigbee} = tuya.modernExtend.tuyaWeatherForecast();
+            const converter = toZigbee?.[0];
+            expect(converter?.key).toStrictEqual([
+                "temperature_0",
+                "humidity_0",
+                "condition_0",
+                "temperature_1",
+                "humidity_1",
+                "condition_1",
+                "temperature_2",
+                "humidity_2",
+                "condition_2",
+                "temperature_3",
+                "humidity_3",
+                "condition_3",
+            ]);
+
+            const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE28C1000000_o409r73p", endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const state = {
+                temperature_0: 27,
+                humidity_0: 78,
+                condition_0: "sunny",
+                temperature_1: 31,
+                humidity_1: 80,
+                condition_1: "rain",
+                temperature_2: 29,
+                humidity_2: 75,
+                condition_2: "yin",
+                temperature_3: 28,
+                humidity_3: 85,
+                condition_3: "thunder_shower",
+            };
+            const meta: Tz.Meta = {state, device, message: null, mapped: definition, options: null, publish: null, endpoint_name: null};
+
+            await converter?.convertSet?.(device.endpoints[0], "humidity_3", 85, meta);
+
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("manuSpecificTuya", "tuyaWeatherSync", {
+                payload: Buffer.from([
+                    0x11, 0x00, 0x12, 0x03, 0x13, 0x01, 0x01, 0x00, 27, 0x00, 31, 0x00, 29, 0x00, 28, 0x02, 0x00, 78, 0x00, 80, 0x00, 75, 0x00, 85,
+                    0x03, 100, 118, 114, 143, 0x00,
+                ]),
+            });
+        });
+    });
+
     describe("dpTHZBSettings", () => {
         const {toZigbee, fromZigbee} = tuya.modernExtend.dpTHZBSettings();
 
@@ -81,70 +129,45 @@ describe("lib/tuya", () => {
         });
     });
 
-    describe("phaseVariant2WithPhase", () => {
-        // Regression: the payload is 8 bytes -- voltage (2), current (3), power (3) --
-        // the same layout already decoded by phaseVariant3/phaseVariant4. Only the low
-        // 2 bytes of current and power were read, so:
-        //   - current wrapped above 65.536 A (68.783 A was reported as 3.247 A)
-        //   - the negative power branch used 0x999a, which is the low 16 bits of the
-        //     real 24-bit offset 0x19999a, so it only produced negative values between
-        //     32768 and 39321 and corrupted any legitimate reading above 32767 W
+    describe("tuyaOnOff power-on behaviour selection", () => {
+        const resolveExposes = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS0003", manufacturerName, endpoints: [{ID: 1}, {ID: 2}, {ID: 3}]});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            return {definition, properties: exposes.map((expose) => expose.property)};
+        };
 
-        // voltage in 0.1 V, current in mA, power in W
-        const payload = (voltage: number, current: number, power: number) =>
-            Buffer.from([
-                (voltage >> 8) & 0xff,
-                voltage & 0xff,
-                (current >> 16) & 0xff,
-                (current >> 8) & 0xff,
-                current & 0xff,
-                (power >> 16) & 0xff,
-                (power >> 8) & 0xff,
-                power & 0xff,
-            ]).toString("base64");
+        it("exposes power_on_behavior for manufacturers using the manuSpecificTuya3 attribute", async () => {
+            // `TS0003_switch_3_gang_with_backlight` passes `powerOutageMemory` and `powerOnBehavior2` as
+            // complementary predicates. Both are functions, so branching on the option itself always chose
+            // `powerOutageMemory`, whose expose is then gated off for these manufacturers, leaving them with
+            // no power-on control at all.
+            const {properties} = await resolveExposes("_TZ3000_uilitwsy");
 
-        const decode = (phase: string, voltage: number, current: number, power: number) =>
-            tuya.valueConverter.phaseVariant2WithPhase(phase).from(payload(voltage, current, power));
-
-        it("suffixes every key with the phase", () => {
-            expect(decode("b", 1234, 4252, 519)).toStrictEqual({voltage_b: 123.4, current_b: 4.252, power_b: 519});
+            expect(properties).toContain("power_on_behavior_l1");
+            expect(properties).toContain("power_on_behavior_l2");
+            expect(properties).toContain("power_on_behavior_l3");
+            expect(properties).not.toContain("power_outage_memory");
         });
 
-        it("decodes readings below the 16 bit boundary", () => {
-            expect(decode("l1", 1234, 4252, 519)).toStrictEqual({voltage_l1: 123.4, current_l1: 4.252, power_l1: 519});
-            expect(decode("l1", 1200, 65535, 1000)).toStrictEqual({voltage_l1: 120, current_l1: 65.535, power_l1: 1000});
+        it("still exposes power_outage_memory for the legacy manufacturers on the same definition", async () => {
+            const {properties} = await resolveExposes("_TZ3000_nwidmc4n");
+
+            expect(properties).toContain("power_outage_memory");
+            expect(properties).not.toContain("power_on_behavior_l1");
         });
 
-        it.each([
-            // captured on TS0601 / _TZE284_x8diwkqb with a 5.5 kW and a 7.5 kW heater running
-            {voltage: 1190, current: 69610, power: 8270, expected: {voltage_l1: 119, current_l1: 69.61, power_l1: 8270}},
-            {voltage: 1195, current: 65951, power: 7867, expected: {voltage_l1: 119.5, current_l1: 65.951, power_l1: 7867}},
-            // just past the wrap point, previously reported as 0.0 A / 0.001 A
-            {voltage: 1200, current: 65536, power: 1000, expected: {voltage_l1: 120, current_l1: 65.536, power_l1: 1000}},
-            {voltage: 1200, current: 65537, power: 1000, expected: {voltage_l1: 120, current_l1: 65.537, power_l1: 1000}},
-        ])("does not wrap currents above 65.536 A ($current mA)", ({voltage, current, power, expected}) => {
-            expect(decode("l1", voltage, current, power)).toStrictEqual(expected);
-        });
+        it("lets power_on_behavior_2 win the shared power_on_behavior key", async () => {
+            // Both converters answer to `power_on_behavior`; the first match wins, so the manuSpecificTuya3
+            // one has to be registered first or these devices would write moesStartUpOnOff instead.
+            const {definition} = await resolveExposes("_TZ3000_uilitwsy");
+            const keys = definition.toZigbee.map((converter) => converter.key);
+            const powerOnBehavior2 = keys.findIndex((key) => key?.includes("power_on_behavior") && !key.includes("power_outage_memory"));
+            const powerOnBehavior1 = keys.findIndex((key) => key?.includes("power_outage_memory"));
 
-        it("keeps current consistent with power and voltage under high load", () => {
-            const {voltage_l1, current_l1, power_l1} = decode("l1", 1190, 69610, 8270) as Record<string, number>;
-            expect(power_l1).toBeCloseTo(voltage_l1 * current_l1, -2);
-        });
-
-        it.each([
-            // raw values and expected results reported in
-            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
-            {raw: 1677525, expected: -197},
-            {raw: 1677524, expected: -198},
-            {raw: 1677523, expected: -199},
-        ])("reports negative power ($raw -> $expected W)", ({raw, expected}) => {
-            expect(decode("l1", 1200, 0, raw)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: expected});
-        });
-
-        it("does not turn a large positive power into a negative one", () => {
-            // 40000 W was decoded as 678 W before: 40000 > 0x7fff took the negative
-            // branch, giving (0x999a - 40000) * -1
-            expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
+            expect(powerOnBehavior2).toBeGreaterThanOrEqual(0);
+            expect(powerOnBehavior1).toBeGreaterThanOrEqual(0);
+            expect(powerOnBehavior2).toBeLessThan(powerOnBehavior1);
         });
     });
 });
