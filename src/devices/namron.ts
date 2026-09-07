@@ -522,43 +522,77 @@ const tzLocalSimplifyDimmer4512791 = {
 };
 // End Simplify Dimmer (4512791)
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
-const ZIGBEE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
+const EDGE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
 
-function smartDateDecode(value: number): string | null {
+function edgeDateDecode(value: number): string | null {
     if (!value) return null;
     try {
-        if (value > 100000) {
-            const s = String(value).padStart(6, "0");
-            return `20${s.slice(0, 2)}-${s.slice(2, 4)}-${s.slice(4, 6)}`;
-        }
-        return new Date(946684800000 + value * 86400000).toISOString().slice(0, 10);
+        const s = String(value).padStart(6, "0");
+        return `20${s.slice(0, 2)}-${s.slice(2, 4)}-${s.slice(4, 6)}`;
     } catch (_) {
         return null;
     }
 }
 
-function dateToYymmdd(value: string): number {
+function edgeDateEncode(value: string): number {
     const match = String(value).match(/^20(\d{2})-(\d{2})-(\d{2})$/);
     if (!match) throw new Error(`Invalid date: ${value}. Use YYYY-MM-DD format, e.g. 2026-06-05.`);
     return Number(match[1] + match[2] + match[3]);
 }
 
-function deriveEdgeThermostatMode(frost: string, vacationMode: string, sensorMode: string, progOpMode: string, boostTimeSet: number): string {
+function deriveEdgeThermostatMode(frost: string, vacationMode: string, sensorMode: string, progOpMode: string, countdownSet: number): string {
     if (frost === "ON") return "frost";
     if (vacationMode === "ON") return "holiday";
-    if (sensorMode === "percent") return "regulator";
-    if (boostTimeSet > 0) return "boost";
+    if (sensorMode === "regulator") return "regulator";
+    if (countdownSet > 0) return "countdown";
     if (progOpMode === "schedule") return "schedule";
     if (progOpMode === "eco") return "eco";
     return "manual";
 }
 
-const edgeSensorModeLookup: KeyValue = {"0": "air", "1": "floor", "2": "both", "3": "air2", "4": "both2", "5": "floor_percent", "6": "percent"};
-const edgeSensorModeValueLookup: KeyValue = {air: 0, floor: 1, both: 2, air2: 3, both2: 4, floor_percent: 5, percent: 6};
+const edgeSensorModeLookup: KeyValue = {
+    "0": "air",
+    "1": "floor",
+    "2": "air_floor",
+    "3": "external",
+    "4": "external_floor",
+    "5": "floor_percent",
+    "6": "regulator",
+};
+const edgeSensorModeValueLookup: KeyValue = {
+    air: 0,
+    floor: 1,
+    air_floor: 2,
+    external: 3,
+    external_floor: 4,
+    floor_percent: 5,
+    regulator: 6,
+};
 const edgeOnOffLookup: KeyValue = {OFF: 0, ON: 1};
 const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
-const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "60s", "3": "30s"};
-const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "60s": 2, "30s": 3};
+// id 2/3 confirmed against real hardware (Namron's own Homey driver agrees).
+const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "30s", "3": "60s"};
+const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "30s": 2, "60s": 3};
+
+// Minimal command-only custom cluster registration, needed so entity.command()
+// can send the device's two custom commands (setEco 0x08, setProgram 0x07).
+// Deliberately registers NO attributes - a full attribute registration on
+// this cluster was confirmed to break the device's cluster-name dispatch
+// entirely (see the module-level comment above); a commands-only
+// registration carries none of that risk and was confirmed safe on real
+// hardware.
+function edgeThermostatCommands() {
+    return m.deviceAddCustomCluster("hvacThermostat", {
+        ID: Zcl.Clusters.hvacThermostat.ID,
+        name: "hvacThermostat",
+        attributes: {},
+        commands: {
+            setProgram: {ID: 0x07, name: "setProgram", parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
+            setEco: {ID: 0x08, name: "setEco", parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
+        },
+        commandsResponse: {},
+    });
+}
 
 // biome-ignore lint/suspicious/noExplicitAny: endpoint type is complex generic
 async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | number)[]): Promise<void> {
@@ -568,7 +602,31 @@ async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | num
 }
 // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
 async function writeEdgeHvac(entity: any, attr: number, value: number, type: number): Promise<void> {
-    await entity.write("hvacThermostat", {[attr]: {value, type}});
+    // Confirmed via testing: this firmware rejects several of these writes
+    // with NOT_AUTHORIZED unless a default response is requested, so unlike
+    // most modern converters we do NOT pass disableDefaultResponse: true here.
+    await entity.write("hvacThermostat", {[attr]: {value, type}}, {disableDefaultResponse: false});
+}
+// biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
+async function readThenWriteEdgeHvac(entity: any, attr: number, value: number, type: number): Promise<void> {
+    // Some attributes (frost, window_open_check, vacation_mode, the time-sync
+    // value) were confirmed to need a prior read in the same session before
+    // a write is accepted - a known quirk of this HZC-platform firmware.
+    try {
+        await entity.read("hvacThermostat", [attr]);
+    } catch (_) {}
+    await writeEdgeHvac(entity, attr, value, type);
+}
+// biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
+async function writeThenReadEdgeHvac(entity: any, attr: number, value: number, type: number, readAttrs: number[]): Promise<void> {
+    // The device has a separate MCU driving the LCD. Attributes that change
+    // what's drawn on screen are confirmed-then-read-back after a short delay
+    // so the reported state matches what the screen actually settles on.
+    await readThenWriteEdgeHvac(entity, attr, value, type);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+        await entity.read("hvacThermostat", readAttrs);
+    } catch (_) {}
 }
 
 const fzEdge = {
@@ -583,7 +641,7 @@ const fzEdge = {
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
 
-    namron_private: {
+    edge_custom: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta): KeyValue => {
@@ -605,11 +663,59 @@ const fzEdge = {
                     case 0x8005:
                         result["panel_brightness"] = value;
                         break;
+                    case 0x8006: {
+                        // biome-ignore lint/suspicious/noExplicitAny: bitmap value from zigbee-herdsman
+                        const bits = typeof (value as any)?.getBits === "function" ? (value as any).getBits() : [];
+                        result["fault"] = bits.length ? bits.join(",") : "none";
+                        break;
+                    }
                     case 0x8007:
                         result["regulator_cycle"] = value;
                         break;
+                    case 0x800a:
+                        result["auto_time_sync_pending"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
+                        if (value === 1) {
+                            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
+                            writeEdgeHvac(msg.endpoint, 0x800b, ts, Zcl.DataType.UINT32)
+                                .then(() => writeEdgeHvac(msg.endpoint, 0x800a, 0, Zcl.DataType.BOOLEAN))
+                                .then(() => msg.endpoint.read("hvacThermostat", [0x800b]))
+                                .catch(() => {});
+                        }
+                        break;
+                    case 0x800b:
+                        try {
+                            result["clock_last_synced"] =
+                                `${new Date(((value as number) + EDGE_EPOCH_OFFSET) * 1000).toISOString().replace("T", " ").slice(0, 19)} UTC`;
+                        } catch (_) {
+                            result["clock_last_synced"] = String(value);
+                        }
+                        break;
+                    case 0x800c:
+                        result["min_heat_setpoint_limit_f"] = (value as number) / 100;
+                        break;
+                    case 0x800d:
+                        result["max_heat_setpoint_limit_f"] = (value as number) / 100;
+                        break;
+                    case 0x800e:
+                        result["min_cool_setpoint_limit_f"] = (value as number) / 100;
+                        break;
+                    case 0x800f:
+                        result["max_cool_setpoint_limit_f"] = (value as number) / 100;
+                        break;
+                    case 0x8010:
+                        result["occupied_cooling_setpoint_f"] = (value as number) / 100;
+                        break;
+                    case 0x8011:
+                        result["occupied_heating_setpoint_f"] = (value as number) / 100;
+                        break;
+                    case 0x8012:
+                        result["local_temperature_f"] = (value as number) / 100;
+                        break;
                     case 0x8013:
                         result["holiday_temp_set"] = (value as number) / 100;
+                        break;
+                    case 0x801b:
+                        result["holiday_temp_set_f"] = (value as number) / 100;
                         break;
                     case 0x801d:
                         result["regulator_percentage"] = value;
@@ -618,40 +724,32 @@ const fzEdge = {
                         result["vacation_mode"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         break;
                     case 0x8020:
-                        result["vacation_start"] = smartDateDecode(value as number);
+                        result["vacation_start"] = edgeDateDecode(value as number);
                         break;
                     case 0x8021:
-                        result["vacation_end"] = smartDateDecode(value as number);
-                        break;
-                    case 0x800a:
-                        result["time_sync_flag"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
-                        if (value === 1) {
-                            const ts = Math.round(Date.now() / 1000) - ZIGBEE_EPOCH_OFFSET;
-                            msg.endpoint
-                                .write("hvacThermostat", {32779: {value: ts, type: 0x23}})
-                                .then(() => msg.endpoint.write("hvacThermostat", {32778: {value: 0, type: 0x10}}))
-                                .catch(() => {});
-                        }
-                        break;
-                    case 0x800b:
-                        try {
-                            result["time_sync_value"] =
-                                `${new Date(((value as number) + ZIGBEE_EPOCH_OFFSET) * 1000).toISOString().replace("T", " ").slice(0, 19)} UTC`;
-                        } catch (_) {
-                            result["time_sync_value"] = String(value);
-                        }
+                        result["vacation_end"] = edgeDateDecode(value as number);
                         break;
                     case 0x8022:
                         result["auto_time"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         break;
                     case 0x8023:
-                        result["boost_time_set"] = value;
+                        // 5-minute steps (0-24 -> 0-120 min), confirmed against real hardware.
+                        result["countdown_set"] = (value as number) * 5;
                         break;
                     case 0x8024:
-                        result["boost_time_remaining"] = value;
+                        result["countdown_left"] = value;
                         break;
                     case 0x8025:
                         result["max_heat_temp"] = (value as number) / 10;
+                        break;
+                    case 0x8026:
+                        result["max_heat_temp_f"] = (value as number) / 10;
+                        break;
+                    case 0x8027:
+                        result["min_cool_temp"] = (value as number) / 10;
+                        break;
+                    case 0x8028:
+                        result["min_cool_temp_f"] = (value as number) / 10;
                         break;
                     case 0x8029:
                         result["screen_on_time"] = edgeScreenOnTimeLookup[String(value as number)] ?? String(value);
@@ -664,7 +762,7 @@ const fzEdge = {
                 merged["vacation_mode"] as string,
                 merged["sensor_mode"] as string,
                 merged["programming_operation_mode"] as string,
-                (merged["boost_time_set"] as number) ?? 0,
+                (merged["countdown_set"] as number) ?? 0,
             );
             return result;
         },
@@ -672,77 +770,48 @@ const fzEdge = {
 };
 
 const tzEdge = {
-    thermostat_mode: {
-        key: ["thermostat_mode", "thermostat_mode_extra"],
-        convertSet: async (entity, key, value, meta) => {
-            const state: KeyValue = {};
-            const wasRegulator = (meta.state as KeyValue)?.["sensor_mode"] === "percent";
-            switch (value) {
-                case "manual":
-                case "schedule":
-                case "eco":
-                    await writeEdgeHvac(entity, 0x8001, 0, Zcl.DataType.BOOLEAN);
-                    await writeEdgeHvac(entity, 0x801f, 0, Zcl.DataType.BOOLEAN);
-                    await tz.thermostat_programming_operation_mode.convertSet(
-                        entity,
-                        "programming_operation_mode",
-                        value === "manual" ? "setpoint" : value,
-                        meta,
-                    );
-                    if (wasRegulator) {
-                        await writeEdgeHvac(entity, 0x8004, 1, Zcl.DataType.ENUM8);
-                        state["sensor_mode"] = "floor";
-                    }
-                    state["frost"] = "OFF";
-                    state["vacation_mode"] = "OFF";
-                    state["programming_operation_mode"] = value === "manual" ? "setpoint" : value;
-                    state["boost_time_set"] = 0;
-                    break;
-                case "regulator":
-                    await writeEdgeHvac(entity, 0x8001, 0, Zcl.DataType.BOOLEAN);
-                    await writeEdgeHvac(entity, 0x801f, 0, Zcl.DataType.BOOLEAN);
-                    await writeEdgeHvac(entity, 0x8004, 6, Zcl.DataType.ENUM8);
-                    state["frost"] = "OFF";
-                    state["vacation_mode"] = "OFF";
-                    state["sensor_mode"] = "percent";
-                    state["boost_time_set"] = 0;
-                    break;
-                case "frost":
-                    await writeEdgeHvac(entity, 0x801f, 0, Zcl.DataType.BOOLEAN);
-                    await writeEdgeHvac(entity, 0x8001, 1, Zcl.DataType.BOOLEAN);
-                    state["vacation_mode"] = "OFF";
-                    state["frost"] = "ON";
-                    state["boost_time_set"] = 0;
-                    break;
-                case "holiday":
-                    await writeEdgeHvac(entity, 0x8001, 0, Zcl.DataType.BOOLEAN);
-                    await writeEdgeHvac(entity, 0x801f, 1, Zcl.DataType.BOOLEAN);
-                    state["frost"] = "OFF";
-                    state["vacation_mode"] = "ON";
-                    state["boost_time_set"] = 0;
-                    break;
-                case "boost": {
-                    await writeEdgeHvac(entity, 0x8001, 0, Zcl.DataType.BOOLEAN);
-                    await writeEdgeHvac(entity, 0x801f, 0, Zcl.DataType.BOOLEAN);
-                    const hours =
-                        ((meta.state as KeyValue)?.["boost_time_set"] as number) > 0 ? ((meta.state as KeyValue)["boost_time_set"] as number) : 1;
-                    await writeEdgeHvac(entity, 0x8023, hours, Zcl.DataType.ENUM8);
-                    state["frost"] = "OFF";
-                    state["vacation_mode"] = "OFF";
-                    state["boost_time_set"] = hours;
-                    break;
+    // Setting the mode uses the device's own custom commands (0x07/0x08)
+    // rather than writing the programingOperMode bitmap directly - writing 0
+    // to return to manual ("setpoint") mode was confirmed to be silently
+    // ignored by this firmware. Sent via entity.command() using the
+    // commands-only custom cluster registration below (edgeThermostatCommands).
+    programming_operation_mode: {
+        key: ["programming_operation_mode"],
+        convertSet: async (entity, key, value) => {
+            const clearVacationMode = async () => {
+                try {
+                    await readThenWriteEdgeHvac(entity, 0x801f, 0, Zcl.DataType.BOOLEAN);
+                } catch (_) {
+                    /* non-fatal courtesy side-effect */
                 }
-                default:
-                    throw new Error(`Invalid thermostat_mode: ${value}`);
+            };
+            if (value === "eco") {
+                await clearVacationMode();
+                // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
+                await (entity as any).command("hvacThermostat", "setEco", {ecoMode: true}, {disableDefaultResponse: false});
+            } else {
+                // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
+                await (entity as any).command("hvacThermostat", "setEco", {ecoMode: false}, {disableDefaultResponse: false});
+                await clearVacationMode();
+                // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
+                await (entity as any).command("hvacThermostat", "setProgram", {runMode: value === "schedule"}, {disableDefaultResponse: false});
             }
-            state["thermostat_mode"] = value;
-            state["thermostat_mode_extra"] = value;
-            return {state};
+            return {state: {programming_operation_mode: value}};
         },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8001, 0x8004, 0x801f, 0x8023]);
             await entity.read("hvacThermostat", ["programingOperMode"]);
         },
+    } satisfies Tz.Converter,
+
+    system_mode: {
+        key: ["system_mode"],
+        convertSet: (entity, key, value, meta) => {
+            if (value === "cool" && (meta.state as KeyValue)?.["sensor_mode"] === "regulator") {
+                throw new Error("Cannot switch to cooling while in regulator mode");
+            }
+            return tz.thermostat_system_mode.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => tz.thermostat_system_mode.convertGet(entity, key, meta),
     } satisfies Tz.Converter,
 
     sensor_mode: {
@@ -750,19 +819,11 @@ const tzEdge = {
         convertSet: async (entity, key, value, meta) => {
             const raw = edgeSensorModeValueLookup[value as string];
             if (raw === undefined) throw new Error(`Invalid sensor_mode: ${value}`);
-            await writeEdgeHvac(entity, 0x8004, raw as number, Zcl.DataType.ENUM8);
-            const state: KeyValue = {sensor_mode: value};
-            // "percent" is how this device represents regulator mode, and thermostat_mode is
-            // derived from it, so keep the derived value in step with the write.
-            const merged = Object.assign({}, (meta.state as KeyValue) ?? {}, state) as KeyValue;
-            state["thermostat_mode"] = deriveEdgeThermostatMode(
-                merged["frost"] as string,
-                merged["vacation_mode"] as string,
-                merged["sensor_mode"] as string,
-                merged["programming_operation_mode"] as string,
-                (merged["boost_time_set"] as number) ?? 0,
-            );
-            return {state};
+            if (value === "regulator" && (meta.state as KeyValue)?.["system_mode"] === "cool") {
+                throw new Error("Cannot switch to regulator mode while in cooling mode");
+            }
+            await writeThenReadEdgeHvac(entity, 0x8004, raw as number, Zcl.DataType.ENUM8, [0x8004, 0x801d, 0x8007]);
+            return {state: {sensor_mode: value}};
         },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8004]);
@@ -772,70 +833,45 @@ const tzEdge = {
     frost: {
         key: ["frost"],
         convertSet: async (entity, key, value) => {
-            if (value === "ON") {
-                await entity.write("hvacThermostat", {32799: {value: 0, type: 0x10}});
-                await entity.write("hvacThermostat", {32769: {value: 1, type: 0x10}});
-            } else {
-                await entity.write("hvacThermostat", {32769: {value: 0, type: 0x10}});
-            }
+            await readThenWriteEdgeHvac(entity, 0x8001, value === "ON" ? 1 : 0, Zcl.DataType.BOOLEAN);
             return {state: {frost: value}};
         },
-    } satisfies Tz.Converter,
-
-    keypad_lockout: {
-        key: ["keypad_lockout"],
-        convertSet: async (entity, key, value, meta) => {
-            const mapped = value === "lock" ? "lock1" : "unlock";
-            await tz.thermostat_keypad_lockout.convertSet(entity, key, mapped, meta);
-            return {state: {keypad_lockout: value}};
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8001]);
         },
-        convertGet: async (entity, key, meta) => tz.thermostat_keypad_lockout.convertGet(entity, key, meta),
     } satisfies Tz.Converter,
 
-    regulator_percentage: {
-        key: ["regulator_percentage"],
+    window_open_check: {
+        key: ["window_open_check"],
         convertSet: async (entity, key, value) => {
-            const num = Number(value);
-            if (Number.isNaN(num) || num < 0 || num > 100) throw new Error(`Invalid regulator_percentage: ${value}`);
-            await writeEdgeHvac(entity, 0x801d, Math.round(num), Zcl.DataType.INT16);
-            return {state: {regulator_percentage: num}};
+            const raw = edgeOnOffLookup[value as string];
+            if (raw === undefined) throw new Error(`Invalid window_open_check: ${value}`);
+            await readThenWriteEdgeHvac(entity, 0x8000, raw as number, Zcl.DataType.BOOLEAN);
+            return {state: {window_open_check: value}};
         },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x801d]);
+            await entity.read("hvacThermostat", [0x8000]);
         },
     } satisfies Tz.Converter,
 
-    regulator_cycle: {
-        key: ["regulator_cycle"],
+    vacation_mode: {
+        key: ["vacation_mode"],
         convertSet: async (entity, key, value) => {
-            const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error(`Invalid regulator_cycle: ${value}`);
-            await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
-            return {state: {regulator_cycle: num}};
+            const raw = edgeOnOffLookup[value as string];
+            if (raw === undefined) throw new Error(`Invalid vacation_mode: ${value}`);
+            await readThenWriteEdgeHvac(entity, 0x801f, raw as number, Zcl.DataType.BOOLEAN);
+            return {state: {vacation_mode: value}};
         },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8007]);
-        },
-    } satisfies Tz.Converter,
-
-    max_heat_temp: {
-        key: ["max_heat_temp"],
-        convertSet: async (entity, key, value) => {
-            const num = Number(value);
-            if (Number.isNaN(num) || num < 15 || num > 35) throw new Error(`Invalid max_heat_temp: ${value}`);
-            await writeEdgeHvac(entity, 0x8025, Math.round(num * 10), Zcl.DataType.INT16);
-            return {state: {max_heat_temp: num}};
-        },
-        convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8025]);
+            await entity.read("hvacThermostat", [0x801f]);
         },
     } satisfies Tz.Converter,
 
     vacation_start: {
         key: ["vacation_start"],
         convertSet: async (entity, key, value) => {
-            const raw = dateToYymmdd(value as string);
-            await writeEdgeHvac(entity, 0x8020, raw, Zcl.DataType.UINT32);
+            const raw = edgeDateEncode(value as string);
+            await readThenWriteEdgeHvac(entity, 0x8020, raw, Zcl.DataType.UINT32);
             return {state: {vacation_start: value}};
         },
         convertGet: async (entity) => {
@@ -846,8 +882,8 @@ const tzEdge = {
     vacation_end: {
         key: ["vacation_end"],
         convertSet: async (entity, key, value) => {
-            const raw = dateToYymmdd(value as string);
-            await writeEdgeHvac(entity, 0x8021, raw, Zcl.DataType.UINT32);
+            const raw = edgeDateEncode(value as string);
+            await readThenWriteEdgeHvac(entity, 0x8021, raw, Zcl.DataType.UINT32);
             return {state: {vacation_end: value}};
         },
         convertGet: async (entity) => {
@@ -855,42 +891,60 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
-    holiday_temp_set: {
-        key: ["holiday_temp_set"],
+    auto_time: {
+        key: ["auto_time"],
         convertSet: async (entity, key, value) => {
-            const num = Number(value);
-            if (Number.isNaN(num) || num < 5 || num > 35) throw new Error(`Invalid holiday_temp_set: ${value}`);
-            await writeEdgeHvac(entity, 0x8013, Math.round(num * 100), Zcl.DataType.INT16);
-            return {state: {holiday_temp_set: num}};
+            const raw = edgeOnOffLookup[value as string];
+            if (raw === undefined) throw new Error(`Invalid auto_time: ${value}`);
+            await readThenWriteEdgeHvac(entity, 0x8022, raw as number, Zcl.DataType.BOOLEAN);
+            return {state: {auto_time: value}};
         },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8013]);
+            await entity.read("hvacThermostat", [0x8022]);
         },
     } satisfies Tz.Converter,
 
-    boost_time_set: {
-        key: ["boost_time_set"],
-        convertSet: async (entity, key, value) => {
-            const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 0 || num > 24) throw new Error(`Invalid boost_time_set: ${value}`);
-            await writeEdgeHvac(entity, 0x8023, num, Zcl.DataType.ENUM8);
-            return {state: {boost_time_set: num}};
+    sync_time: {
+        key: ["sync_time"],
+        convertSet: async (entity) => {
+            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
+            await readThenWriteEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
+            await readThenWriteEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
+            try {
+                await entity.read("hvacThermostat", [0x800b]);
+            } catch (_) {}
+            return {state: {sync_time: "sync"}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x800a, 0x800b]);
+        },
+    } satisfies Tz.Converter,
+
+    countdown_set: {
+        key: ["countdown_set"],
+        convertSet: async (entity, key, value, meta) => {
+            const minutes = Number(value);
+            if (Number.isNaN(minutes) || minutes < 0 || minutes > 120 || minutes % 5 !== 0) {
+                throw new Error("countdown_set must be a multiple of 5, between 0 and 120 (minutes)");
+            }
+            if ((meta.state as KeyValue)?.["system_mode"] === "cool") {
+                throw new Error("Cannot set the countdown timer while in cooling mode");
+            }
+            await readThenWriteEdgeHvac(entity, 0x8023, minutes / 5, Zcl.DataType.ENUM8);
+            // This device doesn't respond to reads on countdownLeft (0x8024) -
+            // reset it here so a fresh countdown starts from a sane value
+            // instead of a stale/garbled figure.
+            return {state: {countdown_set: minutes, countdown_left: minutes}};
         },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8023, 0x8024]);
         },
     } satisfies Tz.Converter,
 
-    window_open_check: {
-        key: ["window_open_check"],
-        convertSet: async (entity, key, value) => {
-            const raw = edgeOnOffLookup[value as string];
-            if (raw === undefined) throw new Error(`Invalid window_open_check: ${value}`);
-            await writeEdgeHvac(entity, 0x8000, raw as number, Zcl.DataType.BOOLEAN);
-            return {state: {window_open_check: value}};
-        },
+    countdown_left: {
+        key: ["countdown_left"],
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8000]);
+            await entity.read("hvacThermostat", [0x8024]);
         },
     } satisfies Tz.Converter,
 
@@ -899,7 +953,7 @@ const tzEdge = {
         convertSet: async (entity, key, value) => {
             const raw = edgeScreenOnTimeValueLookup[value as string];
             if (raw === undefined) throw new Error(`Invalid screen_on_time: ${value}`);
-            await writeEdgeHvac(entity, 0x8029, raw as number, Zcl.DataType.ENUM8);
+            await writeThenReadEdgeHvac(entity, 0x8029, raw as number, Zcl.DataType.ENUM8, [0x8029]);
             return {state: {screen_on_time: value}};
         },
         convertGet: async (entity) => {
@@ -911,8 +965,8 @@ const tzEdge = {
         key: ["panel_brightness"],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 0 || num > 100) throw new Error(`Invalid panel_brightness: ${value}`);
-            await writeEdgeHvac(entity, 0x8005, num, Zcl.DataType.UINT8);
+            if (Number.isNaN(num) || num < 1 || num > 100) throw new Error("panel_brightness must be 1-100 (%)");
+            await writeThenReadEdgeHvac(entity, 0x8005, num, Zcl.DataType.UINT8, [0x8005]);
             return {state: {panel_brightness: num}};
         },
         convertGet: async (entity) => {
@@ -920,32 +974,111 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
-    auto_time: {
-        key: ["auto_time"],
+    regulator_percentage: {
+        key: ["regulator_percentage"],
         convertSet: async (entity, key, value) => {
-            const raw = edgeOnOffLookup[value as string];
-            if (raw === undefined) throw new Error(`Invalid auto_time: ${value}`);
-            await writeEdgeHvac(entity, 0x8022, raw as number, Zcl.DataType.BOOLEAN);
-            return {state: {auto_time: value}};
+            const num = Math.round(Number(value));
+            if (Number.isNaN(num) || num < 0 || num > 100) throw new Error("regulator_percentage must be 0-100");
+            await writeEdgeHvac(entity, 0x801d, num, Zcl.DataType.INT16);
+            return {state: {regulator_percentage: num}};
         },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8022]);
+            await entity.read("hvacThermostat", [0x801d]);
         },
     } satisfies Tz.Converter,
 
-    sync_time: {
-        key: ["sync_time"],
-        convertSet: async (entity) => {
-            const ts = Math.round(Date.now() / 1000) - ZIGBEE_EPOCH_OFFSET;
-            await writeEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
-            await writeEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
-            await entity.read("hvacThermostat", [0x800a, 0x800b]);
-            return {state: {sync_time: "sync"}};
+    regulator_cycle: {
+        key: ["regulator_cycle"],
+        convertSet: async (entity, key, value) => {
+            const num = Math.round(Number(value));
+            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error("regulator_cycle must be 1-30");
+            await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
+            return {state: {regulator_cycle: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8007]);
+        },
+    } satisfies Tz.Converter,
+
+    holiday_temp_set: {
+        key: ["holiday_temp_set"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 5 || num > 40) throw new Error("holiday_temp_set must be 5-40");
+            await writeEdgeHvac(entity, 0x8013, Math.round(num * 100), Zcl.DataType.INT16);
+            return {state: {holiday_temp_set: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8013]);
+        },
+    } satisfies Tz.Converter,
+
+    holiday_temp_set_f: {
+        key: ["holiday_temp_set_f"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 41 || num > 104) throw new Error("holiday_temp_set_f must be 41-104");
+            await writeEdgeHvac(entity, 0x801b, Math.round(num * 100), Zcl.DataType.INT16);
+            return {state: {holiday_temp_set_f: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x801b]);
+        },
+    } satisfies Tz.Converter,
+
+    max_heat_temp: {
+        key: ["max_heat_temp"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 15 || num > 35) throw new Error("max_heat_temp must be 15-35");
+            await writeEdgeHvac(entity, 0x8025, Math.round(num * 10), Zcl.DataType.INT16);
+            return {state: {max_heat_temp: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8025]);
+        },
+    } satisfies Tz.Converter,
+
+    max_heat_temp_f: {
+        key: ["max_heat_temp_f"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 59 || num > 95) throw new Error("max_heat_temp_f must be 59-95");
+            await writeEdgeHvac(entity, 0x8026, Math.round(num * 10), Zcl.DataType.INT16);
+            return {state: {max_heat_temp_f: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8026]);
+        },
+    } satisfies Tz.Converter,
+
+    min_cool_temp: {
+        key: ["min_cool_temp"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 10 || num > 30) throw new Error("min_cool_temp must be 10-30");
+            await writeEdgeHvac(entity, 0x8027, Math.round(num * 10), Zcl.DataType.INT16);
+            return {state: {min_cool_temp: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8027]);
+        },
+    } satisfies Tz.Converter,
+
+    min_cool_temp_f: {
+        key: ["min_cool_temp_f"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 50 || num > 86) throw new Error("min_cool_temp_f must be 50-86");
+            await writeEdgeHvac(entity, 0x8028, Math.round(num * 10), Zcl.DataType.INT16);
+            return {state: {min_cool_temp_f: num}};
+        },
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8028]);
         },
     } satisfies Tz.Converter,
 };
 // ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
-
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4566702", "4566703", "4512783", "4512784"],
@@ -953,120 +1086,118 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee Edge Thermostat",
         ota: true,
-        extend: [m.humidity()],
+        extend: [
+            edgeThermostatCommands(),
+            m.onOff({powerOnBehavior: false}),
+            m.humidity(),
+            m.electricityMeter({voltage: false, configureReporting: false}),
+        ],
 
-        fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.namron_private, fz.hvac_user_interface, fz.metering, fz.electrical_measurement],
+        fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.edge_custom, fz.hvac_user_interface],
 
         toZigbee: [
+            tzEdge.system_mode,
             tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
+            tz.thermostat_occupied_cooling_setpoint,
             tz.thermostat_local_temperature_calibration,
-            tz.thermostat_programming_operation_mode,
             tz.thermostat_temperature_display_mode,
-            tzEdge.thermostat_mode,
+            tz.thermostat_keypad_lockout,
+            tzEdge.programming_operation_mode,
             tzEdge.sensor_mode,
             tzEdge.frost,
-            tzEdge.keypad_lockout,
-            tzEdge.regulator_percentage,
-            tzEdge.regulator_cycle,
-            tzEdge.max_heat_temp,
+            tzEdge.window_open_check,
+            tzEdge.vacation_mode,
             tzEdge.vacation_start,
             tzEdge.vacation_end,
-            tzEdge.holiday_temp_set,
-            tzEdge.boost_time_set,
-            tzEdge.window_open_check,
-            tzEdge.screen_on_time,
-            tzEdge.panel_brightness,
             tzEdge.auto_time,
             tzEdge.sync_time,
+            tzEdge.countdown_set,
+            tzEdge.countdown_left,
+            tzEdge.screen_on_time,
+            tzEdge.panel_brightness,
+            tzEdge.regulator_percentage,
+            tzEdge.regulator_cycle,
+            tzEdge.holiday_temp_set,
+            tzEdge.holiday_temp_set_f,
+            tzEdge.max_heat_temp,
+            tzEdge.max_heat_temp_f,
+            tzEdge.min_cool_temp,
+            tzEdge.min_cool_temp_f,
         ],
 
         configure: async (device, coordinatorEndpoint) => {
+            // Defensive re-registration - onEvent('start') (used by
+            // edgeThermostatCommands' own registration) only fires at
+            // process startup, so an already-paired device needs this too.
+            device.addCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                name: "hvacThermostat",
+                attributes: {},
+                commands: {
+                    setProgram: {ID: 0x07, name: "setProgram", parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
+                    setEco: {ID: 0x08, name: "setEco", parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
+                },
+                commandsResponse: {},
+            });
+
             const endpoint = device.getEndpoint(1);
 
-            await reporting.bind(endpoint, coordinatorEndpoint, [
+            // Bind clusters individually - this firmware doesn't support
+            // genOta binding, and one failing bind must never block the rest.
+            for (const cluster of [
+                "genOnOff",
                 "genTime",
-                "genOta",
                 "hvacThermostat",
                 "hvacUserInterfaceCfg",
                 "msRelativeHumidity",
                 "seMetering",
                 "haElectricalMeasurement",
-            ]);
-
-            await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 10});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 10, max: 300, change: 50});
+            ]) {
+                try {
+                    await endpoint.bind(cluster, coordinatorEndpoint);
+                } catch (_) {}
+            }
 
             try {
-                await endpoint.configureReporting("haElectricalMeasurement", [
-                    {attribute: "rmsCurrent", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 1},
-                    {attribute: "activePower", minimumReportInterval: 10, maximumReportInterval: 300, reportableChange: 100},
-                ]);
+                await reporting.thermostatTemperature(endpoint, {min: 10, max: 300, change: 10});
+            } catch (_) {}
+            try {
+                await reporting.thermostatOccupiedHeatingSetpoint(endpoint, {min: 10, max: 300, change: 50});
+            } catch (_) {}
+            try {
+                await reporting.thermostatOccupiedCoolingSetpoint(endpoint, {min: 10, max: 300, change: 50});
+            } catch (_) {}
+            try {
+                await reporting.humidity(endpoint, {min: 10, max: 300, change: 100});
             } catch (_) {}
 
             await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
-            await safeReadEdge(endpoint, "hvacThermostat", [
-                "localTemp",
-                "occupiedHeatingSetpoint",
-                "systemMode",
-                "runningMode",
-                "runningState",
-                "localTemperatureCalibration",
-                "pIHeatingDemand",
-                "programingOperMode",
-                "tempDisplayMode",
-            ]);
-            await safeReadEdge(endpoint, "hvacUserInterfaceCfg", ["keypadLockout"]);
-            await safeReadEdge(endpoint, "seMetering", ["currentSummDelivered", "divisor", "multiplier"]);
-            await safeReadEdge(endpoint, "haElectricalMeasurement", [
-                "activePower",
-                "rmsCurrent",
-                "acPowerMultiplier",
-                "acPowerDivisor",
-                "acCurrentMultiplier",
-                "acCurrentDivisor",
-            ]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["localTemp"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["occupiedHeatingSetpoint"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["occupiedCoolingSetpoint"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["systemMode"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["runningState"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["localTemperatureCalibration"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["pIHeatingDemand"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["programingOperMode"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["absMinHeatSetpointLimit"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["absMaxHeatSetpointLimit"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["absMinCoolSetpointLimit"]);
+            await safeReadEdge(endpoint, "hvacThermostat", ["absMaxCoolSetpointLimit"]);
             await safeReadEdge(
                 endpoint,
                 "hvacThermostat",
                 [
-                    0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8007, 0x8013, 0x801d, 0x801f, 0x8020, 0x8021, 0x800a, 0x800b, 0x8022, 0x8023, 0x8024,
-                    0x8025, 0x8029,
+                    0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011, 0x8012,
+                    0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8024, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
                 ],
             );
-
-            // Sync time at configure
-            const ts = Math.round(Date.now() / 1000) - ZIGBEE_EPOCH_OFFSET;
-            await endpoint.write("hvacThermostat", {32779: {value: ts, type: Zcl.DataType.UINT32}});
-            await endpoint.write("hvacThermostat", {32778: {value: 0, type: Zcl.DataType.BOOLEAN}});
-
-            // Write defaults: screen_on_time = 30s, temperature_display_mode = celsius
-            await endpoint.write("hvacThermostat", {[0x8029]: {value: 3, type: Zcl.DataType.ENUM8}});
-            await endpoint.write("hvacUserInterfaceCfg", {[0x0000]: {value: 0, type: Zcl.DataType.ENUM8}});
+            await safeReadEdge(endpoint, "hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
+            await safeReadEdge(endpoint, "seMetering", ["currentSummDelivered", "divisor", "multiplier"]);
+            await safeReadEdge(endpoint, "haElectricalMeasurement", ["activePower", "rmsCurrent", "acPowerMultiplier", "acPowerDivisor"]);
 
             device.powerSource = "Mains (single phase)";
             device.save();
-        },
-
-        // Periodic time sync regardless of heating status.
-        // Syncs time at most once per hour so vacation mode always has correct clock.
-        onEvent: async (event) => {
-            if (event.type === "stop") return;
-            const now = Date.now();
-            const device = event.data.device;
-            const lastSync = (device.meta["lastTimeSync"] as number) ?? 0;
-            if (now - lastSync > 60 * 60 * 1000) {
-                try {
-                    const endpoint = device.getEndpoint(1);
-                    const ts = Math.round(now / 1000) - ZIGBEE_EPOCH_OFFSET;
-                    await endpoint.write("hvacThermostat", {32779: {value: ts, type: Zcl.DataType.UINT32}});
-                    await endpoint.write("hvacThermostat", {32778: {value: 0, type: Zcl.DataType.BOOLEAN}});
-                    device.meta["lastTimeSync"] = now;
-                    device.save();
-                } catch (_) {
-                    /* ignore */
-                }
-            }
         },
 
         exposes: [
@@ -1074,61 +1205,119 @@ export const definitions: DefinitionWithExtend[] = [
                 .climate()
                 .withLocalTemperature()
                 .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
-                .withSystemMode(["off", "heat"])
-                .withRunningState(["idle", "heat"])
-                .withLocalTemperatureCalibration(-5, 5, 0.5),
-            e.numeric("max_heat_temp", ea.ALL).withUnit("°C").withValueMin(15).withValueMax(35).withValueStep(0.5).withLabel("Max heat temperature"),
-            e.enum("thermostat_mode", ea.ALL, ["manual", "schedule", "regulator"]).withLabel("Thermostat mode"),
-            e.enum("thermostat_mode_extra", ea.ALL, ["eco", "frost", "holiday"]).withLabel("Special mode"),
+                .withSystemMode(["off", "heat", "cool"])
+                .withRunningState(["idle", "heat", "cool"])
+                .withLocalTemperatureCalibration(-3, 3, 0.1)
+                .withPiHeatingDemand(),
+            // Kept separate from climate() (not chained via withSetpoint()):
+            // exposing both heating and cooling setpoints on the same
+            // climate entity makes Home Assistant, and through it Google
+            // Home, treat the device as a dual-setpoint range thermostat and
+            // enforce "lower setpoint <= upper setpoint" - a rule that only
+            // makes sense for an actual auto/range mode, not for a device
+            // that is always in either heat or cool, never both.
             e
-                .enum("sensor_mode", ea.ALL, ["air", "floor", "both", "percent"])
-                .withLabel("Sensor mode")
-                .withDescription('Sensor the thermostat regulates on. "percent" is regulator mode, also set via thermostat_mode.'),
-            e.binary("frost", ea.STATE_SET, "ON", "OFF").withLabel("Frost Mode"),
-            e.enum("temperature_display_mode", ea.STATE_SET, ["celsius", "fahrenheit"]).withLabel("Temperature unit"),
+                .numeric("occupied_cooling_setpoint", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(10)
+                .withValueMax(40)
+                .withValueStep(0.5)
+                .withDescription("Cooling setpoint."),
+            e
+                .enum("programming_operation_mode", ea.ALL, ["setpoint", "schedule", "eco"])
+                .withDescription('Run mode. "setpoint" = manual, "schedule" = follow the weekly program, "eco" = ECO mode.'),
+            e
+                .enum("thermostat_mode", ea.STATE, ["manual", "schedule", "eco", "regulator", "frost", "holiday", "countdown"])
+                .withDescription("Convenience summary of which special mode is currently active (derived from the other attributes, read-only)."),
+            e
+                .enum("sensor_mode", ea.ALL, ["air", "floor", "air_floor", "external", "external_floor", "floor_percent", "regulator"])
+                .withDescription('Which sensor(s) control heating, or "regulator" for plain duty-cycle % control instead of a thermostat.'),
             e
                 .numeric("regulator_percentage", ea.ALL)
                 .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
-                .withValueStep(5)
-                .withLabel("Regulator set point"),
+                .withDescription('Output duty cycle when sensor_mode is "regulator".'),
+            e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(1).withValueMax(30).withDescription("Regulator cycle length."),
+            e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
+            e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
+            e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
+            e.binary("keypad_lockout", ea.ALL, "LOCK", "UNLOCK").withDescription("Physical button lock on the device."),
+            e.enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"]).withDescription("Unit shown on the device's own screen."),
+            e.numeric("panel_brightness", ea.ALL).withUnit("%").withValueMin(1).withValueMax(100).withDescription("LCD backlight brightness."),
+            e.enum("screen_on_time", ea.ALL, ["always_on", "10s", "30s", "60s"]).withDescription("How long the backlight stays on after a touch."),
             e
-                .numeric("regulator_cycle", ea.ALL)
+                .numeric("countdown_set", ea.ALL)
                 .withUnit("min")
-                .withValueMin(1)
-                .withValueMax(30)
-                .withValueStep(1)
-                .withLabel("Regulator cycle duration"),
-            e.binary("vacation_mode", ea.STATE, "ON", "OFF").withLabel("Vacation active"),
-            e.text("vacation_start", ea.ALL).withLabel("Vacation start (YYYY-MM-DD)"),
-            e.text("vacation_end", ea.ALL).withLabel("Vacation end (YYYY-MM-DD)"),
-            e.numeric("holiday_temp_set", ea.ALL).withUnit("°C").withValueMin(5).withValueMax(35).withValueStep(0.5).withLabel("Holiday temperature"),
-            e
-                .numeric("boost_time_set", ea.ALL)
-                .withUnit("h")
                 .withValueMin(0)
-                .withValueMax(24)
-                .withValueStep(1)
-                .withLabel("Boost time set")
-                .withDescription("Set hours for boost heating. Setting a value > 0 activates boost mode immediately. Set to 0 to stop boost."),
-            e.numeric("boost_time_remaining", ea.STATE).withUnit("min").withLabel("Boost time remaining"),
-            e.binary("window_open_check", ea.ALL, "ON", "OFF").withLabel("Window detection"),
-            e.enum("window_state", ea.STATE, ["open", "closed"]).withLabel("Window state"),
-            e.binary("keypad_lockout", ea.STATE_SET, "lock", "unlock").withLabel("Child Lock"),
-            e.enum("screen_on_time", ea.ALL, ["always_on", "10s", "30s", "60s"]).withLabel("Screen on time"),
-            e.numeric("panel_brightness", ea.ALL).withValueMin(0).withValueMax(100).withValueStep(1).withLabel("Panel brightness"),
-            e.binary("auto_time", ea.ALL, "ON", "OFF").withLabel("Auto time sync"),
-            e.text("time_sync_value", ea.STATE).withLabel("Thermostat time (UTC)"),
-            e.enum("sync_time", ea.SET, ["sync"]).withLabel("Sync time"),
-            e.text("firmware_version", ea.STATE).withLabel("Firmware version"),
-            e.text("firmware_date", ea.STATE).withLabel("Firmware date"),
-            e.numeric("energy", ea.STATE).withUnit("kWh").withLabel("Energy"),
-            e.numeric("current", ea.STATE).withUnit("A").withLabel("Current"),
-            e.numeric("power", ea.STATE).withUnit("W").withLabel("Power"),
+                .withValueMax(120)
+                .withValueStep(5)
+                .withDescription("Countdown timer; heating stops when it reaches 0. 0 = cancelled. Not usable in cooling mode."),
+            e.numeric("countdown_left", ea.STATE_GET).withUnit("min").withDescription("Time remaining on the countdown timer."),
+            e.binary("vacation_mode", ea.ALL, "ON", "OFF").withDescription("Holds holiday_temp_set until vacation_end."),
+            e.text("vacation_start", ea.ALL).withDescription("Vacation start date, format YYYY-MM-DD."),
+            e.text("vacation_end", ea.ALL).withDescription("Vacation end date, format YYYY-MM-DD."),
+            e
+                .numeric("holiday_temp_set", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(40)
+                .withDescription("Target temperature while on vacation."),
+            e
+                .numeric("holiday_temp_set_f", ea.ALL)
+                .withUnit("°F")
+                .withValueMin(41)
+                .withValueMax(104)
+                .withDescription("Target temperature while on vacation (°F)."),
+            e
+                .numeric("max_heat_temp", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(15)
+                .withValueMax(35)
+                .withDescription("Upper limit for the heating setpoint."),
+            e
+                .numeric("max_heat_temp_f", ea.ALL)
+                .withUnit("°F")
+                .withValueMin(59)
+                .withValueMax(95)
+                .withDescription("Upper limit for the heating setpoint (°F)."),
+            e
+                .numeric("min_cool_temp", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(10)
+                .withValueMax(30)
+                .withDescription("Lower limit for the cooling setpoint."),
+            e
+                .numeric("min_cool_temp_f", ea.ALL)
+                .withUnit("°F")
+                .withValueMin(50)
+                .withValueMax(86)
+                .withDescription("Lower limit for the cooling setpoint (°F)."),
+            e.binary("auto_time", ea.ALL, "ON", "OFF").withDescription("Let the device auto-sync its clock from the coordinator."),
+            e.enum("sync_time", ea.SET, ["sync"]).withDescription('Write "sync" to push the current time to the device now.'),
+            e.text("clock_last_synced", ea.STATE).withDescription("Device's own clock, as last reported (UTC)."),
+            e.text("fault", ea.STATE).withDescription('Active fault codes reported by the device, or "none".'),
+            e.text("firmware_version", ea.STATE).withDescription("Reported software build ID."),
+            e.text("firmware_date", ea.STATE).withDescription("Reported firmware date code."),
+            e.numeric("min_heat_setpoint_limit", ea.STATE_GET).withUnit("°C"),
+            e.numeric("max_heat_setpoint_limit", ea.STATE_GET).withUnit("°C"),
+            e.numeric("min_cool_setpoint_limit", ea.STATE_GET).withUnit("°C"),
+            e.numeric("max_cool_setpoint_limit", ea.STATE_GET).withUnit("°C"),
+            e.numeric("min_heat_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
+            e.numeric("max_heat_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
+            e.numeric("min_cool_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
+            e.numeric("max_cool_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
+            e
+                .numeric("occupied_heating_setpoint_f", ea.STATE_GET)
+                .withUnit("°F")
+                .withDescription("Device's own Fahrenheit-mode heating setpoint mirror."),
+            e
+                .numeric("occupied_cooling_setpoint_f", ea.STATE_GET)
+                .withUnit("°F")
+                .withDescription("Device's own Fahrenheit-mode cooling setpoint mirror."),
+            e.numeric("local_temperature_f", ea.STATE_GET).withUnit("°F").withDescription("Device's own Fahrenheit-mode temperature mirror."),
         ],
     },
-
     {
         zigbeeModel: ["3308431"],
         model: "3308431",
