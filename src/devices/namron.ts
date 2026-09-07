@@ -540,13 +540,7 @@ function edgeDateEncode(value: string): number {
     return Number(match[1] + match[2] + match[3]);
 }
 
-function deriveEdgeThermostatMode(
-    frost: string,
-    vacationMode: string,
-    sensorMode: string,
-    progOpMode: string,
-    countdownSet: number,
-): string {
+function deriveEdgeThermostatMode(frost: string, vacationMode: string, sensorMode: string, progOpMode: string, countdownSet: number): string {
     if (frost === "ON") return "frost";
     if (vacationMode === "ON") return "holiday";
     if (sensorMode === "regulator") return "regulator";
@@ -811,7 +805,7 @@ const tzEdge = {
 
     system_mode: {
         key: ["system_mode"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             if (value === "cool" && (meta.state as KeyValue)?.["sensor_mode"] === "regulator") {
                 throw new Error("Cannot switch to cooling while in regulator mode");
             }
@@ -1092,7 +1086,12 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee Edge Thermostat",
         ota: true,
-        extend: [edgeThermostatCommands(), m.onOff({powerOnBehavior: false}), m.humidity(), m.electricityMeter({voltage: false, configureReporting: false})],
+        extend: [
+            edgeThermostatCommands(),
+            m.onOff({powerOnBehavior: false}),
+            m.humidity(),
+            m.electricityMeter({voltage: false, configureReporting: false}),
+        ],
 
         fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.edge_custom, fz.hvac_user_interface],
 
@@ -1185,10 +1184,14 @@ export const definitions: DefinitionWithExtend[] = [
             await safeReadEdge(endpoint, "hvacThermostat", ["absMaxHeatSetpointLimit"]);
             await safeReadEdge(endpoint, "hvacThermostat", ["absMinCoolSetpointLimit"]);
             await safeReadEdge(endpoint, "hvacThermostat", ["absMaxCoolSetpointLimit"]);
-            await safeReadEdge(endpoint, "hvacThermostat", [
-                0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011, 0x8012,
-                0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8024, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
-            ]);
+            await safeReadEdge(
+                endpoint,
+                "hvacThermostat",
+                [
+                    0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011, 0x8012,
+                    0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8024, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
+                ],
+            );
             await safeReadEdge(endpoint, "hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await safeReadEdge(endpoint, "seMetering", ["currentSummDelivered", "divisor", "multiplier"]);
             await safeReadEdge(endpoint, "haElectricalMeasurement", ["activePower", "rmsCurrent", "acPowerMultiplier", "acPowerDivisor"]);
@@ -1229,7 +1232,12 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("sensor_mode", ea.ALL, ["air", "floor", "air_floor", "external", "external_floor", "floor_percent", "regulator"])
                 .withDescription('Which sensor(s) control heating, or "regulator" for plain duty-cycle % control instead of a thermostat.'),
-            e.numeric("regulator_percentage", ea.ALL).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Output duty cycle when sensor_mode is \"regulator\"."),
+            e
+                .numeric("regulator_percentage", ea.ALL)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(1).withValueMax(30).withDescription("Regulator cycle length."),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
@@ -1249,12 +1257,42 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("vacation_mode", ea.ALL, "ON", "OFF").withDescription("Holds holiday_temp_set until vacation_end."),
             e.text("vacation_start", ea.ALL).withDescription("Vacation start date, format YYYY-MM-DD."),
             e.text("vacation_end", ea.ALL).withDescription("Vacation end date, format YYYY-MM-DD."),
-            e.numeric("holiday_temp_set", ea.ALL).withUnit("°C").withValueMin(5).withValueMax(40).withDescription("Target temperature while on vacation."),
-            e.numeric("holiday_temp_set_f", ea.ALL).withUnit("°F").withValueMin(41).withValueMax(104).withDescription("Target temperature while on vacation (°F)."),
-            e.numeric("max_heat_temp", ea.ALL).withUnit("°C").withValueMin(15).withValueMax(35).withDescription("Upper limit for the heating setpoint."),
-            e.numeric("max_heat_temp_f", ea.ALL).withUnit("°F").withValueMin(59).withValueMax(95).withDescription("Upper limit for the heating setpoint (°F)."),
-            e.numeric("min_cool_temp", ea.ALL).withUnit("°C").withValueMin(10).withValueMax(30).withDescription("Lower limit for the cooling setpoint."),
-            e.numeric("min_cool_temp_f", ea.ALL).withUnit("°F").withValueMin(50).withValueMax(86).withDescription("Lower limit for the cooling setpoint (°F)."),
+            e
+                .numeric("holiday_temp_set", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(40)
+                .withDescription("Target temperature while on vacation."),
+            e
+                .numeric("holiday_temp_set_f", ea.ALL)
+                .withUnit("°F")
+                .withValueMin(41)
+                .withValueMax(104)
+                .withDescription("Target temperature while on vacation (°F)."),
+            e
+                .numeric("max_heat_temp", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(15)
+                .withValueMax(35)
+                .withDescription("Upper limit for the heating setpoint."),
+            e
+                .numeric("max_heat_temp_f", ea.ALL)
+                .withUnit("°F")
+                .withValueMin(59)
+                .withValueMax(95)
+                .withDescription("Upper limit for the heating setpoint (°F)."),
+            e
+                .numeric("min_cool_temp", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(10)
+                .withValueMax(30)
+                .withDescription("Lower limit for the cooling setpoint."),
+            e
+                .numeric("min_cool_temp_f", ea.ALL)
+                .withUnit("°F")
+                .withValueMin(50)
+                .withValueMax(86)
+                .withDescription("Lower limit for the cooling setpoint (°F)."),
             e.binary("auto_time", ea.ALL, "ON", "OFF").withDescription("Let the device auto-sync its clock from the coordinator."),
             e.enum("sync_time", ea.SET, ["sync"]).withDescription('Write "sync" to push the current time to the device now.'),
             e.text("clock_last_synced", ea.STATE).withDescription("Device's own clock, as last reported (UTC)."),
@@ -1269,8 +1307,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("max_heat_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
             e.numeric("min_cool_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
             e.numeric("max_cool_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
-            e.numeric("occupied_heating_setpoint_f", ea.STATE_GET).withUnit("°F").withDescription("Device's own Fahrenheit-mode heating setpoint mirror."),
-            e.numeric("occupied_cooling_setpoint_f", ea.STATE_GET).withUnit("°F").withDescription("Device's own Fahrenheit-mode cooling setpoint mirror."),
+            e
+                .numeric("occupied_heating_setpoint_f", ea.STATE_GET)
+                .withUnit("°F")
+                .withDescription("Device's own Fahrenheit-mode heating setpoint mirror."),
+            e
+                .numeric("occupied_cooling_setpoint_f", ea.STATE_GET)
+                .withUnit("°F")
+                .withDescription("Device's own Fahrenheit-mode cooling setpoint mirror."),
             e.numeric("local_temperature_f", ea.STATE_GET).withUnit("°F").withDescription("Device's own Fahrenheit-mode temperature mirror."),
             e.numeric("energy", ea.STATE).withUnit("kWh"),
             e.numeric("current", ea.STATE).withUnit("A"),
