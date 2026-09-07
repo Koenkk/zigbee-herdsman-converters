@@ -590,6 +590,8 @@ const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "30s": 2,
 function edgeThermostatCommands() {
     return m.deviceAddCustomCluster("hvacThermostat", {
         ID: Zcl.Clusters.hvacThermostat.ID,
+        name: "hvacThermostat",
+        attributes: {},
         commands: {
             setProgram: {ID: 0x07, name: "setProgram", parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
             setEco: {ID: 0x08, name: "setEco", parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
@@ -1127,6 +1129,8 @@ export const definitions: DefinitionWithExtend[] = [
             // process startup, so an already-paired device needs this too.
             device.addCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
+                name: "hvacThermostat",
+                attributes: {},
                 commands: {
                     setProgram: {ID: 0x07, name: "setProgram", parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
                     setEco: {ID: 0x08, name: "setEco", parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
