@@ -580,6 +580,24 @@ const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
 const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "30s", "3": "60s"};
 const edgeScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 1, "30s": 2, "60s": 3};
 
+// Minimal command-only custom cluster registration, needed so entity.command()
+// can send the device's two custom commands (setEco 0x08, setProgram 0x07).
+// Deliberately registers NO attributes - a full attribute registration on
+// this cluster was confirmed to break the device's cluster-name dispatch
+// entirely (see the module-level comment above); a commands-only
+// registration carries none of that risk and was confirmed safe on real
+// hardware.
+function edgeThermostatCommands() {
+    return m.deviceAddCustomCluster("hvacThermostat", {
+        ID: Zcl.Clusters.hvacThermostat.ID,
+        commands: {
+            setProgram: {ID: 0x07, parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
+            setEco: {ID: 0x08, parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
+        },
+        commandsResponse: {},
+    });
+}
+
 // biome-ignore lint/suspicious/noExplicitAny: endpoint type is complex generic
 async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | number)[]): Promise<void> {
     try {
@@ -759,7 +777,8 @@ const tzEdge = {
     // Setting the mode uses the device's own custom commands (0x07/0x08)
     // rather than writing the programingOperMode bitmap directly - writing 0
     // to return to manual ("setpoint") mode was confirmed to be silently
-    // ignored by this firmware.
+    // ignored by this firmware. Sent via entity.command() using the
+    // commands-only custom cluster registration below (edgeThermostatCommands).
     programming_operation_mode: {
         key: ["programming_operation_mode"],
         convertSet: async (entity, key, value) => {
@@ -772,11 +791,11 @@ const tzEdge = {
             };
             if (value === "eco") {
                 await clearVacationMode();
-                await entity.request("hvacThermostat", 0x08, Buffer.from([0x01]), {direction: 0});
+                await entity.command("hvacThermostat", "setEco", {ecoMode: true}, {disableDefaultResponse: false});
             } else {
-                await entity.request("hvacThermostat", 0x08, Buffer.from([0x00]), {direction: 0});
+                await entity.command("hvacThermostat", "setEco", {ecoMode: false}, {disableDefaultResponse: false});
                 await clearVacationMode();
-                await entity.request("hvacThermostat", 0x07, Buffer.from([value === "schedule" ? 0x01 : 0x00]), {direction: 0});
+                await entity.command("hvacThermostat", "setProgram", {runMode: value === "schedule"}, {disableDefaultResponse: false});
             }
             return {state: {programming_operation_mode: value}};
         },
@@ -1060,7 +1079,7 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 };
-// ─── Namron Zigbee Edge Thermostat END Definision────────────────────────────────────
+// ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4566702", "4566703", "4512783", "4512784"],
@@ -1068,7 +1087,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee Edge Thermostat",
         ota: true,
-        extend: [m.onOff({powerOnBehavior: false}), m.humidity(), m.electricityMeter({voltage: false, configureReporting: false})],
+        extend: [edgeThermostatCommands(), m.onOff({powerOnBehavior: false}), m.humidity(), m.electricityMeter({voltage: false, configureReporting: false})],
 
         fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.edge_custom, fz.hvac_user_interface],
 
@@ -1103,6 +1122,18 @@ export const definitions: DefinitionWithExtend[] = [
         ],
 
         configure: async (device, coordinatorEndpoint) => {
+            // Defensive re-registration - onEvent('start') (used by
+            // edgeThermostatCommands' own registration) only fires at
+            // process startup, so an already-paired device needs this too.
+            device.addCustomCluster("hvacThermostat", {
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                commands: {
+                    setProgram: {ID: 0x07, parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
+                    setEco: {ID: 0x08, parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
+                },
+                commandsResponse: {},
+            });
+
             const endpoint = device.getEndpoint(1);
 
             // Bind clusters individually - this firmware doesn't support
