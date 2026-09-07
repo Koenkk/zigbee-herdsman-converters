@@ -184,6 +184,7 @@ interface ThirdPlug {
         countdownToTurnOff: number;
         countdownToTurnOn: number;
         redLedBrightness: number;
+        meteringOnlyMode: number;
     };
     commands: never;
     commandResponses: never;
@@ -1469,7 +1470,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.enumLookup({
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "1",
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
@@ -1478,13 +1479,14 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
+            m.binary<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "1",
-                name: "reset_total_energy",
-                lookup: {Reset: 1},
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
                 cluster: "3rDualPlugSpecialcluster",
-                attribute: "resetTotalEnergy",
-                description: "Reset the sum of consumed energy",
+                attribute: "meteringOnlyMode",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
             m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
@@ -1509,7 +1511,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "(OFF-ON)",
                 access: "ALL",
             }),
-            m.enumLookup({
+            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "2",
                 name: "reset_total_energy",
                 lookup: {Reset: 1},
@@ -1518,13 +1520,14 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Reset the sum of consumed energy",
                 access: "ALL",
             }),
-            m.enumLookup<"3rDualPlugSpecialcluster", ThirdPlug>({
+            m.binary<"3rDualPlugSpecialcluster", ThirdPlug>({
                 endpointName: "2",
-                name: "reset_total_energy",
-                lookup: {Reset: 1},
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
                 cluster: "3rDualPlugSpecialcluster",
-                attribute: "resetTotalEnergy",
-                description: "Reset the sum of consumed energy",
+                attribute: "meteringOnlyMode",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
             m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
