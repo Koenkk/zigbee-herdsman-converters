@@ -793,10 +793,13 @@ const tzEdge = {
             };
             if (value === "eco") {
                 await clearVacationMode();
+                // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
                 await (entity as any).command("hvacThermostat", "setEco", {ecoMode: true}, {disableDefaultResponse: false});
             } else {
+                // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
                 await (entity as any).command("hvacThermostat", "setEco", {ecoMode: false}, {disableDefaultResponse: false});
                 await clearVacationMode();
+                // biome-ignore lint/suspicious/noExplicitAny: entity type is complex generic
                 await (entity as any).command("hvacThermostat", "setProgram", {runMode: value === "schedule"}, {disableDefaultResponse: false});
             }
             return {state: {programming_operation_mode: value}};
