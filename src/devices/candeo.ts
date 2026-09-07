@@ -396,21 +396,21 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
     on_with_timed_off: {
-        ...tz.on_off,     
-        options: [childLockOptions.enforce_child_lock()],       
+        ...tz.on_off,
+        options: [childLockOptions.enforce_child_lock()],
         convertSet: async (entity, key, value, meta) => {
             if (meta.message?.on_time != null) {
                 utils.assertNumber(meta.message.on_time, "on_time");
                 const on_time = meta.message.on_time;
-                meta.message = {"state": "ON"};
+                meta.message = {state: "ON"};
                 await tz.on_off.convertSet(entity, key, value, meta); //plain turn on first
-                meta.message = {"state": "ON", "on_time": on_time / 10}; //adjust the on_time to the expected unit (seconds) and add it to the message for the next call
+                meta.message = {state: "ON", on_time: on_time / 10}; //adjust the on_time to the expected unit (seconds) and add it to the message for the next call
             }
             const result = await tz.on_off.convertSet(entity, key, value, meta);
             const enforce_child_lock = meta.options?.enforce_child_lock === "ON";
-            if (enforce_child_lock) {      
-                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});                    
-            }   
+            if (enforce_child_lock) {
+                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});
+            }
             await entity.read("genOnOff", [childLockAttribute]);
             return result;
         },
@@ -420,9 +420,9 @@ const tzLocal = {
         convertSet: async (entity, key, value, meta) => {
             const result = await tz.on_off.convertSet(entity, key, value, meta);
             const enforce_child_lock = meta.options?.enforce_child_lock === "ON";
-            if (enforce_child_lock) {      
-                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});                    
-            }   
+            if (enforce_child_lock) {
+                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});
+            }
             await entity.read("genOnOff", [childLockAttribute]);
             return result;
         },
@@ -431,8 +431,8 @@ const tzLocal = {
         ...tz.power_on_behavior,
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
-            value = value.toLowerCase();            
-            const lookup: {[key: string]: number} = {"off": 0, "on": 1, "previous": 2};
+            value = value.toLowerCase();
+            const lookup: {[key: string]: number} = {off: 0, on: 1, previous: 2};
             const v = utils.getFromLookup(value, lookup);
             await entity.write("genOnOff", {[powerOnBehaviorAttribute]: {value: v, type: Zcl.DataType.ENUM8}});
             return {state: {power_on_behavior: value}};
@@ -444,7 +444,7 @@ const tzLocal = {
     child_lock: {
         key: ["child_lock"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup: {[key: string]: boolean} = {"lock": true, "unlock": false};
+            const lookup: {[key: string]: boolean} = {lock: true, unlock: false};
             const v = utils.getFromLookup(value, lookup);
             await entity.write("genOnOff", {[childLockAttribute]: {value: v, type: Zcl.DataType.BOOLEAN}});
             return {state: {child_lock: value}};
@@ -1362,34 +1362,25 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: [{ modelID: "C-ZB-SSFS", manufacturerName: "Candeo" }],
+        fingerprint: [{modelID: "C-ZB-SSFS", manufacturerName: "Candeo"}],
         model: "C-ZB-SSFS",
         vendor: "Candeo",
         description: "Candeo C-ZB-SSFS Smart switched fused spur",
-        extend: [        
+        extend: [
             m.onOff({
                 powerOnBehavior: false,
             }),
-            m.electricityMeter( {
-                power: { min: 5, max: 300, change: 10, multiplier: 1, divisor: 1 },
-                voltage: { min: 5, max: 600, change: 5, multiplier: 1, divisor: 1 },
-                current: { min: 5, max: 900, change: 10, multiplier: 1, divisor: 1000 },
-                energy: { min: 5, max: 1800, change: 50, multiplier: 1, divisor: 100 },
-            } ),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10, multiplier: 1, divisor: 1},
+                voltage: {min: 5, max: 600, change: 5, multiplier: 1, divisor: 1},
+                current: {min: 5, max: 900, change: 10, multiplier: 1, divisor: 1000},
+                energy: {min: 5, max: 1800, change: 50, multiplier: 1, divisor: 100},
+            }),
         ],
-        toZigbee: [
-            tzLocal.on_off,
-            tzLocal.on_with_timed_off,
-            tzLocal.power_on_behavior,
-            tzLocal.child_lock,
-        ],
-        fromZigbee: [
-            fzLocal.power_on_behavior,
-            fzLocal.child_lock,
-        ],
+        toZigbee: [tzLocal.on_off, tzLocal.on_with_timed_off, tzLocal.power_on_behavior, tzLocal.child_lock],
+        fromZigbee: [fzLocal.power_on_behavior, fzLocal.child_lock],
         exposes: [
-            e
-                .power_on_behavior(["off", "on", "previous"]),
+            e.power_on_behavior(["off", "on", "previous"]),
             e
                 .binary("child_lock", ea.ALL, "LOCK", "UNLOCK")
                 .withDescription("Temporarily enables / disables physical input on the device until the next on command"),
