@@ -8955,7 +8955,7 @@ export const toZigbee = {
                     {513: {value: value ? 1 : 0, type: 0x10}},
                     manufacturerOptions.lumi,
                 );
-            } else if (["ZNCZ02LM", "QBCZ11LM", "LLKZMK11LM"].includes(meta.mapped.model)) {
+            } else if (["ZNCZ02LM", "QBCZ11LM", "LLKZMK11LM", "QBKG11LM"].includes(meta.mapped.model)) {
                 const payload = value
                     ? [
                           [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01],
