@@ -793,11 +793,11 @@ const tzEdge = {
             };
             if (value === "eco") {
                 await clearVacationMode();
-                await entity.command("hvacThermostat", "setEco", {ecoMode: true}, {disableDefaultResponse: false});
+                await (entity as any).command("hvacThermostat", "setEco", {ecoMode: true}, {disableDefaultResponse: false});
             } else {
-                await entity.command("hvacThermostat", "setEco", {ecoMode: false}, {disableDefaultResponse: false});
+                await (entity as any).command("hvacThermostat", "setEco", {ecoMode: false}, {disableDefaultResponse: false});
                 await clearVacationMode();
-                await entity.command("hvacThermostat", "setProgram", {runMode: value === "schedule"}, {disableDefaultResponse: false});
+                await (entity as any).command("hvacThermostat", "setProgram", {runMode: value === "schedule"}, {disableDefaultResponse: false});
             }
             return {state: {programming_operation_mode: value}};
         },
@@ -1081,8 +1081,7 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 };
-// ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────
-export const definitions: DefinitionWithExtend[] = [
+// ─── Namron Zigbee Edge Thermostat END ───────────────────────────────────────export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["4566702", "4566703", "4512783", "4512784"],
         model: "4566702",
