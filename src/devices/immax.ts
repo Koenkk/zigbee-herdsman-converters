@@ -442,6 +442,23 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rhocfd6y"]),
+        model: "07519L",
+        vendor: "Immax",
+        description: "NEO Smart water leak sensor, Zigbee 3.0",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.water_leak(), e.battery()],
+        meta: {
+            // DP 101 / DP 102 also appear once (value 0) right after the device connects,
+            // but because their functionaitly is not known, they are intentionally left unmapped.
+            tuyaDatapoints: [
+                // Polarity: device reports 0 while submerged (leak), 1 when dry -> trueFalse0.
+                [1, "water_leak", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_krwtzhfd"]),
         model: "07767L",
         vendor: "Immax",
