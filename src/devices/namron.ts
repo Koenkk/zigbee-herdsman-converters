@@ -591,8 +591,8 @@ function edgeThermostatCommands() {
     return m.deviceAddCustomCluster("hvacThermostat", {
         ID: Zcl.Clusters.hvacThermostat.ID,
         commands: {
-            setProgram: {ID: 0x07, parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
-            setEco: {ID: 0x08, parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
+            setProgram: {ID: 0x07, name: "setProgram", parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
+            setEco: {ID: 0x08, name: "setEco", parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
         },
         commandsResponse: {},
     });
@@ -1128,8 +1128,8 @@ export const definitions: DefinitionWithExtend[] = [
             device.addCustomCluster("hvacThermostat", {
                 ID: Zcl.Clusters.hvacThermostat.ID,
                 commands: {
-                    setProgram: {ID: 0x07, parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
-                    setEco: {ID: 0x08, parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
+                    setProgram: {ID: 0x07, name: "setProgram", parameters: [{name: "runMode", type: Zcl.DataType.BOOLEAN}]},
+                    setEco: {ID: 0x08, name: "setEco", parameters: [{name: "ecoMode", type: Zcl.DataType.BOOLEAN}]},
                 },
                 commandsResponse: {},
             });
