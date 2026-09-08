@@ -17011,98 +17011,101 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lawxy9e2", "_TZE204_lawxy9e2"]),
-        model: "TS0601_fan_5_levels_and_light_switch",
-        vendor: "Tuya",
-        description: "Fan with 5 levels & light switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
-            tuya.exposes.switch(),
-            e.power_on_behavior(["OFF", "ON"]).withAccess(ea.STATE_SET).withDescription("Fan On Off"),
-            e.numeric("fan_speed", ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1).withDescription("Speed off the fan"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [
-                    3,
-                    "fan_speed",
-                    tuya.valueConverterBasic.lookup(
-                        {
-                            "1": tuya.enum(0),
-                            "2": tuya.enum(1),
-                            "3": tuya.enum(2),
-                            "4": tuya.enum(3),
-                            "5": tuya.enum(4),
-                        },
-                        "5",
-                    ),
-                ],
-                [
-                    11,
-                    "power_on_behavior",
-                    tuya.valueConverterBasic.lookup({
-                        OFF: tuya.enum(0),
-                        ON: tuya.enum(1),
-                    }),
-                ],
-                [5, "status_indication", tuya.valueConverter.onOff],
-            ],
-        },
-        whiteLabel: [{vendor: "Liwokit", model: "Fan+Light-01"}],
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ikul00sx"]),
-        model: "TS0601_fan_5_levels_and_light_5_levels",
-        vendor: "Tuya",
-        description: "Fan with 5 levels and light with 5 levels",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.light_brightness(),
-            e.binary("fan_state", ea.STATE_SET, "ON", "OFF").withDescription("Fan on/off"),
-            e.numeric("fan_speed", ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1).withDescription("Fan speed (1=slowest, 5=fastest)"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "fan_state", tuya.valueConverter.onOff],
-                [
-                    6,
-                    "fan_speed",
-                    tuya.valueConverterBasic.lookup({
-                        1: 300,
-                        2: 410,
-                        3: 520,
-                        4: 650,
-                        5: 1000,
-                    }),
-                ],
-                [104, "state", tuya.valueConverter.onOff],
-                [
-                    105,
-                    "brightness",
+    fingerprint: tuya.fingerprint("TS0601", ["_TZE200_lawxy9e2", "_TZE204_lawxy9e2"]),
+    model: "TS0601_fan_5_levels_and_light_switch",
+    vendor: "Tuya",
+    description: "Fan with 5 levels & light switch",
+    extend: [tuya.modernExtend.tuyaBase({dp: true})],
+    exposes: [
+        e.fan().withState("state", ea.STATE_SET).withSpeed(1, 5, ea.STATE_SET),
+        e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
+        e.power_on_behavior(["OFF", "ON"]).withAccess(ea.STATE_SET).withDescription("Fan On Off"),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [1, "state", tuya.valueConverter.onOff],
+            [
+                3,
+                "speed",
+                tuya.valueConverterBasic.lookup(
                     {
-                        to: (value) => {
-                            // Map 0-254 to nearest device level
-                            if (value <= 25) return 300; // 0-10%
-                            if (value <= 76) return 410; // 11-30%
-                            if (value <= 127) return 520; // 31-50%
-                            if (value <= 178) return 650; // 51-70%
-                            return 1000; // 71-100%
-                        },
-                        from: (value) => {
-                            // Map device level back to 0-254
-                            if (value <= 300) return 51;
-                            if (value <= 410) return 102;
-                            if (value <= 520) return 153;
-                            if (value <= 650) return 203;
-                            return 254;
-                        },
+                        "1": tuya.enum(0),
+                        "2": tuya.enum(1),
+                        "3": tuya.enum(2),
+                        "4": tuya.enum(3),
+                        "5": tuya.enum(4),
                     },
-                ],
+                    "5",
+                ),
             ],
-        },
+            [
+                11,
+                "power_on_behavior",
+                tuya.valueConverterBasic.lookup({
+                    OFF: tuya.enum(0),
+                    ON: tuya.enum(1),
+                }),
+            ],
+            [5, "status_indication", tuya.valueConverter.onOff],
+        ],
     },
+    whiteLabel: [{vendor: "Liwokit", model: "Fan+Light-01"}],
+},
+{
+    fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ikul00sx"]),
+    model: "TS0601_fan_5_levels_and_light_5_levels",
+    vendor: "Tuya",
+    description: "Fan with 5 levels and light with 5 levels",
+    extend: [tuya.modernExtend.tuyaBase({dp: true})],
+    exposes: [
+        e.light_brightness(),
+        e.binary("fan_state", ea.STATE_SET, "ON", "OFF").withDescription("Fan on/off"),
+        e.numeric("fan_speed", ea.STATE_SET)
+            .withValueMin(1)
+            .withValueMax(5)
+            .withValueStep(1)
+            .withDescription("Fan speed (1=slowest, 5=fastest)"),
+    ],
+    meta: {
+        tuyaDatapoints: [
+            [1, "fan_state", tuya.valueConverter.onOff],
+            [
+                6,
+                "fan_speed",
+                tuya.valueConverterBasic.lookup({
+                    1: 300,
+                    2: 410,
+                    3: 520,
+                    4: 650,
+                    5: 1000,
+                }),
+            ],
+            [104, "state", tuya.valueConverter.onOff],
+            [
+                105,
+                "brightness",
+                {
+                    to: (value) => {
+                        // Map 0-254 to nearest device level
+                        if (value <= 25) return 300;
+                        if (value <= 76) return 410;
+                        if (value <= 127) return 520;
+                        if (value <= 178) return 650;
+                        return 1000;
+                    },
+                    from: (value) => {
+                        // Map device level back to 0-254
+                        if (value <= 300) return 51;
+                        if (value <= 410) return 102;
+                        if (value <= 520) return 153;
+                        if (value <= 650) return 203;
+                        return 254;
+                    },
+                },
+            ],
+        ],
+    },
+},
     {
         zigbeeModel: ["TS0224"],
         model: "TS0224",
