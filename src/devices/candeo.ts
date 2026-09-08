@@ -1365,7 +1365,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "C-ZB-SSFS", manufacturerName: "Candeo"}],
         model: "C-ZB-SSFS",
         vendor: "Candeo",
-        description: "Candeo C-ZB-SSFS Smart switched fused spur",
+        description: "Smart switched fused spur",
         extend: [
             m.onOff({
                 powerOnBehavior: false,
