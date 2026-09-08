@@ -144,7 +144,6 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         expect(device.getEndpoint(3).read).toHaveBeenCalledWith("genOnOffSwitchCfg", ["switchType"]);
     });
 
-    /*
     it("writes switch input type through the Shelly RPC endpoint", async () => {
         const device = mockShelly2PMCoverWithInputs();
         const definition = await findByDevice(device);
@@ -176,7 +175,6 @@ describe("Shelly 2PM Gen4 cover mode", () => {
         expect(device.getEndpoint(239).write).toHaveBeenCalledWith("shellyRPCCluster", {txCtl: expect.any(Number)}, expect.any(Object));
         expect(device.getEndpoint(3).write).toHaveBeenCalledWith("genOnOffSwitchCfg", {switchType: 1});
     });
-    */
 
     it("keeps tilt controls visible by default and allows explicit opt-out", async () => {
         const device = mockShelly2PMCover();
