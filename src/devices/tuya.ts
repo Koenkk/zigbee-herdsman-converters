@@ -18155,7 +18155,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%").withDescription("Total power factor"),
             e.power().withDescription("Total active power"),
             e.ac_frequency(),
-            e.numeric("data_report_duration", ea.SET).withValueMin(30).withValueMax(3600),
+            e.numeric("data_report_duration", ea.SET).withValueMin(5).withValueMax(3600),
             tuya.exposes.energyWithPhase("a"),
             tuya.exposes.energyWithPhase("b"),
             tuya.exposes.energyWithPhase("c"),
@@ -18176,7 +18176,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "data_report_duration",
                     {
                         to: (v: number) => {
-                            const value = Math.max(30, Math.min(3600, Math.round(v))) * 2;
+                            const value = Math.max(5, Math.min(3600, Math.round(v))) * 2;
                             // The reporting logic of this device is: for example, if 30 is input, it will report twice within 30 seconds,
                             // Which means reporting once every 15 seconds. Therefore, the input data needs to be multiplied by 2.
                             const byte1 = (value >> 8) & 0xff;
