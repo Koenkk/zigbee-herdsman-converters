@@ -12126,7 +12126,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({
                 powerOnBehavior: true,
                 skipDuplicateTransaction: true,
-                configureReporting: true,
+                configureReporting: false,
             }),
             sonoffExtend.inchingControlSet(),
             m.binary<"customClusterEwelink", SonoffEwelink>({
@@ -12343,7 +12343,10 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
-            // await reporting.onOff(endpoint, {min: 1, max: 1800, change: 0});
+            // onOff configReport is not supported on firmware >= 1.0.5, device reports proactively
+            if (firmwareSupportFeaturesVersion(device, "1.0.5", "BASIC-ZB1GSP", "lower")) {
+                await reporting.onOff(endpoint, {min: 0, max: 65000, change: 1});
+            }
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
                 ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],
