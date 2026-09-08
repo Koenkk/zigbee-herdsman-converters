@@ -146,7 +146,9 @@ const nodonModernExtend = {
                     semverValid(device.softwareBuildID) &&
                     semverGt(device.softwareBuildID, "3.4.0")
                 ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                    if (args?.endpointName) expose.withEndpoint(args.endpointName);
+                    return [expose];
                 }
                 return [];
             },
@@ -178,7 +180,9 @@ const nodonModernExtend = {
                     semverValid(device.softwareBuildID) &&
                     semverGt(device.softwareBuildID, "3.4.0")
                 ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                    if (args?.endpointName) expose.withEndpoint(args.endpointName);
+                    return [expose];
                 }
                 return [];
             },
