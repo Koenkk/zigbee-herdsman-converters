@@ -447,14 +447,27 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Immax",
         description: "NEO Smart water leak sensor, Zigbee 3.0",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.water_leak(), e.battery()],
+        exposes: [
+            e.water_leak(),
+            e.battery(),
+            e.binary("alarm_sound", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable buzzer sound on leak detection (does not mute ongoing alarm)").withCategory("config"),
+            e.enum("ringtone", ea.STATE_SET, ["tone_1", "tone_2", "tone_3"]).withDescription("Selected buzzer ringtone for the alarm").withCategory("config"),
+        ],
         meta: {
-            // DP 101 / DP 102 also appear once (value 0) right after the device connects,
-            // but because their functionaitly is not known, they are intentionally left unmapped.
             tuyaDatapoints: [
-                // Polarity: device reports 0 while submerged (leak), 1 when dry -> trueFalse0.
+                // Polarity: device reports 0 on leakage, 1 when dry -> trueFalse0.
                 [1, "water_leak", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
+                [101, "alarm_sound", tuya.valueConverter.onOffEnumOn1],
+                [
+                    102,
+                    "ringtone",
+                    tuya.valueConverterBasic.lookup({
+                        tone_1: tuya.enum(0),
+                        tone_2: tuya.enum(1),
+                        tone_3: tuya.enum(2),
+                    }),
+                ],
             ],
         },
     },
