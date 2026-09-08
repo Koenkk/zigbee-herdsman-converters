@@ -282,6 +282,51 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_16m4bgsv"]),
+        model: "1443ZK",
+        vendor: "CBE",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true})],
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e
+                .climate()
+                .withPreset(["manual", "schedule", "eco", "comfort", "antifrost", "off"])
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        antifrost: tuya.enum(4),
+                        off: tuya.enum(5),
+                    }),
+                ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 1, heat: 0})],
+                [
+                    4,
+                    "current_heating_setpoint",
+                    {
+                        from: (value: number) => (value === -1 || value === 0xffffffff ? undefined : value / 10),
+                        to: (value: number) => Math.round(value * 10),
+                    },
+                ],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_goecjd1t"]),
         model: "ZWPM16",
         vendor: "AVATTO",
