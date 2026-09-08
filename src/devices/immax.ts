@@ -450,8 +450,14 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.water_leak(),
             e.battery(),
-            e.binary("alarm_sound", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable buzzer sound on leak detection (does not mute ongoing alarm)").withCategory("config"),
-            e.enum("ringtone", ea.STATE_SET, ["tone_1", "tone_2", "tone_3"]).withDescription("Selected buzzer ringtone for the alarm").withCategory("config"),
+            e
+                .binary("alarm_sound", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Enable or disable buzzer sound on leak detection (does not mute ongoing alarm)")
+                .withCategory("config"),
+            e
+                .enum("ringtone", ea.STATE_SET, ["tone_1", "tone_2", "tone_3"])
+                .withDescription("Selected buzzer ringtone for the alarm")
+                .withCategory("config"),
         ],
         meta: {
             tuyaDatapoints: [
