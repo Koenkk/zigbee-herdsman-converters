@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
@@ -218,6 +218,43 @@ const nodonModernExtend = {
         }),
 };
 
+interface NodonIrExtender {
+    attributes: {irbHolderTemperatureCalibration: number};
+    commands: never;
+    commandResponses: never;
+}
+
+const nodonIrbFz = {
+    irb_holder_temperature_calibration: {
+        cluster: "nodonIrExtender",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.irbHolderTemperatureCalibration === undefined) return;
+            return {irb_holder_temperature_calibration: msg.data.irbHolderTemperatureCalibration / 10};
+        },
+    } satisfies Fz.Converter<"nodonIrExtender", NodonIrExtender, ["attributeReport", "readResponse"]>,
+};
+
+const nodonIrbTz = {
+    irb_holder_temperature_calibration: {
+        key: ["irb_holder_temperature_calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            const raw = Math.round(Number(value) * 10);
+            await entity.write<"nodonIrExtender", NodonIrExtender>(
+                "nodonIrExtender",
+                {irbHolderTemperatureCalibration: raw},
+                {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            );
+            return {state: {irb_holder_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"nodonIrExtender", NodonIrExtender>("nodonIrExtender", ["irbHolderTemperatureCalibration"], {
+                manufacturerCode: Zcl.ManufacturerCode.NODON,
+            });
+        },
+    } satisfies Tz.Converter,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["FPS-4-1-00"],
@@ -233,42 +270,66 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IRB-4-1-00",
         vendor: "NodOn",
         description: "IR Blaster",
-        fromZigbee: [fz.thermostat, fz.fan],
-        toZigbee: [
-            tz.fan_mode,
-            tz.thermostat_local_temperature,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_min_heat_setpoint_limit,
-            tz.thermostat_max_heat_setpoint_limit,
-            tz.thermostat_min_cool_setpoint_limit,
-            tz.thermostat_max_cool_setpoint_limit,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-            tz.thermostat_ac_louver_position,
+        fromZigbee: [fz.fan, nodonIrbFz.irb_holder_temperature_calibration],
+        extend: [
+            m.identify(),
+            m.humidity(),
+            m.thermostat({
+                localTemperature: {
+                    values: {description: "Current temperature measured on the device"},
+                },
+                localTemperatureCalibration: {values: true},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 16, max: 30, step: 0.5},
+                        occupiedCoolingSetpoint: {min: 18, max: 30, step: 0.5},
+                    },
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool", "auto", "dry", "fan_only"],
+                },
+                fanMode: ["off", "low", "medium", "high", "auto"],
+            }),
+            m.deviceAddCustomCluster("nodonIrExtender", {
+                name: "nodonIrExtender",
+                ID: 0xfc82,
+                manufacturerCode: Zcl.ManufacturerCode.NODON,
+                attributes: {
+                    irbHolderTemperatureCalibration: {
+                        ID: 0x8001,
+                        name: "irbHolderTemperatureCalibration",
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.NODON,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
         ],
-        ota: true,
+        toZigbee: [tz.thermostat_ac_louver_position, nodonIrbTz.irb_holder_temperature_calibration],
         exposes: [
+            e.climate().withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
             e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_cooling_setpoint", 18, 30, 0.5)
-                .withSetpoint("occupied_heating_setpoint", 16, 30, 0.5)
-                .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
-                .withFanMode(["off", "low", "medium", "high", "auto"])
-                .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
+                .numeric("irb_holder_temperature_calibration", ea.ALL)
+                .withLabel("IBH temperature offset")
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withDescription(
+                    "Extra temperature offset applied on top of localTemperatureCalibration when the IBH-1-1-00 holder " +
+                        "accessory is physically connected to this device.",
+                ),
         ],
-        extend: [m.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
+        configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
             await reporting.thermostatAcLouverPosition(endpoint);
         },
+        endpoint: (device) => ({default: 1}),
+        ota: true,
+        version: "0.0.1",
     },
     {
         zigbeeModel: ["SDC-4-1-00"],
