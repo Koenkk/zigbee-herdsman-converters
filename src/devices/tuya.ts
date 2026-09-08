@@ -17140,17 +17140,16 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Fan with 5 levels & light switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
+            e.fan().withState("state", ea.STATE_SET).withSpeed(1, 5, ea.STATE_SET),
             e.binary("status_indication", ea.STATE_SET, "ON", "OFF").withDescription("Light switch"),
-            tuya.exposes.switch(),
             e.power_on_behavior(["OFF", "ON"]).withAccess(ea.STATE_SET).withDescription("Fan On Off"),
-            e.numeric("fan_speed", ea.STATE_SET).withValueMin(1).withValueMax(5).withValueStep(1).withDescription("Speed off the fan"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
                 [
                     3,
-                    "fan_speed",
+                    "speed",
                     tuya.valueConverterBasic.lookup(
                         {
                             "1": tuya.enum(0),
@@ -17207,11 +17206,11 @@ export const definitions: DefinitionWithExtend[] = [
                     {
                         to: (value) => {
                             // Map 0-254 to nearest device level
-                            if (value <= 25) return 300; // 0-10%
-                            if (value <= 76) return 410; // 11-30%
-                            if (value <= 127) return 520; // 31-50%
-                            if (value <= 178) return 650; // 51-70%
-                            return 1000; // 71-100%
+                            if (value <= 25) return 300;
+                            if (value <= 76) return 410;
+                            if (value <= 127) return 520;
+                            if (value <= 178) return 650;
+                            return 1000;
                         },
                         from: (value) => {
                             // Map device level back to 0-254
