@@ -809,7 +809,7 @@ const tzEdge = {
         key: ["regulator_cycle"],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error(`Invalid regulator_cycle: ${value}`);
+            if (Number.isNaN(num) || num < 0 || num > 30) throw new Error(`Invalid regulator_cycle: ${value}`);
             await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
             return {state: {regulator_cycle: num}};
         },
@@ -1079,7 +1079,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperatureCalibration(-5, 5, 0.5),
             e.numeric("max_heat_temp", ea.ALL).withUnit("°C").withValueMin(15).withValueMax(35).withValueStep(0.5).withLabel("Max heat temperature"),
             e.enum("thermostat_mode", ea.ALL, ["manual", "schedule", "regulator"]).withLabel("Thermostat mode"),
-            e.enum("thermostat_mode_extra", ea.ALL, ["eco", "frost", "holiday"]).withLabel("Special mode"),
+            e.enum("thermostat_mode_extra", ea.ALL, ["eco", "frost", "holiday", "manual"]).withLabel("Special mode"),
             e
                 .enum("sensor_mode", ea.ALL, ["air", "floor", "both", "percent"])
                 .withLabel("Sensor mode")
@@ -1096,7 +1096,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("regulator_cycle", ea.ALL)
                 .withUnit("min")
-                .withValueMin(1)
+                .withValueMin(0)
                 .withValueMax(30)
                 .withValueStep(1)
                 .withLabel("Regulator cycle duration"),
