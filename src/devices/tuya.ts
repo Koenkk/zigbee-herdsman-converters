@@ -1188,6 +1188,71 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    TS0601_rcbo_threshold: {
+        key: [
+            "over_temperature_threshold",
+            "over_temperature_trip",
+            "over_temperature_alarm",
+            "over_voltage_threshold",
+            "over_voltage_trip",
+            "over_voltage_alarm",
+            "under_voltage_threshold",
+            "under_voltage_trip",
+            "under_voltage_alarm",
+            "over_current_threshold",
+            "over_current_trip",
+            "over_current_alarm",
+            "over_leakage_current_threshold",
+            "over_leakage_current_trip",
+            "over_leakage_current_alarm",
+        ],
+        convertSet: async (entity, key, value, meta) => {
+            // Each of these datapoints packs several settings into one raw payload, so the
+            // settings which are not being changed have to be resent from the reported state.
+            const state: KeyValue = {...meta.state, [key]: value};
+            const num = (property: string, fallback: number) => utils.toNumber(state[property] ?? fallback, property);
+            const flag = (property: string) => (state[property] === "ON" ? 1 : 0);
+
+            if (key.includes("temperature")) {
+                const threshold = num("over_temperature_threshold", 80);
+                const payload = Buffer.from([
+                    threshold < 0 ? Math.abs(threshold) + 128 : threshold,
+                    flag("over_temperature_trip"),
+                    flag("over_temperature_alarm"),
+                ]);
+                await tuya.sendDataPointRaw(entity, legacy.dataPoints.hochTemperatureThreshold, payload, "sendData");
+            } else if (key.includes("voltage")) {
+                const payload = Buffer.alloc(8);
+                payload.writeUInt16BE(Math.round(num("over_voltage_threshold", 280) * 10), 0);
+                payload.writeUInt8(flag("over_voltage_trip"), 2);
+                payload.writeUInt8(flag("over_voltage_alarm"), 3);
+                payload.writeUInt16BE(Math.round(num("under_voltage_threshold", 150) * 10), 4);
+                payload.writeUInt8(flag("under_voltage_trip"), 6);
+                payload.writeUInt8(flag("under_voltage_alarm"), 7);
+                await tuya.sendDataPointRaw(entity, legacy.dataPoints.hochVoltageThreshold, payload, "sendData");
+            } else if (key.includes("leakage")) {
+                const payload = Buffer.alloc(8);
+                payload.writeUInt8(num("self_test_auto_days", 0), 0);
+                payload.writeUInt8(num("self_test_auto_hours", 0), 1);
+                payload.writeUInt8(flag("self_test_auto"), 2);
+                payload.writeUInt16BE(num("over_leakage_current_threshold", 30), 3);
+                payload.writeUInt8(flag("over_leakage_current_trip"), 5);
+                payload.writeUInt8(flag("over_leakage_current_alarm"), 6);
+                // Byte 7 starts a trip test, never re-trigger one when only thresholds change
+                payload.writeUInt8(0, 7);
+                await tuya.sendDataPointRaw(entity, legacy.dataPoints.hochLeakageParameters, payload, "sendData");
+            } else {
+                const payload = Buffer.alloc(5);
+                payload.writeUIntBE(Math.round(num("over_current_threshold", 63) * 1000), 0, 3);
+                payload.writeUInt8(flag("over_current_trip"), 3);
+                payload.writeUInt8(flag("over_current_alarm"), 4);
+                await tuya.sendDataPointRaw(entity, legacy.dataPoints.hochCurrentThreshold, payload, "sendData");
+            }
+
+            return {state: {[key]: value}};
+        },
+    } satisfies Tz.Converter,
     invert_cover_percent_fix: {
         key: ["state", "position"],
         convertSet: async (entity, key, value, meta) => {
@@ -15014,7 +15079,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         description: "DIN mount RCBO with smart energy metering",
         fromZigbee: [legacy.fromZigbee.hoch_din],
-        toZigbee: [legacy.toZigbee.hoch_din],
+        toZigbee: [legacy.toZigbee.hoch_din, tzLocal.TS0601_rcbo_threshold],
         exposes: [
             e.text("meter_number", ea.STATE).withDescription("Meter number"),
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("State"),
@@ -15035,6 +15100,60 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("power_l3", ea.STATE).withUnit("W").withDescription("Instantaneous measured power on phase 3"),
             e.numeric("energy_consumed", ea.STATE).withUnit("kWh").withDescription("Consumed energy"),
             e.enum("clear_device_data", ea.SET, [""]).withDescription("Clear device data"),
+            e.numeric("self_test_auto_days", ea.STATE).withUnit("d").withDescription("Days between automatic self tests"),
+            e.numeric("self_test_auto_hours", ea.STATE).withUnit("h").withDescription("Hour of the day at which the automatic self test runs"),
+            e.binary("self_test_auto", ea.STATE, "ON", "OFF").withDescription("Automatic self test enabled"),
+            e.binary("self_test", ea.STATE, "test", "clear").withDescription("Self test running"),
+            e
+                .numeric("over_temperature_threshold", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(30)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Over temperature threshold")
+                .withCategory("config"),
+            e.binary("over_temperature_trip", ea.STATE_SET, "ON", "OFF").withDescription("Trip on over temperature").withCategory("config"),
+            e.binary("over_temperature_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Alarm on over temperature").withCategory("config"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(200)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withDescription("Over voltage threshold")
+                .withCategory("config"),
+            e.binary("over_voltage_trip", ea.STATE_SET, "ON", "OFF").withDescription("Trip on over voltage").withCategory("config"),
+            e.binary("over_voltage_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Alarm on over voltage").withCategory("config"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(100)
+                .withValueMax(215)
+                .withValueStep(1)
+                .withDescription("Under voltage threshold")
+                .withCategory("config"),
+            e.binary("under_voltage_trip", ea.STATE_SET, "ON", "OFF").withDescription("Trip on under voltage").withCategory("config"),
+            e.binary("under_voltage_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Alarm on under voltage").withCategory("config"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Over current threshold")
+                .withCategory("config"),
+            e.binary("over_current_trip", ea.STATE_SET, "ON", "OFF").withDescription("Trip on over current").withCategory("config"),
+            e.binary("over_current_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Alarm on over current").withCategory("config"),
+            e
+                .numeric("over_leakage_current_threshold", ea.STATE_SET)
+                .withUnit("mA")
+                .withValueMin(10)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Over leakage current threshold")
+                .withCategory("config"),
+            e.binary("over_leakage_current_trip", ea.STATE_SET, "ON", "OFF").withDescription("Trip on over leakage current").withCategory("config"),
+            e.binary("over_leakage_current_alarm", ea.STATE_SET, "ON", "OFF").withDescription("Alarm on over leakage current").withCategory("config"),
         ],
     },
     {
