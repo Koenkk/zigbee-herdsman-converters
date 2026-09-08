@@ -4934,6 +4934,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "899WZ", "Water leak detector with 80DB Alarm", ["_TZ3000_mugyhz0q"]),
             tuya.whitelabel("Niceboy", "ORBIS Water Sensor", "Water leak sensor", ["_TZ3000_awvmkayh"]),
             tuya.whitelabel("Nous", "E4", "Water Leakage Sensor)", ["_TZ3000_0s9gukzt"]),
+            tuya.whitelabel("Mowe", "MW815R", "Rain sensor", ["_TZ3000_syetgitm"]),
         ],
         toZigbee: [],
         configure: async (device, coordinatorEndpoint) => {
