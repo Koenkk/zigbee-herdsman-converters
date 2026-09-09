@@ -552,8 +552,13 @@ export function deviceTemperature(args: Partial<NumericArgs<"genDeviceTempCfg">>
     });
 }
 
-export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernExtend {
-    const {isSleepy} = args;
+export interface IdentifyArgs {
+    isSleepy?: boolean;
+    endpointNames?: string[];
+}
+
+export function identify(args: IdentifyArgs = {}): ModernExtend {
+    const {isSleepy = false, endpointNames = undefined} = args;
     const normal: Expose = e.enum("identify", ea.SET, ["identify"]).withDescription("Initiate device identification").withCategory("config");
     const sleepy: Expose = e
         .enum("identify", ea.SET, ["identify"])
@@ -563,7 +568,8 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
         )
         .withCategory("config");
 
-    const exposes: Expose[] = isSleepy ? [sleepy] : [normal];
+    const identifyExpose = isSleepy ? sleepy : normal;
+    const exposes: Expose[] = exposeEndpoints(identifyExpose, endpointNames);
 
     const identifyTimeout = e
         .numeric("identify_timeout", ea.SET)
@@ -574,16 +580,16 @@ export function identify(args: {isSleepy: boolean} = {isSleepy: false}): ModernE
         .withValueMin(1)
         .withValueMax(30);
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: ["identify"],
-            options: [identifyTimeout],
-            convertSet: async (entity, key, value, meta) => {
-                const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
-                await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
-            },
+    const baseConverter: Tz.Converter = {
+        key: ["identify"],
+        options: [identifyTimeout],
+        convertSet: async (entity, key, value, meta) => {
+            const identifyTimeout = (meta.options.identify_timeout as number) ?? 3;
+            await entity.command("genIdentify", "identify", {identifytime: identifyTimeout}, getOptions(meta.mapped, entity));
         },
-    ];
+    };
+
+    const toZigbee: Tz.Converter[] = [endpointNames ? {...baseConverter, endpoints: endpointNames} : baseConverter];
 
     return {exposes, toZigbee, isModernExtend: true};
 }
@@ -649,6 +655,88 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
             configureSetPowerSourceWhenUnknown("Mains (single phase)"),
         ];
     }
+    return result;
+}
+
+export interface FanControlArgs<Cl extends string | number = "hvacFanCtrl", _Custom extends TCustomCluster | undefined = undefined> {
+    cluster?: Cl;
+    endpointNames?: string[];
+    reporting?: false | ReportingConfigWithoutAttribute;
+    bind?: boolean;
+}
+export function fanControl<Cl extends string | number = "hvacFanCtrl", Custom extends TCustomCluster | undefined = undefined>(
+    args: FanControlArgs<Cl, Custom> = {},
+): ModernExtend {
+    const {cluster = "hvacFanCtrl" as Cl, endpointNames = undefined, reporting = {min: 0, max: "1_HOUR", change: 0}, bind = true} = args;
+
+    const fanExpose = e.fan().withState("state").withModes(Object.keys(constants.fanMode));
+    const exposes: Expose[] = exposeEndpoints(fanExpose, endpointNames);
+
+    const fromZigbee = [fz.fan];
+    const toZigbee: Tz.Converter[] = [tz.fan_mode];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    const configure: Configure[] = [];
+    if (bind) {
+        configure.push(setupConfigureForBinding(cluster, "input", endpointNames));
+    }
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting<Cl, Custom>(cluster, "fanMode" as ClusterOrRawAttributeKeys<Cl, Custom>[number], {
+                config: reporting,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+    result.configure = configure;
+
+    return result;
+}
+
+export interface ThermostatUiArgs<Cl extends string | number = "hvacUserInterfaceCfg", _Custom extends TCustomCluster | undefined = undefined> {
+    cluster?: Cl;
+    endpointNames?: string[];
+    reporting?: false | ReportingConfigWithoutAttribute;
+    bind?: boolean;
+}
+export function thermostatUi<Cl extends string | number = "hvacUserInterfaceCfg", Custom extends TCustomCluster | undefined = undefined>(
+    args: ThermostatUiArgs<Cl, Custom> = {},
+): ModernExtend {
+    const {cluster = "hvacUserInterfaceCfg" as Cl, endpointNames = undefined, reporting = {min: 10, max: "1_HOUR", change: 0}, bind = true} = args;
+
+    const exposes: Expose[] = [
+        ...exposeEndpoints(
+            e.enum("temperature_display_mode", ea.ALL, Object.values(constants.temperatureDisplayMode)).withDescription("Temperature display mode"),
+            endpointNames,
+        ),
+        ...exposeEndpoints(
+            e.enum("keypad_lockout", ea.ALL, Object.values(constants.keypadLockoutMode)).withDescription("Keypad lockout mode"),
+            endpointNames,
+        ),
+    ];
+
+    const fromZigbee = [fz.hvac_user_interface];
+    const toZigbee: Tz.Converter[] = [tz.thermostat_temperature_display_mode, tz.thermostat_keypad_lockout];
+
+    const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+
+    const configure: Configure[] = [];
+    if (bind) {
+        configure.push(setupConfigureForBinding(cluster, "input", endpointNames));
+    }
+    if (reporting) {
+        configure.push(
+            setupConfigureForReporting<Cl, Custom>(cluster, "keypadLockout" as ClusterOrRawAttributeKeys<Cl, Custom>[number], {
+                config: reporting,
+                access: ea.STATE_GET,
+                endpointNames: endpointNames,
+            }),
+        );
+    }
+    result.configure = configure;
+
     return result;
 }
 
@@ -840,21 +928,23 @@ export function customTimeResponse(start: "1970_UTC" | "2000_LOCAL"): ModernExte
 
 // #region Measurement and Sensing
 
-export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement">> = {}): ModernExtend {
-    const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
-        let result = value;
-        if (type === "from") {
-            result = 10 ** ((result - 1) / 10000);
-        }
-        return result;
-    };
+const luxScale: ScaleFunction = (value: number, type: "from" | "to") => {
+    let result = value;
+    if (type === "from") {
+        if (result === 0x0000) return 0;
 
+        result = 10 ** ((result - 1) / 10000);
+    }
+    return result;
+};
+
+export function illuminance(args: Partial<NumericArgs<"msIlluminanceMeasurement">> = {}): ModernExtend {
     const result = numeric({
         name: "illuminance",
         cluster: "msIlluminanceMeasurement",
         attribute: "measuredValue",
         reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}, // 5 lux
-        description: "Measured illuminance",
+        description: "Measured illuminance. 0 = too low to be measured",
         unit: "lx",
         scale: luxScale,
         access: "STATE_GET",
@@ -982,10 +1072,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
         endpointNames = undefined,
     } = args;
 
-    const templateExposes: Expose[] = [e.occupancy().withAccess(ea.STATE_GET)];
-    const exposes: (Expose | DefinitionExposesFunction)[] = endpointNames
-        ? templateExposes.flatMap((exp) => endpointNames.map((ep) => exp.withEndpoint(ep)))
-        : templateExposes;
+    const exposes: (Expose | DefinitionExposesFunction)[] = exposeEndpoints(e.occupancy().withAccess(ea.STATE_GET), endpointNames);
 
     const fromZigbee: Fz.Converter<"msOccupancySensing">[] = [
         {
@@ -994,7 +1081,7 @@ export function occupancy(args: OccupancyArgs = {}): ModernExtend {
             options: [opt.no_occupancy_since_false()],
             convert: (model, msg, publish, options, meta) => {
                 if ("occupancy" in msg.data && (!endpointNames || endpointNames.includes(getEndpointName(msg, model, meta).toString()))) {
-                    const propertyName = postfixWithEndpointName("occupancy", msg, model, meta);
+                    const propertyName = endpointNames ? postfixWithEndpointName("occupancy", msg, model, meta) : "occupancy";
                     const payload = {[propertyName]: (msg.data.occupancy & 1) > 0};
                     noOccupancySince(msg.endpoint, options, publish, payload[propertyName] ? "stop" : "start");
                     return payload;
@@ -1290,7 +1377,6 @@ export function light(args: LightArgs = {}): ModernExtend {
         lightExpose.forEach((e) => {
             levelConfig.features ? e.withLevelConfig(levelConfig.features) : e.withLevelConfig();
         });
-        toZigbee.push(tz.level_config);
     }
 
     const exposes: Expose[] = lightExpose;
@@ -1875,9 +1961,10 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 
 export interface IasWarningArgs {
     reversePayload?: boolean;
+    maxDuration?: boolean | {min?: number; max?: number};
 }
 export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
-    const {reversePayload = false} = args;
+    const {reversePayload = false, maxDuration = false} = args;
     const warningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
     // levels for siren, strobe and squawk are identical
     const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -1892,6 +1979,43 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
             .withFeature(e.numeric("strobe_duty_cycle", ea.SET).withValueMax(10).withValueMin(0).withDescription("Length of the flash cycle"))
             .withFeature(e.numeric("duration", ea.SET).withUnit("s").withDescription("Duration in seconds of the alarm")),
     ];
+
+    const maxDurationArgs = typeof maxDuration === "object" ? maxDuration : {};
+    if (maxDuration) {
+        exposes.push(
+            e
+                .numeric("max_duration", ea.ALL)
+                .withUnit("s")
+                .withValueMin(maxDurationArgs.min ?? 0)
+                .withValueMax(maxDurationArgs.max ?? 65534)
+                .withDescription("Max duration in seconds of the alarm"),
+        );
+    }
+
+    const fromZigbee = maxDuration
+        ? [
+              {
+                  cluster: "ssIasWd",
+                  type: ["attributeReport", "readResponse"],
+                  convert: (model, msg, publish, options, meta) => {
+                      const result: KeyValueAny = {};
+                      if (msg.data.maxDuration !== undefined) result.max_duration = msg.data.maxDuration;
+                      return result;
+                  },
+              } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
+          ]
+        : [];
+
+    const maxDurationConverter: Tz.Converter = {
+        key: ["max_duration"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("ssIasWd", {maxDuration: value as number});
+            return {state: {max_duration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("ssIasWd", ["maxDuration"]);
+        },
+    };
 
     const toZigbee: Tz.Converter[] = [
         {
@@ -1909,7 +2033,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     // @ts-expect-error ignore
                     strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 1,
+                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, level) : 1,
                 };
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -1930,8 +2054,10 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                 await entity.command("ssIasWd", "startWarning", payload, getOptions(meta.mapped, entity));
             },
         },
+        ...(maxDuration ? [maxDurationConverter] : []),
     ];
-    return {toZigbee, exposes, isModernExtend: true};
+
+    return {fromZigbee, toZigbee, exposes, isModernExtend: true};
 }
 
 // #endregion
@@ -2741,21 +2867,22 @@ export type ScaleFunction = (value: number, type: "from" | "to") => number;
 
 export interface NumericArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>
     extends ClusterWithAttribute<Cl, Custom> {
-    name: string;
-    description: string;
+    name: string | string[];
+    description: string | string[];
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
-    unit?: string;
+    unit?: string | string[];
     endpointNames?: string[];
     reporting?: false | ReportingConfigWithoutAttribute;
-    valueMin?: number;
-    valueMax?: number;
-    valueStep?: number;
+    valueMin?: number | number[];
+    valueMax?: number | number[];
+    valueStep?: number | number[];
     scale?: number | ScaleFunction;
-    label?: string;
+    label?: string | string[];
     entityCategory?: "config" | "diagnostic";
-    precision?: number;
+    precision?: number | number[];
     fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
+    homeassistant?: exposes.HomeAssistant | exposes.HomeAssistant[];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -2776,15 +2903,91 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         entityCategory,
         precision,
         fzConvert,
+        homeassistant,
     } = args;
+
+    const nameArray = Array.isArray(name) ? name : [name];
+    const descriptionArray = Array.isArray(description) ? description : [description];
+    const labelArray = Array.isArray(label) ? label : [label];
+    const homeassistantArray = Array.isArray(homeassistant) ? homeassistant : [homeassistant];
+    const unitArray = Array.isArray(unit) ? unit : [unit];
+    const valueMinArray = Array.isArray(valueMin) ? valueMin : [valueMin];
+    const valueMaxArray = Array.isArray(valueMax) ? valueMax : [valueMax];
+    const valueStepArray = Array.isArray(valueStep) ? valueStep : [valueStep];
+    const precisionArray = Array.isArray(precision) ? precision : [precision];
 
     const endpoints = args.endpointNames;
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
+    if (nameArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === nameArray.length,
+            "If multiple names are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (labelArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === labelArray.length,
+            "If multiple labels are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (descriptionArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === descriptionArray.length,
+            "If multiple descriptions are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (homeassistantArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === homeassistantArray.length,
+            "If multiple homeassistants are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (unitArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === unitArray.length,
+            "If multiple units are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (valueMinArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === valueMinArray.length,
+            "If multiple valueMins are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (valueMaxArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === valueMaxArray.length,
+            "If multiple valueMaxs are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (valueStepArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === valueStepArray.length,
+            "If multiple valueSteps are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (precisionArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === precisionArray.length,
+            "If multiple precisions are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+
     const exposes: Expose[] = [];
 
-    const createExpose = (endpoint?: string): Expose => {
+    const createExpose = (
+        name: string,
+        description: string,
+        endpoint?: string,
+        unit?: string,
+        valueMin?: number,
+        valueMax?: number,
+        valueStep?: number,
+        label?: string,
+        homeassistant?: exposes.HomeAssistant,
+    ): Expose => {
         let expose = e.numeric(name, access).withDescription(description);
         if (endpoint) expose = expose.withEndpoint(endpoint);
         if (unit) expose = expose.withUnit(unit);
@@ -2793,15 +2996,40 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         if (valueStep !== undefined) expose = expose.withValueStep(valueStep);
         if (label !== undefined) expose = expose.withLabel(label);
         if (entityCategory) expose = expose.withCategory(entityCategory);
+        if (homeassistant) expose = expose.withHomeAssistant(homeassistant);
 
         return expose;
     };
     // Generate for multiple endpoints only if required.
     if (!endpoints) {
-        exposes.push(createExpose(undefined));
+        exposes.push(
+            createExpose(
+                nameArray[0],
+                descriptionArray[0],
+                undefined,
+                unitArray[0],
+                valueMinArray[0],
+                valueMaxArray[0],
+                valueStepArray[0],
+                labelArray[0],
+                homeassistantArray[0],
+            ),
+        );
     } else {
-        for (const endpoint of endpoints) {
-            exposes.push(createExpose(endpoint));
+        for (const [i, endpoint] of endpoints.entries()) {
+            exposes.push(
+                createExpose(
+                    nameArray[i] ?? nameArray[0],
+                    descriptionArray[i] ?? descriptionArray[0],
+                    endpoint,
+                    unitArray[i] ?? unitArray[0],
+                    valueMinArray[i] ?? valueMinArray[0],
+                    valueMaxArray[i] ?? valueMaxArray[0],
+                    valueStepArray[i] ?? valueStepArray[0],
+                    labelArray[i] ?? labelArray[0],
+                    homeassistantArray[i] ?? homeassistantArray[0],
+                ),
+            );
         }
     }
 
@@ -2814,7 +3042,9 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                 ((model, msg, publish, options, meta) => {
                     const attributeValue = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
                     if (attributeValue !== undefined) {
-                        const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                        const endpointName = endpoints ? getEndpointName(msg, model, meta) : undefined;
+                        const endpointIndex = endpoints?.indexOf(endpointName) ?? 0;
+                        const endpoint = endpoints?.find((e) => endpointName === e);
                         if (endpoints && !endpoint) {
                             return;
                         }
@@ -2826,6 +3056,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                             value = typeof scale === "number" ? value / scale : scale(value, "from");
                         }
                         assertNumber(value);
+                        const precision = precisionArray[endpointIndex] ?? precisionArray[0];
                         if (precision != null) value = precisionRound(value, precision);
 
                         const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
@@ -2836,9 +3067,21 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         } satisfies Fz.Converter<any, undefined, ["attributeReport", "readResponse"]>,
     ];
 
-    const toZigbee: Tz.Converter[] = [
-        {
-            key: [name],
+    const toZigbee: Tz.Converter[] = [];
+    // Group by unique `name` so that multiple endpoints
+    // with the same name are represented by a single converter.
+    const uniqueNames = Array.from(new Set(nameArray));
+    for (const uniqName of uniqueNames) {
+        const indices: number[] = [];
+        for (let i = 0; i < nameArray.length; i++) {
+            if (nameArray[i] === uniqName) indices.push(i);
+        }
+
+        const groupEndpointNames = endpoints ? indices.map((i) => endpoints[i]) : undefined;
+        const groupPrecition = indices.map((i) => precisionArray[i]);
+
+        const tZ: Tz.Converter = {
+            key: [uniqName],
             convertSet:
                 access & ea.SET
                     ? async (entity, key, value, meta) => {
@@ -2848,6 +3091,9 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                               payloadValue = typeof scale === "number" ? payloadValue * scale : scale(payloadValue, "to");
                           }
                           assertNumber(payloadValue);
+
+                          const endpointIndex = groupEndpointNames?.indexOf(meta.endpoint_name ?? groupEndpointNames[0]) ?? 0;
+                          const precision = groupPrecition[endpointIndex] ?? groupPrecition[0];
                           if (precision != null) payloadValue = precisionRound(payloadValue, precision);
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
@@ -2872,8 +3118,9 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                           );
                       }
                     : undefined,
-        },
-    ];
+        };
+        toZigbee.push(tZ);
+    }
 
     const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 
@@ -2885,25 +3132,89 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     name: string;
     valueOn: [string | boolean, unknown];
     valueOff: [string | boolean, unknown];
-    description: string;
+    description: string | string[];
     zigbeeCommandOptions?: {manufacturerCode: number};
-    endpointName?: string;
+    endpointName?: string | string[];
     reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
-    label?: string;
+    label?: string | string[];
     entityCategory?: "config" | "diagnostic";
+    homeassistant?: exposes.HomeAssistant | exposes.HomeAssistant[];
 }
 export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: BinaryArgs<Cl, Custom>,
 ): ModernExtend {
-    const {name, valueOn, valueOff, cluster, attribute, description, zigbeeCommandOptions, endpointName, reporting, label, entityCategory} = args;
+    const {
+        name,
+        valueOn,
+        valueOff,
+        cluster,
+        attribute,
+        description,
+        zigbeeCommandOptions,
+        endpointName,
+        reporting,
+        label,
+        entityCategory,
+        homeassistant,
+    } = args;
+
+    const descriptionArray = Array.isArray(description) ? description : [description];
+    const labelArray = Array.isArray(label) ? label : [label];
+    const homeassistantArray = Array.isArray(homeassistant) ? homeassistant : [homeassistant];
+    let endpoints: string[] | undefined;
+    if (endpointName) {
+        endpoints = Array.isArray(endpointName) ? endpointName : [endpointName];
+    }
+
     const attributeKey = isString(attribute) ? attribute : attribute.ID;
     const access = ea[args.access ?? "ALL"];
 
-    let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
-    if (endpointName) expose = expose.withEndpoint(endpointName);
-    if (label) expose = expose.withLabel(label);
-    if (entityCategory) expose = expose.withCategory(entityCategory);
+    if (labelArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === labelArray.length,
+            "If multiple labels are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (descriptionArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === descriptionArray.length,
+            "If multiple descriptions are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+    if (homeassistantArray.length > 1) {
+        assert(
+            endpoints && endpoints.length === homeassistantArray.length,
+            "If multiple homeassistants are provided, endpointNames must be provided and have the same length.",
+        );
+    }
+
+    const exposes: Expose[] = [];
+
+    const createExpose = (description: string, endpoint?: string, label?: string, homeassistant?: exposes.HomeAssistant): Expose => {
+        let expose = e.binary(name, access, valueOn[0], valueOff[0]).withDescription(description);
+        if (endpoint) expose = expose.withEndpoint(endpoint);
+        if (label !== undefined) expose = expose.withLabel(label);
+        if (entityCategory) expose = expose.withCategory(entityCategory);
+        if (homeassistant) expose = expose.withHomeAssistant(homeassistant);
+
+        return expose;
+    };
+    // Generate for multiple endpoints only if required.
+    if (!endpoints) {
+        exposes.push(createExpose(descriptionArray[0], undefined, labelArray[0], homeassistantArray[0]));
+    } else {
+        for (const [i, endpoint] of endpoints.entries()) {
+            exposes.push(
+                createExpose(
+                    descriptionArray[i] ?? descriptionArray[0],
+                    endpoint,
+                    labelArray[i] ?? labelArray[0],
+                    homeassistantArray[i] ?? homeassistantArray[0],
+                ),
+            );
+        }
+    }
 
     const fromZigbee = [
         {
@@ -2911,7 +3222,12 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
                 const value = getAttributeValue(msg, cluster, attribute, zigbeeCommandOptions?.manufacturerCode, meta.device);
-                if (value !== undefined && (!endpointName || getEndpointName(msg, model, meta) === endpointName)) {
+                if (value !== undefined) {
+                    const endpoint = endpoints?.find((e) => getEndpointName(msg, model, meta) === e);
+                    if (endpoints && !endpoint) {
+                        return;
+                    }
+                    const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
                     return {[expose.property]: value === valueOn[1] ? valueOn[0] : valueOff[0]};
                 }
             },
@@ -2952,10 +3268,9 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         },
     ];
 
-    const endpointNames = endpointName ? [endpointName] : null;
-    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames})];
+    const configure: Configure[] = [setupConfigureForReporting(cluster, attribute, {config: reporting, access, endpointNames: endpoints})];
 
-    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
 }
 
 export interface TextArgs<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>

@@ -554,9 +554,8 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
     }
 }
 
-export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
+export function attachOutputCluster(device: Zh.Device, endpoint: Zh.Endpoint, clusterKey: string) {
     const clusterId = Zcl.Utils.getCluster(clusterKey, device.manufacturerID, device.customClusters).ID;
-    const endpoint = device.getEndpoint(1);
 
     if (!endpoint.outputClusters.includes(clusterId)) {
         endpoint.outputClusters.push(clusterId);
@@ -619,7 +618,7 @@ export function toNumber(value: unknown, property?: string): number {
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
-        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value.toString()})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
     }
     return result;
 }

@@ -339,7 +339,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["SEM-4-3-20"],
+        zigbeeModel: ["SEM-4-3-20_70A", "SEM-4-3-20_120A"],
         model: "SEM-4-3-20",
         vendor: "NodOn",
         description: "3CT Energy Meter",
@@ -559,7 +559,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Lighting relay switch",
         extend: [
             m.identify(),
-            m.deviceEndpoints({endpoints: {default: 1, l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, default: 1}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),

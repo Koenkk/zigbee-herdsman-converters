@@ -4,52 +4,38 @@ import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr", "_TZE2841000000_7qc2wlqr"]),
         model: "BL82-TYZ1",
         vendor: "Manhot",
         description: "Cover motor LPD",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.battery(),
-            e.cover_position().setAccess("position", ea.STATE_SET),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Motor Steering"),
+            te.coverPosition(),
+            te.motorDirection(),
             e.binary("auto_power", ea.STATE_SET, "ON", "OFF").withDescription("Manual pull, automatic run"),
         ],
         meta: {
             tuyaDatapoints: [
-                [
-                    1,
-                    "state",
-                    tuya.valueConverterBasic.lookup({
-                        OPEN: tuya.enum(0),
-                        STOP: tuya.enum(1),
-                        CLOSE: tuya.enum(2),
-                    }),
-                ],
+                [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
-                [
-                    5,
-                    "motor_direction",
-                    tuya.valueConverterBasic.lookup({
-                        normal: tuya.enum(0),
-                        reversed: tuya.enum(1),
-                    }),
-                ],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [13, "battery", tuya.valueConverter.raw],
                 [6, "auto_power", tuya.valueConverter.onOff],
             ],
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ncc7uahd"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ncc7uahd", "_TZE28C1000000_ncc7uahd"]),
         model: "MH03-1Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 1 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.numeric("countdown_1", ea.STATE_SET).withValueMin(0).withValueMax(43200).withUnit("s").withDescription("Timer for switch 1"),
@@ -117,11 +103,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_dnhhp8ew"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_dnhhp8ew", "_TZE28C1000000_dnhhp8ew"]),
         model: "MH03-2Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 2 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -215,11 +201,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_59dz7ioi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_59dz7ioi", "_TZE28C1000000_59dz7ioi"]),
         model: "MH03-3Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 3 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -327,11 +313,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_esnu2jxv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_esnu2jxv", "_TZE28C1000000_esnu2jxv"]),
         model: "MH03-4Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 4 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -447,11 +433,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zykra2yj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zykra2yj", "_TZE28C1000000_zykra2yj", "_TZE284_wkvfb2ld", "_TZE28C1000000_wkvfb2ld"]),
         model: "MH03-6Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 6 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),
@@ -599,11 +585,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k", "_TZE28C1000000_hwv3by9k", "_TZE284_4ngwn2pj", "_TZE28C1000000_4ngwn2pj"]),
         model: "MH03-8Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 8 Gang",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.switch().withEndpoint("l1"),
             e.switch().withEndpoint("l2"),

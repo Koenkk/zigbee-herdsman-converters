@@ -307,7 +307,9 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.onOff({powerOnBehavior: false, configureReporting: false}),
             m.battery({percentage: true, voltage: true, lowStatus: true, percentageReporting: false}),
-            pushokExtend.valveStatus(),
+            pushokExtend.valveStatus({
+                lookup: {OFF: 0, ON: 1, MOVING: 2, STUCK: 3, OFFLINE_CLOSE: 4, OFFLINE_OPEN: 5, BLOCKED: 6},
+            }),
             m.identify({isSleepy: true}),
             m.enumLookup({
                 name: "kamikaze",
@@ -340,6 +342,31 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 0,
                 valueMax: 15,
                 valueStep: 1,
+                reporting: null,
+            }),
+            m.enumLookup({
+                name: "offline_action",
+                lookup: {NONE: 1, CLOSE_RESTORE: 2, OPEN_RESTORE: 3, CLOSE: 4, OPEN: 5},
+                cluster: "genAnalogOutput",
+                attribute: "presentValue",
+                zigbeeCommandOptions: {},
+                description:
+                    "What the valve does when the coordinator stops answering. " +
+                    "The RESTORE variants return to the previous position once it answers again",
+                access: "ALL",
+                reporting: null,
+            }),
+            m.binary({
+                name: "inverted",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+                cluster: "genBinaryOutput",
+                attribute: "presentValue",
+                description:
+                    "Swap the two valve positions, for actuators fitted the other way round. " +
+                    "Changing this does not move the valve, it only changes which position is reported as on " +
+                    "and which command drives where",
+                access: "ALL",
                 reporting: null,
             }),
         ],

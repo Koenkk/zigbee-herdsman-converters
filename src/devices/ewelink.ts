@@ -270,7 +270,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
-        zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)"],
+        zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)", "CK-TLSR8656-Z23SE11HW-01(7019)"],
         model: "SNZB-05",
         vendor: "eWeLink",
         description: "Zigbee water sensor",
@@ -284,6 +284,17 @@ export const definitions: DefinitionWithExtend[] = [
                         type: "EndDevice",
                         manufacturerName: "eWeLink",
                         modelID: "CK-TLSR8656-SS5-01(7019)",
+                    },
+                ],
+            },
+            {
+                vendor: "eWeLink",
+                model: "CK-TLSR8656-Z23SE11HW-01(7019)",
+                fingerprint: [
+                    {
+                        type: "EndDevice",
+                        manufacturerName: "eWeLink",
+                        modelID: "CK-TLSR8656-Z23SE11HW-01(7019)",
                     },
                 ],
             },
@@ -536,5 +547,43 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: false,
+    },
+    {
+        zigbeeModel: ["CK-TLSR8656-SS5-01(7035)", "CK-TLSR8656-Z123SE22DY-01(7035)"],
+        model: "CK-TLSR8656-SS5-01(7035)",
+        vendor: "eWeLink",
+        description: "Zigbee smoke alarm",
+        ota: true,
+        whiteLabel: [
+            {
+                model: "CK-TLSR8656-Z123SE22DY-01(7035)",
+                vendor: "eWeLink",
+                fingerprint: [
+                    {
+                        modelID: "CK-TLSR8656-Z123SE22DY-01(7035)",
+                        manufacturerName: "eWeLink",
+                    },
+                ],
+            },
+        ],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["ssIasZone"]);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+        },
     },
 ];

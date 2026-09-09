@@ -1,9 +1,10 @@
 import {describe, expect, test, vi} from "vitest";
 import * as fz from "../src/converters/fromZigbee";
+import * as tz from "../src/converters/toZigbee";
 import {findByDevice} from "../src/index";
 import {repInterval} from "../src/lib/constants";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
-import {electricityMeter, setupAttributes} from "../src/lib/modernExtend";
+import {electricityMeter, light, setupAttributes} from "../src/lib/modernExtend";
 import * as philips from "../src/lib/philips";
 import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
@@ -37,6 +38,11 @@ describe("ModernExtend", () => {
             write: {},
             configureReporting: {},
         });
+    });
+
+    test("light levelConfig includes its toZigbee converter once", () => {
+        const extend = light({levelConfig: {features: ["on_level"]}});
+        expect(extend.toZigbee?.filter((converter) => converter === tz.level_config)).toHaveLength(1);
     });
 
     test("light({colorTemp: {range: undefined}})", async () => {
@@ -283,6 +289,7 @@ describe("ModernExtend", () => {
                 "gradient_scene",
                 "gradient",
                 "gradient_style",
+                "identify",
             ],
             exposes: [
                 "effect",
@@ -293,6 +300,7 @@ describe("ModernExtend", () => {
                 "gradient_scale",
                 "gradient_scene",
                 "gradient_style",
+                "identify",
                 "light(state,brightness,color_temp,color_temp_startup,color_xy,color_hs)",
 
                 "power_on_behavior",

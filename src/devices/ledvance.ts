@@ -86,7 +86,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "PLUG EU EM T, black"}],
             },
         ],
-        extend: [ledvanceOnOff(), m.electricityMeter(), silenceDivisorReporting],
+        extend: [ledvanceOnOff(), m.electricityMeter(), silenceDivisorReporting, m.identify()],
     },
     {
         zigbeeModel: ["PLUG COMPACT OUTDOOR EU EM T", "PLUG COMPACT EU EM T"],
@@ -94,7 +94,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "LEDVANCE",
         description: "SMART+ Compact outdoor plug EU with energy meter",
         version: "0.0.1",
-        extend: [ledvanceOnOff(), m.electricityMeter(), silenceDivisorReporting],
+        extend: [ledvanceOnOff(), m.electricityMeter(), silenceDivisorReporting, m.identify()],
         ota: true,
     },
     {
