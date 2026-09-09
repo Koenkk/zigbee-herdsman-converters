@@ -1464,6 +1464,24 @@ const tzLocal = {
             return {state: {sensitivity: value}};
         },
     } satisfies Tz.Converter,
+    // For B4Z TS130F capture the start position BEFORE the standard converter publishes the target as
+    // optimistic state; the fromZigbee workaround needs the original position to detect a stale STOP report.
+    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/12887
+    // biome-ignore lint/style/useNamingConvention: existing
+    TS130F_cover_position_tilt: {
+        ...tz.cover_position_tilt,
+        convertSet: async (entity, key, value, meta) => {
+            if (
+                meta.device.manufacturerName === "_TZ3000_yruungrl" &&
+                key === "position" &&
+                utils.isEndpoint(entity) &&
+                utils.isNumber(meta.state.position)
+            ) {
+                globalStore.putValue(entity, ts130fPositionKey, {start: meta.state.position});
+            }
+            return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 const ts130fPositionKey = "ts130f_position";
@@ -6122,7 +6140,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             tz.cover_state,
-            tz.cover_position_tilt,
+            tzLocal.TS130F_cover_position_tilt,
             tuya.tz.cover_calibration,
             tuya.tz.cover_reversal,
             tuya.tz.backlight_indicator_mode_2,

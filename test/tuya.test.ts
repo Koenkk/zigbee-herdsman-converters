@@ -127,6 +127,53 @@ describe("lib/tuya", () => {
             const cluster = device.customClusters.closuresWindowCovering;
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
+
+        it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_yruungrl",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            const endpoint = device.getEndpoint(1);
+            const toConverter = definition.toZigbee.find((converter) => converter.key.includes("position"));
+            const fromConverter = definition.fromZigbee.find((converter) => converter.cluster === "closuresWindowCovering");
+            if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
+
+            const state = {position: 100};
+            const commandResult = await toConverter.convertSet(endpoint, "position", 50, {
+                device,
+                mapped: definition,
+                message: {position: 50},
+                options: {},
+                state,
+                endpoint_name: undefined,
+                publish: () => {},
+            });
+            Object.assign(state, commandResult?.state);
+
+            const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
+                fromConverter.convert(
+                    definition,
+                    {
+                        data,
+                        endpoint,
+                        device,
+                        meta: {rawData: Buffer.alloc(0)},
+                        groupID: 0,
+                        type: "attributeReport",
+                        cluster: "closuresWindowCovering",
+                        linkquality: 0,
+                    },
+                    () => {},
+                    {},
+                    {state, device, deviceExposesChanged: () => {}},
+                );
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
     });
 
     describe("tuyaOnOff power-on behaviour selection", () => {
