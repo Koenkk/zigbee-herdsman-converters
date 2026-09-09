@@ -464,7 +464,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // Polarity: device reports 0 on leakage, 1 when dry -> trueFalse0.
                 [1, "water_leak", tuya.valueConverter.trueFalse0],
                 [4, "battery", tuya.valueConverter.raw],
-                [101, "alarm_sound", tuya.valueConverter.onOffEnumOn1],
+                [101, "silent_mode", tuya.valueConverter.onOffEnumOn0],
                 [
                     102,
                     "ringtone",
