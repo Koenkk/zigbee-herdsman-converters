@@ -1402,10 +1402,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Water leak sensor",
         extend: [
             m.iasZoneAlarm({
-            zoneType: "water_leak",
-            zoneAttributes: ["alarm_1","battery_low"],
+                zoneType: "water_leak",
+                zoneAttributes: ["alarm_1", "battery_low"],
             }),
-        m.forcePowerSource({powerSource: "Battery"}),
+            m.forcePowerSource({powerSource: "Battery"}),
         ],
     },
     {
@@ -1415,10 +1415,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Panic button",
         extend: [
             m.iasZoneAlarm({
-            zoneType: "sos", 
-            zoneAttributes: ["alarm_1","battery_low"],
+                zoneType: "sos",
+                zoneAttributes: ["alarm_1", "battery_low"],
             }),
-        m.forcePowerSource({powerSource: "Battery"}),
+            m.forcePowerSource({powerSource: "Battery"}),
         ],
     },
 ];
