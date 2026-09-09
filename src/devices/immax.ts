@@ -452,7 +452,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e
                 .binary("silent_mode", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Enable or disable buzzer sound on leak detection (does not mute ongoing alarm)")
+                .withDescription("Mute the buzzer on leak detection (does not mute ongoing alarm)")
                 .withCategory("config"),
             e
                 .enum("ringtone", ea.STATE_SET, ["tone_1", "tone_2", "tone_3"])
