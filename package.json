@@ -4,12 +4,13 @@
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "packageManager": "pnpm@10.18.3",
+    "packageManager": "pnpm@12.3.4",
     "engines": {
-        "node": ">=20.15.0"
+        "node": "^22.2.0 || ^24 || <=26.2"
     },
     "files": [
         "dist",
+        "pnpm-workspace.yaml",
         "CHANGELOG.md"
     ],
     "repository": {
