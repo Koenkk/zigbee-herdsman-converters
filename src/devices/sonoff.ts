@@ -11440,7 +11440,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_status",
-                lookup: {uncalibrate: 0, cailbrating: 1, calibration_failed: 2, calibrated: 3},
+                lookup: {uncalibrated: 0, calibrating: 1, calibration_failed: 2, calibrated: 3},
                 cluster: "customClusterEwelink",
                 attribute: "calibrationStatus",
                 description: "Calibration status.",
