@@ -1388,4 +1388,37 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
+    {
+        zigbeeModel: ["OCP305", "OCP_305"],
+        model: "OPS305",
+        vendor: "OWON",
+        description: "Ceiling mounted Zigbee presence sensor",
+        extend: [m.occupancy()],
+    },
+    {
+        zigbeeModel: ["WLS316"],
+        model: "WLS316",
+        vendor: "OWON",
+        description: "Water leak sensor",
+        extend: [
+            m.iasZoneAlarm({
+            zoneType: "water_leak",
+            zoneAttributes: ["alarm_1","battery_low"],
+            }),
+        m.forcePowerSource({powerSource: "Battery"}),
+        ],
+    },
+    {
+        zigbeeModel: ["PB206"],
+        model: "PB206",
+        vendor: "OWON",
+        description: "Panic button",
+        extend: [
+            m.iasZoneAlarm({
+            zoneType: "sos", 
+            zoneAttributes: ["alarm_1","battery_low"],
+            }),
+        m.forcePowerSource({powerSource: "Battery"}),
+        ],
+    },
 ];
