@@ -128,7 +128,7 @@ describe("lib/tuya", () => {
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
 
-        it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
+        const setupB4z = async () => {
             const device = mockDevice({
                 modelID: "TS130F",
                 manufacturerName: "_TZ3000_yruungrl",
@@ -141,17 +141,18 @@ describe("lib/tuya", () => {
             if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
 
             const state = {position: 100};
-            const commandResult = await toConverter.convertSet(endpoint, "position", 50, {
-                device,
-                mapped: definition,
-                message: {position: 50},
-                options: {},
-                state,
-                endpoint_name: undefined,
-                publish: () => {},
-            });
-            Object.assign(state, commandResult?.state);
-
+            const sendPosition = async (position: number) => {
+                const commandResult = await toConverter.convertSet(endpoint, "position", position, {
+                    device,
+                    mapped: definition,
+                    message: {position},
+                    options: {},
+                    state,
+                    endpoint_name: undefined,
+                    publish: () => {},
+                });
+                Object.assign(state, commandResult?.state);
+            };
             const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
                 fromConverter.convert(
                     definition,
@@ -170,7 +171,32 @@ describe("lib/tuya", () => {
                     {state, device, deviceExposesChanged: () => {}},
                 );
 
+            return {convert, endpoint, sendPosition};
+        };
+
+        it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
             expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+
+        it("does not correct a Nous B4Z STOP report before the target was acknowledged", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 100});
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("does not replace an acknowledged Nous B4Z target with a stale moving report", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 0})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 0})).toMatchObject({position: 100});
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
             expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
         });
