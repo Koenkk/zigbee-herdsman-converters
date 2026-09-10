@@ -1138,7 +1138,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz", "_TZE2841000000_3mzb0sdz"]),
         model: "ZM16B",
         vendor: "Zemismart",
         description: "Tubular motor",
