@@ -1464,6 +1464,25 @@ const tzLocal = {
             return {state: {sensitivity: value}};
         },
     } satisfies Tz.Converter,
+    // For B4Z TS130F capture the start position BEFORE the standard converter publishes the target as
+    // optimistic state; the fromZigbee workaround needs the original position to detect a stale STOP report.
+    // https://github.com/Koenkk/zigbee-herdsman-converters/pull/12887
+    // biome-ignore lint/style/useNamingConvention: existing
+    TS130F_cover_position_tilt: {
+        ...tz.cover_position_tilt,
+        convertSet: async (entity, key, value, meta) => {
+            if (
+                meta.device.manufacturerName === "_TZ3000_yruungrl" &&
+                key === "position" &&
+                utils.isEndpoint(entity) &&
+                utils.isNumber(value) &&
+                utils.isNumber(meta.state.position)
+            ) {
+                globalStore.putValue(entity, ts130fPositionKey, {start: meta.state.position, target: value});
+            }
+            return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 const ts130fPositionKey = "ts130f_position";
@@ -2158,8 +2177,18 @@ const fzLocal = {
 
             if (moving !== 1 /* STOP */) {
                 // Remember the position the movement started from and the position reported while moving.
-                const start = globalStore.getValue(msg.endpoint, ts130fPositionKey)?.start ?? meta.state[property];
-                globalStore.putValue(msg.endpoint, ts130fPositionKey, {start, position, raw: msg.data.currentPositionLiftPercentage});
+                const moved = globalStore.getValue(msg.endpoint, ts130fPositionKey);
+                const start = moved?.start ?? meta.state[property];
+                // For commanded positions, only remember reports that acknowledge the target. A later stale report
+                // of the start position while still moving must not replace the target before the STOP report.
+                if (moved?.target === undefined || position === moved.target) {
+                    globalStore.putValue(msg.endpoint, ts130fPositionKey, {
+                        ...moved,
+                        start,
+                        position,
+                        raw: msg.data.currentPositionLiftPercentage,
+                    });
+                }
                 return result;
             }
 
@@ -2167,7 +2196,7 @@ const fzLocal = {
             globalStore.clearValue(msg.endpoint, ts130fPositionKey);
             // Only correct when the reported position is exactly the one the movement started from,
             // any other position is a legitimate (e.g. manual) stop.
-            if (moved !== undefined && position === moved.start && position !== moved.position) {
+            if (utils.isNumber(moved?.position) && utils.isNumber(moved.raw) && position === moved.start && position !== moved.position) {
                 logger.debug(`Correcting stale position ${position} to ${moved.position}`, NS);
                 result[property] = moved.position;
                 result[postfixWithEndpointName("state", msg, model, meta)] = moved.position === 0 ? "CLOSE" : "OPEN";
@@ -6122,7 +6151,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [
             tz.cover_state,
-            tz.cover_position_tilt,
+            tzLocal.TS130F_cover_position_tilt,
             tuya.tz.cover_calibration,
             tuya.tz.cover_reversal,
             tuya.tz.backlight_indicator_mode_2,
