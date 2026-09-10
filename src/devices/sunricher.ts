@@ -105,6 +105,12 @@ const SUNRICHER_SWITCH2801K4_LOOKUP: Record<number, string> = {
     52: "release",
 };
 
+// SR-ZG9002KR12-Z4: the power button sends its on/off command simultaneously
+// on multiple endpoints, while a single group button only touches one endpoint.
+// Collect the burst over a short window before deciding which action to report.
+const sunricherSrZG9002kr12z4OnOffDebounceMs = 300;
+const sunricherSrZG9002kr12z4OnOffBurstState = new Map<string, {endpoints: Set<number>; timer: ReturnType<typeof setTimeout> | undefined}>();
+
 const fzLocal = {
     SRZGP2801K45C: {
         cluster: "greenPower",
@@ -174,6 +180,79 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"greenPower", undefined, ["commandNotification", "commandCommissioningNotification"]>,
+    sunricher_srzg9002kr12z4_power_or_group_onoff: {
+        cluster: "genOnOff",
+        type: ["commandOn", "commandOff"],
+        convert: (model, msg, publish, options, meta) => {
+            const ieee = msg.device.ieeeAddr;
+            const command = msg.type === "commandOn" ? "on" : "off";
+            const key = `${ieee}_${command}`;
+
+            let state = sunricherSrZG9002kr12z4OnOffBurstState.get(key);
+            if (!state) {
+                state = {endpoints: new Set(), timer: undefined};
+                sunricherSrZG9002kr12z4OnOffBurstState.set(key, state);
+            }
+
+            state.endpoints.add(msg.endpoint.ID);
+
+            if (state.timer) {
+                clearTimeout(state.timer);
+            }
+
+            state.timer = setTimeout(() => {
+                const touchedEndpoints = state.endpoints.size;
+                const action = touchedEndpoints >= 3 ? `power_${command}` : `${command}_${[...state.endpoints][0]}`;
+                publish({action});
+                sunricherSrZG9002kr12z4OnOffBurstState.delete(key);
+            }, sunricherSrZG9002kr12z4OnOffDebounceMs);
+
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff"]>,
+    sunricher_srzg9002kr12z4_color_temp_step: {
+        cluster: "lightingColorCtrl",
+        type: ["commandStepColorTemp"],
+        convert: (model, msg, publish, options, meta) => {
+            // The device reports stepmode 1 when rotating towards colder (lower)
+            // colour temperature, so map it to color_temperature_step_down.
+            const direction = msg.data.stepmode === 1 ? "color_temperature_step_down" : "color_temperature_step_up";
+            return {
+                action: direction,
+                action_group: msg.groupID,
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime / 100,
+            };
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepColorTemp"]>,
+    sunricher_srzg9002kr12z4_hue_step: {
+        cluster: "lightingColorCtrl",
+        type: ["commandStepHue"],
+        convert: (model, msg, publish, options, meta) => {
+            const direction = msg.data.stepmode === 1 ? "hue_step_up" : "hue_step_down";
+            return {
+                action: direction,
+                action_group: msg.groupID,
+                action_step_size: msg.data.stepsize,
+                action_transition_time: msg.data.transtime / 100,
+            };
+        },
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepHue"]>,
+    sunricher_srzg9002kr12z4_cover_commands: {
+        cluster: "closuresWindowCovering",
+        type: ["commandUpOpen", "commandDownClose", "commandStop"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: Record<string, string> = {
+                commandUpOpen: "curtain_open",
+                commandDownClose: "curtain_close",
+                commandStop: "curtain_stop",
+            };
+            return {
+                action: lookup[msg.type],
+                action_group: msg.groupID,
+            };
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", undefined, ["commandUpOpen", "commandDownClose", "commandStop"]>,
 };
 
 const tzLocal = {
@@ -1717,6 +1796,52 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Sunricher",
         description: "Zigbee smart wall panel remote",
         extend: [m.battery(), sunricher.extend.SRZG9002KR12Pro()],
+    },
+    {
+        zigbeeModel: ["HK-ZRC-K12&RS-TL"],
+        model: "SR-ZG9002KR12-Z4",
+        vendor: "Sunricher",
+        description: "Zigbee smart wall panel remote with 4 group buttons, 7 scene buttons and rotary knob",
+        extend: [m.battery(), m.commandsLevelCtrl(), m.commandsScenes()],
+        fromZigbee: [
+            fzLocal.sunricher_srzg9002kr12z4_power_or_group_onoff,
+            fzLocal.sunricher_srzg9002kr12z4_color_temp_step,
+            fzLocal.sunricher_srzg9002kr12z4_hue_step,
+            fzLocal.sunricher_srzg9002kr12z4_cover_commands,
+        ],
+        toZigbee: [],
+        exposes: [
+            e.action([
+                "power_on",
+                "power_off",
+                "on_1",
+                "off_1",
+                "on_2",
+                "off_2",
+                "on_3",
+                "off_3",
+                "on_4",
+                "off_4",
+                "color_temperature_step_up",
+                "color_temperature_step_down",
+                "hue_step_up",
+                "hue_step_down",
+                "curtain_open",
+                "curtain_close",
+                "curtain_stop",
+            ]),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const ep of device.endpoints) {
+                for (const cluster of ["genOnOff", "lightingColorCtrl", "closuresWindowCovering"]) {
+                    try {
+                        await ep.bind(cluster, coordinatorEndpoint);
+                    } catch (error) {
+                        logger.warning(`Bind of ${cluster} on endpoint ${ep.ID} failed: ${(error as Error).message}`, NS);
+                    }
+                }
+            }
+        },
     },
     {
         zigbeeModel: ["ZV9380A", "ZG9380A"],
