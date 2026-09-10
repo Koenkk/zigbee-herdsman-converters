@@ -1557,9 +1557,12 @@ const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement'];
+            const binds = ['msTemperatureMeasurement', 'msRelativeHumidity', 'msPressureMeasurement','genPowerCfg'];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await endpoint.read('genPowerCfg', ['batteryVoltage']);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.pressure(endpoint);
+            await reporting.batteryVoltage(endpoint);
         },
         extend: [m.quirkCheckinInterval('1_HOUR'), lumiZigbeeOTA()],
     },
