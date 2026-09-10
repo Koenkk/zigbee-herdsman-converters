@@ -367,15 +367,23 @@ export const numericAttributes2Payload = async (
                 } else if (["WXKG14LM", "WXKG16LM", "WXKG17LM"].includes(model.model)) {
                     payload.click_mode = getFromLookup(value, {1: "fast", 2: "multi"});
                 } else if (
-                    ["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "ZNMS12LM", "ZNCLBL01LM", "RTCGQ12LM", "RTCGQ13LM", "RTCGQ14LM"].includes(model.model)
+                    [
+                        "WXCJKG11LM",
+                        "WXCJKG12LM",
+                        "WXCJKG13LM",
+                        "ZNMS12LM",
+                        "ZNCLBL01LM",
+                        "RTCGQ12LM",
+                        "RTCGQ13LM",
+                        "RTCGQ14LM",
+                        "ZNJLBL01LM",
+                    ].includes(model.model)
                 ) {
                     // We don't know what the value means for these devices.
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11126
                     // https://github.com/Koenkk/zigbee2mqtt/issues/12279
-                } else if (["ZNJLBL01LM"].includes(model.model)) {
-                    // This is a cover, it should report OPEN/CLOSE instead of ON/OFF
+                    // For ZNJLBL01LM this is unreliable, cannot determine OPEN/CLOSE based on it
                     // https://github.com/Koenkk/zigbee2mqtt/issues/33001
-                    payload.state = value === 1 ? "OPEN" : "CLOSE";
                 } else if (["RTCGQ15LM"].includes(model.model)) {
                     payload.occupancy = value;
                 } else if (["PS-S04D"].includes(model.model)) {
@@ -8955,7 +8963,7 @@ export const toZigbee = {
                     {513: {value: value ? 1 : 0, type: 0x10}},
                     manufacturerOptions.lumi,
                 );
-            } else if (["ZNCZ02LM", "QBCZ11LM", "LLKZMK11LM"].includes(meta.mapped.model)) {
+            } else if (["ZNCZ02LM", "QBCZ11LM", "LLKZMK11LM", "QBKG11LM"].includes(meta.mapped.model)) {
                 const payload = value
                     ? [
                           [0xaa, 0x80, 0x05, 0xd1, 0x47, 0x07, 0x01, 0x10, 0x01],
