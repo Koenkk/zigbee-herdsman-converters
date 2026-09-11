@@ -1750,6 +1750,44 @@ const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined
 };
 
 const sonoffExtend = {
+    zbminiR2ExternalSwitchActions: (): ModernExtend => {
+        const clusterName = "customClusterEwelink" as const;
+        const actionLookup: Record<number, string> = {
+            2: "double_click",
+            3: "long_press",
+        } as const;
+        const supportNewActions = (device: Zh.Device) => device.modelID === "ZBMINIR2" && firmwareAtLeast(device, "1.1.0");
+        const getActions = (device: Zh.Device | DummyDevice): string[] => {
+            const actions = ["toggle"];
+            if (utils.isDummyDevice(device) || supportNewActions(device)) {
+                actions.push(...Object.values(actionLookup));
+            }
+            return actions;
+        };
+        const externalSwitchConverter = {
+            cluster: clusterName,
+            type: ["attributeReport"],
+            convert: (model, msg) => {
+                if (!supportNewActions(msg.device)) {
+                    return;
+                }
+                const value = msg.data.detachRelayActionEvent;
+                if (value === undefined) {
+                    return;
+                }
+                const action = actionLookup[value];
+                if (action === undefined) {
+                    return;
+                }
+                return {action};
+            },
+        } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport"]>;
+        return {
+            exposes: [(device) => [e.enum("action", ea.STATE, getActions(device)).withDescription("Triggered action (e.g. a button click)")]],
+            fromZigbee: [fz.command_toggle, externalSwitchConverter],
+            isModernExtend: true,
+        };
+    },
     snzb02dr2RemoteSource: (): ModernExtend => {
         const clusterName = snzb02dr2ClusterName;
         const remoteSourceExposes = [
@@ -2102,6 +2140,7 @@ const sonoffExtend = {
                 transitionTime: {name: "transitionTime", ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 levelForCalibration: {name: "levelForCalibration", ID: 0x4006, type: Zcl.DataType.UINT8},
                 programmableStepperSequence: {name: "programmableStepperSequence", ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
+                detachRelayActionEvent: {name: "detachRelayActionEvent", ID: 0x0028, type: Zcl.DataType.UINT8},
             },
             commands: {
                 protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -10917,8 +10956,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart switch",
         exposes: [],
         extend: [
-            // binding and reporting are handled in configure block, skip duplication
-            m.commandsOnOff({commands: ["toggle"], bind: false}),
             m.onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.binary<"customClusterEwelink", SonoffEwelink>({
@@ -10971,6 +11008,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.externalSwitchTriggerMode(),
             sonoffExtend.inchingControlSet(),
+            sonoffExtend.zbminiR2ExternalSwitchActions(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
