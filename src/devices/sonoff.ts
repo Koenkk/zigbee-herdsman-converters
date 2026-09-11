@@ -12396,8 +12396,8 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             // official cluster
-            m.illuminance(),
-            m.occupancy(),
+            m.illuminance({reporting: false}),
+            m.occupancy({reporting: false}),
             m.numeric({
                 name: "pir_o_to_u_delay",
                 label: "Occupancy timeout",
