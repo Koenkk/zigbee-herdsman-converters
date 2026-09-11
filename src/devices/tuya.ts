@@ -18731,133 +18731,87 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
-    fingerprint: [
-        {modelID: 'TS0601', manufacturerName: '_TZ3000_0000000_p3g9viug'},
-    ],
-    model: 'TS0601_3ch_bidirectional_meter',
-    vendor: 'Tuya',
-    description: '3-channel bidirectional smart energy meter',
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    configure: tuya.configureMagicPacket,
-    onEvent: tuya.onEventSetLocalTime,
-    exposes: [
-        e.switch(),
-        e.voltage().withMin(0).withMax(250),
-        e.power(),
-        e.energy(),
-        e.numeric('produced_energy', ea.STATE).withUnit('kWh')
-            .withDescription('Reverse total accumulated energy'),
-        e.temperature(),
-
-        te.currentWithPhase('a'),
-        te.powerWithPhase('a'),
-        te.powerFactorWithPhase('a'),
-        te.energyWithPhase('a'),
-        e.numeric('reverse_energy_a', ea.STATE).withUnit('kWh')
-            .withDescription('Reverse accumulated energy - channel A'),
-
-        te.currentWithPhase('b'),
-        te.powerWithPhase('b'),
-        te.powerFactorWithPhase('b'),
-        te.energyWithPhase('b'),
-        e.numeric('reverse_energy_b', ea.STATE).withUnit('kWh')
-            .withDescription('Reverse accumulated energy - channel B'),
-
-        te.currentWithPhase('c'),
-        te.powerWithPhase('c'),
-        te.powerFactorWithPhase('c'),
-        te.energyWithPhase('c'),
-        e.numeric('reverse_energy_c', ea.STATE).withUnit('kWh')
-            .withDescription('Reverse accumulated energy - channel C'),
-
-        e.numeric('power_setting_a', ea.STATE_SET).withUnit('W')
-            .withMin(200).withMax(20000)
-            .withDescription('Power limit setting - channel A'),
-        e.numeric('power_setting_b', ea.STATE_SET).withUnit('W')
-            .withMin(200).withMax(20000)
-            .withDescription('Power limit setting - channel B'),
-        e.numeric('power_setting_c', ea.STATE_SET).withUnit('W')
-            .withMin(200).withMax(20000)
-            .withDescription('Power limit setting - channel C'),
-
-        e.binary('power_alarm_a', ea.STATE, true, false)
-            .withDescription('Power alarm - channel A'),
-        e.binary('power_alarm_b', ea.STATE, true, false)
-            .withDescription('Power alarm - channel B'),
-        e.binary('power_alarm_c', ea.STATE, true, false)
-            .withDescription('Power alarm - channel C'),
-
-        e.numeric('voltage_calibration', ea.STATE_SET).withUnit('V')
-            .withMin(-50).withMax(50)
-            .withDescription('Voltage calibration offset'),
-        e.numeric('current_a_calibration', ea.STATE_SET).withUnit('mA')
-            .withMin(-200).withMax(200)
-            .withDescription('Current calibration offset - channel A'),
-        e.numeric('current_b_calibration', ea.STATE_SET).withUnit('mA')
-            .withMin(-200).withMax(200)
-            .withDescription('Current calibration offset - channel B'),
-        e.numeric('current_c_calibration', ea.STATE_SET).withUnit('mA')
-            .withMin(-200).withMax(200)
-            .withDescription('Current calibration offset - channel C'),
-        e.numeric('power_a_calibration', ea.STATE_SET).withUnit('W')
-            .withMin(-50).withMax(50)
-            .withDescription('Power calibration offset - channel A'),
-        e.numeric('power_b_calibration', ea.STATE_SET).withUnit('W')
-            .withMin(-50).withMax(50)
-            .withDescription('Power calibration offset - channel B'),
-        e.numeric('power_c_calibration', ea.STATE_SET).withUnit('W')
-            .withMin(-50).withMax(50)
-            .withDescription('Power calibration offset - channel C'),
-    ],
-    meta: {
-        tuyaDatapoints: [
-            [16, 'switch', tvc.onOff],
-
-            [1, 'energy', tvc.divideBy100],
-            [2, 'produced_energy', tvc.divideBy100],
-            [9, 'power', tvc.divideBy10],
-            [101, 'voltage', tvc.divideBy10],
-            [131, 'temperature', tvc.divideBy10],
-
-            [102, 'current_a', tvc.divideBy1000],
-            [103, 'current_b', tvc.divideBy1000],
-            [104, 'current_c', tvc.divideBy1000],
-
-            [105, 'power_a', tvc.divideBy10],
-            [106, 'power_b', tvc.divideBy10],
-            [107, 'power_c', tvc.divideBy10],
-
-            [108, 'power_factor_a', tvc.divideBy100],
-            [109, 'power_factor_b', tvc.divideBy100],
-            [110, 'power_factor_c', tvc.divideBy100],
-
-            [125, 'energy_a', tvc.divideBy100],
-            [126, 'reverse_energy_a', tvc.divideBy100],
-            [127, 'energy_b', tvc.divideBy100],
-            [128, 'reverse_energy_b', tvc.divideBy100],
-            [129, 'energy_c', tvc.divideBy100],
-            [130, 'reverse_energy_c', tvc.divideBy100],
-
-            [111, 'power_setting_a', tvc.raw],
-            [112, 'power_setting_b', tvc.raw],
-            [113, 'power_setting_c', tvc.raw],
-
-            [114, 'power_alarm_a', tvc.raw],
-            [115, 'power_alarm_b', tvc.raw],
-            [116, 'power_alarm_c', tvc.raw],
-
-            [132, 'voltage_calibration', tvc.raw],
-            [133, 'current_a_calibration', tvc.raw],
-            [134, 'current_b_calibration', tvc.raw],
-            [135, 'current_c_calibration', tvc.raw],
-            [136, 'power_a_calibration', tvc.raw],
-            [137, 'power_b_calibration', tvc.raw],
-            [138, 'power_c_calibration', tvc.raw],
+     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE20C1000000_p3g8xiug"]),
+        model: "TS0601_3ch_bidirectional_meter",
+        vendor: "Tuya",
+        description: "3-channel bidirectional smart energy meter with relay",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().setAccess("state", ea.STATE_SET),
+            e.voltage(),
+            e.power(),
+            e.energy(),
+            e.produced_energy(),
+            e.temperature(),
+            tuya.exposes.currentWithPhase("a"),
+            tuya.exposes.powerWithPhase("a"),
+            tuya.exposes.powerFactorWithPhase("a"),
+            tuya.exposes.energyWithPhase("a"),
+            e.numeric("reverse_energy_a", ea.STATE).withUnit("kWh"),
+            tuya.exposes.currentWithPhase("b"),
+            tuya.exposes.powerWithPhase("b"),
+            tuya.exposes.powerFactorWithPhase("b"),
+            tuya.exposes.energyWithPhase("b"),
+            e.numeric("reverse_energy_b", ea.STATE).withUnit("kWh"),
+            tuya.exposes.currentWithPhase("c"),
+            tuya.exposes.powerWithPhase("c"),
+            tuya.exposes.powerFactorWithPhase("c"),
+            tuya.exposes.energyWithPhase("c"),
+            e.numeric("reverse_energy_c", ea.STATE).withUnit("kWh"),
+            e.numeric("power_setting_a", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.numeric("power_setting_b", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.numeric("power_setting_c", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.binary("power_alarm_a", ea.STATE, true, false),
+            e.binary("power_alarm_b", ea.STATE, true, false),
+            e.binary("power_alarm_c", ea.STATE, true, false),
+            e.numeric("voltage_calibration", ea.STATE_SET).withUnit("V").withMin(0).withMax(260),
+            e.numeric("current_a_calibration", ea.STATE_SET).withUnit("mA").withMin(0).withMax(100000),
+            e.numeric("current_b_calibration", ea.STATE_SET).withUnit("mA").withMin(0).withMax(100000),
+            e.numeric("current_c_calibration", ea.STATE_SET).withUnit("mA").withMin(0).withMax(100000),
+            e.numeric("power_a_calibration", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.numeric("power_b_calibration", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.numeric("power_c_calibration", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
         ],
+        meta: {
+            tuyaDatapoints: [
+                [16, "state", tuya.valueConverter.onOff],
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [2, "produced_energy", tuya.valueConverter.divideBy100],
+                [9, "power", tuya.valueConverter.divideBy10],
+                [101, "voltage", tuya.valueConverter.divideBy10],
+                [131, "temperature", tuya.valueConverter.divideBy10],
+                [102, "current_a", tuya.valueConverter.divideBy1000],
+                [105, "power_a", tuya.valueConverter.divideBy10],
+                [108, "power_factor_a", tuya.valueConverter.divideBy100],
+                [125, "energy_a", tuya.valueConverter.divideBy100],
+                [126, "reverse_energy_a", tuya.valueConverter.divideBy100],
+                [103, "current_b", tuya.valueConverter.divideBy1000],
+                [106, "power_b", tuya.valueConverter.divideBy10],
+                [109, "power_factor_b", tuya.valueConverter.divideBy100],
+                [127, "energy_b", tuya.valueConverter.divideBy100],
+                [128, "reverse_energy_b", tuya.valueConverter.divideBy100],
+                [104, "current_c", tuya.valueConverter.divideBy1000],
+                [107, "power_c", tuya.valueConverter.divideBy10],
+                [110, "power_factor_c", tuya.valueConverter.divideBy100],
+                [129, "energy_c", tuya.valueConverter.divideBy100],
+                [130, "reverse_energy_c", tuya.valueConverter.divideBy100],
+                [111, "power_setting_a", tuya.valueConverter.raw],
+                [112, "power_setting_b", tuya.valueConverter.raw],
+                [113, "power_setting_c", tuya.valueConverter.raw],
+                [114, "power_alarm_a", tuya.valueConverter.raw],
+                [115, "power_alarm_b", tuya.valueConverter.raw],
+                [116, "power_alarm_c", tuya.valueConverter.raw],
+                [132, "voltage_calibration", tuya.valueConverter.raw],
+                [133, "current_a_calibration", tuya.valueConverter.raw],
+                [134, "current_b_calibration", tuya.valueConverter.raw],
+                [135, "current_c_calibration", tuya.valueConverter.raw],
+                [136, "power_a_calibration", tuya.valueConverter.raw],
+                [137, "power_b_calibration", tuya.valueConverter.raw],
+                [138, "power_c_calibration", tuya.valueConverter.raw],
+            ],
+        },
     },
-};
 
     {
         fingerprint: tuya.fingerprint("TS0601", [
