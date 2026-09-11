@@ -4657,6 +4657,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LUUMR", "10010128", "Smart LED, GU10, 4,7W, RGBW, CCT, Tuya, WLAN, mat", ["_TZ3210_sw9uxoea"]),
             tuya.whitelabel("KOJIMA", "GX53-RGB-WW-CW-7W-ZGB", "Smart RGB LED Lamp GX53 7W", ["_TZ3210_b3kiq1i0"]),
             tuya.whitelabel("Ledisons", "LDN22-RGBWW5", "RGB+CCT LED Downlight", ["_TZ3210_o4vasvef"]),
+            tuya.whitelabel("ECODO", "BU-GU10-Zigbee", "Smart GU10 6W RGB+CCT LED bulb", ["_TZ3210_cqqb61yo"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
