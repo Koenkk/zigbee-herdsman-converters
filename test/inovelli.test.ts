@@ -2182,6 +2182,7 @@ describe("Inovelli VZM31-SN definition integration", () => {
             configureReporting: {
                 1: [
                     {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
                     {cluster: "haElectricalMeasurement", items: [{attribute: "activePower", min: 15, max: 3600, change: 1}]},
                     {cluster: "seMetering", items: [{attribute: "currentSummDelivered", min: 15, max: 3600, change: 0}]},
                 ],
@@ -2408,6 +2409,7 @@ describe("Inovelli VZM30-SN definition integration", () => {
             configureReporting: {
                 1: [
                     {cluster: "genOnOff", items: [{attribute: "onOff", min: 0, max: 3600, change: 0}]},
+                    {cluster: "manuSpecificInovelli", items: [{attribute: 32, min: 1800, max: 3600, change: 5}]},
                     {
                         cluster: "haElectricalMeasurement",
                         items: [
