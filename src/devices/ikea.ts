@@ -618,7 +618,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [153, 555]},
                 color: {modes: ["xy", "hs"], applyRedFix: false, enhancedHue: false},
                 turnsOffAtBrightness1: true,
-                levelConfig: {features: ["on_off_transition_time", "execute_if_off", "current_level_startup"]},
+                levelConfig: {features: ["on_off_transition_time", "execute_if_off", "couple_color_temp_to_level", "current_level_startup"]},
             }),
             m.identify(),
         ],
