@@ -7486,6 +7486,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
             tuya.whitelabel("ECODO", "PSL-24V/RGBCW/ECD", "All in one 240 W power supply for RGBCW or RGBCCT LED strip", ["_TZ3210_rnj5wxxg"]),
+            tuya.whitelabel("ECODO", "ECD-48V-MGT", "Smart Magtrac 12 W magnetic track light, 2700-6500K", ["_TZ3210_tlwlmwm6"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
