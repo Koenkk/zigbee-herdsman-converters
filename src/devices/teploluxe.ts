@@ -384,6 +384,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "ALL",
                 description: "Operation mode",
+                entityCategory: "config",
             }),
             m.binary({
                 name: "close_valves_if_sensor_lost",
@@ -409,6 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "ALL",
                 description: "Switch relay on alarm mode",
+                entityCategory: "config"
             }),
             m.enumLookup({
                 name: "switch_relay_on_valve_closing",
@@ -421,6 +423,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "ALL",
                 description: "Switch relay on valve closing",
+                entityCategory: "config"
             }),
             m.numeric({
                 name: "rf_sensor_count",
@@ -432,23 +435,6 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Amount of connected wireless sensors",
                 entityCategory: "diagnostic",
                 access: "STATE_GET",
-            }),
-            m.binary({
-                name: "wired_sensor_feedback",
-                cluster: "LeakController",
-                attribute: {
-                    ID: 0x6607,
-                    type: Zcl.DataType.BOOLEAN,
-                },
-                valueOn: [true, "On"],
-                valueOff: [false, "Off"],
-                description: "Enable monitoring of wired sensors",
-                access: "ALL",
-                entityCategory: "config",
-                homeassistant: {
-                    // not awailable on some devices
-                    enabledByDefault: false,
-                },
             }),
             m.binary({
                 name: "wired_sensor_feedback",
@@ -497,6 +483,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueStep: 1,
                 entityCategory: "config",
                 unit: "min",
+                access: "ALL",
             }),
             m.numeric({
                 name: "error_code",
@@ -647,7 +634,6 @@ export const definitions: DefinitionWithExtend[] = [
                     max: 3600,
                     change: 1,
                 },
-                valueMax: 0xffffffff,
                 access: "STATE_GET",
             }),
             m.numeric({
