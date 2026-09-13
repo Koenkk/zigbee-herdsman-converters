@@ -1,12 +1,13 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
-import * as e from "../lib/exposes";
+import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, KeyValueAny, Tz} from "../lib/types";
 
-const ea = e.access;
+const e = exposes.presets;
+const ea = exposes.access;
 
 // Structural alias for one meta.tuyaDatapoints entry — derived from
 // DefinitionWithExtend itself so it always matches the real tuple shape
@@ -207,38 +208,20 @@ const backlightColorExpose = (labels: string[]) => {
     return composite.withCategory("config");
 };
 
-const countdownExpose = (endpoint: string) =>
-    e
-        .numeric("countdown", ea.STATE_SET)
-        .withEndpoint(endpoint)
-        .withUnit("s")
-        .withValueMin(0)
-        .withValueMax(43200)
-        .withValueStep(1)
-        .withDescription("Auto-off/on countdown timer")
-        .withCategory("config");
-
 // Datapoints and exposes shared by every device in this range. `channels` is
 // the list of endpoint keys, in datapoint order.
-const powerOnBehaviorExpose = (channel: string) =>
-    e
-        .enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"])
-        .withEndpoint(channel)
-        .withDescription("Behavior when power is restored")
-        .withCategory("config");
-
 const commonExposes = (channels: string[], labels: string[]) => [
     ...channels.map((channel) => tuya.exposes.switch().withEndpoint(channel)),
-    ...channels.map((channel) => countdownExpose(channel)),
-    ...channels.map((channel) => powerOnBehaviorExpose(channel)),
+    ...channels.map((channel) => tuya.exposes.countdown().withEndpoint(channel)),
+    ...channels.map((channel) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(channel).withCategory("config")),
     e.binary("all_on_off", ea.STATE_SET, "ON", "OFF").withDescription("Turn all channels on or off simultaneously"),
-    e.numeric("power", ea.STATE).withUnit("W").withDescription("Instantaneous power"),
-    e.numeric("current", ea.STATE).withUnit("A").withDescription("Instantaneous current"),
-    e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Instantaneous voltage"),
-    e.numeric("energy", ea.STATE).withUnit("kWh").withDescription("Cumulative energy consumption"),
+    e.power(),
+    e.current(),
+    e.voltage(),
+    e.energy(),
     tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
     backlightColorExpose(labels),
-    e.binary("child_lock", ea.STATE_SET, "LOCK", "UNLOCK").withDescription("Prevent physical control of the sockets").withCategory("config"),
+    e.child_lock().withCategory("config"),
 ];
 
 const commonMeta = (channels: string[]): DefinitionWithExtend["meta"] => ({
