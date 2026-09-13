@@ -108,7 +108,7 @@ const backlightColorConverter = (channelCount: number) => {
 
             // Merge over current state so a partial update does not reset the
             // features (or the channels) it did not mention.
-            const current = meta?.state?.backlight_color ?? {};
+            const current: KeyValueAny = (meta?.state?.backlight_color as KeyValueAny) ?? {};
             const mergeChannel = (name: string) => ({
                 ...backlightDefaults,
                 ...(current[name] ?? {}),
