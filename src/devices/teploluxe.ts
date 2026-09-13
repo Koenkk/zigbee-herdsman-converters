@@ -596,12 +596,18 @@ export const definitions: DefinitionWithExtend[] = [
                         ID: 0x6600,
                         type: Zcl.DataType.UINT8,
                         write: true,
+                        min: 0,
+                        max: 2,
+                        default: 0,
                     },
                     lineAssign: {
                         name: "LineAssign",
                         ID: 0x6601,
                         type: Zcl.DataType.UINT8,
                         write: true,
+                        min: 1,
+                        max: 3,
+                        default: 3,
                     },
                     lineStatus: {
                         name: "LineStatus",
