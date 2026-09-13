@@ -340,6 +340,7 @@ import {definitions as tci} from "./tci";
 import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
 import {definitions as technicolor} from "./technicolor";
+import {definitions as teploluxe} from "./teploluxe";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
@@ -729,6 +730,7 @@ const definitions: DefinitionWithExtend[] = [
     ...tcl,
     ...tech,
     ...technicolor,
+    ...teploluxe,
     ...terncy,
     ...theLightGroup,
     ...thirdReality,
