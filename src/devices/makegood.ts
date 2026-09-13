@@ -4,9 +4,15 @@ import * as e from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, KeyValueAny} from "../lib/types";
 
 const ea = e.access;
+
+// Structural alias for one meta.tuyaDatapoints entry — derived from
+// DefinitionWithExtend itself so it always matches the real tuple shape
+// (number/string/converter, plus an optional per-entry meta object) without
+// having to name the library's internal type.
+type TuyaDpEntry = NonNullable<NonNullable<DefinitionWithExtend["meta"]>["tuyaDatapoints"]>[number];
 
 // --- MakeGood / Sparkelec TS0601 RGB-backlight range helpers ---
 //
@@ -85,8 +91,8 @@ const backlightColorConverter = (channelCount: number) => {
             return result;
         },
 
-        to(value: unknown, meta: {state?: {backlight_color?: Record<string, any>}}) {
-            let config: any = value;
+        to(value: unknown, meta: {state?: {"backlight_color"?: KeyValueAny}}) {
+            let config: KeyValueAny = value;
 
             if (typeof value === "string") {
                 try {
@@ -219,29 +225,36 @@ const countdownExpose = (endpoint: string) =>
 
 // Datapoints and exposes shared by every device in this range. `channels` is
 // the list of endpoint keys, in datapoint order.
+const powerOnBehaviorExpose = (channel: string) =>
+    e
+        .enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"])
+        .withEndpoint(channel)
+        .withDescription("Behavior when power is restored")
+        .withCategory("config");
+
 const commonExposes = (channels: string[], labels: string[]) => [
     ...channels.map((channel) => tuya.exposes.switch().withEndpoint(channel)),
     ...channels.map((channel) => countdownExpose(channel)),
-    ...channels.map((channel) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(channel).withCategory("config")),
+    ...channels.map((channel) => powerOnBehaviorExpose(channel)),
     e.binary("all_on_off", ea.STATE_SET, "ON", "OFF").withDescription("Turn all channels on or off simultaneously"),
-    e.power(),
-    e.current(),
-    e.voltage(),
-    e.energy(),
+    e.numeric("power", ea.STATE).withUnit("W").withDescription("Instantaneous power"),
+    e.numeric("current", ea.STATE).withUnit("A").withDescription("Instantaneous current"),
+    e.numeric("voltage", ea.STATE).withUnit("V").withDescription("Instantaneous voltage"),
+    e.numeric("energy", ea.STATE).withUnit("kWh").withDescription("Cumulative energy consumption"),
     tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
     backlightColorExpose(labels),
-    e.child_lock().withCategory("config"),
+    e.binary("child_lock", ea.STATE_SET, "LOCK", "UNLOCK").withDescription("Prevent physical control of the sockets").withCategory("config"),
 ];
 
-const commonMeta = (channels: string[]) => ({
+const commonMeta = (channels: string[]): DefinitionWithExtend["meta"] => ({
     multiEndpoint: true,
     multiEndpointSkip: ["power", "current", "voltage", "energy", "all_on_off", "backlight_mode", "backlight_color", "child_lock"],
     tuyaDatapoints: [
         // Relays: DP 1..n
-        ...channels.map((channel, i): [number, string, unknown] => [i + 1, `state_${channel}`, tuya.valueConverter.onOff]),
+        ...channels.map((channel, i): TuyaDpEntry => [i + 1, `state_${channel}`, tuya.valueConverter.onOff]),
 
         // Countdown timers: DP 7..
-        ...channels.map((channel, i): [number, string, unknown] => [i + 7, `countdown_${channel}`, countdownConverter]),
+        ...channels.map((channel, i): TuyaDpEntry => [i + 7, `countdown_${channel}`, countdownConverter]),
 
         // Backlight enable
         [16, "backlight_mode", tuya.valueConverter.onOff],
@@ -254,7 +267,7 @@ const commonMeta = (channels: string[]) => ({
         // DP 24 is reported by the device but its meaning is unconfirmed, so it is not exposed.
 
         // Power-on behaviour: DP 29..
-        ...channels.map((channel, i): [number, string, unknown] => [i + 29, `power_on_behavior_${channel}`, tuya.valueConverter.powerOnBehaviorEnum]),
+        ...channels.map((channel, i): TuyaDpEntry => [i + 29, `power_on_behavior_${channel}`, tuya.valueConverter.powerOnBehaviorEnum]),
 
         [101, "child_lock", tuya.valueConverter.lockUnlock],
         [107, "backlight_color", backlightColorConverter(channels.length)],
