@@ -672,7 +672,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "STATE_GET",
             }),
-        ].concat(...customWiredLines(["wire_1", "wire_2", "wire_3", "wire_4"]))
-        .concat(...customLeakSensor(["both_zones", "zone_1", "zone_2", "wire_1", "wire_2", "wire_3", "wire_4"])),
+        ]
+            .concat(...customWiredLines(["wire_1", "wire_2", "wire_3", "wire_4"]))
+            .concat(...customLeakSensor(["both_zones", "zone_1", "zone_2", "wire_1", "wire_2", "wire_3", "wire_4"])),
     },
 ];
