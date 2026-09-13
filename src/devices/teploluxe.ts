@@ -402,7 +402,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "switch_relay_on_alarm",
                 lookup: {"Dont switch": 0, "On first zone alarm": 1, "On second zone alarm": 2, "On any zone alarm": 3},
-
                 cluster: "LeakController",
                 attribute: {
                     ID: 0x6604,
@@ -415,7 +414,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.enumLookup({
                 name: "switch_relay_on_valve_closing",
                 lookup: {"Dont switch": 0, "On first zone": 1, "On second zone": 2, "On any zone": 3},
-
                 cluster: "LeakController",
                 attribute: {
                     ID: 0x6605,
@@ -585,7 +583,6 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            ...customLeakSensor(["both_zones", "zone_1", "zone_2", "wire_1", "wire_2", "wire_3", "wire_4"]),
             m.deviceAddCustomCluster("LeakLine", {
                 name: "LeakLine",
                 ID: 0x0416,
@@ -623,7 +620,6 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            ...customWiredLines(["wire_1", "wire_2", "wire_3", "wire_4"]),
             m.iasZoneAlarm({
                 zoneType: "water_leak",
                 zoneAttributes: ["alarm_1"],
@@ -676,6 +672,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "STATE_GET",
             }),
-        ],
+        ].concat(...customWiredLines(["wire_1", "wire_2", "wire_3", "wire_4"]))
+        .concat(...customLeakSensor(["both_zones", "zone_1", "zone_2", "wire_1", "wire_2", "wire_3", "wire_4"])),
     },
 ];
