@@ -4,7 +4,7 @@ import * as e from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, KeyValueAny} from "../lib/types";
+import type {DefinitionWithExtend, KeyValueAny, Tz} from "../lib/types";
 
 const ea = e.access;
 
@@ -91,7 +91,7 @@ const backlightColorConverter = (channelCount: number) => {
             return result;
         },
 
-        to(value: unknown, meta: {state?: {"backlight_color"?: KeyValueAny}}) {
+        to(value: unknown, meta: Tz.Meta) {
             let config: KeyValueAny = value;
 
             if (typeof value === "string") {
@@ -179,12 +179,7 @@ const channelBacklightFeature = (property: string, label: string) =>
                 .withDescription("Brightness while off — backlight mode ON only"),
         )
         .withFeature(
-            e
-                .numeric("off_hue", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(359)
-                .withValueStep(1)
-                .withDescription("Hue while off — multi mode only"),
+            e.numeric("off_hue", ea.STATE_SET).withValueMin(0).withValueMax(359).withValueStep(1).withDescription("Hue while off — multi mode only"),
         )
         .withFeature(
             e
