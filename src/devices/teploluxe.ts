@@ -410,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "ALL",
                 description: "Switch relay on alarm mode",
-                entityCategory: "config"
+                entityCategory: "config",
             }),
             m.enumLookup({
                 name: "switch_relay_on_valve_closing",
@@ -423,7 +423,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "ALL",
                 description: "Switch relay on valve closing",
-                entityCategory: "config"
+                entityCategory: "config",
             }),
             m.numeric({
                 name: "rf_sensor_count",
