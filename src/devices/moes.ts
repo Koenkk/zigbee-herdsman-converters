@@ -2086,7 +2086,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-{
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
         model: "FWJZCEH18A001",
         vendor: "Moes",
