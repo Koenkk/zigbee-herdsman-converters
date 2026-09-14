@@ -909,4 +909,88 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_uqzwwjas", "_TZE284_zeeqkb0p"]),
+        model: "ZSD20",
+        vendor: "AVATTO",
+        description: "Smart smoke alarm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.enum("smoke_sensor_state", ea.STATE, ["alarm", "normal"]).withDescription("Smoke sensor state"),
+            e.binary("self_checking", ea.STATE_SET, "ON", "OFF"),
+            e.text("fault", ea.STATE).withDescription("Fault status"),
+            e.battery(),
+            e.binary("muffling", ea.STATE_SET, "ON", "OFF"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "smoke_sensor_state",
+                    tuya.valueConverterBasic.lookup({
+                        alarm: tuya.enum(0),
+                        normal: tuya.enum(1),
+                    }),
+                ],
+                [8, "self_checking", tuya.valueConverter.onOff],
+                [
+                    11,
+                    "fault",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "serious fault",
+                                2: "sensor fault",
+                                4: "probe fault",
+                                8: "power fault",
+                            };
+
+                            if (value === 0) {
+                                return "No faults";
+                            }
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit, 10)) {
+                                    faults.push(name);
+                                }
+                            }
+                            return faults.join(", ");
+                        },
+                    },
+                ],
+                [15, "battery", tuya.valueConverter.raw],
+                [16, "muffling", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_o1slgs0r"]),
+        model: "ZOT60",
+        vendor: "pcblab.io",
+        description: "Smart Plug",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            tuya.exposes.switch(),
+            tuya.exposes.countdown(),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy().withAccess(ea.STATE_SET),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffOn(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [9, "countdown", tuya.valueConverter.countdown],
+                [17, "energy", tuya.valueConverter.divideBy1000],
+                [18, "current", tuya.valueConverter.divideBy1000],
+                [19, "power", tuya.valueConverter.divideBy10],
+                [20, "voltage", tuya.valueConverter.divideBy10],
+                [27, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "backlight_mode", tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
