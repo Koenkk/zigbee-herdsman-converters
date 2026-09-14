@@ -237,7 +237,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ZBEK-30"],
         model: "ZBEK-30",
-        vendor: "Adeo",
+        vendor: "ADEO",
         description: "ENKI LEXMAN Gdansk",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
     },
@@ -416,7 +416,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SIN-4-1-20_EQU"],
         model: "SIN-4-1-20_EQU",
-        vendor: "Adeo",
+        vendor: "ADEO",
         description: "Dry contact switch for central heating boilers",
         extend: [m.onOff(), m.commandsOnOff()],
     },
@@ -513,7 +513,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["ZBEK-37"],
         model: "ZBEK-37",
-        vendor: "Adeo",
+        vendor: "ADEO",
         description: "ENKI LEXMAN Vizzini ENKI D40",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },

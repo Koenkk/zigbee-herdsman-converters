@@ -1383,4 +1383,12 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        zigbeeModel: ["SAV-DL6IN-24V-12W"],
+        model: "SAV-DL6IN-24V-12W",
+        vendor: "Savolar",
+        ota: true,
+        description: "Zigbee 12W Downlight RGB+CCT with external antenna design",
+        extend: [gledoptoLight({colorTemp: {range: [158, 495]}, color: true, powerOnBehavior: true})],
+    },
 ];

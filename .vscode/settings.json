@@ -5,6 +5,7 @@
     "editor.insertSpaces": true,
     "files.defaultLanguage": "typescript",
     "files.eol": "\n",
+    "js/ts.experimental.useTsgo": true,
     "[typescript]": {
         "editor.defaultFormatter": "biomejs.biome"
     }

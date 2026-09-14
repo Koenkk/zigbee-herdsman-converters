@@ -1718,6 +1718,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(20000)
                 .withDescription("The power in watts of the heater connected to the auxiliary output of the thermostat"),
+            e.numeric("floor_temperature", ea.STATE).withUnit("°C").withDescription("Floor temperature (read-only, poll on demand)"),
+            e.numeric("room_temperature", ea.STATE).withUnit("°C").withDescription("Room temperature (read-only, poll on demand)"),
         ],
 
         configure: async (device, coordinatorEndpoint) => {

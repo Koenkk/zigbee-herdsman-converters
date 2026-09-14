@@ -221,14 +221,17 @@ describe("converters/fromZigbee", () => {
         });
     });
 
-    it("XHS2-UE uses voltage curve instead of stale reported battery percentage", async () => {
+    it("XHS2-UE uses voltage curve (3V_2100) instead of stale reported battery percentage", async () => {
         const definition = await findByDevice(mockDevice({modelID: "URC4460BC0-X-R", endpoints: []}));
 
+        // batteryVoltage 29 (2900mV) → 42% on the 3V_2100 curve.
+        // batteryPercentageRemaining 54 → 27% (÷2). The two paths diverge,
+        // so the expected value proves which one won.
         const payload = fromZigbee.battery.convert(
             definition,
             {
                 data: {
-                    batteryVoltage: 28,
+                    batteryVoltage: 29,
                     batteryPercentageRemaining: 54,
                 },
                 endpoint: null,
@@ -247,8 +250,74 @@ describe("converters/fromZigbee", () => {
         );
 
         expect(payload).toStrictEqual({
-            battery: 100,
-            voltage: 2800,
+            battery: 42,
+            voltage: 2900,
+        });
+    });
+
+    describe("cover_position_tilt", () => {
+        const makeMsg = (data: Record<string, number>) => ({
+            data,
+            endpoint: null,
+            device: null,
+            meta: null,
+            groupID: null,
+            type: "attributeReport" as const,
+            cluster: "closuresWindowCovering" as const,
+            linkquality: 0,
+        });
+
+        // biome-ignore lint/suspicious/noExplicitAny: test helper
+        const convert = (data: Record<string, number>, modelMeta: Record<string, unknown>, options: Record<string, any>) =>
+            fromZigbee.cover_position_tilt.convert(
+                // @ts-expect-error mock
+                {meta: modelMeta},
+                makeMsg(data),
+                null,
+                options,
+                {meta: {}},
+            );
+
+        it("converts a fully-open lift percentage using the default (non-inverted) convention", () => {
+            const payload = convert({currentPositionLiftPercentage: 0}, {}, {});
+            expect(payload).toStrictEqual({position: 100, state: "OPEN"});
+        });
+
+        it("converts a fully-closed lift percentage using the default convention", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {}, {});
+            expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
+        });
+
+        it("invert_cover flips both position and state together", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {}, {invert_cover: true});
+            expect(payload).toStrictEqual({position: 100, state: "OPEN"});
+        });
+
+        it("device-level coverInverted meta alone preserves pre-existing behaviour", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {});
+            expect(payload).toStrictEqual({position: 100, state: "OPEN"});
+        });
+
+        it("invert_cover on a coverInverted device cancels back to the non-inverted combination", () => {
+            const payload = convert({currentPositionLiftPercentage: 100}, {coverInverted: true}, {invert_cover: true});
+            expect(payload).toStrictEqual({position: 0, state: "CLOSE"});
+        });
+
+        it("derives state from tilt when coverStateFromTilt is set", () => {
+            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {});
+            expect(payload).toStrictEqual({tilt: 100, state: "OPEN"});
+        });
+
+        it("invert_cover flips tilt-derived state too", () => {
+            const payload = convert({currentPositionTiltPercentage: 0}, {coverStateFromTilt: true}, {invert_cover: true});
+            expect(payload).toStrictEqual({tilt: 0, state: "CLOSE"});
+        });
+
+        it("decodes cover_mode bits", () => {
+            const payload = convert({windowCoveringMode: 0b1011}, {}, {});
+            expect(payload).toStrictEqual({
+                cover_mode: {reversed: true, calibration: true, maintenance: false, led: true},
+            });
         });
     });
 

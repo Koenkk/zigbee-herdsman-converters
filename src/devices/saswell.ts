@@ -30,8 +30,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_9m4kmbfu",
                 "_TZE284_9m4kmbfu",
                 "_TZE200_3yp57tby",
+                "_TZE204_3yp57tby",
                 "_TZE200_7p8ugv8d",
                 "_TZE284_3yp57tby",
+                "_TZE2841000000_3yp57tby",
             ]),
             ...tuya.fingerprint("aj4jz0i\u0000", ["_TYST11_caj4jz0i"]),
         ],
@@ -45,6 +47,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "RTX", model: "ZB-RT1"},
             {vendor: "SETTI+", model: "TRV001"},
             {vendor: "Royal Thermo", model: "RTE 77.001B"},
+            {vendor: "Nous", model: "H1Z"}, // 3yp57tby
         ],
         fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, legacy.fz.tuya_thermostat_weekly_schedule_2],
         toZigbee: [

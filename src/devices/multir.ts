@@ -1,3 +1,4 @@
+import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
@@ -31,6 +32,37 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+};
+
+const fzhe300Local = {
+    HE300: {
+        cluster: "msOccupancySensing",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const value = msg.data.occupancy;
+
+            let occupancy = false;
+            let humanMotionstate = "none";
+
+            if (value === 0x00) {
+                occupancy = false;
+                humanMotionstate = "none";
+            } else if (value === 0x01) {
+                occupancy = true;
+                humanMotionstate = "active";
+            } else if (value === 0x02) {
+                occupancy = true;
+                humanMotionstate = "static";
+            } else {
+                occupancy = (value & 0x01) !== 0 || (value & 0x02) !== 0;
+                humanMotionstate = (value & 0x02) !== 0 ? "static" : (value & 0x01) !== 0 ? "active" : "none";
+            }
+            return {
+                occupancy: occupancy,
+                human_motion_state: humanMotionstate,
+            };
+        },
+    } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -75,6 +107,50 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+
+    {
+        zigbeeModel: ["HE300_ZB"],
+        model: "HE300_ZB",
+        vendor: "MultIR",
+        description: "Human presence sensor",
+        fromZigbee: [fz.occupancy, fzhe300Local.HE300],
+        toZigbee: [],
+        extend: [
+            m.illuminance(),
+            m.numeric({
+                name: "occupancy_distance",
+                cluster: 0x0406,
+                attribute: {ID: 0xa205, type: 0x20},
+                description: "Motion Range Detection (meter)",
+                valueMin: 2,
+                valueMax: 6,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "unmanned_duration",
+                cluster: 0x0406,
+                attribute: {ID: 0xa206, type: 0x21},
+                description: "Ultrasonic occupied to unoccupied delay (seconds)",
+                valueMin: 0,
+                valueMax: 65535,
+                entityCategory: "config",
+            }),
+            m.enumLookup({
+                name: "sensitivity",
+                cluster: 0x0406,
+                attribute: {ID: 0xa203, type: 0x30},
+                description: "Sensitivity of human presence detection",
+                lookup: {
+                    low: 0x00,
+                    medium: 0x01,
+                    high: 0x02,
+                },
+                entityCategory: "config",
+            }),
+        ],
+        exposes: [e.occupancy(), e.enum("human_motion_state", ea.STATE, ["none", "active", "static"]).withDescription("Human Motion State")],
+    },
+
     {
         zigbeeModel: ["MIR-SM100-E"],
         model: "MIR-SM100-E",

@@ -61,6 +61,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [160, 450]}})],
     },
     {
+        zigbeeModel: ["ROB_200-065-0"],
+        model: "ROB_200-065-0",
+        vendor: "ROBB",
+        description: "LED Power Supply & RGBW Controller 24V 100W",
+        extend: [m.light({colorTemp: {range: [160, 450]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        whiteLabel: [{vendor: "Sunricher", model: "srp-zv9105-24-100cvf"}],
+    },
+    {
         zigbeeModel: ["ROB_200-029-0"],
         model: "ROB_200-029-0",
         vendor: "ROBB",
@@ -81,14 +89,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "ROBB",
         description: "Battery powered PIR presence, temperature, humidity and light sensors",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5}}),
             m.battery(),
             m.identify(),
             m.occupancy(),
             m.iasZoneAlarm({zoneType: "generic", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}),
-            m.temperature({endpointNames: ["3"]}),
-            m.humidity({endpointNames: ["4"]}),
-            m.illuminance({endpointNames: ["5"]}),
+            m.temperature(),
+            m.humidity(),
+            m.illuminance(),
         ],
     },
     {

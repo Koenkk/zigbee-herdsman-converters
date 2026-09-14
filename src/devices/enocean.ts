@@ -133,7 +133,10 @@ const fzLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: [{modelID: "GreenPower_2", ieeeAddr: /^0x00000000017.....$/}],
+        fingerprint: [
+            {modelID: "GreenPower_2", ieeeAddr: /^0x00000000017.....$/},
+            {modelID: "GreenPower_2", ieeeAddr: /^0x0000000001a4....$/},
+        ],
         model: "PTM 215Z",
         vendor: "EnOcean",
         description: "Pushbutton transmitter module",
@@ -165,6 +168,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "LED-Trading", model: "9125"},
             {vendor: "Feller", description: "Smart light control for Philips Hue", model: "4120.2.S.FMI.61"},
             {vendor: "Namron", description: " Zigbee FOH Green Bryter K4", model: "4512727"},
+            {vendor: "Senic & Gira", description: "Friends of Hue smart switch", model: "100120"},
         ],
     },
     {

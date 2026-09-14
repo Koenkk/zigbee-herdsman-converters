@@ -26,6 +26,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_AUTHOR: ${{ github.event.pull_request.user.login }}
       run: |
         # Skip if PR already has the approval label
         LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
@@ -62,6 +63,20 @@ jobs:
 
             if [[ $file == $glob ]]; then
               reviewers="${PATTERN_REVIEWERS[$pattern]}"
+
+              # Skip if the PR author is one of the code owners for this file
+              # (owners can't review their own PRs, so don't require it).
+              IS_OWNER=false
+              for owner in $reviewers; do
+                owner_clean="${owner#@}"
+                if [[ "$owner_clean" == "$PR_AUTHOR" ]]; then
+                  IS_OWNER=true
+                  echo "::notice::Skipping '$file' — PR author @$PR_AUTHOR is a code owner"
+                  break
+                fi
+              done
+              $IS_OWNER && continue
+
               echo "::error::Review required for '$file' by '$reviewers'"
               MATCHED_REVIEWERS["$reviewers"]+="$file"$'\n'
               MATCH=true

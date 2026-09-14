@@ -132,6 +132,14 @@ function removeFromExternalDefinitionsLookup(zigbeeModel: string | undefined, de
     }
 }
 
+/**
+ * Some devices pad `modelID` with NUL bytes or surrounding whitespace. Strip that so lookups
+ * and comparisons use the same form as the value declared in `zigbeeModel`.
+ */
+function normalizeModelID(modelID: string): string {
+    return modelID.replace(/\0(.|\n)*$/g, "").trim();
+}
+
 function getFromExternalDefinitionsLookup(zigbeeModel: string | undefined): DefinitionWithExtend[] | undefined {
     const lookupModel = zigbeeModel ? zigbeeModel.toLowerCase() : "null";
 
@@ -139,7 +147,7 @@ function getFromExternalDefinitionsLookup(zigbeeModel: string | undefined): Defi
         return externalDefinitionsLookup.get(lookupModel);
     }
 
-    return externalDefinitionsLookup.get(lookupModel.replace(/\0(.|\n)*$/g, "").trim());
+    return externalDefinitionsLookup.get(normalizeModelID(lookupModel));
 }
 
 export function removeExternalDefinitions(converterName?: string): void {
@@ -216,7 +224,7 @@ async function getFromIndex(zigbeeModel: string | undefined): Promise<Definition
         return await getDefinitions(indexes);
     }
 
-    indexes = MODELS_INDEX[lookupModel.replace(/\0(.|\n)*$/g, "").trim()];
+    indexes = MODELS_INDEX[normalizeModelID(lookupModel)];
 
     if (indexes) {
         logger.debug(`Getting definitions for: ${indexes}`, NS);
@@ -562,10 +570,15 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
             return fingerprintMatch.definition;
         }
 
-        // Match based on fingerprint failed, return first matching definition based on zigbeeModel
-        for (const candidate of candidates) {
-            if (candidate.zigbeeModel && device.modelID && candidate.zigbeeModel.includes(device.modelID)) {
-                return candidate;
+        // Match based on fingerprint failed, return first matching definition based on zigbeeModel.
+        // A candidate can be here because the lookups above matched the normalized modelID, so compare against that form too.
+        if (device.modelID) {
+            const normalizedModelID = normalizeModelID(device.modelID);
+
+            for (const candidate of candidates) {
+                if (candidate.zigbeeModel?.some((zigbeeModel) => zigbeeModel === device.modelID || zigbeeModel === normalizedModelID)) {
+                    return candidate;
+                }
             }
         }
     }

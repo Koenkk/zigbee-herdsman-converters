@@ -1,15 +1,16 @@
 {
     "name": "zigbee-herdsman-converters",
-    "version": "26.81.0",
+    "version": "26.109.0",
     "description": "Collection of device converters to be used with zigbee-herdsman",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "packageManager": "pnpm@10.18.3",
+    "packageManager": "pnpm@12.3.4",
     "engines": {
-        "node": ">=20.15.0"
+        "node": "^22.2.0 || ^24 || <=26.2"
     },
     "files": [
         "dist",
+        "pnpm-workspace.yaml",
         "CHANGELOG.md"
     ],
     "repository": {
@@ -45,7 +46,7 @@
     "dependencies": {
         "iconv-lite": "^0.7.3",
         "semver": "^7.8.5",
-        "zigbee-herdsman": "^10.6.2"
+        "zigbee-herdsman": "^10.9.1"
     },
     "exports": {
         ".": "./dist/index.js",
@@ -56,15 +57,15 @@
     },
     "devDependencies": {
         "@biomejs/biome": "^2.5.3",
-        "@types/node": "^26.1.1",
-        "@types/semver": "^7.7.1",
-        "@vitest/coverage-v8": "4.1.10",
+        "@types/node": "^26.4.1",
+        "@types/semver": "^7.8.0",
+        "@vitest/coverage-v8": "4.1.11",
         "fast-deep-equal": "^3.1.3",
         "husky": "^9.1.7",
         "rimraf": "^6.1.3",
         "ts-morph": "^28.0.0",
         "tsc-watch": "^7.2.1",
         "typescript": "^7.0.2",
-        "vitest": "^4.0.0"
+        "vitest": "^4.1.11"
     }
 }

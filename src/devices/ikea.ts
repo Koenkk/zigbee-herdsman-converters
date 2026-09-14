@@ -1019,6 +1019,7 @@ export const definitions: DefinitionWithExtend[] = [
             // https://github.com/Koenkk/zigbee2mqtt/issues/28161
             ikeaArrowClick({bind: false}),
             ikeaBattery(),
+            ikeaModernExtend.handleAppVersionReadRequest(),
         ],
         ota: true,
     },
