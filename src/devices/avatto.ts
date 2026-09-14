@@ -976,7 +976,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.power(),
             e.current(),
             e.voltage(),
-            e.energy().withAccess(ea.STATE_SET),
+            e
+                .numeric("energy", ea.STATE_SET)
+                .withUnit("kWh")
+                .withValueMin(0)
+                .withValueMax(100000) // 100000000 / 1000
+                .withValueStep(0.1) // 100 / 1000
+                .withDescription("Sum of consumed energy"),
             e.power_on_behavior().withAccess(ea.STATE_SET),
             tuya.exposes.backlightModeOffOn(),
         ],
@@ -985,9 +991,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.onOff],
                 [9, "countdown", tuya.valueConverter.countdown],
                 [17, "energy", tuya.valueConverter.divideBy1000],
-                [18, "current", tuya.valueConverter.divideBy1000],
-                [19, "power", tuya.valueConverter.divideBy10],
-                [20, "voltage", tuya.valueConverter.divideBy10],
+                [18, "current", tuya.valueConverter.divideBy1000], // mA → A
+                [19, "power", tuya.valueConverter.divideBy10], // scale 1
+                [20, "voltage", tuya.valueConverter.divideBy10], // scale 1
                 [27, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
                 [101, "backlight_mode", tuya.valueConverter.onOff],
             ],
