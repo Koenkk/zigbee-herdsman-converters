@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import * as m from "zigbee-herdsman-converters/lib/modernExtend";
+import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 
 function customLeakSensor(endpoints: string[]): ModernExtend[] {
@@ -583,6 +583,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            ...customWiredLines(["wire_1", "wire_2", "wire_3", "wire_4"]),
             m.deviceAddCustomCluster("LeakLine", {
                 name: "LeakLine",
                 ID: 0x0416,
@@ -620,6 +621,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            ...customLeakSensor(["both_zones", "zone_1", "zone_2", "wire_1", "wire_2", "wire_3", "wire_4"]),
             m.iasZoneAlarm({
                 zoneType: "water_leak",
                 zoneAttributes: ["alarm_1"],
@@ -672,8 +674,6 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 access: "STATE_GET",
             }),
-        ]
-            .concat(...customWiredLines(["wire_1", "wire_2", "wire_3", "wire_4"]))
-            .concat(...customLeakSensor(["both_zones", "zone_1", "zone_2", "wire_1", "wire_2", "wire_3", "wire_4"])),
+        ],
     },
 ];
