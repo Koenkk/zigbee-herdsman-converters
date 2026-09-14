@@ -2086,7 +2086,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
+{
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
         model: "FWJZCEH18A001",
         vendor: "Moes",
@@ -2098,7 +2098,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPosition],
                 [8, "position", tuya.valueConverter.coverPosition],
-                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [11, "motor_direction", {
+                    from: (v: number | string) => (v === 1 || v === 'back' || v === 'reversed' ? 'reversed' : 'normal'),
+                    to: (v: string) => (v === 'reversed' ? 1 : 0),
+                }],
                 [13, "battery", {from: (v: string) => Buffer.from(v, "base64").readUInt32BE(0)}],
                 [16, "cover_limit", tuya.valueConverter.coverLimit],
             ],
