@@ -7483,6 +7483,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("MiBoxer", "PZ2", "2 in 1 LED controller", ["_TZB210_0bkzabht"]),
             tuya.whitelabel("Lidl", "14156408L", "Livarno Lux smart LED ceiling light", ["_TZ3210_c2iwpxf1"]),
             tuya.whitelabel("EcoDim", "ED-10032", "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K", ["_TZ3210_09hzmirw"]),
+            tuya.whitelabel("ECODO", "ECD-48V-MGT", "Smart Magtrac 12 W magnetic track light, 2700-6500K", ["_TZ3210_tlwlmwm6"]),
             tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
             tuya.whitelabel("ECODO", "PSL-24V/RGBCW/ECD", "All in one 240 W power supply for RGBCW or RGBCCT LED strip", ["_TZ3210_rnj5wxxg"]),
