@@ -18759,19 +18759,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.powerFactorWithPhase("c"),
             tuya.exposes.energyWithPhase("c"),
             e.numeric("reverse_energy_c", ea.STATE).withUnit("kWh"),
-            e.numeric("power_setting_a", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
-            e.numeric("power_setting_b", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
-            e.numeric("power_setting_c", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.numeric("power_setting_a", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(3680),
+            e.numeric("power_setting_b", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(3680),
+            e.numeric("power_setting_c", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(3680),
             e.binary("power_alarm_a", ea.STATE, true, false),
             e.binary("power_alarm_b", ea.STATE, true, false),
             e.binary("power_alarm_c", ea.STATE, true, false),
-            e.numeric("voltage_calibration", ea.STATE_SET).withUnit("V").withMin(0).withMax(260),
-            e.numeric("current_a_calibration", ea.STATE_SET).withUnit("mA").withMin(0).withMax(100000),
-            e.numeric("current_b_calibration", ea.STATE_SET).withUnit("mA").withMin(0).withMax(100000),
-            e.numeric("current_c_calibration", ea.STATE_SET).withUnit("mA").withMin(0).withMax(100000),
-            e.numeric("power_a_calibration", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
-            e.numeric("power_b_calibration", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
-            e.numeric("power_c_calibration", ea.STATE_SET).withUnit("W").withMin(0).withMax(3680),
+            e.numeric("voltage_calibration", ea.STATE_SET).withUnit("V").withValueMin(0).withValueMax(260),
+            e.numeric("current_a_calibration", ea.STATE_SET).withUnit("mA").withValueMin(0).withValueMax(100000),
+            e.numeric("current_b_calibration", ea.STATE_SET).withUnit("mA").withValueMin(0).withValueMax(100000),
+            e.numeric("current_c_calibration", ea.STATE_SET).withUnit("mA").withValueMin(0).withValueMax(100000),
+            e.numeric("power_a_calibration", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(3680),
+            e.numeric("power_b_calibration", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(3680),
+            e.numeric("power_c_calibration", ea.STATE_SET).withUnit("W").withValueMin(0).withValueMax(3680),
         ],
         meta: {
             tuyaDatapoints: [
@@ -18812,7 +18812,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_vmcgja59",
