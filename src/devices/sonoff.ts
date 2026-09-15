@@ -13469,4 +13469,25 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
     },
+    {
+        zigbeeModel: ["SNZT-04P"],
+        model: "SNZT-04P",
+        vendor: "SONOFF",
+        description: "Smart Door/Window Sensor",
+        version: "0.0.1",
+        extend: [
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+            m.battery({percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+        ],
+    },
 ];
