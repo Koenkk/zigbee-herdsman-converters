@@ -11436,7 +11436,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e.child_lock(),
-            e.binary("schedule_mode", ea.STATE_SET, "auto", "manual").withDescription("Manual = Manual or Schedule = Auto"),
+            e
+             .enum("schedule_mode", ea.STATE_SET, ["manual", "auto"])
+             .withDescription("Manual = Manual or Schedule = Auto"),
             e.eco_mode(),
             e.temperature_sensor_select(["IN", "AL", "OU"]).withLabel("Sensor").withDescription("Choose which sensor to use. Default: AL"),
             e.min_temperature().withValueMin(0).withValueMax(20),
