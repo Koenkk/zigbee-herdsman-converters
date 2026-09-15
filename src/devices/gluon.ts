@@ -9,7 +9,7 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_d2nady2a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_d2nady2a", "_TZE204_d2nady2a"]),
         model: "ST001",
         vendor: "Gluon",
         description: "FCU thermostat with minimum temperature limit",
