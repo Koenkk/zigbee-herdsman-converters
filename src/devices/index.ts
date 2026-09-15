@@ -115,6 +115,7 @@ import {definitions as giderwel} from "./giderwel";
 import {definitions as giex} from "./giex";
 import {definitions as girier} from "./girier";
 import {definitions as gledopto} from "./gledopto";
+import {definitions as gluon} from "./gluon";
 import {definitions as gmmts} from "./gmmts";
 import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
@@ -508,6 +509,7 @@ const definitions: DefinitionWithExtend[] = [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gluon,
     ...gmmts,
     ...gmy,
     ...gs,
