@@ -82,6 +82,7 @@ import {definitions as ecozy} from "./ecozy";
 import {definitions as edp} from "./edp";
 import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
+import {definitions as ekaza} from "./ekaza";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
 import {definitions as engo} from "./engo";
@@ -473,6 +474,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ecozy,
     ...edp,
     ...efekta,
+    ...ekaza,
     ...eglo,
     ...elko,
     ...enbrighten,

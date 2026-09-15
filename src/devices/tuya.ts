@@ -4657,6 +4657,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LUUMR", "10010128", "Smart LED, GU10, 4,7W, RGBW, CCT, Tuya, WLAN, mat", ["_TZ3210_sw9uxoea"]),
             tuya.whitelabel("KOJIMA", "GX53-RGB-WW-CW-7W-ZGB", "Smart RGB LED Lamp GX53 7W", ["_TZ3210_b3kiq1i0"]),
             tuya.whitelabel("Ledisons", "LDN22-RGBWW5", "RGB+CCT LED Downlight", ["_TZ3210_o4vasvef"]),
+            tuya.whitelabel("ECODO", "PSL-24V/RGBCW/ECD", "All in one 240 W power supply for RGBCW or RGBCCT LED strip", ["_TZ3210_8etggm4u"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
@@ -4740,6 +4741,20 @@ export const definitions: DefinitionWithExtend[] = [
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
+    },
+    {
+        zigbeeModel: ["CK-TLSR8258-L5PI-01(7009)"],
+        model: "CK-TLSR8258-L5PI-01(7009)",
+        vendor: "eWeLink",
+        description: "Zigbee 3.0 18W led light bulb E27 RGBCW",
+        extend: [
+            m.light({
+                colorTemp: {range: [153, 370]},
+                effect: true,
+                powerOnBehavior: true,
+                color: {modes: ["xy", "hs"]},
+            }),
+        ],
     },
     {
         zigbeeModel: ["TS0503B"],
@@ -7485,7 +7500,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("EcoDim", "ED-10032", "Zigbee LED filament lamp dimmable E27, bulb A60, Smokey 2000K-4000K", ["_TZ3210_09hzmirw"]),
             tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
-            tuya.whitelabel("ECODO", "PSL-24V/RGBCW/ECD", "All in one 240 W power supply for RGBCW or RGBCCT LED strip", ["_TZ3210_rnj5wxxg"]),
+            tuya.whitelabel("ECODO", "ECD-SS12", "Sunset smart downlight 12 W, 1800-5700K", ["_TZ3210_rnj5wxxg"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
