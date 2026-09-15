@@ -431,6 +431,10 @@ interface ShellyLightLevel {
 // not queue every RPC transaction behind one global lock.
 const shellyRpcBusy = new Set<string>();
 
+const preserveNameHA = (name: string): exposes.HomeAssistant => {
+    return {name: name};
+};
+
 const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
     const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
     while (shellyRpcBusy.has(key)) {
@@ -1254,7 +1258,7 @@ const shellyModernExtend = {
         // (see SHELLY_RPC_CAN_READ): no convertGet - a device query walks every converter that has
         // one regardless of the access flags - and the exposes say so instead of announcing GET.
         if (twoPMInputEndpoints) {
-            const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
+            const inModeValues = ["momentary", "follow", "flip", "detached", "cycle", "activate"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, twoPMInputEndpoints)).map((endpoint) =>
@@ -1276,7 +1280,7 @@ const shellyModernExtend = {
             });
         }
         if (featureOnePMInputMode) {
-            const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
+            const inModeValues = ["momentary", "follow", "flip", "detached", "cycle", "activate"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2})).map((endpoint) =>
@@ -1735,10 +1739,26 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
-            e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
-            e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
-            e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),
+            e
+                .numeric("dew_point", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated dew point temperature")
+                .withHomeAssistant(preserveNameHA("Dew Point")),
+            e
+                .numeric("wind_chill", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated wind chill temperature")
+                .withHomeAssistant(preserveNameHA("Wind Chill")),
+            e
+                .numeric("humidex", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated humidex (feels-like for warm conditions)")
+                .withHomeAssistant(preserveNameHA("Humidex")),
+            e
+                .numeric("apparent_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated apparent temperature")
+                .withHomeAssistant(preserveNameHA("Apparent Temperature")),
             e.numeric("heat_stress", ea.STATE).withUnit("%").withDescription("Calculated heat stress percentage (0-100%)"),
             e.numeric("rain_rate", ea.STATE).withUnit("mm/h").withDescription("Calculated rainfall rate"),
             e.numeric("pressure_trend", ea.STATE).withUnit("hPa/h").withDescription("Pressure change rate (negative = falling)"),
@@ -2111,9 +2131,16 @@ const tzLocal = {
     switch_input_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {toggle: 0, momentary: 1} as const;
-            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
-            await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
+            // The firmware registers genOnOffSwitchCfg.switchType as READ_ONLY
+            // (shelly_zb_on_off_input.cpp), so a direct ZCL write returns
+            // NOT_AUTHORIZED.  Route the write through Input.SetConfig RPC instead.
+            const typeMap = {toggle: "switch", momentary: "button"} as const;
+            const shellyType = utils.getFromLookup(value as string, typeMap);
+            utils.assertEndpoint(entity);
+            const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+            if (!ep) throw new Error(`Shelly RPC endpoint ${SHELLY_ENDPOINT_ID} not found`);
+            const switchId = Number(meta.endpoint_name?.replace("sw", "") ?? "1") - 1;
+            await shellyRpcSend(ep, "Input.SetConfig", {id: switchId, config: {type: shellyType}});
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2986,6 +3013,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 unit: "m/s",
                 access: "STATE_GET",
+                homeassistant: preserveNameHA("Gust Speed"),
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
                 name: "shellyWS90UV",

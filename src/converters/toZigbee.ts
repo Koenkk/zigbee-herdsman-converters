@@ -657,7 +657,6 @@ export const squawk: Tz.Converter = {
 };
 export const cover_state: Tz.Converter = {
     key: ["state"],
-    options: [exposes.options.invert_cover()],
     convertSet: async (entity, key, value, meta) => {
         const lookup = {
             open: "upOpen" as const,
@@ -666,21 +665,8 @@ export const cover_state: Tz.Converter = {
             on: "upOpen" as const,
             off: "downClose" as const,
         };
-        const invertedLookup = {
-            open: "downClose" as const,
-            close: "upOpen" as const,
-            stop: "stop" as const,
-            on: "downClose" as const,
-            off: "upOpen" as const,
-        };
         utils.assertString(value, key);
-        const commandLookup = meta.options.invert_cover ? invertedLookup : lookup;
-        await entity.command(
-            "closuresWindowCovering",
-            utils.getFromLookup(value.toLowerCase(), commandLookup),
-            {},
-            utils.getOptions(meta.mapped, entity),
-        );
+        await entity.command("closuresWindowCovering", utils.getFromLookup(value.toLowerCase(), lookup), {}, utils.getOptions(meta.mapped, entity));
     },
 };
 export const cover_position_tilt: Tz.Converter = {

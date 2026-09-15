@@ -122,6 +122,12 @@ const valueConverterLocal = {
 };
 
 const tzLocal = {
+    batteryQuery: {
+        key: ["battery"],
+        convertGet: async (entity) => {
+            await entity.command("manuSpecificTuya", "dataQuery", {});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         key: ["position", "tilt"],
@@ -399,7 +405,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM25RX-08/30",
         vendor: "Zemismart",
         description: "Tubular motor",
-        // mcuVersionResponse spsams: https://github.com/Koenkk/zigbee2mqtt/issues/19817
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         options: [exposes.options.invert_cover()],
         exposes: [
@@ -980,7 +985,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a2teqi5u"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a2teqi5u", "_TZE28C1000000_a2teqi5u"]),
         model: "ZMS-208US-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
@@ -1139,13 +1144,21 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz", "_TZE2841000000_3mzb0sdz"]),
         model: "ZM16B",
         vendor: "Zemismart",
         description: "Tubular motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 12 * 60 * 60,
+            }),
+        ],
+        toZigbee: [tzLocal.batteryQuery],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET)],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
@@ -1272,6 +1285,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [112, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
                 [113, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_rzdkn5rx"]),
+        model: "ZNS-LRL2E",
+        vendor: "Zemismart",
+        description: "30A immersion switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.switch()],
+        meta: {
+            tuyaDatapoints: [[1, "state", tuya.valueConverter.onOff]],
         },
     },
 ];

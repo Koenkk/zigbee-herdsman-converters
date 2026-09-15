@@ -121,7 +121,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_sndkanfr", "_TZE204_bjf8qum1", "_TZE28C1000000_sndkanfr", "_TZE28C1000000_bjf8qum1"]),
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE204_sndkanfr",
+            "_TZE204_bjf8qum1",
+            "_TZE28C1000000_sndkanfr",
+            "_TZE28C1000000_bjf8qum1",
+            "_TZE284_sndkanfr",
+        ]),
         model: "SZLMR10",
         vendor: "Lincukoo",
         description: "Human Motion & Presence Sensor",

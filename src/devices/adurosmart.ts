@@ -7,7 +7,6 @@ import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
-const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -149,16 +148,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "81868",
         vendor: "AduroSmart",
         description: "Siren",
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning_simple, tz.warning],
-        extend: [m.iasWarningMaxDuration()],
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.iasWarning({maxDuration: {min: 0, max: 600}}),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "ssIasZone", "ssIasWd"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
             await endpoint.read("ssIasWd", ["maxDuration"]);
         },
-        exposes: [e.tamper(), e.warning(), e.binary("alarm", ea.SET, "ON", "OFF").withDescription("Manual start of siren")],
     },
     {
         zigbeeModel: ["AD-CTW123001"],

@@ -1843,7 +1843,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
-                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [
+                    11,
+                    "motor_direction",
+                    {from: (v) => (v === 1 || v === "back" || v === "reversed" ? "reversed" : "normal"), to: (v) => (v === "reversed" ? 1 : 0)},
+                ],
             ],
         },
     },

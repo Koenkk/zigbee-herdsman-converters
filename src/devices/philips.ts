@@ -174,48 +174,28 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004582001",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (21 meter with 30 bulbs)",
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["LCX028", "LCX025", "LCX024"],
         model: "929004581901",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (14 meter with 20 bulbs)",
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["LCX029"],
         model: "929004581801",
         vendor: "Philips",
         description: "Hue Festavia globe outdoor string lights (7 meter with 10 bulbs)",
-        extend: [
-            philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["LCX030"],
         model: "929004284702",
         vendor: "Philips",
         description: "Hue Festavia permanent outdoor string lights",
-        extend: [
-            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003736501_01", "929003736501_02"],
@@ -3741,14 +3721,7 @@ export const definitions: DefinitionWithExtend[] = [
             {model: "929004608103", vendor: "Philips", description: "Hue OmniGlow lightstrip AU (5m)", fingerprint: [{modelID: "929004608103"}]},
             {model: "929004608201", vendor: "Philips", description: "Hue OmniGlow lightstrip (10m)", fingerprint: [{modelID: "929004608201"}]},
         ],
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003099301", "929003099302"],
@@ -4411,44 +4384,31 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 454]}}), m.identify()],
     },
     {
-        zigbeeModel: ["LCX012"],
+        zigbeeModel: ["LCX012", "LCX015", "LCX016", "LCX017"],
         model: "929003535301",
         vendor: "Philips",
         description: "Hue Festavia gradient light string 250 (1st-gen)",
-        extend: [
-            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
+        whiteLabel: [
+            {
+                model: "9290036744",
+                vendor: "Philips",
+                description: "Hue Festavia gradient light string 250",
+                fingerprint: [{modelID: "LXC015"}],
+            },
+            {
+                model: "9290036745",
+                vendor: "Philips",
+                description: "Hue Festavia gradient light string 100",
+                fingerprint: [{modelID: "LXC016"}],
+            },
+            {
+                model: "929003674601",
+                vendor: "Philips",
+                description: "Hue Festavia gradient light string 500",
+                fingerprint: [{modelID: "LXC017"}],
+            },
         ],
-    },
-    {
-        zigbeeModel: ["LCX015"],
-        model: "9290036744",
-        vendor: "Philips",
-        description: "Hue Festavia gradient light string 250",
-        extend: [
-            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
-        ],
-    },
-    {
-        zigbeeModel: ["LCX016"],
-        model: "9290036745",
-        vendor: "Philips",
-        description: "Hue Festavia gradient light string 100",
-        extend: [
-            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
-        ],
-    },
-    {
-        zigbeeModel: ["LCX017"],
-        model: "929003674601",
-        vendor: "Philips",
-        description: "Hue Festavia gradient light string 500",
-        extend: [
-            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["915005987101"],
@@ -4684,10 +4644,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "915005988201",
         vendor: "Philips",
         description: "Hue Gradient light tube large black EU",
-        extend: [
-            philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: {extraEffects: ["sparkle", "opal", "glisten"]}}),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003597701", "929003099102"],
@@ -4937,14 +4894,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "046677590161",
         vendor: "Philips",
         description: "Hue Play wall washer",
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [153, 500]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten", "underwater", "cosmos", "sunbeam", "enchant"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929004321001", "929004321101"],
@@ -5154,14 +5104,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929004610401"}],
             },
         ],
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929004276602", "929004276702", "929004276802"],
@@ -5182,14 +5125,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929004276802"}],
             },
         ],
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929004276902", "929004277002", "929004277004", "929004277102"],
@@ -5216,14 +5152,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929004277102"}],
             },
         ],
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929004294903"],
@@ -5252,14 +5181,7 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929004611102"}],
             },
         ],
-        extend: [
-            philips.m.light({
-                colorTemp: {range: [50, 1000]},
-                color: {modes: ["xy", "hs"], enhancedHue: true},
-                gradient: {extraEffects: ["sparkle", "opal", "glisten", "prism", "underwater", "cosmos", "sunbeam", "enchant"]},
-            }),
-            m.identify(),
-        ],
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
         zigbeeModel: ["929003812301"],
