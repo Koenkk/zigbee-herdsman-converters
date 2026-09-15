@@ -9,12 +9,6 @@ import type {DefinitionWithExtend, KeyValueAny, Tz} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
-// Structural alias for one meta.tuyaDatapoints entry — derived from
-// DefinitionWithExtend itself so it always matches the real tuple shape
-// (number/string/converter, plus an optional per-entry meta object) without
-// having to name the library's internal type.
-type TuyaDpEntry = NonNullable<NonNullable<DefinitionWithExtend["meta"]>["tuyaDatapoints"]>[number];
-
 // --- MakeGood / Sparkelec TS0601 RGB-backlight range helpers ---
 //
 //   _TZE200_lq0ffndf  MG-GPO02Z  (Sparkelec SGPO2TZ)   2 channels
@@ -208,52 +202,6 @@ const backlightColorExpose = (labels: string[]) => {
     return composite.withCategory("config");
 };
 
-// Datapoints and exposes shared by every device in this range. `channels` is
-// the list of endpoint keys, in datapoint order.
-const commonExposes = (channels: string[], labels: string[]) => [
-    ...channels.map((channel) => tuya.exposes.switch().withEndpoint(channel)),
-    ...channels.map((channel) => tuya.exposes.countdown().withEndpoint(channel)),
-    ...channels.map((channel) => e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint(channel).withCategory("config")),
-    e.binary("all_on_off", ea.STATE_SET, "ON", "OFF").withDescription("Turn all channels on or off simultaneously"),
-    e.power(),
-    e.current(),
-    e.voltage(),
-    e.energy(),
-    tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
-    backlightColorExpose(labels),
-    e.child_lock().withCategory("config"),
-];
-
-const commonMeta = (channels: string[]): DefinitionWithExtend["meta"] => ({
-    multiEndpoint: true,
-    multiEndpointSkip: ["power", "current", "voltage", "energy", "all_on_off", "backlight_mode", "backlight_color", "child_lock"],
-    tuyaDatapoints: [
-        // Relays: DP 1..n
-        ...channels.map((channel, i): TuyaDpEntry => [i + 1, `state_${channel}`, tuya.valueConverter.onOff]),
-
-        // Countdown timers: DP 7..
-        ...channels.map((channel, i): TuyaDpEntry => [i + 7, `countdown_${channel}`, countdownConverter]),
-
-        // Backlight enable
-        [16, "backlight_mode", tuya.valueConverter.onOff],
-
-        // Electrical measurements
-        [20, "energy", energyConverter],
-        [21, "current", tuya.valueConverter.divideBy1000],
-        [22, "power", tuya.valueConverter.divideBy10],
-        [23, "voltage", tuya.valueConverter.divideBy10],
-        // DP 24 is reported by the device but its meaning is unconfirmed, so it is not exposed.
-
-        // Power-on behaviour: DP 29..
-        ...channels.map((channel, i): TuyaDpEntry => [i + 29, `power_on_behavior_${channel}`, tuya.valueConverter.powerOnBehaviorEnum]),
-
-        [101, "child_lock", tuya.valueConverter.lockUnlock],
-        [107, "backlight_color", backlightColorConverter(channels.length)],
-        [136, "all_on_off", tuya.valueConverter.onOff],
-        // DP 165 is reported by the device but its meaning is unconfirmed, so it is not exposed.
-    ],
-});
-
 // --- Definitions ---
 
 export const definitions: DefinitionWithExtend[] = [
@@ -345,8 +293,54 @@ export const definitions: DefinitionWithExtend[] = [
         // Both sockets are on endpoint 1; the l1/l2 split is by datapoint. This
         // mapping exists only so withEndpoint() postfixes the property names.
         endpoint: () => ({l1: 1, l2: 1}),
-        exposes: commonExposes(["l1", "l2"], ["Socket 1", "Socket 2"]),
-        meta: commonMeta(["l1", "l2"]),
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.countdown().withEndpoint("l1"),
+            tuya.exposes.countdown().withEndpoint("l2"),
+            e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint("l1").withCategory("config"),
+            e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint("l2").withCategory("config"),
+            e.binary("all_on_off", ea.STATE_SET, "ON", "OFF").withDescription("Turn all channels on or off simultaneously"),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            backlightColorExpose(["Socket 1", "Socket 2"]),
+            e.child_lock().withCategory("config"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power", "current", "voltage", "energy", "all_on_off", "backlight_mode", "backlight_color", "child_lock"],
+            tuyaDatapoints: [
+                // Relays: DP 1..n
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+
+                // Countdown timers: DP 7..
+                [7, "countdown_l1", countdownConverter],
+                [8, "countdown_l2", countdownConverter],
+
+                // Backlight enable
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+
+                // Electrical measurements
+                [20, "energy", energyConverter],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                // DP 24 is reported by the device but its meaning is unconfirmed, so it is not exposed.
+
+                // Power-on behaviour: DP 29..
+                [29, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [30, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [107, "backlight_color", backlightColorConverter(2)],
+                [136, "all_on_off", tuya.valueConverter.onOff],
+                // DP 165 is reported by the device but its meaning is unconfirmed, so it is not exposed.
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_4jvmbiph"]),
@@ -359,7 +353,59 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         endpoint: () => ({l1: 1, l2: 1, l3: 1}),
         // Labels assume block order matches datapoint order (l1, l2, l3) — still to confirm.
-        exposes: commonExposes(["l1", "l2", "l3"], ["Socket 1", "Socket 2", "Socket 3"]),
-        meta: commonMeta(["l1", "l2", "l3"]),
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.countdown().withEndpoint("l1"),
+            tuya.exposes.countdown().withEndpoint("l2"),
+            tuya.exposes.countdown().withEndpoint("l3"),
+            e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint("l1").withCategory("config"),
+            e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint("l2").withCategory("config"),
+            e.power_on_behavior().withAccess(ea.STATE_SET).withEndpoint("l3").withCategory("config"),
+            e.binary("all_on_off", ea.STATE_SET, "ON", "OFF").withDescription("Turn all channels on or off simultaneously"),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e.energy(),
+            tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
+            backlightColorExpose(["Socket 1", "Socket 2", "Socket 3"]),
+            e.child_lock().withCategory("config"),
+        ],
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power", "current", "voltage", "energy", "all_on_off", "backlight_mode", "backlight_color", "child_lock"],
+            tuyaDatapoints: [
+                // Relays: DP 1..n
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+
+                // Countdown timers: DP 7..
+                [7, "countdown_l1", countdownConverter],
+                [8, "countdown_l2", countdownConverter],
+                [9, "countdown_l3", countdownConverter],
+
+                // Backlight enable
+                [16, "backlight_mode", tuya.valueConverter.onOff],
+
+                // Electrical measurements
+                [20, "energy", energyConverter],
+                [21, "current", tuya.valueConverter.divideBy1000],
+                [22, "power", tuya.valueConverter.divideBy10],
+                [23, "voltage", tuya.valueConverter.divideBy10],
+                // DP 24 is reported by the device but its meaning is unconfirmed, so it is not exposed.
+
+                // Power-on behaviour: DP 29..
+                [29, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [30, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+                [31, "power_on_behavior_l3", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [101, "child_lock", tuya.valueConverter.lockUnlock],
+                [107, "backlight_color", backlightColorConverter(3)],
+                [136, "all_on_off", tuya.valueConverter.onOff],
+                // DP 165 is reported by the device but its meaning is unconfirmed, so it is not exposed.
+            ],
+        },
     },
 ];
