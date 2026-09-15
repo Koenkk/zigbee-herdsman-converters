@@ -11633,7 +11633,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e.child_lock(),
-            e.binary("schedule_mode", ea.STATE_SET, "auto", "manual").withDescription("Manual = Manual or Schedule = Auto"),
+            e.enum("schedule_mode", ea.STATE_SET, ["manual", "auto"]).withDescription("Manual = Manual or Schedule = Auto"),
             e.eco_mode(),
             e.temperature_sensor_select(["IN", "AL", "OU"]).withLabel("Sensor").withDescription("Choose which sensor to use. Default: AL"),
             e.min_temperature().withValueMin(0).withValueMax(20),
@@ -11660,9 +11660,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("The difference between local temp and set temp that triggers heating"),
             (() => {
                 const groups = [
-                    {name: "Weekdays", full: "Weekdays (Monday-Friday)", start: 0},
-                    {name: "Saturday", full: "Saturday", start: 16},
-                    {name: "Sunday", full: "Sunday", start: 32},
+                    {name: "weekdays", full: "Weekdays (Monday-Friday)", start: 0},
+                    {name: "saturday", full: "Saturday", start: 16},
+                    {name: "sunday", full: "Sunday", start: 32},
                 ];
                 let composite = e
                     .composite("programming_mode", "programming_mode", ea.STATE_SET)
