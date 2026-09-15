@@ -545,6 +545,16 @@ describe("Rti-Tek eTRV-ZB01 converter", () => {
         expect(endpoint.write).toHaveBeenNthCalledWith(4, "rtiTekFd22", {holidayDuration: 0});
     });
 
+    it("rejects valve calibration while an OTA update is in progress", async () => {
+        const endpoint = device.getEndpoint(1);
+        const meta = buildEtrvZb01Meta(device, definition, {state: {update: {state: "updating"}}});
+
+        await expect(findTz("calibrate_valve").convertSet?.(endpoint, "calibrate_valve", "start", meta)).rejects.toThrow(
+            "Cannot calibrate valve while OTA update is in progress",
+        );
+        expect(endpoint.write).not.toHaveBeenCalled();
+    });
+
     it("keeps one-minute schedule precision and pads deleted periods to six device slots", async () => {
         const schedule = "06:01/20 08:00/15 12:00/20 22:21/22.5";
         expect(parseWeeklySchedule(schedule, "sunday")).toEqual([

@@ -1047,9 +1047,13 @@ const etrvZb01Binary = (
 
 const calibrateValve: Tz.Converter = {
     key: ["calibrate_valve"],
-    convertSet: async (entity, key, value) => {
+    convertSet: async (entity, key, value, meta: Tz.Meta) => {
         if (value !== "start") {
             throw new Error("calibrate_valve only accepts start");
+        }
+        const update = meta.state.update;
+        if (typeof update === "object" && update !== null && "state" in update && update.state === "updating") {
+            throw new Error("Cannot calibrate valve while OTA update is in progress");
         }
         await writeAttributes(entity, rtiTekFd22, {motorTravelCalibration: true});
         return {state: {[key]: "start"}};
