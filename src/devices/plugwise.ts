@@ -1,112 +1,485 @@
-import {Zcl} from 'zigbee-herdsman';
-
-import fz from '../converters/fromZigbee';
-import tz from '../converters/toZigbee';
-import * as exposes from '../lib/exposes';
-import * as reporting from '../lib/reporting';
-import {DefinitionWithExtend, Fz, KeyValue, Tz} from '../lib/types';
-import * as utils from '../lib/utils';
+import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import {logger} from "../lib/logger";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {Configure, DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
-const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V};
+const NS = "zhc:plugwise";
 
-const plugwisePushForce = {
-    0: 'standard',
-    0x60000: 'high',
-    0x70000: 'very_high',
+const _manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V};
+
+const plugwisePushForceLookup = {
+    0: "standard",
+    393216: "high",
+    458752: "very_high",
 };
 
-const plugwiseRadioStrength = {
-    0: 'normal',
-    1: 'high',
+const plugwiseRadioStrengthLookup = {
+    0: "normal",
+    1: "high",
+};
+
+interface PlugwiseHvacThermostat {
+    attributes: {
+        plugwiseValvePosition: number;
+        // plugwiseErrorStatus: number;
+        plugwiseCurrentHeatingSetpoint: number;
+        plugwiseTDiff: number;
+        plugwisePushForce: number;
+        plugwiseRadioStrength: number;
+        plugwiseExternalHeatDemand: number;
+        plugwiseExternalHeatDemandTimeout: number;
+        plugwiseBoilerWaterTemp: number;
+        plugwiseDhwTemp: number;
+        plugwiseReturnWaterTemp: number;
+        plugwiseApplicationFaultCode: number;
+        plugwiseOemFaultCode: number;
+        plugwiseMaxDhwSetpoint: number;
+        plugwiseMaxBoilerSetpoint: number;
+    };
+    commands: {
+        plugwiseCalibrateValve: Record<string, never>;
+    };
+    commandResponses: never;
+}
+
+interface PlugwiseGenPowerCfg {
+    attributes: {
+        plugwiseBatteryType: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const plugwiseExtend = {
+    plugwiseHvacThermostatCluster: () =>
+        m.deviceAddCustomCluster("hvacThermostat", {
+            name: "hvacThermostat",
+            ID: Zcl.Clusters.hvacThermostat.ID,
+            attributes: {
+                plugwiseValvePosition: {name: "plugwiseValvePosition", ID: 0x4001, type: Zcl.DataType.UINT8, write: true},
+                // plugwiseErrorStatus: {name: "plugwiseErrorStatus", ID: 0x4002, type: Zcl.DataType.??},
+                plugwiseCurrentHeatingSetpoint: {name: "plugwiseCurrentHeatingSetpoint", ID: 0x4003, type: Zcl.DataType.INT16},
+                plugwiseTDiff: {name: "plugwiseTDiff", ID: 0x4008, type: Zcl.DataType.INT16},
+                plugwisePushForce: {name: "plugwisePushForce", ID: 0x4012, type: Zcl.DataType.UINT32, write: true},
+                plugwiseRadioStrength: {name: "plugwiseRadioStrength", ID: 0x4014, type: Zcl.DataType.BOOLEAN, write: true},
+                plugwiseExternalHeatDemand: {
+                    name: "plugwiseExternalHeatDemand",
+                    ID: 0xf000,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwiseExternalHeatDemandTimeout: {
+                    name: "plugwiseExternalHeatDemandTimeout",
+                    ID: 0xf001,
+                    type: Zcl.DataType.UINT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwiseBoilerWaterTemp: {
+                    name: "plugwiseBoilerWaterTemp",
+                    ID: 0xf002,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                plugwiseDhwTemp: {
+                    name: "plugwiseDhwTemp",
+                    ID: 0xf003,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                plugwiseReturnWaterTemp: {
+                    name: "plugwiseReturnWaterTemp",
+                    ID: 0xf004,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                plugwiseApplicationFaultCode: {
+                    name: "plugwiseApplicationFaultCode",
+                    ID: 0xf005,
+                    type: Zcl.DataType.BITMAP8,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                plugwiseOemFaultCode: {
+                    name: "plugwiseOemFaultCode",
+                    ID: 0xf006,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                },
+                plugwiseMaxDhwSetpoint: {
+                    name: "plugwiseMaxDhwSetpoint",
+                    ID: 0xf007,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwiseMaxBoilerSetpoint: {
+                    name: "plugwiseMaxBoilerSetpoint",
+                    ID: 0xf008,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+            },
+            commands: {
+                plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
+            },
+            commandsResponse: {},
+        }),
+    plugwiseGenPowerCfgCluster: () =>
+        m.deviceAddCustomCluster("genPowerCfg", {
+            name: "genPowerCfg",
+            ID: Zcl.Clusters.genPowerCfg.ID,
+            attributes: {
+                plugwiseBatteryType: {
+                    name: "plugwiseBatteryType",
+                    ID: 0x007f,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    batteryType: (args?: Partial<m.EnumLookupArgs<"genPowerCfg", PlugwiseGenPowerCfg>>) =>
+        m.enumLookup<"genPowerCfg", PlugwiseGenPowerCfg>({
+            name: "battery_type",
+            cluster: "genPowerCfg",
+            attribute: "plugwiseBatteryType",
+            lookup: {alkaline: 0x00, nimh: 0x01},
+            description: "Installed battery chemistry. Set this to match the batteries fitted: alkaline (non-rechargeable) or NiMH (rechargeable).",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+            entityCategory: "config",
+        }),
+    boilerWaterTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "boiler_water_temperature",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseBoilerWaterTemp",
+            description: "Boiler supply water temperature reported by OpenTherm.",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "STATE",
+            unit: "°C",
+            scale: 100,
+            ...args,
+        }),
+    dhwTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "dhw_temperature",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseDhwTemp",
+            description: "Domestic hot water temperature reported by OpenTherm.",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "STATE",
+            unit: "°C",
+            scale: 100,
+            ...args,
+        }),
+    returnWaterTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "return_water_temperature",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseReturnWaterTemp",
+            description: "Boiler return water temperature reported by OpenTherm.",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "STATE",
+            unit: "°C",
+            scale: 100,
+            ...args,
+        }),
+    externalHeatDemand: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "external_heat_demand",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseExternalHeatDemand",
+            description:
+                "OpenTherm boiler control setpoint override. Set to 0 to disable the override and return control to the thermostat. Requires External Control to be unlocked on the device (see https://www.plugwise.com/emma-external-control).",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+            unit: "°C",
+            scale: 100,
+            valueMin: 0,
+            valueMax: 90,
+            valueStep: 0.01,
+            ...args,
+        }),
+    externalHeatDemandTimeout: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "external_heat_demand_timeout",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseExternalHeatDemandTimeout",
+            description:
+                "Watchdog timeout for the external heat demand override before it is automatically cancelled. Requires External Control to be unlocked on the device (see https://www.plugwise.com/emma-external-control).",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+            unit: "s",
+            valueMin: 300,
+            valueMax: 3600,
+            valueStep: 1,
+            entityCategory: "config",
+            ...args,
+        }),
+    maxDhwSetpoint: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "max_dhw_setpoint",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseMaxDhwSetpoint",
+            description:
+                "Maximum domestic hot water (DHW) setpoint exchanged with the boiler over OpenTherm. Requires External Control to be unlocked on the device (see https://www.plugwise.com/emma-external-control).",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+            unit: "°C",
+            scale: 100,
+            valueMin: 0,
+            valueMax: 100,
+            valueStep: 0.01,
+            entityCategory: "config",
+            ...args,
+        }),
+    maxBoilerSetpoint: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "max_boiler_setpoint",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseMaxBoilerSetpoint",
+            description:
+                "Maximum central heating (CH) water setpoint exchanged with the boiler over OpenTherm. Requires External Control to be unlocked on the device (see https://www.plugwise.com/emma-external-control).",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+            unit: "°C",
+            scale: 100,
+            valueMin: 0,
+            valueMax: 100,
+            valueStep: 0.01,
+            entityCategory: "config",
+            ...args,
+        }),
+    applicationFaultCode: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "application_fault_code",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseApplicationFaultCode",
+            description:
+                "OpenTherm application fault bitmap (bit0=service_request, bit1=lockout_reset, bit2=low_water_pressure, bit3=gas_flame_fault, bit4=air_pressure_fault, bit5=water_over_temp).",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "STATE",
+            valueMin: 0,
+            valueMax: 255,
+            reporting: false,
+            ...args,
+        }),
+    oemFaultCode: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "oem_fault_code",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseOemFaultCode",
+            description: "OpenTherm OEM-specific fault code.",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "STATE",
+            valueMin: 0,
+            valueMax: 255,
+            reporting: false,
+            ...args,
+        }),
+    applicationFaultCodeStatus: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "application_fault_status",
+            cluster: "hvacThermostat",
+            attribute: "plugwiseApplicationFaultCode",
+            description: "OpenTherm application fault status.",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "STATE",
+            fzConvert: (model, msg, publish, options, meta) => {
+                if (msg.data.plugwiseApplicationFaultCode !== undefined) {
+                    const value = msg.data.plugwiseApplicationFaultCode;
+                    const activeFaults = [];
+                    if ((value & (1 << 0)) > 0) activeFaults.push("Service request");
+                    if ((value & (1 << 1)) > 0) activeFaults.push("Lockout reset");
+                    if ((value & (1 << 2)) > 0) activeFaults.push("Low water pressure");
+                    if ((value & (1 << 3)) > 0) activeFaults.push("Gas/flame fault");
+                    if ((value & (1 << 4)) > 0) activeFaults.push("Air pressure fault");
+                    if ((value & (1 << 5)) > 0) activeFaults.push("Water over-temperature");
+                    return {
+                        application_fault_status: activeFaults.length > 0 ? activeFaults.join(", ") : "None",
+                    };
+                }
+            },
+            reporting: false,
+            ...args,
+        }),
+    /**
+     * Read-only `product_variant` exposed from the standard genBasic `productCode` (0x000A, CHAR_STR).
+     * Tolerates devices that do not implement the attribute (e.g. current Emma firmware): the configure
+     * read is wrapped in try/catch so `UNSUPPORTED_ATTRIBUTE` does not fail the interview. Once the
+     * firmware ships 0x000A, the value will populate automatically.
+     */
+    productVariant: (): ModernExtend => {
+        const expose = e
+            .text("product_variant", ea.STATE_GET)
+            .withDescription(
+                "Product variant reported by the device, based on the detected backplate. For example: 'OpenTherm', 'OnOff', 'OpenTherm/OnOff', or 'Wireless'.",
+            )
+            .withCategory("diagnostic");
+
+        const fromZigbee = [
+            {
+                cluster: "genBasic",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.productCode !== undefined) {
+                        // productCode is an OCTET_STR; zigbee-herdsman delivers it as a Buffer or string.
+                        const raw = msg.data.productCode;
+                        const value = Buffer.isBuffer(raw) ? raw.toString("utf8") : String(raw);
+                        return {product_variant: value};
+                    }
+                },
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: ["product_variant"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read("genBasic", ["productCode"]);
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+                if (!endpoint) return;
+                try {
+                    await endpoint.read("genBasic", ["productCode"]);
+                } catch (error) {
+                    if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+                        // ignore: firmware does not implement productCode yet (forward-compat).
+                    } else {
+                        logger.warning(`Failed to read genBasic productCode: ${error}`, NS);
+                    }
+                }
+            },
+        ];
+
+        return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 };
 
 const fzLocal = {
     plugwise_radiator_valve: {
-        cluster: 'hvacThermostat',
-        type: ['attributeReport', 'readResponse'],
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValue;
 
             // Reports pIHeatingDemand between 0 and 100 already
-            if (typeof msg.data['pIHeatingDemand'] == 'number') {
-                result.pi_heating_demand = utils.precisionRound(msg.data['pIHeatingDemand'], 0);
+            if (typeof msg.data.pIHeatingDemand === "number") {
+                result.pi_heating_demand = utils.precisionRound(msg.data.pIHeatingDemand, 0);
             }
-
-            if (typeof msg.data[0x4003] == 'number') {
-                result.current_heating_setpoint = utils.precisionRound(msg.data[0x4003], 2) / 100;
+            if (typeof msg.data.plugwiseCurrentHeatingSetpoint === "number") {
+                result.current_heating_setpoint = utils.precisionRound(msg.data.plugwiseCurrentHeatingSetpoint, 2) / 100;
             }
-            if (typeof msg.data[0x4008] == 'number') {
-                result.plugwise_t_diff = msg.data[0x4008];
+            if (typeof msg.data.plugwiseTDiff === "number") {
+                result.plugwise_t_diff = msg.data.plugwiseTDiff;
             }
-            if (typeof msg.data[0x4002] == 'number') {
+            if (typeof msg.data[0x4002] === "number") {
                 result.error_status = msg.data[0x4002];
             }
-            if (typeof msg.data[0x4001] == 'number') {
-                result.valve_position = msg.data[0x4001];
+            if (typeof msg.data.plugwiseValvePosition === "number") {
+                result.valve_position = msg.data.plugwiseValvePosition;
             }
             return result;
         },
-    } satisfies Fz.Converter,
+    } satisfies Fz.Converter<"hvacThermostat", PlugwiseHvacThermostat, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
     plugwise_calibrate_valve: {
-        key: ['calibrate_valve'],
+        key: ["calibrate_valve"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command('hvacThermostat', 'plugwiseCalibrateValve', {}, {srcEndpoint: 11, disableDefaultResponse: true});
+            await entity.command<"hvacThermostat", "plugwiseCalibrateValve", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                "plugwiseCalibrateValve",
+                {},
+                {srcEndpoint: 11, disableDefaultResponse: true},
+            );
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
     plugwise_valve_position: {
-        key: ['plugwise_valve_position', 'valve_position'],
+        key: ["plugwise_valve_position", "valve_position"],
         convertSet: async (entity, key, value, meta) => {
-            const payload = {0x4001: {value, type: 0x20}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions);
+            // const payload = {plugwiseValvePosition: {value, type: 0x20}};
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                {plugwiseValvePosition: value as number},
+                {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            );
             // Tom does not automatically send back updated value so ask for it
-            await entity.read('hvacThermostat', [0x4001], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4001], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseValvePosition"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
     } satisfies Tz.Converter,
     plugwise_push_force: {
-        key: ['plugwise_push_force', 'force'],
+        key: ["plugwise_push_force", "force"],
         convertSet: async (entity, key, value, meta) => {
-            const val = utils.getKey(plugwisePushForce, value, value, Number);
-            const payload = {0x4012: {value: val, type: 0x23}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions);
+            const val = utils.getKey(plugwisePushForceLookup, value, value, Number);
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                {plugwisePushForce: val as number},
+                {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            );
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4012], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwisePushForce"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
     } satisfies Tz.Converter,
     plugwise_radio_strength: {
-        key: ['plugwise_radio_strength', 'radio_strength'],
+        key: ["plugwise_radio_strength", "radio_strength"],
         convertSet: async (entity, key, value, meta) => {
-            const val = utils.getKey(plugwiseRadioStrength, value, value, Number);
-            const payload = {0x4014: {value: val, type: 0x10}};
-            await entity.write('hvacThermostat', payload, manufacturerOptions);
+            const val = utils.getKey(plugwiseRadioStrengthLookup, value, value, Number);
+            await entity.write<"hvacThermostat", PlugwiseHvacThermostat>(
+                "hvacThermostat",
+                {plugwiseRadioStrength: val as number},
+                {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            );
         },
         convertGet: async (entity, key, meta) => {
-            await entity.read('hvacThermostat', [0x4014], manufacturerOptions);
+            await entity.read<"hvacThermostat", PlugwiseHvacThermostat>("hvacThermostat", ["plugwiseRadioStrength"], {
+                manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+            });
         },
     } satisfies Tz.Converter,
 };
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ['160-01'],
-        model: '160-01',
-        vendor: 'Plugwise',
-        description: 'Plug power socket on/off with power consumption monitoring',
+        zigbeeModel: ["160-01"],
+        model: "160-01",
+        vendor: "Plugwise",
+        description: "Plug power socket on/off with power consumption monitoring",
         fromZigbee: [fz.on_off, fz.metering],
         toZigbee: [tz.on_off],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
             await reporting.onOff(endpoint);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
@@ -114,12 +487,13 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [e.switch(), e.power(), e.energy()],
     },
     {
-        zigbeeModel: ['106-03'],
-        model: '106-03',
-        vendor: 'Plugwise',
-        description: 'Tom thermostatic radiator valve',
+        zigbeeModel: ["106-03"],
+        model: "106-03",
+        vendor: "Plugwise",
+        description: "Tom thermostatic radiator valve",
+        extend: [plugwiseExtend.plugwiseHvacThermostatCluster()],
         fromZigbee: [fz.temperature, fz.battery, fzLocal.plugwise_radiator_valve],
-        // sytem_mode and occupied_heating_setpoint is not supported: https://github.com/Koenkk/zigbee2mqtt.io/pull/1666
+        // system_mode and occupied_heating_setpoint is not supported: https://github.com/Koenkk/zigbee2mqtt.io/pull/1666
         toZigbee: [
             tz.thermostat_pi_heating_demand,
             tzLocal.plugwise_valve_position,
@@ -129,7 +503,7 @@ const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genPowerCfg", "hvacThermostat"]);
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatPIHeatingDemand(endpoint);
@@ -137,47 +511,172 @@ const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.battery(),
             e
-                .numeric('pi_heating_demand', ea.STATE_GET)
+                .numeric("pi_heating_demand", ea.STATE_GET)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withUnit('%')
-                .withDescription('Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open'),
-            e.numeric('local_temperature', ea.STATE).withUnit('°C').withDescription('Current temperature measured on the device'),
+                .withUnit("%")
+                .withDescription("Position of the valve (= demanded heat) where 0% is fully closed and 100% is fully open"),
+            e.numeric("local_temperature", ea.STATE).withUnit("°C").withDescription("Current temperature measured on the device"),
             e
-                .numeric('valve_position', ea.ALL)
+                .numeric("valve_position", ea.ALL)
                 .withValueMin(0)
                 .withValueMax(100)
-                .withDescription('Directly control the radiator valve. The values range from 0 (valve closed) to 100 (valve fully open)'),
+                .withDescription("Directly control the radiator valve. The values range from 0 (valve closed) to 100 (valve fully open)"),
             e
-                .enum('force', ea.ALL, ['standard', 'high', 'very_high'])
-                .withDescription('How hard the motor pushes the valve. The closer to the boiler, the higher the force needed'),
-            e.enum('radio_strength', ea.ALL, ['normal', 'high']).withDescription('Transmits with higher power when range is not sufficient'),
-            e.binary('calibrate_valve', ea.STATE_SET, 'calibrate', 'idle').withDescription('Calibrates valve on next wakeup'),
+                .enum("force", ea.ALL, ["standard", "high", "very_high"])
+                .withDescription("How hard the motor pushes the valve. The closer to the boiler, the higher the force needed"),
+            e.enum("radio_strength", ea.ALL, ["normal", "high"]).withDescription("Transmits with higher power when range is not sufficient"),
+            e.binary("calibrate_valve", ea.STATE_SET, "calibrate", "idle").withDescription("Calibrates valve on next wakeup"),
         ],
     },
     {
-        zigbeeModel: ['158-01'],
-        model: '158-01',
-        vendor: 'Plugwise',
-        description: 'Lisa zone thermostat',
-        fromZigbee: [fz.thermostat, fz.temperature, fz.battery],
-        toZigbee: [tz.thermostat_system_mode, tz.thermostat_occupied_heating_setpoint],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genBasic', 'genPowerCfg', 'hvacThermostat']);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.thermostatTemperature(endpoint);
-        },
-        exposes: [
-            e.battery(),
-            e
-                .climate()
-                .withSetpoint('occupied_heating_setpoint', 5, 30, 0.5, ea.ALL)
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(['off', 'auto'], ea.ALL),
+        zigbeeModel: ["158-01"],
+        model: "158-01",
+        vendor: "Plugwise",
+        description: "Lisa zone thermostat",
+        extend: [
+            m.thermostat({
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 0, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "auto"]},
+            }),
+            m.battery(),
+        ],
+    },
+    {
+        zigbeeModel: ["170-01"],
+        model: "170-01",
+        vendor: "Plugwise",
+        description: "Emma Wired Pro / Emma Wireless",
+        version: "0.0.4",
+        extend: [
+            plugwiseExtend.plugwiseHvacThermostatCluster(),
+            plugwiseExtend.plugwiseGenPowerCfgCluster(),
+            plugwiseExtend.applicationFaultCodeStatus(),
+            plugwiseExtend.oemFaultCode(),
+            plugwiseExtend.productVariant(),
+            m.temperature({
+                reporting: {min: "1_SECOND", max: 870, change: 10},
+            }),
+            m.thermostat({
+                setpoints: {
+                    values: {
+                        occupiedCoolingSetpoint: {min: 0, max: 30, step: 0.5},
+                        occupiedHeatingSetpoint: {min: 5, max: 30, step: 0.5},
+                    },
+                    configure: {reporting: {min: "1_SECOND", max: 870, change: 0.5}},
+                },
+                runningState: {
+                    values: ["idle", "heat", "cool"],
+                    configure: {reporting: {min: "1_SECOND", max: 870, change: null}},
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool", "auto"],
+                    configure: {reporting: {min: "1_SECOND", max: 870, change: null}},
+                },
+                localTemperatureCalibration: {
+                    values: {min: -12.5, max: 12.5, step: 0.1},
+                    configure: {reporting: {min: "1_SECOND", max: 870, change: 0}},
+                },
+            }),
+            m.humidity({
+                reporting: false,
+            }),
+            m.numeric({
+                name: "min_cool_setpoint_limit",
+                cluster: "hvacThermostat",
+                attribute: "minCoolSetpointLimit",
+                description: "Minimum allowed cooling setpoint",
+                access: "ALL",
+                unit: "°C",
+                scale: 100,
+                valueStep: 0.5,
+                valueMin: 0,
+                valueMax: 30,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "max_cool_setpoint_limit",
+                cluster: "hvacThermostat",
+                attribute: "maxCoolSetpointLimit",
+                description: "Maximum allowed cooling setpoint",
+                access: "ALL",
+                unit: "°C",
+                scale: 100,
+                valueStep: 0.5,
+                valueMin: 0,
+                valueMax: 30,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "min_heat_setpoint_limit",
+                cluster: "hvacThermostat",
+                attribute: "minHeatSetpointLimit",
+                description: "Minimum allowed heating setpoint",
+                access: "ALL",
+                unit: "°C",
+                scale: 100,
+                valueStep: 0.5,
+                valueMin: 0,
+                valueMax: 30,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "max_heat_setpoint_limit",
+                cluster: "hvacThermostat",
+                attribute: "maxHeatSetpointLimit",
+                description: "Maximum allowed heating setpoint",
+                access: "ALL",
+                unit: "°C",
+                scale: 100,
+                valueStep: 0.5,
+                valueMin: 0,
+                valueMax: 30,
+                entityCategory: "config",
+            }),
+            m.numeric({
+                name: "outdoor_temperature",
+                cluster: "hvacThermostat",
+                attribute: "outdoorTemp",
+                description: "Outdoor temperature reported by thermostat.",
+                access: "STATE_GET",
+                unit: "°C",
+                scale: 100,
+                reporting: {min: "10_SECONDS", max: 870, change: 0.1},
+            }),
+            plugwiseExtend.dhwTemperature({
+                reporting: {min: "1_MINUTE", max: 870, change: 0.1},
+            }),
+            plugwiseExtend.returnWaterTemperature({
+                reporting: {min: "1_MINUTE", max: 870, change: 0.1},
+            }),
+            plugwiseExtend.boilerWaterTemperature({
+                reporting: {min: "1_MINUTE", max: 870, change: 0.1},
+            }),
+            plugwiseExtend.externalHeatDemand(),
+            plugwiseExtend.externalHeatDemandTimeout(),
+            plugwiseExtend.maxDhwSetpoint(),
+            plugwiseExtend.maxBoilerSetpoint(),
+            m.numeric({
+                name: "boiler_setpoint",
+                cluster: "hvacThermostat",
+                attribute: "pIHeatingDemand",
+                description: "Intended boiler water temperature",
+                unit: "°C",
+                access: "STATE",
+                reporting: {min: "1_SECOND", max: 870, change: 1},
+            }),
+            m.battery(),
+            plugwiseExtend.batteryType(),
+            m.enumLookup({
+                name: "keypad_lockout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                lookup: {no_lockout: 0x00, level_1: 0x01, level_2: 0x02},
+                description:
+                    "Keypad lockout. No lockout — all buttons active. Level 1 — normal operation, menu blocked; setpoint change via slider still allowed. Level 2 — all buttons and slider blocked; only the hardware unlock sequence is accepted.",
+                reporting: {min: "1_SECOND", max: 870, change: null},
+                entityCategory: "config",
+            }),
         ],
     },
 ];
-
-export default definitions;
-module.exports = definitions;

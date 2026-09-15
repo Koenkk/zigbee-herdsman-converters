@@ -1,0 +1,114 @@
+name: Requires external review
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  requires-external-review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        fetch-depth: 1
+
+    - name: Check for files that require external review
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      run: |
+        # Skip if PR already has the approval label
+        LABELS=$(gh pr view $PR_NUMBER --json labels --jq '.labels[].name')
+        for label in $LABELS; do
+          if [[ "$label" == "external-reviewer-approved" ]]; then
+            exit 0
+          fi
+        done
+
+        # Build reviewer map from CODEOWNERS
+        declare -a PATTERNS=()
+        declare -A PATTERN_REVIEWERS=()
+        while IFS= read -r line; do
+          line="${line%%#*}"
+          [[ -z "${line// }" ]] && continue
+          read -r pattern owners <<< "$line"
+          PATTERNS+=("$pattern")
+          PATTERN_REVIEWERS["$pattern"]="$owners"
+        done < CODEOWNERS
+
+        # pull_request_target runs in base-repo context; get changed files from the PR API.
+        CHANGED_FILES=$(gh pr view "$PR_NUMBER" --json files --jq '.files[].path')
+
+        MATCH=false
+        declare -A MATCHED_REVIEWERS=()
+
+        shopt -s extglob
+        for file in $CHANGED_FILES; do
+          for pattern in "${PATTERNS[@]}"; do
+            # CODEOWNERS patterns: leading "/" anchors to root (strip it for
+            # matching against repo-relative paths), otherwise match anywhere.
+            glob="$pattern"
+            [[ "$glob" == /* ]] && glob="${glob:1}"
+
+            if [[ $file == $glob ]]; then
+              reviewers="${PATTERN_REVIEWERS[$pattern]}"
+
+              # Skip if the PR author is one of the code owners for this file
+              # (owners can't review their own PRs, so don't require it).
+              IS_OWNER=false
+              for owner in $reviewers; do
+                owner_clean="${owner#@}"
+                if [[ "$owner_clean" == "$PR_AUTHOR" ]]; then
+                  IS_OWNER=true
+                  echo "::notice::Skipping '$file' — PR author @$PR_AUTHOR is a code owner"
+                  break
+                fi
+              done
+              $IS_OWNER && continue
+
+              echo "::error::Review required for '$file' by '$reviewers'"
+              MATCHED_REVIEWERS["$reviewers"]+="$file"$'\n'
+              MATCH=true
+            fi
+          done
+        done
+
+        # Post a comment tagging the owners (only once per PR)
+        if [ "$MATCH" = true ]; then
+          MARKER="<!-- requires-external-review -->"
+          EXISTING=$(gh pr view $PR_NUMBER --json comments \
+            --jq ".comments[].body | select(contains(\"$MARKER\"))" || true)
+
+          if [ -z "$EXISTING" ]; then
+            BODY="$MARKER"$'\n'
+            BODY+="## External review required"$'\n\n'
+            BODY+="This PR modifies files that require review from their code owners before merging."$'\n\n'
+
+            for reviewers in "${!MATCHED_REVIEWERS[@]}"; do
+              FILES="${MATCHED_REVIEWERS[$reviewers]}"
+              BODY+="**$reviewers**:"$'\n'
+              while IFS= read -r f; do
+                [[ -n "$f" ]] && BODY+="- \`$f\`"$'\n'
+              done <<< "$FILES"
+              BODY+=$'\n'
+            done
+
+            BODY+="Once reviewed, add the \`external-reviewer-approved\` label to unblock this check."
+
+            # Fork PRs may still get a read-only token; do not fail the job on comment alone.
+            gh pr comment $PR_NUMBER --body "$BODY" || echo "::warning::Could not post PR comment (token may lack pull-requests:write for this PR). Check logs for required reviewers."
+          fi
+
+          exit 1
+        fi

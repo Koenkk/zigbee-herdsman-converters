@@ -1,36 +1,44 @@
-import type {Mock} from 'vitest';
-
-import {Models as ZHModels} from 'zigbee-herdsman';
-
-import * as index from '../src/index';
-import {Definition, Fz, KeyValueAny, Tz, Zh} from '../src/lib/types';
+import type {Mock} from "vitest";
+import {beforeEach, describe, expect, it, vi} from "vitest";
+import type {Models as ZHModels} from "zigbee-herdsman";
+import {findByDevice} from "../src/index";
+import type {Definition, Fz, Tz} from "../src/lib/types";
+import {mockDevice} from "./utils";
 
 interface State {
-    readonly weekly_schedule: {
-        readonly sunday: string;
-        readonly monday: string;
-        readonly tuesday: string;
-        readonly wednesday: string;
-        readonly thursday: string;
-        readonly friday: string;
-        readonly saturday: string;
-    };
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_sunday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_monday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_tuesday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_wednesday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_thursday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_friday?: string;
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    readonly weekly_schedule_saturday?: string;
 }
 
-describe('Sonoff TRVZB', () => {
+describe("Sonoff TRVZB", () => {
     let trv: Definition;
 
-    beforeEach(() => {
-        trv = index.findByModel('TRVZB');
+    beforeEach(async () => {
+        const device = mockDevice({modelID: "TRVZB", endpoints: []});
+
+        trv = await findByDevice(device);
     });
 
-    describe('weekly schedule', () => {
-        describe('fromZigbee', () => {
-            let fzConverter: Fz.Converter;
+    describe("weekly schedule", () => {
+        describe("fromZigbee", () => {
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+            let fzConverter: Fz.Converter<any, any, any>;
             let meta: Fz.Meta;
 
             beforeEach(() => {
-                fzConverter = trv.fromZigbee.find((c) => c.cluster === 'hvacThermostat' && c.type.includes('commandGetWeeklyScheduleRsp'));
+                fzConverter = trv.fromZigbee.find((c) => c.cluster === "hvacThermostat" && c.type.includes("commandGetWeeklyScheduleRsp"));
 
                 meta = {
                     state: {},
@@ -40,18 +48,19 @@ describe('Sonoff TRVZB', () => {
             });
 
             const days = [
-                {dayofweek: 0x01, day: 'sunday'},
-                {dayofweek: 0x02, day: 'monday'},
-                {dayofweek: 0x04, day: 'tuesday'},
-                {dayofweek: 0x08, day: 'wednesday'},
-                {dayofweek: 0x10, day: 'thursday'},
-                {dayofweek: 0x20, day: 'friday'},
-                {dayofweek: 0x40, day: 'saturday'},
+                {dayofweek: 0x01, day: "sunday"},
+                {dayofweek: 0x02, day: "monday"},
+                {dayofweek: 0x04, day: "tuesday"},
+                {dayofweek: 0x08, day: "wednesday"},
+                {dayofweek: 0x10, day: "thursday"},
+                {dayofweek: 0x20, day: "friday"},
+                {dayofweek: 0x40, day: "saturday"},
             ];
 
-            describe.each(days)('when a commandGetWeeklyScheduleRsp message is received for $day', ({dayofweek, day}) => {
-                it('should set state', () => {
-                    const msg: Fz.Message = {
+            describe.each(days)("when a commandGetWeeklyScheduleRsp message is received for $day", ({dayofweek, day}) => {
+                it("should set state", () => {
+                    // biome-ignore lint/suspicious/noExplicitAny: generic
+                    const msg: Fz.Message<any, any, any> = {
                         data: {
                             dayofweek: dayofweek,
                             transitions: [
@@ -69,24 +78,26 @@ describe('Sonoff TRVZB', () => {
                         device: null,
                         meta: null,
                         groupID: null,
-                        type: 'commandGetWeeklyScheduleRsp',
-                        cluster: 'hvacThermostat',
+                        type: "commandGetWeeklyScheduleRsp",
+                        cluster: "hvacThermostat",
                         linkquality: 0,
                     };
 
                     const state = fzConverter.convert(trv, msg, null, null, meta) as State;
 
-                    expect(state.weekly_schedule).toEqual({
-                        [day]: '00:00/5 01:30/10',
+                    expect(state).toEqual({
+                        [`weekly_schedule_${day}`]: "00:00/5 01:30/10",
                     });
                 });
             });
 
-            describe('when multiple commandGetWeeklyScheduleRsp messages are received for different days', () => {
-                let state: State;
+            describe("when multiple commandGetWeeklyScheduleRsp messages are received for different days", () => {
+                let state1: State;
+                let state2: State;
 
                 beforeEach(() => {
-                    const msg1: Fz.Message = {
+                    // biome-ignore lint/suspicious/noExplicitAny: generic
+                    const msg1: Fz.Message<any, any, any> = {
                         data: {
                             dayofweek: 0x01,
                             transitions: [
@@ -104,12 +115,13 @@ describe('Sonoff TRVZB', () => {
                         device: null,
                         meta: null,
                         groupID: null,
-                        type: 'commandGetWeeklyScheduleRsp',
-                        cluster: 'hvacThermostat',
+                        type: "commandGetWeeklyScheduleRsp",
+                        cluster: "hvacThermostat",
                         linkquality: 0,
                     };
 
-                    const msg2: Fz.Message = {
+                    // biome-ignore lint/suspicious/noExplicitAny: generic
+                    const msg2: Fz.Message<any, any, any> = {
                         data: {
                             dayofweek: 0x02,
                             transitions: [
@@ -127,45 +139,49 @@ describe('Sonoff TRVZB', () => {
                         device: null,
                         meta: null,
                         groupID: null,
-                        type: 'commandGetWeeklyScheduleRsp',
-                        cluster: 'hvacThermostat',
+                        type: "commandGetWeeklyScheduleRsp",
+                        cluster: "hvacThermostat",
                         linkquality: 0,
                     };
 
-                    meta.state = fzConverter.convert(trv, msg1, null, null, meta) as KeyValueAny;
-                    state = fzConverter.convert(trv, msg2, null, null, meta) as State;
+                    state1 = fzConverter.convert(trv, msg1, null, null, meta) as State;
+                    // Simulate state accumulation - update meta.state with first result
+                    meta.state = {...meta.state, ...state1};
+                    state2 = fzConverter.convert(trv, msg2, null, null, meta) as State;
                 });
 
-                it('should merge the schedules into state', () => {
-                    expect(state.weekly_schedule).toEqual({
-                        sunday: '00:00/5 01:30/10',
-                        monday: '01:00/5.5 03:00/12.5',
+                it("should return individual day schedules with accumulated composite", () => {
+                    expect(state1).toEqual({
+                        weekly_schedule_sunday: "00:00/5 01:30/10",
+                    });
+                    expect(state2).toEqual({
+                        weekly_schedule_monday: "01:00/5.5 03:00/12.5",
                     });
                 });
             });
         });
 
-        describe('toZigbee', () => {
+        describe("toZigbee", () => {
             let tzConverter: Tz.Converter;
             let meta: Tz.Meta;
             let commandFn: Mock;
             let endpoint: ZHModels.Endpoint;
 
             const invalidTransitions = [
-                {transition: '', description: 'empty string'},
-                {transition: '0:00/5', description: 'hours not two digits'},
-                {transition: '24:00/5', description: 'hours greater than 23'},
-                {transition: '23:0/5', description: 'minutes not two digits'},
-                {transition: '23:60/5', description: 'minutes greater than 59'},
-                {transition: '23:59', description: 'missing slash'},
-                {transition: '23:59/', description: 'missing temperature'},
-                {transition: '23:59/-1', description: 'negative temperature'},
-                {transition: '23:59/523:59/5', description: 'missing space separator'},
-                {transition: '00:00/10.1', description: 'temperature decimal point is not 0.5'},
+                {transition: "", description: "empty string"},
+                {transition: "0:00/5", description: "hours not two digits"},
+                {transition: "24:00/5", description: "hours greater than 23"},
+                {transition: "23:0/5", description: "minutes not two digits"},
+                {transition: "23:60/5", description: "minutes greater than 59"},
+                {transition: "23:59", description: "missing slash"},
+                {transition: "23:59/", description: "missing temperature"},
+                {transition: "23:59/-1", description: "negative temperature"},
+                {transition: "23:59/523:59/5", description: "missing space separator"},
+                {transition: "00:00/10.1", description: "temperature decimal point is not 0.5"},
             ];
 
             beforeEach(() => {
-                tzConverter = trv.toZigbee.find((c) => c.key.includes('weekly_schedule'));
+                tzConverter = trv.toZigbee.find((c) => c.key.includes("weekly_schedule_monday"));
 
                 meta = {
                     state: {},
@@ -173,6 +189,7 @@ describe('Sonoff TRVZB', () => {
                     message: null,
                     mapped: null,
                     options: null,
+                    publish: null,
                     endpoint_name: null,
                 };
 
@@ -183,86 +200,36 @@ describe('Sonoff TRVZB', () => {
                 } as unknown as ZHModels.Endpoint;
             });
 
-            it.each(invalidTransitions)('should throw error if transition format is invalid ($description)', async ({transition, description}) => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        'weekly_schedule',
-                        {
-                            monday: transition,
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(
-                    new Error(`Invalid schedule: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`),
+            it.each(invalidTransitions)("should throw error if transition format is invalid ($description)", async ({transition, description}) => {
+                await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", transition, meta)).rejects.toEqual(
+                    new Error(`Invalid schedule for monday: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: ${transition}`),
                 );
             });
 
-            it('should throw error if first transition does not start at 00:00', async () => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        'weekly_schedule',
-                        {
-                            monday: '00:01/5',
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error('Invalid schedule: the first transition of each day should start at 00:00'));
-            });
-
-            it('should throw error if day has more than 6 transitions', async () => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        'weekly_schedule',
-                        {
-                            monday: '00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1',
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error('Invalid schedule: days must have no more than 6 transitions'));
-            });
-
-            it.each([3, 36])('should throw error if temperature value is outside of valid range ($temperature) ', async (temperature) => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        'weekly_schedule',
-                        {
-                            monday: `00:00/${temperature}`,
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error(`Invalid schedule: temperature value must be between 4-35 (inclusive), found: ${temperature}`));
-            });
-
-            it('should throw error if day name is invalid', async () => {
-                await expect(
-                    tzConverter.convertSet(
-                        endpoint,
-                        'weekly_schedule',
-                        {
-                            notaday: `00:00/5`,
-                        },
-                        meta,
-                    ),
-                ).rejects.toEqual(new Error('Invalid schedule: invalid day name, found: notaday'));
-            });
-
-            it('should send setWeeklySchedule command if transitions are valid', async () => {
-                await tzConverter.convertSet(
-                    endpoint,
-                    'weekly_schedule',
-                    {
-                        sunday: `00:00/5 06:30/10.5 12:00/15 18:30/20 20:45/15.5 23:00/4`,
-                    },
-                    meta,
+            it("should throw error if first transition does not start at 00:00", async () => {
+                await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:01/5", meta)).rejects.toEqual(
+                    new Error("Invalid schedule for monday: the first transition of each day should start at 00:00"),
                 );
+            });
+
+            it("should throw error if day has more than 6 transitions", async () => {
+                await expect(
+                    tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1 00:00/1", meta),
+                ).rejects.toEqual(new Error("Invalid schedule for monday: days must have no more than 6 transitions"));
+            });
+
+            it.each([3, 36])("should throw error if temperature value is outside of valid range ($temperature) ", async (temperature) => {
+                await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", `00:00/${temperature}`, meta)).rejects.toEqual(
+                    new Error(`Invalid schedule for monday: temperature value must be between 4-35 (inclusive), found: ${temperature}`),
+                );
+            });
+
+            it("should send setWeeklySchedule command if transitions are valid", async () => {
+                await tzConverter.convertSet(endpoint, "weekly_schedule_sunday", "00:00/5 06:30/10.5 12:00/15 18:30/20 20:45/15.5 23:00/4", meta);
 
                 expect(commandFn).toHaveBeenCalledWith(
-                    'hvacThermostat',
-                    'setWeeklySchedule',
+                    "hvacThermostat",
+                    "setWeeklySchedule",
                     {
                         dayofweek: 1,
                         numoftrans: 6,
@@ -298,19 +265,12 @@ describe('Sonoff TRVZB', () => {
                 );
             });
 
-            it('should send setWeeklySchedule command with transitions in ascending time order', async () => {
-                await tzConverter.convertSet(
-                    endpoint,
-                    'weekly_schedule',
-                    {
-                        sunday: `00:00/5 12:00/15 06:30/10.5`,
-                    },
-                    meta,
-                );
+            it("should send setWeeklySchedule command with transitions in ascending time order", async () => {
+                await tzConverter.convertSet(endpoint, "weekly_schedule_sunday", "00:00/5 12:00/15 06:30/10.5", meta);
 
                 expect(commandFn).toHaveBeenCalledWith(
-                    'hvacThermostat',
-                    'setWeeklySchedule',
+                    "hvacThermostat",
+                    "setWeeklySchedule",
                     {
                         dayofweek: 1,
                         numoftrans: 3,
@@ -334,23 +294,16 @@ describe('Sonoff TRVZB', () => {
                 );
             });
 
-            it('should send a setWeeklySchedule command for each day', async () => {
-                await tzConverter.convertSet(
-                    endpoint,
-                    'weekly_schedule',
-                    {
-                        sunday: `00:00/5`,
-                        monday: `00:00/10`,
-                        tuesday: `00:00/15`,
-                    },
-                    meta,
-                );
+            it("should send a setWeeklySchedule command for each day", async () => {
+                await tzConverter.convertSet(endpoint, "weekly_schedule_sunday", "00:00/5", meta);
+                await tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:00/10", meta);
+                await tzConverter.convertSet(endpoint, "weekly_schedule_tuesday", "00:00/15", meta);
 
                 expect(commandFn).toHaveBeenCalledTimes(3);
 
                 expect(commandFn).toHaveBeenCalledWith(
-                    'hvacThermostat',
-                    'setWeeklySchedule',
+                    "hvacThermostat",
+                    "setWeeklySchedule",
                     {
                         dayofweek: 1,
                         numoftrans: 1,
@@ -366,8 +319,8 @@ describe('Sonoff TRVZB', () => {
                 );
 
                 expect(commandFn).toHaveBeenCalledWith(
-                    'hvacThermostat',
-                    'setWeeklySchedule',
+                    "hvacThermostat",
+                    "setWeeklySchedule",
                     {
                         dayofweek: 2,
                         numoftrans: 1,
@@ -383,8 +336,8 @@ describe('Sonoff TRVZB', () => {
                 );
 
                 expect(commandFn).toHaveBeenCalledWith(
-                    'hvacThermostat',
-                    'setWeeklySchedule',
+                    "hvacThermostat",
+                    "setWeeklySchedule",
                     {
                         dayofweek: 4,
                         numoftrans: 1,
@@ -398,6 +351,556 @@ describe('Sonoff TRVZB', () => {
                     },
                     {},
                 );
+            });
+
+            it("should return state when setting a single day", async () => {
+                const result = await tzConverter.convertSet(endpoint, "weekly_schedule_friday", "00:00/18", meta);
+
+                expect(commandFn).toHaveBeenCalledTimes(1);
+                expect(result).toEqual({
+                    state: {
+                        weekly_schedule_friday: "00:00/18",
+                    },
+                });
+            });
+
+            describe("multi-day batch updates via meta.message", () => {
+                it("should process multiple days with different schedules in separate commands", async () => {
+                    const multiDayMeta = {
+                        ...meta,
+                        message: {
+                            weekly_schedule_monday: "00:00/10",
+                            weekly_schedule_tuesday: "00:00/15",
+                            weekly_schedule_wednesday: "00:00/20",
+                        },
+                    };
+
+                    // Call for the first key alphabetically (monday comes first)
+                    const result = await tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:00/10", multiDayMeta);
+
+                    expect(commandFn).toHaveBeenCalledTimes(3);
+
+                    expect(commandFn).toHaveBeenCalledWith(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 2, // Monday
+                            numoftrans: 1,
+                            mode: 1,
+                            transitions: [{heatSetpoint: 1000, transitionTime: 0}],
+                        },
+                        {},
+                    );
+
+                    expect(commandFn).toHaveBeenCalledWith(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 4, // Tuesday
+                            numoftrans: 1,
+                            mode: 1,
+                            transitions: [{heatSetpoint: 1500, transitionTime: 0}],
+                        },
+                        {},
+                    );
+
+                    expect(commandFn).toHaveBeenCalledWith(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 8, // Wednesday
+                            numoftrans: 1,
+                            mode: 1,
+                            transitions: [{heatSetpoint: 2000, transitionTime: 0}],
+                        },
+                        {},
+                    );
+
+                    expect(result).toEqual({
+                        state: {
+                            weekly_schedule_monday: "00:00/10",
+                            weekly_schedule_tuesday: "00:00/15",
+                            weekly_schedule_wednesday: "00:00/20",
+                        },
+                    });
+                });
+
+                it("should combine days with identical schedules into a single command", async () => {
+                    const multiDayMeta = {
+                        ...meta,
+                        message: {
+                            weekly_schedule_monday: "00:00/10 08:00/20",
+                            weekly_schedule_tuesday: "00:00/10 08:00/20",
+                            weekly_schedule_wednesday: "00:00/15",
+                        },
+                    };
+
+                    const result = await tzConverter.convertSet(endpoint, "weekly_schedule_monday", "00:00/10 08:00/20", multiDayMeta);
+
+                    // Should send 2 commands: one for monday+tuesday (same schedule), one for wednesday
+                    expect(commandFn).toHaveBeenCalledTimes(2);
+
+                    // Verify monday+tuesday combined (dayofweek = 2 | 4 = 6)
+                    expect(commandFn).toHaveBeenCalledWith(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 6, // Monday (2) + Tuesday (4)
+                            numoftrans: 2,
+                            mode: 1,
+                            transitions: [
+                                {heatSetpoint: 1000, transitionTime: 0},
+                                {heatSetpoint: 2000, transitionTime: 480},
+                            ],
+                        },
+                        {},
+                    );
+
+                    // Verify wednesday separate
+                    expect(commandFn).toHaveBeenCalledWith(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 8, // Wednesday
+                            numoftrans: 1,
+                            mode: 1,
+                            transitions: [{heatSetpoint: 1500, transitionTime: 0}],
+                        },
+                        {},
+                    );
+
+                    expect(result).toEqual({
+                        state: {
+                            weekly_schedule_monday: "00:00/10 08:00/20",
+                            weekly_schedule_tuesday: "00:00/10 08:00/20",
+                            weekly_schedule_wednesday: "00:00/15",
+                        },
+                    });
+                });
+
+                it("should handle all seven days with same schedule in a single command", async () => {
+                    const schedule = "00:00/16 08:00/20 22:00/16";
+                    const multiDayMeta = {
+                        ...meta,
+                        message: {
+                            weekly_schedule_sunday: schedule,
+                            weekly_schedule_monday: schedule,
+                            weekly_schedule_tuesday: schedule,
+                            weekly_schedule_wednesday: schedule,
+                            weekly_schedule_thursday: schedule,
+                            weekly_schedule_friday: schedule,
+                            weekly_schedule_saturday: schedule,
+                        },
+                    };
+
+                    // Call for the first key alphabetically (friday)
+                    const result = await tzConverter.convertSet(endpoint, "weekly_schedule_friday", schedule, multiDayMeta);
+
+                    // All days have the same schedule, so only 1 command should be sent
+                    expect(commandFn).toHaveBeenCalledTimes(1);
+
+                    // dayofweek = 1 | 2 | 4 | 8 | 16 | 32 | 64 = 127 (all days)
+                    expect(commandFn).toHaveBeenCalledWith(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {
+                            dayofweek: 127,
+                            numoftrans: 3,
+                            mode: 1,
+                            transitions: [
+                                {heatSetpoint: 1600, transitionTime: 0},
+                                {heatSetpoint: 2000, transitionTime: 480},
+                                {heatSetpoint: 1600, transitionTime: 1320},
+                            ],
+                        },
+                        {},
+                    );
+
+                    expect(result).toEqual({
+                        state: {
+                            weekly_schedule_sunday: schedule,
+                            weekly_schedule_monday: schedule,
+                            weekly_schedule_tuesday: schedule,
+                            weekly_schedule_wednesday: schedule,
+                            weekly_schedule_thursday: schedule,
+                            weekly_schedule_friday: schedule,
+                            weekly_schedule_saturday: schedule,
+                        },
+                    });
+                });
+
+                it("should validate schedule format for multi-day updates", async () => {
+                    const multiDayMeta = {
+                        ...meta,
+                        message: {
+                            weekly_schedule_monday: "invalid_schedule",
+                            weekly_schedule_tuesday: "00:00/15",
+                        },
+                    };
+
+                    await expect(tzConverter.convertSet(endpoint, "weekly_schedule_monday", "invalid_schedule", multiDayMeta)).rejects.toEqual(
+                        new Error(
+                            "Invalid schedule for monday: transitions must be in format HH:mm/temperature (e.g. 12:00/15.5), found: invalid_schedule",
+                        ),
+                    );
+                });
+            });
+        });
+    });
+});
+
+describe("Sonoff SWV", () => {
+    it("continues configuring when optional water shortage auto-close attribute is unsupported", async () => {
+        const device = mockDevice({
+            modelID: "SWV",
+            endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genOnOff", "msFlowMeasurement"], inputClusterIDs: [0xfc11]}],
+        });
+        const coordinator = mockDevice({modelID: "Coordinator", endpoints: [{ID: 1}]});
+        const endpoint = device.getEndpoint(1);
+        const readFn = endpoint.read as Mock;
+        const swv = await findByDevice(device);
+
+        readFn.mockImplementation((_cluster: string, attributes: number[]) => {
+            if (attributes.includes(0x5011)) {
+                return Promise.reject(new Error("Status 'UNSUPPORTED_ATTRIBUTE'"));
+            }
+
+            return Promise.resolve({});
+        });
+
+        await expect(swv.configure(device, coordinator.getEndpoint(1), swv)).resolves.toBeUndefined();
+
+        expect(readFn).toHaveBeenCalledWith("customClusterEwelink", [0x500c]);
+        expect(readFn).toHaveBeenCalledWith("customClusterEwelink", [0x5011]);
+    });
+});
+
+describe("Sonoff SNZB-02DR2", () => {
+    let device: Definition;
+    let endpoint: ZHModels.Endpoint;
+    let writeFn: Mock;
+    let meta: Tz.Meta;
+
+    beforeEach(async () => {
+        device = await findByDevice(mockDevice({modelID: "SNZB-02DR2", endpoints: [{ID: 1}]}));
+
+        writeFn = vi.fn();
+        endpoint = {write: writeFn} as unknown as ZHModels.Endpoint;
+        meta = {
+            state: {},
+            device: null,
+            message: null,
+            mapped: null,
+            options: null,
+            publish: null,
+            endpoint_name: null,
+        };
+    });
+
+    describe("toZigbee", () => {
+        it("enables the external display via temperature_sensor_select", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("temperature_sensor_select"));
+
+            await tzConverter.convertSet(endpoint, "temperature_sensor_select", "external", meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {temperatureSensorSelect: 1}, undefined);
+        });
+
+        it("disables the external display via temperature_sensor_select", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("temperature_sensor_select"));
+
+            await tzConverter.convertSet(endpoint, "temperature_sensor_select", "internal", meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {temperatureSensorSelect: 0}, undefined);
+        });
+
+        it("writes external temperature scaled x100 (signed)", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("external_temperature"));
+
+            await tzConverter.convertSet(endpoint, "external_temperature", -10.07, meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {externalTemperature: -1007}, undefined);
+        });
+
+        it("writes external humidity scaled x100", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("external_humidity"));
+
+            await tzConverter.convertSet(endpoint, "external_humidity", 88, meta);
+
+            expect(writeFn).toHaveBeenCalledWith("customSonoffSnzb02dr2", {externalHumidity: 8800}, undefined);
+        });
+    });
+});
+
+describe("Sonoff SWV-ZFE", () => {
+    let device: Definition;
+    let endpoint: ZHModels.Endpoint;
+    let writeFn: Mock;
+    let commandFn: Mock;
+    let meta: Tz.Meta;
+
+    beforeEach(async () => {
+        device = await findByDevice(mockDevice({modelID: "SWV-ZFE", endpoints: [{ID: 1}]}));
+
+        writeFn = vi.fn();
+        commandFn = vi.fn();
+        endpoint = {write: writeFn, command: commandFn} as unknown as ZHModels.Endpoint;
+        meta = {
+            state: {
+                manual_default_settings: {
+                    irrigation_duration: 15,
+                    irrigation_mode: "capacity",
+                    irrigation_amount_unit: "liter",
+                    irrigation_amount: 42,
+                    fail_safe: 60,
+                },
+                seasonal_watering_adjustment: {
+                    january: 1.1,
+                    february: 1.2,
+                    march: 1.3,
+                    april: 1.4,
+                    may: 1.5,
+                    june: 1.6,
+                    july: 1.7,
+                    august: 1.8,
+                    september: 1.9,
+                    october: 2,
+                    november: 0.9,
+                    december: 0.8,
+                },
+                valve_alarm_settings: {
+                    enable_alarm_water_shortage: true,
+                    enable_alarm_water_leak: false,
+                    enable_water_shortage_auto_close: true,
+                    alarm_water_shortage_duration: 5,
+                    alarm_water_leak_duration: 1,
+                },
+                irrigation_plan_report: {
+                    plan_index: 2,
+                    enable_state: true,
+                    loop_type_mode: "weekdays",
+                    loop_type_interval_days: 1,
+                    loop_type_week_days: {
+                        sunday: true,
+                        monday: false,
+                        tuesday: true,
+                        wednesday: false,
+                        thursday: true,
+                        friday: false,
+                        saturday: false,
+                    },
+                    enable_date: "2026-06-21",
+                    start_time: "06:30",
+                    irrigation_mode: "capacity",
+                    irrigation_total_duration: 20,
+                    irrigation_duration: 4,
+                    interval_duration: 3,
+                    irrigation_amount_unit: "liter",
+                    irrigation_amount: 50,
+                    fail_safe: 30,
+                    create_datetime: "2026-06-21T04:30:00Z",
+                },
+            },
+            device: null,
+            message: null,
+            mapped: null,
+            options: null,
+            publish: null,
+            endpoint_name: null,
+        };
+    });
+
+    describe("toZigbee", () => {
+        it("sends manual default settings to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("manual_default_settings"));
+
+            const value = {
+                irrigation_duration: 30,
+                irrigation_mode: "capacity",
+                irrigation_amount_unit: "liter",
+                irrigation_amount: 42,
+                fail_safe: 60,
+            };
+            const result = await tzConverter.convertSet(endpoint, "manual_default_settings", value, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20509: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([1, 0, 30, 0, 30, 0, 10, 1, 0, 42, 0, 60]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    manual_default_settings: value,
+                },
+            });
+        });
+
+        it("sends seasonal watering adjustment to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("seasonal_watering_adjustment"));
+
+            const value = {
+                january: 1.1,
+                february: 1.2,
+                march: 1.3,
+                april: 1.4,
+                may: 1.5,
+                june: 0.7,
+                july: 1.7,
+                august: 1.8,
+                september: 1.9,
+                october: 2,
+                november: 0.9,
+                december: 0.8,
+            };
+            const result = await tzConverter.convertSet(endpoint, "seasonal_watering_adjustment", value, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20510: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([11, 12, 13, 14, 15, 7, 17, 18, 19, 20, 9, 8]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    seasonal_watering_adjustment: value,
+                },
+            });
+        });
+
+        it("sends valve alarm settings to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("valve_alarm_settings"));
+
+            const value = {
+                enable_alarm_water_shortage: true,
+                enable_alarm_water_leak: false,
+                enable_water_shortage_auto_close: true,
+                alarm_water_shortage_duration: 5,
+                alarm_water_leak_duration: 3,
+            };
+            const result = await tzConverter.convertSet(endpoint, "valve_alarm_settings", value, meta);
+
+            expect(writeFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                {
+                    20512: {
+                        value: {
+                            elementType: 0x20,
+                            elements: new Uint8Array([0b01001, 5, 3, 0]),
+                        },
+                        type: 0x48,
+                    },
+                },
+                {},
+            );
+            expect(result).toEqual({
+                state: {
+                    valve_alarm_settings: value,
+                },
+            });
+        });
+
+        it("sends irrigation plan settings to device", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_settings"));
+            const year2000InUtc = 946684800;
+            const enableDate = Date.UTC(2026, 5, 21, 0, 0, 0) / 1000 - year2000InUtc;
+            const createDatetime = Date.parse("2026-06-21T04:30:00Z") / 1000;
+            const expectedPayload = [
+                2,
+                1,
+                3,
+                0b00010101,
+                (enableDate >> 24) & 0xff,
+                (enableDate >> 16) & 0xff,
+                (enableDate >> 8) & 0xff,
+                enableDate & 0xff,
+                1,
+                0,
+                0,
+                91,
+                104,
+                0,
+                20,
+                0,
+                9,
+                0,
+                3,
+                1,
+                0,
+                50,
+                0,
+                30,
+                (createDatetime >> 24) & 0xff,
+                (createDatetime >> 16) & 0xff,
+                (createDatetime >> 8) & 0xff,
+                createDatetime & 0xff,
+            ];
+
+            const value = {
+                plan_index: 2,
+                enable_state: true,
+                loop_type_mode: "weekdays",
+                loop_type_interval_days: 1,
+                loop_type_week_days: {
+                    sunday: true,
+                    monday: false,
+                    tuesday: true,
+                    wednesday: false,
+                    thursday: true,
+                    friday: false,
+                    saturday: false,
+                },
+                enable_date: "2026-06-21",
+                start_time: "06:30",
+                irrigation_mode: "capacity",
+                irrigation_total_duration: 20,
+                irrigation_duration: 9,
+                interval_duration: 3,
+                irrigation_amount_unit: "liter",
+                irrigation_amount: 50,
+                fail_safe: 30,
+                create_datetime: "2026-06-21T04:30:00Z",
+            };
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_settings", value, meta);
+
+            expect(commandFn).toHaveBeenCalledWith(
+                "customClusterEwelink",
+                "irrigationPlanSettings",
+                {data: expectedPayload},
+                {disableDefaultResponse: false},
+            );
+            expect(result).toEqual({
+                state: {
+                    irrigation_plan_settings: value,
+                },
+            });
+        });
+
+        it("removes an irrigation plan through the composite remove command", async () => {
+            const tzConverter = device.toZigbee.find((c) => c.key.includes("irrigation_plan_remove"));
+
+            const result = await tzConverter.convertSet(endpoint, "irrigation_plan_remove", {plan_index: 3}, meta);
+
+            expect(commandFn).toHaveBeenCalledWith("customClusterEwelink", "irrigationPlanRemove", {data: [3]}, {disableDefaultResponse: true});
+            expect(result).toEqual({
+                state: {
+                    irrigation_plan_remove: {plan_index: 3},
+                    irrigation_plan_settings_3: null,
+                },
             });
         });
     });
