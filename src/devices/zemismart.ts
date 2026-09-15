@@ -122,6 +122,12 @@ const valueConverterLocal = {
 };
 
 const tzLocal = {
+    batteryQuery: {
+        key: ["battery"],
+        convertGet: async (entity) => {
+            await entity.command("manuSpecificTuya", "dataQuery", {});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         key: ["position", "tilt"],
@@ -1142,9 +1148,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM16B",
         vendor: "Zemismart",
         description: "Tubular motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 12 * 60 * 60,
+            }),
+        ],
+        toZigbee: [tzLocal.batteryQuery],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET)],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
