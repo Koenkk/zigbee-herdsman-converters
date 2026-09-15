@@ -1138,7 +1138,7 @@ export const definitions: DefinitionWithExtend[] = [
         configure: tuya.configureMagicPacket,
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_3mzb0sdz", "_TZE2841000000_3mzb0sdz"]),
         model: "ZM16B",
         vendor: "Zemismart",
         description: "Tubular motor",
@@ -1271,6 +1271,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [112, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
                 [113, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_rzdkn5rx"]),
+        model: "ZNS-LRL2E",
+        vendor: "Zemismart",
+        description: "30A immersion switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [e.switch()],
+        meta: {
+            tuyaDatapoints: [[1, "state", tuya.valueConverter.onOff]],
         },
     },
 ];
