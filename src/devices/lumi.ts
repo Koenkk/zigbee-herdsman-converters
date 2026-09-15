@@ -1767,17 +1767,17 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Aqara", model: "TH-S02D"},
             {vendor: "Yandex", model: "YNDX-00523"},
         ],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, lumi.fromZigbee.lumi_pressure, fz.battery],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-        },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        exposes: [e.device_temperature(), e.power_outage_count(false)],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.temperature(),
+            m.humidity(),
+            m.pressure(),
+            m.battery({voltage: true, voltageReporting: true, percentageReporting: false, voltageToPercentage: {min: 2850, max: 3000}}),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ["lumi.sensor_motion"],
