@@ -7817,6 +7817,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LoraTap", "SS6400ZB", "4 button portable remote control", ["_TZ3000_ee8nrt2l"]),
             tuya.whitelabel("Zemismart", "ZMR4_1", "4 button portable remote control (without dimmer)", ["_TZ3000_xwuveizv"]),
             tuya.whitelabel("Tuya", "TS0044_2", "Wireless switch with 4 buttons", ["_TZ3000_zgyzgdua"]),
+            tuya.whitelabel("Mowe", "MW794Z", "Mausklick series 4 gang scene switch", ["_TZ3000_1hypixdr"]),
         ],
         extend: [tuyaBase(), m.battery({voltage: true, percentageReporting: false})],
         fromZigbee: [tuya.fz.on_off_action],
