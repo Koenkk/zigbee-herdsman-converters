@@ -227,6 +227,21 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("TS011F_plug_3");
     });
 
+    it("finds the Paulmann 291.52 white label for PIIC5800 firmware", async () => {
+        const device = mockDevice(
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5800",
+                endpoints: [],
+            },
+            "Router",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("291.52");
+    });
+
     it("finds definition by fingerprint - index of size 250+", async () => {
         const device = mockDevice(
             {

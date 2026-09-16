@@ -1744,17 +1744,20 @@ export const definitions: DefinitionWithExtend[] = [
                 /* Not all support this */
             }
 
-            await endpoint.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", [
+            await endpoint.read("hvacThermostat", [
                 "occupiedHeatingSetpoint",
                 "localTemp",
                 "systemMode",
                 "pIHeatingDemand",
-                "sinopeBacklight",
                 "maxHeatSetpointLimit",
                 "minHeatSetpointLimit",
-                "sinopeMainCycleOutput",
-                "sinopeAuxCycleOutput",
             ]);
+            // zigbee-herdsman rejects mixing manufacturer-specific and standard attributes in one read
+            await endpoint.read<"hvacThermostat", SinopeHvacThermostat>(
+                "hvacThermostat",
+                ["sinopeBacklight", "sinopeMainCycleOutput", "sinopeAuxCycleOutput"],
+                manuSinope,
+            );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", [
                 "timeFormatToDisplay",

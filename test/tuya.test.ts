@@ -127,6 +127,79 @@ describe("lib/tuya", () => {
             const cluster = device.customClusters.closuresWindowCovering;
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
+
+        const setupB4z = async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_yruungrl",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            const endpoint = device.getEndpoint(1);
+            const toConverter = definition.toZigbee.find((converter) => converter.key.includes("position"));
+            const fromConverter = definition.fromZigbee.find((converter) => converter.cluster === "closuresWindowCovering");
+            if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
+
+            const state = {position: 100};
+            const sendPosition = async (position: number) => {
+                const commandResult = await toConverter.convertSet(endpoint, "position", position, {
+                    device,
+                    mapped: definition,
+                    message: {position},
+                    options: {},
+                    state,
+                    endpoint_name: undefined,
+                    publish: () => {},
+                });
+                Object.assign(state, commandResult?.state);
+            };
+            const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
+                fromConverter.convert(
+                    definition,
+                    {
+                        data,
+                        endpoint,
+                        device,
+                        meta: {rawData: Buffer.alloc(0)},
+                        groupID: 0,
+                        type: "attributeReport",
+                        cluster: "closuresWindowCovering",
+                        linkquality: 0,
+                    },
+                    () => {},
+                    {},
+                    {state, device, deviceExposesChanged: () => {}},
+                );
+
+            return {convert, endpoint, sendPosition};
+        };
+
+        it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+
+        it("does not correct a Nous B4Z STOP report before the target was acknowledged", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 100});
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("does not replace an acknowledged Nous B4Z target with a stale moving report", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 0})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 0})).toMatchObject({position: 100});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
     });
 
     describe("tuyaOnOff power-on behaviour selection", () => {
