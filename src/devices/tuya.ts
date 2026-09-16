@@ -9211,7 +9211,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.cover_position_percent_fix()],
     },
     {
-        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_eegnwoyw"]), ...tuya.fingerprint("TS0105", ["_TZE600_ogyg1y6b"])],
+        fingerprint: [...tuya.fingerprint("TS0601", ["_TZE200_eegnwoyw", "_TZE200_fu14oapz"]), ...tuya.fingerprint("TS0105", ["_TZE600_ogyg1y6b"])],
         model: "TS0601_cover_2",
         vendor: "Tuya",
         description: "Curtain motor or roller blind motor with fixed speed",
