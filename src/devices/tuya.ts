@@ -23170,6 +23170,75 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE20C_tjz9ad5g"]),
+        model: "MG-BJQ002",
+        vendor: "Moes",
+        description: "Plug-in smart siren alarm with RGB night light",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .enum("alarm", ea.STATE_SET, ["sound", "light", "sound_light", "off"])
+                .withDescription("Trigger the alarm (sound, light or both) for the configured duration, or stop it with 'off'"),
+            e
+                .numeric("duration", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("How long the alarm sounds for when triggered"),
+            e.enum("volume", ea.STATE_SET, ["low", "medium", "high", "mute"]).withDescription("Alarm volume"),
+            e
+                .enum(
+                    "ringtone",
+                    ea.STATE_SET,
+                    Array.from({length: 32}, (_, i) => `ringtone ${i + 1}`),
+                )
+                .withDescription("Alarm melody"),
+            e.binary("night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light"),
+            e.enum("light_mode", ea.STATE_SET, ["rainbow", "red_flash", "night_light"]).withDescription("RGB light mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "alarm",
+                    tuya.valueConverterBasic.lookup({
+                        sound: tuya.enum(0),
+                        light: tuya.enum(1),
+                        sound_light: tuya.enum(2),
+                        off: tuya.enum(3),
+                    }),
+                ],
+                [
+                    5,
+                    "volume",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        medium: tuya.enum(1),
+                        high: tuya.enum(2),
+                        mute: tuya.enum(3),
+                    }),
+                ],
+                [7, "duration", tuya.valueConverter.raw],
+                [
+                    21,
+                    "ringtone",
+                    tuya.valueConverterBasic.lookup(Object.fromEntries(Array.from({length: 32}, (_, i) => [`ringtone ${i + 1}`, tuya.enum(i)]))),
+                ],
+                [22, "night_light", tuya.valueConverter.onOff],
+                [
+                    23,
+                    "light_mode",
+                    tuya.valueConverterBasic.lookup({
+                        rainbow: tuya.enum(0),
+                        red_flash: tuya.enum(1),
+                        night_light: tuya.enum(2),
+                    }),
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ex3rcdha", "_TZE204_lbbg34rj"]),
         model: "ZY_HPS01",
         vendor: "Tuya",
