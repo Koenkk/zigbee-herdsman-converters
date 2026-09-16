@@ -1670,7 +1670,24 @@ export const valueConverter = {
     },
     coverAction: valueConverterBasic.lookup({OPEN: new Enum(0), STOP: new Enum(1), CLOSE: new Enum(2), CONTINUE: new Enum(3)}),
     motorState: valueConverterBasic.lookup({opening: new Enum(0), closing: new Enum(1), stopped: new Enum(2)}),
-    tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
+    tubularMotorDirection: (() => {
+        const converter = valueConverterBasic.lookup({
+            normal: new Enum(0),
+            reversed: new Enum(1),
+        });
+
+        return {
+            from: (v: number | string, meta: Fz.Meta, options: KeyValue) => {
+                if (typeof v === "number") {
+                    return converter.from(v, meta, options);
+                }
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/13191
+                // occasionally reports string instead of enum??
+                return v === "back" ? "reversed" : "normal";
+            },
+            to: converter.to,
+        };
+    })(),
     motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
     coverType: valueConverterBasic.lookup({
         roman_pole: new Enum(0),
