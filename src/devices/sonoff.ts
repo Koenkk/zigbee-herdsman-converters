@@ -151,6 +151,7 @@ interface SonoffSnzb09p {
         alarmSoundType: number;
         alarmVolumeLevel: number;
         alarmDuration: number;
+        alarmStatus: number;
         spilt: number;
     };
     commands: {
@@ -1353,8 +1354,54 @@ const withConditionalExpose = (extend: ModernExtend, predicate: (device: Zh.Devi
     return {...extend, exposes: [expose]};
 };
 
+// Expose an enum's values only while the device supports them: `gatedValues` are exposed only while `isSupported`
+// returns true (e.g. a firmware version floor), every other value is always exposed. The wrapped extend keeps its full
+// lookup, so reported values and writes are unaffected. `isSupported` must hold for dummy devices, otherwise the gated
+// values disappear from the definition export, the device docs and the repo tests.
+const withConditionalEnumValues = (
+    extend: ModernExtend,
+    gatedValues: (string | number)[],
+    isSupported: (device: Zh.Device | DummyDevice) => boolean,
+): ModernExtend => {
+    const expose: DefinitionExposesFunction = (device, options) => {
+        const items = (extend.exposes ?? []).flatMap((item) => (typeof item === "function" ? item(device, options) : [item]));
+        if (isSupported(device)) return items;
+
+        return items.map((item) => {
+            if (!(item instanceof exposes.Enum)) return item;
+
+            const reduced = item.clone();
+            reduced.values = item.values.filter((value) => !gatedValues.includes(value));
+            return reduced;
+        });
+    };
+
+    return {...extend, exposes: [expose]};
+};
+
 const isBasicZB1GSPFirmwareAtLeast130 = (device: Zh.Device | DummyDevice): boolean =>
     utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher");
+
+// SNZB-09P: alarmSoundType got the chime presets (0x0a-0x0e) in firmware 1.1.9; the base presets work on all firmware.
+const snzb09pAlarmSoundTypeBaseLookup = {
+    siren_classic: 0x00,
+    siren_steady: 0x01,
+    siren_rising: 0x03,
+    siren_warning: 0x05,
+    siren_rapid: 0x06,
+    siren_emergency: 0x08,
+    tone_chirp: 0x02,
+    tone_hi_lo: 0x04,
+    tone_intermittent: 0x07,
+    tone_pulse: 0x09,
+};
+const snzb09pAlarmSoundTypeChimeLookup = {
+    chime_doorbell: 0x0a,
+    chime_classic_clock: 0x0b,
+    chime_electronic_clock: 0x0c,
+    chime_bright: 0x0d,
+    chime_soft: 0x0e,
+};
 
 const fzLocal = {
     key_action_event: {
@@ -1422,6 +1469,19 @@ const fzLocal = {
             return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
         },
     } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
+    snzb_09p_alarm_status: {
+        cluster: "customClusterEwelink",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const status = msg.data.alarmStatus;
+            if (status !== 0 && status !== 1 && status !== 2) {
+                return;
+            }
+
+            const alarmType = ({0: "none", 1: "manual", 2: "scene"} as const)[status as 0 | 1 | 2];
+            return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
+        },
+    } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SNZB02_temperature: {
         cluster: "msTemperatureMeasurement",
@@ -12800,6 +12860,7 @@ export const definitions: DefinitionWithExtend[] = [
                     alarmSoundType: {name: "alarmSoundType", ID: 0x2023, type: Zcl.DataType.ENUM8, write: true},
                     alarmVolumeLevel: {name: "alarmVolumeLevel", ID: 0x2024, type: Zcl.DataType.ENUM8, write: true},
                     alarmDuration: {name: "alarmDuration", ID: 0x2025, type: Zcl.DataType.UINT16, write: true},
+                    alarmStatus: {name: "alarmStatus", ID: 0x202e, type: Zcl.DataType.UINT8},
                     spilt: {name: "spilt", ID: 0x2000, type: Zcl.DataType.UINT8, write: true},
                 },
                 commands: {
@@ -12807,6 +12868,39 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
+            // Reading alarmStatus needs the custom cluster registered on the device, which only happens once
+            // `m.deviceAddCustomCluster` above has run its own hooks. Extend hooks run in array order, so keep
+            // this entry after it.
+            {
+                onEvent: [
+                    async (event) => {
+                        // Attempt to read the current alarm status on gateway startup, device rejoin and device announce.
+                        if (
+                            event.type !== "start" &&
+                            event.type !== "deviceJoined" &&
+                            event.type !== "deviceAnnounce" &&
+                            event.type !== "deviceInterview"
+                        ) {
+                            return;
+                        }
+
+                        // alarmStatus (0x202e) only exists from firmware 1.1.9; unknown firmware counts as unsupported.
+                        if (!firmwareSupportFeaturesVersion(event.data.device, "1.1.9", "SNZB-09P", "higher")) {
+                            return;
+                        }
+
+                        const endpoint = event.data.device.getEndpoint(1);
+                        try {
+                            await endpoint.read<"customClusterEwelink", SonoffSnzb09p>("customClusterEwelink", ["alarmStatus"], manufacturerOptions);
+                        } catch (error) {
+                            // Battery-powered device may be sleeping; swallow the error to avoid crashing the event chain,
+                            // but log it so a failed sync is traceable. The next device event will retry naturally.
+                            logger.warning(`Failed to read alarmStatus of '${event.data.device.ieeeAddr}' on '${event.type}' (${error})`, NS);
+                        }
+                    },
+                ],
+                isModernExtend: true,
+            },
             sonoffExtend.powerSupplyModeWithChangeBatteryState(),
             sonoffExtend.batteryWithPowerSupplyMode(),
             m.binary<"customClusterEwelink", SonoffSnzb09p>({
@@ -12840,25 +12934,18 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
             }),
-            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
-                name: "alarm_sound_type",
-                lookup: {
-                    siren_classic: 0x00,
-                    siren_steady: 0x01,
-                    siren_rising: 0x03,
-                    siren_warning: 0x05,
-                    siren_rapid: 0x06,
-                    siren_emergency: 0x08,
-                    tone_chirp: 0x02,
-                    tone_hi_lo: 0x04,
-                    tone_intermittent: 0x07,
-                    tone_pulse: 0x09,
-                },
-                cluster: "customClusterEwelink",
-                attribute: "alarmSoundType",
-                entityCategory: "config",
-                description: "Select the alarm sound preset.",
-            }),
+            withConditionalEnumValues(
+                m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                    name: "alarm_sound_type",
+                    lookup: {...snzb09pAlarmSoundTypeBaseLookup, ...snzb09pAlarmSoundTypeChimeLookup},
+                    cluster: "customClusterEwelink",
+                    attribute: "alarmSoundType",
+                    entityCategory: "config",
+                    description: "Select the alarm sound preset.",
+                }),
+                Object.keys(snzb09pAlarmSoundTypeChimeLookup),
+                (device) => utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device, "1.1.9", "SNZB-09P", "higher"),
+            ),
             m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_volume_level",
                 lookup: {low: 0x00, medium: 0x01, high: 0x02, max: 0x03},
@@ -12879,7 +12966,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
-        fromZigbee: [fzLocal.snzb_09p_alert],
+        fromZigbee: [fzLocal.snzb_09p_alert, fzLocal.snzb_09p_alarm_status],
         toZigbee: [tzLocal.snzb_09p_alert],
         exposes: [
             e
