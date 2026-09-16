@@ -1287,15 +1287,4 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_rzdkn5rx"]),
-        model: "ZNS-LRL2E",
-        vendor: "Zemismart",
-        description: "30A immersion switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [e.switch()],
-        meta: {
-            tuyaDatapoints: [[1, "state", tuya.valueConverter.onOff]],
-        },
-    },
 ];
