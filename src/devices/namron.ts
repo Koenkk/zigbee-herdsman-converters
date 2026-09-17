@@ -2534,23 +2534,25 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On if window is currently detected as open",
             }),
 
-            m.numeric<"hvacThermostat", namron.NamronHvacThermostat>({
+            // displayActiveBacklight (0x8005) and backlightOnoff (0x8009) are addressed by ID: this model returns
+            // UNSUPPORTED_ATTRIBUTE when they are sent with the Sunricher manufacturer code.
+            m.numeric<"hvacThermostat", undefined>({
                 name: "backlight_level",
                 unit: "%",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 10,
                 cluster: "hvacThermostat",
-                attribute: "displayActiveBacklight",
+                attribute: {ID: 0x8005, type: Zcl.DataType.UINT8},
                 description: "Brightness of the display",
                 entityCategory: "config",
             }),
-            m.binary<"hvacThermostat", namron.NamronHvacThermostat>({
+            m.binary<"hvacThermostat", undefined>({
                 name: "backlight_onoff",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "hvacThermostat",
-                attribute: "backlightOnoff",
+                attribute: {ID: 0x8009, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable display light",
                 entityCategory: "config",
             }),
