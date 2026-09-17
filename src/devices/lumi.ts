@@ -3512,6 +3512,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
+        zigbeeModel: ["lumi.light.acn037"],
+        model: "GDSD12LM",
+        vendor: "Aqara",
+        description: "Track light V1",
+        whiteLabel: [{vendor: "Aqara", model: "GDGSD13LM", description: "Track grille light V1 (12-head)"}],
+        extend: [m.light({colorTemp: {range: [166, 370]}}), m.electricityMeter(), m.identify()],
+    },
+    {
         zigbeeModel: ["lumi.light.acn036"],
         model: "SSWQDYH02",
         vendor: "Aqara",
