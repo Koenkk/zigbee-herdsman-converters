@@ -169,6 +169,18 @@ interface SchneiderHeatingCoolingOutputCluster {
     commandResponses: never;
 }
 
+interface SchneiderCycleTimeCluster {
+    attributes: {
+        demandPercentage: number;
+        cycleTime: number;
+        minCycleTime: number;
+        maxCycleTime: number;
+        statusFlags: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SchneiderLightingBallastCfg {
     attributes: {wiserControlMode: number};
     commands: never;
@@ -501,6 +513,21 @@ const schneiderElectricExtend = {
         return extend;
     },
 
+    addCycleTimeCluster: () =>
+        m.deviceAddCustomCluster("schneiderCycleTime", {
+            name: "schneiderCycleTime",
+            ID: 0xff16,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                demandPercentage: {name: "demandPercentage", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 100},
+                cycleTime: {name: "cycleTime", ID: 0x0010, type: Zcl.DataType.UINT16, write: true, min: 300, max: 3200},
+                minCycleTime: {name: "minCycleTime", ID: 0x0011, type: Zcl.DataType.UINT16},
+                maxCycleTime: {name: "maxCycleTime", ID: 0x0012, type: Zcl.DataType.UINT16},
+                statusFlags: {name: "statusFlags", ID: 0x0020, type: Zcl.DataType.BITMAP8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addOccupancyConfigurationCluster: () =>
         m.deviceAddCustomCluster("occupancyConfiguration", {
             name: "occupancyConfiguration",
@@ -4273,10 +4300,44 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["UFH"],
         model: "CCTFR6000",
         vendor: "Schneider Electric",
-        description: "6 Channel Boiler Actuator",
+        description: "Wiser underfloor heating controller",
+        whiteLabel: [
+            {vendor: "Schneider Electric", model: "CCTFR6600"},
+            {vendor: "Schneider Electric", model: "CCTFR6610"},
+        ],
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8}}),
+            schneiderElectricExtend.addCycleTimeCluster(),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"]}),
+            m.numeric<"schneiderCycleTime", SchneiderCycleTimeCluster>({
+                name: "demand_percentage",
+                cluster: "schneiderCycleTime",
+                attribute: "demandPercentage",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                description:
+                    "Heating demand as share of the cycle time. The relay only closes while the channel state is ON and the demand is above 0; 100 keeps the relay closed permanently.",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric<"schneiderCycleTime", SchneiderCycleTimeCluster>({
+                name: "cycle_time",
+                cluster: "schneiderCycleTime",
+                attribute: "cycleTime",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                unit: "s",
+                valueMin: 300,
+                valueMax: 3200,
+                valueStep: 1,
+                entityCategory: "config",
+                description:
+                    "Length of the time-proportional switching cycle (factory default 1800 s for heating channels, 600 s for pump and boiler).",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
         ],
     },
 ];

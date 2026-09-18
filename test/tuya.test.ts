@@ -127,6 +127,79 @@ describe("lib/tuya", () => {
             const cluster = device.customClusters.closuresWindowCovering;
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
+
+        const setupB4z = async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_yruungrl",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            const endpoint = device.getEndpoint(1);
+            const toConverter = definition.toZigbee.find((converter) => converter.key.includes("position"));
+            const fromConverter = definition.fromZigbee.find((converter) => converter.cluster === "closuresWindowCovering");
+            if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
+
+            const state = {position: 100};
+            const sendPosition = async (position: number) => {
+                const commandResult = await toConverter.convertSet(endpoint, "position", position, {
+                    device,
+                    mapped: definition,
+                    message: {position},
+                    options: {},
+                    state,
+                    endpoint_name: undefined,
+                    publish: () => {},
+                });
+                Object.assign(state, commandResult?.state);
+            };
+            const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
+                fromConverter.convert(
+                    definition,
+                    {
+                        data,
+                        endpoint,
+                        device,
+                        meta: {rawData: Buffer.alloc(0)},
+                        groupID: 0,
+                        type: "attributeReport",
+                        cluster: "closuresWindowCovering",
+                        linkquality: 0,
+                    },
+                    () => {},
+                    {},
+                    {state, device, deviceExposesChanged: () => {}},
+                );
+
+            return {convert, endpoint, sendPosition};
+        };
+
+        it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+
+        it("does not correct a Nous B4Z STOP report before the target was acknowledged", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 100});
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("does not replace an acknowledged Nous B4Z target with a stale moving report", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 0})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 0})).toMatchObject({position: 100});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
     });
 
     describe("tuyaOnOff power-on behaviour selection", () => {
@@ -168,6 +241,110 @@ describe("lib/tuya", () => {
             expect(powerOnBehavior2).toBeGreaterThanOrEqual(0);
             expect(powerOnBehavior1).toBeGreaterThanOrEqual(0);
             expect(powerOnBehavior2).toBeLessThan(powerOnBehavior1);
+        });
+    });
+
+    describe("phaseVariant2WithPhase", () => {
+        // Regression: the payload is 8 bytes -- voltage (2), current (3), power (3) --
+        // the same layout already decoded by phaseVariant3/phaseVariant4. Only the low
+        // 2 bytes of current and power were read, so:
+        //   - current wrapped above 65.536 A (68.783 A was reported as 3.247 A)
+        //   - the negative power branch used 0x999a, which is the low 16 bits of the
+        //     real 24-bit offset 0x99999a, so it corrupted any legitimate reading above
+        //     32767 W
+
+        // voltage in 0.1 V, current in mA, power in W
+        const payload = (voltage: number, current: number, power: number) =>
+            Buffer.from([
+                (voltage >> 8) & 0xff,
+                voltage & 0xff,
+                (current >> 16) & 0xff,
+                (current >> 8) & 0xff,
+                current & 0xff,
+                (power >> 16) & 0xff,
+                (power >> 8) & 0xff,
+                power & 0xff,
+            ]).toString("base64");
+
+        const decode = (phase: string, voltage: number, current: number, power: number) =>
+            tuya.valueConverter.phaseVariant2WithPhase(phase).from(payload(voltage, current, power));
+
+        it("suffixes every key with the phase", () => {
+            expect(decode("b", 1234, 4252, 519)).toStrictEqual({voltage_b: 123.4, current_b: 4.252, power_b: 519});
+        });
+
+        it("decodes readings below the 16 bit boundary", () => {
+            expect(decode("l1", 1234, 4252, 519)).toStrictEqual({voltage_l1: 123.4, current_l1: 4.252, power_l1: 519});
+            expect(decode("l1", 1200, 65535, 1000)).toStrictEqual({voltage_l1: 120, current_l1: 65.535, power_l1: 1000});
+        });
+
+        it.each([
+            // captured on TS0601 / _TZE284_x8diwkqb, 68.783 A was reported as 3.247 A
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12927
+            {voltage: 1196, current: 68783, power: 8216, expected: {voltage_l1: 119.6, current_l1: 68.783, power_l1: 8216}},
+            // captured on TS0601 / _TZE284_x8diwkqb with a 5.5 kW and a 7.5 kW heater running
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12927
+            {voltage: 1190, current: 69610, power: 8270, expected: {voltage_l1: 119, current_l1: 69.61, power_l1: 8270}},
+            {voltage: 1195, current: 65951, power: 7867, expected: {voltage_l1: 119.5, current_l1: 65.951, power_l1: 7867}},
+            // just past the wrap point, previously reported as 0.0 A / 0.001 A
+            {voltage: 1200, current: 65536, power: 1000, expected: {voltage_l1: 120, current_l1: 65.536, power_l1: 1000}},
+            {voltage: 1200, current: 65537, power: 1000, expected: {voltage_l1: 120, current_l1: 65.537, power_l1: 1000}},
+        ])("does not wrap currents above 65.536 A ($current mA)", ({voltage, current, power, expected}) => {
+            expect(decode("l1", voltage, current, power)).toStrictEqual(expected);
+        });
+
+        it("keeps current consistent with power and voltage under high load", () => {
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12927
+            const {voltage_l1, current_l1, power_l1} = decode("l1", 1190, 69610, 8270) as Record<string, number>;
+            expect(power_l1).toBeCloseTo(voltage_l1 * current_l1, -2);
+        });
+
+        it.each([
+            // _TZE200_nslr42tt, two clamps on the same ~19 W load, one of them reversed
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2267514694
+            // Same capture used to identify the 0x99999a offset (0x19999a gave 8388588 W):
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32995#issuecomment-5516351597
+            {dp: 6, phase: "a", data: [9, 37, 0, 0, 143, 0, 0, 19], expected: {voltage_a: 234.1, current_a: 0.143, power_a: 19}},
+            {dp: 8, phase: "c", data: [9, 38, 0, 0, 146, 153, 153, 134], expected: {voltage_c: 234.2, current_c: 0.146, power_c: -20}},
+        ])("decodes captured payload of dp $dp ($data)", ({phase, data, expected}) => {
+            const raw = Buffer.from(data).toString("base64");
+            expect(tuya.valueConverter.phaseVariant2WithPhase(phase).from(raw)).toStrictEqual(expected);
+        });
+
+        it.each([
+            // values shown by the old 16 bit decoder (39125, 39124, 39123 W), full 24 bit field reconstructed
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
+            {raw: 0x9998d5, expected: -197},
+            {raw: 0x9998d4, expected: -198},
+            {raw: 0x9998d3, expected: -199},
+            // 39317 W shown by the old 16 bit decoder for a reversed clamp on a 5 W load
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2276888584
+            {raw: 0x999995, expected: -5},
+            // regression: was reported as 8388588 W with the 0x19999a offset
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32995
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32995#issuecomment-5516351597
+            {raw: 0x999986, expected: -20},
+            {raw: 0x99999a, expected: 0},
+            {raw: 0x800000, expected: -1677722},
+        ])("reports negative power ($raw -> $expected W)", ({raw, expected}) => {
+            expect(decode("l1", 1200, 0, raw)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: expected});
+        });
+
+        it("never reports a negative reading as a multi megawatt positive one", () => {
+            for (let absolute = 1; absolute <= 50000; absolute++) {
+                const {power_l1} = decode("l1", 1200, 0, 0x99999a - absolute) as Record<string, number>;
+                expect(power_l1).toBe(-absolute);
+            }
+        });
+
+        it("keeps large positive readings positive", () => {
+            expect(decode("l1", 1200, 0, 0x7fffff)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: 0x7fffff});
+        });
+
+        it("does not turn a large positive power into a negative one", () => {
+            // 40000 W was decoded as 678 W before: 40000 > 0x7fff took the negative
+            // branch, giving (0x999a - 40000) * -1
+            expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
         });
     });
 });

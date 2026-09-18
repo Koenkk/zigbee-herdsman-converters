@@ -167,6 +167,14 @@ interface SonoffSnzb03pr2 {
     commandResponses: never;
 }
 
+interface SonoffSnzt03p {
+    attributes: {
+        illuminationCompensationOffset: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 interface SonoffTrvzb {
     attributes: {
         childLock: number;
@@ -1750,6 +1758,44 @@ const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined
 };
 
 const sonoffExtend = {
+    zbminiR2ExternalSwitchActions: (): ModernExtend => {
+        const clusterName = "customClusterEwelink" as const;
+        const actionLookup: Record<number, string> = {
+            2: "double_click",
+            3: "long_press",
+        } as const;
+        const supportNewActions = (device: Zh.Device) => device.modelID === "ZBMINIR2" && firmwareAtLeast(device, "1.1.0");
+        const getActions = (device: Zh.Device | DummyDevice): string[] => {
+            const actions = ["toggle"];
+            if (utils.isDummyDevice(device) || supportNewActions(device)) {
+                actions.push(...Object.values(actionLookup));
+            }
+            return actions;
+        };
+        const externalSwitchConverter = {
+            cluster: clusterName,
+            type: ["attributeReport"],
+            convert: (model, msg) => {
+                if (!supportNewActions(msg.device)) {
+                    return;
+                }
+                const value = msg.data.detachRelayActionEvent;
+                if (value === undefined) {
+                    return;
+                }
+                const action = actionLookup[value];
+                if (action === undefined) {
+                    return;
+                }
+                return {action};
+            },
+        } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport"]>;
+        return {
+            exposes: [(device) => [e.enum("action", ea.STATE, getActions(device)).withDescription("Triggered action (e.g. a button click)")]],
+            fromZigbee: [fz.command_toggle, externalSwitchConverter],
+            isModernExtend: true,
+        };
+    },
     snzb02dr2RemoteSource: (): ModernExtend => {
         const clusterName = snzb02dr2ClusterName;
         const remoteSourceExposes = [
@@ -2102,6 +2148,7 @@ const sonoffExtend = {
                 transitionTime: {name: "transitionTime", ID: 0x001f, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 levelForCalibration: {name: "levelForCalibration", ID: 0x4006, type: Zcl.DataType.UINT8},
                 programmableStepperSequence: {name: "programmableStepperSequence", ID: 0x0022, type: Zcl.DataType.ARRAY, write: true},
+                detachRelayActionEvent: {name: "detachRelayActionEvent", ID: 0x0028, type: Zcl.DataType.UINT8},
             },
             commands: {
                 protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -9087,7 +9134,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.battery(),
-            m.temperature(),
+            m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.enumLookup<"customSonoffSnzb02ld", SonoffSnzb02ld>({
                 name: "temperature_units",
@@ -9131,8 +9178,8 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.battery({voltage: true, voltageReporting: true}),
-            m.temperature(),
-            m.humidity(),
+            m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
+            m.humidity({reporting: {min: 5, max: 3600, change: 100}}),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.enumLookup<"customSonoffSnzb02wd", SonoffSnzb02wd>({
                 name: "temperature_units",
@@ -10966,8 +11013,6 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee smart switch",
         exposes: [],
         extend: [
-            // binding and reporting are handled in configure block, skip duplication
-            m.commandsOnOff({commands: ["toggle"], bind: false}),
             m.onOff({configureReporting: false}),
             sonoffExtend.addCustomClusterEwelink(),
             m.binary<"customClusterEwelink", SonoffEwelink>({
@@ -11020,6 +11065,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.externalSwitchTriggerMode(),
             sonoffExtend.inchingControlSet(),
+            sonoffExtend.zbminiR2ExternalSwitchActions(),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -11489,7 +11535,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup<"customClusterEwelink", SonoffEwelink>({
                 name: "calibration_status",
-                lookup: {uncalibrate: 0, cailbrating: 1, calibration_failed: 2, calibrated: 3},
+                lookup: {uncalibrated: 0, calibrating: 1, calibration_failed: 2, calibrated: 3},
                 cluster: "customClusterEwelink",
                 attribute: "calibrationStatus",
                 description: "Calibration status.",
@@ -12445,8 +12491,8 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             // official cluster
-            m.illuminance(),
-            m.occupancy(),
+            m.illuminance({reporting: false}),
+            m.occupancy({reporting: false}),
             m.numeric({
                 name: "pir_o_to_u_delay",
                 label: "Occupancy timeout",
@@ -13517,5 +13563,84 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("msCarbonMonoxide", ["measuredValue"]);
             await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
+    },
+    {
+        zigbeeModel: ["SNZT-03P"],
+        model: "SNZT-03P",
+        vendor: "SONOFF",
+        description: "Smart Motion Sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    illuminationCompensationOffset: {
+                        name: "illuminationCompensationOffset",
+                        ID: 0x2018,
+                        type: Zcl.DataType.INT16,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.occupancy({reporting: false}),
+            m.illuminance({reporting: false}),
+            m.battery({percentage: true, voltage: false}),
+            m.numeric({
+                name: "pir_occupied_to_unoccupied_delay",
+                cluster: "msOccupancySensing",
+                attribute: {ID: 0x0010, type: Zcl.DataType.UINT16},
+                description: "Detection Duration",
+                valueMin: 5,
+                valueMax: 60,
+                unit: "s",
+                access: "ALL",
+                entityCategory: "config",
+                label: "Detection Duration",
+                fzConvert: (model, msg) => {
+                    const data = msg.data as Record<string, unknown>;
+                    // This device is not fully spec-compliant and may report this value via raw attribute keys.
+                    const candidates = [data.pirOToUDelay, data["16"], data["15360"]];
+                    const value = candidates.find((candidate) => typeof candidate === "number");
+                    if (typeof value === "number") {
+                        return {pir_occupied_to_unoccupied_delay: value};
+                    }
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffSnzt03p>({
+                name: "illumination_compensation_offset",
+                cluster: "customClusterEwelink",
+                attribute: "illuminationCompensationOffset",
+                description: "Light intensity calibration offset",
+                label: "Illumination calibration",
+                valueMin: -1000,
+                valueMax: 1000,
+                unit: "lx",
+                entityCategory: "config",
+                access: "ALL",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["SNZT-04P"],
+        model: "SNZT-04P",
+        vendor: "SONOFF",
+        description: "Smart Door/Window Sensor",
+        version: "0.0.1",
+        extend: [
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+            m.binary({
+                name: "tamper",
+                cluster: 0xfc11,
+                attribute: {ID: 0x2000, type: 0x20},
+                description: "Tamper-proof status",
+                valueOn: [true, 0x01],
+                valueOff: [false, 0x00],
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD},
+                access: "STATE_GET",
+            }),
+            m.battery({percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+        ],
     },
 ];
