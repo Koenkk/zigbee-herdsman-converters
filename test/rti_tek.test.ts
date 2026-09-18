@@ -1,15 +1,18 @@
 import {beforeEach, describe, expect, it, vi} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {
     computeDewPoint,
     computeHumidityComfort,
     computeVpd,
     formatFaultCode,
+    formatWeeklySchedule,
+    parseWeeklySchedule,
     toCelsiusTemperature,
     toDisplayTemperature,
     validateAlarmLimits,
 } from "../src/devices/rti_tek";
 import {findByDevice} from "../src/index";
-import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
+import type {Definition, Expose, Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 function buildDevice() {
@@ -416,6 +419,171 @@ describe("Rti-Tek STHZB converter", () => {
             humidity_comfort: "comfort",
             dew_point: 18.7,
             vpd: 1.87,
+        });
+    });
+});
+
+function buildEtrvZb01Device() {
+    return mockDevice({
+        modelID: "eTRV-ZB01",
+        manufacturerName: "Rti-Tek",
+        endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "hvacThermostat"], inputClusterIDs: [0xfd22]}],
+    });
+}
+
+function buildEtrvZb01Meta(device: ReturnType<typeof mockDevice>, definition: Definition, overrides?: Partial<Tz.Meta>): Tz.Meta {
+    return {
+        state: {},
+        device,
+        message: {},
+        mapped: definition,
+        options: {},
+        endpoint_name: undefined,
+        publish: () => {},
+        ...overrides,
+    };
+}
+
+const resolveEtrvZb01Exposes = (definition: Definition, device: ReturnType<typeof mockDevice>): Expose[] =>
+    Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, {});
+
+describe("Rti-Tek eTRV-ZB01 converter", () => {
+    let device: ReturnType<typeof mockDevice>;
+    let definition: Definition;
+
+    beforeEach(async () => {
+        device = buildEtrvZb01Device();
+        device.addCustomCluster("rtiTekFd22", {
+            name: "rtiTekFd22",
+            ID: 0xfd22,
+            attributes: {
+                windowState: {name: "windowState", ID: 0x1001, type: Zcl.DataType.ENUM8},
+                valveOpening: {name: "valveOpening", ID: 0x1002, type: Zcl.DataType.UINT16},
+            },
+            commands: {},
+            commandsResponse: {},
+        });
+        definition = await findByDevice(device);
+    });
+
+    const findTz = (key: string) => {
+        const converter = definition.toZigbee.find((candidate) => candidate.key?.includes(key));
+        if (!converter) throw new Error(`Missing toZigbee converter for ${key}`);
+        return converter;
+    };
+
+    const runFz = async (cluster: string, data: KeyValueAny) => {
+        const endpoint = device.getEndpoint(1);
+        const meta = {state: {}, device, deviceExposesChanged: vi.fn()} as Fz.Meta;
+        const msg = {data, endpoint, type: "attributeReport", cluster, device, meta: {}, groupID: 0, linkquality: 100} as unknown as Fz.Message;
+        const state: KeyValueAny = {};
+        for (const converter of definition.fromZigbee.filter(
+            (candidate) => candidate.cluster === cluster && candidate.type.includes("attributeReport"),
+        )) {
+            const result = await converter.convert(definition, msg, () => {}, {}, meta);
+            if (result && typeof result === "object") Object.assign(state, result);
+        }
+        return {state, meta};
+    };
+
+    it("matches only the documented eTRV-ZB01 model and exposes its controls", () => {
+        expect(definition).toMatchObject({model: "eTRV-ZB01", vendor: "Rti-Tek", ota: true});
+
+        const names = resolveEtrvZb01Exposes(definition, device).flatMap((expose) =>
+            expose.type === "climate" ? expose.features.map((feature) => feature.name) : expose.name,
+        );
+        expect(names).toEqual(
+            expect.arrayContaining([
+                "battery",
+                "occupied_heating_setpoint",
+                "system_mode",
+                "product_name",
+                "calibrate_valve",
+                "error_code",
+                "weekly_schedule_sunday",
+                "temporary_manual_mode",
+            ]),
+        );
+    });
+
+    it("limits non-602 screen orientation to 0 and 180 degrees", () => {
+        const screenDirection = resolveEtrvZb01Exposes(definition, device).find((expose) => expose.name === "screen_direction");
+        expect(screenDirection).toMatchObject({values: ["0", "180"]});
+    });
+
+    it("maps private reports to readable state", async () => {
+        const {state, meta} = await runFz("rtiTekFd22", {
+            productName: "eTRV-602",
+            screenDirection: 3,
+            faultCode: 0b10101,
+            motorTravelCalibrationError: 0,
+            windowState: 1,
+            valveOpening: 257,
+        });
+
+        expect(state).toMatchObject({
+            product_name: "eTRV-602",
+            screen_direction: "90",
+            error_code: "Internal sensor fault, Critical battery level, Battery",
+            motor_calibration_error: "Success",
+            open_window_status: "detected",
+            valve_opening: 25.7,
+        });
+        expect(meta.deviceExposesChanged).toHaveBeenCalledOnce();
+    });
+
+    it("writes calibration and mode changes through the documented attributes", async () => {
+        const endpoint = device.getEndpoint(1);
+        const meta = buildEtrvZb01Meta(device, definition);
+
+        await findTz("calibrate_valve").convertSet?.(endpoint, "calibrate_valve", "start", meta);
+        expect(endpoint.write).toHaveBeenLastCalledWith("rtiTekFd22", {motorTravelCalibration: true});
+
+        await findTz("system_mode").convertSet?.(endpoint, "system_mode", "heat", meta);
+        expect(endpoint.write).toHaveBeenNthCalledWith(2, "rtiTekFd22", {boostDuration: 0});
+        expect(endpoint.write).toHaveBeenNthCalledWith(3, "hvacThermostat", {systemMode: 4});
+        expect(endpoint.write).toHaveBeenNthCalledWith(4, "rtiTekFd22", {holidayDuration: 0});
+    });
+
+    it("rejects valve calibration while an OTA update is in progress", async () => {
+        const endpoint = device.getEndpoint(1);
+        const meta = buildEtrvZb01Meta(device, definition, {state: {update: {state: "updating"}}});
+
+        await expect(findTz("calibrate_valve").convertSet?.(endpoint, "calibrate_valve", "start", meta)).rejects.toThrow(
+            "Cannot calibrate valve while OTA update is in progress",
+        );
+        expect(endpoint.write).not.toHaveBeenCalled();
+    });
+
+    it("keeps one-minute schedule precision and pads deleted periods to six device slots", async () => {
+        const schedule = "06:01/20 08:00/15 12:00/20 22:21/22.5";
+        expect(parseWeeklySchedule(schedule, "sunday")).toEqual([
+            {transitionTime: 361, heatSetpoint: 2000},
+            {transitionTime: 480, heatSetpoint: 1500},
+            {transitionTime: 720, heatSetpoint: 2000},
+            {transitionTime: 1341, heatSetpoint: 2250},
+        ]);
+        expect(formatWeeklySchedule(parseWeeklySchedule(schedule, "sunday"))).toBe(schedule);
+
+        const endpoint = device.getEndpoint(1);
+        await findTz("weekly_schedule_sunday").convertSet?.(
+            endpoint,
+            "weekly_schedule_sunday",
+            schedule,
+            buildEtrvZb01Meta(device, definition, {message: {weekly_schedule_sunday: schedule}}),
+        );
+        expect(endpoint.command).toHaveBeenCalledWith("hvacThermostat", "setWeeklySchedule", {
+            dayofweek: 1,
+            numoftrans: 6,
+            mode: 1,
+            transitions: [
+                {transitionTime: 361, heatSetpoint: 2000},
+                {transitionTime: 480, heatSetpoint: 1500},
+                {transitionTime: 720, heatSetpoint: 2000},
+                {transitionTime: 1341, heatSetpoint: 2250},
+                {transitionTime: 1341, heatSetpoint: 2250},
+                {transitionTime: 1341, heatSetpoint: 2250},
+            ],
         });
     });
 });
