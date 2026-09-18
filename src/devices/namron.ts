@@ -2478,6 +2478,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Namron",
         description: "Zigbee thermostat 16A",
         whiteLabel: [{model: "4512759", fingerprint: [{modelID: "4512759"}]}],
+        // pIHeatingDemand is reported as 0-100, not 0-255
+        meta: {thermostat: {dontMapPIHeatingDemand: true}},
         fromZigbee: [fzLocal.namron_thermostat2, fz.metering, fz.electrical_measurement, namron.fromZigbee.namron_hvac_user_interface],
         toZigbee: [
             {
@@ -2532,23 +2534,25 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "On if window is currently detected as open",
             }),
 
-            m.numeric<"hvacThermostat", namron.NamronHvacThermostat>({
+            // displayActiveBacklight (0x8005) and backlightOnoff (0x8009) are addressed by ID: this model returns
+            // UNSUPPORTED_ATTRIBUTE when they are sent with the Sunricher manufacturer code.
+            m.numeric<"hvacThermostat", undefined>({
                 name: "backlight_level",
                 unit: "%",
                 valueMin: 0,
                 valueMax: 100,
                 valueStep: 10,
                 cluster: "hvacThermostat",
-                attribute: "displayActiveBacklight",
+                attribute: {ID: 0x8005, type: Zcl.DataType.UINT8},
                 description: "Brightness of the display",
                 entityCategory: "config",
             }),
-            m.binary<"hvacThermostat", namron.NamronHvacThermostat>({
+            m.binary<"hvacThermostat", undefined>({
                 name: "backlight_onoff",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 cluster: "hvacThermostat",
-                attribute: "backlightOnoff",
+                attribute: {ID: 0x8009, type: Zcl.DataType.BOOLEAN},
                 description: "Enable or Disable display light",
                 entityCategory: "config",
             }),
@@ -2558,7 +2562,32 @@ export const definitions: DefinitionWithExtend[] = [
                 lookup: {air: 0, floor: 1, both: 2, percent: 6},
                 cluster: "hvacThermostat",
                 attribute: "sensorMode",
-                description: "Select which sensor the thermostat uses to control the room",
+                description:
+                    "Select which sensor the thermostat uses to control the room. In 'percent' mode the temperature is not used for control: the relay is on for pi_heating_demand % of every regulator_cycle.",
+                entityCategory: "config",
+            }),
+            // In 'percent' sensor mode the duty cycle is set by writing the standard pIHeatingDemand attribute.
+            // The attribute is read-only in the ZCL spec, so it is written by ID (regulatorPercentage 0x801d is unsupported on this model).
+            m.numeric<"hvacThermostat", undefined>({
+                name: "pi_heating_demand",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x0008, type: Zcl.DataType.UINT8},
+                description:
+                    "Heating demand in %. In 'percent' sensor mode this sets the share of each regulator cycle the relay is on; in the other modes it reports the thermostat's own demand.",
+            }),
+            m.numeric<"hvacThermostat", undefined>({
+                name: "regulator_cycle",
+                unit: "min",
+                valueMin: 1,
+                valueMax: 30,
+                valueStep: 1,
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x8007, type: Zcl.DataType.UINT8},
+                description: "Length of one on/off cycle in 'percent' sensor mode.",
                 entityCategory: "config",
             }),
         ],
