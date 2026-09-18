@@ -132,11 +132,11 @@ function ubisysLd6ColorTempRange(device: Zh.Device | DummyDevice, endpointId: nu
     return [typeof min === "number" && min > 0 ? min : fallback[0], typeof max === "number" && max > 0 ? max : fallback[1]];
 }
 
-// The light endpoints depend on the output configuration, so the exposes are built per device
-// rather than with m.light(). Its configure is still used: it reads colorCapabilities and
-// colorTempPhysicalMin/Max on every colour-capable endpoint, which the exposes are derived from.
-// The range passed here is a placeholder; the device's own values are read and take precedence.
-const ubisysLd6LightConfigure = m.light({color: true, colorTemp: {range: UBISYS_LD6_COLOR_TEMP_FALLBACK}}).configure[0];
+// The light endpoints depend on the output configuration, so m.light() cannot supply the exposes:
+// its endpointNames is fixed when the definition is built. Its converters and configure do apply, and
+// the exposes mirror what it produces, for the endpoints a device actually has. The range given here
+// is a placeholder; each endpoint's own colorTempPhysicalMin/Max is read during configure.
+const ubisysLd6Light = m.light({color: true, colorTemp: {range: UBISYS_LD6_COLOR_TEMP_FALLBACK}});
 
 const ubisys = {
     fz: {
@@ -1227,69 +1227,55 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Ubisys",
         description: "LED controller",
         fromZigbee: [
-            fz.on_off,
-            fz.brightness,
-            fz.color_colortemp,
+            ...ubisysLd6Light.fromZigbee,
             ubisys.fz.ld6_ballast_configuration,
             ubisys.fz.configure_device_setup,
             ubisys.fz.output_configuration,
         ],
-        toZigbee: [
-            tz.light_onoff_brightness,
-            tz.light_color_colortemp,
-            tz.ballast_config,
-            tz.light_brightness_move,
-            tz.light_brightness_step,
-            tz.ignore_transition,
-            tz.ignore_rate,
-            ubisys.tz.configure_device_setup,
-            ubisys.tz.output_configuration,
-        ],
+        toZigbee: [...ubisysLd6Light.toZigbee, tz.ballast_config, ubisys.tz.configure_device_setup, ubisys.tz.output_configuration],
         // The LD6 drives one to six output channels. How many lights it presents, and whether each
         // is monochrome, tunable white or full colour, is decided by the output configuration
         // written to the device, so both the endpoints and the exposes are derived from it.
         exposes: (device, options) => {
             const lights = ubisysLd6LightEndpoints(device);
             const result: Expose[] = [];
+            // A unit wired as a single light is exposed without an endpoint suffix, like any other
+            // single-light device; only units presenting several lights get suffixes. With a dummy
+            // device, for the generated documentation, the most capable output is shown.
+            const channels: {id?: number; names?: string[]}[] =
+                lights.length === 0 ? [{}] : lights.map((id, index) => ({id, names: lights.length > 1 ? [`l${index + 1}`] : undefined}));
 
-            // Called with a dummy device when generating documentation.
-            if (lights.length === 0) {
-                result.push(e.light_brightness());
-            } else {
-                // A unit wired as a single light is exposed without an endpoint suffix, like any
-                // other single-light device; only units presenting several lights get suffixes.
-                const single = lights.length === 1;
-                lights.forEach((id, index) => {
-                    const name = `l${index + 1}`;
-                    const capabilities = ubisysLd6ColorCapabilities(device, id);
-                    const xy = (capabilities & UBISYS_LD6_CAPABILITY_XY) !== 0;
-                    const colorTemp = (capabilities & UBISYS_LD6_CAPABILITY_COLOR_TEMP) !== 0;
-                    let light: exposes.Light;
-                    if (xy && colorTemp) {
-                        light = e.light_brightness_colortemp_colorxy(ubisysLd6ColorTempRange(device, id));
-                    } else if (colorTemp) {
-                        light = e.light_brightness_colortemp(ubisysLd6ColorTempRange(device, id));
-                    } else if (xy) {
-                        light = e.light_brightness_colorxy();
-                    } else {
-                        light = e.light_brightness();
-                    }
-                    result.push(single ? light : light.withEndpoint(name));
+            for (const {id, names} of channels) {
+                const capabilities =
+                    id === undefined ? UBISYS_LD6_CAPABILITY_XY | UBISYS_LD6_CAPABILITY_COLOR_TEMP : ubisysLd6ColorCapabilities(device, id);
+                const xy = (capabilities & UBISYS_LD6_CAPABILITY_XY) !== 0;
+                const colorTemp = (capabilities & UBISYS_LD6_CAPABILITY_COLOR_TEMP) !== 0;
+                const range = id === undefined ? UBISYS_LD6_COLOR_TEMP_FALLBACK : ubisysLd6ColorTempRange(device, id);
 
-                    // Every light endpoint carries its own ballast configuration.
-                    const minimum = e
-                        .numeric("ballast_minimum_level", ea.ALL)
-                        .withValueMin(1)
-                        .withValueMax(254)
-                        .withDescription("Specifies the minimum light output of the ballast");
-                    const maximum = e
-                        .numeric("ballast_maximum_level", ea.ALL)
-                        .withValueMin(1)
-                        .withValueMax(254)
-                        .withDescription("Specifies the maximum light output of the ballast");
-                    result.push(single ? minimum : minimum.withEndpoint(name));
-                    result.push(single ? maximum : maximum.withEndpoint(name));
-                });
+                const light = e.light().withBrightness();
+                if (colorTemp) light.withColorTemp(range).withColorTempStartup(range);
+                if (xy) light.withColor(["xy"]);
+                result.push(...utils.exposeEndpoints(light, names));
+
+                const effect = e.effect();
+                if (xy) effect.values.push("colorloop", "stop_colorloop");
+                result.push(...utils.exposeEndpoints(effect, names));
+
+                result.push(...utils.exposeEndpoints(e.power_on_behavior(["off", "on", "toggle", "previous"]), names));
+
+                // Every light endpoint carries its own ballast configuration.
+                const minimum = e
+                    .numeric("ballast_minimum_level", ea.ALL)
+                    .withValueMin(1)
+                    .withValueMax(254)
+                    .withDescription("Specifies the minimum light output of the ballast");
+                const maximum = e
+                    .numeric("ballast_maximum_level", ea.ALL)
+                    .withValueMin(1)
+                    .withValueMax(254)
+                    .withDescription("Specifies the maximum light output of the ballast");
+                result.push(...utils.exposeEndpoints(minimum, names));
+                result.push(...utils.exposeEndpoints(maximum, names));
             }
 
             return result;
@@ -1321,7 +1307,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
         configure: async (device, coordinatorEndpoint, definition) => {
             // Reads the colour attributes the exposes are derived from.
-            await ubisysLd6LightConfigure(device, coordinatorEndpoint, definition);
+            await ubisysLd6Light.configure[0](device, coordinatorEndpoint, definition);
 
             for (const id of ubisysLd6LightEndpoints(device)) {
                 const endpoint = device.getEndpoint(id);
