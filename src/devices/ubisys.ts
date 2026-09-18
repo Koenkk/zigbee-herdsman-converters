@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, Tz} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
 import {
     type UbisysClosuresWindowCovering,
     type UbisysDeviceSetup,
@@ -38,6 +38,95 @@ const manufacturerOptions = {
 // Use the largest payload the previous per-template chunking already produced (`dimmer_single`,
 // four records) so that no request is larger than one that already worked.
 const MAX_STRUCTURED_WRITE_BYTES = 56;
+
+// LD6 output configuration (manuSpecificUbisysDeviceSetup attributes 0x0010 / 0x0011).
+//
+// OutputConfigurations is an array of six raw entries, one per physical output channel,
+// six bytes each, little-endian (LD6 technical reference, section 6.13.3.4):
+//
+//   byte 0   high nibble: application endpoint, low nibble: output function
+//   byte 1   relative luminous flux; 0x00 and 0xFF mark an unconfigured channel
+//   byte 2-3 CIE 1931 x, uint16
+//   byte 4-5 CIE 1931 y, uint16
+//
+// Decoded into {endpoint, function, flux, x, y, used} so that callers work in colour
+// coordinates rather than bytes. Raw six-byte arrays are still accepted on write, which
+// is how the reference configurations in the manual are expressed.
+const ubisysLd6OutputFunctions = ["mono", "cool_white", "warm_white", "red", "green", "blue", "amber", "turquoise", "violet", "free"];
+
+function ubisysLd6DecodeOutputChannel(bytes: number[]): KeyValue | undefined {
+    if (bytes.length < 6) return undefined;
+    const endpointAndFunction = bytes[0];
+    const flux = bytes[1];
+    const x = bytes[2] | (bytes[3] << 8);
+    const y = bytes[4] | (bytes[5] << 8);
+    const fn = endpointAndFunction & 0x0f;
+    const endpoint = endpointAndFunction >> 4;
+    return {
+        endpoint,
+        function: ubisysLd6OutputFunctions[fn] ?? fn,
+        flux,
+        // The primary coordinates only apply to full-colour and tunable-white channels;
+        // a monochrome or unassigned channel leaves them at 0xFFFF.
+        x: x === 0xffff ? null : Math.round((x / 65536) * 10000) / 10000,
+        y: y === 0xffff ? null : Math.round((y / 65536) * 10000) / 10000,
+        // An unassigned channel has an endpoint of 0; the valid endpoints are 1 and 5..9.
+        used: endpoint !== 0,
+    };
+}
+
+function ubisysLd6EncodeOutputChannel(channel: KeyValueAny | number[]): number[] {
+    // Raw six-byte entries are passed through unchanged.
+    if (Array.isArray(channel)) return channel;
+    const fn = typeof channel.function === "number" ? channel.function : ubisysLd6OutputFunctions.indexOf(channel.function);
+    if (fn < 0) throw new Error(`ubisys: unknown LD6 output function '${channel.function}'`);
+    const endpoint = Number(channel.endpoint) & 0x0f;
+    const flux = channel.flux == null ? 0xff : Number(channel.flux);
+    // x/y are accepted either as CIE coordinates (0..1) or as the raw uint16.
+    const scale = (v: number) => (v == null ? 0xffff : v <= 1 ? Math.round(v * 65536) : Number(v));
+    const x = scale(channel.x);
+    const y = scale(channel.y);
+    return [(endpoint << 4) | fn, flux & 0xff, x & 0xff, (x >> 8) & 0xff, y & 0xff, (y >> 8) & 0xff];
+}
+
+// The LD6 exposes one application endpoint per configured light, and which endpoints exist
+// depends on the output configuration written to the device. Any endpoint carrying both
+// On/Off and Level Control is a light.
+function ubisysLd6LightEndpoints(device: Zh.Device | DummyDevice): number[] {
+    if (utils.isDummyDevice(device)) return [];
+    return device.endpoints
+        .filter((ep) => ep.inputClusters.includes(Zcl.Clusters.genOnOff.ID) && ep.inputClusters.includes(Zcl.Clusters.genLevelCtrl.ID))
+        .map((ep) => ep.ID)
+        .sort((a, b) => a - b);
+}
+
+// colorCapabilities (0x400A) bitmap: 1 HueSat, 2 EnhancedHue, 4 ColourLoop, 8 XY, 16 ColourTemp.
+// This is what separates a tunable-white output from a full-colour one; the cluster list cannot,
+// since cluster 0x0300 is present for every colour mode.
+// The LD6 has three configurable inputs, fixed to endpoints 2, 3 and 4.
+const UBISYS_LD6_INPUTS = ["s1", "s2", "s3"];
+
+const UBISYS_LD6_CAPABILITY_XY = 8;
+const UBISYS_LD6_CAPABILITY_COLOR_TEMP = 16;
+
+function ubisysLd6ColorCapabilities(device: Zh.Device | DummyDevice, endpointId: number): number {
+    if (utils.isDummyDevice(device)) return 0;
+    const endpoint = device.endpoints.find((ep) => ep.ID === endpointId);
+    if (!endpoint?.inputClusters.includes(Zcl.Clusters.lightingColorCtrl.ID)) return 0;
+    const capabilities = endpoint.getClusterAttributeValue("lightingColorCtrl", "colorCapabilities");
+    // Not read yet: assume xy, which is the safer default for an LD6 whose channels are commonly
+    // three white LEDs driven through the RGB primaries.
+    return typeof capabilities === "number" ? capabilities : UBISYS_LD6_CAPABILITY_XY;
+}
+
+function ubisysLd6ColorTempRange(device: Zh.Device | DummyDevice, endpointId: number): [number, number] {
+    const fallback: [number, number] = [153, 500];
+    if (utils.isDummyDevice(device)) return fallback;
+    const endpoint = device.endpoints.find((ep) => ep.ID === endpointId);
+    const min = endpoint?.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMin");
+    const max = endpoint?.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMax");
+    return [typeof min === "number" && min > 0 ? min : fallback[0], typeof max === "number" && max > 0 ? max : fallback[1]];
+}
 
 const ubisys = {
     fz: {
@@ -107,6 +196,43 @@ const ubisys = {
                     result.input_actions = (msg.data.inputActions as unknown[]).map((el) => Object.values(el));
                 }
                 return {configure_device_setup: result};
+            },
+        } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup, ["attributeReport", "readResponse"]>,
+        // Every LD6 light endpoint has its own ballast configuration, but
+        // fz.lighting_ballast_configuration reports unsuffixed keys, so on a multi-output unit each
+        // endpoint would overwrite the previous one. Postfix with the endpoint name instead.
+        ld6_ballast_configuration: {
+            cluster: "lightingBallastCfg",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                if (msg.data.minLevel !== undefined) {
+                    result[utils.postfixWithEndpointName("ballast_minimum_level", msg, model, meta)] = msg.data.minLevel;
+                }
+                if (msg.data.maxLevel !== undefined) {
+                    result[utils.postfixWithEndpointName("ballast_maximum_level", msg, model, meta)] = msg.data.maxLevel;
+                }
+                return result;
+            },
+        } satisfies Fz.Converter<"lightingBallastCfg", undefined, ["attributeReport", "readResponse"]>,
+        output_configuration: {
+            cluster: "manuSpecificUbisysDeviceSetup",
+            type: ["attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const result: KeyValue = {};
+                if (msg.data.outputConfigurations != null) {
+                    result.output_configuration = {
+                        channels: (msg.data.outputConfigurations as number[][])
+                            .map((raw) => ubisysLd6DecodeOutputChannel(Array.from(raw)))
+                            .filter((channel) => channel !== undefined),
+                    };
+                }
+                if (msg.data.outputEndpoints != null) {
+                    // Bitmap16: one bit per application endpoint that the output configuration may assign.
+                    const bitmap = msg.data.outputEndpoints as number;
+                    result.output_endpoints = [...Array(16).keys()].filter((bit) => (bitmap & (1 << bit)) !== 0);
+                }
+                return result;
             },
         } satisfies Fz.Converter<"manuSpecificUbisysDeviceSetup", UbisysDeviceSetup, ["attributeReport", "readResponse"]>,
         operational_status: {
@@ -683,6 +809,56 @@ const ubisys = {
                 );
             },
         } satisfies Tz.Converter,
+        output_configuration: {
+            key: ["output_configuration"],
+            convertSet: async (entity, key, value: KeyValueAny, meta) => {
+                const devMgmtEp = meta.device.getEndpoint(232);
+                const customCluster = meta.device.customClusters["manuSpecificUbisysDeviceSetup"];
+                assert(customCluster);
+                const attribute = customCluster.attributes.outputConfigurations;
+                assert(attribute);
+
+                const channels = value.channels;
+                if (!Array.isArray(channels) || channels.length !== 6) {
+                    throw new Error("ubisys: LD6 output_configuration requires a 'channels' array of exactly six entries");
+                }
+
+                // The device rejects a plain write of this array-of-raw attribute; it expects the
+                // same structured write that the input attributes use.
+                await devMgmtEp.writeStructured(
+                    "manuSpecificUbisysDeviceSetup",
+                    [
+                        {
+                            attrId: attribute.ID,
+                            selector: {},
+                            dataType: Zcl.DataType.ARRAY,
+                            elementData: {
+                                elementType: Zcl.DataType.OCTET_STR,
+                                elements: channels.map(ubisysLd6EncodeOutputChannel),
+                            },
+                        },
+                    ],
+                    manufacturerOptions.ubisysNull,
+                );
+
+                // The device re-enumerates its application endpoints after this write, so a
+                // re-interview is required before the new light endpoints appear.
+                logger.info(
+                    `ubisys: LD6 output configuration written, re-interview '${meta.options.friendly_name}' to pick up the new endpoints`,
+                    NS,
+                );
+            },
+            convertGet: async (entity, key, meta) => {
+                const devMgmtEp = meta.device.getEndpoint(232);
+                const customCluster = meta.device.customClusters["manuSpecificUbisysDeviceSetup"];
+                assert(customCluster);
+                await devMgmtEp.read(
+                    "manuSpecificUbisysDeviceSetup",
+                    [customCluster.attributes.outputConfigurations.ID, customCluster.attributes.outputEndpoints.ID],
+                    manufacturerOptions.ubisysNull,
+                );
+            },
+        } satisfies Tz.Converter,
     },
 };
 
@@ -1031,6 +1207,116 @@ export const definitions: DefinitionWithExtend[] = [
                 const ep2 = event.data.device.getEndpoint(2);
                 ep2.addBinding("genOnOff", ep1);
                 ep2.addBinding("genLevelCtrl", ep1);
+            }
+        },
+        ota: true,
+    },
+    {
+        zigbeeModel: ["LD6"],
+        model: "LD6",
+        vendor: "Ubisys",
+        description: "LED controller LD6",
+        fromZigbee: [
+            fz.on_off,
+            fz.brightness,
+            fz.color_colortemp,
+            ubisys.fz.ld6_ballast_configuration,
+            ubisys.fz.configure_device_setup,
+            ubisys.fz.output_configuration,
+        ],
+        toZigbee: [
+            tz.light_onoff_brightness,
+            tz.light_color_colortemp,
+            tz.ballast_config,
+            tz.light_brightness_move,
+            tz.light_brightness_step,
+            tz.ignore_transition,
+            tz.ignore_rate,
+            ubisys.tz.configure_device_setup,
+            ubisys.tz.output_configuration,
+        ],
+        // The LD6 drives one to six output channels. How many lights it presents, and whether each
+        // is monochrome, tunable white or full colour, is decided by the output configuration
+        // written to the device, so both the endpoints and the exposes are derived from it.
+        exposes: (device, options) => {
+            const lights = ubisysLd6LightEndpoints(device);
+            const result: Expose[] = [];
+
+            // Called with a dummy device when generating documentation.
+            if (lights.length === 0) {
+                result.push(e.light_brightness());
+            } else {
+                // A unit wired as a single light is exposed without an endpoint suffix, like any
+                // other single-light device; only units presenting several lights get suffixes.
+                const single = lights.length === 1;
+                lights.forEach((id, index) => {
+                    const name = `l${index + 1}`;
+                    const capabilities = ubisysLd6ColorCapabilities(device, id);
+                    const xy = (capabilities & UBISYS_LD6_CAPABILITY_XY) !== 0;
+                    const colorTemp = (capabilities & UBISYS_LD6_CAPABILITY_COLOR_TEMP) !== 0;
+                    let light: exposes.Light;
+                    if (xy && colorTemp) {
+                        light = e.light_brightness_colortemp_colorxy(ubisysLd6ColorTempRange(device, id));
+                    } else if (colorTemp) {
+                        light = e.light_brightness_colortemp(ubisysLd6ColorTempRange(device, id));
+                    } else if (xy) {
+                        light = e.light_brightness_colorxy();
+                    } else {
+                        light = e.light_brightness();
+                    }
+                    result.push(single ? light : light.withEndpoint(name));
+
+                    // Every light endpoint carries its own ballast configuration.
+                    const minimum = e
+                        .numeric("ballast_minimum_level", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(254)
+                        .withDescription("Specifies the minimum light output of the ballast");
+                    const maximum = e
+                        .numeric("ballast_maximum_level", ea.ALL)
+                        .withValueMin(1)
+                        .withValueMax(254)
+                        .withDescription("Specifies the maximum light output of the ballast");
+                    result.push(single ? minimum : minimum.withEndpoint(name));
+                    result.push(single ? maximum : maximum.withEndpoint(name));
+                });
+            }
+
+            return result;
+        },
+        extend: [
+            ubisysModernExtend.addCustomClusterManuSpecificUbisysDeviceSetup(),
+            // Three configurable inputs on endpoints 2..4, per the technical reference.
+            m.commandsOnOff({endpointNames: UBISYS_LD6_INPUTS}),
+            m.commandsLevelCtrl({endpointNames: UBISYS_LD6_INPUTS}),
+            m.commandsScenes({endpointNames: UBISYS_LD6_INPUTS}),
+            m.identify(),
+        ],
+        endpoint: (device) => {
+            const map: {[s: string]: number} = {};
+            // A unit presenting a single light gets no named light endpoint, so its state is
+            // published unsuffixed like any other single-light device. Naming it would suffix every
+            // property, since multiEndpointSkip cannot be used here: multi-output units need them.
+            const lights = ubisysLd6LightEndpoints(device);
+            if (lights.length > 1) {
+                lights.forEach((id, index) => {
+                    map[`l${index + 1}`] = id;
+                });
+            }
+            UBISYS_LD6_INPUTS.forEach((name, index) => {
+                map[name] = index + 2;
+            });
+            return map;
+        },
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            for (const id of ubisysLd6LightEndpoints(device)) {
+                const endpoint = device.getEndpoint(id);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+                await reporting.onOff(endpoint);
+                await reporting.brightness(endpoint);
+                // Populate the ballast exposes; these attributes are read, not reported.
+                await endpoint.read("lightingBallastCfg", ["minLevel", "maxLevel"]);
             }
         },
         ota: true,
