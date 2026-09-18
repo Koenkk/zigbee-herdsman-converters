@@ -1225,7 +1225,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["LD6"],
         model: "LD6",
         vendor: "Ubisys",
-        description: "LED controller LD6",
+        description: "LED controller",
         fromZigbee: [
             fz.on_off,
             fz.brightness,
