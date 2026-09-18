@@ -100,33 +100,43 @@ function ubisysLd6LightEndpoints(device: Zh.Device | DummyDevice): number[] {
         .sort((a, b) => a - b);
 }
 
-// colorCapabilities (0x400A) bitmap: 1 HueSat, 2 EnhancedHue, 4 ColourLoop, 8 XY, 16 ColourTemp.
-// This is what separates a tunable-white output from a full-colour one; the cluster list cannot,
-// since cluster 0x0300 is present for every colour mode.
 // The LD6 has three configurable inputs, fixed to endpoints 2, 3 and 4.
 const UBISYS_LD6_INPUTS = ["s1", "s2", "s3"];
 
+// colorCapabilities (0x400A) bitmap: 1 HueSat, 2 EnhancedHue, 4 ColourLoop, 8 XY, 16 ColourTemp.
+// This is what separates a tunable-white output from a full-colour one; the cluster list cannot,
+// since cluster 0x0300 is present for every colour mode.
 const UBISYS_LD6_CAPABILITY_XY = 8;
 const UBISYS_LD6_CAPABILITY_COLOR_TEMP = 16;
+
+// Used until configure has read colorTempPhysicalMin/Max from the device.
+const UBISYS_LD6_COLOR_TEMP_FALLBACK: [number, number] = [153, 500];
 
 function ubisysLd6ColorCapabilities(device: Zh.Device | DummyDevice, endpointId: number): number {
     if (utils.isDummyDevice(device)) return 0;
     const endpoint = device.endpoints.find((ep) => ep.ID === endpointId);
     if (!endpoint?.inputClusters.includes(Zcl.Clusters.lightingColorCtrl.ID)) return 0;
     const capabilities = endpoint.getClusterAttributeValue("lightingColorCtrl", "colorCapabilities");
-    // Not read yet: assume xy, which is the safer default for an LD6 whose channels are commonly
-    // three white LEDs driven through the RGB primaries.
-    return typeof capabilities === "number" ? capabilities : UBISYS_LD6_CAPABILITY_XY;
+    // Until configure has read the attribute, assume colour temperature: per the technical
+    // reference a colour-capable output is either device type 0x010C (colour temperature) or
+    // 0x010D (extended colour), and both support it, while xy is specific to 0x010D.
+    return typeof capabilities === "number" ? capabilities : UBISYS_LD6_CAPABILITY_COLOR_TEMP;
 }
 
 function ubisysLd6ColorTempRange(device: Zh.Device | DummyDevice, endpointId: number): [number, number] {
-    const fallback: [number, number] = [153, 500];
+    const fallback = UBISYS_LD6_COLOR_TEMP_FALLBACK;
     if (utils.isDummyDevice(device)) return fallback;
     const endpoint = device.endpoints.find((ep) => ep.ID === endpointId);
     const min = endpoint?.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMin");
     const max = endpoint?.getClusterAttributeValue("lightingColorCtrl", "colorTempPhysicalMax");
     return [typeof min === "number" && min > 0 ? min : fallback[0], typeof max === "number" && max > 0 ? max : fallback[1]];
 }
+
+// The light endpoints depend on the output configuration, so the exposes are built per device
+// rather than with m.light(). Its configure is still used: it reads colorCapabilities and
+// colorTempPhysicalMin/Max on every colour-capable endpoint, which the exposes are derived from.
+// The range passed here is a placeholder; the device's own values are read and take precedence.
+const ubisysLd6LightConfigure = m.light({color: true, colorTemp: {range: UBISYS_LD6_COLOR_TEMP_FALLBACK}}).configure[0];
 
 const ubisys = {
     fz: {
@@ -1309,7 +1319,10 @@ export const definitions: DefinitionWithExtend[] = [
             return map;
         },
         meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device, coordinatorEndpoint, definition) => {
+            // Reads the colour attributes the exposes are derived from.
+            await ubisysLd6LightConfigure(device, coordinatorEndpoint, definition);
+
             for (const id of ubisysLd6LightEndpoints(device)) {
                 const endpoint = device.getEndpoint(id);
                 await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
