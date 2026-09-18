@@ -4502,7 +4502,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["CK-BL702-AL-01(7008_Z102LG01-1)"],
+        zigbeeModel: ["CK-BL702-AL-01(7008_Z102LG01-1)", "CK-BL702-AL-02(7008)-1"],
         model: "CK-BL702-AL-01(7008_Z102LG01-1)",
         vendor: "Tuya",
         description: "Zigbee LED bulb",
