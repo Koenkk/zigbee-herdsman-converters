@@ -1075,3 +1075,26 @@ describe("Sonoff SWV-ZFE", () => {
         });
     });
 });
+
+describe("Sonoff water valve Home Assistant discovery", () => {
+    it.each(["SWV-ZFE", "SWV-ZFU", "SWV-ZF2", "SWV-ZNE", "SWV-ZNU"])("maps %s with metadata and the existing callback", async (modelID) => {
+        const device = mockDevice({modelID, endpoints: [{ID: 1}, {ID: 2}]});
+        const definition = await findByDevice(device);
+        const allExposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        const switches = allExposes.filter((expose) => expose.type === "switch");
+        expect(switches).toHaveLength(modelID === "SWV-ZF2" ? 2 : 1);
+        for (const expose of switches) expect(expose.homeassistant?.type).toBe("valve");
+        const payload = {default_entity_id: "valve.garden_switch", payload_off: "OFF", payload_on: "ON"};
+        definition.meta.overrideHaDiscoveryPayload?.(payload);
+        expect(payload).toEqual({
+            default_entity_id: "valve.garden_switch",
+            payload_close: "OFF",
+            payload_open: "ON",
+            state_closed: "OFF",
+            state_open: "ON",
+        });
+        const other = {default_entity_id: "switch.garden_child_lock", payload_off: "UNLOCK", payload_on: "LOCK"};
+        definition.meta.overrideHaDiscoveryPayload?.(other);
+        expect(other).toEqual({default_entity_id: "switch.garden_child_lock", payload_off: "UNLOCK", payload_on: "LOCK"});
+    });
+});
