@@ -54,6 +54,17 @@ const disableDefaultResponseOptions = {disableDefaultResponse: true};
 const e = exposes.presets;
 const ea = exposes.access;
 
+// Keep discovery customization in the existing converter callback, including endpoint valves.
+const waterValveHomeAssistant: DefinitionWithExtend["meta"] = {
+    overrideHaDiscoveryPayload: (payload) => {
+        if (!payload.default_entity_id?.startsWith("valve.")) return;
+        payload.payload_close = payload.state_closed = payload.payload_off;
+        payload.payload_open = payload.state_open = payload.payload_on;
+        delete payload.payload_off;
+        delete payload.payload_on;
+    },
+};
+
 interface SonoffBasicZB1GSP {
     attributes: {
         scenePowerReportValue: number;
@@ -11692,6 +11703,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SWV-ZFE", "SWV-ZFU"],
         model: "SWV-ZFE",
+        meta: waterValveHomeAssistant,
         vendor: "SONOFF",
         whiteLabel: [{model: "SWV-ZFU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZFU"}]}],
         description: "Zigbee smart water valve",
@@ -11741,8 +11753,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                // homeassistant: {type: "valve"},
-                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
+                homeassistant: {type: "valve"},
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -11830,6 +11841,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SWV-ZF2"],
         model: "SWV-ZF2",
+        meta: waterValveHomeAssistant,
         vendor: "SONOFF",
         description: "Zigbee dual-channel smart water valve",
         extend: [
@@ -11886,8 +11898,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                // homeassistant: {type: "valve"},
-                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
+                homeassistant: {type: "valve"},
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
@@ -11985,6 +11996,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["SWV-ZNE", "SWV-ZNU"],
         model: "SWV-ZNE",
+        meta: waterValveHomeAssistant,
         vendor: "SONOFF",
         whiteLabel: [{model: "SWV-ZNU", vendor: "SONOFF", fingerprint: [{modelID: "SWV-ZNU"}]}],
         description: "Zigbee smart water valve",
@@ -12029,8 +12041,7 @@ export const definitions: DefinitionWithExtend[] = [
                 powerOnBehavior: false,
                 skipDuplicateTransaction: true,
                 configureReporting: false,
-                // homeassistant: {type: "valve"},
-                // needs https://github.com/Koenkk/zigbee2mqtt/pull/32367
+                homeassistant: {type: "valve"},
             }),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             sonoffExtend.swvznGenTimeCompatResponse(),
