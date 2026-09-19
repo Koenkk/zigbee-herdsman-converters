@@ -644,7 +644,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE284_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
         model: "SFL02-Z-2",
         vendor: "Moes",
         description: "Star feather smart switch 2 gangs",
