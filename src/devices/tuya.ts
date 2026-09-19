@@ -2262,9 +2262,9 @@ const ts0601Wsek35umChildrenLockConverter = {
 };
 
 // for https://www.zigbee2mqtt.io/devices/TO-Q-SYS-JZT.html
-const lcdBrightnessConverter = {
-    from: (value) => value * 20,
-    to: (value) => Math.round(value / 20),
+const _TZE284_6ocnqlhnlcdBrightnessConverter = {
+    from: (value: number) => value * 20,
+    to: (value: number) => Math.round(value / 20),
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -21670,7 +21670,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [119, "over_power_threshold", tuya.valueConverter.raw],
                 [131, "temperature", tuya.valueConverter.divideBy10],
 
-                [140, "lcd_brightness", lcdBrightnessConverter],
+                [140, "lcd_brightness", _TZE284_6ocnqlhnlcdBrightnessConverter],
 
                 [141, "lcd_backlight_off", tuya.valueConverter.onOff],
 
