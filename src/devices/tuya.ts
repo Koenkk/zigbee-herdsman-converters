@@ -21552,31 +21552,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(1000)
                 .withValueMax(26000),
 
-            e.binary('current_recloser', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Current recloser'),
-        
-            e.binary('power_recloser', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Power recloser'),
-        
-            e.binary('voltage_recloser', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('Voltage recloser'),
-        
-            e.binary('lcd_backlight_off', ea.STATE_SET, 'ON', 'OFF')
-                .withDescription('LCD Backlight OFF'),
-        
-            e.numeric('lcd_brightness', ea.STATE_SET)
-                .withUnit('%')
+            e.binary("current_recloser", ea.STATE_SET, "ON", "OFF").withDescription("Current recloser"),
+
+            e.binary("power_recloser", ea.STATE_SET, "ON", "OFF").withDescription("Power recloser"),
+
+            e.binary("voltage_recloser", ea.STATE_SET, "ON", "OFF").withDescription("Voltage recloser"),
+
+            e.binary("lcd_backlight_off", ea.STATE_SET, "ON", "OFF").withDescription("LCD Backlight OFF"),
+
+            e
+                .numeric("lcd_brightness", ea.STATE_SET)
+                .withUnit("%")
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(20)
-                .withDescription('LCD brightness'),
-            
-            e.enum('lcd_rotation', ea.STATE_SET, [
-                'FWD',
-                'REV',
-                ])
-                .withDescription('LCD Rotation'),
-            ],
+                .withDescription("LCD brightness"),
+
+            e.enum("lcd_rotation", ea.STATE_SET, ["FWD", "REV"]).withDescription("LCD Rotation"),
+        ],
 
         meta: {
             tuyaDatapoints: [
@@ -21677,25 +21670,23 @@ export const definitions: DefinitionWithExtend[] = [
                 [119, "over_power_threshold", tuya.valueConverter.raw],
                 [131, "temperature", tuya.valueConverter.divideBy10],
 
-                [140, 'lcd_brightness', lcdBrightnessConverter],
-                
-                [141, 'lcd_backlight_off', tuya.valueConverter.onOff],
-                
-                
+                [140, "lcd_brightness", lcdBrightnessConverter],
+
+                [141, "lcd_backlight_off", tuya.valueConverter.onOff],
+
                 [
-                    143, 
-                    'lcd_rotation',
+                    143,
+                    "lcd_rotation",
                     tuya.valueConverterBasic.lookup({
                         FWD: tuya.enum(0),
                         RWD: tuya.enum(1),
                     }),
                 ],
-                
-                [144, 'current_recloser', tuya.valueConverter.onOff],
-                [145, 'power_recloser', tuya.valueConverter.onOff],
-                [146, 'voltage_recloser', tuya.valueConverter.onOff],
-                
-                ],
+
+                [144, "current_recloser", tuya.valueConverter.onOff],
+                [145, "power_recloser", tuya.valueConverter.onOff],
+                [146, "voltage_recloser", tuya.valueConverter.onOff],
+            ],
         },
     },
     {
