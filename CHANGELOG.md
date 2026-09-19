@@ -1,5 +1,18 @@
 # Changelog
 
+## [26.112.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.111.0...v26.112.0) (2026-09-19)
+
+
+### Features
+
+* **add:** TS0601_wsek35um ([#13227](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13227)) ([2d5e292](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2d5e29229f7a48d849e965931836260d46553172))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_uenof8jd` as Moes SFL02-Z-2 ([#13230](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13230)) ([dd87b38](https://github.com/Koenkk/zigbee-herdsman-converters/commit/dd87b38b45ff2ac30b51f9ffc5ec3768556753cc))
+* Schneider Electric: declare hvacThermostat 0xE012 (open window detection status) ([#13229](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13229)) ([764f7d1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/764f7d10bd2c2b2009f85938b6ae07fd92946d3b))
+
 ## [26.111.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.110.0...v26.111.0) (2026-09-18)
 
 
