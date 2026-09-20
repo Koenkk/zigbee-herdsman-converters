@@ -1670,7 +1670,24 @@ export const valueConverter = {
     },
     coverAction: valueConverterBasic.lookup({OPEN: new Enum(0), STOP: new Enum(1), CLOSE: new Enum(2), CONTINUE: new Enum(3)}),
     motorState: valueConverterBasic.lookup({opening: new Enum(0), closing: new Enum(1), stopped: new Enum(2)}),
-    tubularMotorDirection: valueConverterBasic.lookup({normal: new Enum(0), reversed: new Enum(1)}),
+    tubularMotorDirection: (() => {
+        const converter = valueConverterBasic.lookup({
+            normal: new Enum(0),
+            reversed: new Enum(1),
+        });
+
+        return {
+            from: (v: number | string, meta: Fz.Meta, options: KeyValue) => {
+                if (typeof v === "number") {
+                    return converter.from(v, meta, options);
+                }
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/13191
+                // occasionally reports string instead of enum??
+                return v === "back" ? "reversed" : "normal";
+            },
+            to: converter.to,
+        };
+    })(),
     motorDirectionSide: valueConverterBasic.lookup({left: new Enum(0), right: new Enum(1)}),
     coverType: valueConverterBasic.lookup({
         roman_pole: new Enum(0),
@@ -1711,19 +1728,32 @@ export const valueConverter = {
         },
     },
     phaseVariant2WithPhase: (phase: string) => {
+        // Payload is 8 bytes: voltage (2), current (3), power (3), same layout as
+        // phaseVariant3/phaseVariant4. Reading only the low 2 bytes of current and
+        // power made the current wrap above 65.536 A.
+        //
+        // Negative power (e.g. export or a reversed clamp) is not two's complement: the
+        // device reports it as NEGATIVE_POWER_OFFSET - |power|. This is the 24 bit
+        // truncation of the 0x1999999a offset seen on the 32 bit total power in #18603,
+        // and 0x999a (used before) is its low 16 bits.
+        // Captured on _TZE200_nslr42tt: [9,38,0,0,146,153,153,134] -> 0x999986 -> -20 W
+        // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2267514694
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32995
+        const NEGATIVE_POWER_OFFSET = 0x99999a;
+        // Negative readings span 0x800000..0x99999a (down to about -1.67 MW), so any
+        // value with the top bit set is negative; anything below is a real positive reading.
+        const NEGATIVE_POWER_THRESHOLD = 0x800000;
         return {
             from: (v: string) => {
-                // Support negative power readings
-                // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
                 const buf = Buffer.from(v, "base64");
-                let power = buf[7] | (buf[6] << 8);
-                if (power > 0x7fff) {
-                    power = (0x999a - power) * -1;
+                let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
+                if (power >= NEGATIVE_POWER_THRESHOLD) {
+                    power -= NEGATIVE_POWER_OFFSET;
                 }
 
                 return {
                     [`voltage_${phase}`]: (buf[1] | (buf[0] << 8)) / 10,
-                    [`current_${phase}`]: (buf[4] | (buf[3] << 8)) / 1000,
+                    [`current_${phase}`]: (buf[4] | (buf[3] << 8) | (buf[2] << 16)) / 1000,
                     [`power_${phase}`]: power,
                 };
             },
