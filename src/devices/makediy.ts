@@ -132,15 +132,28 @@ const gateController = (): ModernExtend => ({
     exposes: [
         (device) => [
             ...(device && (!("getEndpoint" in device) || device.getEndpoint(5))
-                ? [e.enum("walk", ea.SET, ["PRESS"]).withDescription("Pedestrian pulse on GPIO11. Commands during an active pulse are ignored.")]
+                ? [
+                      e
+                          .enum("movement", ea.SET, ["PRESS"])
+                          .withProperty("walk")
+                          .withHomeAssistant({icon: "mdi:walk"})
+                          .withLabel("Pedestrian gate")
+                          .withDescription("Pedestrian pulse on GPIO11. Commands during an active pulse are ignored."),
+                  ]
                 : []),
             e
-                .enum("pulse", ea.SET, ["PRESS"])
+                .enum("door", ea.SET, ["PRESS"])
+                .withProperty("pulse")
+                .withHomeAssistant({icon: "mdi:gate"})
+                .withLabel("Full gate")
                 .withDescription(
                     "Main gate pulse on GPIO10. Repeats during an active pulse are ignored; firmware 1.7.0-rc2 removes the post-pulse cooldown.",
                 ),
             e
-                .numeric("pulse_duration", ea.ALL)
+                .numeric("duration", ea.ALL)
+                .withProperty("pulse_duration")
+                .withHomeAssistant({icon: "mdi:timer-outline"})
+                .withLabel("Pulse duration")
                 .withUnit("ms")
                 .withValueMin(0)
                 .withValueMax(1000)
@@ -148,12 +161,18 @@ const gateController = (): ModernExtend => ({
                 .withCategory("config")
                 .withDescription("Relay pulse duration, saved on device. Zero disables pulses. Changing this does not activate the relay"),
             e
-                .enum("gate_state", ea.STATE_GET, ["open", "closed", "intermediate", "sensor_error", "unknown"])
+                .enum("door_state", ea.STATE_GET, ["open", "closed", "intermediate", "sensor_error", "unknown"])
+                .withProperty("gate_state")
+                .withHomeAssistant({icon: "mdi:gate"})
+                .withLabel("Gate state")
                 .withDescription(
                     "One sensor: open means not at the closed limit. Two sensors: intermediate means neither limit is active; sensor_error means both are active.",
                 ),
             e
-                .enum("sensor_mode", ea.ALL, ["one", "two"])
+                .enum("mode", ea.ALL, ["one", "two"])
+                .withProperty("sensor_mode")
+                .withHomeAssistant({icon: "mdi:counter"})
+                .withLabel("Sensor count")
                 .withCategory("config")
                 .withDescription(
                     "Number of limit sensors. One uses only the closed limit; two uses both limits. Stored in Zigbee2MQTT, default one.",
