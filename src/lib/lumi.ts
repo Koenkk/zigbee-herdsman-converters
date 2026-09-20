@@ -3970,6 +3970,7 @@ export const lumiModernExtend = {
     w600WeeklySchedule: (): ModernExtend => createW600WeeklySchedule(),
     w600PresetTemperatureTable: (): ModernExtend => createW600PresetTemperatureTable(),
     w600ValvePosition: (): ModernExtend => createW600ValvePosition(),
+    w600StateVerify: (): ModernExtend => createW600StateVerify(),
     lumiBathroomHeaterT1: (): ModernExtend => createLumiBathroomHeaterT1(),
     lumiReadPositionOnReport: (type: "genAnalogOutput" | "genMultistateOutput" | "genBasic"): ModernExtend => {
         let converter: Fz.Converter<"genAnalogOutput" | "genMultistateOutput" | "genBasic", undefined, ["attributeReport"]>;
@@ -4444,6 +4445,10 @@ const W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR = Buffer.from([
 
 // Experimental sample policy, not a measured firmware timeout. No periodic resend.
 const W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS = 60_000;
+const W600_STATE_VERIFY_AFTER_MS = 10 * 60 * 1000;
+const W600_STATE_LAST_WRITTEN_STORE_KEY = "w600StateLastWritten";
+const W600_STATE_LAST_REPORTED_STORE_KEY = "w600StateLastReported";
+const W600_POSITION_LAST_RECEIVED_STORE_KEY = "w600_position_last_received";
 const W600_EXTERNAL_SENSOR_CHANNELS = {
     temperature: {slot: 0x14, marker: W600_SENSOR_BINDING_MARKER, descriptor: W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR},
     availability: {
@@ -4850,6 +4855,10 @@ function readW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number) 
 }
 
 function writeW600LumiAttribute(entity: Zh.Endpoint, attribute: string | number, value: unknown, type = Zcl.DataType.UINT8) {
+    if (getW600StateVerifyAttributes().includes(attribute as number)) {
+        markW600StateWritten(entity);
+    }
+
     return entity.write(
         W600_LUMI_CLUSTER,
         {
@@ -5802,6 +5811,7 @@ function createW600Thermostat(): ModernExtend {
         convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
             assertEndpoint(entity);
             const result = await tz.thermostat_occupied_heating_setpoint.convertSet(entity, key, value, meta);
+            markW600StateWritten(entity);
             const resultState = result && "state" in result ? result.state : undefined;
             const shouldUseHold = getRequestedW600ScheduleEnabled(meta) !== false;
 
@@ -6045,7 +6055,7 @@ function createW600Thermostat(): ModernExtend {
     return extend;
 }
 
-function createW600ValvePosition(): ModernExtend {
+function createW600ValvePositionNumeric(): ModernExtend {
     return modernExtend.numeric<"manuSpecificLumi", ManuSpecificLumi>({
         name: "position",
         valueMin: 0,
@@ -6060,6 +6070,111 @@ function createW600ValvePosition(): ModernExtend {
         label: "Valve position",
         zigbeeCommandOptions: {manufacturerCode},
     });
+}
+
+function createW600ValvePosition(): ModernExtend {
+    const positionMaxAgeMs = 60 * 60 * 1000;
+    const storeKey = W600_POSITION_LAST_RECEIVED_STORE_KEY;
+    const positionReceived: Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]> = {
+        cluster: "manuSpecificLumi",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            if (msg.data[W600_ATTR_VALVE_POSITION] !== undefined) globalStore.putValue(msg.device, storeKey, Date.now());
+        },
+    };
+    const numeric = createW600ValvePositionNumeric();
+    return {
+        ...numeric,
+        ...modernExtend.poll({
+            key: "position",
+            defaultIntervalSeconds: 60 * 60,
+            poll: (device) => {
+                if (Date.now() - (globalStore.getValue(device, storeKey, 0) as number) < positionMaxAgeMs) return;
+                device
+                    .getEndpoint(1)
+                    .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [W600_ATTR_VALVE_POSITION], {
+                        manufacturerCode,
+                        sendPolicy: "queue",
+                    })
+                    .catch((error) => logger.debug(`Failed to read valve position of '${device.ieeeAddr}' (${error})`, W600_NS));
+            },
+        }),
+        fromZigbee: [...(numeric.fromZigbee ?? []), positionReceived],
+    };
+}
+
+function getW600StateVerifyAttributes(): number[] {
+    return [W600_ATTR_SYSTEM_MODE, W600_ATTR_SCHEDULE, W600_ATTR_PRESET];
+}
+
+function markW600StateWritten(entity: Zh.Endpoint) {
+    globalStore.putValue(entity.getDevice(), W600_STATE_LAST_WRITTEN_STORE_KEY, Date.now());
+}
+
+function createW600StateVerify(): ModernExtend {
+    const lumiReceived = {
+        cluster: W600_LUMI_CLUSTER,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            if (
+                msg.data[W600_ATTR_SYSTEM_MODE] !== undefined ||
+                msg.data[W600_ATTR_SCHEDULE] !== undefined ||
+                msg.data[W600_ATTR_PRESET] !== undefined
+            ) {
+                globalStore.putValue(msg.device, W600_STATE_LAST_REPORTED_STORE_KEY, Date.now());
+            }
+        },
+    } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>;
+    const setpointReceived = {
+        cluster: W600_THERMOSTAT_CLUSTER,
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            if (msg.data.occupiedHeatingSetpoint !== undefined) {
+                globalStore.putValue(msg.device, W600_STATE_LAST_REPORTED_STORE_KEY, Date.now());
+            }
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+    return {
+        ...modernExtend.poll({
+            key: "state_verify",
+            defaultIntervalSeconds: 60,
+            poll: (device) => {
+                const written = globalStore.getValue(device, W600_STATE_LAST_WRITTEN_STORE_KEY, 0) as number;
+
+                if (!written || Date.now() - written < W600_STATE_VERIFY_AFTER_MS) {
+                    return;
+                }
+
+                globalStore.putValue(device, W600_STATE_LAST_WRITTEN_STORE_KEY, 0);
+                const endpoint = device.getEndpoint(1);
+                const stateReported = globalStore.getValue(device, W600_STATE_LAST_REPORTED_STORE_KEY, 0) as number;
+                const positionReported = globalStore.getValue(device, W600_POSITION_LAST_RECEIVED_STORE_KEY, 0) as number;
+
+                if (positionReported < written) {
+                    endpoint
+                        .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [W600_ATTR_VALVE_POSITION], {
+                            manufacturerCode,
+                            sendPolicy: "queue",
+                        })
+                        .catch((error) => logger.debug(`Failed to read valve position of '${device.ieeeAddr}' (${error})`, W600_NS));
+                }
+
+                if (stateReported < written) {
+                    endpoint
+                        .read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", getW600StateVerifyAttributes() as never, {
+                            manufacturerCode,
+                            sendPolicy: "queue",
+                        })
+                        .catch((error) => logger.debug(`Failed to verify state of '${device.ieeeAddr}' (${error})`, W600_NS));
+                    endpoint
+                        .read(W600_THERMOSTAT_CLUSTER, ["occupiedHeatingSetpoint"], {sendPolicy: "queue"})
+                        .catch((error) => logger.debug(`Failed to verify setpoint of '${device.ieeeAddr}' (${error})`, W600_NS));
+                }
+            },
+        }),
+        fromZigbee: [lumiReceived, setpointReceived],
+    };
 }
 
 function createW600Schedule(): ModernExtend {

@@ -66,6 +66,7 @@ const {
     w600Heartbeat,
     w600PresetTemperatureTable,
     w600Schedule,
+    w600StateVerify,
     w600Thermostat,
     w600ValvePosition,
     w600WeeklySchedule,
@@ -5940,8 +5941,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.quirkCheckinInterval("1_HOUR"),
             m.customTimeResponse("2000_LOCAL"),
             w600Heartbeat(),
+            w600StateVerify(),
             w600Thermostat(),
             w600ExternalTempSensor(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
