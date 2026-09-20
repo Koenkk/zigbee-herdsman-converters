@@ -1426,10 +1426,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WSP406",
         vendor: "OWON",
         description: "Smart plug with energy metering",
-        meta: {publishDuplicateTransaction: true,},
+        meta: {publishDuplicateTransaction: true},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint, {min: 5, max: 3600, change: 1});
             await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: 10});
