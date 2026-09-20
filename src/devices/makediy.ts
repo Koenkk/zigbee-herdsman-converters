@@ -114,6 +114,15 @@ const gateController = (): ModernExtend => ({
             },
         },
         {
+            key: ["walk"],
+            convertSet: async (entity, key, value, meta) => {
+                if (value !== "PRESS") throw new Error("walk must be PRESS");
+                const endpoint = meta.device.getEndpoint(5);
+                if (!endpoint) throw new Error("WALK requires firmware 1.7.0 and a fresh interview");
+                await endpoint.command("genOnOff", "on", {}, {});
+            },
+        },
+        {
             key: ["closed", "open"],
             convertGet: async (entity, key, meta) => {
                 await meta.device.getEndpoint(key === "closed" ? 2 : 3).read("genBinaryInput", ["presentValue"]);
@@ -121,24 +130,35 @@ const gateController = (): ModernExtend => ({
         },
     ],
     exposes: [
-        e.enum("pulse", ea.SET, ["PRESS"]).withDescription("One pulse; repeats during pulse and 1 s cooldown ignored"),
-        e
-            .numeric("pulse_duration", ea.ALL)
-            .withUnit("ms")
-            .withValueMin(0)
-            .withValueMax(1000)
-            .withValueStep(1)
-            .withCategory("config")
-            .withDescription("Relay pulse duration, saved on device. Zero disables pulses. Changing this does not activate the relay"),
-        e
-            .enum("gate_state", ea.STATE_GET, ["open", "closed", "intermediate", "sensor_error", "unknown"])
-            .withDescription(
-                "One sensor: open means not at the closed limit. Two sensors: intermediate means neither limit is active; sensor_error means both are active.",
-            ),
-        e
-            .enum("sensor_mode", ea.ALL, ["one", "two"])
-            .withCategory("config")
-            .withDescription("Number of limit sensors. One uses only the closed limit; two uses both limits. Stored in Zigbee2MQTT, default one."),
+        (device) => [
+            ...(device && (!("getEndpoint" in device) || device.getEndpoint(5))
+                ? [e.enum("walk", ea.SET, ["PRESS"]).withDescription("Pedestrian pulse on GPIO11. Commands during an active pulse are ignored.")]
+                : []),
+            e
+                .enum("pulse", ea.SET, ["PRESS"])
+                .withDescription(
+                    "Main gate pulse on GPIO10. Repeats during an active pulse are ignored; firmware 1.7.0-rc2 removes the post-pulse cooldown.",
+                ),
+            e
+                .numeric("pulse_duration", ea.ALL)
+                .withUnit("ms")
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withValueStep(1)
+                .withCategory("config")
+                .withDescription("Relay pulse duration, saved on device. Zero disables pulses. Changing this does not activate the relay"),
+            e
+                .enum("gate_state", ea.STATE_GET, ["open", "closed", "intermediate", "sensor_error", "unknown"])
+                .withDescription(
+                    "One sensor: open means not at the closed limit. Two sensors: intermediate means neither limit is active; sensor_error means both are active.",
+                ),
+            e
+                .enum("sensor_mode", ea.ALL, ["one", "two"])
+                .withCategory("config")
+                .withDescription(
+                    "Number of limit sensors. One uses only the closed limit; two uses both limits. Stored in Zigbee2MQTT, default one.",
+                ),
+        ],
     ],
     configure: [
         async (device, coordinatorEndpoint) => {
@@ -181,16 +201,20 @@ const gateController = (): ModernExtend => ({
                 }
                 await endpoint.read("genBinaryInput", ["presentValue"]);
             }
-            try {
-                await device.getEndpoint(1).configureReporting("genOnOff", [
-                    {
-                        attribute: "onOff",
-                        minimumReportInterval: 0,
-                        maximumReportInterval: 65535,
-                    },
-                ]);
-            } catch (error) {
-                if (!String(error).includes("Status 'FAILURE'")) throw error;
+            for (const id of [1, 5]) {
+                const relayEndpoint = device.getEndpoint(id);
+                if (!relayEndpoint) continue;
+                try {
+                    await relayEndpoint.configureReporting("genOnOff", [
+                        {
+                            attribute: "onOff",
+                            minimumReportInterval: 0,
+                            maximumReportInterval: 65535,
+                        },
+                    ]);
+                } catch (error) {
+                    if (!String(error).includes("Status 'FAILURE'")) throw error;
+                }
             }
         },
     ],
@@ -201,7 +225,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-GATE-ZB1"],
         model: "MD-GATE-ZB1",
         vendor: "MakeDIY",
-        description: "Gate controller with configurable relay pulse and one or two limit contacts",
+        description: "Gate controller with main and optional pedestrian pulse and one or two limit contacts",
         extend: [gateController()],
     },
 ];
