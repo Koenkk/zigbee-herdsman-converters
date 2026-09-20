@@ -1426,7 +1426,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WSP406",
         vendor: "OWON",
         description: "Smart plug with energy metering",
-        meta: {publishDuplicateTransaction: true,},
+        meta: {publishDuplicateTransaction: true},
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({
