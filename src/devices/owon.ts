@@ -1421,4 +1421,25 @@ export const definitions: DefinitionWithExtend[] = [
             m.forcePowerSource({powerSource: "Battery"}),
         ],
     },
+    {
+        zigbeeModel: ["WSP406", "WSP406-UK", "WSP406-E"],
+        model: "WSP406",
+        vendor: "OWON",
+        description: "Smart plug with energy metering",
+        meta: {publishDuplicateTransaction: true,},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ['genOnOff', 'seMetering']);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 5, max: 3600, change: 1});
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 3600, change: 10});
+        },
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({
+                cluster: "metering",
+            }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+    },
 ];
