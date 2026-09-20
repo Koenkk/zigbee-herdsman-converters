@@ -673,6 +673,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ti.router",
         vendor: "Custom devices (DiY)",
         description: "Texas Instruments router",
+        whiteLabel: [{vendor: "SONOFF", model: "ZBDongle-P", description: "Sonoff Zigbee 3.0 USB Dongle Plus (CC2652P) with router firmware"}],
         fromZigbee: [fzLocal.tirouter],
         toZigbee: [tzLocal.tirouter],
         exposes: [
