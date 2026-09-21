@@ -684,8 +684,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("dBm")
                 .withDescription(
-                    "Transmit power, supported from firmware 20221102. The max for CC1352 is 20 dBm and 5 dBm for CC2652" +
-                        " (any higher value is converted to 5dBm)",
+                    "Transmit power, supported from firmware 20221102. The max is 20 dBm for CC1352P/CC2652P (default 9 dBm) and " +
+                        "5 dBm for CC2652R/CC2652RB (any higher value is converted to 5 dBm)",
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {
