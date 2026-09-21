@@ -343,12 +343,8 @@ const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {};
-            const voltage = Number(
-                msg.data.rmsVoltage ?? msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsVoltage"),
-            );
-            const rawCurrent = Number(
-                msg.data.rmsCurrent ?? msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsCurrent"),
-            );
+            const voltage = Number(msg.data.rmsVoltage ?? msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsVoltage"));
+            const rawCurrent = Number(msg.data.rmsCurrent ?? msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsCurrent"));
             const demand = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "pIHeatingDemand"));
 
             if (Number.isFinite(voltage) && voltage > 0) {
