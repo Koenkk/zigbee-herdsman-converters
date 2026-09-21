@@ -202,7 +202,7 @@ export const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {linkquality: msg.linkquality};
-            if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
+            if (msg.data["4919"] !== undefined) result.transmit_power = msg.data["4919"];
             return result;
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
