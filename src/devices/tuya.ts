@@ -16285,11 +16285,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_n8dljorx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_n8dljorx", "_TZE284_wpxq7vnb"]),
         model: "ZG-102Z",
         vendor: "Tuya",
         description: "Door sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        // _TZE284_wpxq7vnb does not push datapoint reports spontaneously after pairing, only after
+        // an explicit dataQuery. Harmless no-op for variants that already report on their own.
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [e.contact(), e.battery()],
         meta: {
             tuyaDatapoints: [
