@@ -559,6 +559,14 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
     }
 }
 
+export function attachInputCluster(device: Zh.Device, endpoint: Zh.Endpoint, clusterKey: string) {
+    const clusterId = Zcl.Utils.getCluster(clusterKey, device.manufacturerID, device.customClusters).ID;
+
+    if (!endpoint.inputClusters.includes(clusterId)) {
+        endpoint.inputClusters.push(clusterId);
+    }
+}
+
 export function attachOutputCluster(device: Zh.Device, endpoint: Zh.Endpoint, clusterKey: string) {
     const clusterId = Zcl.Utils.getCluster(clusterKey, device.manufacturerID, device.customClusters).ID;
 
