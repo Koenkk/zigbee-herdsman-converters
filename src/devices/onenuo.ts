@@ -7,7 +7,7 @@ const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kgaxpvxr", "_TZE284_n4ttsck2"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_kgaxpvxr", "_TZE284_n4ttsck2", "_TZE2841000000_n4ttsck2"]),
         model: "288WZ",
         vendor: "ONENUO",
         description: "Smoke detector",
