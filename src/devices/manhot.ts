@@ -8,7 +8,7 @@ const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7qc2wlqr", "_TZE2841000000_7qc2wlqr"]),
         model: "BL82-TYZ1",
         vendor: "Manhot",
         description: "Cover motor LPD",
@@ -31,7 +31,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ncc7uahd"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_ncc7uahd", "_TZE28C1000000_ncc7uahd"]),
         model: "MH03-1Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 1 Gang",
@@ -103,7 +103,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_dnhhp8ew"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_dnhhp8ew", "_TZE28C1000000_dnhhp8ew"]),
         model: "MH03-2Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 2 Gang",
@@ -201,7 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_59dz7ioi"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_59dz7ioi", "_TZE28C1000000_59dz7ioi"]),
         model: "MH03-3Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 3 Gang",
@@ -313,7 +313,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_esnu2jxv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_esnu2jxv", "_TZE28C1000000_esnu2jxv"]),
         model: "MH03-4Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 4 Gang",
@@ -433,7 +433,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zykra2yj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zykra2yj", "_TZE28C1000000_zykra2yj", "_TZE284_wkvfb2ld", "_TZE28C1000000_wkvfb2ld"]),
         model: "MH03-6Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 6 Gang",
@@ -585,7 +585,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k", "_TZE28C1000000_hwv3by9k"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hwv3by9k", "_TZE28C1000000_hwv3by9k", "_TZE284_4ngwn2pj", "_TZE28C1000000_4ngwn2pj"]),
         model: "MH03-8Z-OLED",
         vendor: "Manhot",
         description: "OLED Screen Switch 8 Gang",

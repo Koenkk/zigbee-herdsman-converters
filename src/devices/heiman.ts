@@ -1254,7 +1254,7 @@ const heimanExtend = {
 
         const invalidModes = displayModes.filter((m) => !defaultModes.includes(m));
         if (invalidModes.length > 0) {
-            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")}, 
+            throw new Error(`Invalid alarm mode: ${invalidModes.join(", ")},
             Legal values: ${defaultModes.join(", ")}`);
         }
 
@@ -2654,24 +2654,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-E",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery],
-        toZigbee: [tz.warning],
-        extend: [m.iasWarningMaxDuration()],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read("ssIasWd", ["maxDuration"]);
-        },
-        exposes: [
-            e.battery(),
-            e
-                .warning()
-                .removeFeature("level")
-                .removeFeature("strobe_level")
-                .removeFeature("mode")
-                .withFeature(e.enum("mode", ea.SET, ["stop", "emergency"]).withDescription("Mode of the warning (sound effect)")),
+        extend: [
+            m.battery(),
+            {
+                exposes: [
+                    e
+                        .numeric("max_duration", ea.ALL)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(65534)
+                        .withDescription("Max duration of Siren")
+                        .withCategory("config"),
+                    e
+                        .warning()
+                        .removeFeature("level")
+                        .removeFeature("strobe_level")
+                        .removeFeature("mode")
+                        .withFeature(e.enum("mode", ea.SET, ["stop", "emergency"]).withDescription("Mode of the warning (sound effect)")),
+                ],
+                fromZigbee: m.iasWarning({maxDuration: true}).fromZigbee,
+                toZigbee: m.iasWarning({maxDuration: true}).toZigbee,
+                isModernExtend: true,
+            },
         ],
     },
     {
@@ -4243,23 +4248,30 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS2WD-EF",
         vendor: "Heiman",
         description: "Smart siren",
-        fromZigbee: [fz.battery],
-        toZigbee: [tz.warning],
-        extend: [m.iasWarningMaxDuration()],
         meta: {disableDefaultResponse: true},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await endpoint.read("ssIasWd", ["maxDuration"]);
-        },
-        exposes: [
-            e.battery(),
-            e
-                .warning()
-                .removeFeature("strobe_level")
-                .removeFeature("mode")
-                .withFeature(e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)")),
+        extend: [
+            m.battery(),
+            {
+                exposes: [
+                    e
+                        .numeric("max_duration", ea.ALL)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(1800)
+                        .withDescription("Max duration of Siren")
+                        .withCategory("config"),
+                    e
+                        .warning()
+                        .removeFeature("strobe_level")
+                        .removeFeature("mode")
+                        .withFeature(
+                            e.enum("mode", ea.SET, ["stop", "burglar", "fire", "emergency"]).withDescription("Mode of the warning(sound effect)"),
+                        ),
+                ],
+                fromZigbee: m.iasWarning({maxDuration: true}).fromZigbee,
+                toZigbee: m.iasWarning({maxDuration: true}).toZigbee,
+                isModernExtend: true,
+            },
         ],
         ota: true,
     },

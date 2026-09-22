@@ -197,6 +197,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.curtain.acn011"],
+        model: "ZNMHLDJ01LM",
+        vendor: "Aqara",
+        description: "Smart vertical blinds motor H1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.identify(),
+            m.windowCovering({controls: ["lift", "tilt"], coverInverted: true}),
+            lumiCurtainManualOpenClose({valueOn: ["ON", 0], valueOff: ["OFF", 1]}),
+            lumiCurtainStatus({access: "STATE_GET"}),
+            lumiCurtainLastManualOperation({access: "STATE_GET"}),
+            lumiCurtainTraverseTime({access: "STATE_GET"}),
+            lumiCurtainCalibrationStatus({access: "STATE_GET"}),
+            lumiCurtainCalibrated({access: "STATE_GET"}),
+            lumiCurtainIdentifyBeep({lookup: {off: 0, short: 1, long: 2}}),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.flood.acn001"],
         model: "SJCGQ13LM",
         vendor: "Aqara",
@@ -1224,8 +1242,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.energy(),
             e.action(["single", "double", "release", "hold"]),
             e.enum("operation_mode", ea.ALL, ["control_relay", "decoupled"]).withDescription("Decoupled mode"),
+            e.power_outage_memory().withAccess(ea.STATE_SET),
         ],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_basic, lumi.toZigbee.lumi_power],
+        toZigbee: [
+            tz.on_off,
+            lumi.toZigbee.lumi_switch_operation_mode_basic,
+            lumi.toZigbee.lumi_power,
+            lumi.toZigbee.lumi_switch_power_outage_memory,
+        ],
         endpoint: (device) => {
             return {system: 1};
         },
@@ -1743,17 +1767,21 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Aqara", model: "TH-S02D"},
             {vendor: "Yandex", model: "YNDX-00523"},
         ],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, lumi.fromZigbee.lumi_pressure, fz.battery],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-        },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        exposes: [e.device_temperature(), e.power_outage_count(false)],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.temperature(),
+            m.humidity(),
+            m.pressure({}),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                voltageToPercentage: {min: 2850, max: 3000},
+            }),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ["lumi.sensor_motion"],
@@ -2083,6 +2111,13 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false), e.trigger_count()],
         extend: [m.quirkCheckinInterval("1_HOUR"), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["lumi.flood.agl02\tF\x01"],
+        model: "SJCGQ12LM-ES",
+        vendor: "Aqara",
+        description: "Water leak sensor T1 engineering test version (no specific battery percentage support, not compatible with Aqara Home app)",
+        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
     },
     {
         zigbeeModel: ["lumi.flood.agl02"],
@@ -3477,6 +3512,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
+        zigbeeModel: ["lumi.light.acn037"],
+        model: "GDSD12LM",
+        vendor: "Aqara",
+        description: "Track light V1",
+        whiteLabel: [{vendor: "Aqara", model: "GDGSD13LM", description: "Track grille light V1 (12-head)"}],
+        extend: [m.light({colorTemp: {range: [166, 370]}}), m.electricityMeter(), m.identify()],
+    },
+    {
         zigbeeModel: ["lumi.light.acn036"],
         model: "SSWQDYH02",
         vendor: "Aqara",
@@ -4305,7 +4348,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x040a], {manufacturerCode: manufacturerCode});
             await endpoint.read("genPowerCfg", ["batteryVoltage"]);
         },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ["aqara.feeder.acn001"],

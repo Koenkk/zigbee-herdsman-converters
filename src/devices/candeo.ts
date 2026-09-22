@@ -81,6 +81,16 @@ const kineticRFButtonMultiPressOptions = {
                 "Time in ms to delay sending of action since last event to allow for multi-press event detection (ignored if only single event is being detected).",
             ),
 };
+const childLockOptions = {
+    enforce_child_lock: () =>
+        e
+            .binary("enforce_child_lock", ea.SET, "ON", "OFF")
+            .withDescription("When set to ON, the child lock will be automatically enabled after every on or off command")
+            .withCategory("config"),
+};
+
+const childLockAttribute = 0x8000;
+const powerOnBehaviorAttribute = 0x8002;
 
 interface CandeoOnOff {
     attributes: never;
@@ -306,6 +316,30 @@ const fzLocal = {
             return undefined;
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    power_on_behavior: {
+        ...fz.power_on_behavior,
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {0: "off", 1: "on", 2: "previous"};
+            if (Object.hasOwn(msg.data, powerOnBehaviorAttribute)) {
+                const value = msg.data[powerOnBehaviorAttribute] as number;
+                const property = utils.postfixWithEndpointName("power_on_behavior", msg, model, meta);
+                return {[property]: lookup[value]};
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    child_lock: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: {[key: number]: string} = {0: "UNLOCK", 1: "LOCK"};
+            if (Object.hasOwn(msg.data, childLockAttribute)) {
+                const value = msg.data[childLockAttribute] as number;
+                return {child_lock: lookup[value]};
+            }
+            return undefined;
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -359,6 +393,64 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read("genOnOff", [rd1pREMLiteEP2Attribute]);
+        },
+    } satisfies Tz.Converter,
+    on_with_timed_off: {
+        ...tz.on_off,
+        options: [childLockOptions.enforce_child_lock()],
+        convertSet: async (entity, key, value, meta) => {
+            if (meta.message?.on_time != null) {
+                utils.assertNumber(meta.message.on_time, "on_time");
+                const on_time = meta.message.on_time;
+                meta.message = {state: "ON"};
+                await tz.on_off.convertSet(entity, key, value, meta); //plain turn on first
+                meta.message = {state: "ON", on_time: on_time / 10}; //adjust the on_time to the expected unit (seconds) and add it to the message for the next call
+            }
+            const result = await tz.on_off.convertSet(entity, key, value, meta);
+            const enforce_child_lock = meta.options?.enforce_child_lock === "ON";
+            if (enforce_child_lock) {
+                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});
+            }
+            await entity.read("genOnOff", [childLockAttribute]);
+            return result;
+        },
+    } satisfies Tz.Converter,
+    on_off: {
+        ...tz.on_off,
+        convertSet: async (entity, key, value, meta) => {
+            const result = await tz.on_off.convertSet(entity, key, value, meta);
+            const enforce_child_lock = meta.options?.enforce_child_lock === "ON";
+            if (enforce_child_lock) {
+                await entity.write("genOnOff", {[childLockAttribute]: {value: true, type: Zcl.DataType.BOOLEAN}});
+            }
+            await entity.read("genOnOff", [childLockAttribute]);
+            return result;
+        },
+    } satisfies Tz.Converter,
+    power_on_behavior: {
+        ...tz.power_on_behavior,
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertString(value, key);
+            value = value.toLowerCase();
+            const lookup: {[key: string]: number} = {off: 0, on: 1, previous: 2};
+            const v = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {[powerOnBehaviorAttribute]: {value: v, type: Zcl.DataType.ENUM8}});
+            return {state: {power_on_behavior: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", [powerOnBehaviorAttribute]);
+        },
+    } satisfies Tz.Converter,
+    child_lock: {
+        key: ["child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup: {[key: string]: boolean} = {lock: true, unlock: false};
+            const v = utils.getFromLookup(value, lookup);
+            await entity.write("genOnOff", {[childLockAttribute]: {value: v, type: Zcl.DataType.BOOLEAN}});
+            return {state: {child_lock: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOff", [childLockAttribute]);
         },
     } satisfies Tz.Converter,
 };
@@ -1268,5 +1360,36 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
             ),
         ],
+    },
+    {
+        fingerprint: [{modelID: "C-ZB-SSFS", manufacturerName: "Candeo"}],
+        model: "C-ZB-SSFS",
+        vendor: "Candeo",
+        description: "Smart switched fused spur",
+        extend: [
+            m.onOff({
+                powerOnBehavior: false,
+            }),
+            m.electricityMeter({
+                power: {min: 5, max: 300, change: 10, multiplier: 1, divisor: 1},
+                voltage: {min: 5, max: 600, change: 5, multiplier: 1, divisor: 1},
+                current: {min: 5, max: 900, change: 10, multiplier: 1, divisor: 1000},
+                energy: {min: 5, max: 1800, change: 50, multiplier: 1, divisor: 100},
+            }),
+        ],
+        toZigbee: [tzLocal.on_off, tzLocal.on_with_timed_off, tzLocal.power_on_behavior, tzLocal.child_lock],
+        fromZigbee: [fzLocal.power_on_behavior, fzLocal.child_lock],
+        exposes: [
+            e.power_on_behavior(["off", "on", "previous"]),
+            e
+                .binary("child_lock", ea.ALL, "LOCK", "UNLOCK")
+                .withDescription("Temporarily enables / disables physical input on the device until the next on command"),
+        ],
+        meta: {},
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await endpoint1.read("genOnOff", [childLockAttribute]);
+            await endpoint1.read("genOnOff", [powerOnBehaviorAttribute]);
+        },
     },
 ];

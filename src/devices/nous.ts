@@ -254,7 +254,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_loejka0i", "_TZE284_loejka0i"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_loejka0i", "_TZE284_loejka0i", "_TZE200_loejka0i"]),
         model: "D4Z",
         vendor: "Nous",
         description: "Smart energy monitor for 3P+N system",

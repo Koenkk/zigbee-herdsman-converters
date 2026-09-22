@@ -6842,19 +6842,9 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     hoch_din: {
-        key: [
-            "state",
-            "child_lock",
-            "countdown_timer",
-            "power_on_behavior",
-            "trip",
-            "clear_device_data",
-            /* TODO: Add the below keys when toZigbee converter work has been completed
-            'voltage_setting',
-            'current_setting',
-            'temperature_setting',
-            'leakage_current_setting'*/
-        ],
+        // The over voltage/current/temperature/leakage threshold datapoints are handled by
+        // `tzLocal.TS0601_rcbo_threshold` in `src/devices/tuya.ts`.
+        key: ["state", "child_lock", "countdown_timer", "power_on_behavior", "trip", "clear_device_data"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
             if (key === "state") {
@@ -6882,20 +6872,6 @@ const toZigbee2 = {
             }
             if (key === "clear_device_data") {
                 await sendDataPointBool(entity, dataPoints.hochClearEnergy, true, "sendData");
-                /* TODO: Release the below with other toZigbee converters for device composites
-            } else if (key === 'temperature_setting') {
-                if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
-                    const payload = [];
-                    payload.push(value.over_temperature_threshold < 1
-                        ? ((value.over_temperature_threshold * -1) + 128)
-                        : value.over_temperature_threshold);
-                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
-                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
-                    await sendDataPointRaw(entity, dataPoints.hochTemperatureThreshold, payload, 'sendData');
-                    return {state: {over_temperature_threshold: value.over_temperature_threshold,
-                        over_temperature_trip: value.over_temperature_trip,
-                        over_temperature_alarm: value.over_temperature_alarm}};
-                }*/
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }

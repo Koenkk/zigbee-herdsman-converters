@@ -184,6 +184,7 @@ interface ThirdPlug {
         countdownToTurnOff: number;
         countdownToTurnOn: number;
         redLedBrightness: number;
+        meteringOnlyMode: number;
     };
     commands: never;
     commandResponses: never;
@@ -1455,6 +1456,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetTotalEnergy: {name: "resetTotalEnergy", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    meteringOnlyMode: {name: "meteringOnlyMode", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1475,6 +1477,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rDualPlugSpecialcluster",
                 attribute: "resetTotalEnergy",
                 description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.binary<"3rDualPlugSpecialcluster", ThirdPlug>({
+                endpointName: "1",
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "meteringOnlyMode",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
             m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
@@ -1506,6 +1518,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rDualPlugSpecialcluster",
                 attribute: "resetTotalEnergy",
                 description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.binary<"3rDualPlugSpecialcluster", ThirdPlug>({
+                endpointName: "2",
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "meteringOnlyMode",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
             m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({

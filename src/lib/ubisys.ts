@@ -90,6 +90,9 @@ export interface UbisysDeviceSetup {
     attributes: {
         inputConfigurations: ZclArray | unknown[];
         inputActions: ZclArray | unknown[];
+        // LD6 only: maps the six physical output channels to application endpoints.
+        outputConfigurations: ZclArray | unknown[];
+        outputEndpoints: number;
     };
     commands: never;
     commandResponses: never;
@@ -552,6 +555,9 @@ export const ubisysModernExtend = {
             attributes: {
                 inputConfigurations: {name: "inputConfigurations", ID: 0x0000, type: Zcl.DataType.ARRAY, write: true},
                 inputActions: {name: "inputActions", ID: 0x0001, type: Zcl.DataType.ARRAY, write: true},
+                // LD6 only. Absent on other Ubisys devices, which simply never report them.
+                outputConfigurations: {name: "outputConfigurations", ID: 0x0010, type: Zcl.DataType.ARRAY, write: true},
+                outputEndpoints: {name: "outputEndpoints", ID: 0x0011, type: Zcl.DataType.BITMAP16},
             },
             commands: {},
             commandsResponse: {},
