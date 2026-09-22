@@ -8545,10 +8545,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior2: (manufacturerName) => manufacturerName === "_TZ3000_bzzgvet0",
-                switchType: (manufacturerName) => manufacturerName === "_TZ3000_bzzgvet0",
-                backlightModeOffOn: (manufacturerName) => manufacturerName === "_TZ3000_bzzgvet0",
+                powerOnBehavior2: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
+                switchType: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
+                backlightModeOffOn: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
+                indicatorMode: (m) => m === "_TZ3000_p26flek3",
+                inchingSwitch: (m) => m === "_TZ3000_p26flek3",
             }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         whiteLabel: [
             {
