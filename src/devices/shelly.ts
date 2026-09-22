@@ -900,6 +900,7 @@ const shellyModernExtend = {
               ? {sw1: 3, sw2: 4}
               : undefined;
         const featureOnePMInputMode = features.includes("1PMInputMode");
+        const featureOneLInputMode = features.includes("1LInputMode");
         const featureCoverTiltAuto = features.includes("CoverTiltAuto");
         const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
         const featurePresenceZoneConfig = features.includes("PresenceZoneConfig");
@@ -1290,6 +1291,29 @@ const shellyModernExtend = {
                         .withCategory("config")
                         .withEndpoint(endpoint),
                 );
+            });
+            toZigbee.push({
+                key: ["switch_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = getRPCEndpoint(entity);
+                    await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
+                    return {state: {switch_mode: value}};
+                },
+            });
+        }
+        if (featureOneLInputMode) {
+            // SW2 is a permanently detached input. Only SW1 is associated with the relay and can
+            // change its input mode; the remaining modes are unsupported on the 1L.
+            const inModeValues = ["momentary", "follow", "flip", "detached"];
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID) || !device.getEndpoint(2)) return [];
+                return [
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint("sw1"),
+                ];
             });
             toZigbee.push({
                 key: ["switch_mode"],
@@ -1936,6 +1960,16 @@ const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint:
 };
 
 const fzLocal = {
+    momentary_toggle_binding: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (!Object.hasOwn(msg.data, "switchActions")) return;
+            const property = utils.postfixWithEndpointName("momentary_toggle_binding", msg, model, meta);
+            return {[property]: msg.data.switchActions === 2 ? "ON" : "OFF"};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+
     one_button_events: {
         cluster: "genOnOff",
         type: ["commandToggle"],
@@ -2128,6 +2162,24 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    momentary_toggle_binding: {
+        key: ["momentary_toggle_binding"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.validateValue(value as string, ["ON", "OFF"]);
+            utils.assertEndpoint(entity);
+            const result = await entity.read("genOnOffSwitchCfg", ["switchType"]);
+            if (result.switchType !== 1) {
+                throw new Error("Momentary toggle binding requires the input to use the momentary switch type");
+            }
+            await entity.write("genOnOffSwitchCfg", {switchActions: value === "ON" ? 2 : 0});
+            return {state: {momentary_toggle_binding: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            await entity.read("genOnOffSwitchCfg", ["switchActions"]);
+        },
+    } satisfies Tz.Converter,
+
     switch_input_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
@@ -2597,6 +2649,66 @@ const shellyTRVExternalInputsOnEvent: OnEvent.Handler = (event) => {
 // =============================================================================
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["1L"],
+        model: "S4SW-0A1X1EUL",
+        vendor: "Shelly",
+        description: "1L Gen4",
+        ota: true,
+        version: "0.0.1",
+        fromZigbee: [
+            fzLocal.two_switch_inputs_events,
+            fzLocal.two_switch_inputs_scene_events,
+            fzLocal.momentary_toggle_binding,
+            fzLocal.switch_input_type,
+        ],
+        toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
+        exposes: (device) => [
+            e.action([
+                "input_1_on",
+                "input_1_off",
+                "input_1_toggle",
+                "input_1_single",
+                "input_1_double",
+                "input_1_triple",
+                "input_1_hold",
+                "input_2_on",
+                "input_2_off",
+                "input_2_toggle",
+                "input_2_single",
+                "input_2_double",
+                "input_2_triple",
+                "input_2_hold",
+            ]),
+            ...shellySwitchInputExposes(device, {sw1: 2, sw2: 3}),
+            e
+                .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                .withEndpoint("sw1")
+                .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input"),
+            e
+                .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                .withEndpoint("sw2")
+                .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input"),
+        ],
+        extend: [
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
+            m.onOff({powerOnBehavior: false}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1LInputMode"]),
+            shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [2, 3]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchActions"]);
+                }
+            }
+        },
+    },
     {
         zigbeeModel: ["Mini1", "1 Mini"],
         fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
