@@ -109,7 +109,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["VMS_ADUROLIGHT"],
+        fingerprint: [
+            {modelID: "VMS_ADUROLIGHT", manufacturerName: "Trust International B.V.\u0000"},
+            {modelID: "VMS_ADUROLIGHT", manufacturerName: "Trust International B.V."},
+        ],
         model: "ZPIR-8000",
         vendor: "Trust",
         description: "Motion Sensor",
@@ -123,7 +126,10 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy(), e.battery_low(), e.tamper(), e.battery()],
     },
     {
-        zigbeeModel: ["CSW_ADUROLIGHT"],
+        fingerprint: [
+            {modelID: "CSW_ADUROLIGHT", manufacturerName: "Trust International B.V.\u0000"},
+            {modelID: "CSW_ADUROLIGHT", manufacturerName: "Trust International B.V."},
+        ],
         model: "ZCTS-808",
         vendor: "Trust",
         description: "Wireless contact sensor",

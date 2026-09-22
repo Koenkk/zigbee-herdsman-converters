@@ -151,6 +151,7 @@ interface SonoffSnzb09p {
         alarmSoundType: number;
         alarmVolumeLevel: number;
         alarmDuration: number;
+        alarmStatus: number;
         spilt: number;
     };
     commands: {
@@ -1361,8 +1362,66 @@ const withConditionalExpose = (extend: ModernExtend, predicate: (device: Zh.Devi
     return {...extend, exposes: [expose]};
 };
 
+// Expose an enum's values only while the device supports them: `gatedValues` are exposed only while `isSupported`
+// returns true (e.g. a firmware version floor), every other value is always exposed. The wrapped extend keeps its full
+// lookup, so reported values and writes are unaffected. `isSupported` must hold for dummy devices, otherwise the gated
+// values disappear from the definition export, the device docs and the repo tests.
+const withConditionalEnumValues = (
+    extend: ModernExtend,
+    gatedValues: (string | number)[],
+    isSupported: (device: Zh.Device | DummyDevice) => boolean,
+): ModernExtend => {
+    const expose: DefinitionExposesFunction = (device, options) => {
+        const items = (extend.exposes ?? []).flatMap((item) => (typeof item === "function" ? item(device, options) : [item]));
+        if (isSupported(device)) return items;
+
+        return items.map((item) => {
+            if (!(item instanceof exposes.Enum)) return item;
+
+            const reduced = item.clone();
+            reduced.values = item.values.filter((value) => !gatedValues.includes(value));
+            return reduced;
+        });
+    };
+
+    return {...extend, exposes: [expose]};
+};
+
 const isBasicZB1GSPFirmwareAtLeast130 = (device: Zh.Device | DummyDevice): boolean =>
     utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher");
+
+const basicZB1GSPConfigureReadAttributes = [
+    "acCurrentCurrentValue",
+    "acCurrentVoltageValue",
+    "acCurrentPowerValue",
+    0x7003,
+    "outlet_control_protect",
+    "totalEnergyConsumption",
+    "energyToday",
+    "energyMonth",
+    "energyYesterday",
+] satisfies (keyof SonoffEwelink["attributes"] | number)[];
+
+// SNZB-09P: alarmSoundType got the chime presets (0x0a-0x0e) in firmware 1.1.9; the base presets work on all firmware.
+const snzb09pAlarmSoundTypeBaseLookup = {
+    siren_classic: 0x00,
+    siren_steady: 0x01,
+    siren_rising: 0x03,
+    siren_warning: 0x05,
+    siren_rapid: 0x06,
+    siren_emergency: 0x08,
+    tone_chirp: 0x02,
+    tone_hi_lo: 0x04,
+    tone_intermittent: 0x07,
+    tone_pulse: 0x09,
+};
+const snzb09pAlarmSoundTypeChimeLookup = {
+    chime_doorbell: 0x0a,
+    chime_classic_clock: 0x0b,
+    chime_electronic_clock: 0x0c,
+    chime_bright: 0x0d,
+    chime_soft: 0x0e,
+};
 
 const fzLocal = {
     key_action_event: {
@@ -1430,6 +1489,19 @@ const fzLocal = {
             return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
         },
     } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["commandAlertCommand", "raw"]>,
+    snzb_09p_alarm_status: {
+        cluster: "customClusterEwelink",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const status = msg.data.alarmStatus;
+            if (status !== 0 && status !== 1 && status !== 2) {
+                return;
+            }
+
+            const alarmType = ({0: "none", 1: "manual", 2: "scene"} as const)[status as 0 | 1 | 2];
+            return {alarm_type: alarmType, siren_on: alarmType === "none" ? "OFF" : "ON"};
+        },
+    } satisfies Fz.Converter<"customClusterEwelink", SonoffSnzb09p, ["attributeReport", "readResponse"]>,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     SNZB02_temperature: {
         cluster: "msTemperatureMeasurement",
@@ -5439,26 +5511,45 @@ const sonoffExtend = {
     },
     manualDefaultSettings: (hasFlowMeter: boolean): ModernExtend => {
         const exposes: DefinitionExposesFunction = (device) => {
-            const expose = e
-                .composite("manual_default_settings", "manual_default_settings", ea.ALL)
-                .withDescription("Single irrigation settings")
-                .withFeature(
-                    e.numeric("irrigation_duration", ea.ALL).withValueMin(1).withValueMax(719).withUnit("min").withDescription("Irrigation duration"),
-                );
+            const result: Expose[] = [
+                e
+                    .numeric("irrigation_duration", ea.STATE_SET)
+                    .withValueMin(1)
+                    .withValueMax(719)
+                    .withUnit("min")
+                    .withDescription("Default duration for manual irrigation")
+                    .withCategory("config"),
+            ];
             if (hasFlowMeter) {
-                expose.withFeature(
-                    e.enum("irrigation_mode", ea.ALL, ["duration", "capacity"]).withDescription("Irrigation mode: duration or capacity"),
+                result.push(
+                    e
+                        .enum("irrigation_mode", ea.STATE_SET, ["duration", "capacity"])
+                        .withDescription("Default mode for manual irrigation")
+                        .withCategory("config"),
+                    e
+                        .numeric("irrigation_amount", ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(10000)
+                        .withDescription("Default manual irrigation amount")
+                        .withCategory("config"),
+                    e
+                        .numeric("fail_safe", ea.STATE_SET)
+                        .withValueMin(0)
+                        .withValueMax(719)
+                        .withUnit("min")
+                        .withDescription("Manual irrigation safety timeout")
+                        .withCategory("config"),
                 );
                 if (!(utils.isDummyDevice(device) || SWVZNEFirmwareSupportsUnifiedImperialGallon(device as Zh.Device))) {
-                    expose.withFeature(e.enum("irrigation_amount_unit", ea.ALL, ["us_gallon", "liter"]).withDescription("Capacity unit"));
-                }
-                expose
-                    .withFeature(e.numeric("irrigation_amount", ea.ALL).withValueMin(0).withValueMax(10000).withDescription("Irrigation volume"))
-                    .withFeature(
-                        e.numeric("fail_safe", ea.ALL).withValueMin(0).withValueMax(719).withUnit("min").withDescription("Safety protection timeout"),
+                    result.push(
+                        e
+                            .enum("irrigation_amount_unit", ea.STATE_SET, ["us_gallon", "liter"])
+                            .withDescription("Default manual irrigation unit")
+                            .withCategory("config"),
                     );
+                }
             }
-            return [expose];
+            return result;
         };
 
         const modeMap: {[key: string]: number} = {
@@ -5469,6 +5560,27 @@ const sonoffExtend = {
             0: "duration",
             1: "capacity",
         };
+        const scalarToCompositeKey: {[key: string]: string} = {
+            irrigation_duration: "irrigation_duration",
+            irrigation_mode: "irrigation_mode",
+            irrigation_amount_unit: "irrigation_amount_unit",
+            irrigation_amount: "irrigation_amount",
+            fail_safe: "fail_safe",
+        };
+        const publishManualSettings = (settings: KeyValue): KeyValue => ({
+            irrigation_duration: settings.irrigation_duration,
+            ...(hasFlowMeter
+                ? {
+                      irrigation_mode: settings.irrigation_mode,
+                      ...(settings.irrigation_amount_unit !== undefined ? {irrigation_amount_unit: settings.irrigation_amount_unit} : {}),
+                      irrigation_amount: settings.irrigation_amount,
+                      ...(settings.irrigation_amount_real_liter !== undefined
+                          ? {irrigation_amount_real_liter: settings.irrigation_amount_real_liter}
+                          : {}),
+                      fail_safe: settings.fail_safe,
+                  }
+                : {}),
+        });
 
         const fromZigbee: Fz.Converter<"customClusterEwelink", SonoffSwvzn, ["attributeReport", "readResponse"]>[] = [
             {
@@ -5514,41 +5626,48 @@ const sonoffExtend = {
                     if (SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
                         delete manualDefaultSettings.irrigation_amount_unit;
                     }
-                    return {
-                        manual_default_settings: manualDefaultSettings,
-                    };
+                    return publishManualSettings(manualDefaultSettings);
                 },
             },
         ];
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["manual_default_settings"],
+                key: hasFlowMeter ? Object.keys(scalarToCompositeKey) : ["irrigation_duration"],
                 convertSet: async (entity, key, value, meta) => {
-                    utils.assertObject(value, key);
+                    const partialValue: KeyValue = {};
+                    partialValue[scalarToCompositeKey[key]] = value;
 
-                    if (hasFlowMeter && (typeof value.irrigation_mode !== "string" || modeMap[value.irrigation_mode] === undefined)) {
-                        logger.error("manual_default_settings invalid irrigation_mode, expected one of: duration, capacity.", NS);
+                    const manualAmountUnit = SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)
+                        ? meta.state.water_flow_unit
+                        : meta.state.irrigation_amount_unit;
+                    const current: KeyValue = {
+                        irrigation_duration: meta.state.irrigation_duration ?? 10,
+                        irrigation_mode: meta.state.irrigation_mode ?? "duration",
+                        irrigation_amount_unit: manualAmountUnit ?? "liter",
+                        irrigation_amount: meta.state.irrigation_amount ?? 0,
+                        fail_safe: meta.state.fail_safe ?? 0,
+                    };
+                    const nextValue = {...current, ...partialValue};
+
+                    if (hasFlowMeter && (typeof nextValue.irrigation_mode !== "string" || modeMap[nextValue.irrigation_mode] === undefined)) {
+                        logger.error("irrigation_mode invalid value, expected one of: duration, capacity.", NS);
                         return;
                     }
                     let capacityUnit = SWVZNELegacyIrrigationAmountUnitCodeByName.liter;
                     if (hasFlowMeter) {
-                        let unit = value.irrigation_amount_unit;
-                        if (unit === undefined && SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
-                            unit = meta.state.water_flow_unit;
-                        }
-                        const parsedCapacityUnit = SWVZNEIrrigationAmountUnitToDeviceCode(unit ?? "liter", meta.device);
+                        const parsedCapacityUnit = SWVZNEIrrigationAmountUnitToDeviceCode(nextValue.irrigation_amount_unit ?? "liter", meta.device);
                         if (parsedCapacityUnit === undefined) {
-                            logger.error("manual_default_settings invalid irrigation_amount_unit, expected one of: us_gallon, liter.", NS);
+                            logger.error("irrigation_amount_unit invalid value, expected one of: us_gallon, liter.", NS);
                             return;
                         }
                         capacityUnit = parsedCapacityUnit;
                     }
 
                     const parseRequiredInt = (fieldName: string): number | undefined => {
-                        const parsed = Number(value[fieldName]);
+                        const parsed = Number(nextValue[fieldName]);
                         if (!Number.isInteger(parsed)) {
-                            logger.error(`manual_default_settings invalid ${fieldName}, expected integer.`, NS);
+                            logger.error(`manual irrigation setting ${fieldName} expected integer.`, NS);
                             return;
                         }
                         return parsed;
@@ -5562,7 +5681,7 @@ const sonoffExtend = {
                         return;
                     }
 
-                    const mode = hasFlowMeter ? modeMap[value.irrigation_mode] : modeMap.duration;
+                    const mode = hasFlowMeter ? modeMap[String(nextValue.irrigation_mode)] : modeMap.duration;
 
                     const array = new Uint8Array(12);
                     array[0] = mode;
@@ -5592,7 +5711,7 @@ const sonoffExtend = {
                         utils.getOptions(meta.mapped, entity),
                     );
 
-                    const state = {...value};
+                    const state = {...nextValue};
                     if (SWVZNEFirmwareSupportsUnifiedImperialGallon(meta.device)) {
                         const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(capacityUnit, meta.device);
                         if (hasFlowMeter && irrigationAmountUnit) {
@@ -5600,7 +5719,7 @@ const sonoffExtend = {
                         }
                         delete state.irrigation_amount_unit;
                     }
-                    return {state: {manual_default_settings: state}};
+                    return {state: publishManualSettings(state)};
                 },
                 convertGet: async (entity, key, meta) => {
                     await entity.read<"customClusterEwelink", SonoffSwvzn>("customClusterEwelink", ["manualDefaultSettings"]);
@@ -6013,26 +6132,27 @@ const sonoffExtend = {
                     utils.assertNumber(value);
                     const waterFlowUnit = SWVZNEUnifiedWaterFlowUnitByCode[value];
                     if (!waterFlowUnit) return;
-                    const settings = meta.state.manual_default_settings;
-                    let manualDefaultSettings: KeyValue | undefined;
-                    if (utils.isObject(settings) && typeof settings.irrigation_amount === "number") {
-                        const sourceUnit = SWVZNENormalizeWaterFlowUnit(settings.irrigation_amount_unit ?? meta.state.water_flow_unit);
+                    const amount = meta.state.irrigation_amount;
+                    const amountRealLiters = meta.state.irrigation_amount_real_liter;
+                    let manualAmount: number | undefined;
+                    let manualAmountRealLiters: number | undefined;
+                    const legacyAmountUnit = meta.state.irrigation_amount_unit;
+                    let clearLegacyAmountUnit = false;
+                    if (typeof amount === "number") {
+                        const sourceUnit = SWVZNENormalizeWaterFlowUnit(legacyAmountUnit ?? meta.state.water_flow_unit);
                         if (sourceUnit && sourceUnit !== waterFlowUnit) {
                             const irrigationAmountLiters =
-                                typeof settings.irrigation_amount_real_liter === "number"
-                                    ? settings.irrigation_amount_real_liter
-                                    : settings.irrigation_amount * SWVZNELitersPerWaterFlowUnit[sourceUnit];
-                            manualDefaultSettings = {
-                                ...settings,
-                                irrigation_amount: Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[waterFlowUnit]),
-                                irrigation_amount_real_liter: irrigationAmountLiters,
-                            };
-                            delete manualDefaultSettings.irrigation_amount_unit;
+                                typeof amountRealLiters === "number" ? amountRealLiters : amount * SWVZNELitersPerWaterFlowUnit[sourceUnit];
+                            manualAmount = Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[waterFlowUnit]);
+                            manualAmountRealLiters = irrigationAmountLiters;
+                            clearLegacyAmountUnit = legacyAmountUnit !== undefined;
                         }
                     }
                     return {
                         water_flow_unit: waterFlowUnit,
-                        ...(manualDefaultSettings ? {manual_default_settings: manualDefaultSettings} : {}),
+                        ...(manualAmount !== undefined ? {irrigation_amount: manualAmount} : {}),
+                        ...(manualAmountRealLiters !== undefined ? {irrigation_amount_real_liter: manualAmountRealLiters} : {}),
+                        ...(clearLegacyAmountUnit ? {irrigation_amount_unit: null} : {}),
                     };
                 },
             },
@@ -6063,27 +6183,28 @@ const sonoffExtend = {
                         {unitOfWaterFlow: waterFlowUnitCode},
                         utils.getOptions(meta.mapped, entity),
                     );
-                    const settings = meta.state.manual_default_settings;
-                    let manualDefaultSettings: KeyValue | undefined;
-                    if (utils.isObject(settings) && typeof settings.irrigation_amount === "number") {
-                        const sourceUnit = SWVZNENormalizeWaterFlowUnit(settings.irrigation_amount_unit ?? meta.state.water_flow_unit);
+                    const amount = meta.state.irrigation_amount;
+                    const amountRealLiters = meta.state.irrigation_amount_real_liter;
+                    let manualAmount: number | undefined;
+                    let manualAmountRealLiters: number | undefined;
+                    const legacyAmountUnit = meta.state.irrigation_amount_unit;
+                    let clearLegacyAmountUnit = false;
+                    if (typeof amount === "number") {
+                        const sourceUnit = SWVZNENormalizeWaterFlowUnit(legacyAmountUnit ?? meta.state.water_flow_unit);
                         if (sourceUnit && sourceUnit !== normalizedUnit) {
                             const irrigationAmountLiters =
-                                typeof settings.irrigation_amount_real_liter === "number"
-                                    ? settings.irrigation_amount_real_liter
-                                    : settings.irrigation_amount * SWVZNELitersPerWaterFlowUnit[sourceUnit];
-                            manualDefaultSettings = {
-                                ...settings,
-                                irrigation_amount: Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[normalizedUnit]),
-                                irrigation_amount_real_liter: irrigationAmountLiters,
-                            };
-                            delete manualDefaultSettings.irrigation_amount_unit;
+                                typeof amountRealLiters === "number" ? amountRealLiters : amount * SWVZNELitersPerWaterFlowUnit[sourceUnit];
+                            manualAmount = Math.round(irrigationAmountLiters / SWVZNELitersPerWaterFlowUnit[normalizedUnit]);
+                            manualAmountRealLiters = irrigationAmountLiters;
+                            clearLegacyAmountUnit = legacyAmountUnit !== undefined;
                         }
                     }
                     return {
                         state: {
                             water_flow_unit: normalizedUnit,
-                            ...(manualDefaultSettings ? {manual_default_settings: manualDefaultSettings} : {}),
+                            ...(manualAmount !== undefined ? {irrigation_amount: manualAmount} : {}),
+                            ...(manualAmountRealLiters !== undefined ? {irrigation_amount_real_liter: manualAmountRealLiters} : {}),
+                            ...(clearLegacyAmountUnit ? {irrigation_amount_unit: null} : {}),
                         },
                     };
                 },
@@ -10681,6 +10802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.overloadProtection(4000, 17),
         ],
@@ -10808,6 +10930,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.overloadProtection(3250, 14),
         ],
@@ -12311,6 +12434,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "ac_current_max_overload_enable",
@@ -12388,16 +12512,16 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            const configureReadAttributes: (keyof SonoffEwelink["attributes"] | number)[] = [...basicZB1GSPConfigureReadAttributes];
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
             // onOff configReport is not supported on firmware >= 1.0.5, device reports proactively
             if (firmwareSupportFeaturesVersion(device, "1.0.5", "BASIC-ZB1GSP", "lower")) {
                 await reporting.onOff(endpoint, {min: 0, max: 65000, change: 1});
             }
-            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
-                "customClusterEwelink",
-                ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],
-                defaultResponseOptions,
-            );
+            if (firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")) {
+                configureReadAttributes.push("outputEnergyToday", "outputEnergyMonth", "totalOutputEnergyConsumption");
+            }
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", configureReadAttributes, defaultResponseOptions);
             await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
@@ -12846,6 +12970,7 @@ export const definitions: DefinitionWithExtend[] = [
                     alarmSoundType: {name: "alarmSoundType", ID: 0x2023, type: Zcl.DataType.ENUM8, write: true},
                     alarmVolumeLevel: {name: "alarmVolumeLevel", ID: 0x2024, type: Zcl.DataType.ENUM8, write: true},
                     alarmDuration: {name: "alarmDuration", ID: 0x2025, type: Zcl.DataType.UINT16, write: true},
+                    alarmStatus: {name: "alarmStatus", ID: 0x202e, type: Zcl.DataType.UINT8},
                     spilt: {name: "spilt", ID: 0x2000, type: Zcl.DataType.UINT8, write: true},
                 },
                 commands: {
@@ -12853,6 +12978,39 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commandsResponse: {},
             }),
+            // Reading alarmStatus needs the custom cluster registered on the device, which only happens once
+            // `m.deviceAddCustomCluster` above has run its own hooks. Extend hooks run in array order, so keep
+            // this entry after it.
+            {
+                onEvent: [
+                    async (event) => {
+                        // Attempt to read the current alarm status on gateway startup, device rejoin and device announce.
+                        if (
+                            event.type !== "start" &&
+                            event.type !== "deviceJoined" &&
+                            event.type !== "deviceAnnounce" &&
+                            event.type !== "deviceInterview"
+                        ) {
+                            return;
+                        }
+
+                        // alarmStatus (0x202e) only exists from firmware 1.1.9; unknown firmware counts as unsupported.
+                        if (!firmwareSupportFeaturesVersion(event.data.device, "1.1.9", "SNZB-09P", "higher")) {
+                            return;
+                        }
+
+                        const endpoint = event.data.device.getEndpoint(1);
+                        try {
+                            await endpoint.read<"customClusterEwelink", SonoffSnzb09p>("customClusterEwelink", ["alarmStatus"], manufacturerOptions);
+                        } catch (error) {
+                            // Battery-powered device may be sleeping; swallow the error to avoid crashing the event chain,
+                            // but log it so a failed sync is traceable. The next device event will retry naturally.
+                            logger.warning(`Failed to read alarmStatus of '${event.data.device.ieeeAddr}' on '${event.type}' (${error})`, NS);
+                        }
+                    },
+                ],
+                isModernExtend: true,
+            },
             sonoffExtend.powerSupplyModeWithChangeBatteryState(),
             sonoffExtend.batteryWithPowerSupplyMode(),
             m.binary<"customClusterEwelink", SonoffSnzb09p>({
@@ -12886,25 +13044,18 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: [true, 0x01],
                 valueOff: [false, 0x00],
             }),
-            m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
-                name: "alarm_sound_type",
-                lookup: {
-                    siren_classic: 0x00,
-                    siren_steady: 0x01,
-                    siren_rising: 0x03,
-                    siren_warning: 0x05,
-                    siren_rapid: 0x06,
-                    siren_emergency: 0x08,
-                    tone_chirp: 0x02,
-                    tone_hi_lo: 0x04,
-                    tone_intermittent: 0x07,
-                    tone_pulse: 0x09,
-                },
-                cluster: "customClusterEwelink",
-                attribute: "alarmSoundType",
-                entityCategory: "config",
-                description: "Select the alarm sound preset.",
-            }),
+            withConditionalEnumValues(
+                m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
+                    name: "alarm_sound_type",
+                    lookup: {...snzb09pAlarmSoundTypeBaseLookup, ...snzb09pAlarmSoundTypeChimeLookup},
+                    cluster: "customClusterEwelink",
+                    attribute: "alarmSoundType",
+                    entityCategory: "config",
+                    description: "Select the alarm sound preset.",
+                }),
+                Object.keys(snzb09pAlarmSoundTypeChimeLookup),
+                (device) => utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device, "1.1.9", "SNZB-09P", "higher"),
+            ),
             m.enumLookup<"customClusterEwelink", SonoffSnzb09p>({
                 name: "alarm_volume_level",
                 lookup: {low: 0x00, medium: 0x01, high: 0x02, max: 0x03},
@@ -12925,7 +13076,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
-        fromZigbee: [fzLocal.snzb_09p_alert],
+        fromZigbee: [fzLocal.snzb_09p_alert, fzLocal.snzb_09p_alarm_status],
         toZigbee: [tzLocal.snzb_09p_alert],
         exposes: [
             e
@@ -13385,6 +13536,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "When enabled, the device turns off immediately when the configured threshold is reached. After protection is triggered, it can only be restored manually and cannot be turned on via Z2M.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "ac_current_max_overload_enable",

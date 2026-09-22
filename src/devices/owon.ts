@@ -1421,4 +1421,18 @@ export const definitions: DefinitionWithExtend[] = [
             m.forcePowerSource({powerSource: "Battery"}),
         ],
     },
+    {
+        zigbeeModel: ["WSP406", "WSP406-UK", "WSP406-E"],
+        model: "WSP406",
+        vendor: "OWON",
+        description: "Smart plug with energy metering",
+        meta: {publishDuplicateTransaction: true},
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter({
+                cluster: "metering",
+            }),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+    },
 ];

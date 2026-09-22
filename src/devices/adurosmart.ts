@@ -1,187 +1,105 @@
-import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as adurosmart from "../lib/adurosmart";
-import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fingerprint} from "../lib/types";
 
-const e = exposes.presets;
+const manufacturerNames = ["AduroSmart ERIA", "ERIA", "AduroSmart Eria"];
+
+function fingerprints(modelIDs: string[], manufacturers = manufacturerNames): Fingerprint[] {
+    return modelIDs.flatMap((modelID) => manufacturers.map((manufacturerName) => ({modelID, manufacturerName})));
+}
+
+const dimmableLight = () => [m.light({powerOnBehavior: false}), adurosmart.extend.onOffReporting()];
+const tunableWhiteLight = () => [m.light({powerOnBehavior: false, colorTemp: {range: [153, 500]}})];
+const colorLight = () => [m.light({powerOnBehavior: false, colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})];
+const onOffDevice = () => [m.onOff({powerOnBehavior: false, configureReporting: false}), adurosmart.extend.onOffReporting()];
+const powerMeasuringDevice = () => [...onOffDevice(), adurosmart.extend.electricityMeter()];
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["ADUROLIGHT_CSC"],
-        model: "15090054",
+        fingerprint: fingerprints(["CSW_ADUROLIGHT"]),
+        model: "81822",
         vendor: "AduroSmart",
-        description: "Remote scene controller",
-        fromZigbee: [fz.battery, fz.command_toggle, fz.command_recall],
-        toZigbee: [],
-        exposes: [e.battery(), e.action(["toggle", "recall_253", "recall_254", "recall_255"])],
+        description: "ERIA Wireless Contact Sensor",
+        extend: adurosmart.extend.contactSensor(),
     },
     {
-        zigbeeModel: ["AD-RGBWH3001"],
-        model: "AD-RGBWH3001",
-        vendor: "AduroSmart",
-        description: "ERIA Colors and White A19 Dimmable LED bulb",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
-    },
-    {
-        zigbeeModel: ["AD-SmartPlug3001"],
-        model: "81848",
-        vendor: "AduroSmart",
-        description: "ERIA smart plug (with power measurements)",
-        fromZigbee: [fz.on_off, fz.electrical_measurement],
-        toZigbee: [tz.on_off],
-        exposes: [e.switch(), e.power(), e.current(), e.voltage()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement"]);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.activePower(endpoint);
-        },
-    },
-    {
-        zigbeeModel: ["ZLL-ExtendedColo", "ZLL-ExtendedColor"],
-        model: "81809/81813",
-        vendor: "AduroSmart",
-        description: "ERIA colors and white shades smart light bulb A19/BR30",
-        extend: [m.light({colorTemp: {range: undefined}, color: {applyRedFix: true}})],
-        endpoint: (device) => {
-            return {default: 2};
-        },
-    },
-    {
-        zigbeeModel: ["AD-RGBW3001"],
-        model: "81809FBA",
-        vendor: "AduroSmart",
-        description: "ERIA colors and white shades smart light bulb A19/BR30",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], applyRedFix: true}})],
-    },
-    {
-        zigbeeModel: ["AD-E14RGBW3001"],
-        model: "81895",
-        vendor: "AduroSmart",
-        description: "ERIA E14 Candle Color",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: {applyRedFix: true}})],
-    },
-    {
-        zigbeeModel: ["AD-DimmableLight3001"],
-        model: "81810",
-        vendor: "AduroSmart",
-        description: "Zigbee Aduro Eria B22 bulb - warm white",
-        extend: [m.light()],
-    },
-    {
-        zigbeeModel: ["Adurolight_NCC"],
-        model: "81825",
-        vendor: "AduroSmart",
-        description: "ERIA smart wireless dimming switch",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_step],
-        exposes: [e.action(["on", "off", "up", "down"])],
-        toZigbee: [],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-        },
-    },
-    {
-        zigbeeModel: ["AD-Dimmer"],
-        model: "81849",
-        vendor: "AduroSmart",
-        description: "ERIA built-in multi dimmer module 300W",
-        extend: [m.light({configureReporting: true})],
-    },
-    {
-        zigbeeModel: ["BDP3001"],
-        model: "81855",
-        vendor: "AduroSmart",
-        description: "ERIA smart plug (dimmer)",
-        extend: [m.light({configureReporting: true})],
-    },
-    {
-        zigbeeModel: ["BPU3"],
-        model: "BPU3",
-        vendor: "AduroSmart",
-        description: "ERIA smart plug",
-        extend: [m.onOff()],
-    },
-    {
-        zigbeeModel: ["Extended Color LED Strip V1.0"],
-        model: "81863",
-        vendor: "AduroSmart",
-        description: "Eria color LED strip",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], applyRedFix: true}})],
-    },
-    {
-        zigbeeModel: ["AD-81812", "AD-ColorTemperature3001"],
+        fingerprint: fingerprints(["AD-CTW123001", "AD-CTW143001", "AD-ColorTemperature3001"]),
         model: "81812/81814",
         vendor: "AduroSmart",
-        description: "Eria tunable white A19/BR30 smart bulb",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"]}})],
+        description: "ERIA Tunable White Bulb",
+        extend: tunableWhiteLight(),
     },
     {
-        zigbeeModel: ["AD-E1XCTW3001"],
+        fingerprint: fingerprints(["AD-E1XCTW3001", "AD-E1XCT3001"]),
         model: "E1XCTW3001",
         vendor: "AduroSmart",
-        description: "ERIA tunable-white candle bulb (E12)",
-        extend: [m.light({colorTemp: {range: [153, 500]}})],
+        description: "ERIA Tunable White Candelabra",
+        extend: tunableWhiteLight(),
     },
     {
-        zigbeeModel: ["ONOFFRELAY"],
-        model: "81898",
+        fingerprint: fingerprints(["AD-DL4CT3001", "AD-DL4CTW3001"]),
+        model: "AD-DL4CT3001",
         vendor: "AduroSmart",
-        description: "AduroSmart on/off relay",
-        extend: [m.onOff({powerOnBehavior: false})],
+        description: "ERIA Tunable White 4’’ Downlight",
+        extend: tunableWhiteLight(),
     },
     {
-        zigbeeModel: ["AD-BR3RGBW3001"],
-        model: "81813-V2",
+        fingerprint: fingerprints(["AD-DL6CT3001", "AD-DL6CTW3001"]),
+        model: "AD-DL6CT3001",
         vendor: "AduroSmart",
-        description: "BR30 light bulb",
-        extend: [m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+        description: "ERIA Tunable White 5/6’’ Downlight",
+        extend: tunableWhiteLight(),
     },
     {
-        fingerprint: [{modelID: "Smart Siren", manufacturerName: "AduroSmart Eria"}],
-        model: "81868",
+        fingerprint: fingerprints(["AD-DimmableLight3001"]),
+        model: "81810",
         vendor: "AduroSmart",
-        description: "Siren",
+        description: "ERIA Soft White Bulb",
+        extend: [m.light({powerOnBehavior: false})],
+    },
+    {
+        fingerprint: fingerprints(["BDP3001", "BDP3"], ["AduroSmart ERIA", "AduroSmart Eria"]),
+        model: "81855",
+        vendor: "AduroSmart",
+        description: "ERIA Dimmable Plug (EU)",
+        extend: dimmableLight(),
+    },
+    {
+        fingerprint: fingerprints(["BDP3001", "BDP3"], ["ERIA"]),
+        model: "81860",
+        vendor: "AduroSmart",
+        description: "ERIA Dimmable Plug (US)",
+        extend: dimmableLight(),
+    },
+    {
+        fingerprint: fingerprints(["Adurolight_NCC"]),
+        model: "81825",
+        vendor: "AduroSmart",
+        description: "ERIA Wireless Dimming Remote Switch",
+        extend: [adurosmart.extend.dimmerRemote()],
+    },
+    {
+        fingerprint: fingerprints(["AD-Dimmer"]),
+        model: "81849",
+        vendor: "AduroSmart",
+        description: "ERIA Built-in Dimmer",
+        extend: dimmableLight(),
+    },
+    {
+        fingerprint: fingerprints(["AD-FLMCT3001"]),
+        model: "AD-FLMCT3001",
+        vendor: "AduroSmart",
+        description: "ERIA Tunable White Filament Bulb",
+        extend: tunableWhiteLight(),
+    },
+    {
+        fingerprint: fingerprints(["DimmerM3002"]),
+        model: "81883",
+        vendor: "AduroSmart",
+        description: "ERIA Mini Built-in Dimmer",
         extend: [
-            m.battery(),
-            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
-            m.iasWarning({maxDuration: {min: 0, max: 600}}),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
-            await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
-            await endpoint.read("ssIasWd", ["maxDuration"]);
-        },
-    },
-    {
-        zigbeeModel: ["AD-CTW123001"],
-        model: "AD-CTW123001",
-        vendor: "AduroSmart",
-        description: "ERIA smart light bubl A19",
-        extend: [m.light({colorTemp: {range: [153, 500]}})],
-    },
-    {
-        fingerprint: [{modelID: "ONOFF_METER_RELAY", manufacturerName: "AduroSmart ERIA"}],
-        model: "81998",
-        vendor: "AduroSmart",
-        description: "ERIA built-in on/off relay (with power measurements)",
-        extend: [m.onOff(), m.electricityMeter({cluster: "electrical"})],
-    },
-    {
-        zigbeeModel: ["DimmerM3002"],
-        model: "81949",
-        vendor: "AduroSmart",
-        description: "ERIA built-in dimmer module (with power measurements)",
-        extend: [
-            m.light({configureReporting: true}),
-            m.electricityMeter({cluster: "electrical"}),
+            ...dimmableLight(),
+            adurosmart.extend.electricityMeter(),
             adurosmart.extend.dimmerLoadControlMode(),
             adurosmart.extend.dimmerSwitchMode(),
             adurosmart.extend.dimmerInvertSwitch(),
@@ -193,5 +111,131 @@ export const definitions: DefinitionWithExtend[] = [
             adurosmart.extend.dimmerManualDimmingStepSize(),
             adurosmart.extend.dimmerManualDimmingTime(),
         ],
+    },
+    {
+        fingerprint: fingerprints(["ONOFF_METER_RELAY"]),
+        model: "83839",
+        vendor: "AduroSmart",
+        description: "ERIA Mini Built-in On/Off Relay",
+        extend: powerMeasuringDevice(),
+    },
+    {
+        fingerprint: fingerprints(["VMS_ADUROLIGHT"], ["AduroSmart Eria"]),
+        model: "81823",
+        vendor: "AduroSmart",
+        description: "ERIA Wireless Motion Sensor",
+        extend: adurosmart.extend.motionSensor(),
+    },
+    {
+        fingerprint: fingerprints(["CSW_81909"]),
+        model: "81910",
+        vendor: "AduroSmart",
+        description: "ERIA 5-in-1 Multi Contact Sensor",
+        extend: adurosmart.extend.multiContactSensor(),
+    },
+    {
+        fingerprint: fingerprints(["VMS_ADUROLIGHT"], ["AduroSmart ERIA", "ERIA"]),
+        model: "81915",
+        vendor: "AduroSmart",
+        description: "ERIA 4-in-1 Multi Motion Sensor",
+        extend: adurosmart.extend.multiMotionSensor(),
+    },
+    {
+        fingerprint: fingerprints(["BPU3"], ["AduroSmart ERIA", "AduroSmart Eria"]),
+        model: "81856",
+        vendor: "AduroSmart",
+        description: "ERIA On/Off Smart Plug (EU)",
+        extend: onOffDevice(),
+    },
+    {
+        fingerprint: fingerprints(["BPU3"], ["ERIA"]),
+        model: "81869",
+        vendor: "AduroSmart",
+        description: "ERIA On/Off Smart Plug (US)",
+        extend: onOffDevice(),
+    },
+    {
+        fingerprint: fingerprints(["AD-SmartPlug3001"], ["AduroSmart ERIA", "AduroSmart Eria"]),
+        model: "81848",
+        vendor: "AduroSmart",
+        description: "ERIA Power Measuring Plug (EU)",
+        extend: powerMeasuringDevice(),
+    },
+    {
+        fingerprint: fingerprints(["AD-SmartPlug3001"], ["ERIA"]),
+        model: "81853",
+        vendor: "AduroSmart",
+        description: "ERIA Power Measuring Plug (US)",
+        extend: powerMeasuringDevice(),
+    },
+    {
+        fingerprint: fingerprints(["ONOFFRELAY"]),
+        model: "81898",
+        vendor: "AduroSmart",
+        description: "ERIA Built-in On/Off Relay",
+        extend: onOffDevice(),
+    },
+    {
+        fingerprint: fingerprints(["AD-RGBW3001", "AD-RGBWH3001", "AD-BR3RGBW3001"]),
+        model: "81809/81813",
+        vendor: "AduroSmart",
+        description: "ERIA Colors & White Bulb",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["AD-E14RGBW3001"]),
+        model: "81895",
+        vendor: "AduroSmart",
+        description: "ERIA Colors & White Candelabra",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["AD-DL4RGBW3001"]),
+        model: "AD-DL4RGBW3001",
+        vendor: "AduroSmart",
+        description: "ERIA Colors & White 4’’ Downlight",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["AD-DL6RGBW3001"]),
+        model: "AD-DL6RGBW3001",
+        vendor: "AduroSmart",
+        description: "ERIA Colors & White 5/6’’ Downlight",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["Extended Color WS Strip V1.0"]),
+        model: "Extended Color WS Strip V1.0",
+        vendor: "AduroSmart",
+        description: "ERIA Sync Gaming LED Lightstrip",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["AD-GU10RGB3001", "AD-GU10RGBW3001"]),
+        model: "AD-GU10RGB3001",
+        vendor: "AduroSmart",
+        description: "ERIA Colors & White Spotlight",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["Extended Color LED Strip V1.0"]),
+        model: "81863",
+        vendor: "AduroSmart",
+        description: "ERIA Extended Colors LED Lightstrip",
+        extend: colorLight(),
+    },
+    {
+        fingerprint: fingerprints(["ADUROLIGHT_CSC"]),
+        model: "15090054",
+        vendor: "AduroSmart",
+        description: "ERIA Wireless Scene Remote Switch",
+        extend: [adurosmart.extend.sceneRemote()],
+    },
+    {
+        fingerprint: fingerprints(["Smart Siren"]),
+        model: "81868",
+        vendor: "AduroSmart",
+        description: "ERIA Plug-in Siren",
+        extend: adurosmart.extend.siren(),
     },
 ];
