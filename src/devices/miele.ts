@@ -245,7 +245,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         model: "KM6839",
         vendor: "Miele",
-        description: "KM6839 induction hob",
+        description: "Induction hob",
         fromZigbee: [fzLocal.mieleFD02],
         toZigbee: [],
         exposes: [
