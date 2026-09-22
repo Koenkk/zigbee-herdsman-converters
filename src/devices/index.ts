@@ -203,6 +203,7 @@ import {definitions as lutron} from "./lutron";
 import {definitions as lux} from "./lux";
 import {definitions as lytko} from "./lytko";
 import {definitions as mElec} from "./m_elec";
+import {definitions as makediy} from "./makediy";
 import {definitions as makegood} from "./makegood";
 import {definitions as manhot} from "./manhot";
 import {definitions as matcallBv} from "./matcall_bv";
@@ -597,6 +598,7 @@ const definitions: DefinitionWithExtend[] = [
     ...lux,
     ...lytko,
     ...mElec,
+    ...makediy,
     ...makegood,
     ...matcallBv,
     ...mazda,
