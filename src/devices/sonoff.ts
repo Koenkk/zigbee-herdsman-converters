@@ -12020,7 +12020,6 @@ export const definitions: DefinitionWithExtend[] = [
                 unit: "hPa",
                 scale: 100,
                 precision: 2,
-                zigbeeCommandOptions: {manufacturerCode: 0x1286},
             }),
             sonoffExtend.temperatureHumidityCalculatedValues(),
             m.numeric<"customClusterEwelink", SonoffSnzb02m>({
