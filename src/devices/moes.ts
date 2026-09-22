@@ -644,7 +644,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE284_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
         model: "SFL02-Z-2",
         vendor: "Moes",
         description: "Star feather smart switch 2 gangs",
@@ -1843,11 +1843,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
-                [
-                    11,
-                    "motor_direction",
-                    {from: (v) => (v === 1 || v === "back" || v === "reversed" ? "reversed" : "normal"), to: (v) => (v === "reversed" ? 1 : 0)},
-                ],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },

@@ -367,6 +367,11 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 modelID: "RGBWW",
                 manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5401",
+            },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
                 softwareBuildID: "PIIC5405",
             },
         ],
