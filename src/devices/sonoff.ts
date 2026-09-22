@@ -12347,9 +12347,26 @@ export const definitions: DefinitionWithExtend[] = [
             if (firmwareSupportFeaturesVersion(device, "1.0.5", "BASIC-ZB1GSP", "lower")) {
                 await reporting.onOff(endpoint, {min: 0, max: 65000, change: 1});
             }
+            if (firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")) {
+                await endpoint.read<"customClusterEwelink", SonoffEwelink>(
+                    "customClusterEwelink",
+                    ["outputEnergyToday", "outputEnergyMonth", "totalOutputEnergyConsumption"],
+                    defaultResponseOptions,
+                );
+            }
             await endpoint.read<"customClusterEwelink", SonoffEwelink>(
                 "customClusterEwelink",
-                ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],
+                [
+                    "acCurrentCurrentValue",
+                    "acCurrentVoltageValue",
+                    "acCurrentPowerValue",
+                    0x7003,
+                    "outlet_control_protect",
+                    "totalEnergyConsumption",
+                    "energyToday",
+                    "energyMonth",
+                    "energyYesterday",
+                ],
                 defaultResponseOptions,
             );
             await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
