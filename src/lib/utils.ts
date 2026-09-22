@@ -564,7 +564,6 @@ export function attachOutputCluster(device: Zh.Device, endpoint: Zh.Endpoint, cl
 
     if (!endpoint.outputClusters.includes(clusterId)) {
         endpoint.outputClusters.push(clusterId);
-        device.save();
     }
 }
 
