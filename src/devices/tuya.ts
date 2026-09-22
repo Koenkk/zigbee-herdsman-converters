@@ -16281,11 +16281,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_n8dljorx"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_n8dljorx", "_TZE284_wpxq7vnb"]),
         model: "ZG-102Z",
         vendor: "Tuya",
         description: "Door sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        // _TZE284_wpxq7vnb does not push datapoint reports spontaneously after pairing, only after
+        // an explicit dataQuery. Harmless no-op for variants that already report on their own.
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [e.contact(), e.battery()],
         meta: {
             tuyaDatapoints: [
@@ -31231,25 +31233,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [7, "children_lock", ts0601Wsek35umChildrenLockConverter],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_wpxq7vnb"]),
-        model: "TS0601_contact_sensor_2",
-        vendor: "Tuya",
-        description: "Door/window contact sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
-        exposes: [e.contact(), e.battery()],
-        meta: {
-            // Device does not push datapoint reports spontaneously, only after an explicit dataQuery
-            // (handled by queryOnConfigure above). Without it the device stays permanently unsupported.
-            // Datapoints 102 and 104 also report live boolean values in sync with the contact but their
-            // meaning could not be determined (not exposed/mapped); the advertised siren/alarm feature
-            // is not implemented, its datapoints are unknown and it may be Tuya-app/cloud-only.
-            tuyaDatapoints: [
-                [1, "contact", tuya.valueConverter.trueFalseInvert],
-                [2, "battery", tuya.valueConverter.raw],
             ],
         },
     },
