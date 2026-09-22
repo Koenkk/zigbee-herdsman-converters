@@ -10790,6 +10790,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.overloadProtection(4000, 17),
         ],
@@ -10917,6 +10918,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.overloadProtection(3250, 14),
         ],
@@ -12420,6 +12422,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "ac_current_max_overload_enable",
@@ -13521,6 +13524,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "When enabled, the device turns off immediately when the configured threshold is reached. After protection is triggered, it can only be restored manually and cannot be turned on via Z2M.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "ac_current_max_overload_enable",
