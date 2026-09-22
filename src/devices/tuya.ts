@@ -7531,6 +7531,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("ECODO", "ECD-48V-MGT", "Smart Magtrac 12 W magnetic track light, 2700-6500K", ["_TZ3210_tlwlmwm6"]),
             tuya.whitelabel("Mercator Ikuü", "SMCL01-ZB", "Ikon ceiling light", ["_TZ3000_6dwfra5l"]),
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
+            tuya.whitelabel("LUUMR", "10010339", "Smart LED G9 2,5W CCT Clear", ["_TZ3210_tqwyiitv"]),
             tuya.whitelabel("ECODO", "ECD-SS12", "Sunset smart downlight 12 W, 1800-5700K", ["_TZ3210_rnj5wxxg"]),
         ],
         extend: [
