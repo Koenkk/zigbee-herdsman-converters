@@ -8,6 +8,7 @@ import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import * as zemismart from "../lib/zemismart";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -258,6 +259,20 @@ const fzLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_ft7qqpx3"}],
+        model: "ZPS-Z1",
+        vendor: "Zemismart",
+        description: "24 GHz mmWave presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [{...tuya.tz.datapoints, convertGet: zemismart.zpsZ1Get}],
+        meta: {
+            // Repeated transaction IDs must still satisfy pending setting readbacks.
+            publishDuplicateTransaction: true,
+            tuyaDatapoints: zemismart.zpsZ1Datapoints,
+        },
+        extend: [zemismart.zpsZ1()],
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1vxgqfba", "_TZE200_wdfurkoa", "_TZE200_sq6affpe", "_TZE284_wdfurkoa", "_TZE284_6fopvb6v"]),
         model: "ZM25R1",
