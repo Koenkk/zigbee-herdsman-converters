@@ -1,4 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
+import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as reporting from "../lib/reporting";
@@ -202,6 +203,19 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
 // Keys for Philips2-specific features not handled by standard light converters.
 const philips2Keys = ["effect_speed", "gradient_scale", "gradient_offset", "gradient_style", "effect_color"];
 
+const philips2Cluster: Cluster = {
+    name: "manuSpecificPhilips2",
+    ID: 0xfc03,
+    manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
+    attributes: {
+        state: {name: "state", ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
+    },
+    commands: {
+        multiColor: {name: "multiColor", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
+    },
+    commandsResponse: {},
+};
+
 const philipsModernExtend = {
     addPhilipsGenBasicCluster: () =>
         modernExtend.deviceAddCustomCluster("genBasic", {
@@ -280,19 +294,7 @@ const philipsModernExtend = {
                 },
             },
         }),
-    addManuSpecificPhilips2Cluster: () =>
-        modernExtend.deviceAddCustomCluster("manuSpecificPhilips2", {
-            name: "manuSpecificPhilips2",
-            ID: 0xfc03,
-            manufacturerCode: Zcl.ManufacturerCode.SIGNIFY_NETHERLANDS_B_V,
-            attributes: {
-                state: {name: "state", ID: 0x0002, type: Zcl.DataType.OCTET_STR, write: true},
-            },
-            commands: {
-                multiColor: {name: "multiColor", ID: 0x00, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.BUFFER}]},
-            },
-            commandsResponse: {},
-        }),
+    addManuSpecificPhilips2Cluster: () => modernExtend.deviceAddCustomCluster("manuSpecificPhilips2", philips2Cluster),
     addManuSpecificPhilips3Cluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificPhilips3", {
             name: "manuSpecificPhilips3",
@@ -962,9 +964,12 @@ const philipsTz = {
             // regardless of whether the active effect is a ZCL or Hue effect.
             if (lower === "none" || lower === "stop_hue_effect" || lower === "finish_effect" || lower === "stop_effect") {
                 // Stop Hue-specific effects via manuSpecificPhilips2
-                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", {
-                    data: Buffer.from(hueEffects.stop_hue_effect, "hex"),
-                });
+                const payload = {data: Buffer.from(hueEffects.stop_hue_effect, "hex")};
+                if (utils.isGroup(entity)) {
+                    await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>(philips2Cluster, "multiColor", payload);
+                } else {
+                    await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
+                }
                 // Also send the ZCL effect stop for standard effects (blink, breathe, etc.)
                 if (lower === "finish_effect" || lower === "stop_effect") {
                     try {
@@ -1000,20 +1005,26 @@ const philipsTz = {
                 }
 
                 const payload = {data: Buffer.from(EncodeManuSpecificPhilips2(data))};
-                await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
+                if (utils.isGroup(entity)) {
+                    await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>(philips2Cluster, "multiColor", payload);
+                } else {
+                    await entity.command<"manuSpecificPhilips2", "multiColor", ManuSpecificPhilips2>("manuSpecificPhilips2", "multiColor", payload);
+                }
                 const state: KeyValueAny = {effect: lower};
                 if (data.effectSpeed !== undefined) state.effect_speed = data.effectSpeed;
 
-                // Effects modulate brightness internally (e.g. candle dims to 30-60%).
-                // Read state after a short delay so the Fz converter picks up the
-                // actual brightness the device settled on.
-                setTimeout(async () => {
-                    try {
-                        await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
-                    } catch (_e) {
-                        // Ignore read failures — best-effort sync
-                    }
-                }, 1000).unref();
+                if (utils.isEndpoint(entity)) {
+                    // Effects modulate brightness internally (e.g. candle dims to 30-60%).
+                    // Read state after a short delay so the Fz converter picks up the
+                    // actual brightness the device settled on.
+                    setTimeout(async () => {
+                        try {
+                            await entity.read<"manuSpecificPhilips2", ManuSpecificPhilips2>("manuSpecificPhilips2", ["state"]);
+                        } catch (_e) {
+                            // Ignore read failures — best-effort sync
+                        }
+                    }, 1000).unref();
+                }
 
                 return {state};
             }
