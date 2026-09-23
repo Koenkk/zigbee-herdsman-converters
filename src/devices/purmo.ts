@@ -12,8 +12,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Yali Parada Plus",
         vendor: "Purmo/Radson",
         description: "Electric oil-filled radiator",
+        whiteLabel: [
+            {vendor: "Purmo/Radson", model: "Yali Digital Plus"},
+            {vendor: "LVI", model: "Yali Digital Plus"},
+        ],
         extend: [],
-        fromZigbee: [fz.thermostat],
+        fromZigbee: [fz.thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_occupancy,
             tz.thermostat_local_temperature,
@@ -24,6 +28,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
             tz.thermostat_max_heat_setpoint_limit,
             tz.thermostat_local_temperature_calibration,
+            tz.thermostat_keypad_lockout,
         ],
         meta: {},
         exposes: [
@@ -37,6 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withRunningState(["idle", "heat"])
                 .withRunningMode(["off", "heat"]),
             e.max_heat_setpoint_limit(5, 30, 0.5),
+            e.keypad_lockout(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
@@ -51,6 +57,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.thermostatUnoccupiedHeatingSetpoint(endpoint);
             await reporting.thermostatOccupancy(endpoint);
             await reporting.thermostatTemperatureCalibration(endpoint);
+            // Read once so the initial keypad lockout state is populated.
+            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout"]);
 
             device.powerSource = "Mains (single phase)";
             device.save();
