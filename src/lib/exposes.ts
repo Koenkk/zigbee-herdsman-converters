@@ -837,6 +837,11 @@ export const options = {
         new Numeric(`${name}_calibration`, access.SET).withDescription(
             `Calibrates the ${name} value (${type} offset), takes into effect on next report of device.`,
         ),
+    phase_mapping: () =>
+        new Enum("phase_mapping", access.SET, ["abc", "cba"])
+            .withLabel("Phase mapping")
+            .withDescription("Maps Tuya DP6/DP7/DP8 to phases. Default abc; select cba only for a verified device variant.")
+            .withCategory("config"),
     precision: (name: string) =>
         new Numeric(`${name}_precision`, access.SET)
             .withValueMin(0)
