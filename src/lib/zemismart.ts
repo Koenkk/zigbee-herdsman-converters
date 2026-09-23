@@ -1,6 +1,7 @@
 import * as exposes from "./exposes";
 import {logger} from "./logger";
-import type {DefinitionExposesFunction, Expose, Fz, KeyValue, ModernExtend, Tuya, Tz, Zh} from "./types";
+import * as tuya from "./tuya";
+import type {DefinitionExposesFunction, Expose, KeyValue, ModernExtend, Tuya, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
 const e = exposes.presets;
@@ -80,15 +81,23 @@ function stopKeepAlive(state: Runtime) {
 }
 
 async function sendFrame(endpoint: Zh.Endpoint, dp: number, datatype: number, data: Buffer | number[]) {
-    await endpoint.command(
-        TUYA_CLUSTER,
-        "dataRequest",
-        {
-            seq: Math.round(Math.random() * 0xffff),
-            dpValues: [{dp, datatype, data: Buffer.from(data)}],
-        },
-        {disableDefaultResponse: true},
-    );
+    const buffer = Buffer.from(data);
+    switch (datatype) {
+        case DT.BOOL:
+            await tuya.sendDataPointBool(endpoint, dp, buffer[0] === 1);
+            break;
+        case DT.ENUM:
+            await tuya.sendDataPointEnum(endpoint, dp, buffer[0]);
+            break;
+        case DT.VALUE:
+            await tuya.sendDataPointValue(endpoint, dp, buffer.readUInt32BE(0));
+            break;
+        case DT.RAW:
+            await tuya.sendDataPointRaw(endpoint, dp, buffer);
+            break;
+        default:
+            throw new Error(`[ZPS-Z1] Unsupported datatype: ${datatype}`);
+    }
 }
 
 async function sendDP(endpoint: Zh.Endpoint, dp: number, datatype: number, data: Buffer | number[], state: Runtime) {
@@ -338,168 +347,203 @@ function validatedData(dpv: Tuya.DpValue) {
     return buf;
 }
 
-const fzConverter: Fz.Converter<"manuSpecificTuya", undefined, ["commandDataResponse", "commandDataReport"]> = {
-    cluster: TUYA_CLUSTER,
-    type: ["commandDataResponse", "commandDataReport"],
-    convert(model, msg, publish, options, meta) {
-        const result: KeyValue = {};
-        if (!Array.isArray(msg.data?.dpValues)) return result;
-        for (const dpv of msg.data.dpValues) {
-            const buf = validatedData(dpv);
-            if (!buf) continue;
+// Standard Tuya dispatch decodes the value first. Inspect the corresponding raw
+// frame as well so malformed lengths/types cannot publish state or confirm writes.
+function report(dp: number, decode: (data: Buffer) => KeyValue): Tuya.ValueConverterSingle {
+    return {
+        from: (value, meta, options, publish, msg) => {
+            const entry = msg.data.dpValues.find((candidate: Tuya.DpValue) => {
+                if (candidate.dp !== dp) return false;
+                const data = validatedData(candidate);
+                if (!data) return false;
+                switch (candidate.datatype) {
+                    case DT.RAW:
+                        return candidate.data === value;
+                    case DT.BOOL:
+                        return (data[0] === 1) === value;
+                    case DT.ENUM:
+                        return data[0] === value;
+                    case DT.VALUE:
+                        return tuya.convertBufferToNumber(data) === value;
+                }
+                return false;
+            });
+            if (!entry) return {};
+            const data = Buffer.from(entry.data);
             const state = getRuntime(meta.device);
             for (const waiter of [...state.waiters]) {
-                if (waiter.dp === dpv.dp && waiter.matches(buf)) waiter.finish(undefined, buf);
+                if (waiter.dp === dp && waiter.matches(data)) waiter.finish(undefined, data);
             }
-            switch (dpv.dp) {
-                case DP.PRESENCE_STATE:
-                    result.presence_state = ["absence", "presence", "sensor_close"][buf[0]];
-                    // The protocol does not define sensor_close as an absence measurement.
-                    if (buf[0] !== 2) result.occupancy = buf[0] === 1;
-                    break;
-                case DP.DETECTION_RANGE:
-                    result.detection_range = buf.readUInt32BE(0);
-                    break;
-                case DP.ILLUMINANCE:
-                    result.illuminance = buf.readUInt32BE(0);
-                    break;
-                case DP.AI_SELF_LEARNING:
-                    result.auto_calibration_status = ["standby", "start", "learning", "success", "fail", "cancel"][buf[0]];
-                    break;
-                case DP.HEARTBEAT_ENABLE:
-                    // Passive echoes are not stream state and may belong to an older command.
-                    // They must not cancel the current local heartbeat session.
-                    break;
-                case DP.SENSITIVITY_PRESET:
-                    result.sensitivity_preset = ["high", "medium", "low", "custom"][buf[0]];
-                    break;
-                case DP.ZONE_MAP:
-                    for (let i = 0; i < ZONE_COUNT; i++) result[`zone_${i + 1}_active`] = buf[i] !== 0;
-                    break;
-                case DP.NO_PERSON_TIME:
-                    result.presence_clear_cooldown = buf.readUInt32BE(0);
-                    break;
-                case DP.INDICATOR:
-                    result.led_indicator = buf[0] === 1;
-                    break;
-                case DP.ENERGY_VALUE:
-                case DP.ENERGY_THRESHOLD: {
-                    const field = dpv.dp === DP.ENERGY_VALUE ? "energy" : "threshold";
-                    for (let i = 0; i < ZONE_COUNT; i++) {
-                        result[`zone_${i + 1}_motion_${field}`] = buf[i];
-                        result[`zone_${i + 1}_presence_${field}`] = buf[ZONE_COUNT + i];
-                    }
-                    break;
+            return decode(data);
+        },
+    };
+}
+
+function setting(dp: number, datatype: number, encode: (value: unknown) => Buffer | number[], confirmed = false): Tuya.ValueConverterSingle {
+    return {
+        to: async (value, meta) => {
+            const data = encode(value);
+            const state = getRuntime(meta.device);
+            const endpoint = meta.device.getEndpoint(1);
+            await enqueue(state, async () => {
+                if (confirmed) {
+                    await writeConfirmed(endpoint, state, dp, datatype, data);
+                } else {
+                    await sendDP(endpoint, dp, datatype, data, state);
+                    await queryState(endpoint, state, true);
                 }
+            });
+            // Returning undefined suppresses the standard dispatcher's extra write.
+        },
+    };
+}
+
+function arraySetting(dp: number, index: number, key: string, zone = false): Tuya.ValueConverterSingle {
+    return {
+        to: async (value, meta) => {
+            const requested = zone ? booleanValue(key, value) : numberValue(key, value, 0, 255);
+            const state = getRuntime(meta.device);
+            const endpoint = meta.device.getEndpoint(1);
+            await enqueue(state, async () => {
+                // Read the complete array immediately before editing one byte. Preserve
+                // all other bytes, including unmasked zone modes 1 and 2.
+                const data = await readRaw(endpoint, state, dp);
+                if (zone ? (data[index] !== 0) === requested : data[index] === requested) return;
+                data[index] = zone ? (requested ? data[index] || 1 : 0) : (requested as number);
+                const matches = zone ? (actual: Buffer) => actual.every((v, i) => (v !== 0) === (data[i] !== 0)) : undefined;
+                await writeConfirmed(endpoint, state, dp, DT.RAW, data, matches);
+            });
+        },
+    };
+}
+
+const energyCommand: Tuya.ValueConverterSingle = {
+    to: async (value, meta) => {
+        const enabled = booleanValue("energy_streaming", value);
+        const state = getRuntime(meta.device);
+        const endpoint = meta.device.getEndpoint(1);
+        // A new request supersedes an older ON, including one awaiting its ACK.
+        stopKeepAlive(state);
+        state.energyRequest = (state.energyRequest || 0) + 1;
+        const requestedEnergy = state.energyRequest;
+        await enqueue(state, async () => {
+            if (!enabled) stopKeepAlive(state);
+            await state.energyPending.catch(() => {});
+            try {
+                await sendDP(endpoint, DP.HEARTBEAT_ENABLE, DT.BOOL, [enabled ? 1 : 0], state);
+            } catch (error) {
+                // Keep the failed-ON safety OFF inside this queue entry so it cannot
+                // follow a later ON request. Stopped runtimes use lifecycle cleanup.
+                if (enabled && !state.stopped) {
+                    try {
+                        await sendDP(endpoint, DP.HEARTBEAT_ENABLE, DT.BOOL, [0], state);
+                    } catch (cleanupError) {
+                        logger.warning(`Energy reporting failed-ON cleanup OFF failed: ${String(cleanupError)}`, NS);
+                    }
+                }
+                throw error;
             }
-        }
-        return result;
+            if (enabled && !state.stopped && state.energyRequest === requestedEnergy) startKeepAlive(endpoint, state);
+        });
     },
 };
 
-const ZONE_ACTIVE_KEYS = Array.from({length: ZONE_COUNT}, (_, i) => `zone_${i + 1}_active`);
-const ZONE_MOTION_THR_KEYS = Array.from({length: ZONE_COUNT}, (_, i) => `zone_${i + 1}_motion_threshold`);
-const ZONE_PRESENCE_THR_KEYS = Array.from({length: ZONE_COUNT}, (_, i) => `zone_${i + 1}_presence_threshold`);
-const tzConverter: Tz.Converter = {
-    key: [
-        "detection_range",
-        "sensitivity_preset",
-        "presence_clear_cooldown",
-        "led_indicator",
-        "energy_streaming",
-        "auto_calibration",
-        ...ZONE_ACTIVE_KEYS,
-        ...ZONE_MOTION_THR_KEYS,
-        ...ZONE_PRESENCE_THR_KEYS,
-    ],
-    async convertSet(entity, key, value, meta) {
-        // Validate before querying or writing anything to a real device.
-        let dp: number;
-        let datatype: number;
-        let data: Buffer | number[];
-        const zone = ZONE_ACTIVE_KEYS.includes(key);
-        const motion = ZONE_MOTION_THR_KEYS.includes(key);
-        const presence = ZONE_PRESENCE_THR_KEYS.includes(key);
-        if (key === "detection_range") {
-            dp = DP.DETECTION_RANGE;
-            datatype = DT.VALUE;
-            data = uint32(numberValue(key, value, 0, 1500, 50));
-        } else if (key === "presence_clear_cooldown") {
-            dp = DP.NO_PERSON_TIME;
-            datatype = DT.VALUE;
-            data = uint32(numberValue(key, value, 2, 60));
-        } else if (key === "sensitivity_preset") {
-            dp = DP.SENSITIVITY_PRESET;
-            datatype = DT.ENUM;
-            data = [enumValue(key, value, {high: 0, medium: 1, low: 2, custom: 3})];
-        } else if (key === "auto_calibration") {
-            dp = DP.AI_SELF_LEARNING;
-            datatype = DT.ENUM;
-            data = [enumValue(key, value, {start: 1, cancel: 5})];
-        } else if (key === "led_indicator" || key === "energy_streaming" || zone) {
-            value = booleanValue(key, value);
-            dp = zone ? DP.ZONE_MAP : key === "led_indicator" ? DP.INDICATOR : DP.HEARTBEAT_ENABLE;
-            datatype = zone ? DT.RAW : DT.BOOL;
-            data = [value ? 1 : 0];
-        } else if (motion || presence) {
-            value = numberValue(key, value, 0, 255);
-            dp = DP.ENERGY_THRESHOLD;
-            datatype = DT.RAW;
-        } else {
-            throw new Error(`[ZPS-Z1] Unsupported key: ${key}`);
-        }
+function pairedValues(data: Buffer, field: string): KeyValue {
+    const result: KeyValue = {};
+    for (let i = 0; i < ZONE_COUNT; i++) {
+        result[`zone_${i + 1}_motion_${field}`] = data[i];
+        result[`zone_${i + 1}_presence_${field}`] = data[ZONE_COUNT + i];
+    }
+    return result;
+}
 
-        const state = getRuntime(meta.device);
-        const endpoint = meta.device.getEndpoint(1);
-        // New requests supersede an older ON immediately, including one awaiting its ACK.
-        if (key === "energy_streaming") {
-            stopKeepAlive(state);
-            state.energyRequest = (state.energyRequest || 0) + 1;
-        }
-        const requestedEnergy = state.energyRequest;
-        await enqueue(state, async () => {
-            if (key === "detection_range") {
-                await writeConfirmed(endpoint, state, dp, datatype, data);
-            } else if (zone || motion || presence) {
-                // Fresh complete raw bytes preserve other zones, including mode 2 and rounding bits.
-                data = await readRaw(endpoint, state, dp);
-                const index = Number(key.split("_")[1]) - 1;
-                if (zone ? (data[index] !== 0) === value : data[index + (presence ? ZONE_COUNT : 0)] === value) return;
-                data[index + (presence ? ZONE_COUNT : 0)] = zone ? (value ? data[index] || 1 : 0) : (value as number);
-                const matches = zone ? (actual: Buffer) => actual.every((v, i) => (v !== 0) === (data[i] !== 0)) : undefined;
-                await writeConfirmed(endpoint, state, dp, datatype, data, matches);
-                // The supplied protocol does not specify an automatic preset change.
-            } else if (key === "energy_streaming") {
-                if (!value) stopKeepAlive(state);
-                await state.energyPending.catch(() => {});
-                try {
-                    await sendDP(endpoint, dp, datatype, data, state);
-                } catch (error) {
-                    // ON may have reached the MCU despite a failed ACK. Keep its safety
-                    // OFF inside this queue entry so it cannot follow a later ON request.
-                    if (value && !state.stopped) {
-                        try {
-                            await sendDP(endpoint, DP.HEARTBEAT_ENABLE, DT.BOOL, [0], state);
-                        } catch (cleanupError) {
-                            logger.warning(`Energy reporting failed-ON cleanup OFF failed: ${String(cleanupError)}`, NS);
-                        }
-                    }
-                    throw error;
-                }
-                if (value && !state.stopped && state.energyRequest === requestedEnergy) startKeepAlive(endpoint, state);
-                // DP104 only controls the MCU reporting heartbeat; dataQuery is not a readback for it.
-            } else {
-                await sendDP(endpoint, dp, datatype, data, state);
-                await queryState(endpoint, state, true);
-            }
-            // No optimistic state: fromZigbee publishes only device-confirmed values.
-        });
-    },
-    async convertGet(entity, key, meta) {
-        if (key === "energy_streaming") throw new Error("[ZPS-Z1] energy_streaming is a write-only heartbeat request, not a queryable state");
-        const state = getRuntime(meta.device);
-        await queryState(meta.device.getEndpoint(1), state);
-    },
+// null-key entries handle reports first; named entries provide write mappings for
+// the same DP. All writes publish only actual reports, never optimistic state.
+export const zpsZ1Datapoints: Tuya.MetaTuyaDataPoints = [
+    [
+        DP.PRESENCE_STATE,
+        null,
+        report(DP.PRESENCE_STATE, (data) => {
+            const result: KeyValue = {presence_state: ["absence", "presence", "sensor_close"][data[0]]};
+            if (data[0] !== 2) result.occupancy = data[0] === 1;
+            return result;
+        }),
+    ],
+    [DP.DETECTION_RANGE, null, report(DP.DETECTION_RANGE, (data) => ({detection_range: data.readUInt32BE(0)}))],
+    [DP.ILLUMINANCE, null, report(DP.ILLUMINANCE, (data) => ({illuminance: data.readUInt32BE(0)}))],
+    [DP.ENERGY_VALUE, null, report(DP.ENERGY_VALUE, (data) => pairedValues(data, "energy"))],
+    [
+        DP.AI_SELF_LEARNING,
+        null,
+        report(DP.AI_SELF_LEARNING, (data) => ({
+            auto_calibration_status: ["standby", "start", "learning", "success", "fail", "cancel"][data[0]],
+        })),
+    ],
+    // Passive DP104 echoes do not change local timers or claim a readable state.
+    [DP.HEARTBEAT_ENABLE, null, {from: () => ({})}],
+    [DP.SENSITIVITY_PRESET, null, report(DP.SENSITIVITY_PRESET, (data) => ({sensitivity_preset: ["high", "medium", "low", "custom"][data[0]]}))],
+    [
+        DP.ZONE_MAP,
+        null,
+        report(DP.ZONE_MAP, (data) => Object.fromEntries(Array.from(data, (value, index) => [`zone_${index + 1}_active`, value !== 0]))),
+    ],
+    [DP.NO_PERSON_TIME, null, report(DP.NO_PERSON_TIME, (data) => ({presence_clear_cooldown: data.readUInt32BE(0)}))],
+    [DP.INDICATOR, null, report(DP.INDICATOR, (data) => ({led_indicator: data[0] === 1}))],
+    [DP.ENERGY_THRESHOLD, null, report(DP.ENERGY_THRESHOLD, (data) => pairedValues(data, "threshold"))],
+    [
+        DP.DETECTION_RANGE,
+        "detection_range",
+        setting(DP.DETECTION_RANGE, DT.VALUE, (value) => uint32(numberValue("detection_range", value, 0, 1500, 50)), true),
+        {optimistic: false},
+    ],
+    [
+        DP.NO_PERSON_TIME,
+        "presence_clear_cooldown",
+        setting(DP.NO_PERSON_TIME, DT.VALUE, (value) => uint32(numberValue("presence_clear_cooldown", value, 2, 60))),
+        {optimistic: false},
+    ],
+    [
+        DP.SENSITIVITY_PRESET,
+        "sensitivity_preset",
+        setting(DP.SENSITIVITY_PRESET, DT.ENUM, (value) => [enumValue("sensitivity_preset", value, {high: 0, medium: 1, low: 2, custom: 3})]),
+        {optimistic: false},
+    ],
+    [
+        DP.AI_SELF_LEARNING,
+        "auto_calibration",
+        setting(DP.AI_SELF_LEARNING, DT.ENUM, (value) => [enumValue("auto_calibration", value, {start: 1, cancel: 5})]),
+        {optimistic: false},
+    ],
+    [DP.INDICATOR, "led_indicator", setting(DP.INDICATOR, DT.BOOL, (value) => [booleanValue("led_indicator", value) ? 1 : 0]), {optimistic: false}],
+    [DP.HEARTBEAT_ENABLE, "energy_streaming", energyCommand, {optimistic: false}],
+    ...Array.from(
+        {length: ZONE_COUNT},
+        (_, index): Tuya.MetaTuyaDataPointsSingle => [
+            DP.ZONE_MAP,
+            `zone_${index + 1}_active`,
+            arraySetting(DP.ZONE_MAP, index, `zone_${index + 1}_active`, true),
+            {optimistic: false},
+        ],
+    ),
+    ...Array.from({length: ZONE_COUNT}, (_, index): Tuya.MetaTuyaDataPointsSingle[] => [
+        [
+            DP.ENERGY_THRESHOLD,
+            `zone_${index + 1}_motion_threshold`,
+            arraySetting(DP.ENERGY_THRESHOLD, index, `zone_${index + 1}_motion_threshold`),
+            {optimistic: false},
+        ],
+        [
+            DP.ENERGY_THRESHOLD,
+            `zone_${index + 1}_presence_threshold`,
+            arraySetting(DP.ENERGY_THRESHOLD, ZONE_COUNT + index, `zone_${index + 1}_presence_threshold`),
+            {optimistic: false},
+        ],
+    ]).flat(),
+];
+
+export const zpsZ1Get: Tz.Converter["convertGet"] = async (entity, key, meta) => {
+    if (key === "energy_streaming") throw new Error("[ZPS-Z1] energy_streaming is a write-only heartbeat request, not a queryable state");
+    await queryState(meta.device.getEndpoint(1), getRuntime(meta.device));
 };
 
 // ─── Expose builders ──────────────────────────────────────────────────────────
@@ -663,8 +707,6 @@ export function zpsZ1(): ModernExtend {
     };
     return {
         isModernExtend: true,
-        fromZigbee: [fzConverter],
-        toZigbee: [tzConverter],
         onEvent: [
             async (event) => {
                 if (event.type !== "stop") return;

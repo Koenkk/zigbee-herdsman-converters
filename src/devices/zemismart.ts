@@ -264,6 +264,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZPS-Z1",
         vendor: "Zemismart",
         description: "24 GHz mmWave presence sensor",
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [{...tuya.tz.datapoints, convertGet: zemismart.zpsZ1Get}],
+        meta: {
+            // Repeated transaction IDs must still satisfy pending setting readbacks.
+            publishDuplicateTransaction: true,
+            tuyaDatapoints: zemismart.zpsZ1Datapoints,
+        },
         extend: [zemismart.zpsZ1()],
     },
     {
