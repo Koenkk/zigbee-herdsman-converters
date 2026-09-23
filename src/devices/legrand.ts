@@ -838,4 +838,16 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genScenes"]);
         },
     },
+    {
+    zigbeeModel: ["Hospitality on off plug\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
+    model: "WNP10",
+    vendor: "Legrand",
+    description: "Smart plug-in switch with Netatmo",
+    ota: true,
+    fromZigbee: [fz.on_off, fzLegrand.binary_input_on_off, fzLegrand.cluster_fc01],
+    toZigbee: [tz.on_off, tzLegrand.led_mode],
+    extend: [legrandExtend.addLegrandDevicesCluster(), m.identify(), m.commandsOnOff()],
+    exposes: [e.switch(), eLegrand.ledInDark(), eLegrand.ledIfOn()],
+    configure: async (device, coordinatorEndpoint) => { /* binds + genBinaryInput reporting */ },
+    },
 ];
