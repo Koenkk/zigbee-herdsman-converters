@@ -25992,6 +25992,100 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0202", ["_TZD200_sjjp9bti"]),
+        zigbeeModel: ["HS208Z"],
+        model: "HS208Z",
+        vendor: "HYSYIOT",
+        description: "PIR 24Ghz human presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [3, "battery_state", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
+                [4, "battery", tuya.valueConverter.raw],
+                [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
+                [11, "illuminance", tuya.valueConverter.raw],
+                [12, "pir_delay", tuya.valueConverter.raw],
+                [101, "light_sensor_time", tuya.valueConverter.raw],
+                [
+                    102,
+                    "vibration",
+                    {
+                        from: (v) => v === 1 || v === true,
+                        to: (v) => v,
+                    },
+                ],
+                [103, "detection_distance", tuya.valueConverter.raw],
+                [104, "static_sensitivity", tuya.valueConverter.raw],
+
+                [
+                    105,
+                    "motion_state",
+                    tuya.valueConverterBasic.lookup({
+                        none: 0,
+                        move: 1,
+                        "Micro-move": 2,
+                        static: 3,
+                    }),
+                ],
+                [106, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [107, "indicator", tuya.valueConverter.onOff],
+                [108, "humidity_calibration", tuya.valueConverter.raw],
+                [109, "temperature_unit", tuya.valueConverter.temperatureUnitEnum],
+                [110, "temperature", tuya.valueConverter.divideBy10],
+                [111, "humidity", tuya.valueConverter.raw],
+                [112, "vibration_sensitivity", tuya.valueConverter.raw],
+                [113, "vibration_delay", tuya.valueConverter.raw],
+                [
+                    122,
+                    "motion_detection_mode",
+                    tuya.valueConverterBasic.lookup({
+                        pir_and_radar: tuya.enum(0),
+                        pir_or_radar: tuya.enum(1),
+                        only_radar: tuya.enum(2),
+                    }),
+                ],
+                [123, "detection_sensitivity", tuya.valueConverter.raw],
+            ],
+        },
+
+        exposes: [
+            e.occupancy(),
+            e.enum("motion_state", ea.STATE, ["none", "move", "Micro-move", "static"]).withDescription("Radar Motion State Detail"),
+            e.vibration(),
+            e.illuminance(),
+            e.temperature(),
+            e.humidity(),
+            e.battery(),
+            tuya.exposes.temperatureUnit(),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery State"),
+            e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR Sensitivity"),
+            e.numeric("pir_delay", ea.STATE_SET).withValueMin(30).withValueMax(120).withUnit("s"),
+            e.numeric("light_sensor_time", ea.STATE_SET).withValueMin(1).withValueMax(60).withDescription("Light Sensor Sample Time"),
+            e
+                .numeric("detection_distance", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(500)
+                .withUnit("cm")
+                .withDescription("Radar Detection Distance"),
+            e.numeric("static_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription("Static Detection Sensitivity"),
+            e.numeric("detection_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(10).withDescription("Motion Detection Sensitivity"),
+            e.enum("motion_detection_mode", ea.STATE_SET, ["pir_and_radar", "pir_or_radar", "only_radar"]).withDescription("Motion detection mode"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator mode"),
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-4.0)
+                .withValueMax(4.0)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription("Temperature Calibration"),
+            e.numeric("humidity_calibration", ea.STATE_SET).withValueMin(-10).withValueMax(10).withUnit("%").withDescription("Humidity Calibration"),
+            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(50).withDescription("Vibration Sensitivity"),
+            e.numeric("vibration_delay", ea.STATE_SET).withValueMin(1).withValueMax(1440).withUnit("s").withDescription("Vibration Clear Delay Time"),
+        ],
+    },
+    {
         zigbeeModel: ["ZG-204ZH", "AY208Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_vuqzj1ej", "_TZE200_hdih4foa"]),
         model: "ZG-204ZH",
