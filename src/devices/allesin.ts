@@ -7,6 +7,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "allesin_cover",
         vendor: "Allesin",
         description: "Roller shade",
-        extend: [m.windowCovering({controls: ["lift"]}), m.identify({isSleepy: true}), m.battery({dontDividePercentage: true})],
+        extend: [
+            m.windowCovering({controls: ["lift"]}),
+            m.identify({isSleepy: true}),
+            m.battery({dontDividePercentage: true}),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
     },
 ];
