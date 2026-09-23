@@ -728,25 +728,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPLZB-137",
         vendor: "Develco",
         description: "Power plug",
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         ota: true,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint, true);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.acFrequency(endpoint);
-        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
+        ],
         endpoint: (device) => {
             return {default: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            // Device also has genOnOff on endpoint 1, but that fails to setup, disable configureReporting in m.onOff above
+            // and configure it for endpoint 2 here instead.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/29548
+            await reporting.onOff(device.getEndpoint(2));
         },
     },
     {
@@ -873,25 +870,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPLZB-141",
         vendor: "Develco",
         description: "Power plug",
-        fromZigbee: [fz.on_off, develco.fz.electrical_measurement, develco.fz.metering],
         toZigbee: [tz.on_off],
         ota: true,
-        exposes: [e.switch(), e.power(), e.current(), e.voltage(), e.energy(), e.ac_frequency()],
-        extend: [develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(), develcoModernExtend.readGenBasicPrimaryVersions()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(2);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
-            await reporting.onOff(endpoint);
-            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
-            await reporting.activePower(endpoint);
-            await reporting.rmsCurrent(endpoint);
-            await reporting.rmsVoltage(endpoint);
-            await reporting.readMeteringMultiplierDivisor(endpoint);
-            await reporting.currentSummDelivered(endpoint);
-            await reporting.acFrequency(endpoint);
-        },
+        extend: [
+            develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
+            develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.electricityMeter({acFrequency: true, fzMetering: develco.fz.metering, fzElectricalMeasurement: develco.fz.electrical_measurement}),
+            m.onOff({powerOnBehavior: false, configureReporting: false}),
+        ],
         endpoint: (device) => {
             return {default: 2};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            // Device also has genOnOff on endpoint 1, but that fails to setup, disable configureReporting in m.onOff above
+            // and configure it for endpoint 2 here instead.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/29548
+            await reporting.onOff(device.getEndpoint(2));
         },
     },
     {

@@ -115,6 +115,7 @@ import {definitions as giderwel} from "./giderwel";
 import {definitions as giex} from "./giex";
 import {definitions as girier} from "./girier";
 import {definitions as gledopto} from "./gledopto";
+import {definitions as gluon} from "./gluon";
 import {definitions as gmmts} from "./gmmts";
 import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
@@ -211,6 +212,7 @@ import {definitions as megaman} from "./megaman";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as miele} from "./miele";
 import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
@@ -341,6 +343,7 @@ import {definitions as tci} from "./tci";
 import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
 import {definitions as technicolor} from "./technicolor";
+import {definitions as teploluxe} from "./teploluxe";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
@@ -507,6 +510,7 @@ const definitions: DefinitionWithExtend[] = [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gluon,
     ...gmmts,
     ...gmy,
     ...gs,
@@ -601,6 +605,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...miele,
     ...mill,
     ...mindy,
     ...modular,
@@ -731,6 +736,7 @@ const definitions: DefinitionWithExtend[] = [
     ...tcl,
     ...tech,
     ...technicolor,
+    ...teploluxe,
     ...terncy,
     ...theLightGroup,
     ...thirdReality,
