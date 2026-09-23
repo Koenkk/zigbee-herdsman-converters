@@ -11,6 +11,7 @@ import {definitions as akuvox} from "./akuvox";
 import {definitions as alchemy} from "./alchemy";
 import {definitions as aldi} from "./aldi";
 import {definitions as alecto} from "./alecto";
+import {definitions as allesin} from "./allesin";
 import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
 import {definitions as atlantic} from "./atlantic";
@@ -407,6 +408,7 @@ const definitions: DefinitionWithExtend[] = [
     ...alchemy,
     ...aldi,
     ...alecto,
+    ...allesin,
     ...amina,
     ...anchor,
     ...atlantic,
