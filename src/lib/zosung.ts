@@ -676,23 +676,27 @@ export const tzZosung = {
     zosung_learn_ir_code: {
         key: ["learn_ir_code"],
         convertSet: async (entity, key, value, meta) => {
-            logger.debug("Starting IR Code Learning...", NS);
+            const stop = value === "OFF" || value === false;
+            logger.debug(stop ? "Stopping IR Code Learning..." : "Starting IR Code Learning...", NS);
             await entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
                 "zosungIRControl",
                 "zosungControlIRCommand00",
                 {
-                    data: Buffer.from(JSON.stringify({study: 0})),
+                    data: Buffer.from(JSON.stringify({study: stop ? 1 : 0})),
                 },
                 {disableDefaultResponse: true},
             );
-            logger.debug("IR Code Learning started.", NS);
+            logger.debug(stop ? "IR Code Learning stopped." : "IR Code Learning started.", NS);
         },
     } satisfies Tz.Converter,
 };
 
 export const presetsZosung = {
     learn_ir_code: () =>
-        e.binary("learn_ir_code", ea.SET, "ON", "OFF").withDescription("Turn on to learn new IR code").withHomeAssistant({type: "button"}),
+        e
+            .binary("learn_ir_code", ea.SET, "ON", "OFF")
+            .withDescription("Turn on to learn a new IR code, turn off to stop learning")
+            .withHomeAssistant({type: "button"}),
     learned_ir_code: () => e.text("learned_ir_code", ea.STATE).withDescription("The IR code learned by device"),
     learned_ir_timings: () =>
         e.text("learned_ir_timings", ea.STATE).withDescription("The IR timings learned by device").withHomeAssistant({
