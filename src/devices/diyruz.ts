@@ -346,6 +346,8 @@ const fzLocal = {
         cluster: "genMultistateInput",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
+            // No presentValue means no button press; otherwise the lookup below would fall through to "many_undefined"
+            if (msg.data.presentValue === undefined) return;
             const button = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
             const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
             const clicks = msg.data.presentValue;
