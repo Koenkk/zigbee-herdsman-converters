@@ -9,27 +9,49 @@ const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wt9agwf3", "_TZE200_5uodvhgc", "_TZE200_1n2zev06"]),
-        model: "FK_V02",
-        vendor: "FrankEver",
-        description: "Zigbee smart water valve",
-        fromZigbee: [legacy.fz.frankever_valve],
-        toZigbee: [legacy.tz.tuya_switch_state, legacy.tz.frankever_threshold, legacy.tz.frankever_timer],
+        fingerprint: tuya.fingerprint('TS0601', [
+            '_TZE200_wt9agwf3',
+            '_TZE200_5uodvhgc',
+            '_TZE200_1n2zev06',
+        ]),
+        model: 'FK_V02',
+        vendor: 'FrankEver',
+        description: 'Zigbee smart water valve',
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.switch().setAccess("state", ea.STATE_SET),
-            e
-                .numeric("threshold", exposes.access.STATE_SET)
+            tuya.exposes.switch(),
+            e.enum('power_off_state', ea.STATE_SET, ['off', 'on', 'maintain'])
+                .withDescription('Power-off status behavior'),
+            e.numeric('set_valve_position', ea.STATE_SET)
+                .withUnit('%')
+                .withValueStep(10)
                 .withValueMin(0)
-                .withValueMax(100)
-                .withUnit("%")
-                .withDescription("Valve open percentage (multiple of 10)"),
-            e
-                .numeric("timer", exposes.access.STATE_SET)
+                .withValueMax(100),
+            e.numeric('countdown', ea.STATE_SET)
+                .withUnit('s')
                 .withValueMin(0)
-                .withValueMax(600)
-                .withUnit("min")
-                .withDescription("Countdown timer in minutes"),
+                .withValueMax(43200)
+                .withDescription('Countdown timer in seconds'),
         ],
+        endpoint: () => ({
+            state: 1,
+            power_off_state: 1,
+            set_valve_position: 1,
+            countdown: 1,
+        }),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state', tuya.valueConverter.onOff],
+                [9, 'countdown', tuya.valueConverter.countdown],
+                [27, 'power_off_state', tuya.valueConverterBasic.lookup({
+                    off: new tuya.Enum(0),
+                    on: new tuya.Enum(1),
+                    maintain: new tuya.Enum(2),
+                })],
+                [101, 'set_valve_position', tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE200_nbqnmkee"}],
@@ -66,7 +88,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(1000)
                 .withValueStep(0.1)
                 .withDescription("Single water consumption (last irrigation)"),
-            e.numeric("water_consumed_total", ea.STATE).withUnit("L").withValueMin(0).withDescription("Total water consumption"),
+            e.numeric("water_consumed", ea.STATE).withUnit("L").withValueMin(0).withDescription("Total water consumption"),
             e.enum("water_leakage_state", ea.STATE, ["water_leakage_yes", "water_leakage_no"]).withDescription("Leak detection status"),
 
             // --- Irrigation Volume Limits ---
@@ -124,7 +146,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // The vendor datapoint spec marks dp 5 with "Multiple: 1" (0.1 L per unit) and dp 6 with
                 // "Multiple: 0" (1 L per unit), so the last irrigation volume is reported in dL.
                 [5, "water_consumed_last", tuya.valueConverter.divideBy10],
-                [6, "water_consumed_total", tuya.valueConverter.raw],
+                [6, "water_consumed", tuya.valueConverter.raw],
                 [
                     10,
                     "weather_delay",
