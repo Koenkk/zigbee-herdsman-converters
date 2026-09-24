@@ -563,8 +563,6 @@ const tzLocalEdgeDimmer = {
         },
     } satisfies Tz.Converter,
 
-    // Confirmed working write on real hardware (writeRsp status:0 + device-initiated attributeReport
-    // confirming the new value) - see z2m-converter-lessons / namron-edge-dimmer-converter memory.
     transition_time_physical: {
         key: ["transition_time_physical"],
         convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
@@ -586,6 +584,19 @@ const tzLocalEdgeDimmer = {
         },
         convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
             await entity.read("genLevelCtrl", [0xa007]);
+        },
+    } satisfies Tz.Converter,
+
+    start_brightness: {
+        key: ["start_brightness"],
+        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
+            const pct = sdClamp(Math.round(Number(value)), 1, 100);
+            const lvl = sdPctToLevel(pct);
+            await entity.write("genLevelCtrl", {onLevel: lvl}, {disableDefaultResponse: false});
+            return {state: {start_brightness: sdLevelToPct(lvl)}};
+        },
+        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
+            await entity.read("genLevelCtrl", ["onLevel"]);
         },
     } satisfies Tz.Converter,
 
@@ -2967,21 +2978,13 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
+        {
         zigbeeModel: ["4512782", "4512781", "4566700", "4566701"],
         model: "4566700",
         vendor: "Namron",
         description: "Namron Edge Dimmer",
-        // NOTE: on_level/start_brightness (genLevelCtrl onLevel, 0x0011) is intentionally not
-        // exposed on this device - extensive real-hardware testing showed it self-resets
-        // unpredictably (drifts to 0/255 "previous") with no identified root cause. See
-        // z2m-converter-lessons for details before attempting to add it back.
         whiteLabel: [
             {vendor: "Namron", model: "4566701", description: "Namron Edge Dimmer (black)", fingerprint: [{modelID: "4566701"}]},
-            // Same HZC platform hardware, sold unbranded as HZC Electric's own D692-ZG (already
-            // merged upstream in devices/hzc_electric.ts, under a DIFFERENT reported modelID -
-            // "Meter-Dimmer-Switch-ZB3.0" - so this is documentation-only, no fingerprint: adding
-            // one here would collide with hzc_electric.ts's own match on that modelID).
             {vendor: "HZC Electric", model: "D692-ZG", description: "Rotary dimmer with screen"},
         ],
         ota: true,
@@ -2989,11 +2992,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
             m.electricityMeter({voltage: false, current: false, configureReporting: true}),
             {
-                // Bind genOta (required for OTA) + genBasic/genLevelCtrl, and read firmware version +
-                // the confirmed-working off-spec genLevelCtrl 0xA0xx attrs at configure time. Wrapped
-                // as ModernExtend (isModernExtend:true) rather than a top-level `configure` property,
-                // since a top-level configure is silently ignored when `extend` is also present (see
-                // z2m-converter-lessons: Z2M configure() pitfalls).
                 configure: [
                     async (device, coordinatorEndpoint) => {
                         const endpoint = device.getEndpoint(1);
@@ -3062,6 +3060,18 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription("genLevelCtrl 0xA002 (backlight). Equivalent of the Edge Thermostat panel_brightness.")
                 .withCategory("config"),
+            exposes
+                .numeric("start_brightness", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription(
+                    "genLevelCtrl 0x0011 (onLevel) - brightness level the light goes to when turned on. " +
+                        "Write must explicitly use disableDefaultResponse:false or the device silently reverts " +
+                        'to the ZCL "previous" sentinel within ~1s. Confirmed stable (no reset) for 4+ minutes ' +
+                        "on real hardware.",
+                )
+                .withCategory("config"),
         ],
         fromZigbee: [
             fzEdge.basic,
@@ -3089,6 +3099,21 @@ export const definitions: DefinitionWithExtend[] = [
                     return result;
                 },
             },
+            {
+                cluster: "genLevelCtrl",
+                type: ["attributeReport", "readResponse"],
+                convert: (
+                    model: unknown,
+                    msg: {type: string; data: Record<string | number, number>},
+                    publish: unknown,
+                    options: unknown,
+                    meta: unknown,
+                ) => {
+                    const result: Record<string, unknown> = {};
+                    if (msg.data["onLevel"] !== undefined) result["start_brightness"] = sdLevelToPct(msg.data["onLevel"]);
+                    return result;
+                },
+            },
         ],
         toZigbee: [
             tzLocalEdgeDimmer.min_max_brightness,
@@ -3096,6 +3121,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocalEdgeDimmer.move_rate_zigbee,
             tzLocalEdgeDimmer.transition_time_physical,
             tzLocalEdgeDimmer.move_rate_physical,
+            tzLocalEdgeDimmer.start_brightness,
             tzLocalEdgeDimmer.screen_on_time,
             tzLocalEdgeDimmer.display_brightness,
         ],
