@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as tuya from "../src/lib/tuya";
@@ -128,19 +128,19 @@ describe("lib/tuya", () => {
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
 
-        const setupB4z = async () => {
+        const setupTs130f = async (manufacturerName = "_TZ3000_yruungrl", initialPosition = 100) => {
             const device = mockDevice({
                 modelID: "TS130F",
-                manufacturerName: "_TZ3000_yruungrl",
+                manufacturerName,
                 endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
             });
             const definition = await findByDevice(device);
             const endpoint = device.getEndpoint(1);
             const toConverter = definition.toZigbee.find((converter) => converter.key.includes("position"));
             const fromConverter = definition.fromZigbee.find((converter) => converter.cluster === "closuresWindowCovering");
-            if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
+            if (!toConverter?.convertSet || !fromConverter) throw new Error("TS130F cover converters not found");
 
-            const state = {position: 100};
+            const state = {position: initialPosition};
             const sendPosition = async (position: number) => {
                 const commandResult = await toConverter.convertSet(endpoint, "position", position, {
                     device,
@@ -153,7 +153,7 @@ describe("lib/tuya", () => {
                 });
                 Object.assign(state, commandResult?.state);
             };
-            const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
+            const convert = (data: {currentPositionLiftPercentage?: number; tuyaMovingState?: number}) =>
                 fromConverter.convert(
                     definition,
                     {
@@ -175,7 +175,7 @@ describe("lib/tuya", () => {
         };
 
         it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
-            const {convert, endpoint, sendPosition} = await setupB4z();
+            const {convert, endpoint, sendPosition} = await setupTs130f();
             await sendPosition(50);
 
             expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
@@ -184,7 +184,7 @@ describe("lib/tuya", () => {
         });
 
         it("does not correct a Nous B4Z STOP report before the target was acknowledged", async () => {
-            const {convert, endpoint, sendPosition} = await setupB4z();
+            const {convert, endpoint, sendPosition} = await setupTs130f();
             await sendPosition(50);
 
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 100});
@@ -192,13 +192,56 @@ describe("lib/tuya", () => {
         });
 
         it("does not replace an acknowledged Nous B4Z target with a stale moving report", async () => {
-            const {convert, endpoint, sendPosition} = await setupB4z();
+            const {convert, endpoint, sendPosition} = await setupTs130f();
             await sendPosition(50);
 
             expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 0})).toMatchObject({position: 50});
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 0})).toMatchObject({position: 100});
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
             expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+
+        it("repairs the Lonsonho position attribute after STOP and target arrive in separate reports", async () => {
+            vi.useFakeTimers();
+            const {convert, endpoint, sendPosition} = await setupTs130f("_TZ3210_ol1uhvza");
+            await sendPosition(12);
+            endpoint.write.mockClear();
+
+            expect(convert({currentPositionLiftPercentage: 12})).toMatchObject({position: 12});
+            expect(convert({tuyaMovingState: 2})).toStrictEqual({});
+            expect(convert({currentPositionLiftPercentage: 96})).toMatchObject({position: 96});
+            expect(convert({tuyaMovingState: 1})).toStrictEqual({});
+            expect(convert({currentPositionLiftPercentage: 12})).toMatchObject({position: 12});
+            expect(endpoint.write).not.toHaveBeenCalled();
+
+            await vi.advanceTimersByTimeAsync(1000);
+
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 12}, expect.anything());
+            vi.useRealTimers();
+        });
+
+        it("primes the Lonsonho start position before sending an intermediate target", async () => {
+            const {endpoint, sendPosition} = await setupTs130f("_TZ3210_ol1uhvza");
+
+            await sendPosition(12);
+
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 100}, expect.anything());
+            expect(endpoint.command).toHaveBeenCalledWith(
+                "closuresWindowCovering",
+                "goToLiftPercentage",
+                {percentageliftvalue: 12},
+                expect.anything(),
+            );
+            expect(endpoint.write.mock.invocationCallOrder[0]).toBeLessThan(endpoint.command.mock.invocationCallOrder[0]);
+        });
+
+        it("does not send duplicate intermediate positions to the Lonsonho controller", async () => {
+            const {endpoint, sendPosition} = await setupTs130f("_TZ3210_ol1uhvza", 12);
+
+            await sendPosition(12);
+
+            expect(endpoint.command).not.toHaveBeenCalled();
+            expect(endpoint.write).not.toHaveBeenCalled();
         });
     });
 
