@@ -2873,7 +2873,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         zigbeeModel: ["4512782", "4512781", "4566700", "4566701"],
         model: "4566700",
         vendor: "Namron",
