@@ -350,7 +350,9 @@ describe("lib/tuya", () => {
 
     describe("TS0001 manufacturer-dependent settings", () => {
         // Endpoint layout as reported by a _TZ3000_p26flek3: ep1 carries genOnOff plus the Tuya
-        // private clusters 0xE000 (inching) and 0xE001 (switch type, power-on behaviour); ep242 is green power.
+        // private clusters 0xE000 and 0xE001 (switch type, power-on behaviour); ep242 is green power.
+        // The device lists 0xE000 but has no configurable inching: it always pulses for a fixed ~1 s,
+        // whatever inching state or time is written.
         const layout = [
             {ID: 1, profileID: 260, deviceID: 256, inputClusterIDs: [3, 4, 5, 6, 0xe000, 0xe001, 0], outputClusterIDs: [25, 10]},
             {ID: 242, profileID: 0xa1e0, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
@@ -375,14 +377,7 @@ describe("lib/tuya", () => {
             const {definition, properties} = await resolve("_TZ3000_p26flek3");
 
             expect(definition.model).toBe("TS0001");
-            expect(properties).toStrictEqual([
-                "state",
-                "power_on_behavior",
-                "switch_type",
-                "backlight_mode",
-                "indicator_mode",
-                "inching_control_set",
-            ]);
+            expect(properties).toStrictEqual(["state", "power_on_behavior", "switch_type", "backlight_mode", "indicator_mode"]);
         });
 
         it("leaves the settings of _TZ3000_bzzgvet0 unchanged", async () => {
@@ -407,11 +402,6 @@ describe("lib/tuya", () => {
 
             expect(definition.toZigbee.find((converter) => converter.key?.includes("backlight_mode"))).toBe(tuya.tz.backlight_indicator_mode_2);
             expect(definition.toZigbee.find((converter) => converter.key?.includes("indicator_mode"))).toBe(tuya.tz.backlight_indicator_mode_1);
-        });
-
-        it("decodes the inching payload the device answers with", () => {
-            // "AAAA" is the value read from 0xE000/0xD003 on the device with inching switched off.
-            expect(tuya.valueConverter.inchingSwitch.from("AAAA")).toStrictEqual({inching_control_1: "DISABLE", inching_time_1: 0});
         });
     });
 });
