@@ -2873,14 +2873,137 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    {
+        {
         zigbeeModel: ["4512782", "4512781", "4566700", "4566701"],
-        model: "4512782 / 4512781 / 4566700 / 4566701",
+        model: "4566700",
         vendor: "Namron",
         description: "Namron Edge Dimmer",
+        // NOTE: on_level/start_brightness (genLevelCtrl onLevel, 0x0011) is intentionally not
+        // exposed on this device - extensive real-hardware testing showed it self-resets
+        // unpredictably (drifts to 0/255 "previous") with no identified root cause. See
+        // z2m-converter-lessons for details before attempting to add it back.
+        whiteLabel: [
+            {vendor: "Namron", model: "4566701", description: "Namron Edge Dimmer (black)", fingerprint: [{modelID: "4566701"}]},
+            // Same HZC platform hardware, sold unbranded as HZC Electric's own D692-ZG (already
+            // merged upstream in devices/hzc_electric.ts, under a DIFFERENT reported modelID -
+            // "Meter-Dimmer-Switch-ZB3.0" - so this is documentation-only, no fingerprint: adding
+            // one here would collide with hzc_electric.ts's own match on that modelID).
+            {vendor: "HZC Electric", model: "D692-ZG", description: "Rotary dimmer with screen"},
+        ],
+        ota: true,
         extend: [
             m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
             m.electricityMeter({voltage: false, current: false, configureReporting: true}),
+            {
+                // Bind genOta (required for OTA) + genBasic/genLevelCtrl, and read firmware version +
+                // the confirmed-working off-spec genLevelCtrl 0xA0xx attrs at configure time. Wrapped
+                // as ModernExtend (isModernExtend:true) rather than a top-level `configure` property,
+                // since a top-level configure is silently ignored when `extend` is also present (see
+                // z2m-converter-lessons: Z2M configure() pitfalls).
+                configure: [
+                    async (device, coordinatorEndpoint) => {
+                        const endpoint = device.getEndpoint(1);
+                        await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOta", "genOnOff", "genLevelCtrl"]);
+                        await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
+                        await safeReadEdge(endpoint, "genLevelCtrl", [0xa000, 0xa003, 0xa006, 0xa008, 0xa001, 0xa002, 0xa005, 0xa007]);
+                    },
+                ],
+                isModernExtend: true,
+            },
+        ],
+        exposes: [
+            e.text("firmware_version", ea.STATE).withLabel("Firmware version"),
+            e.text("firmware_date", ea.STATE).withLabel("Firmware date"),
+            exposes
+                .numeric("min_brightness", ea.ALL)
+                .withValueMin(1)
+                .withValueMax(50)
+                .withUnit("%")
+                .withDescription("genLevelCtrl 0xA000 (minimumBrightness).")
+                .withCategory("config"),
+            exposes
+                .numeric("max_brightness", ea.ALL)
+                .withValueMin(51)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription("genLevelCtrl 0xA003 (devicemaxlevel).")
+                .withCategory("config"),
+            exposes
+                .numeric("dimming_speed", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(30)
+                .withDescription("genLevelCtrl 0xA006 (transtiontimezigbee).")
+                .withCategory("config"),
+            exposes
+                .numeric("move_rate_zigbee", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(30)
+                .withDescription("genLevelCtrl 0xA008 (moveratezigbee).")
+                .withCategory("config"),
+            exposes
+                .numeric("transition_time_physical", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withDescription(
+                    "genLevelCtrl 0xA005 (transitiontimephysical) - dimming speed when using the physical dial. " +
+                        'Matches the Namron Simplify app\'s "Transition Time Physical" (0-10). Confirmed working write on real hardware.',
+                )
+                .withCategory("config"),
+            exposes
+                .numeric("move_rate_physical", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(10)
+                .withDescription(
+                    "genLevelCtrl 0xA007 (moveratephysical) - move rate when using the physical dial. " +
+                        'Matches the Namron Simplify app\'s "Move rate Physical" (0-10). Confirmed working write on real hardware.',
+                )
+                .withCategory("config"),
+            exposes
+                .enum("screen_on_time", ea.ALL, ["always_on", "10s", "30s", "60s"])
+                .withDescription("genLevelCtrl 0xA001 (screenConstantTime), raw value is a seconds count (0/10/30/60).")
+                .withCategory("config"),
+            exposes
+                .numeric("display_brightness", ea.ALL)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("genLevelCtrl 0xA002 (backlight). Equivalent of the Edge Thermostat panel_brightness.")
+                .withCategory("config"),
+        ],
+        fromZigbee: [
+            fzEdge.basic,
+            {
+                cluster: "genLevelCtrl",
+                type: ["attributeReport", "readResponse"],
+                convert: (
+                    model: unknown,
+                    msg: {type: string; data: Record<string | number, number>},
+                    publish: unknown,
+                    options: unknown,
+                    meta: unknown,
+                ) => {
+                    const result: Record<string, unknown> = {};
+                    if (Object.hasOwn(msg.data, 0xa000)) result["min_brightness"] = msg.data[0xa000];
+                    if (Object.hasOwn(msg.data, 0xa003)) result["max_brightness"] = msg.data[0xa003];
+                    if (Object.hasOwn(msg.data, 0xa006)) result["dimming_speed"] = msg.data[0xa006];
+                    if (Object.hasOwn(msg.data, 0xa008)) result["move_rate_zigbee"] = msg.data[0xa008];
+                    if (Object.hasOwn(msg.data, 0xa005)) result["transition_time_physical"] = msg.data[0xa005];
+                    if (Object.hasOwn(msg.data, 0xa007)) result["move_rate_physical"] = msg.data[0xa007];
+                    if (Object.hasOwn(msg.data, 0xa001)) {
+                        result["screen_on_time"] = edgeDimmerScreenOnTimeLookup[String(msg.data[0xa001])] ?? String(msg.data[0xa001]);
+                    }
+                    if (Object.hasOwn(msg.data, 0xa002)) result["display_brightness"] = msg.data[0xa002];
+                    return result;
+                },
+            },
+        ],
+        toZigbee: [
+            tzLocalEdgeDimmer.min_max_brightness,
+            tzLocalEdgeDimmer.dimming_speed,
+            tzLocalEdgeDimmer.move_rate_zigbee,
+            tzLocalEdgeDimmer.transition_time_physical,
+            tzLocalEdgeDimmer.move_rate_physical,
+            tzLocalEdgeDimmer.screen_on_time,
+            tzLocalEdgeDimmer.display_brightness,
         ],
         meta: {},
     },
