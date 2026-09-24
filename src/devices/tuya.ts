@@ -8550,9 +8550,7 @@ export const definitions: DefinitionWithExtend[] = [
                 switchType: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
                 backlightModeOffOn: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
                 indicatorMode: (m) => m === "_TZ3000_p26flek3",
-                inchingSwitch: (m) => m === "_TZ3000_p26flek3",
             }),
-            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         whiteLabel: [
             {
