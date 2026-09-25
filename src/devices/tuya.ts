@@ -8393,6 +8393,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_zojh9vz7",
             "_TZ3000_gsat0axs",
             "_TZ3000_olo5jhjk",
+            "_TZ3000_ahvrgyac",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -8444,7 +8445,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_outage_memory", ea.ALL, ["on", "off", "restore"]).withDescription("Recover state after power outage"),
         ],
         whiteLabel: [
-            tuya.whitelabel("Nous", "B2Z", "1 gang switch with power monitoring", ["_TZ3000_qlai3277"]),
+            tuya.whitelabel("Nous", "B2Z", "1 gang switch with power monitoring", ["_TZ3000_qlai3277", "_TZ3000_ahvrgyac"]),
             tuya.whitelabel("Colorock", "CR-MNZ1", "1 gang switch 30A with power monitoring", ["_TZ3000_tgddllx4"]),
             tuya.whitelabel("Nous", "L6Z", "Switch with power monitoring", ["_TZ3000_qaabwu5c", "_TZ3000_1adss9de"]),
             tuya.whitelabel("Tuya", "XSH01A", "1 gang switch", ["_TZ3000_x3ewpzyr"]),
