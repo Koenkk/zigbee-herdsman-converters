@@ -17828,6 +17828,22 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Homeetec", "37022493", "Curtain/blind switch with 1 Gang switch", ["_TZE200_jhkttplm"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_pxbjch8m"]),
+        model: "TS0601_cover_with_1_switch_limited",
+        vendor: "Tuya",
+        description: "Cover switch (without position control) with 1-gang switch",
+        options: [exposes.options.invert_cover()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1}})],
+        exposes: [te.switch().withEndpoint("l1"), e.cover(), te.motorDirection()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.coverAction],
+                [7, "state_l1", tuya.valueConverter.onOff],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_5nldle7w"]),
         model: "TS0601_cover_with_2_switch",
         vendor: "Tuya",
