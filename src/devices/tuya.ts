@@ -14448,7 +14448,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "system_mode", tuya.valueConverterBasic.lookup({off: 0, heat: 1})],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
                 [2, "mode", tuya.valueConverterBasic.lookup({manual: 0, program: 1})],
                 [3, "working_status", tuya.valueConverterBasic.lookup({"Keeping Warm": 0, Working: 1})],
                 [8, "window_check", tuya.valueConverter.onOff],
