@@ -30479,7 +30479,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ300A_82iab0pn"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ300A_82iab0pn", "_TZ300A_57kqwetw"]),
         model: "TS0726_4_gang_switch_and_4_scene",
         vendor: "Tuya",
         description: "Multi 4 gang switch and 4 scene with backlight",
