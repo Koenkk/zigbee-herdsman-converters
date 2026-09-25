@@ -1084,6 +1084,39 @@ describe("Shelly WS90 rain rate", () => {
         // A real reading still scales as before.
         expect(convertAll("shellyWS90Wind", {windSpeed: 123}).wind_speed).toBe(12.3);
     });
+
+    it("ignores the all-zero frames the station sends now and then", async () => {
+        const device = mockWS90();
+        const definition = await findByDevice(device);
+        const state = {temperature: 16.8, humidity: 41, pressure: 998, illuminance: 4000, precipitation: 208.9};
+        const convertAll = (cluster: string, data: Record<string, unknown>, lastState: Record<string, unknown> = state) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === cluster)
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data, endpoint: device.getEndpoint(1), device, type: "readResponse", cluster} as never,
+                                vi.fn(),
+                                {},
+                                {device, state: lastState, deviceExposesChanged: () => {}} as never,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+
+        expect(convertAll("msPressureMeasurement", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("msRelativeHumidity", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("msTemperatureMeasurement", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("msIlluminanceMeasurement", {measuredValue: 0})).toStrictEqual({});
+        expect(convertAll("shellyWS90Rain", {precipitation: 0, rainStatus: 0})).toStrictEqual({});
+
+        // Real readings, a genuine 0 °C and a real counter reset still go through.
+        expect(convertAll("msPressureMeasurement", {measuredValue: 9980}).pressure).toBe(998);
+        expect(convertAll("msTemperatureMeasurement", {measuredValue: 0}, {...state, temperature: 0.5}).temperature).toBe(0);
+        expect(convertAll("shellyWS90Rain", {precipitation: 1}).precipitation).toBe(0.1);
+    });
 });
 
 // Hygiene guarantees: the RPC diagnostics converter only exists with the Dev feature, and the
