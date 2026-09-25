@@ -717,9 +717,9 @@ const ws90IsZeroFrame = (msg: Fz.Message<any, any, any>, state: KeyValue): boole
     const data = msg.data as KeyValue;
     switch (msg.cluster) {
         case "msPressureMeasurement":
-            return typeof data.measuredValue === "number" && data.measuredValue / 10 < 800;
-        case "msRelativeHumidity":
             return data.measuredValue === 0;
+        case "msRelativeHumidity":
+            return data.measuredValue === 0 && typeof state.humidity === "number" && state.humidity > 5;
         case "msTemperatureMeasurement":
             return data.measuredValue === 0 && typeof state.temperature === "number" && Math.abs(state.temperature) > 2;
         case "msIlluminanceMeasurement":
