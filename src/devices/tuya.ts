@@ -2276,6 +2276,300 @@ const Tze2846ocnqlhnfrequencyConverter = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
+        model: "Tuya-CTL-Mini-DTP-TYZ/AC",
+        vendor: "CTL",
+        description: "Radar and PIR dual-technology presence sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.presence().withDescription("Presence detected by the radar/PIR sensor"),
+            e.illuminance().withUnit("lx"),
+            e
+                .numeric("illuminance_threshold_high", ea.STATE_SET)
+                .withLabel("Illuminance high threshold")
+                .withCategory("config")
+                .withDescription("Turn the linked light off above this illuminance")
+                .withUnit("lx")
+                .withValueMin(0)
+                .withValueMax(2000)
+                .withValueStep(1),
+            e
+                .numeric("illuminance_threshold_low", ea.STATE_SET)
+                .withLabel("Illuminance low threshold")
+                .withCategory("config")
+                .withDescription("Allow presence to turn the linked light on below this illuminance")
+                .withUnit("lx")
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withValueStep(1),
+            e
+                .numeric("presence_timeout", ea.STATE_SET)
+                .withLabel("No-presence delay")
+                .withCategory("config")
+                .withDescription("Delay before reporting no presence")
+                .withUnit("s")
+                .withValueMin(5)
+                .withValueMax(3600)
+                .withValueStep(1),
+            e.binary("light_switch", ea.STATE_SET, "ON", "OFF").withLabel("Light state").withDescription("Light output state"),
+            e
+                .binary("light_linkage", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Light linkage")
+                .withCategory("config")
+                .withDescription("Enable automatic light linkage"),
+            e
+                .binary("illuminance_linkage", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Illuminance linkage")
+                .withCategory("config")
+                .withDescription("Apply the illuminance thresholds to light linkage"),
+            e
+                .binary("breathing_indicator", ea.STATE_SET, "ON", "OFF")
+                .withLabel("Presence breathing indicator")
+                .withCategory("config")
+                .withDescription("Enable the breathing indicator while presence is detected"),
+            e
+                .enum("detection_method", ea.STATE_SET, ["presence", "motion"])
+                .withLabel("Detection method")
+                .withCategory("config")
+                .withDescription("Motion-only or continuous presence detection"),
+            e
+                .enum("sensitivity", ea.STATE_SET, ["LL", "L", "M", "H", "HH"])
+                .withLabel("Sensitivity")
+                .withCategory("config")
+                .withDescription("LL: very low, L: low, M: medium, H: high, HH: very high"),
+            e
+                .enum("program_function", ea.STATE, [
+                    "null",
+                    "no_one_1min",
+                    "no_one_3min",
+                    "no_one_5min",
+                    "no_one_10min",
+                    "no_one_15min",
+                    "no_one_30min",
+                    "no_one_1hour",
+                    "no_one_2hour",
+                    "no_one_4hour",
+                    "no_one_8hour",
+                    "no_one_12hour",
+                    "no_one_24hour",
+                    "presence_1min",
+                    "presence_3min",
+                    "presence_5min",
+                    "presence_10min",
+                    "presence_15min",
+                    "presence_30min",
+                    "presence_1hour",
+                    "presence_2hour",
+                    "presence_4hour",
+                    "presence_8hour",
+                    "presence_12hour",
+                    "presence_24hour",
+                ])
+                .withLabel("Available program function")
+                .withDescription("Current timed presence/no-presence condition available to Tuya programs")
+                .withCategory("diagnostic"),
+            e.enum("installation_mode", ea.STATE_SET, ["ceiling", "wall"]).withLabel("Installation mode").withCategory("config"),
+            e
+                .numeric("installation_height", ea.STATE_SET)
+                .withLabel("Installation height")
+                .withCategory("config")
+                .withUnit("m")
+                .withValueMin(2)
+                .withValueMax(3.2)
+                .withValueStep(0.1),
+            e
+                .numeric("detection_radius", ea.STATE_SET)
+                .withLabel("Ceiling detection radius")
+                .withCategory("config")
+                .withUnit("m")
+                .withValueMin(1)
+                .withValueMax(5)
+                .withValueStep(0.1),
+            e
+                .numeric("detection_range", ea.STATE_SET)
+                .withLabel("Wall detection distance")
+                .withCategory("config")
+                .withUnit("m")
+                .withValueMin(1)
+                .withValueMax(8)
+                .withValueStep(0.1),
+            e
+                .enum("environment_learning", ea.STATE_SET, ["none", "light", "medium", "deep", "disable"])
+                .withLabel("Environment learning")
+                .withCategory("config"),
+            e
+                .enum("manual_annotation", ea.STATE_SET, [
+                    "null",
+                    "no_one_last_1h",
+                    "no_one_last_2h",
+                    "no_one_last_4h",
+                    "no_one_last_8h",
+                    "no_one_last_12h",
+                    "no_one_last_24h",
+                ])
+                .withLabel("Manual annotation")
+                .withCategory("config")
+                .withDescription("Mark how long the monitored area has been unoccupied"),
+            e
+                .enum("sensor_power", ea.STATE_SET, [
+                    "on",
+                    "off",
+                    "off_10s_restart",
+                    "off_30s_restart",
+                    "off_60s_restart",
+                    "pause_upload",
+                    "pause_upload_10s",
+                    "pause_upload_30s",
+                    "pause_upload_60s",
+                    "pause_upload_3min",
+                    "pause_upload_5min",
+                    "pause_upload_10min",
+                    "pause_upload_15min",
+                    "pause_upload_30min",
+                    "pause_upload_1hour",
+                ])
+                .withLabel("Sensor power control")
+                .withCategory("config")
+                .withDescription("Power-cycle the sensor or pause its reports"),
+            e
+                .enum("system_setting", ea.STATE_SET, [
+                    "none",
+                    "identify_start",
+                    "identify_stop",
+                    "check_start",
+                    "check_stop",
+                    "restore_factory",
+                    "state_flip_report",
+                ])
+                .withLabel("System setting")
+                .withCategory("config")
+                .withDescription("Warning: restore_factory resets the device to factory settings"),
+            e.text("system_info", ea.STATE).withLabel("System information").withCategory("diagnostic"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "presence", tuya.valueConverter.trueFalse1],
+                [101, "illuminance", {from: (v: number) => v}],
+                [102, "illuminance_threshold_high", tuya.valueConverter.raw],
+                [103, "illuminance_threshold_low", tuya.valueConverter.raw],
+                [104, "presence_timeout", tuya.valueConverter.raw],
+                [105, "light_switch", tuya.valueConverter.onOff],
+                [106, "light_linkage", tuya.valueConverterBasic.lookup({ON: tuya.enum(0), OFF: tuya.enum(1)})],
+                [107, "illuminance_linkage", tuya.valueConverterBasic.lookup({ON: tuya.enum(0), OFF: tuya.enum(1)})],
+                [108, "breathing_indicator", tuya.valueConverterBasic.lookup({ON: tuya.enum(0), OFF: tuya.enum(1)})],
+                [
+                    109,
+                    "detection_method",
+                    tuya.valueConverterBasic.lookup({
+                        presence: tuya.enum(0),
+                        motion: tuya.enum(1),
+                    }),
+                ],
+                [
+                    110,
+                    "sensitivity",
+                    tuya.valueConverterBasic.lookup({LL: tuya.enum(0), L: tuya.enum(1), M: tuya.enum(2), H: tuya.enum(3), HH: tuya.enum(4)}),
+                ],
+                [
+                    111,
+                    "program_function",
+                    {
+                        from: tuya.valueConverterBasic.lookup({
+                            null: tuya.enum(0),
+                            no_one_1min: tuya.enum(1),
+                            no_one_3min: tuya.enum(2),
+                            no_one_5min: tuya.enum(3),
+                            no_one_10min: tuya.enum(4),
+                            no_one_15min: tuya.enum(5),
+                            no_one_30min: tuya.enum(6),
+                            no_one_1hour: tuya.enum(7),
+                            no_one_2hour: tuya.enum(8),
+                            no_one_4hour: tuya.enum(9),
+                            no_one_8hour: tuya.enum(10),
+                            no_one_12hour: tuya.enum(11),
+                            no_one_24hour: tuya.enum(12),
+                            presence_1min: tuya.enum(13),
+                            presence_3min: tuya.enum(14),
+                            presence_5min: tuya.enum(15),
+                            presence_10min: tuya.enum(16),
+                            presence_15min: tuya.enum(17),
+                            presence_30min: tuya.enum(18),
+                            presence_1hour: tuya.enum(19),
+                            presence_2hour: tuya.enum(20),
+                            presence_4hour: tuya.enum(21),
+                            presence_8hour: tuya.enum(22),
+                            presence_12hour: tuya.enum(23),
+                            presence_24hour: tuya.enum(24),
+                        }).from,
+                    },
+                ],
+                [112, "installation_mode", tuya.valueConverterBasic.lookup({ceiling: tuya.enum(0), wall: tuya.enum(1)})],
+                [113, "installation_height", tuya.valueConverter.divideBy10],
+                [114, "detection_radius", tuya.valueConverter.divideBy10],
+                [
+                    115,
+                    "environment_learning",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        light: tuya.enum(1),
+                        medium: tuya.enum(2),
+                        deep: tuya.enum(3),
+                        disable: tuya.enum(4),
+                    }),
+                ],
+                [
+                    116,
+                    "manual_annotation",
+                    tuya.valueConverterBasic.lookup({
+                        null: tuya.enum(0),
+                        no_one_last_1h: tuya.enum(1),
+                        no_one_last_2h: tuya.enum(2),
+                        no_one_last_4h: tuya.enum(3),
+                        no_one_last_8h: tuya.enum(4),
+                        no_one_last_12h: tuya.enum(5),
+                        no_one_last_24h: tuya.enum(6),
+                    }),
+                ],
+                [
+                    117,
+                    "sensor_power",
+                    tuya.valueConverterBasic.lookup({
+                        on: tuya.enum(0),
+                        off: tuya.enum(1),
+                        off_10s_restart: tuya.enum(2),
+                        off_30s_restart: tuya.enum(3),
+                        off_60s_restart: tuya.enum(4),
+                        pause_upload: tuya.enum(5),
+                        pause_upload_10s: tuya.enum(6),
+                        pause_upload_30s: tuya.enum(7),
+                        pause_upload_60s: tuya.enum(8),
+                        pause_upload_3min: tuya.enum(9),
+                        pause_upload_5min: tuya.enum(10),
+                        pause_upload_10min: tuya.enum(11),
+                        pause_upload_15min: tuya.enum(12),
+                        pause_upload_30min: tuya.enum(13),
+                        pause_upload_1hour: tuya.enum(14),
+                    }),
+                ],
+                [
+                    118,
+                    "system_setting",
+                    tuya.valueConverterBasic.lookup({
+                        none: tuya.enum(0),
+                        identify_start: tuya.enum(1),
+                        identify_stop: tuya.enum(2),
+                        check_start: tuya.enum(3),
+                        check_stop: tuya.enum(4),
+                        restore_factory: tuya.enum(5),
+                        state_flip_report: tuya.enum(6),
+                    }),
+                ],
+                [119, "system_info", {from: (v: string) => v.replaceAll("\u0000", "").trim()}],
+                [120, "detection_range", tuya.valueConverter.divideBy10],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_da26abzz"]),
         model: "MG-DIM02Z",
         vendor: "Tuya",
