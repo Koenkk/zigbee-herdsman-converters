@@ -26635,7 +26635,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.enum("situation_set", ea.STATE_SET, ["fully_close", "fully_open"]).withDescription("Set fully open or fully close position"),
                 e.text("fault", ea.STATE).withDescription("Fault details"),
             ];
-            if (!device || device.manufacturerName === "_TZE200_mlglxwp3") {
+            if (!device?.manufacturerName || device.manufacturerName === "_TZE200_mlglxwp3") {
                 exps.push(e.battery());
             }
             if (!device || device.manufacturerName === "_TZE204_tgl8i2np") {
