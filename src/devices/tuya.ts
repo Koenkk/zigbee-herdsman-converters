@@ -25465,7 +25465,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-223Z"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf", "_TZE200_u6x1zyv2", "_TZE200_2pddnnrk","_TZE200_gt1gge3x"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf", "_TZE200_u6x1zyv2", "_TZE200_2pddnnrk", "_TZE200_gt1gge3x"]),
         model: "ZG-223Z",
         vendor: "HOBEIAN",
         description: "Rainwater detection sensor",
@@ -25488,9 +25488,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Brightness acquisition interval (refresh and update only while active)"),
             e.battery(),
         ],
-		whiteLabel: [
-            tuya.whitelabel('HYSYIOT', 'HS118Z', 'Rainwater detection sensor', ['_TZE200_gt1gge3x']),
-        ],
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS118Z", "Rainwater detection sensor", ["_TZE200_gt1gge3x"])],
         meta: {
             tuyaDatapoints: [
                 [
