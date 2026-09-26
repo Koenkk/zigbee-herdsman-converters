@@ -440,4 +440,26 @@ describe("lib/tuya", () => {
             await expect(definition.configure?.(device, device.getEndpoint(1), definition)).rejects.toThrow("Timeout");
         });
     });
+
+    describe("TS004F button configure (ZG-101ZL)", () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+        it("ignores UNSUPPORTED_ATTRIBUTE on the tuyaOperationMode write", async () => {
+            const device = mockDevice({modelID: "ZG-101ZL", manufacturerName: "HOBEIAN", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            expect(definition.model).toStrictEqual("ERS-10TZBVB-AA");
+            const endpoint = device.getEndpoint(1);
+            vi.mocked(endpoint.write).mockRejectedValue(new Error("ZCL command genOnOff.write(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')"));
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).resolves.toBeUndefined();
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", expect.anything());
+        });
+
+        it("still fails on other errors", async () => {
+            const device = mockDevice({modelID: "ZG-101ZL", manufacturerName: "HOBEIAN", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            vi.mocked(device.getEndpoint(1).write).mockRejectedValue(new Error("Timeout"));
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).rejects.toThrow("Timeout");
+        });
+    });
 });

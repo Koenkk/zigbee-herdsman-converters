@@ -7,6 +7,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -1599,7 +1600,11 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            // HOBEIAN ZG-101ZL replies UNSUPPORTED_ATTRIBUTE to this write while already being in event mode.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+            await utils.ignoreUnsupportedAttribute(async () => {
+                await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            }, "tuyaOperationMode write");
             await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
