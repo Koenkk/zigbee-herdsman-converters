@@ -1619,11 +1619,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Star ring - smart curtain switch",
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            te.coverPosition(),
-            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
-        ],
+        exposes: [te.coverPosition(), e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
@@ -1653,14 +1649,7 @@ export const definitions: DefinitionWithExtend[] = [
                         END: tuya.enum(1),
                     }),
                 ],
-                [
-                    8,
-                    "motor_steering",
-                    tuya.valueConverterBasic.lookup({
-                        FORWARD: tuya.enum(0),
-                        BACKWARD: tuya.enum(1),
-                    }),
-                ],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
