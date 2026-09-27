@@ -555,7 +555,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
         // power_on_behavior, backlight_mode). Fully confirmed against real
         // hardware (raw dp capture).
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu", "_TZE284_z98viqa6"]),
         model: "SFD02-Z",
         vendor: "Moes",
         description: "Star feather smart dimmer switch",
