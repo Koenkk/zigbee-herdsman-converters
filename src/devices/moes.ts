@@ -2087,7 +2087,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg", "_TZE2841000000_u68q868h"]),
+        // u68q868h is incomplete: https://github.com/Koenkk/zigbee2mqtt/issues/33147
         model: "FWJZCEH18A001",
         vendor: "Moes",
         description: "Roller blind motor 17mm/25mm/28mm",
