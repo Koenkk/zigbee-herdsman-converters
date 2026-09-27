@@ -2274,6 +2274,12 @@ const Tze2846ocnqlhnfrequencyConverter = {
     to: (value: number) => value,
 };
 
+const moesZm108mManufacturerName = "_TZ3210_mldzab8w";
+// This model reports its external wall-switch mode through manuSpecificTuya3, not closuresWindowCovering.
+const ts130fCoverSwitchType = tuya.modernExtend.tuyaCoverSwitchType();
+const [ts130fCoverSwitchTypeExpose] = ts130fCoverSwitchType.exposes as Expose[];
+ts130fCoverSwitchType.exposes = [(device) => (device.manufacturerName === moesZm108mManufacturerName ? [] : [ts130fCoverSwitchTypeExpose])];
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_da26abzz"]),
@@ -6242,7 +6248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            tuya.modernExtend.tuyaCoverSwitchType(), // TODO: only for some models..?
+            ts130fCoverSwitchType, // TODO: only for some models..?
         ],
         whiteLabel: [
             tuya.whitelabel("BSEED", "EC-GL86ZPCRS31", "Curtain/blind switch", ["_TZ3000_bs93npae"]),
@@ -6251,6 +6257,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "LoraTap", model: "SC400"},
             tuya.whitelabel("LoraTap", "SC500ZB", "Smart curtain/shutter switch", ["_TZ3000_e3vhyirx", "_TZ3000_femsaaua"]),
             tuya.whitelabel("LoraTap", "SC500ZB-v4", "Smart curtain/shutter switch", ["_TZ3000_5iixzdo7"]),
+            tuya.whitelabel("Moes", "ZM-108-M", "Smart curtain switch module", [moesZm108mManufacturerName]),
             tuya.whitelabel("Nous", "B4Z", "Curtain switch", ["_TZ3000_yruungrl"]),
             tuya.whitelabel("Nous", "L12Z", "Smart Zigbee Curtain Module L12Z", ["_TZ3000_jwv3cwak"]),
             tuya.whitelabel("Zemismart", "ZN-LC1E", "Smart curtain/shutter switch", ["_TZ3000_74hsp7qy"]),
@@ -6283,7 +6290,7 @@ export const definitions: DefinitionWithExtend[] = [
             ) {
                 exps.push(tuya.exposes.indicatorMode(), tuya.exposes.backlightModeOffOn());
             }
-            if (["_TZ3000_5iixzdo7"].includes(device.manufacturerName)) {
+            if (["_TZ3000_5iixzdo7", moesZm108mManufacturerName].includes(device.manufacturerName)) {
                 exps.push(tuya.exposes.switchTypeCurtain());
             } else if (["_TZ3000_yruungrl"].includes(device.manufacturerName)) {
                 exps.push(

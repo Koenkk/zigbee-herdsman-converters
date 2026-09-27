@@ -348,6 +348,50 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("TS130F manufacturer-dependent switch type", () => {
+        const resolve = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS130F", manufacturerName, endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            return {definition, exposes, names: exposes.map((expose) => expose.name ?? expose.property ?? expose.type)};
+        };
+
+        it("uses the manuSpecificTuya3 wall-switch selector for the Moes ZM-108-M", async () => {
+            const {definition, exposes, names} = await resolve("_TZ3210_mldzab8w");
+
+            expect(definition).toMatchObject({model: "ZM-108-M", vendor: "Moes", description: "Smart curtain switch module"});
+            expect(names).toStrictEqual([
+                "cover",
+                "moving",
+                "motor_reversal",
+                "calibration",
+                "calibration_time",
+                "indicator_mode",
+                "backlight_mode",
+                "switch_type_curtain",
+            ]);
+            expect(exposes.find((expose) => expose.name === "switch_type_curtain")).toMatchObject({
+                values: ["flip-switch", "sync-switch", "button-switch", "button2-switch"],
+            });
+        });
+
+        it("leaves the generic TS130F switch type unchanged", async () => {
+            const {definition, names} = await resolve("_TZ3000_unlistedxx");
+
+            expect(definition).toMatchObject({model: "TS130F", vendor: "Tuya", description: "Curtain/blind switch"});
+            expect(names).toStrictEqual([
+                "cover",
+                "moving",
+                "motor_reversal",
+                "calibration",
+                "calibration_time",
+                "indicator_mode",
+                "backlight_mode",
+                "switch_type",
+            ]);
+        });
+    });
+
     describe("TS0001 manufacturer-dependent settings", () => {
         // Endpoint layout as reported by a _TZ3000_p26flek3: ep1 carries genOnOff plus the Tuya
         // private clusters 0xE000 (inching) and 0xE001 (switch type, power-on behaviour); ep242 is green power.
