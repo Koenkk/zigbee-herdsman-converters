@@ -7,132 +7,80 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {Definition, DefinitionWithExtend, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
-import {postfixWithEndpointName} from "../lib/utils";
 
 const NS = "zhc:lonsonho";
 const e = exposes.presets;
 const ea = exposes.access;
 
+// The QS-Zigbee-C03 (_TZ3210_ol1uhvza) ignores an intermediate target when its current position attribute is stale
+// and restores the old position after reporting STOP. Prime the start position before moving and write back the target once stopped.
+// https://github.com/Koenkk/zigbee-herdsman-converters/pull/13286
 const qsZigbeeC03PositionKey = "qs_zigbee_c03_position";
 
-interface QsZigbeeC03Position {
-    target: number;
-    rawTarget?: number;
-    moved: boolean;
-    stopped: boolean;
-    timer?: ReturnType<typeof setTimeout>;
-}
-
-function clearQsZigbeeC03Position(entity: Zh.Endpoint | Zh.Group): void {
-    if (utils.isGroup(entity)) {
-        for (const member of entity.members) clearQsZigbeeC03Position(member);
-        return;
-    }
-
-    const pending = globalStore.getValue(entity, qsZigbeeC03PositionKey) as QsZigbeeC03Position | undefined;
-    if (pending?.timer) clearTimeout(pending.timer);
+const qsZigbeeC03ClearPosition = (entity: Zh.Endpoint | Zh.Group) => {
+    if (utils.isGroup(entity)) return;
+    clearTimeout(globalStore.getValue(entity, qsZigbeeC03PositionKey)?.timer);
     globalStore.clearValue(entity, qsZigbeeC03PositionKey);
-}
+};
 
-function correctQsZigbeeC03Position(endpoint: Zh.Endpoint, pending: QsZigbeeC03Position, model: Definition): void {
-    if (!utils.isNumber(pending.rawTarget)) return;
-    if (pending.timer) clearTimeout(pending.timer);
-    pending.timer = setTimeout(() => {
-        if (globalStore.getValue(endpoint, qsZigbeeC03PositionKey) !== pending) return;
-        endpoint
-            .write("closuresWindowCovering", {currentPositionLiftPercentage: pending.rawTarget}, utils.getOptions(model, endpoint))
-            .then(() => clearQsZigbeeC03Position(endpoint))
-            .catch((error) => {
-                clearQsZigbeeC03Position(endpoint);
-                logger.warning(`Failed to correct QS-Zigbee-C03 position: ${error}`, NS);
-            });
-    }, 1000);
-}
-
-const qsZigbeeC03CoverState = {
-    ...tz.cover_state,
-    convertSet: async (entity, key, value, meta) => {
-        if (meta.device?.manufacturerName === "_TZ3210_ol1uhvza") clearQsZigbeeC03Position(entity);
-        return await tz.cover_state.convertSet(entity, key, value, meta);
-    },
-} satisfies Tz.Converter;
-
-const qsZigbeeC03CoverPosition = {
-    ...tz.cover_position_tilt,
-    convertSet: async (entity, key, value, meta) => {
-        if (meta.device?.manufacturerName !== "_TZ3210_ol1uhvza") {
+const qsZigbeeC03Tz = {
+    cover_state: {
+        ...tz.cover_state,
+        convertSet: async (entity, key, value, meta) => {
+            qsZigbeeC03ClearPosition(entity);
+            return await tz.cover_state.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
+    cover_position_tilt: {
+        ...tz.cover_position_tilt,
+        convertSet: async (entity, key, value, meta) => {
+            qsZigbeeC03ClearPosition(entity);
+            const start = meta.state.position;
+            if (
+                meta.device?.manufacturerName === "_TZ3210_ol1uhvza" &&
+                key === "position" &&
+                utils.isEndpoint(entity) &&
+                utils.isNumber(value) &&
+                utils.isNumber(start) &&
+                value > 0 &&
+                value < 100
+            ) {
+                // Repeating the current target can result in a nearly full travel move.
+                if (value === start) return {state: {position: value}};
+                const invert = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
+                    ? !meta.options.invert_cover
+                    : meta.options.invert_cover);
+                const raw = (position: number) => (invert ? 100 - position : position);
+                await entity.write("closuresWindowCovering", {currentPositionLiftPercentage: raw(start)}, utils.getOptions(meta.mapped, entity));
+                globalStore.putValue(entity, qsZigbeeC03PositionKey, {target: raw(value), moved: false});
+            }
             return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
-        }
+        },
+    } satisfies Tz.Converter,
+};
 
-        clearQsZigbeeC03Position(entity);
-        if (
-            key !== "position" ||
-            !utils.isEndpoint(entity) ||
-            !utils.isNumber(value) ||
-            !utils.isNumber(meta.state.position) ||
-            value <= 0 ||
-            value >= 100
-        ) {
-            return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
-        }
-
-        if (value === meta.state.position) return {state: {position: value}};
-
-        const inverted = !(utils.getMetaValue(entity, meta.mapped, "coverInverted", "allEqual", false)
-            ? !meta.options.invert_cover
-            : meta.options.invert_cover);
-        const rawStartPosition = inverted ? 100 - meta.state.position : meta.state.position;
-        const pending: QsZigbeeC03Position = {target: value, moved: false, stopped: false};
-        globalStore.putValue(entity, qsZigbeeC03PositionKey, pending);
-
-        try {
-            // This firmware can acknowledge an intermediate target without moving when its internal
-            // current-position attribute is stale. Restore the known start position before commanding it.
-            await entity.write("closuresWindowCovering", {currentPositionLiftPercentage: rawStartPosition}, utils.getOptions(meta.mapped, entity));
-            return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
-        } catch (error) {
-            clearQsZigbeeC03Position(entity);
-            throw error;
-        }
-    },
-} satisfies Tz.Converter;
-
-const qsZigbeeC03CoverPositionReport = {
-    ...fz.cover_position_tilt,
-    convert: (model, msg, publish, options, meta) => {
-        const result = fz.cover_position_tilt.convert(model, msg, publish, options, meta) as KeyValueAny | undefined;
-        if (meta.device.manufacturerName !== "_TZ3210_ol1uhvza") return result;
-
-        const pending = globalStore.getValue(msg.endpoint, qsZigbeeC03PositionKey) as QsZigbeeC03Position | undefined;
-        if (!pending) return result;
-
-        const property = postfixWithEndpointName("position", msg, model, meta);
-        const position = result?.[property];
-        if (utils.isNumber(position) && position === pending.target && utils.isNumber(msg.data.currentPositionLiftPercentage)) {
-            pending.rawTarget = msg.data.currentPositionLiftPercentage;
-        }
-
-        const moving = msg.data.tuyaMovingState;
-        if (moving === 0 || moving === 2) {
-            pending.moved = true;
-            pending.stopped = false;
-            return result;
-        }
-
-        if (moving === 1 && pending.moved) {
-            pending.stopped = true;
-            correctQsZigbeeC03Position(msg.endpoint, pending, model);
-            return result;
-        }
-
-        if (pending.moved && pending.stopped && utils.isNumber(pending.rawTarget)) {
-            correctQsZigbeeC03Position(msg.endpoint, pending, model);
-        }
-        return result;
-    },
-} satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>;
+const qsZigbeeC03Fz = {
+    cover_position_tilt: {
+        ...fz.cover_position_tilt,
+        convert: (model, msg, publish, options, meta) => {
+            const pending = globalStore.getValue(msg.endpoint, qsZigbeeC03PositionKey);
+            const moving = msg.data.tuyaMovingState;
+            if (pending && (moving === 0 || moving === 2)) {
+                pending.moved = true;
+            } else if (pending?.moved && moving === 1 && !pending.timer) {
+                pending.timer = setTimeout(() => {
+                    qsZigbeeC03ClearPosition(msg.endpoint);
+                    msg.endpoint
+                        .write("closuresWindowCovering", {currentPositionLiftPercentage: pending.target}, utils.getOptions(model, msg.endpoint))
+                        .catch((error) => logger.warning(`Failed to correct position: ${error}`, NS));
+                }, 1000);
+            }
+            return fz.cover_position_tilt.convert(model, msg, publish, options, meta);
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -362,8 +310,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Lonsonho",
         description: "Curtain/blind motor controller",
         extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster(), tuya.modernExtend.tuyaCoverSwitchType()],
-        fromZigbee: [qsZigbeeC03CoverPositionReport, tuya.fz.cover_options],
-        toZigbee: [qsZigbeeC03CoverState, qsZigbeeC03CoverPosition, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
+        fromZigbee: [qsZigbeeC03Fz.cover_position_tilt, tuya.fz.cover_options],
+        toZigbee: [qsZigbeeC03Tz.cover_state, qsZigbeeC03Tz.cover_position_tilt, tuya.tz.cover_calibration, tuya.tz.cover_reversal],
         meta: {coverInverted: true},
         exposes: [
             e.cover_position(),
