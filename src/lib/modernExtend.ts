@@ -2033,7 +2033,7 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     // @ts-expect-error ignore
                     strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, level) : 1,
+                    strobeLevel: value.strobe_level != null ? getFromLookup(value.strobe_level, level) : 1,
                 };
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`

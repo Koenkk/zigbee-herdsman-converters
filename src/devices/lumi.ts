@@ -8,6 +8,7 @@ import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 import {assertNumber, sleep} from "../lib/utils";
 
 const e = exposes.presets;
@@ -4190,6 +4191,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNXNKG02LM",
         vendor: "Aqara",
         description: "Smart rotary knob H1 (wireless)",
+        version: "0.0.1",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.quirkCheckinInterval("1_HOUR"),
@@ -4207,6 +4209,11 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
         ],
+        configure: (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            utils.attachInputCluster(device, endpoint1, "manuSpecificLumi");
+            device.save();
+        },
     },
     {
         zigbeeModel: ["lumi.remote.acn003"],
