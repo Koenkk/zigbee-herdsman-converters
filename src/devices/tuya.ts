@@ -15643,8 +15643,13 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await endpoint.read("genBasic", [0x0004, 0x000, 0x0001, 0x0005, 0x0007, 0xfffe]);
-            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            // Some firmwares (e.g. _TZ3000_gwkzibhs) reply UNSUPPORTED_ATTRIBUTE to the magic packet (0xfffe) read,
+            // similar TS004F buttons do so for the tuyaOperationMode write; both work fine without it.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await utils.ignoreUnsupportedAttribute(async () => {
+                await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            }, "tuyaOperationMode write");
             await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
