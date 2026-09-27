@@ -9253,7 +9253,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_pk0sfzvr"]),
-        model: "RINN WSER40",
+        model: "WSER40",
         vendor: "RINNconnect",
         description: "Roller Controller",
         options: [exposes.options.invert_cover()],
