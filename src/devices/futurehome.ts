@@ -490,7 +490,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 valueOff: [true, 0x01],
                 valueOn: [false, 0x02],
-                homeassistant: {icon: "mid:lock", name: "Plug lock state", deviceClass: "lock"},
+                homeassistant: {icon: "mdi:lock", name: "Plug lock state", deviceClass: "lock"},
             }),
         ],
     },
