@@ -15,6 +15,15 @@ const te = tuya.exposes;
 
 const NS = "zhc:zemismart";
 
+interface Zms206ProprietaryCluster {
+    attributes: never;
+    commands: never;
+    commandResponses: {
+        unknownD0: Record<string, never>;
+        unknownD2: Record<string, never>;
+    };
+}
+
 const valueConverterLocal = {
     indiciatorStatus: tuya.valueConverterBasic.lookup({
         off: tuya.enum(0),
@@ -867,7 +876,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"}),
+            // Declare these empty reports so herdsman can send the requested default response.
+            {
+                ...m.deviceAddCustomCluster("manuSpecificZemismartScreen", {
+                    name: "manuSpecificZemismartScreen",
+                    ID: 0xe000,
+                    attributes: {},
+                    commands: {},
+                    commandsResponse: {
+                        unknownD0: {name: "unknownD0", ID: 0xd0, parameters: []},
+                        unknownD2: {name: "unknownD2", ID: 0xd2, parameters: []},
+                    },
+                }),
+                fromZigbee: [
+                    {
+                        cluster: "manuSpecificZemismartScreen",
+                        type: ["commandUnknownD0", "commandUnknownD2"],
+                        convert: () => undefined,
+                    } satisfies Fz.Converter<"manuSpecificZemismartScreen", Zms206ProprietaryCluster, ["commandUnknownD0", "commandUnknownD2"]>,
+                ],
+            },
+        ],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
