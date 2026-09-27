@@ -82,9 +82,9 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
             await reporting.activePower(endpoint);
             // Read configuration values that are not sent periodically as well as current power (activePower).
+            await endpoint.read("haElectricalMeasurement", [0xf000]);
             await endpoint.read<"haElectricalMeasurement", LegrandHaElectricalMeasurement>("haElectricalMeasurement", [
                 "activePower",
-                0xf000,
                 "powerAlarmEnabled",
                 "powerAlarmWhThreshold",
             ]);
@@ -507,8 +507,8 @@ export const definitions: DefinitionWithExtend[] = [
                 // Some version/firmware don't seem to support this.
             }
             // Read configuration values that are not sent periodically.
+            await endpoint.read("haElectricalMeasurement", [0xf000]);
             await endpoint.read<"haElectricalMeasurement", LegrandHaElectricalMeasurement>("haElectricalMeasurement", [
-                0xf000,
                 "powerAlarmEnabled",
                 "powerAlarmWhThreshold",
             ]);
@@ -570,8 +570,8 @@ export const definitions: DefinitionWithExtend[] = [
                 // Some version/firmware don't seem to support this.
             }
             // Read configuration values that are not sent periodically.
+            await endpoint.read("haElectricalMeasurement", [0xf000]);
             await endpoint.read<"haElectricalMeasurement", LegrandHaElectricalMeasurement>("haElectricalMeasurement", [
-                0xf000,
                 "powerAlarmEnabled",
                 "powerAlarmWhThreshold",
             ]);
