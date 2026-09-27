@@ -832,7 +832,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.faultStatus(),
-            develcoModernExtend.temperature({endpointNames: ["38"]}),
+            develcoModernExtend.temperature(),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
