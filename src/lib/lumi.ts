@@ -4442,6 +4442,21 @@ const W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR = Buffer.from([
     0x15, 0x0a, 0x01, 0x00, 0x00, 0x01, 0x06, 0xe6, 0xb8, 0xa9, 0xe5, 0xba, 0xa6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x01, 0x07, 0x65,
 ]);
 
+// Experimental sample policy, not a measured firmware timeout. No periodic resend.
+const W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS = 60_000;
+const W600_EXTERNAL_SENSOR_CHANNELS = {
+    temperature: {slot: 0x14, marker: W600_SENSOR_BINDING_MARKER, descriptor: W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR},
+    availability: {
+        slot: 0x17,
+        marker: Buffer.from("080007fd", "hex"),
+        descriptor: Buffer.from("150a0109e8aebee5a487e59ca8000000000001010365", "hex"),
+    },
+};
+type W600ExternalSensorChannel = keyof typeof W600_EXTERNAL_SENSOR_CHANNELS;
+type W600ExternalTemperatureSample = {centiDegrees: number; receivedAt: number};
+type W600ExternalSensorActivation = {sample?: W600ExternalTemperatureSample; availabilitySent: boolean; requests: Map<string, number>};
+type W600ExternalSensorContext = {tail: Promise<unknown>; generation: number; activation?: W600ExternalSensorActivation};
+
 const W600_PRESET_ORDER = ["home", "away", "sleep", "vacation", "wind_down"] as const;
 type W600PresetName = (typeof W600_PRESET_ORDER)[number];
 type W600PresetOrNone = W600PresetName | "none";
@@ -4870,30 +4885,44 @@ function getW600TimestampBuffer() {
     return timestamp;
 }
 
-function buildW600ExternalTempSensorBindPayload(entity: Zh.Endpoint) {
-    const payload = Buffer.concat([
-        getW600TimestampBuffer(),
-        Buffer.from([0x14]),
-        getW600DeviceBuffer(entity),
-        W600_EXTERNAL_TEMP_SENSOR,
-        W600_SENSOR_BINDING_MARKER,
-        W600_EXTERNAL_TEMP_SENSOR_DESCRIPTOR,
-    ]);
-
-    return buildW600SensorPayload(entity, 0x02, payload);
+function getW600ExternalSensorRequestChannel(value: unknown): W600ExternalSensorChannel | undefined {
+    if (!Buffer.isBuffer(value) || value.length !== 21) return;
+    if (value[0] !== 0xaa || value[1] !== 0x71 || value[2] !== 15 || value[3] !== 0x84 || value[6] !== 6 || value[7] !== 0x41) return;
+    if (value[8] !== 12 && value[8] !== 15) return;
+    if ((value.subarray(0, 6).reduce((sum, byte) => sum + byte, 0) & 0xff) !== 0) return;
+    if (!value.subarray(9, 17).equals(W600_EXTERNAL_TEMP_SENSOR)) return;
+    return (Object.keys(W600_EXTERNAL_SENSOR_CHANNELS) as W600ExternalSensorChannel[]).find((channel) =>
+        value.subarray(17).equals(W600_EXTERNAL_SENSOR_CHANNELS[channel].marker),
+    );
 }
 
-function buildW600ExternalTempSensorUnbindPayload(entity: Zh.Endpoint) {
-    const payload = Buffer.concat([getW600TimestampBuffer(), Buffer.from([0x14]), getW600DeviceBuffer(entity), Buffer.alloc(12)]);
-
-    return buildW600SensorPayload(entity, 0x04, payload);
+function writeW600ExternalSensorPayload(entity: Zh.Endpoint, action: number, body: Buffer) {
+    return writeW600LumiAttribute(entity, W600_ATTR_SENSOR_BINDING, buildW600SensorPayload(entity, action, body), Zcl.DataType.OCTET_STR);
 }
 
-function buildW600ExternalTemperaturePayload(entity: Zh.Endpoint, centiDegrees: number) {
-    const temperatureBuffer = Buffer.alloc(4);
-    temperatureBuffer.writeFloatBE(centiDegrees, 0);
+async function writeW600ExternalSensorBinding(entity: Zh.Endpoint, unbind: boolean) {
+    const time = getW600TimestampBuffer();
+    const device = getW600DeviceBuffer(entity);
+    for (const channel of Object.values(W600_EXTERNAL_SENSOR_CHANNELS)) {
+        const body = Buffer.concat([
+            time,
+            Buffer.from([channel.slot]),
+            device,
+            ...(unbind ? [Buffer.alloc(12)] : [W600_EXTERNAL_TEMP_SENSOR, channel.marker, channel.descriptor]),
+        ]);
+        await writeW600ExternalSensorPayload(entity, unbind ? 4 : 2, body);
+    }
+}
 
-    return buildW600SensorPayload(entity, 0x05, Buffer.concat([W600_EXTERNAL_TEMP_SENSOR, W600_SENSOR_BINDING_MARKER, temperatureBuffer]));
+function writeW600ExternalSensorSample(entity: Zh.Endpoint, channel: W600ExternalSensorChannel, centiDegrees: number) {
+    const value = Buffer.alloc(4);
+    if (channel === "temperature") value.writeFloatBE(centiDegrees);
+    else value.writeUInt32BE(1);
+    return writeW600ExternalSensorPayload(
+        entity,
+        5,
+        Buffer.concat([W600_EXTERNAL_TEMP_SENSOR, W600_EXTERNAL_SENSOR_CHANNELS[channel].marker, value]),
+    );
 }
 
 function createW600Heartbeat(): ModernExtend {
@@ -5522,7 +5551,100 @@ function matchesW600WeeklyScheduleOtaRequest(data: KeyValue | undefined, require
 }
 
 function createW600ExternalTempSensor(): ModernExtend {
-    const readSensorState = async (entity: Zh.Endpoint) => {
+    const contexts = new Map<string, W600ExternalSensorContext>();
+    const combinedCommands = new WeakMap<object, Promise<Tz.ConvertSetResult>>();
+    const context = (entity: Zh.Endpoint) => {
+        const key = entity.deviceIeeeAddress;
+        let value = contexts.get(key);
+        if (!value) {
+            value = {tail: Promise.resolve(), generation: 0};
+            contexts.set(key, value);
+        }
+        return value;
+    };
+    const clear = (ctx: W600ExternalSensorContext) => {
+        ctx.generation++;
+        ctx.activation = undefined;
+    };
+    const enqueue = <T>(ctx: W600ExternalSensorContext, action: () => Promise<T>): Promise<T> => {
+        const result = ctx.tail.then(action);
+        ctx.tail = result.catch((): void => {});
+        return result;
+    };
+    const convertSet: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
+        assertEndpoint(entity);
+        if (entity.ID !== 1) throw new Error("W600 external temperature is only supported on endpoint 1");
+        const message = meta.message;
+        const combined = message?.sensor != null && message?.external_temperature_input != null;
+        if (combined && combinedCommands.has(message)) return await combinedCommands.get(message);
+        const requested =
+            key === "sensor"
+                ? parseW600SensorSelection(value, key)
+                : message?.sensor != null
+                  ? parseW600SensorSelection(message.sensor, "sensor")
+                  : undefined;
+        const hasInput = key === "external_temperature_input" || combined;
+        // Validate the complete command before changing the device, including either ordering of combined keys.
+        const centiDegrees = hasInput
+            ? parseW600ExternalTemperatureInput(
+                  key === "external_temperature_input" ? value : message.external_temperature_input,
+                  "external_temperature_input",
+              )
+            : undefined;
+        const current = getW600SensorSelectionFromState(meta.state?.sensor);
+        if (hasInput && (requested ?? current) !== "external") {
+            throw new Error("external_temperature_input can only be used when sensor is external");
+        }
+        const receivedAt = Date.now();
+        const ctx = context(entity);
+        if (requested != null) clear(ctx);
+        const generation = ctx.generation;
+        const operation = enqueue(ctx, async () => {
+            if (ctx.generation !== generation) return;
+            const requireFreshInput = () => {
+                if (hasInput && (Date.now() - receivedAt > W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS || Date.now() < receivedAt)) {
+                    throw new Error("W600 external temperature sample expired while waiting to send; provide a fresh sample");
+                }
+            };
+            requireFreshInput();
+            const refresh = key === "sensor" || current !== "external" || requested === "external" || !ctx.activation;
+            if (requested === "internal") {
+                await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 0);
+                await writeW600ExternalSensorBinding(entity, true);
+                return {state: {sensor: "internal"}};
+            }
+            let activation = ctx.activation;
+            if (refresh) {
+                activation = {availabilitySent: false, requests: new Map()};
+                if (ctx.generation === generation) ctx.activation = activation;
+                try {
+                    await writeW600ExternalSensorBinding(entity, false);
+                    await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 1);
+                } catch (error) {
+                    if (ctx.activation === activation) clear(ctx);
+                    throw error;
+                }
+                logger.debug("W600 external temperature armed", W600_NS);
+            }
+            if (hasInput) {
+                requireFreshInput();
+                await writeW600ExternalSensorSample(entity, "temperature", centiDegrees);
+                if (ctx.generation === generation && ctx.activation === activation) {
+                    activation.sample = {centiDegrees, receivedAt};
+                    if (!activation.availabilitySent && Date.now() - receivedAt <= W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS) {
+                        await writeW600ExternalSensorSample(entity, "availability", centiDegrees);
+                        activation.availabilitySent = true;
+                    }
+                }
+            }
+            return {state: {...(refresh ? {sensor: "external"} : {}), ...(hasInput ? {external_temperature_input: centiDegrees / 100} : {})}};
+        });
+        if (combined) combinedCommands.set(message, operation);
+        return await operation;
+    };
+    const convertGet: Tz.Converter["convertGet"] = async (entity) => {
+        assertEndpoint(entity);
+        if (entity.ID !== 1) throw new Error("W600 external temperature is only supported on endpoint 1");
         await readW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE);
     };
 
@@ -5545,100 +5667,75 @@ function createW600ExternalTempSensor(): ModernExtend {
             {
                 cluster: W600_LUMI_CLUSTER,
                 type: ["attributeReport", "readResponse"],
-                convert: (model, msg) => {
+                convert: async (model, msg) => {
+                    if (msg.endpoint.ID !== 1) return;
+                    const source = msg.data[W600_ATTR_SENSOR_SOURCE];
                     const result: KeyValue = {};
-
-                    if (msg.data[W600_ATTR_SENSOR_SOURCE] === 0 || msg.data[W600_ATTR_SENSOR_SOURCE] === 1) {
-                        result.sensor = msg.data[W600_ATTR_SENSOR_SOURCE] === 1 ? "external" : "internal";
+                    const ctx = context(msg.endpoint);
+                    if (source === 0 || source === 1) {
+                        result.sensor = source === 1 ? "external" : "internal";
+                        if (source === 0) clear(ctx);
                     }
-
-                    return Object.keys(result).length > 0 ? result : undefined;
+                    const value = msg.data[W600_ATTR_SENSOR_BINDING];
+                    const channel = getW600ExternalSensorRequestChannel(value);
+                    const activation = ctx.activation;
+                    if (channel && activation && Buffer.isBuffer(value)) {
+                        const now = Date.now();
+                        for (const [key, time] of activation.requests) {
+                            if (now - time > W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS) activation.requests.delete(key);
+                        }
+                        // Include ZCL TSN: APS/NWK retransmissions retain it, independent requests may reuse the body counter.
+                        const identity = `${msg.meta.zclTransactionSequenceNumber}:${value.toString("hex")}`;
+                        if (!activation.requests.has(identity)) {
+                            activation.requests.set(identity, now);
+                            if (activation.requests.size > 256) activation.requests.delete(activation.requests.keys().next().value);
+                            await enqueue(ctx, async () => {
+                                const cached = activation.sample;
+                                if (
+                                    ctx.activation !== activation ||
+                                    !cached ||
+                                    Date.now() - cached.receivedAt > W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS ||
+                                    Date.now() < cached.receivedAt
+                                ) {
+                                    activation.requests.delete(identity);
+                                    return;
+                                }
+                                try {
+                                    await writeW600ExternalSensorSample(msg.endpoint, channel, cached.centiDegrees);
+                                } catch (error) {
+                                    activation.requests.delete(identity);
+                                    throw error;
+                                }
+                            });
+                        }
+                    }
+                    return Object.keys(result).length ? result : undefined;
                 },
             } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
-            {
-                key: ["sensor"],
-                convertSet: async (entity, key, value) => {
-                    assertEndpoint(entity);
-                    const sensor = parseW600SensorSelection(value, key);
-
-                    if (sensor === "external") {
-                        await writeW600LumiAttribute(
-                            entity,
-                            W600_ATTR_SENSOR_BINDING,
-                            buildW600ExternalTempSensorBindPayload(entity),
-                            Zcl.DataType.OCTET_STR,
-                        );
-                        await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 1);
-
-                        return {state: {sensor: "external"}};
-                    }
-
-                    await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 0);
-                    await writeW600LumiAttribute(
-                        entity,
-                        W600_ATTR_SENSOR_BINDING,
-                        buildW600ExternalTempSensorUnbindPayload(entity),
-                        Zcl.DataType.OCTET_STR,
-                    );
-
-                    return {state: {sensor: "internal"}};
-                },
-                convertGet: async (entity) => {
-                    assertEndpoint(entity);
-                    await readSensorState(entity);
-                },
-            },
-            {
-                key: ["external_temperature_input"],
-                convertSet: async (entity, key, value, meta) => {
-                    assertEndpoint(entity);
-                    const requestedSensor = meta.message?.sensor != null ? parseW600SensorSelection(meta.message.sensor, "sensor") : undefined;
-                    const currentSensor = getW600SensorSelectionFromState(meta.state?.sensor);
-                    const sensor = requestedSensor ?? currentSensor;
-
-                    if (sensor !== "external") {
-                        throw new Error("external_temperature_input can only be used when sensor is external");
-                    }
-
-                    const shouldRefreshBinding = currentSensor !== "external" || requestedSensor === "external";
-
-                    if (shouldRefreshBinding) {
-                        await writeW600LumiAttribute(
-                            entity,
-                            W600_ATTR_SENSOR_BINDING,
-                            buildW600ExternalTempSensorBindPayload(entity),
-                            Zcl.DataType.OCTET_STR,
-                        );
-                        await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 1);
-                    }
-
-                    const centiDegrees = parseW600ExternalTemperatureInput(value, key);
-                    await writeW600LumiAttribute(
-                        entity,
-                        W600_ATTR_SENSOR_BINDING,
-                        buildW600ExternalTemperaturePayload(entity, centiDegrees),
-                        Zcl.DataType.OCTET_STR,
-                    );
-
-                    return {
-                        state: {
-                            external_temperature_input: centiDegrees / 100,
-                            ...(shouldRefreshBinding ? {sensor: "external"} : {}),
-                        },
-                    };
-                },
-                convertGet: async (entity) => {
-                    assertEndpoint(entity);
-                    await readSensorState(entity);
-                },
-            },
+            {key: ["sensor"], convertSet, convertGet},
+            {key: ["external_temperature_input"], convertSet, convertGet},
         ],
         configure: [
             async (device) => {
                 const endpoint = device.getEndpoint(1);
                 await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE], {manufacturerCode});
+            },
+        ],
+        onEvent: [
+            (event) => {
+                if (
+                    event.type === "stop" ||
+                    event.type === "start" ||
+                    event.type === "deviceAnnounce" ||
+                    event.type === "deviceJoined" ||
+                    (event.type === "deviceInterview" && event.data.status === "started")
+                ) {
+                    const key = event.type === "stop" ? event.data.ieeeAddr : event.data.device.ieeeAddr;
+                    const ctx = contexts.get(key);
+                    if (ctx) clear(ctx);
+                }
             },
         ],
         isModernExtend: true,

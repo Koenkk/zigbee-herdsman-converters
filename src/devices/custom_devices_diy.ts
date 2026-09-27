@@ -202,7 +202,7 @@ export const fzLocal = {
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {linkquality: msg.linkquality};
-            if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
+            if (msg.data["4919"] !== undefined) result.transmit_power = msg.data["4919"];
             return result;
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
@@ -673,6 +673,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ti.router",
         vendor: "Custom devices (DiY)",
         description: "Texas Instruments router",
+        whiteLabel: [{vendor: "SONOFF", model: "ZBDongle-P", description: "Sonoff Zigbee 3.0 USB Dongle Plus (CC2652P) with router firmware"}],
         fromZigbee: [fzLocal.tirouter],
         toZigbee: [tzLocal.tirouter],
         exposes: [
@@ -683,8 +684,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("dBm")
                 .withDescription(
-                    "Transmit power, supported from firmware 20221102. The max for CC1352 is 20 dBm and 5 dBm for CC2652" +
-                        " (any higher value is converted to 5dBm)",
+                    "Transmit power, supported from firmware 20221102. The max is 20 dBm for CC1352P/CC2652P (default 9 dBm) and " +
+                        "5 dBm for CC2652R/CC2652RB (any higher value is converted to 5 dBm)",
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {

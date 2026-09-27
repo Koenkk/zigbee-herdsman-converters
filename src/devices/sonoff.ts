@@ -1390,6 +1390,18 @@ const withConditionalEnumValues = (
 const isBasicZB1GSPFirmwareAtLeast130 = (device: Zh.Device | DummyDevice): boolean =>
     utils.isDummyDevice(device) || firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher");
 
+const basicZB1GSPConfigureReadAttributes = [
+    "acCurrentCurrentValue",
+    "acCurrentVoltageValue",
+    "acCurrentPowerValue",
+    0x7003,
+    "outlet_control_protect",
+    "totalEnergyConsumption",
+    "energyToday",
+    "energyMonth",
+    "energyYesterday",
+] satisfies (keyof SonoffEwelink["attributes"] | number)[];
+
 // SNZB-09P: alarmSoundType got the chime presets (0x0a-0x0e) in firmware 1.1.9; the base presets work on all firmware.
 const snzb09pAlarmSoundTypeBaseLookup = {
     siren_classic: 0x00,
@@ -10790,6 +10802,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.overloadProtection(4000, 17),
         ],
@@ -10917,6 +10930,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.overloadProtection(3250, 14),
         ],
@@ -12420,6 +12434,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Outlet overload protection Settings",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "ac_current_max_overload_enable",
@@ -12497,16 +12512,16 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
+            const configureReadAttributes: (keyof SonoffEwelink["attributes"] | number)[] = [...basicZB1GSPConfigureReadAttributes];
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "customClusterEwelink", "seMetering"]);
             // onOff configReport is not supported on firmware >= 1.0.5, device reports proactively
             if (firmwareSupportFeaturesVersion(device, "1.0.5", "BASIC-ZB1GSP", "lower")) {
                 await reporting.onOff(endpoint, {min: 0, max: 65000, change: 1});
             }
-            await endpoint.read<"customClusterEwelink", SonoffEwelink>(
-                "customClusterEwelink",
-                ["acCurrentCurrentValue", "acCurrentVoltageValue", "acCurrentPowerValue", 0x7003, "outlet_control_protect", "totalEnergyConsumption"],
-                defaultResponseOptions,
-            );
+            if (firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")) {
+                configureReadAttributes.push("outputEnergyToday", "outputEnergyMonth", "totalOutputEnergyConsumption");
+            }
+            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", configureReadAttributes, defaultResponseOptions);
             await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
@@ -13521,6 +13536,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "When enabled, the device turns off immediately when the configured threshold is reached. After protection is triggered, it can only be restored manually and cannot be turned on via Z2M.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "ac_current_max_overload_enable",

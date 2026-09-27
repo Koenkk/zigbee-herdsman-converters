@@ -347,4 +347,71 @@ describe("lib/tuya", () => {
             expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
         });
     });
+
+    describe("TS0001 manufacturer-dependent settings", () => {
+        // Endpoint layout as reported by a _TZ3000_p26flek3: ep1 carries genOnOff plus the Tuya
+        // private clusters 0xE000 (inching) and 0xE001 (switch type, power-on behaviour); ep242 is green power.
+        const layout = [
+            {ID: 1, profileID: 260, deviceID: 256, inputClusterIDs: [3, 4, 5, 6, 0xe000, 0xe001, 0], outputClusterIDs: [25, 10]},
+            {ID: 242, profileID: 0xa1e0, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+        ];
+
+        const resolve = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS0001", manufacturerName, endpoints: layout});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            // `e.switch()` is a composite without a property of its own, its feature carries `state`.
+            const properties = exposes.flatMap((expose) =>
+                expose.property
+                    ? [expose.property]
+                    : "features" in expose && expose.features
+                      ? expose.features.map((feature) => feature.property)
+                      : [],
+            );
+            return {definition, properties};
+        };
+
+        it("exposes the settings _TZ3000_p26flek3 reports on its private clusters", async () => {
+            const {definition, properties} = await resolve("_TZ3000_p26flek3");
+
+            expect(definition.model).toBe("TS0001");
+            expect(properties).toStrictEqual([
+                "state",
+                "power_on_behavior",
+                "switch_type",
+                "backlight_mode",
+                "indicator_mode",
+                "inching_control_set",
+            ]);
+        });
+
+        it("leaves the settings of _TZ3000_bzzgvet0 unchanged", async () => {
+            const {definition, properties} = await resolve("_TZ3000_bzzgvet0");
+
+            // Matched by the generic TS0001 definition, relabelled through its Moes white label.
+            expect(definition.model).toBe("ZS-US1-LN");
+            expect(properties).toStrictEqual(["state", "power_on_behavior", "switch_type", "backlight_mode"]);
+        });
+
+        it("keeps other TS0001 manufacturers on on/off only", async () => {
+            const {definition, properties} = await resolve("_TZ3000_unlistedxx");
+
+            expect(definition.model).toBe("TS0001");
+            expect(properties).toStrictEqual(["state"]);
+        });
+
+        it("writes backlight_mode to tuyaBacklightSwitch and indicator_mode to tuyaBacklightMode", async () => {
+            // Both converters handle `backlight_mode` and the first match wins, so the order decides
+            // which attribute a backlight_mode write reaches.
+            const {definition} = await resolve("_TZ3000_bzzgvet0");
+
+            expect(definition.toZigbee.find((converter) => converter.key?.includes("backlight_mode"))).toBe(tuya.tz.backlight_indicator_mode_2);
+            expect(definition.toZigbee.find((converter) => converter.key?.includes("indicator_mode"))).toBe(tuya.tz.backlight_indicator_mode_1);
+        });
+
+        it("decodes the inching payload the device answers with", () => {
+            // "AAAA" is the value read from 0xE000/0xD003 on the device with inching switched off.
+            expect(tuya.valueConverter.inchingSwitch.from("AAAA")).toStrictEqual({inching_control_1: "DISABLE", inching_time_1: 0});
+        });
+    });
 });
