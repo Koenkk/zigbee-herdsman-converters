@@ -222,6 +222,8 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         extend: nirvanaExtend({horizontal: false}),
+    },
+    {
         zigbeeModel: ["100042838900", "100042838900 "],
         model: "100042838900",
         vendor: "Atlantic Group",
