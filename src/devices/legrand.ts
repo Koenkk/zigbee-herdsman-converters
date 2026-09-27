@@ -838,4 +838,22 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genScenes"]);
         },
     },
+    {
+        zigbeeModel: [" MGSI - Indoor Sensor"],
+        model: "069060",
+        vendor: "Legrand",
+        description: "Connected indoor temperature and humidity sensor",
+        ota: true,
+        // Not sure about these values. The battery is a different kind.
+        meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        fromZigbee: [fz.battery],
+        toZigbee: [],
+        exposes: [e.battery()],
+        onEvent: readInitialBatteryState,
+        extend: [legrandExtend.addLegrandDevicesCluster(), m.identify(), m.temperature(), m.humidity()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "genPollCtrl"]);
+        },
+    },
 ];
