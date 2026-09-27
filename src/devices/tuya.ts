@@ -2277,7 +2277,7 @@ const Tze2846ocnqlhnfrequencyConverter = {
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
-        model: "Tuya-CTL-Mini-DTP-TYZ/AC",
+        model: "CTL-Mini-DTP-TYZ/AC",
         vendor: "CTL",
         description: "Radar and PIR dual-technology presence sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
