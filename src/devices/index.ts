@@ -332,6 +332,7 @@ import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
 import {definitions as stelpro} from "./stelpro";
+import {definitions as streda} from "./streda";
 import {definitions as stuckatprototype} from "./stuckatprototype";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
@@ -725,6 +726,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sprut,
     ...stello,
     ...stelpro,
+    ...streda,
     ...stuckatprototype,
     ...sunricher,
     ...superled,
