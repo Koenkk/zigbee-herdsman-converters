@@ -190,38 +190,37 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["100052992400"],
+        zigbeeModel: ["100052992400", "100052992500", "100052992700"],
         model: "100052992400",
         vendor: "Atlantic Group",
         description: "Nirvana+ connected radiator horizontal 750W",
+        // Firmware appends a NUL character to the modelID, so both variants are needed in the fingerprint
+        whiteLabel: [
+            {
+                model: "100052992500",
+                description: "Nirvana+ connected radiator horizontal 1000W",
+                fingerprint: [{modelID: "100052992500"}, {modelID: "100052992500\u0000"}],
+            },
+            {
+                model: "100052992700",
+                description: "Nirvana+ connected radiator horizontal 1500W",
+                fingerprint: [{modelID: "100052992700"}, {modelID: "100052992700\u0000"}],
+            },
+        ],
         extend: nirvanaExtend({horizontal: true}),
     },
     {
-        zigbeeModel: ["100052992500"],
-        model: "100052992500",
-        vendor: "Atlantic Group",
-        description: "Nirvana+ connected radiator horizontal 1000W",
-        extend: nirvanaExtend({horizontal: true}),
-    },
-    {
-        zigbeeModel: ["100052992700"],
-        model: "100052992700",
-        vendor: "Atlantic Group",
-        description: "Nirvana+ connected radiator horizontal 1500W",
-        extend: nirvanaExtend({horizontal: true}),
-    },
-    {
-        zigbeeModel: ["100052994200"],
+        zigbeeModel: ["100052994200", "100052994300"],
         model: "100052994200",
         vendor: "Atlantic Group",
         description: "Nirvana+ connected radiator vertical 1500W",
-        extend: nirvanaExtend({horizontal: false}),
-    },
-    {
-        zigbeeModel: ["100052994300"],
-        model: "100052994300",
-        vendor: "Atlantic Group",
-        description: "Nirvana+ connected radiator vertical 2000W",
+        whiteLabel: [
+            {
+                model: "100052994300",
+                description: "Nirvana+ connected radiator vertical 2000W",
+                fingerprint: [{modelID: "100052994300"}, {modelID: "100052994300\u0000"}],
+            },
+        ],
         extend: nirvanaExtend({horizontal: false}),
     },
 ];
