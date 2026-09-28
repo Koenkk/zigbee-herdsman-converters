@@ -142,4 +142,28 @@ export const definitions: DefinitionWithExtend[] = [
             endpoint.saveClusterAttributeKeyValue("seMetering", {multiplier: 1, divisor: 1000});
         },
     },
+    {
+        zigbeeModel: ["100042838900", "100042838900 "],
+        model: "100042838900",
+        vendor: "Atlantic Group",
+        description: "Thermor Equateur 5 electric radiator",
+        fromZigbee: [fz.thermostat, fz.occupancy, fz.metering],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.currentsummdelivered],
+        exposes: [
+            e.climate().withLocalTemperature().withSetpoint("occupied_heating_setpoint", 7, 28, 0.5).withSystemMode(["off", "heat"]),
+            e.occupancy(),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "msOccupancySensing", "seMetering"]);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.occupancy(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            // The device reports seMetering multiplier=1000/divisor=1000 while currentSummDelivered is in Wh
+            endpoint.saveClusterAttributeKeyValue("seMetering", {multiplier: 1, divisor: 1000});
+        },
+    },
 ];
