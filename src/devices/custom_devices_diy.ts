@@ -689,7 +689,7 @@ function mdGateLimitContact(name: "closed" | "open", endpointID: number): Modern
     const to = extension.toZigbee[0];
     return {
         ...extension,
-        // Keep the existing public exposes; raw mdGateContacts remain available in MQTT and through /get.
+        // Keep the existing public exposes; raw contacts remain available in MQTT and through /get.
         exposes: [],
         fromZigbee: [
             {
@@ -887,7 +887,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MD-GATE-ZB1"],
         model: "MD-GATE-ZB1",
         vendor: "MakeDIY",
-        description: "Gate controller with main and optional pedestrian pulse and one or two limit mdGateContacts",
+        description: "Gate controller with main and optional pedestrian pulse and one or two limit contacts",
         extend: [
             mdGateLimitContact("closed", 2),
             mdGateLimitContact("open", 3),
@@ -1494,14 +1494,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "temperature_calibration",
-                unit: "Â°C",
+                unit: "°C",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
                 scale: 100,
-                description: "The temperature calibration offset is set in 0.01Â° steps.",
+                description: "The temperature calibration offset is set in 0.01° steps.",
             }),
             m.numeric({
                 name: "humidity_calibration",
@@ -1516,23 +1516,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "comfort_temperature_min",
-                unit: "Â°C",
+                unit: "°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
-                description: "Comfort parameters/Temperature minimum, in 0.01Â°C steps.",
+                description: "Comfort parameters/Temperature minimum, in 0.01°C steps.",
             }),
             m.numeric({
                 name: "comfort_temperature_max",
-                unit: "Â°C",
+                unit: "°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
-                description: "Comfort parameters/Temperature maximum, in 0.01Â°C steps.",
+                description: "Comfort parameters/Temperature maximum, in 0.01°C steps.",
             }),
             m.numeric({
                 name: "comfort_humidity_min",
@@ -1614,7 +1614,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 12.7,
                 valueStep: 0.1,
                 scale: 10,
-                description: "The temperature calibration, in 0.1Â° steps. Requires v0.1.1.6 or newer.",
+                description: "The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.",
             }),
             m.numeric({
                 name: "humidity_calibration",
@@ -1636,7 +1636,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0102, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: "Comfort parameters/Temperature minimum, in 1Â° steps. Requires v0.1.1.7 or newer.",
+                description: "Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.",
             }),
             m.numeric({
                 name: "comfort_temperature_max",
@@ -1645,7 +1645,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0103, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: "Comfort parameters/Temperature maximum, in 1Â° steps. Requires v0.1.1.7 or newer.",
+                description: "Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.",
             }),
             m.numeric({
                 name: "comfort_humidity_min",
