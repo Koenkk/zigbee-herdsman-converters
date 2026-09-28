@@ -3212,7 +3212,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
             m.light(),
-            m.electricityMeter(),
+            m.electricityMeter({endpointNames: ["1"]}),
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
             m.commandsWindowCovering({endpointNames: ["4"]}),
             m.commandsLevelCtrl({endpointNames: ["4"]}),
