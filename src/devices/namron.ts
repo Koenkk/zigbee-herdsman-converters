@@ -991,7 +991,7 @@ const tzEdge = {
         key: ["regulator_cycle"],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error("regulator_cycle must be 1-30");
+            if (Number.isNaN(num) || num < 0 || num > 30) throw new Error("regulator_cycle must be 0-30");
             await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
             return {state: {regulator_cycle: num}};
         },
@@ -1238,7 +1238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
-            e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(1).withValueMax(30).withDescription("Regulator cycle length."),
+            e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
             e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
