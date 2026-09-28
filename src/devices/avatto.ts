@@ -965,7 +965,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_pfnjjx6a","_TZ3218_fv20refe"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_pfnjjx6a", "_TZ3218_fv20refe"]),
         model: "ZOT60",
         vendor: "AVATTO",
         description: "Smart Plug",
