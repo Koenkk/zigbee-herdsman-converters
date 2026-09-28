@@ -1,11 +1,211 @@
 import {describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
-import {findByDevice, type Tz} from "../src/index";
+import {findByDevice, prepareDefinition, type Tz} from "../src/index";
+import {access} from "../src/lib/exposes";
 import * as tuya from "../src/lib/tuya";
 import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
+    describe("firmwareVersions", () => {
+        const setup = () => {
+            const extension = tuya.modernExtend.firmwareVersions();
+            const base = tuya.modernExtend.tuyaBase({dp: true});
+            const definition = prepareDefinition({
+                zigbeeModel: ["firmware-versions-test"],
+                model: "firmware-versions-test",
+                vendor: "Tuya",
+                description: "Firmware version extension test",
+                extend: [extension, base],
+            });
+            const device = mockDevice({
+                modelID: "TS0601",
+                endpoints: [{ID: 1, attributes: {genOta: {attributes: {currentFileVersion: 0x01020304}}}}],
+            });
+            device.genBasic.appVersion = 99;
+            device.genBasic.swBuildId = "original-build";
+            const save = vi.spyOn(device, "save").mockImplementation(() => {});
+            const endpoint = device.endpoints[0];
+            const state = {update: {installed_version: 0x01020304, latest_version: 0x01020305, state: "available"}};
+            const meta: Tz.Meta = {state, device, message: {}, mapped: definition, options: {}, publish: vi.fn(), endpoint_name: undefined};
+            const convert = (cluster: string, type: string, data: Record<string, unknown>) => {
+                const converter = extension.fromZigbee.find((candidate) => candidate.cluster === cluster && candidate.type.includes(type));
+                expect(converter).toBeDefined();
+                return converter.convert(
+                    definition,
+                    {cluster, type, data, device, endpoint, meta: {rawData: Buffer.alloc(0)}, groupID: 0, linkquality: 0},
+                    vi.fn(),
+                    {},
+                    {device, state, deviceExposesChanged: vi.fn()},
+                );
+            };
+            return {extension, base, definition, device, endpoint, state, meta, save, convert};
+        };
+
+        it("exposes two read-only, manually refreshable diagnostic text fields without polling or OTA configuration", () => {
+            const {extension, base} = setup();
+            expect(extension.exposes).toMatchObject([
+                {
+                    type: "text",
+                    property: "zigbee_firmware_version",
+                    label: "Zigbee firmware version",
+                    access: access.STATE_GET,
+                    category: "diagnostic",
+                },
+                {
+                    type: "text",
+                    property: "mcu_firmware_version",
+                    label: "MCU firmware version",
+                    access: access.STATE_GET,
+                    category: "diagnostic",
+                },
+            ]);
+            expect(extension.isModernExtend).toBe(true);
+            expect(extension.toZigbee).toHaveLength(2);
+            for (const converter of extension.toZigbee) {
+                expect(converter.convertGet).toBeTypeOf("function");
+                expect(converter.convertSet).toBeUndefined();
+            }
+            expect(extension.configure).toBeUndefined();
+            expect(extension.onEvent).toBeUndefined();
+            expect(extension.ota).toBeUndefined();
+            expect(extension.options).toBeUndefined();
+            expect(base.exposes).toBeUndefined();
+            expect(base.fromZigbee).toContain(tuya.fz.mcu_version);
+        });
+
+        describe.each([
+            {cluster: "genBasic", type: "attributeReport", attribute: "appVersion", property: "zigbee_firmware_version"},
+            {cluster: "genBasic", type: "readResponse", attribute: "appVersion", property: "zigbee_firmware_version"},
+            {cluster: "manuSpecificTuya", type: "commandMcuVersionResponse", attribute: "version", property: "mcu_firmware_version"},
+        ])("$cluster $type", ({cluster, type, attribute, property}) => {
+            it.each([
+                [0, "0.0.0"],
+                [1, "0.0.1"],
+                [15, "0.0.15"],
+                [16, "0.1.0"],
+                [63, "0.3.15"],
+                [64, "1.0.0"],
+                [99, "1.2.3"],
+                [175, "2.2.15"],
+                [255, "3.3.15"],
+            ])("decodes %s as %s", (value, expected) => {
+                const {convert} = setup();
+                expect(convert(cluster, type, {[attribute]: value})).toStrictEqual({[property]: expected});
+            });
+
+            it.each(
+                [
+                    -1,
+                    256,
+                    1.5,
+                    Number.NaN,
+                    Number.POSITIVE_INFINITY,
+                    Number.NEGATIVE_INFINITY,
+                    "99",
+                    "",
+                    null,
+                    undefined,
+                    true,
+                    false,
+                    {},
+                    [],
+                    [99],
+                ].map((value) => ({value})),
+            )("ignores invalid version $value", ({value}) => {
+                const {convert} = setup();
+                expect(convert(cluster, type, {[attribute]: value})).toBeUndefined();
+            });
+
+            it("ignores an absent version without falling back to cached attributes", () => {
+                const {convert} = setup();
+                expect(convert(cluster, type, {})).toBeUndefined();
+            });
+        });
+
+        it("dispatches version GETs before the Tuya DP catch-all and uses the exact request payloads", async () => {
+            const {extension, base, definition, endpoint, meta} = setup();
+            const firstMatch = (key: string) => definition.toZigbee.find((converter) => !converter.key || converter.key.includes(key));
+            const zigbee = firstMatch("zigbee_firmware_version");
+            const mcu = firstMatch("mcu_firmware_version");
+            expect(zigbee).toBe(extension.toZigbee[0]);
+            expect(mcu).toBe(extension.toZigbee[1]);
+            expect(base.toZigbee[0].key).toBeUndefined();
+            expect(firstMatch("state")).toBe(base.toZigbee[0]);
+
+            await zigbee.convertGet(endpoint, "zigbee_firmware_version", meta);
+            expect(endpoint.read).toHaveBeenCalledExactlyOnceWith("genBasic", ["appVersion"]);
+            expect(endpoint.command).not.toHaveBeenCalled();
+            await mcu.convertGet(endpoint, "mcu_firmware_version", meta);
+            expect(endpoint.command).toHaveBeenCalledExactlyOnceWith(
+                "manuSpecificTuya",
+                "mcuVersionRequest",
+                {seq: 2},
+                {disableDefaultResponse: true},
+            );
+            expect(endpoint.read).toHaveBeenCalledTimes(1);
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("leaves Firmware ID, installed OTA version and device metadata untouched", async () => {
+            const {extension, device, endpoint, state, meta, save, convert} = setup();
+            const genBasic = structuredClone(device.genBasic);
+            const deviceMeta = structuredClone(device.meta);
+            const previousState = structuredClone(state);
+            expect(convert("genBasic", "readResponse", {appVersion: 175})).toStrictEqual({zigbee_firmware_version: "2.2.15"});
+            expect(convert("manuSpecificTuya", "commandMcuVersionResponse", {version: 99})).toStrictEqual({mcu_firmware_version: "1.2.3"});
+            expect(endpoint.command).not.toHaveBeenCalled();
+            expect(endpoint.read).not.toHaveBeenCalled();
+            for (const converter of extension.toZigbee) {
+                await converter.convertGet(endpoint, converter.key[0], meta);
+            }
+            expect(device.genBasic).toStrictEqual(genBasic);
+            expect(device.meta).toStrictEqual(deviceMeta);
+            expect(endpoint.getClusterAttributeValue("genOta", "currentFileVersion")).toBe(0x01020304);
+            expect(state).toStrictEqual(previousState);
+            expect(save).not.toHaveBeenCalled();
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("coexists with the existing Firmware ID handler without triggering more requests", async () => {
+            const {definition, device, endpoint, state, save} = setup();
+            device.genBasic.swBuildId = undefined;
+            const previousUpdate = structuredClone(state.update);
+            const payload = {};
+            for (const converter of definition.fromZigbee) {
+                if (converter.cluster === "manuSpecificTuya" && converter.type.includes("commandMcuVersionResponse")) {
+                    Object.assign(
+                        payload,
+                        await converter.convert(
+                            definition,
+                            {
+                                cluster: "manuSpecificTuya",
+                                type: "commandMcuVersionResponse",
+                                data: {seq: 2, version: 175},
+                                device,
+                                endpoint,
+                                meta: {rawData: Buffer.alloc(0)},
+                                groupID: 0,
+                                linkquality: 0,
+                            },
+                            vi.fn(),
+                            {},
+                            {device, state, deviceExposesChanged: vi.fn()},
+                        ),
+                    );
+                }
+            }
+            expect(payload).toStrictEqual({mcu_firmware_version: "2.2.15"});
+            expect(device.genBasic.swBuildId).toBe("Zigbee module: 1.2.3, MCU module: 2.2.15");
+            expect(device.meta.hasCustomFirmwareId).toBe(true);
+            expect(save).toHaveBeenCalledTimes(1);
+            expect(state.update).toStrictEqual(previousUpdate);
+            expect(endpoint.command).not.toHaveBeenCalled();
+            expect(endpoint.read).not.toHaveBeenCalled();
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+    });
+
     describe("tuyaWeatherForecast", () => {
         it("uses forecast fields 1 through 3 and includes their humidity in the payload", async () => {
             const {toZigbee} = tuya.modernExtend.tuyaWeatherForecast();

@@ -4514,6 +4514,60 @@ const tuyaModernExtend = {
             isModernExtend: true,
         };
     },
+    /** Place before tuyaBase({dp: true}) so its catch-all converter does not intercept version GETs. */
+    firmwareVersions(): ModernExtend {
+        return {
+            exposes: [
+                e
+                    .text("zigbee_firmware_version", ea.STATE_GET)
+                    .withLabel("Zigbee firmware version")
+                    .withDescription("Firmware version of the Zigbee module")
+                    .withCategory("diagnostic"),
+                e
+                    .text("mcu_firmware_version", ea.STATE_GET)
+                    .withLabel("MCU firmware version")
+                    .withDescription("Firmware version of the MCU module")
+                    .withCategory("diagnostic"),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "genBasic",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const version = msg.data.appVersion;
+                        if (Number.isInteger(version) && version >= 0 && version <= 255) {
+                            return {zigbee_firmware_version: decodeTuyaVersion(version)};
+                        }
+                    },
+                } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+                {
+                    cluster: "manuSpecificTuya",
+                    type: ["commandMcuVersionResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const version = msg.data.version;
+                        if (Number.isInteger(version) && version >= 0 && version <= 255) {
+                            return {mcu_firmware_version: decodeTuyaVersion(version)};
+                        }
+                    },
+                } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandMcuVersionResponse"]>,
+            ],
+            toZigbee: [
+                {
+                    key: ["zigbee_firmware_version"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.read("genBasic", ["appVersion"]);
+                    },
+                },
+                {
+                    key: ["mcu_firmware_version"],
+                    convertGet: async (entity, key, meta) => {
+                        await entity.command("manuSpecificTuya", "mcuVersionRequest", {seq: 2}, {disableDefaultResponse: true});
+                    },
+                },
+            ],
+            isModernExtend: true,
+        };
+    },
     tuyaBase(
         args: {
             dp?: true;
