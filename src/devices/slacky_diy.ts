@@ -150,6 +150,14 @@ interface SlackyDiyRfPowerCfg {
     commandResponses: never;
 }
 
+interface SlackyDiyLevel {
+    attributes: {
+        nightLevel: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
 const fzLocal = {
     thermostat_custom_fw: {
         cluster: "hvacThermostat",
@@ -950,7 +958,7 @@ const electricityMeterExtend = {
             e.numeric("battery_life", ea.STATE_GET).withUnit("%").withDescription("Battery Life"),
             e.binary("tamper", ea.STATE, true, false).withDescription("Tamper"),
             e.binary("battery_low", ea.STATE, true, false).withDescription("Battery Low"),
-            e.numeric("device_address_preset", ea.STATE_SET).withDescription("Device Address").withValueMin(1).withValueMax(9999999),
+            e.numeric("device_address_preset", ea.STATE_SET).withDescription("Device Address").withValueMin(1).withValueMax(99999999),
             e.text("device_password_preset", ea.STATE_SET).withDescription("Meter Password"),
             e.numeric("device_measurement_preset", ea.ALL).withDescription("Measurement Period").withValueMin(1).withValueMax(255),
         ];
@@ -7239,6 +7247,99 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Actions switch",
             }),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["Ledron-YK-16-Mod"],
+        model: "Ledron-YK-16-Mod",
+        vendor: "Svetomaniya",
+        description: "Ledron remote control with new firmware",
+        extend: [
+            m.deviceAddCustomCluster("genLevelCtrl", {
+                name: "genLevelCtrl",
+                ID: 0x0008,
+                attributes: {
+                    minLevel: {
+                        name: "minLevel",
+                        ID: 0x0002,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    maxLevel: {
+                        name: "maxLevel",
+                        ID: 0x0003,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                    nightLevel: {
+                        name: "nightLevel",
+                        ID: 0xf000,
+                        type: 0x20,
+                        write: true,
+                        max: 0xff,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceEndpoints({
+                endpoints: {
+                    "1": 1,
+                    "2": 2,
+                    "3": 3,
+                    "4": 4,
+                    "5": 5,
+                    "6": 6,
+                    "7": 7,
+                    "8": 8,
+                },
+            }),
+            m.battery({
+                percentageReportingConfig: {min: 3600, max: 14400, change: 0},
+            }),
+            m.commandsOnOff({
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+            }),
+            m.commandsLevelCtrl({
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+            }),
+            m.commandsColorCtrl({
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+            }),
+            m.numeric<"genLevelCtrl">({
+                name: "min_level",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                cluster: "genLevelCtrl",
+                attribute: "minLevel",
+                valueMin: 1,
+                valueMax: 255,
+                description: "Minimum level when decreasing",
+            }),
+            m.numeric<"genLevelCtrl">({
+                name: "max_level",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                cluster: "genLevelCtrl",
+                attribute: "maxLevel",
+                valueMin: 1,
+                valueMax: 255,
+                description: "Maximum level when increasing",
+            }),
+            m.numeric<"genLevelCtrl", SlackyDiyLevel>({
+                name: "night_level",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                cluster: "genLevelCtrl",
+                attribute: "nightLevel",
+                valueMin: 1,
+                valueMax: 20,
+                description: "Night level in %",
+            }),
+        ],
+        meta: {},
         ota: true,
     },
 ];

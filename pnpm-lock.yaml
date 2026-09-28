@@ -116,15 +116,15 @@ importers:
         specifier: ^7.8.5
         version: 7.8.5
       zigbee-herdsman:
-        specifier: ^10.9.3
-        version: 10.9.3(supports-color@7.2.0)
+        specifier: ^10.9.5
+        version: 10.9.5(supports-color@7.2.0)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.3
         version: 2.5.3
       '@types/node':
-        specifier: ^26.6.1
-        version: 26.6.1
+        specifier: ^26.6.2
+        version: 26.6.2
       '@types/semver':
         specifier: ^7.8.0
         version: 7.8.0
@@ -151,7 +151,7 @@ importers:
         version: 7.0.2
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@26.6.1)(@vitest/coverage-v8@4.1.11)(vite@7.3.5(@types/node@26.6.1))
+        version: 4.1.11(@types/node@26.6.2)(@vitest/coverage-v8@4.1.11)(vite@7.3.5(@types/node@26.6.2))
 
 packages:
 
@@ -585,8 +585,8 @@ packages:
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
-  '@types/node@26.6.1':
-    resolution: {integrity: sha512-VqGJBMCtdhqkBUCcBLvywI0NJ+KLuVzgNnlBUNFOQjqVxzo2lxLUNg1DSey8+u2u6ktswSAxg+s68QLzWHNOuA==}
+  '@types/node@26.6.2':
+    resolution: {integrity: sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g==}
 
   '@types/semver@7.8.0':
     resolution: {integrity: sha512-1mAINjtQCXXeLkJ9ehXkwOcBpqtLxiVtKhpUf83DdRNdQKV0iXZpaHYqRr7nj+wvxuJzoAmAwXI+sCNMv1CzLQ==}
@@ -1163,8 +1163,9 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  zigbee-herdsman@10.9.3:
-    resolution: {integrity: sha512-RvtSnvTHtlymnCDCDKIyzGi/uAq/q3oxeCWliIYJ7l65HskVwjXwo0qLgFIEZg/B73E4x4OTaYebgsfaDahVFw==}
+  zigbee-herdsman@10.9.5:
+    resolution: {integrity: sha512-iAbHRsM4YkyYrP65pp3NgPOfbkG6+iEC4V+WWT0qVJO82tDtW26r+eTqxOkF0ieeOLW+TA0TUZ0JZ6rgMwgKoQ==}
+    engines: {node: ^22.2.0 || ^24 || <=26.2}
 
   zigbee-on-host@0.2.4:
     resolution: {integrity: sha512-NIG6CWp+Yfn7PjqEIRvenHqpwT1U7rSkyimnFOUIFpnmxQOJKrmcwWDfn6WjbU/YIYYWSQPlj+g13icu1xwlyg==}
@@ -1433,7 +1434,7 @@ snapshots:
 
   '@types/estree@1.0.9': {}
 
-  '@types/node@26.6.1':
+  '@types/node@26.6.2':
     dependencies:
       undici-types: 8.9.0
 
@@ -1511,7 +1512,7 @@ snapshots:
       obug: 2.1.4
       std-env: 4.2.0
       tinyrainbow: 3.1.1
-      vitest: 4.1.11(@types/node@26.6.1)(@vitest/coverage-v8@4.1.11)(vite@7.3.5(@types/node@26.6.1))
+      vitest: 4.1.11(@types/node@26.6.2)(@vitest/coverage-v8@4.1.11)(vite@7.3.5(@types/node@26.6.2))
 
   '@vitest/expect@4.1.11':
     dependencies:
@@ -1522,13 +1523,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.1
 
-  '@vitest/mocker@4.1.11(vite@7.3.5(@types/node@26.6.1))':
+  '@vitest/mocker@4.1.11(vite@7.3.5(@types/node@26.6.2))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.5(@types/node@26.6.1)
+      vite: 7.3.5(@types/node@26.6.2)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -1896,7 +1897,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  vite@7.3.5(@types/node@26.6.1):
+  vite@7.3.5(@types/node@26.6.2):
     dependencies:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.7)
@@ -1905,13 +1906,13 @@ snapshots:
       rollup: 4.63.1
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 26.6.1
+      '@types/node': 26.6.2
       fsevents: 2.3.3
 
-  vitest@4.1.11(@types/node@26.6.1)(@vitest/coverage-v8@4.1.11)(vite@7.3.5(@types/node@26.6.1)):
+  vitest@4.1.11(@types/node@26.6.2)(@vitest/coverage-v8@4.1.11)(vite@7.3.5(@types/node@26.6.2)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@7.3.5(@types/node@26.6.1))
+      '@vitest/mocker': 4.1.11(vite@7.3.5(@types/node@26.6.2))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -1928,10 +1929,10 @@ snapshots:
       tinyexec: 1.3.0
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.1
-      vite: 7.3.5(@types/node@26.6.1)
+      vite: 7.3.5(@types/node@26.6.2)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 26.6.1
+      '@types/node': 26.6.2
       '@vitest/coverage-v8': 4.1.11(vitest@4.1.11)
     transitivePeerDependencies:
       - msw
@@ -1945,7 +1946,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zigbee-herdsman@10.9.3(supports-color@7.2.0):
+  zigbee-herdsman@10.9.5(supports-color@7.2.0):
     dependencies:
       '@date-fns/tz': 1.5.0
       '@serialport/bindings-cpp': 13.0.1(supports-color@7.2.0)

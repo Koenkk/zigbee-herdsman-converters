@@ -2113,7 +2113,18 @@ export const definitions: DefinitionWithExtend[] = [
         model: "540139X",
         vendor: "Namron",
         description: "Panel heater 400/600/800/1000 W",
-        extend: [namron.namronExtend.addNamronHvacThermostatCluster()],
+        extend: [
+            namron.namronExtend.addNamronHvacThermostatCluster(),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                description: "Unit shown on the device's own screen.",
+                reporting: false,
+                entityCategory: "config",
+            }),
+        ],
         ota: true,
         fromZigbee: [fz.thermostat, fz.metering, fz.electrical_measurement, fzLocal.namron_panelheater, namron.fromZigbee.namron_hvac_user_interface],
         toZigbee: [
