@@ -3008,20 +3008,20 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "config",
                 zigbeeCommandOptions: {disableDefaultResponse: true},
             }),
-        {
-            configure: [
-                async (device, coordinatorEndpoint) => {
-                    const endpoint = device.getEndpoint(1);
-                    await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOta", "genOnOff", "genLevelCtrl"]);
-                    await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
-                },
-            ],
-            isModernExtend: true,
-        },
-    ],
-    exposes: [e.text("firmware_version", ea.STATE).withLabel("Firmware version"), e.text("firmware_date", ea.STATE).withLabel("Firmware date")],
-    fromZigbee: [fzEdge.basic],
-    meta: {},
+            {
+                configure: [
+                    async (device, coordinatorEndpoint) => {
+                        const endpoint = device.getEndpoint(1);
+                        await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOta", "genOnOff", "genLevelCtrl"]);
+                        await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
+                    },
+                ],
+                isModernExtend: true,
+            },
+        ],
+        exposes: [e.text("firmware_version", ea.STATE).withLabel("Firmware version"), e.text("firmware_date", ea.STATE).withLabel("Firmware date")],
+        fromZigbee: [fzEdge.basic],
+        meta: {},
     },
     {
         zigbeeModel: ["4512788"],
