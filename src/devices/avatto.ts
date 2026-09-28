@@ -969,7 +969,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZOT60",
         vendor: "AVATTO",
         description: "Smart Plug",
-        whiteLabel: [tuya.whitelabel("pcblab.io", "ZOT60", "Smart plug", ["_TZ3218_o1slgs0r"])],
+        whiteLabel: [tuya.whitelabel("pcblab.io", "ZOT60-RF", "Smart plug", ["_TZ3218_o1slgs0r"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             tuya.exposes.switch(),
