@@ -397,7 +397,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075823976",
         vendor: "LEDVANCE",
         description: "LED Tube T8 EM Connected 1200 mm 16W 840",
-        extend: [ledvanceLight()],
+        extend: [ledvanceLight(), m.identify()],
     },
     {
         zigbeeModel: ["TUBE_T8_CON_1500_24W_840ZBV"],
