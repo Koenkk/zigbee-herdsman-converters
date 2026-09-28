@@ -277,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075729025",
         vendor: "LEDVANCE",
         description: "SMART+ lamp E27 RGBTW",
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ["GARDENPOLE RGBW T"],
