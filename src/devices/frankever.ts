@@ -1,5 +1,4 @@
 import * as exposes from "../lib/exposes";
-import * as legacy from "../lib/legacy";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend} from "../lib/types";
 
@@ -9,29 +8,16 @@ const te = tuya.exposes;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint('TS0601', [
-            '_TZE200_wt9agwf3',
-            '_TZE200_5uodvhgc',
-            '_TZE200_1n2zev06',
-        ]),
-        model: 'FK_V02',
-        vendor: 'FrankEver',
-        description: 'Zigbee smart water valve',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wt9agwf3", "_TZE200_5uodvhgc", "_TZE200_1n2zev06"]),
+        model: "FK_V02",
+        vendor: "FrankEver",
+        description: "Zigbee smart water valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.switch(),
-            e.enum('power_off_state', ea.STATE_SET, ['off', 'on', 'maintain'])
-                .withDescription('Power-off status behavior'),
-            e.numeric('set_valve_position', ea.STATE_SET)
-                .withUnit('%')
-                .withValueStep(10)
-                .withValueMin(0)
-                .withValueMax(100),
-            e.numeric('countdown', ea.STATE_SET)
-                .withUnit('s')
-                .withValueMin(0)
-                .withValueMax(43200)
-                .withDescription('Countdown timer in seconds'),
+            e.enum("power_off_state", ea.STATE_SET, ["off", "on", "maintain"]).withDescription("Power-off status behavior"),
+            e.numeric("set_valve_position", ea.STATE_SET).withUnit("%").withValueStep(10).withValueMin(0).withValueMax(100),
+            e.numeric("countdown", ea.STATE_SET).withUnit("s").withValueMin(0).withValueMax(43200).withDescription("Countdown timer in seconds"),
         ],
         endpoint: () => ({
             state: 1,
@@ -42,14 +28,18 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state', tuya.valueConverter.onOff],
-                [9, 'countdown', tuya.valueConverter.countdown],
-                [27, 'power_off_state', tuya.valueConverterBasic.lookup({
-                    off: new tuya.Enum(0),
-                    on: new tuya.Enum(1),
-                    maintain: new tuya.Enum(2),
-                })],
-                [101, 'set_valve_position', tuya.valueConverter.raw],
+                [1, "state", tuya.valueConverter.onOff],
+                [9, "countdown", tuya.valueConverter.countdown],
+                [
+                    27,
+                    "power_off_state",
+                    tuya.valueConverterBasic.lookup({
+                        off: new tuya.Enum(0),
+                        on: new tuya.Enum(1),
+                        maintain: new tuya.Enum(2),
+                    }),
+                ],
+                [101, "set_valve_position", tuya.valueConverter.raw],
             ],
         },
     },
