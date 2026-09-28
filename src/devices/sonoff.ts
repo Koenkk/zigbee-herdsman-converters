@@ -6006,6 +6006,30 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    swvDualFlow: (): ModernExtend => ({
+        exposes: [e.numeric("flow", ea.STATE).withUnit("m³/h").withDescription("Shared measured water flow across both outlets")],
+        fromZigbee: [
+            {
+                cluster: "msFlowMeasurement",
+                type: ["attributeReport", "readResponse"],
+                convert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 1 || !Object.hasOwn(msg.data, "measuredValue")) return;
+                    const value = msg.data.measuredValue;
+                    return {flow: typeof value === "number" && Number.isFinite(value) && value >= 0 && value < 0xffff ? value / 10 : null};
+                },
+            },
+        ],
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["msFlowMeasurement"]);
+                await endpoint.configureReporting("msFlowMeasurement", [
+                    {attribute: "measuredValue", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 1},
+                ]);
+            },
+        ],
+        isModernExtend: true,
+    }),
     irrigationScheduleStatus: (hasFlowMeter: boolean, endpointNames?: string[]): ModernExtend => {
         const expose: DefinitionExposesFunction = (device) => {
             const baseExpose = e
@@ -6036,7 +6060,18 @@ const sonoffExtend = {
                     .withFeature(e.numeric("expected_irrigation_amount", ea.STATE).withDescription("Expected irrigation amount"))
                     .withFeature(e.numeric("actual_irrigation_amount", ea.STATE).withDescription("Actual irrigation amount"));
             }
-            return exposeCompositeEndpoints(baseExpose, endpointNames);
+            const sessionVolumeExpose = e
+                .numeric("actual_irrigation_amount", ea.STATE)
+                .withUnit("L")
+                .withDescription("Water volume reported for the current irrigation session; resets at session start");
+            return [
+                ...exposeCompositeEndpoints(baseExpose, endpointNames),
+                ...(hasFlowMeter
+                    ? endpointNames
+                        ? endpointNames.map((endpoint) => sessionVolumeExpose.clone().withEndpoint(endpoint))
+                        : [sessionVolumeExpose]
+                    : []),
+            ];
         };
 
         const scheduleStatusMap = {
@@ -6077,6 +6112,7 @@ const sonoffExtend = {
                     }
 
                     const property = utils.postfixWithEndpointName("irrigation_schedule_status", msg, model, meta);
+                    const amountProperty = utils.postfixWithEndpointName("actual_irrigation_amount", msg, model, meta);
 
                     const array = new Uint8Array(msg.data.irrigationScheduleStatus);
                     const scheduleStatus = array[0];
@@ -6105,6 +6141,7 @@ const sonoffExtend = {
                         const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(volumeUnit, meta.device);
 
                         return {
+                            ...(hasFlowMeter ? {[amountProperty]: null} : {}),
                             [property]: {
                                 schedule_status: scheduleStatusMapReverse[scheduleStatus],
                                 schedule_index: scheduleIndex,
@@ -6145,6 +6182,9 @@ const sonoffExtend = {
                         const irrigationAmountUnit = SWVZNEIrrigationAmountUnitFromDeviceCode(volumeUnit, meta.device);
 
                         return {
+                            ...(hasFlowMeter
+                                ? {[amountProperty]: irrigationAmountUnit ? actualVolume * SWVZNELitersPerWaterFlowUnit[irrigationAmountUnit] : null}
+                                : {}),
                             [property]: {
                                 schedule_status: scheduleStatusMapReverse[scheduleStatus] ?? "end",
                                 schedule_index: scheduleIndex,
@@ -12063,6 +12103,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee dual-channel smart water valve",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
+            sonoffExtend.swvDualFlow(),
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
                 ID: 0xfc11,
