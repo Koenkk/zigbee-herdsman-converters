@@ -965,10 +965,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_o1slgs0r"]),
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_pfnjjx6a","_TZ3218_fv20refe"]),
         model: "ZOT60",
-        vendor: "pcblab.io",
+        vendor: "AVATTO",
         description: "Smart Plug",
+        whiteLabel: [tuya.whitelabel("pcblab.io", "ZOT60", "Smart plug", ["_TZ3218_o1slgs0r"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
         exposes: [
             tuya.exposes.switch(),
