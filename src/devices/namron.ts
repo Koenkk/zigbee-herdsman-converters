@@ -521,111 +521,6 @@ const tzLocalSimplifyDimmer4512791 = {
     } satisfies Tz.Converter,
 };
 // End Simplify Dimmer (4512791)
-// -- Namron Edge Dimmer.
-const edgeDimmerScreenOnTimeLookup: KeyValue = {"0": "always_on", "10": "10s", "30": "30s", "60": "60s"};
-const edgeDimmerScreenOnTimeValueLookup: KeyValue = {always_on: 0, "10s": 10, "30s": 30, "60s": 60};
-
-const tzLocalEdgeDimmer = {
-    min_max_brightness: {
-        key: ["min_brightness", "max_brightness"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const pct = sdClamp(Math.round(Number(value)), 0, 100);
-            const attr = key === "min_brightness" ? 0xa000 : 0xa003;
-            await entity.write("genLevelCtrl", {[attr]: {value: pct, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {[key]: pct}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [key === "min_brightness" ? 0xa000 : 0xa003]);
-        },
-    } satisfies Tz.Converter,
-
-    dimming_speed: {
-        key: ["dimming_speed"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const num = Number(value);
-            await entity.write("genLevelCtrl", {[0xa006]: {value: num, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {dimming_speed: num}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [0xa006]);
-        },
-    } satisfies Tz.Converter,
-
-    move_rate_zigbee: {
-        key: ["move_rate_zigbee"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const num = Number(value);
-            await entity.write("genLevelCtrl", {[0xa008]: {value: num, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {move_rate_zigbee: num}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [0xa008]);
-        },
-    } satisfies Tz.Converter,
-
-    transition_time_physical: {
-        key: ["transition_time_physical"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const num = sdClamp(Math.round(Number(value)), 0, 10);
-            await entity.write("genLevelCtrl", {[0xa005]: {value: num, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {transition_time_physical: num}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [0xa005]);
-        },
-    } satisfies Tz.Converter,
-
-    move_rate_physical: {
-        key: ["move_rate_physical"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const num = sdClamp(Math.round(Number(value)), 0, 10);
-            await entity.write("genLevelCtrl", {[0xa007]: {value: num, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {move_rate_physical: num}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [0xa007]);
-        },
-    } satisfies Tz.Converter,
-
-    start_brightness: {
-        key: ["start_brightness"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const pct = sdClamp(Math.round(Number(value)), 1, 100);
-            const lvl = sdPctToLevel(pct);
-            await entity.write("genLevelCtrl", {onLevel: lvl}, {disableDefaultResponse: false});
-            return {state: {start_brightness: sdLevelToPct(lvl)}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", ["onLevel"]);
-        },
-    } satisfies Tz.Converter,
-
-    screen_on_time: {
-        key: ["screen_on_time"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const raw = edgeDimmerScreenOnTimeValueLookup[value as string];
-            if (raw === undefined) throw new Error(`Invalid screen_on_time: ${value}`);
-            await entity.write("genLevelCtrl", {[0xa001]: {value: raw, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {screen_on_time: value}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [0xa001]);
-        },
-    } satisfies Tz.Converter,
-
-    display_brightness: {
-        key: ["display_brightness"],
-        convertSet: async (entity: TzEntity, key: string, value: unknown, meta: TzMeta) => {
-            const num = sdClamp(Math.round(Number(value)), 0, 100);
-            await entity.write("genLevelCtrl", {[0xa002]: {value: num, type: 0x20}}, {disableDefaultResponse: true});
-            return {state: {display_brightness: num}};
-        },
-        convertGet: async (entity: TzEntity, key: string, meta: TzMeta) => {
-            await entity.read("genLevelCtrl", [0xa002]);
-        },
-    } satisfies Tz.Converter,
-};
-// Zigbee EDGDE Dimmer end
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
 const EDGE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
 
@@ -2991,141 +2886,131 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
             m.electricityMeter({voltage: false, current: false, configureReporting: true}),
-            {
-                configure: [
-                    async (device, coordinatorEndpoint) => {
-                        const endpoint = device.getEndpoint(1);
-                        await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOta", "genOnOff", "genLevelCtrl"]);
-                        await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
-                        await safeReadEdge(endpoint, "genLevelCtrl", [0xa000, 0xa003, 0xa006, 0xa008, 0xa001, 0xa002, 0xa005, 0xa007]);
-                    },
-                ],
-                isModernExtend: true,
-            },
-        ],
-        exposes: [
-            e.text("firmware_version", ea.STATE).withLabel("Firmware version"),
-            e.text("firmware_date", ea.STATE).withLabel("Firmware date"),
-            exposes
-                .numeric("min_brightness", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(50)
-                .withUnit("%")
-                .withDescription("genLevelCtrl 0xA000 (minimumBrightness).")
-                .withCategory("config"),
-            exposes
-                .numeric("max_brightness", ea.ALL)
-                .withValueMin(51)
-                .withValueMax(100)
-                .withUnit("%")
-                .withDescription("genLevelCtrl 0xA003 (devicemaxlevel).")
-                .withCategory("config"),
-            exposes
-                .numeric("dimming_speed", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(30)
-                .withDescription("genLevelCtrl 0xA006 (transtiontimezigbee).")
-                .withCategory("config"),
-            exposes
-                .numeric("move_rate_zigbee", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(30)
-                .withDescription("genLevelCtrl 0xA008 (moveratezigbee).")
-                .withCategory("config"),
-            exposes
-                .numeric("transition_time_physical", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withDescription(
+            m.numeric({
+                name: "min_brightness",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa000, type: 0x20},
+                description: "genLevelCtrl 0xA000 (minimumBrightness).",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 50,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "max_brightness",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa003, type: 0x20},
+                description: "genLevelCtrl 0xA003 (devicemaxlevel).",
+                unit: "%",
+                valueMin: 51,
+                valueMax: 100,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "dimming_speed",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa006, type: 0x20},
+                description: "genLevelCtrl 0xA006 (transtiontimezigbee).",
+                valueMin: 0,
+                valueMax: 30,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "move_rate_zigbee",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa008, type: 0x20},
+                description: "genLevelCtrl 0xA008 (moveratezigbee).",
+                valueMin: 0,
+                valueMax: 30,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "transition_time_physical",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa005, type: 0x20},
+                description:
                     "genLevelCtrl 0xA005 (transitiontimephysical) - dimming speed when using the physical dial. " +
-                        'Matches the Namron Simplify app\'s "Transition Time Physical" (0-10). Confirmed working write on real hardware.',
-                )
-                .withCategory("config"),
-            exposes
-                .numeric("move_rate_physical", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withDescription(
+                    'Matches the Namron Simplify app\'s "Transition Time Physical" (0-10). Confirmed working write on real hardware.',
+                valueMin: 0,
+                valueMax: 10,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "move_rate_physical",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa007, type: 0x20},
+                description:
                     "genLevelCtrl 0xA007 (moveratephysical) - move rate when using the physical dial. " +
-                        'Matches the Namron Simplify app\'s "Move rate Physical" (0-10). Confirmed working write on real hardware.',
-                )
-                .withCategory("config"),
-            exposes
-                .enum("screen_on_time", ea.ALL, ["always_on", "10s", "30s", "60s"])
-                .withDescription("genLevelCtrl 0xA001 (screenConstantTime), raw value is a seconds count (0/10/30/60).")
-                .withCategory("config"),
-            exposes
-                .numeric("display_brightness", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(100)
-                .withDescription("genLevelCtrl 0xA002 (backlight). Equivalent of the Edge Thermostat panel_brightness.")
-                .withCategory("config"),
-            exposes
-                .numeric("start_brightness", ea.ALL)
-                .withValueMin(1)
-                .withValueMax(100)
-                .withUnit("%")
-                .withDescription(
+                    'Matches the Namron Simplify app\'s "Move rate Physical" (0-10). Confirmed working write on real hardware.',
+                valueMin: 0,
+                valueMax: 10,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "start_brightness",
+                cluster: "genLevelCtrl",
+                attribute: "onLevel",
+                description:
                     "genLevelCtrl 0x0011 (onLevel) - brightness level the light goes to when turned on. " +
-                        "Write must explicitly use disableDefaultResponse:false or the device silently reverts " +
-                        'to the ZCL "previous" sentinel within ~1s. Confirmed stable (no reset) for 4+ minutes ' +
-                        "on real hardware.",
-                )
-                .withCategory("config"),
-        ],
-        fromZigbee: [
-            fzEdge.basic,
-            {
+                    "Write must explicitly use disableDefaultResponse:false or the device silently reverts " +
+                    'to the ZCL "previous" sentinel within ~1s. Confirmed stable (no reset) for 4+ minutes ' +
+                    "on real hardware.",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                scale: 2.54,
+                precision: 0,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: false},
+            }),
+            m.enumLookup({
+                name: "screen_on_time",
                 cluster: "genLevelCtrl",
-                type: ["attributeReport", "readResponse"],
-                convert: (
-                    model: unknown,
-                    msg: {type: string; data: Record<string | number, number>},
-                    publish: unknown,
-                    options: unknown,
-                    meta: unknown,
-                ) => {
-                    const result: Record<string, unknown> = {};
-                    if (Object.hasOwn(msg.data, 0xa000)) result["min_brightness"] = msg.data[0xa000];
-                    if (Object.hasOwn(msg.data, 0xa003)) result["max_brightness"] = msg.data[0xa003];
-                    if (Object.hasOwn(msg.data, 0xa006)) result["dimming_speed"] = msg.data[0xa006];
-                    if (Object.hasOwn(msg.data, 0xa008)) result["move_rate_zigbee"] = msg.data[0xa008];
-                    if (Object.hasOwn(msg.data, 0xa005)) result["transition_time_physical"] = msg.data[0xa005];
-                    if (Object.hasOwn(msg.data, 0xa007)) result["move_rate_physical"] = msg.data[0xa007];
-                    if (Object.hasOwn(msg.data, 0xa001)) {
-                        result["screen_on_time"] = edgeDimmerScreenOnTimeLookup[String(msg.data[0xa001])] ?? String(msg.data[0xa001]);
-                    }
-                    if (Object.hasOwn(msg.data, 0xa002)) result["display_brightness"] = msg.data[0xa002];
-                    return result;
-                },
-            },
-            {
+                attribute: {ID: 0xa001, type: 0x20},
+                lookup: {always_on: 0, "10s": 10, "30s": 30, "60s": 60},
+                description: "genLevelCtrl 0xA001 (screenConstantTime), raw value is a seconds count (0/10/30/60).",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "display_brightness",
                 cluster: "genLevelCtrl",
-                type: ["attributeReport", "readResponse"],
-                convert: (
-                    model: unknown,
-                    msg: {type: string; data: Record<string | number, number>},
-                    publish: unknown,
-                    options: unknown,
-                    meta: unknown,
-                ) => {
-                    const result: Record<string, unknown> = {};
-                    if (msg.data["onLevel"] !== undefined) result["start_brightness"] = sdLevelToPct(msg.data["onLevel"]);
-                    return result;
+                attribute: {ID: 0xa002, type: 0x20},
+                description: "genLevelCtrl 0xA002 (backlight). Equivalent of the Edge Thermostat panel_brightness.",
+                valueMin: 0,
+                valueMax: 100,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+        {
+            configure: [
+                async (device, coordinatorEndpoint) => {
+                    const endpoint = device.getEndpoint(1);
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOta", "genOnOff", "genLevelCtrl"]);
+                    await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
                 },
-            },
-        ],
-        toZigbee: [
-            tzLocalEdgeDimmer.min_max_brightness,
-            tzLocalEdgeDimmer.dimming_speed,
-            tzLocalEdgeDimmer.move_rate_zigbee,
-            tzLocalEdgeDimmer.transition_time_physical,
-            tzLocalEdgeDimmer.move_rate_physical,
-            tzLocalEdgeDimmer.start_brightness,
-            tzLocalEdgeDimmer.screen_on_time,
-            tzLocalEdgeDimmer.display_brightness,
-        ],
-        meta: {},
+            ],
+            isModernExtend: true,
+        },
+    ],
+    exposes: [e.text("firmware_version", ea.STATE).withLabel("Firmware version"), e.text("firmware_date", ea.STATE).withLabel("Firmware date")],
+    fromZigbee: [fzEdge.basic],
+    meta: {},
     },
     {
         zigbeeModel: ["4512788"],
