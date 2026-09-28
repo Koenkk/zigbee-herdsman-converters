@@ -9204,6 +9204,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0003", [
             "_TZ3000_4o16jdca",
             "_TZ3000_odzoiovu",
+            "_TZ3000_f6pgzqob",
             "_TZ3000_hbic3ka3",
             "_TZ3000_lvhy15ix",
             "_TZ3000_mhhxxjrs",
@@ -9240,6 +9241,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
             tuya.whitelabel("Moes", "ZM4LT3", "3-gang switch module", ["_TZ3000_mzcp0of6"]),
             tuya.whitelabel("ARTDNA", "Z20-IK03F", "3 gang F style switch module", ["_TZ3000_bu47m8pv"]),
+            tuya.whitelabel("EKAZA", "EKAC-T3093Z", "3 gang switch module", ["_TZ3000_f6pgzqob"]),
         ],
     },
     {
