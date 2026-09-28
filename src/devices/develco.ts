@@ -822,6 +822,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SMSZB-120", "GWA1512_SmokeSensor"],
         model: "SMSZB-120",
         vendor: "Develco",
+        version: "0.0.1",
         description: "Smoke detector with siren",
         whiteLabel: [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
