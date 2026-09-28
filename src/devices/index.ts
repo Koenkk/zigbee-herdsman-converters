@@ -23,6 +23,7 @@ import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
 import {definitions as bacchus} from "./bacchus";
 import {definitions as bankamp} from "./bankamp";
+import {definitions as beca} from "./beca";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
 import {definitions as bitron} from "./bitron";
@@ -421,6 +422,7 @@ const definitions: DefinitionWithExtend[] = [
     ...axis,
     ...bacchus,
     ...bankamp,
+    ...beca,
     ...bega,
     ...belkin,
     ...bitron,
