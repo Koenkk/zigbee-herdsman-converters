@@ -1,11 +1,12 @@
 import {describe, expect, it} from "vitest";
+import {definitions} from "../src/devices/sonoff";
 import {findByDevice} from "../src/index";
 import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("Sonoff irrigation session volume", () => {
     async function setup(modelID = "SWV-ZF2", softwareBuildID = "1.0.9") {
-        const device = mockDevice({modelID, softwareBuildID, endpoints: [{ID: 1}, {ID: 2}]});
+        const device = mockDevice({modelID, softwareBuildID, endpoints: [{ID: 1, inputClusters: ["msFlowMeasurement"]}, {ID: 2}]});
         const definition = await findByDevice(device);
         const converter = definition.fromZigbee.find((c) => c.convert.toString().includes("irrigationScheduleStatus"));
         const convert = (status: number, unit: number, amount: number, endpointID = 2) => {
@@ -87,6 +88,9 @@ describe("Sonoff irrigation session volume", () => {
             [null, null],
             [65535, null],
             [-1, null],
+            [Number.NaN, null],
+            [Number.POSITIVE_INFINITY, null],
+            ["4", null],
         ]) {
             const result = converter.convert(
                 definition,
@@ -97,5 +101,54 @@ describe("Sonoff irrigation session volume", () => {
             );
             expect(result).toEqual({flow: expected});
         }
+    });
+
+    it("ignores flow on the other outlet and reports without a measurement", async () => {
+        const {definition, device} = await setup();
+        const converter = definition.fromZigbee.find((c) => c.cluster === "msFlowMeasurement");
+        for (const [endpointID, data] of [
+            [2, {measuredValue: 6}],
+            [1, {}],
+        ] as const) {
+            expect(
+                converter.convert(
+                    definition,
+                    {data, endpoint: device.getEndpoint(endpointID)} as Fz.Message<"msFlowMeasurement", undefined, "attributeReport">,
+                    () => {},
+                    {},
+                    {device, state: {}, deviceExposesChanged: () => {}},
+                ),
+            ).toBeUndefined();
+        }
+    });
+
+    it("exposes one shared STATE-only flow sensor without get or set commands", async () => {
+        const {definition, device} = await setup();
+        const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        const flow = exposes.filter((expose) => expose.name === "flow");
+        expect(flow).toHaveLength(1);
+        expect(flow[0]).toMatchObject({property: "flow", unit: "m³/h", access: 1});
+        const converter = definition.toZigbee.find((c) => c.key.includes("flow"));
+        expect(converter.convertGet).toBeUndefined();
+        expect(converter.convertSet).toBeUndefined();
+    });
+
+    it("configures flow reporting on its input cluster endpoint without an initial read", async () => {
+        const {definition, device} = await setup();
+        const rawDefinition = definitions.find((d) => d.model === "SWV-ZF2");
+        if (!("extend" in rawDefinition)) throw new Error("Missing device extends");
+        const flow = rawDefinition.extend.find(
+            (extend) => "exposes" in extend && Array.isArray(extend.exposes) && extend.exposes.some((expose) => expose.name === "flow"),
+        );
+        if (!("configure" in flow)) throw new Error("Missing flow configuration");
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+        for (const configure of flow.configure) await configure(device, coordinatorEndpoint, definition);
+        expect(device.getEndpoint(1).bind).toHaveBeenCalledWith("msFlowMeasurement", coordinatorEndpoint);
+        expect(device.getEndpoint(1).configureReporting).toHaveBeenCalledWith("msFlowMeasurement", [
+            {attribute: "measuredValue", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 1},
+        ]);
+        expect(device.getEndpoint(1).read).not.toHaveBeenCalled();
+        expect(device.getEndpoint(2).bind).not.toHaveBeenCalled();
+        expect(device.getEndpoint(2).configureReporting).not.toHaveBeenCalled();
     });
 });

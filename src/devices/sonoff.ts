@@ -6006,30 +6006,6 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
-    swvDualFlow: (): ModernExtend => ({
-        exposes: [e.numeric("flow", ea.STATE).withUnit("m³/h").withDescription("Shared measured water flow across both outlets")],
-        fromZigbee: [
-            {
-                cluster: "msFlowMeasurement",
-                type: ["attributeReport", "readResponse"],
-                convert: (_model, msg) => {
-                    if (msg.endpoint.ID !== 1 || !Object.hasOwn(msg.data, "measuredValue")) return;
-                    const value = msg.data.measuredValue;
-                    return {flow: typeof value === "number" && Number.isFinite(value) && value >= 0 && value < 0xffff ? value / 10 : null};
-                },
-            },
-        ],
-        configure: [
-            async (device, coordinatorEndpoint) => {
-                const endpoint = device.getEndpoint(1);
-                await reporting.bind(endpoint, coordinatorEndpoint, ["msFlowMeasurement"]);
-                await endpoint.configureReporting("msFlowMeasurement", [
-                    {attribute: "measuredValue", minimumReportInterval: 10, maximumReportInterval: 3600, reportableChange: 1},
-                ]);
-            },
-        ],
-        isModernExtend: true,
-    }),
     irrigationScheduleStatus: (hasFlowMeter: boolean, endpointNames?: string[]): ModernExtend => {
         const expose: DefinitionExposesFunction = (device) => {
             const baseExpose = e
@@ -12103,7 +12079,21 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee dual-channel smart water valve",
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}),
-            sonoffExtend.swvDualFlow(),
+            m.numeric({
+                name: "flow",
+                cluster: "msFlowMeasurement",
+                attribute: "measuredValue",
+                description: "Shared measured water flow across both outlets",
+                unit: "m³/h",
+                access: "STATE",
+                reporting: {min: 10, max: 3600, change: 1},
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 1 || !Object.hasOwn(msg.data, "measuredValue")) return;
+                    // Null reports interleave with measured values; do not turn unknown flow into zero.
+                    const value = msg.data.measuredValue;
+                    return {flow: typeof value === "number" && Number.isFinite(value) && value >= 0 && value < 0xffff ? value / 10 : null};
+                },
+            }),
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
                 ID: 0xfc11,
