@@ -31829,7 +31829,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("s")
                 .withDescription("How long the level must stay above noise_upper_limit before noise is reported"),
             e
-                .enum("report_threshold", ea.STATE_SET, ["1dB", "3dB", "5dB", "10dB", "20dB", "no_report"])
+                .enum("report_threshold", ea.STATE_SET, ["1_db", "3_db", "5_db", "10_db", "20_db", "no_report"])
                 .withDescription("Report the sound level when it changes by this amount. With no_report (default) it is only sent on query"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
         ],
@@ -31874,11 +31874,11 @@ export const definitions: DefinitionWithExtend[] = [
                     102,
                     "report_threshold",
                     tuya.valueConverterBasic.lookup({
-                        "1dB": tuya.enum(0),
-                        "3dB": tuya.enum(1),
-                        "5dB": tuya.enum(2),
-                        "10dB": tuya.enum(3),
-                        "20dB": tuya.enum(4),
+                        "1_db": tuya.enum(0),
+                        "3_db": tuya.enum(1),
+                        "5_db": tuya.enum(2),
+                        "10_db": tuya.enum(3),
+                        "20_db": tuya.enum(4),
                         no_report: tuya.enum(5),
                     }),
                 ],
