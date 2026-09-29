@@ -822,6 +822,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SMSZB-120", "GWA1512_SmokeSensor"],
         model: "SMSZB-120",
         vendor: "Develco",
+        version: "0.0.1",
         description: "Smoke detector with siren",
         whiteLabel: [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
@@ -832,7 +833,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.faultStatus(),
-            develcoModernExtend.temperature({endpointNames: ["38"]}),
+            develcoModernExtend.temperature(),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
