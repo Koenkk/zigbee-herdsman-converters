@@ -1763,6 +1763,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["lumi.sensor_ht.agl02"],
         model: "WSDCGQ12LM",
         vendor: "Aqara",
+        version: "0.0.1",
         description: "Temperature and humidity sensor T1",
         whiteLabel: [
             {vendor: "Aqara", model: "TH-S02D"},
@@ -1774,7 +1775,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.temperature(),
             m.humidity(),
-            m.pressure({}),
+            m.pressure({
+                unit: "hPa",
+                scale: 1,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
+            }),
             m.battery({
                 voltage: true,
                 voltageReporting: true,
