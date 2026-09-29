@@ -31761,4 +31761,129 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r6kfl9ta"]),
+        model: "ZY-N1",
+        vendor: "Tuya",
+        description: "Sound level sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [
+            e.noise().withUnit("dB").withDescription("Measured sound level, reported according to report_threshold"),
+            e.noise_detected().withDescription("Noise above noise_upper_limit detected (respects noise_delay and noise_hold_time)"),
+            e
+                .enum("noise_status", ea.STATE, ["no_noise", "noise_normal", "noise"])
+                .withDescription("Current level: below noise_lower_limit, between the limits, or above noise_upper_limit"),
+            e
+                .enum("noise_state", ea.STATE, [
+                    "noise",
+                    "no_noise",
+                    "noise_2min",
+                    "noise_5min",
+                    "no_noise_2min",
+                    "no_noise_5min",
+                    "no_noise_10min",
+                    "noise_normal",
+                    "noise_normal_2min",
+                    "noise_normal_5min",
+                ])
+                .withDescription("Debounced noise state including its duration"),
+            e
+                .enum("report_mode", ea.STATE_SET, ["collect_noise_floor", "realtime", "threshold"])
+                .withDescription(
+                    "collect_noise_floor: measures for collect_time, then sets noise_lower_limit to the maximum + 1 dB; " +
+                        "realtime: reports every second for collect_time. Both switch back to threshold afterwards",
+                ),
+            e
+                .numeric("noise_lower_limit", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withUnit("dB")
+                .withDescription("Below this level the status is no_noise"),
+            e
+                .numeric("noise_upper_limit", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("dB")
+                .withDescription("Above this level the status is noise (labelled 'Min Sound Threshold' in the Tuya app)"),
+            e
+                .numeric("collect_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Duration of the collect_noise_floor and realtime modes"),
+            e
+                .numeric("noise_hold_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("How long noise is held after the level drops"),
+            e
+                .numeric("noise_delay", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("How long the level must stay above noise_upper_limit before noise is reported"),
+            e
+                .enum("report_threshold", ea.STATE_SET, ["1_db", "3_db", "5_db", "10_db", "20_db", "no_report"])
+                .withDescription("Report the sound level when it changes by this amount. With no_report (default) it is only sent on query"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "noise", tuya.valueConverter.raw],
+                // dp 2: sound frequency, not implemented by the firmware (always 0)
+                [8, "noise_status", tuya.valueConverterBasic.lookup({no_noise: tuya.enum(0), noise_normal: tuya.enum(1), noise: tuya.enum(2)})],
+                // dp 12: battery percentage, meaningless on this USB powered device
+                [
+                    13,
+                    "report_mode",
+                    tuya.valueConverterBasic.lookup({collect_noise_floor: tuya.enum(0), realtime: tuya.enum(1), threshold: tuya.enum(2)}),
+                ],
+                [16, "noise_lower_limit", tuya.valueConverter.raw],
+                [18, "collect_time", tuya.valueConverter.raw],
+                [20, "noise_upper_limit", tuya.valueConverter.raw],
+                [22, "noise_hold_time", tuya.valueConverter.raw],
+                [23, "indicator", tuya.valueConverter.onOff],
+                [
+                    101,
+                    null,
+                    {
+                        from: (v: number) => {
+                            const states = [
+                                "noise",
+                                "no_noise",
+                                "noise_2min",
+                                "noise_5min",
+                                "no_noise_2min",
+                                "no_noise_5min",
+                                "no_noise_10min",
+                                "noise_normal",
+                                "noise_normal_2min",
+                                "noise_normal_5min",
+                            ];
+                            return {noise_detected: [0, 2, 3].includes(v), noise_state: states[v]};
+                        },
+                    },
+                ],
+                [
+                    102,
+                    "report_threshold",
+                    tuya.valueConverterBasic.lookup({
+                        "1_db": tuya.enum(0),
+                        "3_db": tuya.enum(1),
+                        "5_db": tuya.enum(2),
+                        "10_db": tuya.enum(3),
+                        "20_db": tuya.enum(4),
+                        no_report: tuya.enum(5),
+                    }),
+                ],
+                [103, "noise_delay", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
