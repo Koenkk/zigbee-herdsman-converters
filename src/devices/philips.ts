@@ -5074,6 +5074,12 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "929004610502"}],
             },
             {
+                model: "929004610603",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Flux (5m)",
+                fingerprint: [{modelID: "929004610603"}],
+            },
+            {
                 model: "929004610602",
                 vendor: "Philips",
                 description: "Hue White and Color Lightstrip Flux (5m)",
