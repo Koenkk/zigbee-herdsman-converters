@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
-import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv} from "../src/lib/lumi";
+import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv, w500Ntc} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
 import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -1077,6 +1077,86 @@ describe("lib/lumi", () => {
                 );
                 expect(result).toStrictEqual({});
             });
+        });
+    });
+
+    describe("UT-A01E NTC sensor", () => {
+        const extend = lumiModernExtend.w500NtcSensor();
+        const options = {manufacturerCode: 0x115f};
+        const fromDevice = (data: KeyValueAny, state: KeyValueAny = {}) =>
+            extend.fromZigbee[0].convert(
+                {model: "UT-A01E"} as Definition,
+                // @ts-expect-error mock
+                {data},
+                null,
+                {},
+                {state} as Fz.Meta,
+            );
+        const set = async (key: string, value: unknown, state: KeyValueAny = {}, message: KeyValueAny = {[key]: value}) => {
+            const endpoint = mockDevice({modelID: "lumi.airrtc.aeu001", endpoints: [{ID: 1}]}).getEndpoint(1);
+            const converter = extend.toZigbee.find((c) => c.key.includes(key));
+            const result = await converter.convertSet(endpoint, key, value, {state, message} as Tz.Meta);
+            return {endpoint, result};
+        };
+
+        it("encodes the beta in the 2 least significant bytes of a float32 close to the beta", () => {
+            for (const beta of [1000, 3430, 3950, 4096, 8192, 9999]) {
+                const encoded = w500Ntc.encodeBeta(beta);
+                const buffer = Buffer.alloc(4);
+                buffer.writeFloatBE(encoded, 0);
+                expect(buffer.readFloatBE(0)).toStrictEqual(encoded);
+                expect(buffer.readUInt16BE(2)).toStrictEqual(beta);
+                expect(Number.isInteger(encoded)).toStrictEqual(false);
+                expect(w500Ntc.decodeBeta(encoded)).toStrictEqual(beta);
+            }
+            expect(w500Ntc.encodeBeta(3430)).toStrictEqual(3424.83740234375);
+            expect(Math.abs(w500Ntc.encodeBeta(3950) - 3950)).toBeLessThan(8);
+        });
+
+        it("decodes the values reported before and after a power cycle", () => {
+            expect(fromDevice({789: 2, 790: 3424.83740234375})).toStrictEqual({ntc_r25: 2, ntc_beta: 3430, ntc_sensor_type: "custom"});
+            expect(fromDevice({789: 2000, 790: 3430})).toStrictEqual({ntc_r25: 2, ntc_beta: 3430, ntc_sensor_type: "custom"});
+            expect(fromDevice({789: 10000, 790: 3950})).toStrictEqual({ntc_r25: 10, ntc_beta: 3950, ntc_sensor_type: "ntc_10k"});
+            expect(fromDevice({789: 50})).toStrictEqual({ntc_r25: 50, ntc_sensor_type: "ntc_50k"});
+            expect(fromDevice({789: 10}, {ntc_beta: 3435})).toStrictEqual({ntc_r25: 10, ntc_sensor_type: "custom"});
+            expect(fromDevice({790: 3950}, {ntc_r25: 100})).toStrictEqual({ntc_beta: 3950, ntc_sensor_type: "ntc_100k"});
+            expect(fromDevice({640: 2})).toBeUndefined();
+        });
+
+        it("writes the resistance and beta of a preset", async () => {
+            const {endpoint, result} = await set("ntc_sensor_type", "ntc_50k");
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {789: {value: 50, type: 0x23}}, options);
+            expect(endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {790: {value: w500Ntc.encodeBeta(3950), type: 0x39}}, options);
+            expect(result).toStrictEqual({state: {ntc_sensor_type: "ntc_50k", ntc_r25: 50, ntc_beta: 3950}});
+        });
+
+        it("writes a custom sensor", async () => {
+            const r25 = await set("ntc_r25", 2, {ntc_beta: 3950});
+            expect(r25.endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {789: {value: 2, type: 0x23}}, options);
+            expect(r25.result).toStrictEqual({state: {ntc_r25: 2, ntc_sensor_type: "custom"}});
+
+            const beta = await set("ntc_beta", 3430, {ntc_r25: 2});
+            expect(beta.endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {790: {value: 3424.83740234375, type: 0x39}}, options);
+            expect(beta.result).toStrictEqual({state: {ntc_beta: 3430, ntc_sensor_type: "custom"}});
+
+            const custom = await set("ntc_sensor_type", "custom", {ntc_r25: 10}, {ntc_sensor_type: "custom", ntc_r25: 2, ntc_beta: 3430});
+            expect(custom.endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {789: {value: 2, type: 0x23}}, options);
+            expect(custom.endpoint.write).toHaveBeenCalledWith("manuSpecificLumi", {790: {value: 3424.83740234375, type: 0x39}}, options);
+            expect(custom.result).toStrictEqual({state: {ntc_sensor_type: "custom", ntc_r25: 2, ntc_beta: 3430}});
+        });
+
+        it("rejects invalid values", async () => {
+            await expect(set("ntc_r25", 2.2)).rejects.toThrow("ntc_r25 must be a whole number between 1 and 999");
+            await expect(set("ntc_r25", 1000)).rejects.toThrow("ntc_r25 must be a whole number between 1 and 999");
+            await expect(set("ntc_beta", 500)).rejects.toThrow("ntc_beta must be a whole number between 1000 and 9999");
+            await expect(set("ntc_sensor_type", "unknown")).rejects.toThrow("ntc_sensor_type must be one of");
+            await expect(set("ntc_sensor_type", "custom")).rejects.toThrow("Set 'ntc_r25' and 'ntc_beta' to use a custom NTC sensor");
+        });
+
+        it("is used by the W500", async () => {
+            const definition = await findByDevice(mockDevice({modelID: "lumi.airrtc.aeu001", endpoints: [{ID: 1}]}));
+            const properties = definition.exposes.map((e) => (typeof e === "function" ? undefined : e.property));
+            expect(properties).toEqual(expect.arrayContaining(["ntc_sensor_type", "ntc_r25", "ntc_beta"]));
         });
     });
 
