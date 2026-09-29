@@ -522,7 +522,13 @@ const tzLocalSimplifyDimmer4512791 = {
 };
 // End Simplify Dimmer (4512791)
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
-const EDGE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
+// Clock (0x800b): Unix time (seconds since 1970) in *local* time. HZC's own app for the T11_ZG
+// writes Unix time; seconds since 2000 are acknowledged but ignored (a 1996 date). With auto time
+// sync on, the display shows the value as-is, with no time zone of its own. Confirmed on a 4512783.
+function edgeLocalTime(): number {
+    const now = new Date();
+    return Math.round(now.getTime() / 1000 - now.getTimezoneOffset() * 60);
+}
 
 function edgeDateDecode(value: number): string | null {
     if (!value) return null;
@@ -675,8 +681,7 @@ const fzEdge = {
                     case 0x800a:
                         result["auto_time_sync_pending"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         if (value === 1) {
-                            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
-                            writeEdgeHvac(msg.endpoint, 0x800b, ts, Zcl.DataType.UINT32)
+                            writeEdgeHvac(msg.endpoint, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32)
                                 .then(() => writeEdgeHvac(msg.endpoint, 0x800a, 0, Zcl.DataType.BOOLEAN))
                                 .then(() => msg.endpoint.read("hvacThermostat", [0x800b]))
                                 .catch(() => {});
@@ -684,8 +689,8 @@ const fzEdge = {
                         break;
                     case 0x800b:
                         try {
-                            result["clock_last_synced"] =
-                                `${new Date(((value as number) + EDGE_EPOCH_OFFSET) * 1000).toISOString().replace("T", " ").slice(0, 19)} UTC`;
+                            // local wall-clock time stored as Unix seconds, so format it without a time zone
+                            result["clock_last_synced"] = new Date((value as number) * 1000).toISOString().replace("T", " ").slice(0, 19);
                         } catch (_) {
                             result["clock_last_synced"] = String(value);
                         }
@@ -907,8 +912,7 @@ const tzEdge = {
     sync_time: {
         key: ["sync_time"],
         convertSet: async (entity) => {
-            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
-            await readThenWriteEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
+            await readThenWriteEdgeHvac(entity, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32);
             await readThenWriteEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
             try {
                 await entity.read("hvacThermostat", [0x800b]);
@@ -991,7 +995,7 @@ const tzEdge = {
         key: ["regulator_cycle"],
         convertSet: async (entity, key, value) => {
             const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error("regulator_cycle must be 1-30");
+            if (Number.isNaN(num) || num < 0 || num > 30) throw new Error("regulator_cycle must be 0-30");
             await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
             return {state: {regulator_cycle: num}};
         },
@@ -1238,7 +1242,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
-            e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(1).withValueMax(30).withDescription("Regulator cycle length."),
+            e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
             e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
@@ -1295,7 +1299,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Lower limit for the cooling setpoint (°F)."),
             e.binary("auto_time", ea.ALL, "ON", "OFF").withDescription("Let the device auto-sync its clock from the coordinator."),
             e.enum("sync_time", ea.SET, ["sync"]).withDescription('Write "sync" to push the current time to the device now.'),
-            e.text("clock_last_synced", ea.STATE).withDescription("Device's own clock, as last reported (UTC)."),
+            e.text("clock_last_synced", ea.STATE).withDescription("Local time the device's clock was last set to."),
             e.text("fault", ea.STATE).withDescription('Active fault codes reported by the device, or "none".'),
             e.text("firmware_version", ea.STATE).withDescription("Reported software build ID."),
             e.text("firmware_date", ea.STATE).withDescription("Reported firmware date code."),
@@ -2886,13 +2890,141 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["4512782", "4512781", "4566700", "4566701"],
-        model: "4512782 / 4512781 / 4566700 / 4566701",
+        model: "4566700",
         vendor: "Namron",
         description: "Namron Edge Dimmer",
+        whiteLabel: [
+            {vendor: "Namron", model: "4566701", description: "Namron Edge Dimmer (black)", fingerprint: [{modelID: "4566701"}]},
+            {vendor: "HZC Electric", model: "D692-ZG", description: "Rotary dimmer with screen"},
+        ],
+        ota: true,
         extend: [
             m.light({effect: false, configureReporting: true, powerOnBehavior: false}),
             m.electricityMeter({voltage: false, current: false, configureReporting: true}),
+            m.numeric({
+                name: "min_brightness",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa000, type: 0x20},
+                description: "genLevelCtrl 0xA000 (minimumBrightness).",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 50,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "max_brightness",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa003, type: 0x20},
+                description: "genLevelCtrl 0xA003 (devicemaxlevel).",
+                unit: "%",
+                valueMin: 51,
+                valueMax: 100,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "dimming_speed",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa006, type: 0x20},
+                description: "genLevelCtrl 0xA006 (transtiontimezigbee).",
+                valueMin: 0,
+                valueMax: 30,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "move_rate_zigbee",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa008, type: 0x20},
+                description: "genLevelCtrl 0xA008 (moveratezigbee).",
+                valueMin: 0,
+                valueMax: 30,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "transition_time_physical",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa005, type: 0x20},
+                description:
+                    "genLevelCtrl 0xA005 (transitiontimephysical) - dimming speed when using the physical dial. " +
+                    'Matches the Namron Simplify app\'s "Transition Time Physical" (0-10). Confirmed working write on real hardware.',
+                valueMin: 0,
+                valueMax: 10,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "move_rate_physical",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa007, type: 0x20},
+                description:
+                    "genLevelCtrl 0xA007 (moveratephysical) - move rate when using the physical dial. " +
+                    'Matches the Namron Simplify app\'s "Move rate Physical" (0-10). Confirmed working write on real hardware.',
+                valueMin: 0,
+                valueMax: 10,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "start_brightness",
+                cluster: "genLevelCtrl",
+                attribute: "onLevel",
+                description:
+                    "genLevelCtrl 0x0011 (onLevel) - brightness level the light goes to when turned on. " +
+                    "Write must explicitly use disableDefaultResponse:false or the device silently reverts " +
+                    'to the ZCL "previous" sentinel within ~1s. Confirmed stable (no reset) for 4+ minutes ' +
+                    "on real hardware.",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                scale: 2.54,
+                precision: 0,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: false},
+            }),
+            m.enumLookup({
+                name: "screen_on_time",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa001, type: 0x20},
+                lookup: {always_on: 0, "10s": 10, "30s": 30, "60s": 60},
+                description: "genLevelCtrl 0xA001 (screenConstantTime), raw value is a seconds count (0/10/30/60).",
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            m.numeric({
+                name: "display_brightness",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xa002, type: 0x20},
+                description: "genLevelCtrl 0xA002 (backlight). Equivalent of the Edge Thermostat panel_brightness.",
+                valueMin: 0,
+                valueMax: 100,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {disableDefaultResponse: true},
+            }),
+            {
+                configure: [
+                    async (device, coordinatorEndpoint) => {
+                        const endpoint = device.getEndpoint(1);
+                        await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "genOta", "genOnOff", "genLevelCtrl"]);
+                        await safeReadEdge(endpoint, "genBasic", ["swBuildId", "dateCode"]);
+                    },
+                ],
+                isModernExtend: true,
+            },
         ],
+        exposes: [e.text("firmware_version", ea.STATE).withLabel("Firmware version"), e.text("firmware_date", ea.STATE).withLabel("Firmware date")],
+        fromZigbee: [fzEdge.basic],
         meta: {},
     },
     {

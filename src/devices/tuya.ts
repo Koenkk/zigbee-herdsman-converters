@@ -9204,6 +9204,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0003", [
             "_TZ3000_4o16jdca",
             "_TZ3000_odzoiovu",
+            "_TZ3000_f6pgzqob",
             "_TZ3000_hbic3ka3",
             "_TZ3000_lvhy15ix",
             "_TZ3000_mhhxxjrs",
@@ -9240,6 +9241,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("iHseno", "_TZ3000_mhhxxjrs", "3 gang switch module", ["_TZ3000_mhhxxjrs"]),
             tuya.whitelabel("Moes", "ZM4LT3", "3-gang switch module", ["_TZ3000_mzcp0of6"]),
             tuya.whitelabel("ARTDNA", "Z20-IK03F", "3 gang F style switch module", ["_TZ3000_bu47m8pv"]),
+            tuya.whitelabel("EKAZA", "EKAC-T3093Z", "3 gang switch module", ["_TZ3000_f6pgzqob"]),
         ],
     },
     {
@@ -14448,7 +14450,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "system_mode", tuya.valueConverterBasic.lookup({off: 0, heat: 1})],
+                [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
                 [2, "mode", tuya.valueConverterBasic.lookup({manual: 0, program: 1})],
                 [3, "working_status", tuya.valueConverterBasic.lookup({"Keeping Warm": 0, Working: 1})],
                 [8, "window_check", tuya.valueConverter.onOff],
@@ -30674,6 +30676,120 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE20C_ycab9txf"]),
+        model: "ZAS-01P",
+        vendor: "Novato",
+        description: "Smart siren with night light",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [
+            e
+                .enum("alarm_state", ea.STATE_SET, ["normal", "alarm_sound", "alarm_light", "alarm_sound_light"])
+                .withDescription("Trigger the alarm (sound, light or both) for the configured duration, or stop it with 'normal'"),
+            e.enum("volume", ea.STATE_SET, ["low", "medium", "high"]).withDescription("Alarm volume"),
+            e
+                .numeric("duration", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(1800)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("How long the alarm sounds for when triggered"),
+            e
+                .enum("melody", ea.STATE_SET, [
+                    "doorbell",
+                    "alarm_1",
+                    "alarm_2",
+                    "alarm_clock",
+                    "notification",
+                    "countdown",
+                    "emergency_button",
+                    "fall_detected",
+                    "equipment_moved",
+                    "carbon_dioxide",
+                    "circuit_breaker",
+                    "door_open",
+                    "window_open",
+                    "air_quality",
+                    "motion_detected",
+                    "person_detected",
+                    "camera",
+                    "vibration",
+                    "ambient_temperature",
+                    "target_temperature_reached",
+                    "heating",
+                    "water_level_alarm",
+                    "valve_closed",
+                    "scheduled_task",
+                    "door_lock_alarm",
+                    "smoke_alarm",
+                    "gas_alarm",
+                    "low_battery",
+                    "water_leak_alarm",
+                    "device_offline",
+                    "alarm_system_disarmed",
+                    "alarm_system_armed",
+                ])
+                .withDescription("Alarm melody"),
+            e.binary("night_light", ea.STATE_SET, "ON", "OFF").withDescription("Night light"),
+            e.enum("light_mode", ea.STATE_SET, ["breathing", "red_flash", "white"]).withDescription("Light mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "alarm_state",
+                    tuya.valueConverterBasic.lookup({
+                        alarm_sound: tuya.enum(0),
+                        alarm_light: tuya.enum(1),
+                        alarm_sound_light: tuya.enum(2),
+                        normal: tuya.enum(3),
+                    }),
+                ],
+                [5, "volume", tuya.valueConverterBasic.lookup({low: tuya.enum(0), medium: tuya.enum(1), high: tuya.enum(2)})],
+                [7, "duration", tuya.valueConverter.raw],
+                [
+                    21,
+                    "melody",
+                    tuya.valueConverterBasic.lookup({
+                        doorbell: tuya.enum(0),
+                        alarm_1: tuya.enum(1),
+                        alarm_2: tuya.enum(2),
+                        alarm_clock: tuya.enum(3),
+                        notification: tuya.enum(4),
+                        countdown: tuya.enum(5),
+                        emergency_button: tuya.enum(6),
+                        fall_detected: tuya.enum(7),
+                        equipment_moved: tuya.enum(8),
+                        carbon_dioxide: tuya.enum(9),
+                        circuit_breaker: tuya.enum(10),
+                        door_open: tuya.enum(11),
+                        window_open: tuya.enum(12),
+                        air_quality: tuya.enum(13),
+                        motion_detected: tuya.enum(14),
+                        person_detected: tuya.enum(15),
+                        camera: tuya.enum(16),
+                        vibration: tuya.enum(17),
+                        ambient_temperature: tuya.enum(18),
+                        target_temperature_reached: tuya.enum(19),
+                        heating: tuya.enum(20),
+                        water_level_alarm: tuya.enum(21),
+                        valve_closed: tuya.enum(22),
+                        scheduled_task: tuya.enum(23),
+                        door_lock_alarm: tuya.enum(24),
+                        smoke_alarm: tuya.enum(25),
+                        gas_alarm: tuya.enum(26),
+                        low_battery: tuya.enum(27),
+                        water_leak_alarm: tuya.enum(28),
+                        device_offline: tuya.enum(29),
+                        alarm_system_disarmed: tuya.enum(30),
+                        alarm_system_armed: tuya.enum(31),
+                    }),
+                ],
+                [22, "night_light", tuya.valueConverter.onOff],
+                [23, "light_mode", tuya.valueConverterBasic.lookup({breathing: tuya.enum(0), red_flash: tuya.enum(1), white: tuya.enum(2)})],
+            ],
+        },
+    },
+    {
         fingerprint: [{modelID: "Excellux", manufacturerName: "DTS1XM9"}],
         model: "ZG-109TDS",
         vendor: "Excellux",
@@ -31642,6 +31758,131 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
                 [5, "local_temperature", tuya.valueConverter.divideBy10],
                 [7, "children_lock", ts0601Wsek35umChildrenLockConverter],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_r6kfl9ta"]),
+        model: "ZY-N1",
+        vendor: "Tuya",
+        description: "Sound level sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [
+            e.noise().withUnit("dB").withDescription("Measured sound level, reported according to report_threshold"),
+            e.noise_detected().withDescription("Noise above noise_upper_limit detected (respects noise_delay and noise_hold_time)"),
+            e
+                .enum("noise_status", ea.STATE, ["no_noise", "noise_normal", "noise"])
+                .withDescription("Current level: below noise_lower_limit, between the limits, or above noise_upper_limit"),
+            e
+                .enum("noise_state", ea.STATE, [
+                    "noise",
+                    "no_noise",
+                    "noise_2min",
+                    "noise_5min",
+                    "no_noise_2min",
+                    "no_noise_5min",
+                    "no_noise_10min",
+                    "noise_normal",
+                    "noise_normal_2min",
+                    "noise_normal_5min",
+                ])
+                .withDescription("Debounced noise state including its duration"),
+            e
+                .enum("report_mode", ea.STATE_SET, ["collect_noise_floor", "realtime", "threshold"])
+                .withDescription(
+                    "collect_noise_floor: measures for collect_time, then sets noise_lower_limit to the maximum + 1 dB; " +
+                        "realtime: reports every second for collect_time. Both switch back to threshold afterwards",
+                ),
+            e
+                .numeric("noise_lower_limit", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withUnit("dB")
+                .withDescription("Below this level the status is no_noise"),
+            e
+                .numeric("noise_upper_limit", ea.STATE_SET)
+                .withValueMin(10)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("dB")
+                .withDescription("Above this level the status is noise (labelled 'Min Sound Threshold' in the Tuya app)"),
+            e
+                .numeric("collect_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Duration of the collect_noise_floor and realtime modes"),
+            e
+                .numeric("noise_hold_time", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("How long noise is held after the level drops"),
+            e
+                .numeric("noise_delay", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("How long the level must stay above noise_upper_limit before noise is reported"),
+            e
+                .enum("report_threshold", ea.STATE_SET, ["1_db", "3_db", "5_db", "10_db", "20_db", "no_report"])
+                .withDescription("Report the sound level when it changes by this amount. With no_report (default) it is only sent on query"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "noise", tuya.valueConverter.raw],
+                // dp 2: sound frequency, not implemented by the firmware (always 0)
+                [8, "noise_status", tuya.valueConverterBasic.lookup({no_noise: tuya.enum(0), noise_normal: tuya.enum(1), noise: tuya.enum(2)})],
+                // dp 12: battery percentage, meaningless on this USB powered device
+                [
+                    13,
+                    "report_mode",
+                    tuya.valueConverterBasic.lookup({collect_noise_floor: tuya.enum(0), realtime: tuya.enum(1), threshold: tuya.enum(2)}),
+                ],
+                [16, "noise_lower_limit", tuya.valueConverter.raw],
+                [18, "collect_time", tuya.valueConverter.raw],
+                [20, "noise_upper_limit", tuya.valueConverter.raw],
+                [22, "noise_hold_time", tuya.valueConverter.raw],
+                [23, "indicator", tuya.valueConverter.onOff],
+                [
+                    101,
+                    null,
+                    {
+                        from: (v: number) => {
+                            const states = [
+                                "noise",
+                                "no_noise",
+                                "noise_2min",
+                                "noise_5min",
+                                "no_noise_2min",
+                                "no_noise_5min",
+                                "no_noise_10min",
+                                "noise_normal",
+                                "noise_normal_2min",
+                                "noise_normal_5min",
+                            ];
+                            return {noise_detected: [0, 2, 3].includes(v), noise_state: states[v]};
+                        },
+                    },
+                ],
+                [
+                    102,
+                    "report_threshold",
+                    tuya.valueConverterBasic.lookup({
+                        "1_db": tuya.enum(0),
+                        "3_db": tuya.enum(1),
+                        "5_db": tuya.enum(2),
+                        "10_db": tuya.enum(3),
+                        "20_db": tuya.enum(4),
+                        no_report: tuya.enum(5),
+                    }),
+                ],
+                [103, "noise_delay", tuya.valueConverter.raw],
             ],
         },
     },
