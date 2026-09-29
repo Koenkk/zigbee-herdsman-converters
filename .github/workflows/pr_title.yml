@@ -6,16 +6,49 @@ on:
       - opened
       - reopened
       - ready_for_review
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to update, leave empty to update all open PRs"
+        required: false
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  pr-title:
+  prs:
     runs-on: ubuntu-latest
-    # Skip bots (release-please, renovate, dependabot, ...)
-    if: github.event.pull_request.user.type != 'Bot' && !github.event.pull_request.draft
+    outputs:
+      prs: ${{ steps.prs.outputs.result }}
+    steps:
+      - name: Determine PRs
+        id: prs
+        uses: actions/github-script@v9
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+        with:
+          script: |
+            let prs;
+            if (context.payload.pull_request) {
+                prs = [context.payload.pull_request];
+            } else if (process.env.PR_NUMBER) {
+                prs = [(await github.rest.pulls.get({...context.repo, pull_number: Number(process.env.PR_NUMBER)})).data];
+            } else {
+                prs = await github.paginate(github.rest.pulls.list, {...context.repo, state: "open", per_page: 100});
+            }
+            // Skip bots (release-please, renovate, dependabot, ...) and drafts
+            return prs.filter((pr) => pr.user.type !== "Bot" && !pr.draft).map((pr) => pr.number);
+
+  pr-title:
+    needs: prs
+    if: needs.prs.outputs.prs != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        pr: ${{ fromJSON(needs.prs.outputs.prs) }}
     # pull_request_target runs in base-repo context: never checkout or execute PR code here,
     # the diff is only fetched through the API and passed to Copilot as data.
     steps:
@@ -25,7 +58,7 @@ jobs:
           script: |
             const fs = require("node:fs");
             const MAX_DIFF_LENGTH = 50000;
-            const pr = context.payload.pull_request;
+            const pr = (await github.rest.pulls.get({...context.repo, pull_number: ${{ matrix.pr }}})).data;
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
                 owner: context.repo.owner,
@@ -106,7 +139,7 @@ jobs:
         with:
           script: |
             const fs = require("node:fs");
-            const pr = context.payload.pull_request;
+            const pr = (await github.rest.pulls.get({...context.repo, pull_number: ${{ matrix.pr }}})).data;
             const response = fs.readFileSync(`${process.env.RUNNER_TEMP}/response.txt`, "utf8");
 
             let title;
