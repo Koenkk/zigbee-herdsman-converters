@@ -522,7 +522,13 @@ const tzLocalSimplifyDimmer4512791 = {
 };
 // End Simplify Dimmer (4512791)
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
-const EDGE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
+// Clock (0x800b): Unix time (seconds since 1970) in *local* time. HZC's own app for the T11_ZG
+// writes Unix time; seconds since 2000 are acknowledged but ignored (a 1996 date). With auto time
+// sync on, the display shows the value as-is, with no time zone of its own. Confirmed on a 4512783.
+function edgeLocalTime(): number {
+    const now = new Date();
+    return Math.round(now.getTime() / 1000 - now.getTimezoneOffset() * 60);
+}
 
 function edgeDateDecode(value: number): string | null {
     if (!value) return null;
@@ -675,8 +681,7 @@ const fzEdge = {
                     case 0x800a:
                         result["auto_time_sync_pending"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         if (value === 1) {
-                            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
-                            writeEdgeHvac(msg.endpoint, 0x800b, ts, Zcl.DataType.UINT32)
+                            writeEdgeHvac(msg.endpoint, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32)
                                 .then(() => writeEdgeHvac(msg.endpoint, 0x800a, 0, Zcl.DataType.BOOLEAN))
                                 .then(() => msg.endpoint.read("hvacThermostat", [0x800b]))
                                 .catch(() => {});
@@ -684,8 +689,8 @@ const fzEdge = {
                         break;
                     case 0x800b:
                         try {
-                            result["clock_last_synced"] =
-                                `${new Date(((value as number) + EDGE_EPOCH_OFFSET) * 1000).toISOString().replace("T", " ").slice(0, 19)} UTC`;
+                            // local wall-clock time stored as Unix seconds, so format it without a time zone
+                            result["clock_last_synced"] = new Date((value as number) * 1000).toISOString().replace("T", " ").slice(0, 19);
                         } catch (_) {
                             result["clock_last_synced"] = String(value);
                         }
@@ -907,8 +912,7 @@ const tzEdge = {
     sync_time: {
         key: ["sync_time"],
         convertSet: async (entity) => {
-            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
-            await readThenWriteEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
+            await readThenWriteEdgeHvac(entity, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32);
             await readThenWriteEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
             try {
                 await entity.read("hvacThermostat", [0x800b]);
@@ -1295,7 +1299,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Lower limit for the cooling setpoint (°F)."),
             e.binary("auto_time", ea.ALL, "ON", "OFF").withDescription("Let the device auto-sync its clock from the coordinator."),
             e.enum("sync_time", ea.SET, ["sync"]).withDescription('Write "sync" to push the current time to the device now.'),
-            e.text("clock_last_synced", ea.STATE).withDescription("Device's own clock, as last reported (UTC)."),
+            e.text("clock_last_synced", ea.STATE).withDescription("Local time the device's clock was last set to."),
             e.text("fault", ea.STATE).withDescription('Active fault codes reported by the device, or "none".'),
             e.text("firmware_version", ea.STATE).withDescription("Reported software build ID."),
             e.text("firmware_date", ea.STATE).withDescription("Reported firmware date code."),
