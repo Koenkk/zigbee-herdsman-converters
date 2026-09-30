@@ -943,9 +943,10 @@ const tzEdge = {
     // countdownLeft (0x8024) is not exposed: this firmware answers reads on it with a
     // meaningless value (1325465600), confirmed on real hardware.
     //
-    // Hysteresis is not exposed: it is not reachable over Zigbee on this firmware (4512783, 1.14).
+    // Hysteresis is not exposed: it is not reachable over Zigbee (checked on firmware 1.12 and 1.14).
     // HZC's documentation for the related Simplify thermostat puts it at 0x8045 (INT16S, 0.1 °C),
-    // but this device answers UNSUPPORTED_ATTRIBUTE for 0x8045 (and for 0x802a-0x8040).
+    // but both firmwares answer UNSUPPORTED_ATTRIBUTE for 0x8045, 0x8041, 0x8035 and 0x8052
+    // (1.14 also for 0x802a-0x8040).
     // 0x8003 is not hysteresis but Work_days (ENUM8: 5+2, 6+1, 7+0, 0+7). The "Intelligence"
     // on/off setting is not reachable over Zigbee either.
 
