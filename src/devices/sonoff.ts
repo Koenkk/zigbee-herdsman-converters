@@ -10749,37 +10749,27 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV-ZBL",
         vendor: "SONOFF",
         description: "Zigbee thermostatic radiator valve",
-        exposes: [
-            e
-                .climate()
-                .withSetpoint(
-                    "occupied_heating_setpoint",
-                    sonoffTrvzbtTargetTemperatureRange.min,
-                    sonoffTrvzbtTargetTemperatureRange.max,
-                    sonoffTrvzbtTargetTemperatureRange.step,
-                )
-                .withLocalTemperature()
-                .withLocalTemperatureCalibration(
-                    sonoffTrvzbtLocalTemperatureCalibrationRange.min,
-                    sonoffTrvzbtLocalTemperatureCalibrationRange.max,
-                    sonoffTrvzbtLocalTemperatureCalibrationRange.step,
-                )
-                .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
-                .withRunningState(["idle", "heat"], ea.STATE_GET),
-            e.battery(),
-        ],
-        fromZigbee: [fz.thermostat, fz.battery],
-        toZigbee: [
-            tz.thermostat_local_temperature,
-            tz.thermostat_local_temperature_calibration,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_system_mode,
-            tz.thermostat_running_state,
-        ],
         extend: [
-            m.customLocalTemperatureCalibrationRange({
-                min: sonoffTrvzbtLocalTemperatureCalibrationRange.min,
-                max: sonoffTrvzbtLocalTemperatureCalibrationRange.max,
+            m.thermostat({
+                localTemperature: {
+                    configure: {reporting: {min: 0, max: "1_HOUR", change: 50}},
+                },
+                localTemperatureCalibration: {
+                    values: sonoffTrvzbtLocalTemperatureCalibrationRange,
+                    configure: {reporting: false},
+                },
+                setpoints: {
+                    values: {occupiedHeatingSetpoint: sonoffTrvzbtTargetTemperatureRange},
+                    configure: {reporting: {min: 0, max: "1_HOUR", change: 10}},
+                },
+                systemMode: {
+                    values: ["off", "auto", "heat"],
+                    configure: {reporting: {min: 10, max: "1_HOUR", change: 0}},
+                },
+                runningState: {values: ["idle", "heat"], configure: {reporting: false}},
+            }),
+            m.battery({
+                percentageReporting: false,
             }),
             m.deviceAddCustomCluster("customSonoffTrvzbt", {
                 name: "customSonoffTrvzbt",
@@ -10992,23 +10982,8 @@ export const definitions: DefinitionWithExtend[] = [
             sonoffExtend.motorTravelCalibrationStatus(),
         ],
         ota: true,
-        configure: async (device, coordinatorEndpoint) => {
+        configure: async (device) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatTemperature(endpoint, {change: 50});
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
-            try {
-                await endpoint.read("hvacThermostat", [
-                    "localTemperatureCalibration",
-                    "systemMode",
-                    "localTemp",
-                    "runningState",
-                    "occupiedHeatingSetpoint",
-                ]);
-            } catch (error) {
-                logger.error(`TRV-ZBT failed to read hvacThermostat: ${error}`, NS);
-            }
             const customAttributes = [
                 0x0000, 0x0010, 0x0021, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600b, 0x600c, 0x6011, 0x6013, 0x6014, 0x6016,
                 0x601c, 0x601d, 0x601e, 0x6033, 0x6037,
