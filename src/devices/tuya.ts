@@ -5023,7 +5023,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "TS0505B_2_2", "Zigbee GU10/E14 5W smart bulb", ["_TZ3210_it1u8ahz"]),
         ],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"], applyRedFix: true}})],
-        // https://github.com/Koenkk/zigbee2mqtt/issues/32204 
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32204
         //https://github.com/Koenkk/zigbee2mqtt/issues/32729#
         //toZigbee: [tz.on_off, tuya.tz.led_control],
         //fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
