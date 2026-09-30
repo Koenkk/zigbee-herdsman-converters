@@ -2522,7 +2522,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Smart smoke detector",
         whiteLabel: [{vendor: "Aqara", model: "JY-GZ-03AQ"}],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [
             lumi.toZigbee.lumi_alarm,
             lumi.toZigbee.lumi_density,
