@@ -663,10 +663,6 @@ const fzEdge = {
                     case 0x8002:
                         result["window_state"] = value ? "open" : "closed";
                         break;
-                    case 0x8003:
-                        // ENUM8 in 0.5 °C steps, confirmed on real hardware (raw 1 = 0.5 °C factory default).
-                        result["hysteresis"] = (value as number) / 2;
-                        break;
                     case 0x8004:
                         result["sensor_mode"] = edgeSensorModeLookup[String(value as number)] ?? String(value);
                         break;
@@ -946,21 +942,11 @@ const tzEdge = {
 
     // countdownLeft (0x8024) is not exposed: this firmware answers reads on it with a
     // meaningless value (1325465600), confirmed on real hardware.
-
-    hysteresis: {
-        key: ["hysteresis"],
-        convertSet: async (entity, key, value) => {
-            const num = Number(value);
-            if (Number.isNaN(num) || num < 0.5 || num > 10) throw new Error("hysteresis must be 0.5-10");
-            // ENUM8 (UINT8/INT8 are rejected with INVALID_DATA_TYPE), 0.5 °C steps.
-            // Confirmed on real hardware: the written value reads back unchanged.
-            await writeEdgeHvac(entity, 0x8003, Math.round(num * 2), Zcl.DataType.ENUM8);
-            return {state: {hysteresis: Math.round(num * 2) / 2}};
-        },
-        convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8003]);
-        },
-    } satisfies Tz.Converter,
+    //
+    // Hysteresis (0x8003, ENUM8, raw = °C x 2) is deliberately not exposed either. Confirmed on real
+    // hardware (4512783, firmware 1.14): writes are accepted and read back, but neither the device
+    // screen nor its regulation picks them up, and values set on the device only sometimes show up
+    // in the attribute. The "Intelligence" on/off setting is not reachable over Zigbee at all.
 
     screen_on_time: {
         key: ["screen_on_time"],
@@ -1102,22 +1088,6 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             edgeThermostatCommands(),
-            // Hysteresis changed on the device is not reported, but reads return it (confirmed on real
-            // hardware), so poll it to pick up changes made on the device.
-            m.poll({
-                key: "namron_edge_hysteresis_poll",
-                optionKey: "hysteresis_poll_interval",
-                option: e
-                    .numeric("hysteresis_poll_interval", ea.SET)
-                    .withValueMin(-1)
-                    .withDescription("How often hysteresis is read from the device, in seconds (default: 900, -1 to disable)."),
-                defaultIntervalSeconds: 900,
-                poll: async (device) => {
-                    const endpoint = device.getEndpoint(1);
-                    if (!endpoint) return;
-                    await endpoint.read("hvacThermostat", [0x8003]);
-                },
-            }),
             m.onOff({powerOnBehavior: false}),
             m.humidity(),
             m.electricityMeter({voltage: false, configureReporting: false}),
@@ -1142,7 +1112,6 @@ export const definitions: DefinitionWithExtend[] = [
             tzEdge.auto_time,
             tzEdge.sync_time,
             tzEdge.countdown_set,
-            tzEdge.hysteresis,
             tzEdge.screen_on_time,
             tzEdge.panel_brightness,
             tzEdge.regulator_percentage,
@@ -1218,8 +1187,8 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint,
                 "hvacThermostat",
                 [
-                    0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011,
-                    0x8012, 0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
+                    0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011, 0x8012,
+                    0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
                 ],
             );
             await safeReadEdge(endpoint, "hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
@@ -1269,15 +1238,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
-            e
-                .numeric("hysteresis", ea.ALL)
-                .withUnit("°C")
-                .withValueMin(0.5)
-                .withValueMax(10)
-                .withValueStep(0.5)
-                .withDescription(
-                    'Temperature swing before the relay switches. Only used when "Intelligence" is turned off on the device (that setting can only be changed on the device). The device uses whichever value was set last, here or on the device, but its screen does not show values set here, and values set on the device only show up here at the next poll (see hysteresis_poll_interval).',
-                ),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
             e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
