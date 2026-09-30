@@ -1783,37 +1783,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-    {
-        zigbeeModel: ["ZG-204Z"],
-        model: "ZG-204Z",
-        vendor: "HOBEIAN",
-        description: "Motion sensor",
-        fromZigbee: [fzLocal.ZG204_attr, fz.battery],
-        toZigbee: [tzLocal.ZG204_attr],
-        extend: [
-            m.quirkCheckinInterval(15000),
-            // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
-            m.iasZoneAlarm({
-                zoneType: "occupancy",
-                zoneAttributes: ["alarm_1"],
-                // No keepAlivetimeout for ZG-204Z
-                // https://github.com/Koenkk/zigbee2mqtt/issues/30676
-                keepAliveTimeout: (d) => (d.modelID === "ZG-204Z" ? 0 : 125),
-            }),
-        ],
-        exposes: [
-            e.battery(),
-            e.battery_voltage(),
-            e.enum("sensitivity", ea.ALL, ["low", "medium", "high"]).withDescription("PIR sensor sensitivity"),
-            e.enum("keep_time", ea.ALL, [30, 60, 120]).withDescription("PIR keep time in seconds"),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
-            await reporting.batteryPercentageRemaining(endpoint);
-            await reporting.batteryVoltage(endpoint);
-        },
-    },
+    
     {
         zigbeeModel: ["ZG-101ZD"],
         fingerprint: tuya.fingerprint("TS004F", [
