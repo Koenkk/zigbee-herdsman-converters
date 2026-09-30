@@ -177,7 +177,7 @@ const futurehomeExtend = {
                 e
                     .binary("is_plug_connected", ea.STATE, true, false)
                     .withDescription("Indicates if the plug is connected.")
-                    .withHomeAssistant({deviceClass: "plug"}), // ({deviceClass: "plug", preserveName: true}),
+                    .withHomeAssistant({deviceClass: "plug"}),
                 e.text("connected_start_datetime", ea.STATE).withDescription("Date and time when charger was connected."),
                 e.text("connected_end_datetime", ea.STATE).withDescription("Date and time when charger was disconnected."),
             ],
@@ -349,6 +349,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Charge",
         vendor: "Futurehome",
         description: "Futurehome Charge (EV Charger)",
+        version: "0.0.1",
         extend: [
             m.deviceAddCustomCluster("haApplianceControl", {
                 name: "haApplianceControl",
@@ -425,6 +426,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 32,
                 valueStep: 1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
+                homeassistant: {icon: "mdi:target"},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.binary<"haApplianceControl", FuturehomeHaApplianceControl>({
@@ -435,15 +437,18 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOff: ["OFF", 0],
                 valueOn: ["ON", 1],
                 entityCategory: "config",
+                homeassistant: {icon: "mdi:flash-auto"},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             m.binary({
-                name: "cable_locked",
+                name: "plug_locked_permanently",
+                label: "Plug locked when not charging",
                 cluster: "closuresDoorLock",
                 attribute: "operatingMode",
                 valueOff: ["UNLOCK", 0x00],
                 valueOn: ["LOCK", 0x02],
-                description: "Permanently lock cable when not charging.",
+                description: "Permanently lock plug (cable) when not charging.",
+                homeassistant: {icon: "mdi:ev-plug-type2"},
                 zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.FUTUREHOME_AS},
             }),
             futurehomeExtend.forceUnlock(),
@@ -472,10 +477,21 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.electricityMeter({
                 energy: {divisor: 1000, multiplier: 1, min: "1_MINUTE", change: 1},
+                voltage: {min: "1_MINUTE", change: 1},
                 power: false,
                 threePhase: true,
             }),
             futurehomeExtend.chargerSessionTimings(),
+            m.binary({
+                name: "plug_lock_state",
+                cluster: "closuresDoorLock",
+                attribute: "lockState",
+                description: "Plug (cable) lock state",
+                access: "STATE_GET",
+                valueOff: [true, 0x01],
+                valueOn: [false, 0x02],
+                homeassistant: {icon: "mdi:lock", name: "Plug lock state", deviceClass: "lock"},
+            }),
         ],
     },
 ];

@@ -363,10 +363,65 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-        zigbeeModel: ["RGBWW"],
-        model: "291.52",
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5401",
+            },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5405",
+            },
+        ],
+        model: "291.48",
         vendor: "Paulmann",
-        description: "Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW",
+        description: "Smart Home Zigbee LED Reflector GU10 4.8W RGBWW",
+        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [
+            {
+                vendor: "Paulmann",
+                model: "291.53",
+            },
+        ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5800",
+            },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5809",
+            },
+        ],
+        model: "291.46",
+        vendor: "Paulmann",
+        description: "Smart Home Zigbee LED bulb 4.9W Matt E14 RGBWW",
+        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [
+            {
+                vendor: "Paulmann",
+                model: "291.52",
+                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC5800"}],
+            },
+        ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5A00",
+            },
+        ],
+        model: "291.45",
+        vendor: "Paulmann",
+        description: "Smart Home Zigbee LED bulb 11W Matt E27 RGBWW",
         extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
     },
     {

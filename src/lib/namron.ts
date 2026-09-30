@@ -874,7 +874,6 @@ export const namronExtend = {
                     ID: 0x8000,
                     type: Zcl.DataType.BOOLEAN,
                     write: true,
-                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 antiFrost: {
                     name: "antiFrost",
@@ -886,7 +885,6 @@ export const namronExtend = {
                     name: "windowState",
                     ID: 0x8002,
                     type: Zcl.DataType.BOOLEAN,
-                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 workDays: {
                     name: "workDays",
@@ -899,7 +897,6 @@ export const namronExtend = {
                     ID: 0x8004,
                     type: Zcl.DataType.ENUM8,
                     write: true,
-                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_SUNRICHER_TECHNOLOGY_LTD,
                 },
                 displayActiveBacklight: {
                     name: "displayActiveBacklight",

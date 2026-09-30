@@ -13,7 +13,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZWSH16",
         vendor: "AVATTO",
         description: "Smart temperature and humidity detector",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, mcuVersionRequestOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.battery(), e.temperature(), e.humidity(), tuya.exposes.temperatureUnit()],
         meta: {
             tuyaDatapoints: [
@@ -180,7 +180,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TRV26",
         vendor: "AVATTO",
         description: "Thermostatic radiator valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true, respondToMcuVersionResponse: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true})],
         ota: true,
         exposes: [
             e.battery(),
@@ -282,6 +282,51 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_16m4bgsv"]),
+        model: "1443ZK",
+        vendor: "CBE",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", forceTimeUpdates: true})],
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e
+                .climate()
+                .withPreset(["manual", "schedule", "eco", "comfort", "antifrost", "off"])
+                .withLocalTemperature(ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        schedule: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        comfort: tuya.enum(3),
+                        antifrost: tuya.enum(4),
+                        off: tuya.enum(5),
+                    }),
+                ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({idle: 1, heat: 0})],
+                [
+                    4,
+                    "current_heating_setpoint",
+                    {
+                        from: (value: number) => (value === -1 || value === 0xffffffff ? undefined : value / 10),
+                        to: (value: number) => Math.round(value * 10),
+                    },
+                ],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_goecjd1t"]),
         model: "ZWPM16",
         vendor: "AVATTO",
@@ -378,15 +423,18 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE204_5cuocqty",
             "_TZE204_nqqylykc",
+            "_TZE28C1000000_nqqylykc",
             "_TZE204_2cyb66xl",
             "_TZE204_tgdnh7pw",
             "_TZE284_nqqylykc",
             "_TZE204_huu3td85",
             "_TZE284_huu3td85",
+            "_TZE28C1000000_huu3td85",
         ]),
         model: "ZDMS16-1",
         vendor: "AVATTO",
         description: "Zigbee Module 1 channel Dimmer",
+        whiteLabel: [tuya.whitelabel("NovaDigital", "MS-DM-ZB", "Zigbee Module 1 channel Dimmer", ["_TZE28C1000000_huu3td85"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax(),
@@ -858,6 +906,97 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [111, "direction_mode", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_uqzwwjas", "_TZE284_zeeqkb0p"]),
+        model: "ZSD20",
+        vendor: "AVATTO",
+        description: "Smart smoke alarm",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            e.enum("smoke_sensor_state", ea.STATE, ["alarm", "normal"]).withDescription("Smoke sensor state"),
+            e.binary("self_checking", ea.STATE_SET, "ON", "OFF"),
+            e.text("fault", ea.STATE).withDescription("Fault status"),
+            e.battery(),
+            e.binary("muffling", ea.STATE_SET, "ON", "OFF"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    1,
+                    "smoke_sensor_state",
+                    tuya.valueConverterBasic.lookup({
+                        alarm: tuya.enum(0),
+                        normal: tuya.enum(1),
+                    }),
+                ],
+                [8, "self_checking", tuya.valueConverter.onOff],
+                [
+                    11,
+                    "fault",
+                    {
+                        from: (value, meta) => {
+                            const faults = [];
+                            const faultMap = {
+                                1: "serious fault",
+                                2: "sensor fault",
+                                4: "probe fault",
+                                8: "power fault",
+                            };
+
+                            if (value === 0) {
+                                return "No faults";
+                            }
+
+                            for (const [bit, name] of Object.entries(faultMap)) {
+                                if (value & Number.parseInt(bit, 10)) {
+                                    faults.push(name);
+                                }
+                            }
+                            return faults.join(", ");
+                        },
+                    },
+                ],
+                [15, "battery", tuya.valueConverter.raw],
+                [16, "muffling", tuya.valueConverter.onOff],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3218_pfnjjx6a", "_TZ3218_fv20refe"]),
+        model: "ZOT60",
+        vendor: "AVATTO",
+        description: "Smart Plug",
+        whiteLabel: [tuya.whitelabel("pcblab.io", "ZOT60-RF", "Smart plug", ["_TZ3218_o1slgs0r"])],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            tuya.exposes.switch(),
+            tuya.exposes.countdown(),
+            e.power(),
+            e.current(),
+            e.voltage(),
+            e
+                .numeric("energy", ea.STATE_SET)
+                .withUnit("kWh")
+                .withValueMin(0)
+                .withValueMax(100000) // 100000000 / 1000
+                .withValueStep(0.1) // 100 / 1000
+                .withDescription("Sum of consumed energy"),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            tuya.exposes.backlightModeOffOn(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [9, "countdown", tuya.valueConverter.countdown],
+                [17, "energy", tuya.valueConverter.divideBy1000],
+                [18, "current", tuya.valueConverter.divideBy1000], // mA → A
+                [19, "power", tuya.valueConverter.divideBy10], // scale 1
+                [20, "voltage", tuya.valueConverter.divideBy10], // scale 1
+                [27, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "backlight_mode", tuya.valueConverter.onOff],
             ],
         },
     },

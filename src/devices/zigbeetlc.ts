@@ -281,6 +281,32 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
     },
+    {
+        // ZTH05 (TS0601/_TZE204_upagmta9) with ZigbeeTLc firmware; requires hardware mod
+        // https://pvvx.github.io/TS0601_TZE204/
+        zigbeeModel: ["TH05-z"],
+        model: "TH05-z",
+        vendor: "Tuya",
+        description: "ZTH05 temperature & humidity sensor (pvvx/ZigbeeTLc)",
+        extend: [
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity(),
+            extend.enableDisplay,
+            extend.temperatureDisplayMode,
+            extend.comfortSmiley,
+            extend.comfortTemperatureMin,
+            extend.comfortTemperatureMax,
+            extend.comfortHumidityMin,
+            extend.comfortHumidityMax,
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+            m.battery({
+                voltage: true,
+            }),
+        ],
+        ota: true,
+    },
     /*
         ZigbeeTLc devices supporting:
         - Temperature (+calibration)
@@ -337,5 +363,98 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    /*
+        ZigbeeTLc soil moisture:
+        - Temperature (+calibration)
+        - Humidity (+calibration)
+        - Soil moisture (EP2 as Relative Humidity Measurement)
+        - Measurement interval
+    */
+    {
+        // HOBEIAN / Sonoff ZG-303Z with ZigbeeTLc firmware
+        // https://pvvx.github.io/ZG-303Z/
+        zigbeeModel: ["ZG-303Z-z"],
+        model: "ZG-303Z-z",
+        vendor: "HOBEIAN",
+        description: "Soil moisture sensor (pvvx/ZigbeeTLc)",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {1: 1, 2: 2},
+                multiEndpointSkip: ["humidity", "temperature", "soil_moisture"],
+            }),
+            m.battery({voltage: true}),
+            m.identify(),
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity({
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+                // EP1 air humidity; EP2 also uses RH cluster for soil moisture
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 1 || msg.data.measuredValue === undefined) return;
+                    return {humidity: msg.data.measuredValue / 100};
+                },
+            }),
+            // FW exposes soil moisture on EP2 as Relative Humidity Measurement
+            m.humidity({
+                name: "soil_moisture",
+                description: "Measured soil moisture",
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 2 || msg.data.measuredValue === undefined) return;
+                    return {soil_moisture: msg.data.measuredValue / 100};
+                },
+            }),
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+        ],
+        ota: true,
+    },
+    /*
+        ZigbeeTLc PIR devices supporting:
+        - Occupancy
+        - Remote On/Off binding (genOnOff state)
+        - PIR timeout
+    */
+    {
+        // Tuya ZP01 (TS0202/_TZ3000_*) with ZigbeeTLc firmware
+        // https://pvvx.github.io/TS0202_TZ3000/
+        zigbeeModel: ["TS202PIR1-z"],
+        model: "TS202PIR1-z",
+        vendor: "Tuya",
+        description: "ZP01 PIR motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery({voltage: true}),
+            m.occupancy(),
+            m.onOff({
+                powerOnBehavior: false,
+                description:
+                    'Enable remote On/Off binding. ON: occupancy occupied sends action "on", clear sends action "off". OFF: no occupancy actions.',
+            }),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior for state (remote On/Off enable)",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR occupancy timeout in seconds (firmware default ~35s; board R5/R6 may limit minimum)",
+            }),
+            m.commandsOnOff(),
+        ],
     },
 ];
