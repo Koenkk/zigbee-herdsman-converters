@@ -9254,9 +9254,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
-        whiteLabel: [
-            tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"]),
-        ],
+        whiteLabel: [tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
@@ -16387,7 +16385,6 @@ export const definitions: DefinitionWithExtend[] = [
                     {manufacturerName: "_TZE200_znbl8dj5"},
                     {manufacturerName: "_TZE200_lhqtjwax"},
                     {manufacturerName: "_TZE200_vs0skpuc"},
-
                 ],
             },
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5", "_TZE200_y8wkaq6w"]),
@@ -16395,9 +16392,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY201Z",
                 vendor: "AOYAN",
                 description: "Temperature & humidity LCD sensor",
-                fingerprint: [
-                    {modelID: "AY201Z"},
-                ],
+                fingerprint: [{modelID: "AY201Z"}],
             },
         ],
         meta: {
@@ -16584,7 +16579,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: [
             ...tuya.fingerprint("TS0601", ["_TZE200_f1pvdgoh", "_TZE200_me6wtiqs", "_TZE200_ghynnvos"]),
@@ -16614,7 +16609,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: [
             {modelID: "AY-204Z", manufacturerName: "AOYAN"},
@@ -16779,7 +16774,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_bw4ayyeh", "_TZE2841000000_bw4ayyeh"]),
         model: "ZD24_Presence_Sensor",
@@ -22898,7 +22893,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_fhvdgeuh", "_TZE200_abatw3kj", "_TZE204_4bjixefp"]),
         model: "TS0601_din_4",
@@ -25170,7 +25165,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_no6qtgtl"]),
         model: "RD24G01",
@@ -25237,7 +25232,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   
+
     {
         fingerprint: tuya.fingerprint("TS0001", ["_TZE21C_dohbhb5k", "_TZE21C_i2ij4rb3"]),
         model: "1-ZB-WSD",
@@ -25690,7 +25685,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("vibration_delay", ea.STATE_SET).withValueMin(1).withValueMax(1440).withUnit("s").withDescription("Vibration Clear Delay Time"),
         ],
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z5jz7wpo"]),
         model: "_TZE284_z5jz7wpo",
@@ -26320,7 +26315,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_kz1anoi8"]),
         model: "HZ-WT02",
@@ -27199,7 +27194,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_eqpaxqdv"]),
         model: "PIMS3028",
@@ -28640,7 +28635,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-   
+
     {
         fingerprint: tuya.fingerprint("Excellux", ["C6B7KM9"]),
         model: "ZG-301A",
@@ -28886,7 +28881,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_gm8h14wy"}],
         model: "TS0601_1gang_switch",
@@ -30350,7 +30345,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_wsek35um"]),
         model: "TS0601_wsek35um",
