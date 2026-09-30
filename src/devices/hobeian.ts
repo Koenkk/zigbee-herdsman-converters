@@ -1,5 +1,4 @@
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
@@ -11,7 +10,7 @@ import * as legacy from "../lib/legacy";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const {tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
+const {tuyaBase} = tuya.modernExtend;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -1894,7 +1893,7 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         model: "ZG-101Z/D",
-        vendor: "Tuya",
+        vendor: "HOBEIAN",
         description: "Smart knob",
         fromZigbee: [tuya.fz.multi_action, fz.battery, tuya.fz.operation_mode],
         exposes: [

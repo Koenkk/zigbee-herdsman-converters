@@ -15638,29 +15638,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        // Only the ones with applicationVersion 145 should be detected as this, e.g. applicationVersion 66 should be detected as ERS-10TZBVK-AA.
-        // https://github.com/Koenkk/zigbee2mqtt/issues/25053
-        fingerprint: [
-            {
-                modelID: "TS004F",
-                manufacturerName: "_TZ3000_abrsvsou",
-                applicationVersion: 145,
-                priority: 1,
-            },
-        ],
-        model: "ZG-101Z/D",
-        vendor: "Tuya",
-        description: "Smart knob",
-        fromZigbee: [tuya.fz.multi_action, fz.battery, tuya.fz.operation_mode],
-        exposes: [
-            e.action(["rotate_left", "rotate_right"]),
-            e
-                .enum("operation_mode", ea.ALL, ["command", "event"])
-                .withDescription('Operation mode: "command" - for group control, "event" - for clicks'),
-        ],
-        extend: [tuyaBase(), m.battery(), tuya.modernExtend.tuyaMagicPacket()],
-    },
-    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_kzm5w4iz"]),
         model: "TS0601_vibration_sensor",
         vendor: "Tuya",
