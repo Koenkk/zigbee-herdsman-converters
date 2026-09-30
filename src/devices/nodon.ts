@@ -156,6 +156,58 @@ const nodonModernExtend = {
 
         return result;
     },
+    // Physically wiring the input back to the relay/cover requires a self-bind (the wired input
+    // sends a client-role command to whatever the endpoint is bound to; without it, the command
+    // only reaches the coordinator and does nothing). Removing that bind from the frontend's
+    // "Unbind" tab used to come back on its own: Z2M's bind extension calls
+    // disableUnnecessaryReportings() on unbind, which can also touch the coordinator reporting
+    // bind and fires a `reconfigure` event that re-runs `configure()` from scratch. `configure()`
+    // has no access to per-device `options`, so this adds a real Settings option instead
+    // (`wired_input_enabled[_<suffix>]`) whose change is caught via `onEvent`'s
+    // `deviceOptionsChanged` — doing the actual bind/unbind directly (bypassing the Unbind-tab
+    // codepath, so no disableUnnecessaryReportings/reconfigure loop) and persisting the choice in
+    // `device.meta` so a later `configure()` (from any cause) respects it.
+    wiredInputBind: (args: {cluster: "genOnOff" | "closuresWindowCovering"; endpointId: number; optionSuffix?: string}): ModernExtend => {
+        const {cluster, endpointId, optionSuffix} = args;
+        const optionName = optionSuffix ? `wired_input_enabled_${optionSuffix}` : "wired_input_enabled";
+        const metaKey = optionSuffix ? `wiredInputEnabled${optionSuffix.toUpperCase()}` : "wiredInputEnabled";
+
+        return {
+            options: [
+                e
+                    .binary(optionName, ea.SET, true, false)
+                    .withDescription(
+                        "Whether the wired input physically drives the device via a Zigbee self-bind (default " +
+                            "true). Set to false to permanently disable this — unlike removing the bind from the " +
+                            "Bind tab, this choice persists across any future reconfigure.",
+                    ),
+            ],
+            onEvent: [
+                async (event) => {
+                    if (event.type !== "deviceOptionsChanged") return;
+                    const {from, to, device} = event.data;
+                    if (from[optionName] === to[optionName]) return;
+                    const enabled = to[optionName] !== false;
+                    const endpoint = device.getEndpoint(endpointId);
+                    if (enabled) {
+                        await endpoint.bind(cluster, endpoint);
+                    } else {
+                        await endpoint.unbind(cluster, endpoint);
+                    }
+                    device.meta[metaKey] = enabled;
+                    device.save();
+                },
+            ],
+            configure: [
+                async (device) => {
+                    if (device.meta[metaKey] === false) return;
+                    const endpoint = device.getEndpoint(endpointId);
+                    await endpoint.bind(cluster, endpoint);
+                },
+            ],
+            isModernExtend: true,
+        };
+    },
     switchTypeWindowCovering: (args?: Partial<m.EnumLookupArgs<"closuresWindowCovering">>) => {
         const resultName = "switch_type_window_covering";
         const resultLookup = {bistable: 0x00, monostable: 0x01, auto_detect: 0x02};
@@ -579,12 +631,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
+        version: "0.0.1",
         endpoint: (device) => ({default: 1}),
-        extend: [m.identify(), m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
-        configure: async (device) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind("genOnOff", endpoint);
-        },
+        extend: [
+            m.identify(),
+            m.onOff(),
+            nodonModernExtend.impulseMode(),
+            nodonModernExtend.switchTypeOnOff(),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1}),
+        ],
         ota: true,
     },
     {
@@ -600,6 +655,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
+        version: "0.0.1",
         endpoint: (device) => ({default: 1}),
         extend: [
             m.identify(),
@@ -607,11 +663,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchTypeOnOff(),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1}),
         ],
-        configure: async (device) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind("genOnOff", endpoint);
-        },
         ota: true,
     },
     {
@@ -619,19 +672,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-2-20",
         vendor: "NodOn",
         description: "Lighting relay switch",
+        version: "0.0.1",
         extend: [
             m.identify(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, default: 1}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1, optionSuffix: "l1"}),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 2, optionSuffix: "l2"}),
         ],
-        configure: async (device) => {
-            const ep1 = device.getEndpoint(1);
-            const ep2 = device.getEndpoint(2);
-            await ep1.bind("genOnOff", ep1);
-            await ep2.bind("genOnOff", ep2);
-        },
         ota: true,
     },
     {
