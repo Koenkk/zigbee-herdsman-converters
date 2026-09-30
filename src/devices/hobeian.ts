@@ -77,26 +77,7 @@ const tzLocal = {
             return await tzZosung.zosung_ir_code_to_send.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
-    ZG204_attr: {
-        key: ["sensitivity", "keep_time"],
-        convertSet: async (entity, key, value, meta) => {
-            switch (key) {
-                case "sensitivity":
-                    await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {low: 0, medium: 1, high: 2})});
-                    break;
-                case "keep_time":
-                    await entity.write("ssIasZone", {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
-                    break;
-                default: // Unknown key
-                    throw new Error(`Unhandled key ${key}`);
-            }
-        },
-        convertGet: async (entity, key, meta) => {
-            // Apparently, reading values may interfere with a commandStatusChangeNotification for changed occupancy.
-            // Therefore, read "zoneStatus" as well.
-            await entity.read("ssIasZone", ["currentZoneSensitivityLevel", 61441, "zoneStatus"]);
-        },
-    } satisfies Tz.Converter,
+    
 
 };
 
@@ -115,27 +96,7 @@ const fzLocal={
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
- ZG204_attr: {
-        cluster: "ssIasZone",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            let result: KeyValueAny = {};
-            const data = msg.data;
-            if (data && data.zoneStatus !== undefined) {
-                const result1 = fz.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
-                result = {...result1};
-            }
-            if (data && data.currentZoneSensitivityLevel !== undefined) {
-                const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
-                result.sensitivity = senslookup[data.currentZoneSensitivityLevel];
-            }
-            if (data && data["61441"] !== undefined) {
-                const keeptimelookup: Record<number, number> = {0: 30, 1: 60, 2: 120};
-                result.keep_time = keeptimelookup[data["61441"] as number];
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+ 
 };
 
 export const definitions: DefinitionWithExtend[] = [
