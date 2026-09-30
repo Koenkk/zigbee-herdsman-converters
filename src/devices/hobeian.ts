@@ -1,27 +1,16 @@
-import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
-import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as zosung from "../lib/zosung";
-import * as m from "../lib/modernExtend";
-import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
-import * as utils from "../lib/utils";
-import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
-import * as legacy from "../lib/legacy";
-import {logger} from "../lib/logger";
+
 const e = exposes.presets;
 const ea = exposes.access;
-
-const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
-const te = tuya.exposes;
-const tvc = tuya.valueConverter;
+
 // Convert HA raw IR timings (microseconds) to a Broadlink IR packet.
 // HOBEIAN ZG-IR01 only accepts Broadlink-encoded strings via ir_code_to_send,
 // but HA's native infrared.* platform sends raw {timings: [...]} through
@@ -77,8 +66,6 @@ const tzLocal = {
             return await tzZosung.zosung_ir_code_to_send.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
-    
-
 };
 
 
@@ -191,6 +178,46 @@ export const definitions: DefinitionWithExtend[] = [
                 [129, "switch5_off", tuya.valueConverterBasic.lookup({study: tuya.enum(0), registered: tuya.enum(1), unregistered: tuya.enum(2)})],
                 [130, "switch6_on", tuya.valueConverterBasic.lookup({study: tuya.enum(0), registered: tuya.enum(1), unregistered: tuya.enum(2)})],
                 [131, "switch6_off", tuya.valueConverterBasic.lookup({study: tuya.enum(0), registered: tuya.enum(1), unregistered: tuya.enum(2)})],
+            ],
+        },
+    },
+     {
+        zigbeeModel: ["ZG-308Z"],
+        model: "ZG-308Z",
+        vendor: "HOBEIAN",
+        description: "Water valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.binary('switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Valve on/off'),
+            e.enum("valve_status", ea.STATE, ["auto", "manual", "idle"]).withDescription("Valve 1 status (manual, auto, idle)"),
+            e
+                .numeric("countdown", ea.STATE_SET)
+                .withUnit("s")
+                .withDescription("Valve countdown in seconds")
+                .withValueMin(0)
+                .withValueMax(86400),
+            e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve  irrigation last duration in seconds"),
+            e.numeric("total_irrigation_duration", ea.STATE).withUnit("s").withDescription("Valve  irrigation last duration in seconds"),
+            e.enum("weather_delay", ea.STATE_SET, ["cancel", "hour_12h", "hour_24h","hour_48h", "hour_72h"]).withDescription("Weather delay: No operation when raining"),
+            e.enum("current_weather", ea.STATE_SET, ["sunny", "clear", "cloud","cloudy", "rainy","snow","fog"]).withDescription("Weather status needs to be sent to the device"),
+            e.binary('weather_onoff', ea.STATE_SET, 'ON', 'OFF').withDescription('smart weather_onoff on/off'),
+            e.binary('get_weather', ea.STATE, 'ON', 'OFF').withDescription('The device actively requests weather data from the gateway, and the gateway shall respond with current_weather information to the device'),
+            e.enum("weather_status", ea.STATE, ["sunny","cloudy","rainy","snow","null"]).withDescription('Weather information feedback received'),
+            e.battery(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "switch", tuya.valueConverter.onOff], 
+                [12, "valve_status", tuya.valueConverterBasic.lookup({auto: 0,manual: 1,  idle: 2})], // Valve status
+                [11, "countdown", tuya.valueConverter.raw], 
+                [15, "valve_duration", tuya.valueConverter.raw], 
+                [9, "total_irrigation_duration", tuya.valueConverter.raw], 
+                [10, "weather_delay", tuya.valueConverterBasic.lookup({cancel: 0, hour_12h: 1, hour_24h: 2,hour_48h:3,hour_72h:4})], 
+                [13, "current_weather", tuya.valueConverterBasic.lookup({sunny: 0, clear: 1, cloud: 2,cloudy:3, rainy:4,snow:5,fog:6})], 
+                [101, "weather_status", tuya.valueConverterBasic.lookup({sunny: 0, cloudy: 1, rainy: 2,snow:3,null:4})], 
+                [14, "weather_onoff", tuya.valueConverter.onOff], 
+                [102, "get_weather", tuya.valueConverter.onOff], 
+                [7, "battery", tuya.valueConverter.raw],
             ],
         },
     },
