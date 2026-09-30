@@ -5327,7 +5327,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -5446,7 +5446,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -5564,7 +5564,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -5663,7 +5663,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -5770,7 +5770,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msSoilMoisture",
                 attribute: {ID: 0x0340, type: 0x29},
@@ -7205,7 +7205,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
-                name: "VPD",
+                name: "vpd",
                 unit: "kPa",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0340, type: 0x29},
