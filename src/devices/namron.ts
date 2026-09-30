@@ -638,7 +638,29 @@ async function writeThenReadEdgeHvac(entity: any, attr: number, value: number, t
     } catch (_) {}
 }
 
+// programingOperMode is a bitmap on this device: bit 0 = schedule, bit 2 = eco. It reports 5 (schedule + eco),
+// which fz.thermostat's lookup (0, 1, 3, 4) rejects with an exception that also drops the rest of the message.
+function edgeProgrammingOperationMode(value: number): string {
+    if (value & 0x04) return "eco";
+    if (value & 0x01) return "schedule";
+    return "setpoint";
+}
+
 const fzEdge = {
+    thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"] as const,
+        convert: (model, msg, publish, options, meta) => {
+            const {programingOperMode, ...rest} = msg.data;
+            const result: KeyValue =
+                Object.keys(rest).length > 0 ? ((fz.thermostat.convert(model, {...msg, data: rest}, publish, options, meta) as KeyValue) ?? {}) : {};
+            if (programingOperMode !== undefined) {
+                result.programming_operation_mode = edgeProgrammingOperationMode(programingOperMode as number);
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+
     basic: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"] as const,
@@ -765,6 +787,10 @@ const fzEdge = {
                 }
             }
             const merged = Object.assign({}, meta?.state ?? {}, result) as KeyValue;
+            // fzEdge.thermostat parses programingOperMode from the same message, but its result is not in meta.state yet.
+            if (msg.data.programingOperMode !== undefined) {
+                merged.programming_operation_mode = edgeProgrammingOperationMode(msg.data.programingOperMode as number);
+            }
             result["thermostat_mode"] = deriveEdgeThermostatMode(
                 merged["frost"] as string,
                 merged["vacation_mode"] as string,
@@ -1126,7 +1152,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({voltage: false, configureReporting: false}),
         ],
 
-        fromZigbee: [fzEdge.basic, fz.thermostat, fzEdge.edge_custom, fz.hvac_user_interface],
+        fromZigbee: [fzEdge.basic, fzEdge.thermostat, fzEdge.edge_custom, fz.hvac_user_interface],
 
         toZigbee: [
             tzEdge.system_mode,
