@@ -3711,7 +3711,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.enumLookup({
-                endpointNames: ["1"],
+                endpointName: "1",
                 name: "overheating",
                 lookup: {FALSE: 0, TRUE: 1},
                 cluster: "msPressureMeasurement",
@@ -3720,7 +3720,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.enumLookup({
-                endpointNames: ["2"],
+                endpointName: "2",
                 name: "overheating",
                 lookup: {FALSE: 0, TRUE: 1},
                 cluster: "msPressureMeasurement",
@@ -3931,7 +3931,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.enumLookup({
-                endpointNames: ["1"],
+                endpointName: "1",
                 name: "overheating",
                 lookup: {FALSE: 0, TRUE: 1},
                 cluster: "msPressureMeasurement",
@@ -3940,7 +3940,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.enumLookup({
-                endpointNames: ["2"],
+                endpointName: "2",
                 name: "overheating",
                 lookup: {FALSE: 0, TRUE: 1},
                 cluster: "msPressureMeasurement",
@@ -4160,7 +4160,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_SET",
             }),
             m.enumLookup({
-                endpointNames: ["1"],
+                endpointName: "1",
                 name: "overheating",
                 lookup: {FALSE: 0, TRUE: 1},
                 cluster: "msPressureMeasurement",
@@ -4169,7 +4169,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.enumLookup({
-                endpointNames: ["2"],
+                endpointName: "2",
                 name: "overheating",
                 lookup: {FALSE: 0, TRUE: 1},
                 cluster: "msPressureMeasurement",
