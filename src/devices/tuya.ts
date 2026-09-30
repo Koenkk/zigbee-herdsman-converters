@@ -5265,7 +5265,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({
                 zoneType: "occupancy",
                 zoneAttributes: ["alarm_1", "battery_low"],
-                
             }),
         ],
         exposes: [
@@ -5280,9 +5279,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
-        whiteLabel: [
-            tuya.whitelabel("Tuya", "ZMS-102", "Motion sensor", ["_TZ3000_msl6wxk9"]),
-        ],
+        whiteLabel: [tuya.whitelabel("Tuya", "ZMS-102", "Motion sensor", ["_TZ3000_msl6wxk9"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0202", ["_TZ3000_o4mkahkc"]),
@@ -16190,7 +16187,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_state", ea.STATE_SET, true, false).withDescription("Turns the onboard LED on or off"),
         ],
     },
-   
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_j7sgd8po"]),
         model: "S8",

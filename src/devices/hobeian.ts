@@ -1,12 +1,20 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
-import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValueAny, Tz} from "../lib/types";
-import * as zosung from "../lib/zosung";
+import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName, getFromLookup, ignoreUnsupportedAttribute} from "../lib/utils";
-import * as legacy from "../lib/legacy";
+import * as tuya from "../lib/tuya";
+import type {DefinitionWithExtend, Expose, Fz, KeyValueAny, Tz} from "../lib/types";
+import {
+    addActionGroup,
+    getFromLookup,
+    hasAlreadyProcessedMessage,
+    ignoreUnsupportedAttribute,
+    isDummyDevice,
+    postfixWithEndpointName,
+} from "../lib/utils";
+import * as zosung from "../lib/zosung";
+
 const e = exposes.presets;
 const ea = exposes.access;
 
@@ -91,10 +99,9 @@ const tzLocal = {
             await entity.read("ssIasZone", ["currentZoneSensitivityLevel", 61441, "zoneStatus"]);
         },
     } satisfies Tz.Converter,
-
 };
 
-const fzLocal={
+const fzLocal = {
     command_stop_move_raw: {
         cluster: "lightingColorCtrl",
         type: "raw",
@@ -109,7 +116,7 @@ const fzLocal={
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
- zg204_attr: {
+    zg204_attr: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -243,47 +250,50 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-     {
+    {
         zigbeeModel: ["ZG-308Z"],
         model: "ZG-308Z",
         vendor: "HOBEIAN",
         description: "Water valve",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            e.binary('switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Valve on/off'),
+            e.binary("switch", ea.STATE_SET, "ON", "OFF").withDescription("Valve on/off"),
             e.enum("valve_status", ea.STATE, ["auto", "manual", "idle"]).withDescription("Valve 1 status (manual, auto, idle)"),
-            e
-                .numeric("countdown", ea.STATE_SET)
-                .withUnit("s")
-                .withDescription("Valve countdown in seconds")
-                .withValueMin(0)
-                .withValueMax(86400),
+            e.numeric("countdown", ea.STATE_SET).withUnit("s").withDescription("Valve countdown in seconds").withValueMin(0).withValueMax(86400),
             e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve  irrigation last duration in seconds"),
             e.numeric("total_irrigation_duration", ea.STATE).withUnit("s").withDescription("Valve  irrigation last duration in seconds"),
-            e.enum("weather_delay", ea.STATE_SET, ["cancel", "hour_12h", "hour_24h","hour_48h", "hour_72h"]).withDescription("Weather delay: No operation when raining"),
-            e.enum("current_weather", ea.STATE_SET, ["sunny", "clear", "cloud","cloudy", "rainy","snow","fog"]).withDescription("Weather status needs to be sent to the device"),
-            e.binary('weather_onoff', ea.STATE_SET, 'ON', 'OFF').withDescription('smart weather_onoff on/off'),
-            e.binary('get_weather', ea.STATE, 'ON', 'OFF').withDescription('The device actively requests weather data from the gateway, and the gateway shall respond with current_weather information to the device'),
-            e.enum("weather_status", ea.STATE, ["sunny","cloudy","rainy","snow","null"]).withDescription('Weather information feedback received'),
+            e
+                .enum("weather_delay", ea.STATE_SET, ["cancel", "hour_12h", "hour_24h", "hour_48h", "hour_72h"])
+                .withDescription("Weather delay: No operation when raining"),
+            e
+                .enum("current_weather", ea.STATE_SET, ["sunny", "clear", "cloud", "cloudy", "rainy", "snow", "fog"])
+                .withDescription("Weather status needs to be sent to the device"),
+            e.binary("weather_onoff", ea.STATE_SET, "ON", "OFF").withDescription("smart weather_onoff on/off"),
+            e
+                .binary("get_weather", ea.STATE, "ON", "OFF")
+                .withDescription(
+                    "The device actively requests weather data from the gateway, and the gateway shall respond with current_weather information to the device",
+                ),
+            e.enum("weather_status", ea.STATE, ["sunny", "cloudy", "rainy", "snow", "null"]).withDescription("Weather information feedback received"),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "switch", tuya.valueConverter.onOff], 
-                [12, "valve_status", tuya.valueConverterBasic.lookup({auto: 0,manual: 1,  idle: 2})], // Valve status
-                [11, "countdown", tuya.valueConverter.raw], 
-                [15, "valve_duration", tuya.valueConverter.raw], 
-                [9, "total_irrigation_duration", tuya.valueConverter.raw], 
-                [10, "weather_delay", tuya.valueConverterBasic.lookup({cancel: 0, hour_12h: 1, hour_24h: 2,hour_48h:3,hour_72h:4})], 
-                [13, "current_weather", tuya.valueConverterBasic.lookup({sunny: 0, clear: 1, cloud: 2,cloudy:3, rainy:4,snow:5,fog:6})], 
-                [101, "weather_status", tuya.valueConverterBasic.lookup({sunny: 0, cloudy: 1, rainy: 2,snow:3,null:4})], 
-                [14, "weather_onoff", tuya.valueConverter.onOff], 
-                [102, "get_weather", tuya.valueConverter.onOff], 
+                [1, "switch", tuya.valueConverter.onOff],
+                [12, "valve_status", tuya.valueConverterBasic.lookup({auto: 0, manual: 1, idle: 2})], // Valve status
+                [11, "countdown", tuya.valueConverter.raw],
+                [15, "valve_duration", tuya.valueConverter.raw],
+                [9, "total_irrigation_duration", tuya.valueConverter.raw],
+                [10, "weather_delay", tuya.valueConverterBasic.lookup({cancel: 0, hour_12h: 1, hour_24h: 2, hour_48h: 3, hour_72h: 4})],
+                [13, "current_weather", tuya.valueConverterBasic.lookup({sunny: 0, clear: 1, cloud: 2, cloudy: 3, rainy: 4, snow: 5, fog: 6})],
+                [101, "weather_status", tuya.valueConverterBasic.lookup({sunny: 0, cloudy: 1, rainy: 2, snow: 3, null: 4})],
+                [14, "weather_onoff", tuya.valueConverter.onOff],
+                [102, "get_weather", tuya.valueConverter.onOff],
                 [7, "battery", tuya.valueConverter.raw],
             ],
         },
     },
-     {
+    {
         zigbeeModel: ["ZG-226Z"],
         model: "ZG-226Z",
         vendor: "HOBEIAN",
@@ -793,7 +803,7 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
     },
-     {
+    {
         zigbeeModel: ["ZG-204ZQ"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_p9zbdqgs"]),
         model: "ZG-204ZQ",
@@ -940,7 +950,7 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
     },
-     {
+    {
         zigbeeModel: ["ZG-106Z"],
         model: "ZG-106Z",
         vendor: "HOBEIAN",
@@ -975,7 +985,6 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: ["l1", "l2"],
                 switchType: true,
                 powerOutageMemory: true,
-              
             }),
         ],
         endpoint: (device) => {
@@ -991,7 +1000,7 @@ export const definitions: DefinitionWithExtend[] = [
             }
         },
     },
-     {
+    {
         zigbeeModel: ["ZG-301Z-3CH"],
         model: "ZG-301Z-3CH",
         vendor: "HOBEIAN",
@@ -1002,7 +1011,6 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoints: ["l1", "l2", "l3"],
                 switchType: true,
                 powerOutageMemory: true,
-                
             }),
         ],
         endpoint: (device) => {
@@ -1237,7 +1245,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-     {
+    {
         zigbeeModel: ["ZG-103Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_iba1ckek", "_TZE200_hggxgsjj", "_TZE200_afycb3cg"]),
         model: "ZG-103Z",
@@ -1273,7 +1281,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
         model: "ZG-303Z",
@@ -1318,7 +1326,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-     {
+    {
         zigbeeModel: ["ZG-303Z", "AY-303Z", "AY-302Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_npj9bug3", "_TZE200_wrmhp6b3"]),
         model: "CS-201Z",
@@ -1379,7 +1387,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-102ZM", "AY02SZ"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq", "_TZE200_jfw0a4aa","_TZE200_yjryxpot"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wzk0x7fq", "_TZE200_jfw0a4aa", "_TZE200_yjryxpot"]),
         model: "ZG-102ZM",
         vendor: "HOBEIAN",
         description: "Vibration sensor",
@@ -1758,7 +1766,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {
             battery: {
-                    voltageToPercentage: "3V_1500_2800",
+                voltageToPercentage: "3V_1500_2800",
             },
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -1810,11 +1818,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["ZG-101ZD"],
-        fingerprint: tuya.fingerprint("TS004F", [
-            "_TZ3000_abrsvsou",
-            "_TZ3000_402vrq2i",
-            "_TZ3000_gwkzibhs",
-        ]),
+        fingerprint: tuya.fingerprint("TS004F", ["_TZ3000_abrsvsou", "_TZ3000_402vrq2i", "_TZ3000_gwkzibhs"]),
         model: "ZG-101ZD",
         vendor: "HOBEIAN",
         description: "Smart knob",
@@ -1829,9 +1833,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.fz.operation_mode,
             fz.battery,
         ],
-        whiteLabel: [
-            tuya.whitelabel("HOBEIAN", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"]),
-        ],
+        whiteLabel: [tuya.whitelabel("HOBEIAN", "ZG-101Z_D_1", "Smart knob", ["_TZ3000_402vrq2i"])],
         toZigbee: [tuya.tz.operation_mode],
         exposes: [
             e.action([
@@ -2113,7 +2115,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [109, "small_detection_sensitivity", tuya.valueConverter.raw],
                 [122, "target_distance", tuya.valueConverter.divideBy100],
                 [123, "minimum_range", tuya.valueConverter.divideBy100],
-               
             ],
         },
     },
@@ -2172,7 +2173,6 @@ export const definitions: DefinitionWithExtend[] = [
                     {manufacturerName: "_TZE200_dikkika5"},
                     {manufacturerName: "_TZE200_lhqtjwax"},
                     {manufacturerName: "_TZE200_vs0skpuc"},
-
                 ],
             },
             tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5", "_TZE200_y8wkaq6w"]),
@@ -2180,9 +2180,7 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY201Z",
                 vendor: "AOYAN",
                 description: "Temperature & humidity LCD sensor",
-                fingerprint: [
-                    {modelID: "AY201Z"},
-                ],
+                fingerprint: [{modelID: "AY201Z"}],
             },
         ],
         meta: {
