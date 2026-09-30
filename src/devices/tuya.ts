@@ -14443,6 +14443,42 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rfpyqax9"]),
+        model: "Pro Line X10",
+        vendor: "Tervix",
+        description: "Underfloor heating controller - 8 zones",
+        // Device does not answer dataQuery; state is only reported on change.
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [
+            e.binary("power", ea.STATE_SET, "ON", "OFF").withDescription("Main power, OFF switches all zones off"),
+            e.enum("system_mode", ea.STATE_SET, ["heat", "cool"]).withDescription("Heating or cooling mode"),
+            ...[1, 2, 3, 4, 5, 6, 7, 8].map((z) => e.binary(`zone_${z}`, ea.STATE_SET, "ON", "OFF").withDescription(`Zone ${z} actuator`)),
+            e.binary("pump", ea.STATE, "ON", "OFF").withDescription("Pump output, switches on 60 s after a zone demands"),
+            e.binary("boiler", ea.STATE, "ON", "OFF").withDescription("Boiler dry contact, only active in heat mode"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [33, "power", tuya.valueConverter.onOff],
+                ...[1, 2, 3, 4, 5, 6, 7, 8].map((z): [number, string, Tuya.ValueConverterSingle] => [
+                    100 + z,
+                    `zone_${z}`,
+                    tuya.valueConverter.onOff,
+                ]),
+                // DP 109-111 are reported as enum, DP 111 is sometimes echoed as bool.
+                [109, "pump", {from: (v: number | boolean) => (Number(v) === 1 ? "ON" : "OFF")}],
+                [110, "boiler", {from: (v: number | boolean) => (Number(v) === 1 ? "ON" : "OFF")}],
+                [
+                    111,
+                    "system_mode",
+                    {
+                        to: (v: string) => tuya.enum(v === "heat" ? 1 : 0),
+                        from: (v: number | boolean) => (Number(v) === 1 ? "heat" : "cool"),
+                    },
+                ],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2ekuz3dz"]),
         model: "X5H-GB-B",
         vendor: "Tuya",
