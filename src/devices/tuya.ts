@@ -5008,18 +5008,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_iystcadi", "_TZ3210_it1u8ahz"]),
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32729
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_it1u8ahz"]),
         model: "TS0505B_2",
         vendor: "Tuya",
-        description: "Zigbee RGB+CCT light",
-        whiteLabel: [
-            tuya.whitelabel("Lidl", "14149505L/14149506L_2", "Livarno Lux light bar RGB+CCT (black/white)", ["_TZ3210_iystcadi"]),
-            tuya.whitelabel("Tuya", "TS0505B_2_2", "Zigbee GU10/E14 5W smart bulb", ["_TZ3210_it1u8ahz"]),
-        ],
+        description: "Zigbee GU10/E14 5W smart bulb",
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"], applyRedFix: true}})],
-        // https://github.com/Koenkk/zigbee2mqtt/issues/32204
-        toZigbee: [tz.on_off, tuya.tz.led_control],
-        fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
         },
