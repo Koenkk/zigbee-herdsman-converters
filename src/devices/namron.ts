@@ -522,7 +522,13 @@ const tzLocalSimplifyDimmer4512791 = {
 };
 // End Simplify Dimmer (4512791)
 // ─── Namron Zigbee Edge Thermostat (4566702/4566703/4512783/4512784) ──────────
-const EDGE_EPOCH_OFFSET = 946684800; // seconds between 1970-01-01 and 2000-01-01
+// Clock (0x800b): Unix time (seconds since 1970) in *local* time. Seconds since 2000 are
+// acknowledged but ignored by the device (it shows a 1996 date). The panel shows the value
+// as-is, with no time zone of its own. Confirmed on a 4512783.
+function edgeLocalTime(): number {
+    const now = new Date();
+    return Math.round(now.getTime() / 1000 - now.getTimezoneOffset() * 60);
+}
 
 function edgeDateDecode(value: number): string | null {
     if (!value) return null;
@@ -657,6 +663,10 @@ const fzEdge = {
                     case 0x8002:
                         result["window_state"] = value ? "open" : "closed";
                         break;
+                    case 0x8003:
+                        // ENUM8 in 0.5 °C steps, confirmed on real hardware (raw 1 = 0.5 °C factory default).
+                        result["hysteresis"] = (value as number) / 2;
+                        break;
                     case 0x8004:
                         result["sensor_mode"] = edgeSensorModeLookup[String(value as number)] ?? String(value);
                         break;
@@ -675,8 +685,7 @@ const fzEdge = {
                     case 0x800a:
                         result["auto_time_sync_pending"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         if (value === 1) {
-                            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
-                            writeEdgeHvac(msg.endpoint, 0x800b, ts, Zcl.DataType.UINT32)
+                            writeEdgeHvac(msg.endpoint, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32)
                                 .then(() => writeEdgeHvac(msg.endpoint, 0x800a, 0, Zcl.DataType.BOOLEAN))
                                 .then(() => msg.endpoint.read("hvacThermostat", [0x800b]))
                                 .catch(() => {});
@@ -684,8 +693,8 @@ const fzEdge = {
                         break;
                     case 0x800b:
                         try {
-                            result["clock_last_synced"] =
-                                `${new Date(((value as number) + EDGE_EPOCH_OFFSET) * 1000).toISOString().replace("T", " ").slice(0, 19)} UTC`;
+                            // Local wall-clock time stored as Unix seconds, so format it without a time zone.
+                            result["clock_last_synced"] = new Date((value as number) * 1000).toISOString().replace("T", " ").slice(0, 19);
                         } catch (_) {
                             result["clock_last_synced"] = String(value);
                         }
@@ -735,9 +744,6 @@ const fzEdge = {
                     case 0x8023:
                         // 5-minute steps (0-24 -> 0-120 min), confirmed against real hardware.
                         result["countdown_set"] = (value as number) * 5;
-                        break;
-                    case 0x8024:
-                        result["countdown_left"] = value;
                         break;
                     case 0x8025:
                         result["max_heat_temp"] = (value as number) / 10;
@@ -907,8 +913,7 @@ const tzEdge = {
     sync_time: {
         key: ["sync_time"],
         convertSet: async (entity) => {
-            const ts = Math.round(Date.now() / 1000) - EDGE_EPOCH_OFFSET;
-            await readThenWriteEdgeHvac(entity, 0x800b, ts, Zcl.DataType.UINT32);
+            await readThenWriteEdgeHvac(entity, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32);
             await readThenWriteEdgeHvac(entity, 0x800a, 0, Zcl.DataType.BOOLEAN);
             try {
                 await entity.read("hvacThermostat", [0x800b]);
@@ -930,21 +935,30 @@ const tzEdge = {
             if ((meta.state as KeyValue)?.["system_mode"] === "cool") {
                 throw new Error("Cannot set the countdown timer while in cooling mode");
             }
+            // 5-minute steps (raw 8 = 40 min), confirmed on real hardware.
             await readThenWriteEdgeHvac(entity, 0x8023, minutes / 5, Zcl.DataType.ENUM8);
-            // This device doesn't respond to reads on countdownLeft (0x8024) -
-            // reset it here so a fresh countdown starts from a sane value
-            // instead of a stale/garbled figure.
-            return {state: {countdown_set: minutes, countdown_left: minutes}};
+            return {state: {countdown_set: minutes}};
         },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8023, 0x8024]);
+            await entity.read("hvacThermostat", [0x8023]);
         },
     } satisfies Tz.Converter,
 
-    countdown_left: {
-        key: ["countdown_left"],
+    // countdownLeft (0x8024) is not exposed: this firmware answers reads on it with a
+    // meaningless value (1325465600), confirmed on real hardware.
+
+    hysteresis: {
+        key: ["hysteresis"],
+        convertSet: async (entity, key, value) => {
+            const num = Number(value);
+            if (Number.isNaN(num) || num < 0.5 || num > 10) throw new Error("hysteresis must be 0.5-10");
+            // ENUM8 (UINT8/INT8 are rejected with INVALID_DATA_TYPE), 0.5 °C steps.
+            // Confirmed on real hardware: the written value reads back unchanged.
+            await writeEdgeHvac(entity, 0x8003, Math.round(num * 2), Zcl.DataType.ENUM8);
+            return {state: {hysteresis: Math.round(num * 2) / 2}};
+        },
         convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8024]);
+            await entity.read("hvacThermostat", [0x8003]);
         },
     } satisfies Tz.Converter,
 
@@ -1112,7 +1126,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzEdge.auto_time,
             tzEdge.sync_time,
             tzEdge.countdown_set,
-            tzEdge.countdown_left,
+            tzEdge.hysteresis,
             tzEdge.screen_on_time,
             tzEdge.panel_brightness,
             tzEdge.regulator_percentage,
@@ -1188,8 +1202,8 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint,
                 "hvacThermostat",
                 [
-                    0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011, 0x8012,
-                    0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8024, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
+                    0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011,
+                    0x8012, 0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
                 ],
             );
             await safeReadEdge(endpoint, "hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
@@ -1239,6 +1253,15 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
+            e
+                .numeric("hysteresis", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(10)
+                .withValueStep(0.5)
+                .withDescription(
+                    'Temperature swing before the relay switches. Only used when "Intelligence" is turned off on the device; that setting can only be changed on the device itself.',
+                ),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
             e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
@@ -1253,7 +1276,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(120)
                 .withValueStep(5)
                 .withDescription("Countdown timer; heating stops when it reaches 0. 0 = cancelled. Not usable in cooling mode."),
-            e.numeric("countdown_left", ea.STATE_GET).withUnit("min").withDescription("Time remaining on the countdown timer."),
             e.binary("vacation_mode", ea.ALL, "ON", "OFF").withDescription("Holds holiday_temp_set until vacation_end."),
             e.text("vacation_start", ea.ALL).withDescription("Vacation start date, format YYYY-MM-DD."),
             e.text("vacation_end", ea.ALL).withDescription("Vacation end date, format YYYY-MM-DD."),
@@ -1295,7 +1317,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Lower limit for the cooling setpoint (°F)."),
             e.binary("auto_time", ea.ALL, "ON", "OFF").withDescription("Let the device auto-sync its clock from the coordinator."),
             e.enum("sync_time", ea.SET, ["sync"]).withDescription('Write "sync" to push the current time to the device now.'),
-            e.text("clock_last_synced", ea.STATE).withDescription("Device's own clock, as last reported (UTC)."),
+            e.text("clock_last_synced", ea.STATE).withDescription("Device's own clock, as last reported (local time)."),
             e.text("fault", ea.STATE).withDescription('Active fault codes reported by the device, or "none".'),
             e.text("firmware_version", ea.STATE).withDescription("Reported software build ID."),
             e.text("firmware_date", ea.STATE).withDescription("Reported firmware date code."),
