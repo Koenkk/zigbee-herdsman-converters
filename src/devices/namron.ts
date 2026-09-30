@@ -1104,6 +1104,8 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             edgeThermostatCommands(),
+            // The device accepts a calibration of -10 to +10 °C (confirmed on the device), wider than the ZCL default of ±2.5 °C.
+            m.customLocalTemperatureCalibrationRange({min: -10, max: 10}),
             // The week program changed on the device is not reported, so read it periodically.
             m.poll({
                 key: "namron_edge_week_program_poll",
@@ -1238,7 +1240,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_heating_setpoint", 5, 35, 0.5)
                 .withSystemMode(["off", "heat", "cool"])
                 .withRunningState(["idle", "heat", "cool"])
-                .withLocalTemperatureCalibration(-3, 3, 0.1)
+                .withLocalTemperatureCalibration(-10, 10, 0.1)
                 .withPiHeatingDemand(),
             // Kept separate from climate() (not chained via withSetpoint()):
             // exposing both heating and cooling setpoints on the same
