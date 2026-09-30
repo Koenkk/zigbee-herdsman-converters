@@ -561,6 +561,19 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs", "xy"]}})],
     },
     {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_iystcadi"]),
+        model: "14149505L/14149506L_2",
+        vendor: "Lidl",
+        description: "Livarno Lux light bar RGB+CCT (black/white)",
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"], applyRedFix: true}})],
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32204
+        toZigbee: [tz.on_off, tuya.tz.led_control],
+        fromZigbee: [fz.on_off, tuya.fz.led_controller, fz.brightness],
+        configure: (device, coordinatorEndpoint) => {
+            device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_chyvmhay", "_TZE200_uiyqstza"]),
         model: "368308_2010",
         vendor: "Lidl",
