@@ -587,15 +587,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ['CK-BL702-AL-01(7009_Z102LG03-1)', 'CK-BL702-AL-01'], 
-        model: 'CK-BL702-AL-01',
-        vendor: 'eWeLink',
-        description: 'Smart LED bulb (RGBCW)',
+        zigbeeModel: ["CK-BL702-AL-01(7009_Z102LG03-1)", "CK-BL702-AL-01"],
+        model: "CK-BL702-AL-01",
+        vendor: "eWeLink",
+        description: "Smart LED bulb (RGBCW)",
         extend: [
             m.light({
                 colorTemp: {range: [153, 500]},
-                color: {modes: ['hs']}
-            })
-        ]
+                color: {modes: ["hs"]},
+            }),
+        ],
     },
 ];
