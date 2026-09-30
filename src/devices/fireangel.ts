@@ -18,11 +18,22 @@ const fzLocal = {
             if (lastTestTimeout) clearTimeout(lastTestTimeout);
 
             if (testActive) {
-                const timeout = setTimeout(() => publish({test: false}), 8000);
+                const timeout = setTimeout(() => publish({test: false}), 8000).unref();
                 globalStore.putValue(msg.endpoint, "lastTestTimeout", timeout);
             }
 
             return {test: testActive};
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    W2_module_carbon_monoxide: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                carbon_monoxide: (zoneStatus & (1 << 8)) > 8,
+            };
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
 };
@@ -33,7 +44,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W2-Module",
         description: "Carbon monoxide sensor",
         vendor: "FireAngel",
-        fromZigbee: [fz.W2_module_carbon_monoxide, fz.battery],
+        fromZigbee: [fzLocal.W2_module_carbon_monoxide, fz.battery],
         toZigbee: [],
         exposes: [e.carbon_monoxide(), e.battery()],
     },

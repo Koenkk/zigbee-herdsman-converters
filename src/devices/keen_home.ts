@@ -4,10 +4,21 @@ import * as exposes from "../lib/exposes";
 import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const fzLocal = {
+    keen_home_smart_vent_pressure: {
+        cluster: "msPressureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const pressure = msg.data.measuredValue !== undefined ? msg.data.measuredValue : Number.parseFloat(msg.data["32"] as string) / 1000.0;
+            return {pressure};
+        },
+    } satisfies Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -17,7 +28,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Temperature Sensor",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         // lumi.fromZigbee.lumi_temperature looks like a mistake, probably just fz.temperature
-        fromZigbee: [fz.battery, lumi.fromZigbee.lumi_temperature, fz.humidity, fz.keen_home_smart_vent_pressure],
+        fromZigbee: [fz.battery, lumi.fromZigbee.lumi_temperature, fz.humidity, fzLocal.keen_home_smart_vent_pressure],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity(), e.pressure(), e.battery_voltage()],
         extend: [m.forcePowerSource({powerSource: "Battery"})],
@@ -44,7 +55,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SV01",
         vendor: "Keen Home",
         description: "Smart vent",
-        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
+        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fzLocal.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {
@@ -73,7 +84,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SV02",
         vendor: "Keen Home",
         description: "Smart vent",
-        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fz.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
+        fromZigbee: [fz.cover_position_via_brightness, fz.temperature, fz.battery, fzLocal.keen_home_smart_vent_pressure, fz.ignore_onoff_report],
         toZigbee: [tz.cover_via_brightness],
         meta: {battery: {dontDividePercentage: true}},
         configure: async (device, coordinatorEndpoint) => {

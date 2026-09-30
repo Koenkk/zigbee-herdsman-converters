@@ -180,7 +180,7 @@ const fzLocal = {
 
 const tzLocal = {
     CSM300_SETUP: {
-        key: ["rf_pairing_on", "counting_freeze", "tof_init", "led_state", "rf_state", "transaction", "fast_in", "fast_out"],
+        key: ["rf_pairing_on", "counting_freeze", "tof_init", "led_state", "rf_state", "transaction_interval", "fast_in", "fast_out"],
         convertSet: async (entity, key, value, meta) => {
             let payload = null;
             const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
@@ -228,36 +228,36 @@ const tzLocal = {
                         return {state: {rf_state: "disable"}};
                     }
                     break;
-                case "transaction":
+                case "transaction_interval":
                     if (value === "0ms") {
                         payload = {presentValue: 90};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "0ms"}};
+                        return {state: {transaction_interval: "0ms"}};
                     }
                     if (value === "200ms") {
                         payload = {presentValue: 91};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "200ms"}};
+                        return {state: {transaction_interval: "200ms"}};
                     }
                     if (value === "400ms") {
                         payload = {presentValue: 92};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "400ms"}};
+                        return {state: {transaction_interval: "400ms"}};
                     }
                     if (value === "600ms") {
                         payload = {presentValue: 93};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "600ms"}};
+                        return {state: {transaction_interval: "600ms"}};
                     }
                     if (value === "800ms") {
                         payload = {presentValue: 94};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "800ms"}};
+                        return {state: {transaction_interval: "800ms"}};
                     }
                     if (value === "1,000ms") {
                         payload = {presentValue: 95};
                         await endpoint.write("genAnalogInput", payload);
-                        return {state: {transaction: "1,000ms"}};
+                        return {state: {transaction_interval: "1,000ms"}};
                     }
                     break;
                 case "fast_in":
@@ -343,6 +343,17 @@ const tzLocal = {
             await entity.read("msTemperatureMeasurement", ["measuredValue"]);
         },
     } satisfies Tz.Converter,
+    sihas_set_people: {
+        key: ["people"],
+        convertSet: async (entity, key, value, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            await endpoint.write("genAnalogInput", {presentValue: value as number});
+        },
+        convertGet: async (entity, key, meta) => {
+            const endpoint = meta.device.endpoints.find((e) => e.supportsInputCluster("genAnalogInput"));
+            await endpoint.read("genAnalogInput", ["presentValue"]);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -358,7 +369,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SiHAS multipurpose sensor",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people],
+        toZigbee: [tzLocal.sihas_set_people],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genPowerCfg", "genAnalogInput"];
@@ -382,7 +393,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "SiHAS multipurpose ToF sensor",
         meta: {battery: {voltageToPercentage: {min: 3200, max: 4100, vOffset: 1000}}},
         fromZigbee: [fz.battery, fzLocal.sihas_people_cnt],
-        toZigbee: [tz.sihas_set_people, tzLocal.CSM300_SETUP],
+        toZigbee: [tzLocal.sihas_set_people, tzLocal.CSM300_SETUP],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             const binds = ["genPowerCfg", "genAnalogInput"];
@@ -402,7 +413,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_state", ea.SET, "enable", "disable").withDescription("Indicate LED enable/disable, default : enable"),
             e.binary("rf_state", ea.SET, "enable", "disable").withDescription("RF function enable/disable, default : disable"),
             e
-                .enum("transaction", ea.SET, ["0ms", "200ms", "400ms", "600ms", "800ms", "1,000ms"])
+                .enum("transaction_interval", ea.SET, ["0ms", "200ms", "400ms", "600ms", "800ms", "1,000ms"])
                 .withDescription("Transaction interval, default : 400ms"),
             e.binary("fast_in", ea.SET, "enable", "disable").withDescription("Fast process enable/disable when people 0 to 1. default : enable"),
             e.binary("fast_out", ea.SET, "enable", "disable").withDescription("Fast process enable/disable when people 1 to 0. default : enable"),

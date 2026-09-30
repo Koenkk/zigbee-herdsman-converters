@@ -458,22 +458,35 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "OSRAM",
         description: "Lightify pro push button controller (PBC)",
         meta: {multiEndpoint: true},
+
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4};
         },
+
         fromZigbee: [ledvanceFz.pbc_level_to_action],
+
         exposes: [
             e.action(["hold", "release", "toggle"]).withEndpoint("l1"),
             e.action(["hold", "release", "toggle"]).withEndpoint("l2"),
             e.action(["hold", "release", "toggle"]).withEndpoint("l3"),
             e.action(["hold", "release", "toggle"]).withEndpoint("l4"),
         ],
+
         toZigbee: [],
+
         configure: async (device, coordinatorEndpoint) => {
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genLevelCtrl"]);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genLevelCtrl"]);
         },
+    },
+
+    {
+        zigbeeModel: ["PAR16 DIM 50 GU10 TW"],
+        model: "4099854461767/4099854461774",
+        vendor: "OSRAM",
+        description: "SMART+ LED PAR16 50 GU10 - Tunable White",
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}})],
     },
 ];

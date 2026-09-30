@@ -82,7 +82,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
                 [35, "fault_alarm", tuya.valueConverter.raw], // not sure
                 [36, "frost_protection", tuya.valueConverter.onOff],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [101, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
                 [101, "state", tuya.valueConverter.onOff],
                 [102, "temperature_sensitivity", tuya.valueConverter.divideBy10],
@@ -172,7 +172,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [35, "fault_alarm", tuya.valueConverter.raw], // not sure
                 [36, "frost_protection", tuya.valueConverter.onOff],
                 [39, "scale_protection", tuya.valueConverter.onOff],
-                [47, "local_temperature_calibration", tuya.valueConverter.localTempCalibration1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [101, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
                 [101, "state", tuya.valueConverter.onOff],
                 [102, "temperature_sensitivity", tuya.valueConverter.divideBy10],

@@ -1,7 +1,7 @@
 import {beforeAll, describe, expect, it, vi} from "vitest";
 import {definitions as inovelliDeviceDefinitions} from "../src/devices/inovelli";
 import {findByDevice} from "../src/index";
-import type {Definition, Expose, Fz, KeyValue, KeyValueAny, Tz} from "../src/lib/types";
+import type {Definition, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 /** EP2 raw scene buffer: `data[4]` must be `0x00` for scene parsing; `data[5]` / `data[6]` index `buttonLookup` / `clickLookup` in `src/lib/inovelli.ts`. */
@@ -9,19 +9,29 @@ function rawInovelliEp2Scene(data4: number, buttonLookupKey: number, clickLookup
     return [0, 0, 0, 0, data4, buttonLookupKey, clickLookupKey];
 }
 
-function processFromZigbeeMessage(definition: Definition, cluster: string, type: string, data: KeyValue | number[], endpointID: number) {
+function processFromZigbeeMessage(
+    definition: Definition,
+    cluster: string,
+    type: string,
+    data: KeyValue | number[],
+    endpointID: number,
+    // Required for converters that touch globalStore; the store discriminates entities by constructor name and rejects plain mocks.
+    device?: Zh.Device,
+) {
     const converters = definition.fromZigbee.filter((c) => {
         const typeMatch = Array.isArray(c.type) ? c.type.includes(type) : c.type === type;
         return c.cluster === cluster && typeMatch;
     });
+
+    // biome-ignore lint/suspicious/noExplicitAny: test mock
+    const endpoint = device ? device.getEndpoint(endpointID) : ({ID: endpointID} as any);
 
     let payload: KeyValue = {};
     for (const converter of converters) {
         // biome-ignore lint/suspicious/noExplicitAny: test mock
         const msg: Fz.Message<any, any, any> = {
             data,
-            // biome-ignore lint/suspicious/noExplicitAny: test mock
-            endpoint: {ID: endpointID} as any,
+            endpoint,
             device: null,
             meta: null,
             groupID: 0,
@@ -1626,9 +1636,10 @@ describe("Inovelli OTA", () => {
 describe("Inovelli fromZigbee converters", () => {
     describe("VZM31-SN", () => {
         let definition: Definition;
+        let device: Zh.Device;
 
         beforeAll(async () => {
-            ({definition} = await setupVZM31());
+            ({device, definition} = await setupVZM31());
             expect(definition.model).toBe("VZM31-SN");
         });
 
@@ -1700,8 +1711,33 @@ describe("Inovelli fromZigbee converters", () => {
                 {notificationType: -1, expected: "CONFIG_BUTTON_DOUBLE_PRESS"},
                 {notificationType: 99, expected: "Unknown"},
             ])("maps notificationType=$notificationType to $expected", ({notificationType, expected}) => {
-                const payload = processFromZigbeeMessage(definition, "manuSpecificInovelli", "commandLedEffectComplete", {notificationType}, 1);
+                const payload = processFromZigbeeMessage(
+                    definition,
+                    "manuSpecificInovelli",
+                    "commandLedEffectComplete",
+                    {notificationType},
+                    1,
+                    device,
+                );
                 expect(payload).toStrictEqual({notificationComplete: expected});
+            });
+
+            it("schedules a follow-up notificationComplete:'' publish", async () => {
+                const converter = definition.fromZigbee.find((c) => {
+                    const typeMatch = Array.isArray(c.type) ? c.type.includes("commandLedEffectComplete") : c.type === "commandLedEffectComplete";
+                    return c.cluster === "manuSpecificInovelli" && typeMatch;
+                }) as Fz.Converter;
+                const published: KeyValue[] = [];
+                converter.convert(
+                    definition,
+                    // biome-ignore lint/suspicious/noExplicitAny: test mock
+                    {data: {notificationType: 16}, endpoint: device.getEndpoint(1)} as any,
+                    (p) => published.push(p),
+                    {},
+                    {state: {}, device: null, deviceExposesChanged: () => {}},
+                );
+                await new Promise((resolve) => setTimeout(resolve, 0));
+                expect(published).toEqual([{notificationComplete: ""}]);
             });
         });
 

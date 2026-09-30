@@ -189,7 +189,7 @@ export interface DefinitionMeta {
      *
      * @defaultValue false
      */
-    omitOptionalLevelParams?: boolean;
+    omitOptionalLevelAndColorParams?: boolean;
     tuyaThermostatPreset?: {[s: number]: string};
     /** Tuya specific thermostat options */
     tuyaThermostatSystemMode?: {[s: number]: string};
@@ -222,7 +222,7 @@ export interface DefinitionMeta {
     /**
      * Override the Home Assistant discovery payload using a custom function.
      */
-    overrideHaDiscoveryPayload?(payload: KeyValueAny): void;
+    overrideHaDiscoveryPayload?(payload: KeyValueAny, options?: KeyValueAny): void;
     /**
      * Never use a transition when transitioning to off (even when specified)
      */
@@ -231,6 +231,8 @@ export interface DefinitionMeta {
      * Manufacturer specific
      */
     sinopeAlternateBacklightAutoDim?: boolean;
+    /** Indicates if the device does not report `swBuildId`, and a custom one was saved instead */
+    hasCustomFirmwareId?: boolean;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;
@@ -435,6 +437,7 @@ export namespace Tz {
         membersState?: {[s: string]: KeyValue};
         publish: Publish;
         converterOptions?: KeyValue;
+        deviceExposesChanged: () => void;
     }
     // biome-ignore lint/suspicious/noConfusingVoidType: ignored using `--suppress`
     export type ConvertSetResult = {state?: KeyValue; membersState?: {[s: string]: KeyValue}} | void;
@@ -443,7 +446,7 @@ export namespace Tz {
         options?: Option[] | ((definition: Definition) => Option[]);
         endpoints?: string[];
         convertSet?: (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => Promise<ConvertSetResult> | ConvertSetResult;
-        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<void>;
+        convertGet?: (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => Promise<ConvertSetResult>;
     }
 }
 

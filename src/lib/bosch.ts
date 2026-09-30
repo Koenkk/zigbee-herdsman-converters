@@ -19,6 +19,30 @@ const ea = exposes.access;
 
 const NS = "zhc:bosch";
 
+function addWeeklyScheduleExpose(climate: exposes.Climate) {
+    const featureDayOfWeek = new exposes.List(
+        "dayofweek",
+        ea.SET,
+        new exposes.Composite("day", "dayofweek", ea.SET).withFeature(
+            new exposes.Enum("day", ea.SET, ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "away_or_vacation"]),
+        ),
+    )
+        .withLabel("Day of week")
+        .withLengthMin(1)
+        .withLengthMax(8)
+        .withDescription("Days on which the schedule will be active.");
+    const featureTransitionTime = new exposes.Composite("time", "transition_time", ea.SET)
+        .withFeature(new exposes.Numeric("hour", ea.SET))
+        .withFeature(new exposes.Numeric("minute", ea.SET))
+        .withDescription("Trigger transition X minutes after 00:00.");
+    const featureTransition = new exposes.Composite("transition", "transition", ea.SET)
+        .withFeature(featureTransitionTime)
+        .withFeature(new exposes.Numeric("heat_setpoint", ea.SET).withLabel("Heat setpoint").withDescription("Target heat setpoint"));
+    const featureTransitions = new exposes.List("transitions", ea.SET, featureTransition).withLengthMin(1).withLengthMax(10);
+
+    climate.addFeature(new exposes.Composite("schedule", "weekly_schedule", ea.ALL).withFeature(featureDayOfWeek).withFeature(featureTransitions));
+}
+
 export const manufacturerOptions = {
     manufacturerCode: Zcl.ManufacturerCode.ROBERT_BOSCH_GMBH,
     sendPolicy: <SendPolicy>"immediate",
@@ -2475,7 +2499,7 @@ export const boschBsenExtend = {
                             // only known to Bosch. Therefore, we have to manually defer the turn-off by
                             // 4 seconds + 3 minutes to avoid any confusion.
                             const timeoutDelay = 184 * 1000;
-                            setTimeout(() => publish({occupancy: false}), timeoutDelay);
+                            setTimeout(() => publish({occupancy: false}), timeoutDelay).unref();
                             meta.device.meta.occupancyLockTimeout = Date.now() + timeoutDelay;
                         }
                     }
@@ -2508,7 +2532,7 @@ export const boschBsenExtend = {
                         endpoint.read("ssIasZone", ["zoneStatus"]).catch((exception) => {
                             logger.warning(`Error during reading the zoneStatus on device '${event.data.device.ieeeAddr}': ${exception}`, NS);
                         });
-                    }, timeoutDelay);
+                    }, timeoutDelay).unref();
                 } else {
                     await endpoint.read("ssIasZone", ["zoneStatus"]);
                 }
@@ -2921,8 +2945,8 @@ export const boschSmokeAlarmExtend = {
         }),
     alarmControl: (): ModernExtend => {
         const alarmModeLookup = {
-            manual_smoke_alarm: 0x00,
-            manual_burglar_alarm: 0x01,
+            smoke: 0x00,
+            burglar: 0x01,
         };
 
         const onOffLookup = {
@@ -2965,11 +2989,12 @@ export const boschSmokeAlarmExtend = {
 
         const exposes: Expose[] = [
             e
-                .binary("manual_smoke_alarm", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
-                .withDescription("Indicates whether the smoke alarm siren is being manually activated on the device"),
-            e
-                .binary("manual_burglar_alarm", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
-                .withDescription("Indicates whether the burglar alarm siren is being manually activated on the device"),
+                .enum("alarm_control", ea.ALL, ["off", "smoke", "burglar"])
+                .withDescription(
+                    "Manually controls the alarm siren of the device. Set to 'smoke' or 'burglar' to activate the " +
+                        "respective alarm, or 'off' to deactivate it.",
+                )
+                .withHomeAssistant({type: "siren"}),
             e
                 .binary("broadcast_alarms", ea.ALL, utils.getFromLookupByValue(true, onOffLookup), utils.getFromLookupByValue(false, onOffLookup))
                 .withLabel("Broadcast alarms")
@@ -2978,7 +3003,8 @@ export const boschSmokeAlarmExtend = {
                         "that a detected smoke alarm is not being transmitted automatically to other devices. " +
                         "To achieve that, you must set up an automation, e.g., in Home Assistant.",
                 )
-                .withCategory("config"),
+                .withCategory("config")
+                .withHomeAssistant({icon: "mdi:broadcast"}),
         ];
 
         const fromZigbee = [
@@ -2995,10 +3021,18 @@ export const boschSmokeAlarmExtend = {
                     const result: KeyValue = {};
 
                     const smokeAlarmEnabled = (zoneStatus & (1 << 1)) > 0;
-                    result.manual_smoke_alarm = utils.getFromLookupByValue(smokeAlarmEnabled, onOffLookup);
-
                     const burglarAlarmEnabled = (zoneStatus & (1 << 7)) > 0;
-                    result.manual_burglar_alarm = utils.getFromLookupByValue(burglarAlarmEnabled, onOffLookup);
+
+                    // The smoke and burglar alarms are mutually exclusive on the device.
+                    // If both are reported as enabled (which shouldn't happen during normal
+                    // operation), we prioritise the smoke alarm for safety reasons.
+                    if (smokeAlarmEnabled) {
+                        result.alarm_control = "smoke";
+                    } else if (burglarAlarmEnabled) {
+                        result.alarm_control = "burglar";
+                    } else {
+                        result.alarm_control = "off";
+                    }
 
                     return result;
                 },
@@ -3007,9 +3041,9 @@ export const boschSmokeAlarmExtend = {
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: ["manual_smoke_alarm", "manual_burglar_alarm", "broadcast_alarms"],
+                key: ["alarm_control", "broadcast_alarms"],
                 convertSet: async (entity, key, value, meta) => {
-                    if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
+                    if (key === "alarm_control") {
                         let broadcastAlarm: boolean;
 
                         try {
@@ -3019,28 +3053,48 @@ export const boschSmokeAlarmExtend = {
                             broadcastAlarm = defaultBroadcastAlarms;
                         }
 
-                        const alarmMode = utils.getFromLookup(key, alarmModeLookup);
-                        const enableAlarm = utils.getFromLookup(value, onOffLookup);
-                        const timeoutInSeconds = enableAlarm ? 0xf0 : 0;
-
+                        utils.assertString(value, "alarm_control");
+                        utils.validateValue(value, ["off", "smoke", "burglar"]);
                         utils.assertEndpoint(entity);
-                        await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
-                        clearTimeout(globalStore.getValue("boschSmokeAlarm", "alarmTimer"));
 
-                        if (enableAlarm) {
+                        if (value === "off") {
+                            const existingAlarmTimer = globalStore.getValue("boschSmokeAlarm", "alarmTimer");
+                            clearTimeout(existingAlarmTimer);
+                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
+
+                            const activeAlarm = meta.state?.alarm_control;
+                            const alarmModesToStop =
+                                typeof activeAlarm === "string" && activeAlarm in alarmModeLookup
+                                    ? [alarmModeLookup[activeAlarm as keyof typeof alarmModeLookup]]
+                                    : Object.values(alarmModeLookup);
+
+                            for (const alarmMode of alarmModesToStop) {
+                                await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, 0);
+                            }
+                        } else {
+                            const existingAlarmTimer = globalStore.getValue("boschSmokeAlarm", "alarmTimer");
+                            clearTimeout(existingAlarmTimer);
+                            globalStore.clearValue("boschSmokeAlarm", "alarmTimer");
+
+                            const alarmMode = utils.getFromLookup(value, alarmModeLookup);
+                            const timeoutInSeconds = 0xf0;
+
+                            await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds);
                             const alarmTimer = setTimeout(
                                 async () => await sendAlarmControlMessage(entity, broadcastAlarm, alarmMode, timeoutInSeconds),
                                 (timeoutInSeconds - 60) * 1000,
-                            );
+                            ).unref();
                             globalStore.putValue("boschSmokeAlarm", "alarmTimer", alarmTimer);
                         }
+
+                        return {state: {alarm_control: value}};
                     }
                     if (key === "broadcast_alarms") {
                         return {state: {broadcast_alarms: value}};
                     }
                 },
                 convertGet: async (entity, key, meta) => {
-                    if (key === "manual_smoke_alarm" || key === "manual_burglar_alarm") {
+                    if (key === "alarm_control") {
                         await entity.read("ssIasZone", ["zoneStatus"]);
                     }
                     if (key === "broadcast_alarms" && meta.state[key] === undefined) {
@@ -3265,6 +3319,8 @@ export interface BoschThermostatCluster {
         heatingDemand: number;
         /** ID: 16418 | Type: ENUM8 | Only used on BTH-RA */
         valveAdaptStatus: number;
+        /** ID: 16419 | Type: ENUM8 | Only used on BTH-RM230Z, controls humidity/temperature warning LEDs */
+        humidityAlarmLed: number;
         /** ID: 16421 | Type: ENUM8 | Only used on BTH-RM230Z with value depending on heaterType */
         unknownAttribute0: number;
         /** ID: 16448 | Type: INT16 | Only used on BTH-RA */
@@ -3354,6 +3410,14 @@ export const boschThermostatExtend = {
                 valveAdaptStatus: {
                     name: "valveAdaptStatus",
                     ID: 0x4022,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: manufacturerOptions.manufacturerCode,
+                    write: true,
+                    max: 0xff,
+                },
+                humidityAlarmLed: {
+                    name: "humidityAlarmLed",
+                    ID: 0x4023,
                     type: Zcl.DataType.ENUM8,
                     manufacturerCode: manufacturerOptions.manufacturerCode,
                     write: true,
@@ -3509,7 +3573,27 @@ export const boschThermostatExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    relayState: () => m.onOff({description: "The state of the relay controlling the connected heating/cooling device", powerOnBehavior: false}),
+    relayState: (): ModernExtend => {
+        const description = "The state of the relay controlling the connected heating/cooling device";
+        const relay = m.onOff({description, powerOnBehavior: false, configureReporting: false});
+        const relayExposes = (relay.exposes ?? []).filter((relayExpose): relayExpose is Expose => typeof relayExpose !== "function");
+        const relayEndpoint = (device: Zh.Device) => device.endpoints.find((endpoint) => endpoint.supportsInputCluster("genOnOff"));
+        const expose: DefinitionExposesFunction = (device) => {
+            return utils.isDummyDevice(device) || relayEndpoint(device) ? relayExposes : [];
+        };
+        const configure: Configure = async (device, coordinatorEndpoint) => {
+            const endpoint = relayEndpoint(device);
+            if (!endpoint) {
+                logger.debug(`Skipping Bosch thermostat relay reporting for ${device.ieeeAddr}: no genOnOff input cluster`, NS);
+                return;
+            }
+
+            await endpoint.bind("genOnOff", coordinatorEndpoint);
+            await endpoint.configureReporting("genOnOff", payload<"genOnOff">("onOff", 0, repInterval.MAX, 1));
+        };
+
+        return {...relay, exposes: [expose], configure: [configure]};
+    },
     cableSensorMode: () =>
         m.enumLookup<"hvacThermostat", BoschThermostatCluster>({
             name: "cable_sensor_mode",
@@ -3577,6 +3661,22 @@ export const boschThermostatExtend = {
             valueOn: ["ON", 0x01],
             valueOff: ["OFF", 0x00],
             reporting: args?.enableReporting ? {min: "MIN", max: "MAX", change: null} : false,
+        }),
+    humidityAlarmLed: () =>
+        m.binary<"hvacThermostat", BoschThermostatCluster>({
+            name: "humidity_alarm_led",
+            cluster: "hvacThermostat",
+            attribute: "humidityAlarmLed",
+            description:
+                "Enables/disables the LED warning when measured humidity is outside the comfortable range " +
+                "(below 30% or above 70%). Only the two observed raw values (0x07 on / 0x06 off) are supported; " +
+                "the meaning of the other bits of this attribute is not confirmed. The attribute is present on " +
+                "firmware 0x03086a90 (0.3.8) as well (confirmed by reading it on an unupgraded device); seemd the Bosch app " +
+                "only added a UI toggle for it in 0x03096a90 (0.3.9).",
+            valueOn: ["ON", 0x07],
+            valueOff: ["OFF", 0x06],
+            reporting: false,
+            entityCategory: "config",
         }),
     childLock: () =>
         m.binary({
@@ -3696,7 +3796,7 @@ export const boschThermostatExtend = {
             lowStatus: true,
             lowStatusReportingConfig: {min: "MIN", max: "MAX", change: null},
         }),
-    rmThermostat: (): ModernExtend => {
+    rmThermostat: (args?: {weeklySchedule?: boolean}): ModernExtend => {
         const thermostat = m.thermostat({
             localTemperature: {
                 configure: {reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10}},
@@ -3724,9 +3824,16 @@ export const boschThermostatExtend = {
                 values: ["cooling_only", "heating_only"],
                 configure: {reporting: {min: "MIN", max: "MAX", change: null}},
             },
+            weeklySchedule: args?.weeklySchedule ? {values: ["heat"]} : undefined,
         });
 
         const exposes: (Expose | DefinitionExposesFunction)[] = thermostat.exposes;
+
+        if (args?.weeklySchedule) {
+            const climate = exposes[0] as exposes.Climate;
+            climate.features = climate.features.filter((feature) => feature.property !== "weekly_schedule");
+            addWeeklyScheduleExpose(climate);
+        }
 
         return {
             exposes: exposes,

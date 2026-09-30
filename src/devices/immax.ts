@@ -319,7 +319,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "07502L",
         vendor: "Immax",
         description: "4 in 1 multi sensor",
-        fromZigbee: [fz.battery, legacy.fz.ZB003X, fz.ZB003X_attr, fz.ZB003X_occupancy],
+        fromZigbee: [fz.battery, legacy.fz.ZB003X, legacy.fz.ZB003X_attr, legacy.fz.ZB003X_occupancy],
         toZigbee: [legacy.tz.ZB003X],
         exposes: [
             e.occupancy(),
@@ -438,6 +438,42 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "quick_arm_enabled", tuya.valueConverter.onOff],
                 [111, "arm_delay_beep_sound", tuya.valueConverter.onOff],
                 [112, "user_id", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rhocfd6y"]),
+        model: "07519L",
+        vendor: "Immax",
+        description: "NEO Smart water leak sensor, Zigbee 3.0",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.water_leak(),
+            e.battery(),
+            e
+                .binary("silent_mode", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Mute the buzzer on leak detection (does not mute ongoing alarm)")
+                .withCategory("config"),
+            e
+                .enum("ringtone", ea.STATE_SET, ["tone_1", "tone_2", "tone_3"])
+                .withDescription("Selected buzzer ringtone for the alarm")
+                .withCategory("config"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // Polarity: device reports 0 on leakage, 1 when dry -> trueFalse0.
+                [1, "water_leak", tuya.valueConverter.trueFalse0],
+                [4, "battery", tuya.valueConverter.raw],
+                [101, "silent_mode", tuya.valueConverter.onOffEnumOn0],
+                [
+                    102,
+                    "ringtone",
+                    tuya.valueConverterBasic.lookup({
+                        tone_1: tuya.enum(0),
+                        tone_2: tuya.enum(1),
+                        tone_3: tuya.enum(2),
+                    }),
+                ],
             ],
         },
     },

@@ -1567,7 +1567,7 @@ const fromZigbee = {
                         break;
                     case 121: // running state
                         // @ts-expect-error ignore
-                        result.motor_state = {0: "OPENING", 1: "STOPPED", 2: "CLOSING"}[value];
+                        result.motor_state = {0: "opening", 1: "stopped", 2: "closing"}[value];
                         result.running = value !== 1;
                         break;
                     default: // Unknown code
@@ -1607,7 +1607,7 @@ const fromZigbee = {
                 case dataPoints.x5hFactoryReset: {
                     if (value) {
                         clearTimeout(globalStore.getValue(msg.endpoint, "factoryResetTimer"));
-                        const timer = setTimeout(() => publish({factory_reset: "OFF"}), 60 * 1000);
+                        const timer = setTimeout(() => publish({factory_reset: "OFF"}), 60 * 1000).unref();
                         globalStore.putValue(msg.endpoint, "factoryResetTimer", timer);
                         logger.info("The thermostat is resetting now. It will be available in 1 minute.", "zhc:legacy:fz:x5h_thermostat");
                     }
@@ -3555,7 +3555,7 @@ const fromZigbee = {
                             // for a few seconds
                             clearTimeout(globalStore.getValue(msg.endpoint, "running_timer"));
                             if (running) {
-                                const timer = setTimeout(() => publish({running: false}), 3 * 1000);
+                                const timer = setTimeout(() => publish({running: false}), 3 * 1000).unref();
                                 globalStore.putValue(msg.endpoint, "running_timer", timer);
                             }
 
@@ -3905,6 +3905,34 @@ const fromZigbee = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandActiveStatusReport"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZB003X_attr: {
+        cluster: "ssIasZone",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            const senslookup: Record<number, string> = {0: "low", 1: "medium", 2: "high"};
+            const keeptimelookup: Record<number, number> = {0: 0, 1: 30, 2: 60, 3: 120, 4: 240, 5: 480};
+            if (data && data.currentZoneSensitivityLevel !== undefined) {
+                const value = data.currentZoneSensitivityLevel;
+                return {sensitivity: senslookup[value]};
+            }
+            if (data && data["61441"] !== undefined) {
+                const value = data["61441"] as number;
+                return {keep_time: keeptimelookup[value]};
+            }
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZB003X_occupancy: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {occupancy: (zoneStatus & 1) > 0, tamper: (zoneStatus & 4) > 0};
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+
     tuya_thermostat_weekly_schedule_2: {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport"],
@@ -4297,7 +4325,7 @@ const toZigbee2 = {
                         await sendDataPointValue(entity, dataPoints.x5hSetTempCeiling, value);
                         const setpoint = globalStore.getValue(entity, "currentHeatingSetpoint", 20);
                         const setpointRaw = Math.round(setpoint * 10);
-                        await new Promise((r) => setTimeout(r, 500));
+                        await utils.sleep(500);
                         await sendDataPointValue(entity, dataPoints.x5hSetTemp, setpointRaw);
                     } else {
                         throw new Error("Supported values are in range [35, 95]");
@@ -6814,19 +6842,9 @@ const toZigbee2 = {
         },
     } satisfies Tz.Converter,
     hoch_din: {
-        key: [
-            "state",
-            "child_lock",
-            "countdown_timer",
-            "power_on_behavior",
-            "trip",
-            "clear_device_data",
-            /* TODO: Add the below keys when toZigbee converter work has been completed
-            'voltage_setting',
-            'current_setting',
-            'temperature_setting',
-            'leakage_current_setting'*/
-        ],
+        // The over voltage/current/temperature/leakage threshold datapoints are handled by
+        // `tzLocal.TS0601_rcbo_threshold` in `src/devices/tuya.ts`.
+        key: ["state", "child_lock", "countdown_timer", "power_on_behavior", "trip", "clear_device_data"],
         // biome-ignore lint/suspicious/noExplicitAny: ignored using `--suppress`
         convertSet: async (entity, key, value: any, meta) => {
             if (key === "state") {
@@ -6854,20 +6872,6 @@ const toZigbee2 = {
             }
             if (key === "clear_device_data") {
                 await sendDataPointBool(entity, dataPoints.hochClearEnergy, true, "sendData");
-                /* TODO: Release the below with other toZigbee converters for device composites
-            } else if (key === 'temperature_setting') {
-                if (value.over_temperature_threshold && value.over_temperature_trip && value.over_temperature_alarm){
-                    const payload = [];
-                    payload.push(value.over_temperature_threshold < 1
-                        ? ((value.over_temperature_threshold * -1) + 128)
-                        : value.over_temperature_threshold);
-                    payload.push(value.over_temperature_trip === 'ON' ? 1 : 0);
-                    payload.push(value.over_temperature_alarm === 'ON' ? 1 : 0);
-                    await sendDataPointRaw(entity, dataPoints.hochTemperatureThreshold, payload, 'sendData');
-                    return {state: {over_temperature_threshold: value.over_temperature_threshold,
-                        over_temperature_trip: value.over_temperature_trip,
-                        over_temperature_alarm: value.over_temperature_alarm}};
-                }*/
             } else {
                 throw new Error(`Not supported: '${key}'`);
             }

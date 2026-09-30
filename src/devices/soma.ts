@@ -7,6 +7,6 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SmartShades3",
         vendor: "SOMA",
         description: "Smart shades 3",
-        extend: [m.battery(), m.windowCovering({controls: ["lift", "tilt"]})],
+        extend: [m.battery(), m.windowCovering({controls: ["lift"]})],
     },
 ];

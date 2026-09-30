@@ -1,10 +1,59 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as tuya from "../src/lib/tuya";
 import type {Fz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
+    describe("tuyaWeatherForecast", () => {
+        it("uses forecast fields 1 through 3 and includes their humidity in the payload", async () => {
+            const {toZigbee} = tuya.modernExtend.tuyaWeatherForecast();
+            const converter = toZigbee?.[0];
+            expect(converter?.key).toStrictEqual([
+                "temperature_0",
+                "humidity_0",
+                "condition_0",
+                "temperature_1",
+                "humidity_1",
+                "condition_1",
+                "temperature_2",
+                "humidity_2",
+                "condition_2",
+                "temperature_3",
+                "humidity_3",
+                "condition_3",
+            ]);
+
+            const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE28C1000000_o409r73p", endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const state = {
+                temperature_0: 27,
+                humidity_0: 78,
+                condition_0: "sunny",
+                temperature_1: 31,
+                humidity_1: 80,
+                condition_1: "rain",
+                temperature_2: 29,
+                humidity_2: 75,
+                condition_2: "yin",
+                temperature_3: 28,
+                humidity_3: 85,
+                condition_3: "thunder_shower",
+            };
+            const meta: Tz.Meta = {state, device, message: null, mapped: definition, options: null, publish: null, endpoint_name: null};
+
+            await converter?.convertSet?.(device.endpoints[0], "humidity_3", 85, meta);
+
+            expect(device.endpoints[0].command).toHaveBeenCalledWith("manuSpecificTuya", "tuyaWeatherSync", {
+                payload: Buffer.from([
+                    0x11, 0x00, 0x12, 0x03, 0x13, 0x01, 0x01, 0x00, 27, 0x00, 31, 0x00, 29, 0x00, 28, 0x02, 0x00, 78, 0x00, 80, 0x00, 75, 0x00, 85,
+                    0x03, 100, 118, 114, 143, 0x00,
+                ]),
+            });
+        });
+    });
+
     describe("dpTHZBSettings", () => {
         const {toZigbee, fromZigbee} = tuya.modernExtend.dpTHZBSettings();
 
@@ -54,6 +103,397 @@ describe("lib/tuya", () => {
             const msg = {data: {dpValues: [data.to]}} as Fz.Message<any, any, any>;
             const result = await fromZigbee[0].convert(definition, msg, null, null, null);
             expect(result).toStrictEqual(data.from);
+        });
+    });
+
+    describe("closuresWindowCovering custom cluster (Tuya covers)", () => {
+        // Regression: moesCalibrationTime was declared as ENUM8 (a single byte,
+        // max 255). The calibration_time converter writes value * 10 and the
+        // exposed max is 500 s -> 5000, which does not fit in a byte:
+        //   - calibration_time 26 -> 260 throws RangeError (> 255) before sending
+        //   - smaller values (e.g. 25 -> 250) are rejected on-air as
+        //     INVALID_DATA_TYPE
+        // The attribute must be UINT16 for value * 10 (up to 5000) to encode.
+        it("declares moesCalibrationTime as UINT16 so value*10 fits", async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_1dd0d5yi",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            // Registers the custom cluster on the device (deviceAddCustomCluster).
+            await definition.configure?.(device, device.getEndpoint(1), definition);
+
+            const cluster = device.customClusters.closuresWindowCovering;
+            expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
+        });
+
+        const setupB4z = async () => {
+            const device = mockDevice({
+                modelID: "TS130F",
+                manufacturerName: "_TZ3000_yruungrl",
+                endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
+            });
+            const definition = await findByDevice(device);
+            const endpoint = device.getEndpoint(1);
+            const toConverter = definition.toZigbee.find((converter) => converter.key.includes("position"));
+            const fromConverter = definition.fromZigbee.find((converter) => converter.cluster === "closuresWindowCovering");
+            if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
+
+            const state = {position: 100};
+            const sendPosition = async (position: number) => {
+                const commandResult = await toConverter.convertSet(endpoint, "position", position, {
+                    device,
+                    mapped: definition,
+                    message: {position},
+                    options: {},
+                    state,
+                    endpoint_name: undefined,
+                    publish: () => {},
+                });
+                Object.assign(state, commandResult?.state);
+            };
+            const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
+                fromConverter.convert(
+                    definition,
+                    {
+                        data,
+                        endpoint,
+                        device,
+                        meta: {rawData: Buffer.alloc(0)},
+                        groupID: 0,
+                        type: "attributeReport",
+                        cluster: "closuresWindowCovering",
+                        linkquality: 0,
+                    },
+                    () => {},
+                    {},
+                    {state, device, deviceExposesChanged: () => {}},
+                );
+
+            return {convert, endpoint, sendPosition};
+        };
+
+        it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+
+        it("does not correct a Nous B4Z STOP report before the target was acknowledged", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 100});
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("does not replace an acknowledged Nous B4Z target with a stale moving report", async () => {
+            const {convert, endpoint, sendPosition} = await setupB4z();
+            await sendPosition(50);
+
+            expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 0})).toMatchObject({position: 50});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 0})).toMatchObject({position: 100});
+            expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+    });
+
+    describe("tuyaOnOff power-on behaviour selection", () => {
+        const resolveExposes = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS0003", manufacturerName, endpoints: [{ID: 1}, {ID: 2}, {ID: 3}]});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            return {definition, properties: exposes.map((expose) => expose.property)};
+        };
+
+        it("exposes power_on_behavior for manufacturers using the manuSpecificTuya3 attribute", async () => {
+            // `TS0003_switch_3_gang_with_backlight` passes `powerOutageMemory` and `powerOnBehavior2` as
+            // complementary predicates. Both are functions, so branching on the option itself always chose
+            // `powerOutageMemory`, whose expose is then gated off for these manufacturers, leaving them with
+            // no power-on control at all.
+            const {properties} = await resolveExposes("_TZ3000_uilitwsy");
+
+            expect(properties).toContain("power_on_behavior_l1");
+            expect(properties).toContain("power_on_behavior_l2");
+            expect(properties).toContain("power_on_behavior_l3");
+            expect(properties).not.toContain("power_outage_memory");
+        });
+
+        it("still exposes power_outage_memory for the legacy manufacturers on the same definition", async () => {
+            const {properties} = await resolveExposes("_TZ3000_nwidmc4n");
+
+            expect(properties).toContain("power_outage_memory");
+            expect(properties).not.toContain("power_on_behavior_l1");
+        });
+
+        it("lets power_on_behavior_2 win the shared power_on_behavior key", async () => {
+            // Both converters answer to `power_on_behavior`; the first match wins, so the manuSpecificTuya3
+            // one has to be registered first or these devices would write moesStartUpOnOff instead.
+            const {definition} = await resolveExposes("_TZ3000_uilitwsy");
+            const keys = definition.toZigbee.map((converter) => converter.key);
+            const powerOnBehavior2 = keys.findIndex((key) => key?.includes("power_on_behavior") && !key.includes("power_outage_memory"));
+            const powerOnBehavior1 = keys.findIndex((key) => key?.includes("power_outage_memory"));
+
+            expect(powerOnBehavior2).toBeGreaterThanOrEqual(0);
+            expect(powerOnBehavior1).toBeGreaterThanOrEqual(0);
+            expect(powerOnBehavior2).toBeLessThan(powerOnBehavior1);
+        });
+    });
+
+    describe("phaseVariant2WithPhase", () => {
+        // Regression: the payload is 8 bytes -- voltage (2), current (3), power (3) --
+        // the same layout already decoded by phaseVariant3/phaseVariant4. Only the low
+        // 2 bytes of current and power were read, so:
+        //   - current wrapped above 65.536 A (68.783 A was reported as 3.247 A)
+        //   - the negative power branch used 0x999a, which is the low 16 bits of the
+        //     real 24-bit offset 0x99999a, so it corrupted any legitimate reading above
+        //     32767 W
+
+        // voltage in 0.1 V, current in mA, power in W
+        const payload = (voltage: number, current: number, power: number) =>
+            Buffer.from([
+                (voltage >> 8) & 0xff,
+                voltage & 0xff,
+                (current >> 16) & 0xff,
+                (current >> 8) & 0xff,
+                current & 0xff,
+                (power >> 16) & 0xff,
+                (power >> 8) & 0xff,
+                power & 0xff,
+            ]).toString("base64");
+
+        const decode = (phase: string, voltage: number, current: number, power: number) =>
+            tuya.valueConverter.phaseVariant2WithPhase(phase).from(payload(voltage, current, power));
+
+        it("suffixes every key with the phase", () => {
+            expect(decode("b", 1234, 4252, 519)).toStrictEqual({voltage_b: 123.4, current_b: 4.252, power_b: 519});
+        });
+
+        it("decodes readings below the 16 bit boundary", () => {
+            expect(decode("l1", 1234, 4252, 519)).toStrictEqual({voltage_l1: 123.4, current_l1: 4.252, power_l1: 519});
+            expect(decode("l1", 1200, 65535, 1000)).toStrictEqual({voltage_l1: 120, current_l1: 65.535, power_l1: 1000});
+        });
+
+        it.each([
+            // captured on TS0601 / _TZE284_x8diwkqb, 68.783 A was reported as 3.247 A
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12927
+            {voltage: 1196, current: 68783, power: 8216, expected: {voltage_l1: 119.6, current_l1: 68.783, power_l1: 8216}},
+            // captured on TS0601 / _TZE284_x8diwkqb with a 5.5 kW and a 7.5 kW heater running
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12927
+            {voltage: 1190, current: 69610, power: 8270, expected: {voltage_l1: 119, current_l1: 69.61, power_l1: 8270}},
+            {voltage: 1195, current: 65951, power: 7867, expected: {voltage_l1: 119.5, current_l1: 65.951, power_l1: 7867}},
+            // just past the wrap point, previously reported as 0.0 A / 0.001 A
+            {voltage: 1200, current: 65536, power: 1000, expected: {voltage_l1: 120, current_l1: 65.536, power_l1: 1000}},
+            {voltage: 1200, current: 65537, power: 1000, expected: {voltage_l1: 120, current_l1: 65.537, power_l1: 1000}},
+        ])("does not wrap currents above 65.536 A ($current mA)", ({voltage, current, power, expected}) => {
+            expect(decode("l1", voltage, current, power)).toStrictEqual(expected);
+        });
+
+        it("keeps current consistent with power and voltage under high load", () => {
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12927
+            const {voltage_l1, current_l1, power_l1} = decode("l1", 1190, 69610, 8270) as Record<string, number>;
+            expect(power_l1).toBeCloseTo(voltage_l1 * current_l1, -2);
+        });
+
+        it.each([
+            // _TZE200_nslr42tt, two clamps on the same ~19 W load, one of them reversed
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2267514694
+            // Same capture used to identify the 0x99999a offset (0x19999a gave 8388588 W):
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32995#issuecomment-5516351597
+            {dp: 6, phase: "a", data: [9, 37, 0, 0, 143, 0, 0, 19], expected: {voltage_a: 234.1, current_a: 0.143, power_a: 19}},
+            {dp: 8, phase: "c", data: [9, 38, 0, 0, 146, 153, 153, 134], expected: {voltage_c: 234.2, current_c: 0.146, power_c: -20}},
+        ])("decodes captured payload of dp $dp ($data)", ({phase, data, expected}) => {
+            const raw = Buffer.from(data).toString("base64");
+            expect(tuya.valueConverter.phaseVariant2WithPhase(phase).from(raw)).toStrictEqual(expected);
+        });
+
+        it.each([
+            // values shown by the old 16 bit decoder (39125, 39124, 39123 W), full 24 bit field reconstructed
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2277697295
+            {raw: 0x9998d5, expected: -197},
+            {raw: 0x9998d4, expected: -198},
+            {raw: 0x9998d3, expected: -199},
+            // 39317 W shown by the old 16 bit decoder for a reversed clamp on a 5 W load
+            // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2276888584
+            {raw: 0x999995, expected: -5},
+            // regression: was reported as 8388588 W with the 0x19999a offset
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32995
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32995#issuecomment-5516351597
+            {raw: 0x999986, expected: -20},
+            {raw: 0x99999a, expected: 0},
+            {raw: 0x800000, expected: -1677722},
+        ])("reports negative power ($raw -> $expected W)", ({raw, expected}) => {
+            expect(decode("l1", 1200, 0, raw)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: expected});
+        });
+
+        it("never reports a negative reading as a multi megawatt positive one", () => {
+            for (let absolute = 1; absolute <= 50000; absolute++) {
+                const {power_l1} = decode("l1", 1200, 0, 0x99999a - absolute) as Record<string, number>;
+                expect(power_l1).toBe(-absolute);
+            }
+        });
+
+        it("keeps large positive readings positive", () => {
+            expect(decode("l1", 1200, 0, 0x7fffff)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: 0x7fffff});
+        });
+
+        it("does not turn a large positive power into a negative one", () => {
+            // 40000 W was decoded as 678 W before: 40000 > 0x7fff took the negative
+            // branch, giving (0x999a - 40000) * -1
+            expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
+        });
+    });
+
+    describe("TS130F manufacturer-dependent switch type", () => {
+        const resolve = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS130F", manufacturerName, endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            return {definition, exposes, names: exposes.map((expose) => expose.name ?? expose.property ?? expose.type)};
+        };
+
+        it("uses the manuSpecificTuya3 wall-switch selector for the Moes ZM-108-M", async () => {
+            const {definition, exposes, names} = await resolve("_TZ3210_mldzab8w");
+
+            expect(definition).toMatchObject({model: "ZM-108-M", vendor: "Moes", description: "Smart curtain switch module"});
+            expect(names).toStrictEqual([
+                "cover",
+                "moving",
+                "motor_reversal",
+                "calibration",
+                "calibration_time",
+                "indicator_mode",
+                "backlight_mode",
+                "switch_type_curtain",
+            ]);
+            expect(exposes.find((expose) => expose.name === "switch_type_curtain")).toMatchObject({
+                values: ["flip-switch", "sync-switch", "button-switch", "button2-switch"],
+            });
+        });
+
+        it("leaves the generic TS130F switch type unchanged", async () => {
+            const {definition, names} = await resolve("_TZ3000_unlistedxx");
+
+            expect(definition).toMatchObject({model: "TS130F", vendor: "Tuya", description: "Curtain/blind switch"});
+            expect(names).toStrictEqual([
+                "cover",
+                "moving",
+                "motor_reversal",
+                "calibration",
+                "calibration_time",
+                "indicator_mode",
+                "backlight_mode",
+                "switch_type",
+            ]);
+        });
+    });
+
+    describe("TS0001 manufacturer-dependent settings", () => {
+        // Endpoint layout as reported by a _TZ3000_p26flek3: ep1 carries genOnOff plus the Tuya
+        // private clusters 0xE000 and 0xE001 (switch type, power-on behaviour); ep242 is green power.
+        // The device lists 0xE000 but has no configurable inching: it always pulses for a fixed ~1 s,
+        // whatever inching state or time is written.
+        const layout = [
+            {ID: 1, profileID: 260, deviceID: 256, inputClusterIDs: [3, 4, 5, 6, 0xe000, 0xe001, 0], outputClusterIDs: [25, 10]},
+            {ID: 242, profileID: 0xa1e0, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+        ];
+
+        const resolve = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS0001", manufacturerName, endpoints: layout});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            // `e.switch()` is a composite without a property of its own, its feature carries `state`.
+            const properties = exposes.flatMap((expose) =>
+                expose.property
+                    ? [expose.property]
+                    : "features" in expose && expose.features
+                      ? expose.features.map((feature) => feature.property)
+                      : [],
+            );
+            return {definition, properties};
+        };
+
+        it("exposes the settings _TZ3000_p26flek3 reports on its private clusters", async () => {
+            const {definition, properties} = await resolve("_TZ3000_p26flek3");
+
+            expect(definition.model).toBe("TS0001");
+            expect(properties).toStrictEqual(["state", "power_on_behavior", "switch_type", "backlight_mode", "indicator_mode"]);
+        });
+
+        it("leaves the settings of _TZ3000_bzzgvet0 unchanged", async () => {
+            const {definition, properties} = await resolve("_TZ3000_bzzgvet0");
+
+            // Matched by the generic TS0001 definition, relabelled through its Moes white label.
+            expect(definition.model).toBe("ZS-US1-LN");
+            expect(properties).toStrictEqual(["state", "power_on_behavior", "switch_type", "backlight_mode"]);
+        });
+
+        it("keeps other TS0001 manufacturers on on/off only", async () => {
+            const {definition, properties} = await resolve("_TZ3000_unlistedxx");
+
+            expect(definition.model).toBe("TS0001");
+            expect(properties).toStrictEqual(["state"]);
+        });
+
+        it("writes backlight_mode to tuyaBacklightSwitch and indicator_mode to tuyaBacklightMode", async () => {
+            // Both converters handle `backlight_mode` and the first match wins, so the order decides
+            // which attribute a backlight_mode write reaches.
+            const {definition} = await resolve("_TZ3000_bzzgvet0");
+
+            expect(definition.toZigbee.find((converter) => converter.key?.includes("backlight_mode"))).toBe(tuya.tz.backlight_indicator_mode_2);
+            expect(definition.toZigbee.find((converter) => converter.key?.includes("indicator_mode"))).toBe(tuya.tz.backlight_indicator_mode_1);
+        });
+    });
+
+    describe("TS004F knob configure (ZG-101ZD)", () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+        const unsupported = () => new Error("ZCL command genBasic.read(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')");
+
+        it("ignores UNSUPPORTED_ATTRIBUTE on the magic packet and tuyaOperationMode write", async () => {
+            const device = mockDevice({modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            expect(definition.model).toStrictEqual("ZG-101ZD");
+            const endpoint = device.getEndpoint(1);
+            vi.mocked(endpoint.read).mockImplementation((cluster) => (cluster === "genBasic" ? Promise.reject(unsupported()) : Promise.resolve({})));
+            vi.mocked(endpoint.write).mockRejectedValue(unsupported());
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).resolves.toBeUndefined();
+            expect(endpoint.read).toHaveBeenCalledWith("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", expect.anything());
+        });
+
+        it("still fails on other errors", async () => {
+            const device = mockDevice({modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            vi.mocked(device.getEndpoint(1).read).mockRejectedValue(new Error("Timeout"));
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).rejects.toThrow("Timeout");
+        });
+    });
+
+    describe("TS004F button configure (ZG-101ZL)", () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+        it("ignores UNSUPPORTED_ATTRIBUTE on the tuyaOperationMode write", async () => {
+            const device = mockDevice({modelID: "ZG-101ZL", manufacturerName: "HOBEIAN", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            expect(definition.model).toStrictEqual("ERS-10TZBVB-AA");
+            const endpoint = device.getEndpoint(1);
+            vi.mocked(endpoint.write).mockRejectedValue(new Error("ZCL command genOnOff.write(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')"));
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).resolves.toBeUndefined();
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", expect.anything());
+        });
+
+        it("still fails on other errors", async () => {
+            const device = mockDevice({modelID: "ZG-101ZL", manufacturerName: "HOBEIAN", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            vi.mocked(device.getEndpoint(1).write).mockRejectedValue(new Error("Timeout"));
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).rejects.toThrow("Timeout");
         });
     });
 });

@@ -80,15 +80,20 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
     return precisionRound(mappedValue, precision);
 }
 
-const transactionStore: {[s: string]: number[]} = {};
+const transactionStore: {[s: string]: {id: number; expires: number}[]} = {};
+// Devices may reuse transaction sequence numbers, so entries must not outlive a retransmit window:
+// https://github.com/Koenkk/zigbee-herdsman-converters/issues/13131
+const transactionStoreTTL = 10_000;
 // biome-ignore lint/suspicious/noExplicitAny: generic
 export function hasAlreadyProcessedMessage(msg: Fz.Message<any, any, any>, model: Definition, id: number = null, key: string = null) {
     if (model.meta?.publishDuplicateTransaction) return false;
     const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
-    key = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
-    if (transactionStore[key]?.includes(currentID)) return true;
+    const storeKey = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
+    const now = Date.now();
+    const recent = (transactionStore[storeKey] ?? []).filter((entry) => entry.expires > now);
+    if (recent.some((entry) => entry.id === currentID)) return true;
     // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
-    transactionStore[key] = [currentID, ...(transactionStore[key] ?? [])].slice(0, 5);
+    transactionStore[storeKey] = [{id: currentID, expires: now + transactionStoreTTL}, ...recent].slice(0, 5);
     return false;
 }
 
@@ -349,7 +354,9 @@ export function filterObject<T>(obj: T, keys: string[]): Partial<T> {
 }
 
 export async function sleep(ms: number) {
-    return await new Promise((resolve) => setTimeout(resolve, ms));
+    return await new Promise<void>((resolve) => {
+        setTimeout(resolve, ms).unref();
+    });
 }
 
 export function toSnakeCase(value: string | KeyValueAny) {
@@ -532,7 +539,7 @@ export function normalizeCelsiusVersionOfFahrenheit(value: number) {
 export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, publish: Publish, action: "start" | "stop") {
     if (options?.no_occupancy_since) {
         if (action === "start") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: NodeJS.Timeout) => {
                 clearTimeout(t);
             });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
@@ -540,11 +547,11 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
             options.no_occupancy_since.forEach((since: number) => {
                 const timer = setTimeout(() => {
                     publish({no_occupancy_since: since});
-                }, since * 1000);
+                }, since * 1000).unref();
                 globalStore.getValue(endpoint, "no_occupancy_since_timers").push(timer);
             });
         } else if (action === "stop") {
-            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: ReturnType<typeof setInterval>) => {
+            globalStore.getValue(endpoint, "no_occupancy_since_timers", []).forEach((t: NodeJS.Timeout) => {
                 clearTimeout(t);
             });
             globalStore.putValue(endpoint, "no_occupancy_since_timers", []);
@@ -552,13 +559,19 @@ export function noOccupancySince(endpoint: Zh.Endpoint, options: KeyValueAny, pu
     }
 }
 
-export function attachOutputCluster(device: Zh.Device, clusterKey: string) {
+export function attachInputCluster(device: Zh.Device, endpoint: Zh.Endpoint, clusterKey: string) {
     const clusterId = Zcl.Utils.getCluster(clusterKey, device.manufacturerID, device.customClusters).ID;
-    const endpoint = device.getEndpoint(1);
+
+    if (!endpoint.inputClusters.includes(clusterId)) {
+        endpoint.inputClusters.push(clusterId);
+    }
+}
+
+export function attachOutputCluster(device: Zh.Device, endpoint: Zh.Endpoint, clusterKey: string) {
+    const clusterId = Zcl.Utils.getCluster(clusterKey, device.manufacturerID, device.customClusters).ID;
 
     if (!endpoint.outputClusters.includes(clusterId)) {
         endpoint.outputClusters.push(clusterId);
-        device.save();
     }
 }
 
@@ -617,7 +630,7 @@ export function toNumber(value: unknown, property?: string): number {
     // @ts-expect-error ignore
     const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
-        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value.toString()})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
     }
     return result;
 }

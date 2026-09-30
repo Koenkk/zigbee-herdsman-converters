@@ -2,9 +2,10 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -20,14 +21,29 @@ const acova = {
                         msg.data.systemMode,
                         constants.acovaThermostatSystemModes as Record<string | number, string>,
                     );
-                    if (result.system_mode === "off") {
-                        result.hvac_action = "off";
-                    }
                 }
-                result.local_temperature = null;
+                if (model.model === "ALCANTARA2") {
+                    result.local_temperature = null;
+                }
                 return result;
             },
         } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    },
+    tz: {
+        acova_thermostat_system_mode: {
+            key: ["system_mode"],
+            convertSet: async (entity, key, value, meta) => {
+                let systemMode = utils.getKey(constants.acovaThermostatSystemModes, value, undefined, Number);
+                if (systemMode === undefined) {
+                    systemMode = utils.getKey(legacy.thermostatSystemModes, value, value as number, Number);
+                }
+                await entity.write("hvacThermostat", {systemMode});
+                return {state: {system_mode: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read("hvacThermostat", ["systemMode"]);
+            },
+        } satisfies Tz.Converter,
     },
 };
 
@@ -43,7 +59,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [acova.fz.thermostat, fz.hvac_user_interface],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.acova_thermostat_system_mode,
+            acova.tz.acova_thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_running_state,
@@ -74,7 +90,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [acova.fz.thermostat, fz.hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.acova_thermostat_system_mode,
+            acova.tz.acova_thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_running_state,
@@ -115,7 +131,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.thermostat, fz.hvac_user_interface, fz.occupancy],
         toZigbee: [
             tz.thermostat_local_temperature,
-            tz.acova_thermostat_system_mode,
+            acova.tz.acova_thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_running_state,

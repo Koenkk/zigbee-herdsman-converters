@@ -4,7 +4,16 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {presets as e, access as ea} from "./exposes";
 import {logger} from "./logger";
-import {type BinaryArgs, binary, deviceAddCustomCluster, type NumericArgs, numeric, setupConfigureForReporting} from "./modernExtend";
+import {
+    type BinaryArgs,
+    binary,
+    deviceAddCustomCluster,
+    type EnumLookupArgs,
+    enumLookup,
+    type NumericArgs,
+    numeric,
+    setupConfigureForReporting,
+} from "./modernExtend";
 import type {Configure, Fz, ModernExtend, Tz, Zh} from "./types";
 
 const NS = "zhc:ubisys";
@@ -81,6 +90,9 @@ export interface UbisysDeviceSetup {
     attributes: {
         inputConfigurations: ZclArray | unknown[];
         inputActions: ZclArray | unknown[];
+        // LD6 only: maps the six physical output channels to application endpoints.
+        outputConfigurations: ZclArray | unknown[];
+        outputEndpoints: number;
     };
     commands: never;
     commandResponses: never;
@@ -543,6 +555,9 @@ export const ubisysModernExtend = {
             attributes: {
                 inputConfigurations: {name: "inputConfigurations", ID: 0x0000, type: Zcl.DataType.ARRAY, write: true},
                 inputActions: {name: "inputActions", ID: 0x0001, type: Zcl.DataType.ARRAY, write: true},
+                // LD6 only. Absent on other Ubisys devices, which simply never report them.
+                outputConfigurations: {name: "outputConfigurations", ID: 0x0010, type: Zcl.DataType.ARRAY, write: true},
+                outputEndpoints: {name: "outputEndpoints", ID: 0x0011, type: Zcl.DataType.BITMAP16},
             },
             commands: {},
             commandsResponse: {},
@@ -717,6 +732,20 @@ export const ubisysModernExtend = {
             valueMin: 1,
             valueMax: 30,
             unit: "ºC",
+            ...args,
+        }),
+    operationalStatus: (args?: Partial<EnumLookupArgs<"closuresWindowCovering", UbisysClosuresWindowCovering>>) =>
+        enumLookup<"closuresWindowCovering", UbisysClosuresWindowCovering>({
+            name: "motor_state",
+            cluster: "closuresWindowCovering",
+            attribute: "operationalStatus",
+            entityCategory: "diagnostic",
+            description:
+                "This attribute contains two bits which will be set while the motor is active. " +
+                "Thus, devices that do not support positioning or move at a slow pace can still provide feedback. " +
+                "Exposed as motor_state for compatibility.",
+            access: "STATE_GET",
+            lookup: {stopped: 0x00, opening: 0x01, closing: 0x02},
             ...args,
         }),
 };

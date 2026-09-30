@@ -11,3 +11,5 @@ src/devices/inovelli.ts     @InovelliUSA @rohankapoorcom
 src/lib/inovelli.ts         @InovelliUSA @rohankapoorcom
 test/inovelli.test.ts       @InovelliUSA @rohankapoorcom
 src/devices/efekta.ts       @smartboxchannel
+src/devices/sonoff.ts       @CubeZ2mDeveloper
+src/lib/sonoff.ts           @CubeZ2mDeveloper

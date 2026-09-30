@@ -14,6 +14,16 @@ import type {Access, LevelConfigFeatures, Range} from "./types";
 import {getLabelFromName} from "./utils";
 
 export type Feature = Numeric | Binary | Enum | Composite | List | Text;
+export interface HomeAssistant {
+    type?: "infrared" | "button" | "valve" | "siren";
+    schema?: "emitter" | "receiver";
+    entityCategory?: "config" | "diagnostic";
+    deviceClass?: string;
+    enabledByDefault?: boolean;
+    icon?: string;
+    name?: string | null;
+    valueTemplate?: string | null;
+}
 
 export class Base {
     name: string;
@@ -25,6 +35,7 @@ export class Base {
     description?: string;
     features?: Feature[];
     category?: "config" | "diagnostic";
+    homeassistant?: HomeAssistant;
 
     withEndpoint(endpointName: string) {
         this.endpoint = endpointName;
@@ -70,6 +81,11 @@ export class Base {
     withCategory(category: "config" | "diagnostic") {
         this.category = category;
         this.validateCategory();
+        return this;
+    }
+
+    withHomeAssistant(homeassistant: HomeAssistant) {
+        this.homeassistant = homeassistant;
         return this;
     }
 
@@ -121,6 +137,7 @@ export class Base {
             target.features = this.features.map((f) => f.clone());
         }
         target.category = this.category;
+        target.homeassistant = this.homeassistant ? {...this.homeassistant} : undefined;
     }
 }
 
@@ -829,7 +846,7 @@ export const options = {
             ),
     invert_cover: () =>
         new Binary("invert_cover", access.SET, true, false).withDescription(
-            "Inverts the cover position, false: open=100,close=0, true: open=0,close=100 (default false).",
+            "Inverts the reported cover position and the state derived from it, false: open=100,close=0, true: open=0,close=100 (default false).",
         ),
     illuminance_raw: () => new Binary("illuminance_raw", access.SET, true, false).withDescription("Expose the raw illuminance value."),
     color_sync: () =>
@@ -840,6 +857,10 @@ export const options = {
         new Enum("thermostat_unit", access.SET, ["celsius", "fahrenheit"]).withDescription(
             "Controls the temperature unit of the thermostat (default celsius).",
         ),
+    homeassistant_climate_modes: () =>
+        new Enum("homeassistant_climate_modes", access.SET, ["heat", "cool", "heat_cool"])
+            .withLabel("Home Assistant climate modes")
+            .withDescription("Controls which modes are exposed in Home Assistant climate discovery (default heat)."),
     expose_pin: () =>
         new Binary("expose_pin", access.SET, true, false)
             .withLabel("Expose PIN")
@@ -1004,7 +1025,10 @@ export const presets = {
                 "Indicates whether a plug is physically attached. Device does not have to pull power or even be connected electrically (state of this binary switch can be ON even if main power switch is OFF)",
             )
             .withCategory("diagnostic"),
-    contact: () => new Binary("contact", access.STATE, false, true).withDescription("Indicates if the contact is closed (= true) or open (= false)"),
+    contact: () =>
+        new Binary("contact", access.STATE, false, true)
+            .withDescription("Indicates if the contact is closed (= true) or open (= false)")
+            .withHomeAssistant({name: null}), // Prevents HA from appending the device class to the device name (e.g. "Garage Door Door")
     cover_position: () => new Cover().withPosition(),
     cover_position_tilt: () => new Cover().withPosition().withTilt(),
     cover_tilt: () => new Cover().withTilt(),
@@ -1308,7 +1332,6 @@ export const presets = {
     vibration: () => new Binary("vibration", access.STATE, true, false).withDescription("Indicates whether the device detected vibration"),
     tilt: () => new Binary("tilt", access.STATE, true, false).withDescription("Indicates whether the device detected tilt"),
     voc: () => new Numeric("voc", access.STATE).withLabel("VOC").withUnit("µg/m³").withDescription("Measured VOC value"),
-    voc_index: () => new Numeric("voc_index", access.STATE).withLabel("VOC index").withDescription("VOC index"),
     voltage: () => new Numeric("voltage", access.STATE).withUnit("V").withDescription("Measured electrical potential value"),
     voltage_phase_b: () =>
         new Numeric("voltage_phase_b", access.STATE)

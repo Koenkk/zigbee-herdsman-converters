@@ -14,12 +14,14 @@ import type {
     Expose,
     Fz,
     KeyValue,
+    KeyValueAny,
     ModernExtend,
     Zh,
 } from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 function conditionalPressure(): ModernExtend {
     const base = m.pressure();
@@ -68,6 +70,9 @@ interface ThirdAcceleration {
         xAxis: number;
         yAxis: number;
         zAxis: number;
+        xAngle: number;
+        yAngle: number;
+        zAngle: number;
     };
     commands: never;
     commandResponses: never;
@@ -93,9 +98,27 @@ interface ThirdMotionSensor {
     commandResponses: never;
 }
 
-interface ThirdCO2Sensor {
+interface ThirdMotionSensorGen2 {
     attributes: {
-        volatileOrganicCompounds: number;
+        sensitivity: number;
+        coolDownTime: number;
+        ledIndicator: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdAirQualitySensor {
+    attributes: {
+        vocIndex: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface ThirdDoorSensor {
+    attributes: {
+        delayOpenAttrId: number;
     };
     commands: never;
     commandResponses: never;
@@ -161,6 +184,7 @@ interface ThirdPlug {
         countdownToTurnOff: number;
         countdownToTurnOn: number;
         redLedBrightness: number;
+        meteringOnlyMode: number;
     };
     commands: never;
     commandResponses: never;
@@ -189,7 +213,86 @@ interface Third24gRadar {
     commandResponses: never;
 }
 
-const fzLocal = {
+interface ThirdScaleSensor {
+    attributes: {
+        readWeight: number;
+        attr2: number;
+        attr3: number;
+        attr4: number;
+        attr5: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+function thirdRealitySoilMoisture(): ModernExtend {
+    const expose = e.soil_moisture().withAccess(ea.STATE_GET);
+
+    const supportsNativeSoilMoisture = (device: Zh.Device | DummyDevice): boolean => {
+        if (utils.isDummyDevice(device)) return true;
+        return device.endpoints.some((endpoint) => endpoint.supportsInputCluster("msSoilMoisture"));
+    };
+
+    const getMeasurementEndpoint = (device: Zh.Device): Zh.Endpoint => {
+        return (
+            device.endpoints.find((endpoint) => endpoint.supportsInputCluster("msSoilMoisture")) ??
+            device.endpoints.find((endpoint) => endpoint.supportsInputCluster("msRelativeHumidity")) ??
+            device.endpoints[0]
+        );
+    };
+
+    const hasMeasuredValue = (data: KeyValue): data is KeyValue & {measuredValue: number} => {
+        if (!("measuredValue" in data)) return false;
+        utils.assertNumber(data.measuredValue);
+        return true;
+    };
+
+    return {
+        exposes: [() => [expose]],
+        fromZigbee: [
+            {
+                cluster: "msSoilMoisture",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (hasMeasuredValue(msg.data)) return {soil_moisture: msg.data.measuredValue / 100};
+                },
+            },
+            {
+                cluster: "msRelativeHumidity",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (!supportsNativeSoilMoisture(msg.device) && hasMeasuredValue(msg.data)) {
+                        return {soil_moisture: msg.data.measuredValue / 100};
+                    }
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["soil_moisture"],
+                convertGet: async (entity, key, meta) => {
+                    const endpoint = getMeasurementEndpoint(meta.device);
+                    await endpoint.read(supportsNativeSoilMoisture(meta.device) ? "msSoilMoisture" : "msRelativeHumidity", ["measuredValue"]);
+                },
+            },
+        ],
+        configure: [
+            async (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint) => {
+                const endpoint = getMeasurementEndpoint(device);
+                if (supportsNativeSoilMoisture(device)) {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["msSoilMoisture"]);
+                    await reporting.soil_moisture(endpoint);
+                } else {
+                    await reporting.bind(endpoint, coordinatorEndpoint, ["msRelativeHumidity"]);
+                    await reporting.humidity(endpoint);
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+export const fzLocal = {
     thirdreality_acceleration: {
         cluster: "3rVirationSpecialcluster",
         type: ["attributeReport", "readResponse"],
@@ -209,6 +312,44 @@ const fzLocal = {
             return {occupancy: (zoneStatus & 1) > 0};
         },
     } satisfies Fz.Converter<"r3Specialcluster", ThirdMotionSensor, "attributeReport">,
+    itcmdr_clicks: {
+        cluster: "genMultistateInput",
+        type: ["readResponse", "attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            // No presentValue means no button press; otherwise the lookup below would fall through to "many"
+            if (msg.data.presentValue === undefined) return;
+            const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
+            const clicks = msg.data.presentValue;
+            const action = lookup[clicks] ? lookup[clicks] : "many";
+            return {action};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["readResponse", "attributeReport"]>,
+    scale_weight: {
+        cluster: "3rScaleSensorcluster",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data as KeyValue;
+            let gram: number | undefined;
+            if (data.readWeight !== undefined) {
+                gram = data.readWeight as number;
+            } else if (data["1"] !== undefined) {
+                gram = Number(data["1"]);
+            } else if (data[1] !== undefined) {
+                gram = Number(data[1]);
+            }
+
+            if (gram !== undefined) {
+                const totalOunces = gram / 28.3495;
+                const pound = Math.floor(totalOunces / 16);
+                const ounce = Number.parseFloat((totalOunces % 16).toFixed(2));
+                return {
+                    weight: gram,
+                    weight_pound_ounce: `${pound}lb ${ounce}oz`,
+                };
+            }
+            return {};
+        },
+    } satisfies Fz.Converter<"3rScaleSensorcluster", ThirdScaleSensor, ["attributeReport", "readResponse"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -378,6 +519,59 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["3RMS26Z"],
+        model: "3RMS26Z",
+        vendor: "Third Reality",
+        description: "Smart PIR Sensor Gen2",
+        ota: true,
+        extend: [
+            m.forcePowerSource({powerSource: "Battery"}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.battery(),
+            m.illuminance(),
+            m.deviceAddCustomCluster("3rMotionV2SpecialCluster", {
+                name: "3rMotionV2SpecialCluster",
+                ID: 0xff01,
+                manufacturerCode: 0x1407,
+                attributes: {
+                    sensitivity: {name: "sensitivity", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, min: 1, max: 5},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, min: 0, max: 3600},
+                    ledIndicator: {name: "ledIndicator", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, min: 0, max: 1},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.numeric<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "sensitivity",
+                valueMin: 1,
+                valueMax: 5,
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "sensitivity",
+                description: "PIR sensor sensitivity level (1=lowest, 5=highest)",
+                access: "ALL",
+            }),
+            m.numeric<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "cooldown",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 3600,
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "coolDownTime",
+                description: "Cooldown time between motion detections (seconds)",
+                access: "ALL",
+            }),
+            m.binary<"3rMotionV2SpecialCluster", ThirdMotionSensorGen2>({
+                name: "led_indicator",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rMotionV2SpecialCluster",
+                attribute: "ledIndicator",
+                description: "LED indicator on motion detection",
+                access: "ALL",
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["3RAQ1096Z"],
         model: "3RAQ1096Z",
         vendor: "Third Reality",
@@ -387,14 +581,14 @@ export const definitions: DefinitionWithExtend[] = [
             m.temperature(),
             m.humidity(),
             m.co2(),
-            m.deviceAddCustomCluster("3rCO2SensorCluster", {
-                name: "3rCO2SensorCluster",
+            m.deviceAddCustomCluster("3rAirQualitySensorCluster", {
+                name: "3rAirQualitySensorCluster",
                 ID: 0x042e,
                 manufacturerCode: 0x1407,
                 attributes: {
-                    volatileOrganicCompounds: {
-                        name: "volatileOrganicCompounds",
-                        ID: 0x0000,
+                    vocIndex: {
+                        name: "vocIndex",
+                        ID: 0x0100,
                         type: Zcl.DataType.UINT32,
                         max: 0xffffffff,
                     },
@@ -402,11 +596,11 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
-            m.numeric<"3rCO2SensorCluster", ThirdCO2Sensor>({
+            m.numeric<"3rAirQualitySensorCluster", ThirdAirQualitySensor>({
                 name: "voc_index",
-                cluster: "3rCO2SensorCluster",
-                attribute: "volatileOrganicCompounds",
-                unit: "aqi",
+                cluster: "3rAirQualitySensorCluster",
+                attribute: "vocIndex",
+                unit: "VOC Index points",
                 description: "Measured VOC Index",
                 access: "STATE_GET",
             }),
@@ -569,6 +763,17 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.numeric<"3rDoorSpecialCluster", ThirdDoorSensor>({
+                name: "delay_open",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                scale: 1,
+                cluster: "3rDoorSpecialCluster",
+                attribute: "delayOpenAttrId",
+                description: "Delay open time",
+                access: "ALL",
             }),
         ],
     },
@@ -738,7 +943,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RSB22BZ",
         vendor: "Third Reality",
         description: "Smart button",
-        fromZigbee: [fz.itcmdr_clicks],
+        fromZigbee: [fzLocal.itcmdr_clicks],
         ota: true,
         exposes: [e.action(["single", "double", "hold", "release"])],
         extend: [
@@ -876,7 +1081,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Smart Soil Moisture Sensor",
         extend: [
             m.temperature(),
-            m.soilMoisture(),
+            thirdRealitySoilMoisture(),
             m.battery(),
             m.deviceAddCustomCluster("3rSoilSpecialCluster", {
                 name: "3rSoilSpecialCluster",
@@ -1157,7 +1362,7 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "genBasic",
                 ID: Zcl.Clusters.genBasic.ID,
                 attributes: {
-                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, write: true, max: 0x64},
+                    ledBrightness: {name: "ledBrightness", ID: 0xff01, type: Zcl.DataType.UINT8, manufacturerCode: 0x1407, write: true, max: 0x64},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1253,6 +1458,7 @@ export const definitions: DefinitionWithExtend[] = [
                     resetTotalEnergy: {name: "resetTotalEnergy", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                     countdownToTurnOff: {name: "countdownToTurnOff", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                     countdownToTurnOn: {name: "countdownToTurnOn", ID: 0x0002, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    meteringOnlyMode: {name: "meteringOnlyMode", ID: 0x0050, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 },
                 commands: {},
                 commandsResponse: {},
@@ -1273,6 +1479,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rDualPlugSpecialcluster",
                 attribute: "resetTotalEnergy",
                 description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.binary<"3rDualPlugSpecialcluster", ThirdPlug>({
+                endpointName: "1",
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "meteringOnlyMode",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
             m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
@@ -1304,6 +1520,16 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "3rDualPlugSpecialcluster",
                 attribute: "resetTotalEnergy",
                 description: "Reset the sum of consumed energy",
+                access: "ALL",
+            }),
+            m.binary<"3rDualPlugSpecialcluster", ThirdPlug>({
+                endpointName: "2",
+                name: "metering_only_mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "3rDualPlugSpecialcluster",
+                attribute: "meteringOnlyMode",
+                description: "When enabled, the device enters metering-only mode and the relay is forced to stay ON.",
                 access: "ALL",
             }),
             m.numeric<"3rDualPlugSpecialcluster", ThirdPlug>({
@@ -1345,29 +1571,59 @@ export const definitions: DefinitionWithExtend[] = [
         model: "3RVS01031Z",
         vendor: "Third Reality",
         description: "Zigbee vibration sensor",
-        fromZigbee: [fz.ias_vibration_alarm_1, fz.battery, fzLocal.thirdreality_acceleration],
-        toZigbee: [],
         ota: true,
-        exposes: [e.vibration(), e.battery_low(), e.battery(), e.battery_voltage(), e.x_axis(), e.y_axis(), e.z_axis()],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.read("genPowerCfg", ["batteryPercentageRemaining"]);
-            device.powerSource = "Battery";
-            device.save();
-        },
         extend: [
             m.deviceAddCustomCluster("3rVirationSpecialcluster", {
                 name: "3rVirationSpecialcluster",
                 ID: 0xfff1,
                 manufacturerCode: 0x1233,
                 attributes: {
-                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
-                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16, write: true, min: -32768},
-                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16, write: true, min: -32768},
+                    coolDownTime: {name: "coolDownTime", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 7200},
+                    xAxis: {name: "xAxis", ID: 0x0001, type: Zcl.DataType.INT16},
+                    yAxis: {name: "yAxis", ID: 0x0002, type: Zcl.DataType.INT16},
+                    zAxis: {name: "zAxis", ID: 0x0003, type: Zcl.DataType.INT16},
+                    xAngle: {name: "xAngle", ID: 0x0005, type: Zcl.DataType.INT16},
+                    yAngle: {name: "yAngle", ID: 0x0006, type: Zcl.DataType.INT16},
+                    zAngle: {name: "zAngle", ID: 0x0007, type: Zcl.DataType.INT16},
                 },
                 commands: {},
                 commandsResponse: {},
+            }),
+            m.battery(),
+            m.iasZoneAlarm({
+                zoneType: "vibration",
+                zoneAttributes: ["alarm_1"],
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "cool_down_time",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 7200,
+                cluster: "3rVirationSpecialcluster",
+                attribute: "coolDownTime",
+                description: "coolDownTime",
+                access: "ALL",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "x_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "xAxis",
+                description: "X axis acceleration",
+                access: "STATE_GET",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "y_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "yAxis",
+                description: "Y axis acceleration",
+                access: "STATE_GET",
+            }),
+            m.numeric<"3rVirationSpecialcluster", ThirdAcceleration>({
+                name: "z_axis",
+                cluster: "3rVirationSpecialcluster",
+                attribute: "zAxis",
+                description: "Z axis acceleration",
+                access: "STATE_GET",
             }),
         ],
     },
@@ -1408,7 +1664,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         ota: true,
         extend: [
-            m.light({colorTemp: {range: [154, 500]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
+            m.light({colorTemp: {range: [142, 454]}, color: {modes: ["xy", "hs"], enhancedHue: false}}),
             m.deviceAddCustomCluster("3rColorLightSpecialCluster", {
                 name: "3rColorLightSpecialCluster",
                 ID: 0xff04,
@@ -1570,5 +1826,102 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["3RKS030Z"],
+        model: "3RKS030Z",
+        vendor: "Third Reality",
+        description: "Smart Scale",
+        ota: true,
+        fromZigbee: [fzLocal.scale_weight],
+        toZigbee: [
+            {
+                key: ["reset_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "reset", {} as unknown as never, {});
+                    return {state: {[key]: "RESET_INITIATED"}};
+                },
+            },
+            {
+                key: ["start_report_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "startReport", {} as unknown as never, {});
+                    return {state: {[key]: "START_REPORT_INITIATED"}};
+                },
+            },
+            {
+                key: ["stop_report_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "stopReport", {} as unknown as never, {});
+                    return {state: {[key]: "STOP_REPORT_INITIATED"}};
+                },
+            },
+            {
+                key: ["set_weight_button"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    const uint = Number(value);
+                    await endpoint.command("3rScaleSensorcluster", "setWeight", {uint} as unknown as never, {});
+                    return {state: {[key]: "SET_WEIGHT_INITIATED"}};
+                },
+            },
+            {
+                key: ["convert_gram_to_pound_ounce"],
+                convertSet: async (entity, key, value, meta) => {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.command("3rScaleSensorcluster", "convertGramToPoundOunce", {} as unknown as never, {});
+                    return {state: {[key]: "CONVERT_INITIATED"}};
+                },
+            },
+        ],
+        exposes: [
+            e.numeric("weight", ea.STATE).withUnit("g").withDescription("Current weight (gram)"),
+            e.text("weight_pound_ounce", ea.STATE).withDescription("Weight (pound + ounce)"),
+            e.enum("reset_button", ea.SET, ["RESET"]).withDescription("Reset weight (tare)"),
+            e.enum("start_report_button", ea.SET, ["START"]).withDescription("Start auto weight reporting"),
+            e.enum("stop_report_button", ea.SET, ["STOP"]).withDescription("Stop auto weight reporting"),
+            e.text("set_weight_button", ea.SET).withDescription("Manually set weight (input number, unit: gram)"),
+            e.enum("convert_gram_to_pound_ounce", ea.SET, ["CONVERT"]).withDescription("Manually trigger gram to pound/ounce conversion"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["3rScaleSensorcluster"]);
+            await endpoint.configureReporting("3rScaleSensorcluster", [
+                {
+                    attribute: {ID: 0x0001, type: Zcl.DataType.INT16},
+                    minimumReportInterval: 0,
+                    maximumReportInterval: 3600,
+                    reportableChange: 1,
+                },
+            ]);
+        },
+        extend: [
+            m.battery(),
+            m.deviceAddCustomCluster("3rScaleSensorcluster", {
+                name: "3rScaleSensorcluster",
+                ID: 0xff0c,
+                attributes: {
+                    readWeight: {name: "readWeight", ID: 0x0001, type: Zcl.DataType.INT16},
+                    attr2: {name: "attr2", ID: 0x0002, type: Zcl.DataType.INT16},
+                    attr3: {name: "attr3", ID: 0x0003, type: Zcl.DataType.UINT8},
+                    attr4: {name: "attr4", ID: 0x0004, type: Zcl.DataType.UINT8},
+                    attr5: {name: "attr5", ID: 0x0005, type: Zcl.DataType.INT16},
+                },
+                commands: {
+                    reset: {name: "reset", ID: 0x00, parameters: []},
+                    startReport: {name: "startReport", ID: 0x01, parameters: []},
+                    stopReport: {name: "stopReport", ID: 0x02, parameters: []},
+                    setWeight: {name: "setWeight", ID: 0x03, parameters: [{name: "uint", type: Zcl.DataType.UINT8}]},
+                    convertGramToPoundOunce: {name: "convertGramToPoundOunce", ID: 0x04, parameters: []},
+                },
+                commandsResponse: {},
+            }),
+        ],
+        meta: {
+            disableActionGroup: true,
+        },
     },
 ];

@@ -2,6 +2,7 @@ import {Zcl} from "zigbee-herdsman";
 import type {ConfigureReportingItem} from "zigbee-herdsman/dist/controller/model/endpoint";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as ptvo from "../devices/custom_devices_diy";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
@@ -345,6 +346,8 @@ const fzLocal = {
         cluster: "genMultistateInput",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
+            // No presentValue means no button press; otherwise the lookup below would fall through to "many_undefined"
+            if (msg.data.presentValue === undefined) return;
             const button = utils.getKey(model.endpoint(msg.device), msg.endpoint.ID);
             const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
             const clicks = msg.data.presentValue;
@@ -740,7 +743,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DIYRuZ_R8_8",
         vendor: "DIYRuZ",
         description: "DiY 8 Relays + 8 switches",
-        fromZigbee: [fz.ptvo_multistate_action],
+        fromZigbee: [ptvo.fzLocal.ptvo_multistate_action],
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5, l6: 6, l7: 7, l8: 8}}),
             m.onOff({endpointNames: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8"]}),

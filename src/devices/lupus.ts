@@ -32,6 +32,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["PSMP5_00.00.03.11TC", "PSMP5_00.00.05.12TC", "PSMP5_00.00.03.05TC"],
         model: "12050",
         vendor: "Lupus",
+        version: "0.0.1",
         description: "LUPUSEC mains socket with power meter",
         fromZigbee: [fz.on_off, fz.metering],
         exposes: [e.switch(), e.power()],
@@ -39,8 +40,8 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
-            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 10, multiplier: 1});
         },
     },
     {

@@ -12,6 +12,56 @@ const ea = exposes.access;
 
 const NS = "zhc:onesti";
 
+// Fallback for the number of digits the lock requires, used to tell a packed BCD
+// PIN from an ASCII one when the lock has not reported `minPinLen` (yet).
+const defaultMinPinLength = 4;
+
+/**
+ * Decode the PIN digits the lock reports in attribute 257 (0x0101).
+ *
+ * Older Connect Modules send the digits as ASCII, newer ones send them packed as
+ * BCD, two digits per byte (issue #13080), so the format has to be recognised
+ * instead of assumed. A buffer holding fewer bytes than the lock's minimum PIN
+ * length cannot be ASCII, which is what separates BCD `39 39` ("3939") from
+ * ASCII "99". Buffers that are neither are returned as hex rather than as the
+ * control characters `toString("ascii")` produced before.
+ */
+function decodePinCode(bytes: Buffer, minPinLength: number): string {
+    let end = bytes.length;
+
+    // Trailing padding: `trim()` does not remove NUL.
+    while (end > 0 && bytes[end - 1] === 0x00) {
+        end--;
+    }
+
+    const data = bytes.subarray(0, end);
+
+    if (data.length === 0) {
+        return "";
+    }
+
+    if (data.length >= minPinLength && data.every((byte) => byte >= 0x30 && byte <= 0x39)) {
+        return data.toString("ascii");
+    }
+
+    let digits = "";
+
+    for (const byte of data) {
+        const high = byte >> 4;
+        const low = byte & 0x0f;
+
+        if (high > 9 || low > 9) {
+            logger.debug(`PIN code ${data.length} bytes long is neither ASCII digits nor BCD, reporting it as hex`, NS);
+
+            return data.toString("hex");
+        }
+
+        digits += `${high}${low}`;
+    }
+
+    return digits;
+}
+
 export const tzLocal = {
     easycode_auto_relock: {
         key: ["auto_relock"],
@@ -22,26 +72,25 @@ export const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-const fzLocal = {
+export const fzLocal = {
     nimly_pro_lock_actions: {
         cluster: "closuresDoorLock",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            const result: KeyValue = {};
             const attributes: KeyValue = {};
 
-            // Handle attribute 257: last_used_pin_code
-            // The lock sends PIN codes as the actual digits typed
-            // Report exactly what the lock sends
+            // Handle attribute 257 (0x0101): last_used_pin_code
+            // Depending on the Connect Module revision the digits arrive as ASCII or packed as BCD.
             if (msg.data["257"] !== undefined) {
                 const data = msg.data["257"];
+                const reportedMinPinLength = msg.data.minPinLen ?? meta.state?.min_pin_length;
+                const minPinLength =
+                    typeof reportedMinPinLength === "number" && reportedMinPinLength > 0 ? reportedMinPinLength : defaultMinPinLength;
 
                 if (Buffer.isBuffer(data)) {
-                    // Convert buffer to ASCII string
-                    attributes.last_used_pin_code = data.toString("ascii").trim();
+                    attributes.last_used_pin_code = decodePinCode(data, minPinLength);
                 } else if (Array.isArray(data)) {
-                    // Array of bytes, convert to ASCII string
-                    attributes.last_used_pin_code = Buffer.from(data).toString("ascii").trim();
+                    attributes.last_used_pin_code = decodePinCode(Buffer.from(data), minPinLength);
                 } else if (typeof data === "string") {
                     // Already a string
                     attributes.last_used_pin_code = data.trim();
@@ -51,41 +100,36 @@ const fzLocal = {
                 }
             }
 
-            // Handle attribute 256: last action (lock/unlock) source and user
-            // Format: 4 bytes as 32-bit integer
-            // Byte 0: Source (00=zigbee, 02=keypad, 03=finger, 04=rfid, 0a=manual)
-            // Byte 1: Action (01=lock, 02=unlock)
-            // Bytes 2-3: User ID (16-bit integer)
+            // Handle attribute 256 (0x0100): last action (lock/unlock) source and user
+            // The 32-bit value written as 8 hex characters (the wire order is the reverse):
+            // First octet: source
+            // Second octet: action (01=lock, 02=unlock)
+            // Last four: user ID (16-bit integer)
             if (msg.data["256"] !== undefined) {
                 const hex = (msg.data["256"] as number).toString(16).padStart(8, "0");
-                const firstOctet = String(hex.substring(0, 2));
+                const sourceOctet = hex.substring(0, 2);
+                const actionOctet = hex.substring(2, 4);
                 const lookup: {[key: string]: string} = {
                     "00": "zigbee",
                     "02": "keypad",
                     "03": "fingerprintsensor",
                     "04": "rfid",
+                    // NimlyCodePRO and NimlyPRO24 send 05 for Zigbee commands, auto relock and the
+                    // interior keypad alike, always with user 0; the payload cannot tell them apart.
+                    "05": "unattributed",
                     "0a": "self",
                 };
-                result.last_action_source = lookup[firstOctet] || "unknown";
-                const secondOctet = hex.substring(2, 4);
-                const thirdOctet = hex.substring(4, 8);
-                result.last_action_user = Number.parseInt(thirdOctet, 16);
+                const source = lookup[sourceOctet] || "unknown";
+                // User ID as string for consistency with Home Assistant expectations
+                const userIdStr = Number.parseInt(hex.substring(4, 8), 16).toString();
 
-                // Store user ID as string for consistency with Home Assistant expectations
-                const userIdStr = result.last_action_user.toString();
-
-                if (secondOctet === "01") {
+                if (actionOctet === "01") {
                     attributes.last_lock_user = userIdStr;
-                    attributes.last_lock_source = result.last_action_source;
-                } else if (secondOctet === "02") {
+                    attributes.last_lock_source = source;
+                } else if (actionOctet === "02") {
                     attributes.last_unlock_user = userIdStr;
-                    attributes.last_unlock_source = result.last_action_source;
+                    attributes.last_unlock_source = source;
                 }
-            }
-
-            // Handle voltage attribute (if present)
-            if (Object.hasOwn(msg.data, "voltage")) {
-                attributes.voltage = (msg.data as KeyValue)["voltage"];
             }
 
             // Handle auto_relock_time attribute (if present)
@@ -93,20 +137,18 @@ const fzLocal = {
                 attributes.auto_relock_time = (msg.data as KeyValue)["autoRelockTime"];
             }
 
-            // Handle lock capabilities (if present)
-            // Attribute 18 (0x12): Number of PIN users supported
-            if (Object.hasOwn(msg.data, 18)) {
-                attributes.max_pin_users = (msg.data as KeyValue)[18];
+            // Handle lock capabilities (if present). These are standard closuresDoorLock
+            // attributes, so zigbee-herdsman keys them by name, not by attribute ID.
+            if (msg.data.numOfPinUsersSupported !== undefined) {
+                attributes.num_pin_users = msg.data.numOfPinUsersSupported;
             }
 
-            // Attribute 23 (0x17): Min PIN code length
-            if (Object.hasOwn(msg.data, 23)) {
-                attributes.min_pin_length = (msg.data as KeyValue)[23];
+            if (msg.data.minPinLen !== undefined) {
+                attributes.min_pin_length = msg.data.minPinLen;
             }
 
-            // Attribute 24 (0x18): Max PIN code length
-            if (Object.hasOwn(msg.data, 24)) {
-                attributes.max_pin_length = (msg.data as KeyValue)[24];
+            if (msg.data.maxPinLen !== undefined) {
+                attributes.max_pin_length = msg.data.maxPinLen;
             }
 
             // Return result if not empty
@@ -154,7 +196,7 @@ export const definitions: DefinitionWithExtend[] = [
 
             // Try to read lock capabilities (may not be supported by all models)
             try {
-                await endpoint.read("closuresDoorLock", [18, 23, 24]); // maxPinUsers, minPinLength, maxPinLength
+                await endpoint.read("closuresDoorLock", ["numOfPinUsersSupported", "minPinLen", "maxPinLen"]);
             } catch (_error) {
                 // Capabilities read may fail on some models - this is expected and harmless
                 // Attributes will be exposed if the lock reports them during operation
@@ -169,17 +211,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.sound_volume(),
             e.voltage(),
             e
-                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
                 .withDescription("Last unlock source"),
             e.text("last_unlock_user", ea.STATE).withDescription("Last unlock user (slot number)"),
             e
-                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
                 .withDescription("Last lock source"),
             e.text("last_lock_user", ea.STATE).withDescription("Last lock user (slot number)"),
             e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code (actual digits)"),
             e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.numeric("auto_relock_time", ea.STATE).withUnit("s").withDescription("Auto relock delay in seconds"),
-            e.numeric("max_pin_users", ea.STATE).withDescription("Maximum number of PIN users supported"),
+            e.numeric("num_pin_users", ea.STATE).withDescription("Number of PIN code users supported"),
             e.numeric("min_pin_length", ea.STATE).withDescription("Minimum PIN code length"),
             e.numeric("max_pin_length", ea.STATE).withDescription("Maximum PIN code length"),
             e.pincode(),
@@ -208,6 +250,15 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.lockState(endpoint);
             await reporting.batteryPercentageRemaining(endpoint);
             await endpoint.read("closuresDoorLock", ["lockState", "soundVolume"]);
+
+            // Try to read lock capabilities (may not be supported by all models)
+            try {
+                await endpoint.read("closuresDoorLock", ["numOfPinUsersSupported", "minPinLen", "maxPinLen"]);
+            } catch (_error) {
+                // Capabilities read may fail on some models - this is expected and harmless
+                // Attributes will be exposed if the lock reports them during operation
+            }
+
             device.powerSource = "Battery";
             device.save();
         },
@@ -217,17 +268,17 @@ export const definitions: DefinitionWithExtend[] = [
             e.sound_volume(),
             e.voltage(),
             e
-                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
                 .withDescription("Last unlock source"),
             e.text("last_unlock_user", ea.STATE).withDescription("Last unlock user (slot number)"),
             e
-                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "self", "unknown"])
+                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
                 .withDescription("Last lock source"),
             e.text("last_lock_user", ea.STATE).withDescription("Last lock user (slot number)"),
             e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code (actual digits)"),
             e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
             e.numeric("auto_relock_time", ea.STATE).withUnit("s").withDescription("Auto relock delay in seconds"),
-            e.numeric("max_pin_users", ea.STATE).withDescription("Maximum number of PIN users supported"),
+            e.numeric("num_pin_users", ea.STATE).withDescription("Number of PIN code users supported"),
             e.numeric("min_pin_length", ea.STATE).withDescription("Minimum PIN code length"),
             e.numeric("max_pin_length", ea.STATE).withDescription("Maximum PIN code length"),
             e.pincode(),

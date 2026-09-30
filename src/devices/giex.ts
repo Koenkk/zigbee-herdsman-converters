@@ -26,9 +26,9 @@ const exportTemplates = {
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription("Number of cycle irrigation times, set to 0 for single cycle"),
-            e.numeric(legacy.giexWaterValve.irrigationStartTime, ea.STATE).withDescription("Last irrigation start time"),
-            e.numeric(legacy.giexWaterValve.irrigationEndTime, ea.STATE).withDescription("Last irrigation end time"),
-            e.numeric(legacy.giexWaterValve.lastIrrigationDuration, ea.STATE).withDescription("Last irrigation duration"),
+            e.text(legacy.giexWaterValve.irrigationStartTime, ea.STATE).withDescription("Last irrigation start time"),
+            e.text(legacy.giexWaterValve.irrigationEndTime, ea.STATE).withDescription("Last irrigation end time"),
+            e.text(legacy.giexWaterValve.lastIrrigationDuration, ea.STATE).withDescription("Last irrigation duration"),
             e.numeric(legacy.giexWaterValve.waterConsumed, ea.STATE).withUnit("L").withDescription("Last irrigation water consumption"),
         ],
     },

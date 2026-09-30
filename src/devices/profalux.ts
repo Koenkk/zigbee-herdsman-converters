@@ -6,8 +6,8 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
-import {isDummyDevice} from "../lib/utils";
+import type {DefinitionWithExtend, Fz, ModernExtend} from "../lib/types";
+import {hasAlreadyProcessedMessage, isDummyDevice} from "../lib/utils";
 
 const NS = "zhc:profalux";
 const e = exposes.presets;
@@ -34,6 +34,27 @@ const profaluxExtend = {
             commands: {},
             commandsResponse: {},
         }),
+};
+
+// ZTP20F sends its cover commands as genLevelCtrl groupcasts (move up/down + stop)
+// which reach the coordinator, unlike other Profalux remotes bound directly to the motor.
+const fzLocal = {
+    cover_remote_move: {
+        cluster: "genLevelCtrl",
+        type: ["commandMove", "commandMoveWithOnOff"],
+        convert: (model, msg) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            return {action: msg.data.movemode === 1 ? "down" : "up"};
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandMove", "commandMoveWithOnOff"]>,
+    cover_remote_stop: {
+        cluster: "genLevelCtrl",
+        type: ["commandStop", "commandStopWithOnOff"],
+        convert: (model, msg) => {
+            if (hasAlreadyProcessedMessage(msg, model)) return;
+            return {action: "stop"};
+        },
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStop", "commandStopWithOnOff"]>,
 };
 
 const mLocal = {
@@ -91,7 +112,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MOT-C1ZxxC/F",
         vendor: "Profalux",
         description: "Cover",
-        extend: [profaluxExtend.addManuSpecificProfalux1Cluster()],
+        // Motor reports its internal temperature (genDeviceTempCfg) from endpoint 2
+        extend: [profaluxExtend.addManuSpecificProfalux1Cluster(), m.deviceTemperature()],
         fromZigbee: [fz.command_cover_close, fz.command_cover_open, fz.cover_position_tilt],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         options: [],
@@ -154,10 +176,28 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        // Newer remotes. These expose a bunch of things but they are bound to
-        // the cover and don't seem to communicate with the coordinator, so
-        // nothing is likely to be doable in Z2M.
-        zigbeeModel: ["MAI-ZTP20F", "MAI-ZTP20C", "MAI-ZTP22C"],
+        // ZTP20F emits its cover commands as genLevelCtrl groupcasts (movemode 0=up/1=down + stop)
+        // that reach the coordinator, so the up/down/stop actions can be exposed.
+        // Confirmed by sniffing a ZTP20F; other variants are handled below.
+        zigbeeModel: ["MAI-ZTP20F"],
+        model: "MAI-ZTP20F",
+        vendor: "Profalux",
+        description: "Cover remote",
+        fromZigbee: [fzLocal.cover_remote_move, fzLocal.cover_remote_stop],
+        exposes: [e.action(["up", "down", "stop"])],
+        extend: [
+            m.battery({voltage: true, voltageToPercentage: {min: 2200, max: 3100}, percentageReporting: false}),
+            m.forcePowerSource({powerSource: "Battery"}),
+            // Poll battery voltage as reporting doesn't work
+            mLocal.pollBatteryVoltage(),
+        ],
+    },
+    {
+        // ZTP20C seems to be bound to the cover and the action behaviour
+        // has not been verified, so only battery is exposed.
+        // ZTP22C has been verified and doesn't expose up/down/stop actions.
+        // ZTP20F (above) does reach the coordinator and exposes up/down/stop actions.
+        zigbeeModel: ["MAI-ZTP20C", "MAI-ZTP22C"],
         model: "MAI-ZTP20",
         vendor: "Profalux",
         description: "Cover remote",
@@ -209,7 +249,7 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint2 = device.getEndpoint(2);
             // Bind clusters
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genLevelCtrl"]);
-            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closureWindowCovering"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genPowerCfg", "closuresWindowCovering"]);
             // Configure battery voltage reporting from endpoint 2
             await reporting.batteryVoltage(endpoint2, {min: 3600, max: repInterval.MAX, change: 1});
         },

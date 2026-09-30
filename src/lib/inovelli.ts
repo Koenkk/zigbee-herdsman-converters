@@ -7,6 +7,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "./exposes";
 import * as m from "./modernExtend";
 import * as reporting from "./reporting";
+import * as globalStore from "./store";
 import type {Configure, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
@@ -2795,10 +2796,18 @@ const fzLocal = {
         cluster: INOVELLI_CLUSTER_NAME,
         type: ["commandLedEffectComplete"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.notificationType in LED_NOTIFICATION_TYPES) {
-                return {notificationComplete: LED_NOTIFICATION_TYPES[msg.data.notificationType]};
-            }
-            return {notificationComplete: "Unknown"};
+            const value = msg.data.notificationType in LED_NOTIFICATION_TYPES ? LED_NOTIFICATION_TYPES[msg.data.notificationType] : "Unknown";
+
+            // notificationComplete is a transient event vs a stateful change
+            // treat it similar to an action by publishing "" to clear it on the next tick
+            clearTimeout(globalStore.getValue(msg.endpoint, "notification_complete_clear"));
+            const timer = setTimeout(() => {
+                publish({notificationComplete: ""});
+                globalStore.clearValue(msg.endpoint, "notification_complete_clear");
+            }, 0).unref();
+            globalStore.putValue(msg.endpoint, "notification_complete_clear", timer);
+
+            return {notificationComplete: value};
         },
     } satisfies Fz.Converter<typeof INOVELLI_CLUSTER_NAME, Inovelli, ["commandLedEffectComplete"]>,
     report_target_info: {

@@ -21,7 +21,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import {payload} from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -603,6 +603,40 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BSD-2",
         vendor: "Bosch",
         description: "Smoke alarm II",
+        meta: {
+            overrideHaDiscoveryPayload: (payload: KeyValueAny) => {
+                // The alarm_control enum uses .withHomeAssistant({type: "siren"}) to make
+                // Z2M publish the discovery on the homeassistant/siren/... topic. Here we
+                // add the siren-specific payload fields (available_tones, templates, etc.)
+                // that the enum-to-siren type override does not cover.
+                //
+                // The BSD-2 does not implement IAS WD, so we manually map the alarm_control
+                // enum (off/smoke/burglar) to HA's siren entity model.
+                //
+                // HA siren integration reference:
+                // https://www.home-assistant.io/integrations/siren.mqtt/
+                if (payload.command_topic?.endsWith("/alarm_control")) {
+                    delete payload.options;
+                    delete payload.value_template;
+                    payload.available_tones = ["smoke", "burglar"];
+                    payload.support_duration = false;
+                    payload.support_volume_set = false;
+                    // Map HA siren turn on/off + tone to our alarm_control enum value.
+                    payload.command_template =
+                        '{% if value == "OFF" %}off' + '{% elif tone == "smoke" or tone == "burglar" %}{{ tone }}' + "{% else %}smoke{% endif %}";
+                    payload.command_off_template = "off";
+                    // Map the alarm_control enum state back to HA siren on/off + tone.
+                    payload.state_value_template =
+                        '{% if value_json.alarm_control == "smoke" %}' +
+                        '{{ {"state": "ON", "tone": "smoke"} | to_json }}' +
+                        '{% elif value_json.alarm_control == "burglar" %}' +
+                        '{{ {"state": "ON", "tone": "burglar"} | to_json }}' +
+                        "{% else %}" +
+                        '{{ {"state": "OFF", "tone": "smoke"} | to_json }}' +
+                        "{% endif %}";
+                }
+            },
+        },
         extend: [
             boschSmokeAlarmExtend.enforceDefaultSensitivityLevel(),
             boschSmokeAlarmExtend.customIasZoneCluster(),
@@ -757,28 +791,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BTH-RM230Z",
         vendor: "Bosch",
         description: "Room thermostat II 230V",
+        options: [exposes.options.homeassistant_climate_modes()],
         meta: {
-            overrideHaDiscoveryPayload: (payload) => {
+            overrideHaDiscoveryPayload: (payload, options) => {
                 if (payload.mode_command_topic?.endsWith("/system_mode")) {
+                    const climateModes = options?.homeassistant_climate_modes;
+                    const activeModes = climateModes === "cool" ? ["cool"] : climateModes === "heat_cool" ? ["heat", "cool"] : ["heat"];
+                    const fallbackMode = activeModes[0];
+                    const activeModesTemplate = `[${activeModes.map((mode) => `'${mode}'`).join(",")}]`;
+
                     payload.mode_command_topic = payload.mode_command_topic.substring(0, payload.mode_command_topic.lastIndexOf("/system_mode"));
                     payload.mode_command_template =
-                        "{% set values = " +
-                        `{ 'auto':'schedule','heat':'manual','cool':'manual','off':'pause'} %}` +
-                        `{% if value == "heat" or value == "cool" %}` +
+                        `{% set active_modes = ${activeModesTemplate} %}` +
+                        `{% set values = {'auto':'schedule','off':'pause'} %}` +
+                        "{% if value in active_modes %}" +
                         `{"operating_mode": "manual", "system_mode": "{{ value }}"}` +
                         "{% else %}" +
                         `{"operating_mode": "{{ values[value] if value in values.keys() else 'pause' }}"}` +
                         "{% endif %}";
                     payload.mode_state_template =
-                        "{% set values = " +
-                        `{'schedule':'auto','manual':'heat','pause':'off'} %}` +
+                        `{% set active_modes = ${activeModesTemplate} %}` +
+                        `{% set fallback_mode = '${fallbackMode}' %}` +
+                        "{% set values = {'schedule':'auto','pause':'off'} %}" +
                         "{% set value = value_json.operating_mode %}" +
-                        `{% if value == "manual" %}` +
-                        "{{ value_json.system_mode }}" +
+                        "{% set mode = value_json.system_mode %}" +
+                        "{% if value == 'manual' %}" +
+                        "{{ mode if mode in active_modes else fallback_mode }}" +
                         "{% else %}" +
                         `{{ values[value] if value in values.keys() else 'off' }}` +
                         "{% endif %}";
-                    payload.modes = ["off", "heat", "cool", "auto"];
+                    payload.modes = ["off", ...activeModes, "auto"];
                 }
             },
         },
@@ -788,7 +830,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.customUserInterfaceCfgCluster(),
             boschThermostatExtend.relayState(),
             boschThermostatExtend.operatingMode({enableReporting: true}),
-            boschThermostatExtend.rmThermostat(),
+            boschThermostatExtend.rmThermostat({weeklySchedule: true}),
             boschThermostatExtend.setpointChangeSource({enableReporting: true}),
             boschThermostatExtend.humidity(),
             boschThermostatExtend.heaterType(),
@@ -802,6 +844,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.displaySwitchOnDuration(),
             boschThermostatExtend.activityLedState(),
             boschThermostatExtend.errorState({enableReporting: true}),
+            boschThermostatExtend.humidityAlarmLed(),
         ],
         ota: true,
     },

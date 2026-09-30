@@ -1,4 +1,5 @@
 import * as fz from "../converters/fromZigbee";
+import * as mullerLicht from "../devices/muller_licht";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
@@ -30,6 +31,13 @@ const fzLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: [{modelID: "CCT-I", manufacturerName: "Paulmann Licht GmbH"}],
+        model: "CCT-I",
+        vendor: "Paulmann",
+        description: "Tunable white light controller with integrated motion sensor (tested with Skyla 948.64)",
+        extend: [m.light({colorTemp: {range: [153, 370]}})],
+    },
     {
         zigbeeModel: ["94842"],
         model: "94842",
@@ -276,7 +284,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.command_move,
             fz.command_color_loop_set,
             fz.command_enhanced_move_to_hue_and_saturation,
-            fz.tint_scene,
+            mullerLicht.fzLocal.tint_scene,
         ],
         toZigbee: [],
         exposes: [
@@ -355,10 +363,65 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light()],
     },
     {
-        zigbeeModel: ["RGBWW"],
-        model: "291.52",
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5401",
+            },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5405",
+            },
+        ],
+        model: "291.48",
         vendor: "Paulmann",
-        description: "Smart Home Zigbee LED bulb 4,9W Matt E14 RGBW",
+        description: "Smart Home Zigbee LED Reflector GU10 4.8W RGBWW",
+        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [
+            {
+                vendor: "Paulmann",
+                model: "291.53",
+            },
+        ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5800",
+            },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5809",
+            },
+        ],
+        model: "291.46",
+        vendor: "Paulmann",
+        description: "Smart Home Zigbee LED bulb 4.9W Matt E14 RGBWW",
+        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+        whiteLabel: [
+            {
+                vendor: "Paulmann",
+                model: "291.52",
+                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC5800"}],
+            },
+        ],
+    },
+    {
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5A00",
+            },
+        ],
+        model: "291.45",
+        vendor: "Paulmann",
+        description: "Smart Home Zigbee LED bulb 11W Matt E27 RGBWW",
         extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
     },
     {

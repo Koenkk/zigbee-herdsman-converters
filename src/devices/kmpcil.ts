@@ -45,7 +45,7 @@ function handleKmpcilPresence(
     const timeout = Number(mode ? timeoutDc : timeoutBattery);
     // Stop existing timer because motion is detected and set a new one.
     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
-    const timer = setTimeout(() => publish({presence: false}), timeout * 1000);
+    const timer = setTimeout(() => publish({presence: false}), timeout * 1000).unref();
     globalStore.putValue(msg.endpoint, "timer", timer);
 
     return {presence: true};

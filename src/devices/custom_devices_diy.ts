@@ -18,7 +18,18 @@ const switchTypesList = {
     "multi-click": 0x02,
 };
 
-const tzLocal = {
+// genOnOffSwitchCfg.switchType is defined as read-only. Allow override with write: true.
+const genOnOffSwitchCfgSwitchTypeWritable = m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+    name: "genOnOffSwitchCfg",
+    ID: 0x0007,
+    attributes: {
+        switchType: {name: "switchType", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, min: 0x00, max: 0x02},
+    },
+    commands: {},
+    commandsResponse: {},
+});
+
+export const tzLocal = {
     tirouter: {
         key: ["transmit_power"],
         convertSet: async (entity, key, value, meta) => {
@@ -62,15 +73,136 @@ const tzLocal = {
             await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
         },
     } satisfies Tz.Converter,
+    ptvo_switch_trigger: {
+        key: ["trigger", "interval"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            utils.assertEndpoint(entity);
+            if (key === "trigger") {
+                await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
+            } else if (key === "interval") {
+                const cluster = "genOnOff";
+                if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                    await entity.configureReporting(cluster, [
+                        {
+                            attribute: "onOff",
+                            minimumReportInterval: value,
+                            maximumReportInterval: value,
+                            reportableChange: 0,
+                        },
+                    ]);
+                } else if (utils.hasEndpoints(meta.device, [1])) {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.configureReporting("genBasic", [
+                        {
+                            attribute: "zclVersion",
+                            minimumReportInterval: value,
+                            maximumReportInterval: value,
+                            reportableChange: 0,
+                        },
+                    ]);
+                }
+            }
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_uart: {
+        key: ["action"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value) {
+                return;
+            }
+            const payload = {14: {value, type: 0x42}};
+            for (const endpoint of meta.device.endpoints) {
+                const cluster = "genMultistateValue";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+            }
+            await entity.write("genMultistateValue", payload);
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_analog_input: {
+        key: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8", "l9", "l10", "l11", "l12", "l13", "l14", "l15", "l16"],
+        convertGet: async (entity, key, meta) => {
+            const epId = Number.parseInt(key.substr(1, 2), 10);
+            if (utils.hasEndpoints(meta.device, [epId])) {
+                const endpoint = meta.device.getEndpoint(epId);
+                await endpoint.read("genAnalogInput", ["presentValue", "description"]);
+            }
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const epId = Number.parseInt(key.substr(1, 2), 10);
+            if (utils.hasEndpoints(meta.device, [epId])) {
+                const endpoint = meta.device.getEndpoint(epId);
+                let cluster = "genLevelCtrl";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = Number(value);
+                    if (Number.isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {currentLevel: value2};
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+
+                cluster = "genAnalogInput";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = Number(value);
+                    if (Number.isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {presentValue: value2};
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_light_brightness: {
+        key: ["brightness", "brightness_percent", "transition"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "transition") {
+                return;
+            }
+            const cluster = "genLevelCtrl";
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                const message = meta.message;
+
+                let brightness: number;
+                if (message.brightness != null) {
+                    brightness = Number(message.brightness);
+                } else if (message.brightness_percent != null) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+
+                if (brightness !== undefined && brightness === 0) {
+                    message.state = "off";
+                    message.brightness = 1;
+                }
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            }
+            throw new Error("LevelControl not supported on this endpoint.");
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = "genLevelCtrl";
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+            }
+            throw new Error("LevelControl not supported on this endpoint.");
+        },
+    } satisfies Tz.Converter,
 };
 
-const fzLocal = {
+export const fzLocal = {
     tirouter: {
         cluster: "genBasic",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
             const result: KeyValue = {linkquality: msg.linkquality};
-            if (msg.data["4919"]) result.transmit_power = msg.data["4919"];
+            if (msg.data["4919"] !== undefined) result.transmit_power = msg.data["4919"];
             return result;
         },
     } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
@@ -286,6 +418,112 @@ const fzLocal = {
             return {action: postfixWithEndpointName(action, msg, model, meta)};
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_uart: {
+        cluster: "genMultistateValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
+            if (Array.isArray(data)) {
+                let bHex = false;
+                let code: number;
+                let index: number;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index] as number;
+                    if (code < 32 || code > 127) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString();
+                } else {
+                    data = [...data];
+                }
+            }
+            return {action: data};
+        },
+    } satisfies Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_analog_input: {
+        cluster: "genAnalogInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            const endpoint = msg.endpoint;
+            payload[name] = utils.precisionRound(msg.data.presentValue, 3);
+            const cluster = "genLevelCtrl";
+            if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
+                payload[`brightness_${name}`] = msg.data.presentValue;
+            } else if (msg.data.description !== undefined) {
+                const data1 = msg.data.description;
+                if (data1) {
+                    const data2 = data1.split(",");
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload[`device_${name}`] = devid;
+                    }
+
+                    const valRaw = msg.data.presentValue;
+                    if (unit) {
+                        let val = utils.precisionRound(valRaw, 1);
+
+                        const nameLookup: KeyValueAny = {
+                            C: "temperature",
+                            "%": "humidity",
+                            m: "altitude",
+                            Pa: "pressure",
+                            ppm: "quality",
+                            psize: "particle_size",
+                            V: "voltage",
+                            A: "current",
+                            Wh: "energy",
+                            W: "power",
+                            Hz: "frequency",
+                            pf: "power_factor",
+                            lx: "illuminance",
+                        };
+
+                        let nameAlt = "";
+                        if (unit === "A" || unit === "pf") {
+                            if (valRaw < 1) {
+                                val = utils.precisionRound(valRaw, 3);
+                            }
+                        }
+                        if (unit.startsWith("mcpm") || unit.startsWith("ncpm")) {
+                            const num = unit.substr(4, 1);
+                            nameAlt = num === "A" ? `${unit.substr(0, 4)}10` : unit;
+                            val = utils.precisionRound(valRaw, 2);
+                        } else {
+                            nameAlt = nameLookup[unit];
+                        }
+                        if (nameAlt === undefined) {
+                            const valueIndex = Number.parseInt(unit, 10);
+                            if (!Number.isNaN(valueIndex)) {
+                                nameAlt = `val${unit}`;
+                            }
+                        }
+
+                        if (nameAlt !== undefined) {
+                            payload[`${nameAlt}_${name}`] = val;
+                        }
+                    }
+                }
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_multistate_action: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
+            const value = msg.data.presentValue;
+            const action = actionLookup[value];
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
 };
 
 function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
@@ -394,11 +632,18 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "ZBT-2", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MU", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG24U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-06MG26U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR1U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR2U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR3U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR4U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR5U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "DONGLE-E", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "Dongle-LMG21", manufacturerName: "SONOFF", applicationVersion: 200},
             {modelID: "Dongle-M", manufacturerName: "SONOFF", applicationVersion: 200},
@@ -428,6 +673,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ti.router",
         vendor: "Custom devices (DiY)",
         description: "Texas Instruments router",
+        whiteLabel: [{vendor: "SONOFF", model: "ZBDongle-P", description: "Sonoff Zigbee 3.0 USB Dongle Plus (CC2652P) with router firmware"}],
         fromZigbee: [fzLocal.tirouter],
         toZigbee: [tzLocal.tirouter],
         exposes: [
@@ -438,8 +684,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("dBm")
                 .withDescription(
-                    "Transmit power, supported from firmware 20221102. The max for CC1352 is 20 dBm and 5 dBm for CC2652" +
-                        " (any higher value is converted to 5dBm)",
+                    "Transmit power, supported from firmware 20221102. The max is 20 dBm for CC1352P/CC2652P (default 9 dBm) and " +
+                        "5 dBm for CC2652R/CC2652RB (any higher value is converted to 5 dBm)",
                 ),
         ],
         configure: async (device, coordinatorEndpoint) => {
@@ -455,7 +701,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Custom devices (DiY)",
         description: "CC2530 router",
         fromZigbee: [fzLocal.CC2530ROUTER_led, fzLocal.CC2530ROUTER_meta],
-        toZigbee: [tz.ptvo_switch_trigger],
+        toZigbee: [tzLocal.ptvo_switch_trigger],
         exposes: [e.binary("led", ea.STATE, true, false)],
     },
     {
@@ -484,9 +730,9 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.on_off,
-            fz.ptvo_multistate_action,
-            fz.ptvo_switch_uart,
-            fz.ptvo_switch_analog_input,
+            fzLocal.ptvo_multistate_action,
+            fzLocal.ptvo_switch_uart,
+            fzLocal.ptvo_switch_analog_input,
             fz.brightness,
             fz.temperature,
             fzLocal.humidity2,
@@ -498,10 +744,10 @@ export const definitions: DefinitionWithExtend[] = [
             fz.color_colortemp,
         ],
         toZigbee: [
-            tz.ptvo_switch_trigger,
-            tz.ptvo_switch_uart,
-            tz.ptvo_switch_analog_input,
-            tz.ptvo_switch_light_brightness,
+            tzLocal.ptvo_switch_trigger,
+            tzLocal.ptvo_switch_uart,
+            tzLocal.ptvo_switch_analog_input,
+            tzLocal.ptvo_switch_light_brightness,
             tzLocal.ptvo_on_off,
             tz.light_color,
         ],
@@ -914,6 +1160,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Multi switch from Smarthjemmet.dk",
         fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
             ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
@@ -1153,6 +1400,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "FUGA compatible switch from Smarthjemmet.dk",
         fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
         toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
         exposes: [
             ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
             ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
@@ -1176,8 +1424,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ptvo_counter_2ch",
         vendor: "Custom devices (DiY)",
         description: "2 channel counter",
-        fromZigbee: [fz.battery, fz.ptvo_switch_analog_input, fz.on_off],
-        toZigbee: [tz.ptvo_switch_trigger, tz.ptvo_switch_analog_input, tz.on_off],
+        fromZigbee: [fz.battery, fzLocal.ptvo_switch_analog_input, fz.on_off],
+        toZigbee: [tzLocal.ptvo_switch_trigger, tzLocal.ptvo_switch_analog_input, tz.on_off],
         exposes: [
             e.battery(),
             e
@@ -1427,6 +1675,20 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 description: "PIR timeout in seconds",
             }),
+        ],
+    },
+    {
+        zigbeeModel: ["LIGHT-CCT-TRK", "LIGHT-CCT-STR", "LIGHT-CCT-CUST"],
+        model: "TLSR-DIY-ZR01-LIGHT-CCT",
+        vendor: "Custom devices (DiY)",
+        description: "CCT LED lamp/dimmer with custom firmware",
+        ota: true,
+        extend: [
+            m.light({
+                colorTemp: {range: [130, 560], startup: false},
+                configureReporting: true,
+            }),
+            m.identify(),
         ],
     },
 ];
