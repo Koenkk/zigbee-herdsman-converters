@@ -286,4 +286,15 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: [{modelID: 'ZB-CL01', manufacturerName: 'eWeLight'}],
+        model: 'ZB-CL01',
+        vendor: 'Lonsonho',
+        description: 'USB RGB Neon Strip',
+        extend: [
+            m.light({
+                color: {modes: ['hs']}
+            })
+        ]
+    },
 ];
