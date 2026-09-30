@@ -3210,7 +3210,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Dimmer 0/1-10V PM Gen4",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
             m.light(),
             m.electricityMeter(),
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
