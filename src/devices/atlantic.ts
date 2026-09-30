@@ -5,9 +5,10 @@ import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -72,6 +73,52 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const nirvanaExtend = (options: {horizontal: boolean}): ModernExtend[] => [
+    m.deviceEndpoints({
+        endpoints: {"1": 1, "230": 230, "232": 232},
+        multiEndpointSkip: [
+            "local_temperature",
+            "occupied_heating_setpoint",
+            "system_mode",
+            "running_mode",
+            "control_sequence_of_operation",
+            "abs_min_heat_setpoint_limit",
+            "abs_max_heat_setpoint_limit",
+            "min_heat_setpoint_limit",
+            "max_heat_setpoint_limit",
+            "temperature_setpoint_hold",
+            "temperature_setpoint_hold_duration",
+            "programming_operation_mode",
+            "keypad_lockout",
+            "temperature_display_mode",
+            "occupancy",
+            "power",
+            "energy",
+        ],
+    }),
+    m.identify(),
+    // runningState and pIHeatingDemand are unsupported
+    m.thermostat({
+        localTemperature: {},
+        setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}}},
+        systemMode: {values: ["off", "heat"]},
+    }),
+    m.occupancy(),
+    ...(options.horizontal
+        ? [
+              // acPowerMultiplier/acPowerDivisor, rmsVoltage and rmsCurrent are unsupported
+              m.electricityMeter({
+                  power: {cluster: "electrical", multiplier: 1, divisor: 1},
+                  energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"},
+                  voltage: false,
+                  current: false,
+              }),
+              m.thermostatUi({endpointNames: ["230"]}),
+          ]
+        : // instantaneousDemand is unsupported, currentSummDelivered is in Wh while some firmwares report multiplier=1000/divisor=1000
+          [m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"}})]),
+];
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["Adapter Zigbee FUJITSU"],
@@ -127,6 +174,64 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.currentsummdelivered],
         exposes: [
             e.climate().withLocalTemperature().withSetpoint("occupied_heating_setpoint", 5, 30, 0.5).withSystemMode(["off", "heat"]),
+            e.occupancy(),
+            e.energy().withAccess(ea.STATE_GET),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat", "msOccupancySensing", "seMetering"]);
+            await reporting.thermostatTemperature(endpoint);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
+            await reporting.thermostatSystemMode(endpoint);
+            await reporting.occupancy(endpoint);
+            await reporting.currentSummDelivered(endpoint);
+            // The device reports seMetering multiplier=1000/divisor=1000 while currentSummDelivered is in Wh
+            endpoint.saveClusterAttributeKeyValue("seMetering", {multiplier: 1, divisor: 1000});
+        },
+    },
+    {
+        zigbeeModel: ["100052992400", "100052992500", "100052992700"],
+        model: "100052992400",
+        vendor: "Atlantic Group",
+        description: "Nirvana+ connected radiator horizontal 750W",
+        // Firmware appends a NUL character to the modelID, so both variants are needed in the fingerprint
+        whiteLabel: [
+            {
+                model: "100052992500",
+                description: "Nirvana+ connected radiator horizontal 1000W",
+                fingerprint: [{modelID: "100052992500"}, {modelID: "100052992500\u0000"}],
+            },
+            {
+                model: "100052992700",
+                description: "Nirvana+ connected radiator horizontal 1500W",
+                fingerprint: [{modelID: "100052992700"}, {modelID: "100052992700\u0000"}],
+            },
+        ],
+        extend: nirvanaExtend({horizontal: true}),
+    },
+    {
+        zigbeeModel: ["100052994200", "100052994300"],
+        model: "100052994200",
+        vendor: "Atlantic Group",
+        description: "Nirvana+ connected radiator vertical 1500W",
+        whiteLabel: [
+            {
+                model: "100052994300",
+                description: "Nirvana+ connected radiator vertical 2000W",
+                fingerprint: [{modelID: "100052994300"}, {modelID: "100052994300\u0000"}],
+            },
+        ],
+        extend: nirvanaExtend({horizontal: false}),
+    },
+    {
+        zigbeeModel: ["100042838900", "100042838900 "],
+        model: "100042838900",
+        vendor: "Atlantic Group",
+        description: "Thermor Equateur 5 electric radiator",
+        fromZigbee: [fz.thermostat, fz.occupancy, fz.metering],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.currentsummdelivered],
+        exposes: [
+            e.climate().withLocalTemperature().withSetpoint("occupied_heating_setpoint", 7, 28, 0.5).withSystemMode(["off", "heat"]),
             e.occupancy(),
             e.energy().withAccess(ea.STATE_GET),
         ],

@@ -60,13 +60,27 @@ pnpm run clean
 - Vendor libraries: `src/lib/[vendor].ts` (e.g., philips.ts, ikea.ts, tuya.ts)
 - Type definitions: `src/lib/types.ts`
 
-**Adding a new device:**
+**Adding a new device or extending support for an existing one:**
 1. Find or create the appropriate vendor file in `src/devices/`
 2. Import required modules at top (fz, tz, exposes, m, vendor libs)
 3. Add device definition to the `definitions` array using modern extends
-4. Prefer modern extends over manual converter arrays
-5. If adding just a definition or updating a converter, do not add tests for it
+4. ALWAYS use modern extends (`extend: [...]`) instead of `fromZigbee`, `toZigbee`, `exposes` and `configure`. Use the generic extends like `m.numeric()`, `m.binary()` and `m.enumLookup()` for custom attributes instead of writing new converters. This also applies when adding features to an existing device.
+5. Do NOT add tests for it
 6. PR title should be `feat(add): MODEL`
+
+```typescript
+// Good
+extend: [
+    m.binary({name: "child_lock", cluster: "manuSpecificVendor", attribute: "childLock", valueOn: ["LOCK", 1], valueOff: ["UNLOCK", 0], description: "Enables/disables physical input on the device"}),
+    m.numeric({name: "calibration", cluster: "manuSpecificVendor", attribute: "calibration", valueMin: -10, valueMax: 10, unit: "°C", description: "Temperature calibration"}),
+],
+
+// Bad
+fromZigbee: [fz.custom_child_lock],
+toZigbee: [tz.custom_child_lock],
+exposes: [e.binary("child_lock", ea.ALL, "LOCK", "UNLOCK")],
+configure: async (device, coordinatorEndpoint) => { ... },
+```
 
 **Code formatting:**
 - Indent: 4 spaces

@@ -937,6 +937,12 @@ const schneiderElectricExtend = {
                     write: true,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
+                wiserSmartOpenWindowDetectionStatus: {
+                    name: "wiserSmartOpenWindowDetectionStatus",
+                    ID: 0xe012,
+                    type: Zcl.DataType.UINT8,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
                 wiserSmartCurrentFilPiloteMode: {
                     name: "wiserSmartCurrentFilPiloteMode",
                     ID: 0xe020,

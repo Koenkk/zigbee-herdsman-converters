@@ -23,6 +23,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RC 210",
         vendor: "Innr",
         description: "Remote control",
+        ota: true,
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
         exposes: [
@@ -47,6 +48,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RC 250",
         vendor: "Innr",
         description: "Remote control",
+        ota: true,
         fromZigbee: [fz.command_step, fz.command_on, fz.command_off, fz.command_move_to_level, fz.command_move_to_color_temp],
         toZigbee: [],
         exposes: [e.action(["on", "off", "brightness_step_up", "brightness_step_down", "brightness_move_to_level", "color_temperature_move"])],
@@ -61,6 +63,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 262",
         vendor: "Innr",
         description: "Smart E26 LED bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -68,6 +71,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 282 C",
         vendor: "Innr",
         description: "Smart Bulb Colour E27 (800lm)",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -123,6 +127,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 140 C",
         vendor: "Innr",
         description: "Color Flex LED strip 4m 1200lm",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
@@ -137,6 +142,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 130 C",
         vendor: "Innr",
         description: "Color Flex LED strip",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
@@ -151,6 +157,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 120 C",
         vendor: "Innr",
         description: "Color Flex LED strip",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
@@ -165,6 +172,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 282 C",
         vendor: "Innr",
         description: "E27 bulb RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -188,6 +196,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OGL 130 C",
         vendor: "Innr",
         description: "Outdoor smart globe lights",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [100, 1000]},
@@ -202,6 +211,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OPL 130 C",
         vendor: "Innr",
         description: "Outdoor smart pedestal light colour",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 555], startup: false},
@@ -215,6 +225,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 185 C",
         vendor: "Innr",
         description: "E27 bulb RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -222,6 +233,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BY 185 C",
         vendor: "Innr",
         description: "B22 bulb RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -229,6 +241,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 250 C",
         vendor: "Innr",
         description: "E14 bulb RGBW",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
@@ -256,6 +269,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 252 C",
         vendor: "Innr",
         description: "Smart bulb Candle Colour E14",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -263,6 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 256 C",
         vendor: "Innr",
         description: "Smart Mini Bulb Colour E14",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -286,6 +301,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 265",
         vendor: "Innr",
         description: "E27 bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -358,6 +374,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 278 T",
         vendor: "Innr",
         description: "Smart bulb tunable white E27",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
@@ -376,6 +393,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 285 C",
         vendor: "Innr",
         description: "E27 bulb RGBW",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
@@ -397,6 +415,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 287 C",
         vendor: "Innr",
         description: "Smart Bulb Colour E27 1200lm",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [153, 556]},
@@ -410,6 +429,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BB 287 C-2",
         vendor: "Innr",
         description: "Smart Bulb Colour E27 1210lm",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -417,6 +437,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BB 287 C",
         vendor: "Innr",
         description: "Smart Bulb Colour E27 1210lm",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -424,6 +445,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BY 285 C",
         vendor: "Innr",
         description: "B22 bulb RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -431,6 +453,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BB 282 C",
         vendor: "Innr",
         description: "B22 bulb RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -446,6 +469,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 165",
         vendor: "Innr",
         description: "E27 bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -453,6 +477,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 162",
         vendor: "Innr",
         description: "E27 bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -460,6 +485,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 172 W",
         vendor: "Innr",
         description: "Zigbee E27 retrofit bulb, warm dimmable 2200-2700K, 806 Lm",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -467,6 +493,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 175 W",
         vendor: "Innr",
         description: "E27 bulb warm dimming",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -474,6 +501,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 178 T",
         vendor: "Innr",
         description: "Smart bulb tunable white E27",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
@@ -481,6 +509,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BY 178 T",
         vendor: "Innr",
         description: "Smart bulb tunable white B22",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -488,6 +517,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RS 122",
         vendor: "Innr",
         description: "GU10 spot",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -495,6 +525,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RS 125",
         vendor: "Innr",
         description: "GU10 spot",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -502,6 +533,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RS 225",
         vendor: "Innr",
         description: "GU10 Spot",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -528,6 +560,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RS 128 T",
         vendor: "Innr",
         description: "GU10 spot 350 lm, dimmable, white spectrum",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, turnsOffAtBrightness1: true})],
     },
     {
@@ -535,6 +568,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RS 228 T",
         vendor: "Innr",
         description: "GU10 spot 350 lm, dimmable, white spectrum",
+        ota: true,
         extend: [m.light({colorTemp: {range: [200, 454]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -602,6 +636,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 145",
         vendor: "Innr",
         description: "E14 candle",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -657,6 +692,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RB 148 T",
         vendor: "Innr",
         description: "E14 candle with white spectrum",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -688,6 +724,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BY 165",
         vendor: "Innr",
         description: "B22 bulb dimmable",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -695,6 +732,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RCL 110",
         vendor: "Innr",
         description: "Round ceiling light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -702,6 +740,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RSL 110",
         vendor: "Innr",
         description: "Recessed spot light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -709,6 +748,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RSL 115",
         vendor: "Innr",
         description: "Recessed spot light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -716,6 +756,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PL 110",
         vendor: "Innr",
         description: "Puck Light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -723,6 +764,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PL 115",
         vendor: "Innr",
         description: "Puck Light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -730,6 +772,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ST 110",
         vendor: "Innr",
         description: "Strip Light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -737,6 +780,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "UC 110",
         vendor: "Innr",
         description: "Under cabinet light",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -744,6 +788,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DL 110 N",
         vendor: "Innr",
         description: "Spot narrow",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -751,6 +796,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "DL 110 W",
         vendor: "Innr",
         description: "Spot wide",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -758,6 +804,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SL 110 N",
         vendor: "Innr",
         description: "Spot Flex narrow",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -765,6 +812,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SL 110 M",
         vendor: "Innr",
         description: "Spot Flex medium",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -772,6 +820,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SL 110 W",
         vendor: "Innr",
         description: "Spot Flex wide",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -779,6 +828,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 260",
         vendor: "Innr",
         description: "E26/24 bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -794,6 +844,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 270 T-2",
         vendor: "Innr",
         description: "E26/24 bulb 1100lm, dimmable, white spectrum",
+        ota: true,
         extend: [m.light({colorTemp: {range: [154, 500]}, turnsOffAtBrightness1: true})],
     },
     {
@@ -809,6 +860,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 287 C",
         vendor: "Innr",
         description: "E26 bulb 1100lm, RGBCW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 556]}, color: {modes: ["xy", "hs"], enhancedHue: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -816,6 +868,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP 120",
         vendor: "Innr",
         description: "Smart plug",
+        ota: true,
         extend: [
             m.onOff({powerOnBehavior: false}),
             m.electricityMeter({current: {divisor: 1000}, voltage: {divisor: 1}, power: {divisor: 1}, energy: {divisor: 100}}),
@@ -826,6 +879,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP 110",
         vendor: "Innr",
         description: "Smart plug",
+        ota: true,
         extend: [m.onOff()],
     },
     {
@@ -833,6 +887,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SP 220",
         vendor: "Innr",
         description: "Smart plug",
+        ota: true,
         extend: [m.onOff()],
     },
     {
@@ -864,6 +919,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OSP 210",
         vendor: "Innr",
         description: "Outdoor smart plug",
+        ota: true,
         extend: [m.onOff()],
     },
     {
@@ -871,6 +927,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OSP 240",
         vendor: "Innr",
         description: "Outdoor smart plug",
+        ota: true,
         extend: [m.onOff(), m.electricityMeter()],
     },
     {
@@ -878,6 +935,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 230 C",
         vendor: "Innr",
         description: "Lightstrip colour, 3m",
+        ota: true,
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -885,6 +943,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FL 250 C",
         vendor: "Innr",
         description: "Lightstrip colour, 5m",
+        ota: true,
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -892,6 +951,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OFL 120 C",
         vendor: "Innr",
         description: "Outdoor flex light colour LED strip 2m, 550lm, RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: undefined}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -899,6 +959,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OFL 140 C",
         vendor: "Innr",
         description: "Outdoor flex light colour LED strip 4m, 1000lm, RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: undefined}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -906,6 +967,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OFL 142 C",
         vendor: "Innr",
         description: "Outdoor flex light colour LED strip 4m, 1440lm, RGBW",
+        ota: true,
         extend: [
             m.light({
                 colorTemp: {range: [100, 350]},
@@ -934,6 +996,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OFL 122 C",
         vendor: "Innr",
         description: "Outdoor flex light colour LED strip 2m, 1440lm, RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [100, 350]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -949,6 +1012,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OSL 130 C",
         vendor: "Innr",
         description: "Outdoor smart spot colour, 230lm/spot, RGBW",
+        ota: true,
         extend: [m.light({colorTemp: {range: [153, 555]}, color: {modes: ["xy", "hs"], applyRedFix: true}, turnsOffAtBrightness1: true})],
     },
     {
@@ -956,6 +1020,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OSL 132 C",
         vendor: "Innr",
         description: "Outdoor smart spot color",
+        ota: true,
         extend: [m.light({colorTemp: {range: [100, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -971,6 +1036,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "OSL 232 C",
         vendor: "Innr",
         description: "Outdoor Smart Spot White & Colour",
+        ota: true,
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
@@ -978,6 +1044,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BE 220",
         vendor: "Innr",
         description: "E26/E24 white bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {
@@ -985,6 +1052,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "RC 110",
         vendor: "Innr",
         description: "Innr RC 110 Remote Control",
+        ota: true,
         fromZigbee: [fz.command_step, fz.command_move, fz.command_stop, fz.command_on, fz.command_off, fzLocal.rc_110_level_to_scene],
         toZigbee: [],
         meta: {multiEndpoint: true},
@@ -1019,6 +1087,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AE 264",
         vendor: "Innr",
         description: "Smart E26 LED bulb",
+        ota: true,
         extend: [m.light({turnsOffAtBrightness1: true})],
     },
     {

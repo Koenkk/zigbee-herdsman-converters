@@ -15,6 +15,15 @@ const te = tuya.exposes;
 
 const NS = "zhc:zemismart";
 
+interface Zms206ProprietaryCluster {
+    attributes: never;
+    commands: never;
+    commandResponses: {
+        unknownD0: Record<string, never>;
+        unknownD2: Record<string, never>;
+    };
+}
+
 const valueConverterLocal = {
     indiciatorStatus: tuya.valueConverterBasic.lookup({
         off: tuya.enum(0),
@@ -122,6 +131,12 @@ const valueConverterLocal = {
 };
 
 const tzLocal = {
+    batteryQuery: {
+        key: ["battery"],
+        convertGet: async (entity) => {
+            await entity.command("manuSpecificTuya", "dataQuery", {});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     ZMCSW032D_cover_position: {
         key: ["position", "tilt"],
@@ -429,7 +444,9 @@ export const definitions: DefinitionWithExtend[] = [
                     7,
                     "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
-                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                        options.invert_cover
+                            ? {opening: tuya.enum(1), closing: tuya.enum(0), stopped: tuya.enum(2)}
+                            : {opening: tuya.enum(0), closing: tuya.enum(1), stopped: tuya.enum(2)},
                     ),
                 ],
                 [13, "battery", tuya.valueConverter.raw],
@@ -856,11 +873,34 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE28C1000000_xibaabmu",
             "_TZE204_08qc13ct",
             "_TZE28C1000000_y4jqpry8",
+            "_TZE28C1000000_pmbxyf97",
         ]),
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"}),
+            // Declare these empty reports so herdsman can send the requested default response.
+            {
+                ...m.deviceAddCustomCluster("manuSpecificZemismartScreen", {
+                    name: "manuSpecificZemismartScreen",
+                    ID: 0xe000,
+                    attributes: {},
+                    commands: {},
+                    commandsResponse: {
+                        unknownD0: {name: "unknownD0", ID: 0xd0, parameters: []},
+                        unknownD2: {name: "unknownD2", ID: 0xd2, parameters: []},
+                    },
+                }),
+                fromZigbee: [
+                    {
+                        cluster: "manuSpecificZemismartScreen",
+                        type: ["commandUnknownD0", "commandUnknownD2"],
+                        convert: () => undefined,
+                    } satisfies Fz.Converter<"manuSpecificZemismartScreen", Zms206ProprietaryCluster, ["commandUnknownD0", "commandUnknownD2"]>,
+                ],
+            },
+        ],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -979,7 +1019,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a2teqi5u"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_a2teqi5u", "_TZE28C1000000_a2teqi5u"]),
         model: "ZMS-208US-2",
         vendor: "Zemismart",
         description: "Smart screen switch 2 gang",
@@ -1096,7 +1136,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
+            te.motorDirection(),
             e
                 .numeric("calibration_time", ea.STATE_SET)
                 .withValueMin(0)
@@ -1108,14 +1148,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [
-                    8,
-                    "motor_steering",
-                    tuya.valueConverterBasic.lookup({
-                        FORWARD: tuya.enum(0),
-                        BACKWARD: tuya.enum(1),
-                    }),
-                ],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [10, "calibration_time", tuya.valueConverter.raw],
             ],
         },
@@ -1142,9 +1175,17 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM16B",
         vendor: "Zemismart",
         description: "Tubular motor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 12 * 60 * 60,
+            }),
+        ],
+        toZigbee: [tzLocal.batteryQuery],
         options: [exposes.options.invert_cover()],
-        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery()],
+        exposes: [te.coverPosition(), te.motorDirection(), te.coverLimit(), e.battery().withAccess(ea.STATE_GET)],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],

@@ -7,6 +7,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
 const e = exposes.presets;
@@ -555,7 +556,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
         // power_on_behavior, backlight_mode). Fully confirmed against real
         // hardware (raw dp capture).
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu", "_TZE284_z98viqa6"]),
         model: "SFD02-Z",
         vendor: "Moes",
         description: "Star feather smart dimmer switch",
@@ -644,7 +645,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uenof8jd", "_TZE284_uenof8jd", "_TZE200_tzyy0rtq", "_TZE200_hktk6hze"]),
         model: "SFL02-Z-2",
         vendor: "Moes",
         description: "Star feather smart switch 2 gangs",
@@ -1503,7 +1504,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hr0tdd47", "_TZE200_rjxqso4a", "_TZE284_rjxqso4a"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hr0tdd47", "_TZE200_rjxqso4a", "_TZE284_rjxqso4a", "JM720ES-EF-3.0"]),
         model: "ZC-HM",
         vendor: "Moes",
         description: "Carbon monoxide alarm",
@@ -1599,7 +1600,11 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            // HOBEIAN ZG-101ZL replies UNSUPPORTED_ATTRIBUTE to this write while already being in event mode.
+            // https://github.com/Koenkk/zigbee2mqtt/issues/31917
+            await utils.ignoreUnsupportedAttribute(async () => {
+                await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
+            }, "tuyaOperationMode write");
             await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
             try {
                 await endpoint.read(0xe001, [0xd011]);
@@ -1619,11 +1624,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Star ring - smart curtain switch",
         options: [exposes.options.invert_cover()],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            te.coverPosition(),
-            e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor Steering"),
-        ],
+        exposes: [te.coverPosition(), e.enum("calibration", ea.STATE_SET, ["START", "END"]).withDescription("Calibration"), te.motorDirection()],
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
@@ -1653,14 +1654,7 @@ export const definitions: DefinitionWithExtend[] = [
                         END: tuya.enum(1),
                     }),
                 ],
-                [
-                    8,
-                    "motor_steering",
-                    tuya.valueConverterBasic.lookup({
-                        FORWARD: tuya.enum(0),
-                        BACKWARD: tuya.enum(1),
-                    }),
-                ],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
@@ -1843,11 +1837,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.coverAction],
                 [9, "position", tuya.valueConverter.coverPositionInverted],
                 [8, "position", tuya.valueConverter.coverPositionInverted],
-                [
-                    11,
-                    "motor_direction",
-                    {from: (v) => (v === 1 || v === "back" || v === "reversed" ? "reversed" : "normal"), to: (v) => (v === "reversed" ? 1 : 0)},
-                ],
+                [11, "motor_direction", tuya.valueConverter.tubularMotorDirection],
             ],
         },
     },
@@ -2091,7 +2081,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_qoi1aqxg", "_TZE2841000000_u68q868h"]),
+        // u68q868h is incomplete: https://github.com/Koenkk/zigbee2mqtt/issues/33147
         model: "FWJZCEH18A001",
         vendor: "Moes",
         description: "Roller blind motor 17mm/25mm/28mm",

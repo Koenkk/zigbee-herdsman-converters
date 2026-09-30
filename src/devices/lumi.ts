@@ -8,6 +8,7 @@ import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 import {assertNumber, sleep} from "../lib/utils";
 
 const e = exposes.presets;
@@ -1762,22 +1763,31 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["lumi.sensor_ht.agl02"],
         model: "WSDCGQ12LM",
         vendor: "Aqara",
+        version: "0.0.1",
         description: "Temperature and humidity sensor T1",
         whiteLabel: [
             {vendor: "Aqara", model: "TH-S02D"},
             {vendor: "Yandex", model: "YNDX-00523"},
         ],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, lumi.fromZigbee.lumi_pressure, fz.battery],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-        },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        exposes: [e.device_temperature(), e.power_outage_count(false)],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.temperature(),
+            m.humidity(),
+            m.pressure({
+                unit: "hPa",
+                scale: 1,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
+            }),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                voltageToPercentage: {min: 2850, max: 3000},
+            }),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ["lumi.sensor_motion"],
@@ -3508,6 +3518,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
+        zigbeeModel: ["lumi.light.acn037"],
+        model: "GDSD12LM",
+        vendor: "Aqara",
+        description: "Track light V1",
+        whiteLabel: [{vendor: "Aqara", model: "GDGSD13LM", description: "Track grille light V1 (12-head)"}],
+        extend: [m.light({colorTemp: {range: [166, 370]}}), m.electricityMeter(), m.identify()],
+    },
+    {
         zigbeeModel: ["lumi.light.acn036"],
         model: "SSWQDYH02",
         vendor: "Aqara",
@@ -4178,6 +4196,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNXNKG02LM",
         vendor: "Aqara",
         description: "Smart rotary knob H1 (wireless)",
+        version: "0.0.1",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.quirkCheckinInterval("1_HOUR"),
@@ -4195,6 +4214,11 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
         ],
+        configure: (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            utils.attachInputCluster(device, endpoint1, "manuSpecificLumi");
+            device.save();
+        },
     },
     {
         zigbeeModel: ["lumi.remote.acn003"],
@@ -4336,7 +4360,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x040a], {manufacturerCode: manufacturerCode});
             await endpoint.read("genPowerCfg", ["batteryVoltage"]);
         },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ["aqara.feeder.acn001"],

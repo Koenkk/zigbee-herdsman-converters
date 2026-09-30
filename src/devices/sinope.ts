@@ -338,6 +338,57 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", SinopeHvacThermostat, ["attributeReport", "readResponse"]>,
+    ouellet_electrical_measurement: {
+        cluster: "haElectricalMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            const voltage = Number(msg.data.rmsVoltage ?? msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsVoltage"));
+            const rawCurrent = Number(msg.data.rmsCurrent ?? msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsCurrent"));
+            const demand = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "pIHeatingDemand"));
+
+            if (Number.isFinite(voltage) && voltage > 0) {
+                result.voltage = precisionRound(voltage, 1);
+            }
+
+            if (Number.isFinite(rawCurrent) && rawCurrent >= 0) {
+                const current = Number.isFinite(demand) && demand === 0 ? 0 : rawCurrent / 100;
+                result.current = precisionRound(current, 2);
+
+                if (Number.isFinite(voltage) && voltage > 0) {
+                    result.power = Math.round(voltage * current);
+                }
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"haElectricalMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    ouellet_heating_demand: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.pIHeatingDemand === undefined) {
+                return {};
+            }
+
+            const result: KeyValue = {
+                running_state: msg.data.pIHeatingDemand >= 10 ? "heat" : "idle",
+            };
+            const voltage = Number(msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsVoltage"));
+            const rawCurrent = Number(msg.endpoint.getClusterAttributeValue("haElectricalMeasurement", "rmsCurrent"));
+
+            if (Number.isFinite(rawCurrent) && rawCurrent >= 0) {
+                const current = msg.data.pIHeatingDemand === 0 ? 0 : rawCurrent / 100;
+                result.current = precisionRound(current, 2);
+
+                if (Number.isFinite(voltage) && voltage > 0) {
+                    result.power = Math.round(voltage * current);
+                }
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     tank_level: {
         cluster: "genAnalogInput",
         type: ["attributeReport", "readResponse"],
@@ -855,6 +906,13 @@ const tzLocal = {
         },
         convertGet: async (entity, key, meta) => {
             await entity.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["drConfigWaterTempMin"]);
+        },
+    } satisfies Tz.Converter,
+    ouellet_electrical_measurements: {
+        key: ["voltage", "current", "power", "running_state"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent"]);
+            await entity.read("hvacThermostat", ["pIHeatingDemand"]);
         },
     } satisfies Tz.Converter,
     eco_mode: {
@@ -1589,6 +1647,76 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["OTH3600-GA-ZB"],
+        model: "OTH3600-GA-ZB",
+        vendor: "Ouellet",
+        description: "Zigbee smart floor heating thermostat",
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            m.identify(),
+            m.thermostat({
+                localTemperature: {},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "heat"], configure: {reporting: false}},
+                piHeatingDemand: {values: ea.STATE_GET, dontMapPIHeatingDemand: true, configure: {reporting: false}},
+            }),
+            m.thermostatUi({reporting: false}),
+            m.temperature(),
+            m.electricityMeter({cluster: "metering", configureReporting: false, power: false}),
+        ],
+        fromZigbee: [fzLocal.sinope, fzLocal.ouellet_electrical_measurement, fzLocal.ouellet_heating_demand],
+        toZigbee: [
+            tzLocal.second_display_mode,
+            tzLocal.thermostat_outdoor_temperature,
+            tzLocal.outdoor_temperature_timeout,
+            tzLocal.ouellet_electrical_measurements,
+        ],
+        exposes: [
+            e
+                .enum("second_display_mode", ea.ALL, ["auto", "setpoint", "outdoor temp"])
+                .withDescription(
+                    'Displays the outdoor temperature and then returns to the set point in "auto" mode, or clears ' +
+                        'in "outdoor temp" mode when expired.',
+                ),
+            e
+                .numeric("thermostat_outdoor_temperature", ea.ALL)
+                .withUnit("°C")
+                .withValueMin(-99.5)
+                .withValueMax(99.5)
+                .withValueStep(0.5)
+                .withDescription("Outdoor temperature for the secondary display"),
+            e
+                .numeric("outdoor_temperature_timeout", ea.ALL)
+                .withUnit("s")
+                .withValueMin(30)
+                .withValueMax(64800)
+                .withPreset("15 min", 900, "15 minutes")
+                .withPreset("30 min", 1800, "30 minutes")
+                .withPreset("1 hour", 3600, "1 hour")
+                .withDescription("Time in seconds after which the outdoor temperature is considered to have expired"),
+            e.voltage().withAccess(ea.STATE_GET),
+            e.current().withAccess(ea.STATE_GET),
+            e.power().withAccess(ea.STATE_GET),
+            e.enum("running_state", ea.STATE_GET, ["idle", "heat"]).withDescription("Heating state calculated from PI heating demand"),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+
+            // The OTH3600 rejects reporting configuration for systemMode/keypadLockout and does not expose runningState.
+            // The modern extends above configure only the attributes confirmed to support reporting.
+            await endpoint.read("hvacThermostat", ["localTemp", "occupiedHeatingSetpoint", "systemMode", "pIHeatingDemand"]);
+            await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
+            await endpoint.read("haElectricalMeasurement", ["rmsVoltage", "rmsCurrent"]);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await endpoint.read("seMetering", ["currentSummDelivered"]);
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>(
+                "manuSpecificSinope",
+                ["outdoorTempToDisplay", "outdoorTempToDisplayTimeout", "secondScreenBehavior"],
+                manuSinope,
+            );
+        },
+    },
+    {
         zigbeeModel: ["TH1400ZB"],
         model: "TH1400ZB",
         vendor: "Sinopé",
@@ -1744,17 +1872,20 @@ export const definitions: DefinitionWithExtend[] = [
                 /* Not all support this */
             }
 
-            await endpoint.read<"hvacThermostat", SinopeHvacThermostat>("hvacThermostat", [
+            await endpoint.read("hvacThermostat", [
                 "occupiedHeatingSetpoint",
                 "localTemp",
                 "systemMode",
                 "pIHeatingDemand",
-                "sinopeBacklight",
                 "maxHeatSetpointLimit",
                 "minHeatSetpointLimit",
-                "sinopeMainCycleOutput",
-                "sinopeAuxCycleOutput",
             ]);
+            // zigbee-herdsman rejects mixing manufacturer-specific and standard attributes in one read
+            await endpoint.read<"hvacThermostat", SinopeHvacThermostat>(
+                "hvacThermostat",
+                ["sinopeBacklight", "sinopeMainCycleOutput", "sinopeAuxCycleOutput"],
+                manuSinope,
+            );
             await endpoint.read("hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
             await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", [
                 "timeFormatToDisplay",

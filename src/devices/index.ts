@@ -11,6 +11,7 @@ import {definitions as akuvox} from "./akuvox";
 import {definitions as alchemy} from "./alchemy";
 import {definitions as aldi} from "./aldi";
 import {definitions as alecto} from "./alecto";
+import {definitions as allesin} from "./allesin";
 import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
 import {definitions as atlantic} from "./atlantic";
@@ -22,6 +23,7 @@ import {definitions as awox} from "./awox";
 import {definitions as axis} from "./axis";
 import {definitions as bacchus} from "./bacchus";
 import {definitions as bankamp} from "./bankamp";
+import {definitions as beca} from "./beca";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
 import {definitions as bitron} from "./bitron";
@@ -82,6 +84,7 @@ import {definitions as ecozy} from "./ecozy";
 import {definitions as edp} from "./edp";
 import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
+import {definitions as ekaza} from "./ekaza";
 import {definitions as elko} from "./elko";
 import {definitions as enbrighten} from "./enbrighten";
 import {definitions as engo} from "./engo";
@@ -114,6 +117,7 @@ import {definitions as giderwel} from "./giderwel";
 import {definitions as giex} from "./giex";
 import {definitions as girier} from "./girier";
 import {definitions as gledopto} from "./gledopto";
+import {definitions as gluon} from "./gluon";
 import {definitions as gmmts} from "./gmmts";
 import {definitions as gmy} from "./gmy";
 import {definitions as gs} from "./gs";
@@ -210,6 +214,7 @@ import {definitions as megaman} from "./megaman";
 import {definitions as mercator} from "./mercator";
 import {definitions as miboxer} from "./miboxer";
 import {definitions as micromatic} from "./micromatic";
+import {definitions as miele} from "./miele";
 import {definitions as mill} from "./mill";
 import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
@@ -329,6 +334,7 @@ import {definitions as spotmau} from "./spotmau";
 import {definitions as sprut} from "./sprut";
 import {definitions as stello} from "./stello";
 import {definitions as stelpro} from "./stelpro";
+import {definitions as streda} from "./streda";
 import {definitions as stuckatprototype} from "./stuckatprototype";
 import {definitions as sunricher} from "./sunricher";
 import {definitions as superled} from "./superled";
@@ -340,6 +346,7 @@ import {definitions as tci} from "./tci";
 import {definitions as tcl} from "./tcl";
 import {definitions as tech} from "./tech";
 import {definitions as technicolor} from "./technicolor";
+import {definitions as teploluxe} from "./teploluxe";
 import {definitions as terncy} from "./terncy";
 import {definitions as theLightGroup} from "./the_light_group";
 import {definitions as thirdReality} from "./third_reality";
@@ -403,6 +410,7 @@ const definitions: DefinitionWithExtend[] = [
     ...alchemy,
     ...aldi,
     ...alecto,
+    ...allesin,
     ...amina,
     ...anchor,
     ...atlantic,
@@ -414,6 +422,7 @@ const definitions: DefinitionWithExtend[] = [
     ...axis,
     ...bacchus,
     ...bankamp,
+    ...beca,
     ...bega,
     ...belkin,
     ...bitron,
@@ -473,6 +482,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ecozy,
     ...edp,
     ...efekta,
+    ...ekaza,
     ...eglo,
     ...elko,
     ...enbrighten,
@@ -505,6 +515,7 @@ const definitions: DefinitionWithExtend[] = [
     ...giex,
     ...girier,
     ...gledopto,
+    ...gluon,
     ...gmmts,
     ...gmy,
     ...gs,
@@ -599,6 +610,7 @@ const definitions: DefinitionWithExtend[] = [
     ...mercator,
     ...miboxer,
     ...micromatic,
+    ...miele,
     ...mill,
     ...mindy,
     ...modular,
@@ -718,6 +730,7 @@ const definitions: DefinitionWithExtend[] = [
     ...sprut,
     ...stello,
     ...stelpro,
+    ...streda,
     ...stuckatprototype,
     ...sunricher,
     ...superled,
@@ -729,6 +742,7 @@ const definitions: DefinitionWithExtend[] = [
     ...tcl,
     ...tech,
     ...technicolor,
+    ...teploluxe,
     ...terncy,
     ...theLightGroup,
     ...thirdReality,

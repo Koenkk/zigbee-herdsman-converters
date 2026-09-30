@@ -293,6 +293,9 @@ export const definitions: DefinitionWithExtend[] = [
                     values: ["off", "heat", "cool", "auto", "dry", "fan_only"],
                 },
                 fanMode: ["off", "low", "medium", "high", "auto"],
+                acLouverPosition: {
+                    values: ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"],
+                },
             }),
             m.deviceAddCustomCluster("nodonIrExtender", {
                 name: "nodonIrExtender",
@@ -311,9 +314,8 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
-        toZigbee: [tz.thermostat_ac_louver_position, nodonIrbTz.irb_holder_temperature_calibration],
+        toZigbee: [nodonIrbTz.irb_holder_temperature_calibration],
         exposes: [
-            e.climate().withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
             e
                 .numeric("irb_holder_temperature_calibration", ea.ALL)
                 .withLabel("IBH temperature offset")
@@ -326,11 +328,6 @@ export const definitions: DefinitionWithExtend[] = [
                         "accessory is physically connected to this device.",
                 ),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["hvacThermostat"]);
-            await reporting.thermostatAcLouverPosition(endpoint);
-        },
         endpoint: (device) => ({default: 1}),
         ota: true,
         version: "0.0.1",
