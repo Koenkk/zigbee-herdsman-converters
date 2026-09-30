@@ -5253,7 +5253,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Aubess", "40ZH-O", "Motion sensor", ["_TZ3040_msl6wxk9"])],
     },
     {
-        zigbeeModel: ["ZG-204Z"],
         fingerprint: tuya.fingerprint("TS0202", ["_TZ3000_mcxw5ehu", "_TZ3000_6ygjfyll", "_TZ3040_6ygjfyll", "_TZ3000_msl6wxk9"]),
         model: "IH012-RT01",
         vendor: "Tuya",
@@ -5266,9 +5265,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({
                 zoneType: "occupancy",
                 zoneAttributes: ["alarm_1", "battery_low"],
-                // No keepAlivetimeout for ZG-204Z
-                // https://github.com/Koenkk/zigbee2mqtt/issues/30676
-                keepAliveTimeout: (d) => (d.modelID === "ZG-204Z" ? 0 : 125),
+                
             }),
         ],
         exposes: [
@@ -5284,11 +5281,6 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryVoltage(endpoint);
         },
         whiteLabel: [
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-204Z",
-                fingerprint: [{modelID: "ZG-204Z"}],
-            },
             tuya.whitelabel("Tuya", "ZMS-102", "Motion sensor", ["_TZ3000_msl6wxk9"]),
         ],
     },
@@ -5352,18 +5344,13 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
-        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "ZG-222Z", "AY222Z"],
+        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "AY222Z"],
         model: "TS0207_water_leak_detector",
         vendor: "Tuya",
         description: "Water leak detector",
         fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
         whiteLabel: [
             {vendor: "CR Smart Home", model: "TS0207"},
-            {
-                vendor: "HOBEIAN",
-                model: "ZG-222Z",
-                fingerprint: [{modelID: "ZG-222Z"}],
-            },
             {
                 vendor: "AOYAN",
                 model: "AY222Z",
@@ -16346,66 +16333,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("led_state", ea.STATE_SET, true, false).withDescription("Turns the onboard LED on or off"),
         ],
     },
-    {
-        zigbeeModel: ["ZG-227Z", "ZG-227ZL", "AY201Z"],
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE200_qoy0ekbd",
-            "_TZE200_znbl8dj5",
-            "_TZE200_a8sdabtg",
-            "_TZE200_dikkika5",
-            "_TZE200_vs0skpuc",
-            "_TZE200_3xfjp0ag",
-            "_TZE200_ehhrv2e3",
-            "_TZE200_lhqtjwax",
-            "_TZE200_y8wkaq6w",
-        ]),
-        model: "ZG-227ZL",
-        vendor: "Tuya",
-        description: "Temperature & humidity LCD sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.temperature(),
-            e.humidity(),
-            tuya.exposes.temperatureUnit(),
-            tuya.exposes.temperatureCalibration(),
-            tuya.exposes.humidityCalibration(),
-            e.battery(),
-        ],
-        whiteLabel: [
-            {
-                model: "ZG-227Z",
-                vendor: "HOBEIAN",
-                description: "Temperature & humidity sensor",
-                fingerprint: [
-                    {modelID: "ZG-227Z"},
-                    {manufacturerName: "_TZE200_a8sdabtg"},
-                    {manufacturerName: "_TZE200_vs0skpuc"},
-                    {manufacturerName: "_TZE200_ehhrv2e3"},
-                    {manufacturerName: "_TZE200_dikkika5"},
-                    {manufacturerName: "_TZE200_znbl8dj5"},
-                    {manufacturerName: "_TZE200_lhqtjwax"},
-                    {manufacturerName: "_TZE200_vs0skpuc"},
-                ],
-            },
-            tuya.whitelabel("KOJIMA", "KOJIMA-THS-ZG-LCD", "Temperature and humidity sensor", ["_TZE200_dikkika5", "_TZE200_y8wkaq6w"]),
-            {
-                model: "AY201Z",
-                vendor: "AOYAN",
-                description: "Temperature & humidity LCD sensor",
-                fingerprint: [{modelID: "AY201Z"}],
-            },
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "temperature", tuya.valueConverter.divideBy10],
-                [2, "humidity", tuya.valueConverter.raw],
-                [4, "battery", tuya.valueConverter.raw],
-                [9, "temperature_unit", tuya.valueConverter.temperatureUnit],
-                [23, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [24, "humidity_calibration", tuya.valueConverter.raw],
-            ],
-        },
-    },
+   
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_j7sgd8po"]),
         model: "S8",
