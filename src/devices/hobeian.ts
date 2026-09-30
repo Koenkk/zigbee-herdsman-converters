@@ -1,4 +1,3 @@
-import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -7,15 +6,12 @@ import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, 
 import * as zosung from "../lib/zosung";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as globalStore from "../lib/store";
-import * as utils from "../lib/utils";
-import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
+import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName, getFromLookup, ignoreUnsupportedAttribute} from "../lib/utils";
 import * as legacy from "../lib/legacy";
-import {logger} from "../lib/logger";
 const e = exposes.presets;
 const ea = exposes.access;
 
-const {tuyaLight, tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
+const {tuyaBase, tuyaMagicPacket, dpBinary, dpNumeric, dpEnumLookup, tuyaWeatherForecast} = tuya.modernExtend;
 
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
@@ -77,15 +73,15 @@ const tzLocal = {
             return await tzZosung.zosung_ir_code_to_send.convertSet(entity, key, value, meta);
         },
     } satisfies Tz.Converter,
-    ZG204_attr: {
+    zg204_attr: {
         key: ["sensitivity", "keep_time"],
         convertSet: async (entity, key, value, meta) => {
             switch (key) {
                 case "sensitivity":
-                    await entity.write("ssIasZone", {currentZoneSensitivityLevel: utils.getFromLookup(value, {low: 0, medium: 1, high: 2})});
+                    await entity.write("ssIasZone", {currentZoneSensitivityLevel: getFromLookup(value, {low: 0, medium: 1, high: 2})});
                     break;
                 case "keep_time":
-                    await entity.write("ssIasZone", {61441: {value: utils.getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
+                    await entity.write("ssIasZone", {61441: {value: getFromLookup(value, {30: 0, 60: 1, 120: 2}), type: 0x20}});
                     break;
                 default: // Unknown key
                     throw new Error(`Unhandled key ${key}`);
@@ -115,7 +111,7 @@ const fzLocal={
             return payload;
         },
     } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
- ZG204_attr: {
+ zg204_attr: {
         cluster: "ssIasZone",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -1788,8 +1784,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204Z",
         vendor: "HOBEIAN",
         description: "Motion sensor",
-        fromZigbee: [fzLocal.ZG204_attr, fz.battery],
-        toZigbee: [tzLocal.ZG204_attr],
+        fromZigbee: [fzLocal.zg204_attr, fz.battery],
+        toZigbee: [tzLocal.zg204_attr],
         extend: [
             m.quirkCheckinInterval(15000),
             // Occupancy reporting interval is 60s, so allow for one dropped update plus a small safety margin of 5s
@@ -1871,7 +1867,7 @@ export const definitions: DefinitionWithExtend[] = [
             // similar TS004F buttons do so for the tuyaOperationMode write; both work fine without it.
             // https://github.com/Koenkk/zigbee2mqtt/issues/31917
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await utils.ignoreUnsupportedAttribute(async () => {
+            await ignoreUnsupportedAttribute(async () => {
                 await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
             }, "tuyaOperationMode write");
             await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
