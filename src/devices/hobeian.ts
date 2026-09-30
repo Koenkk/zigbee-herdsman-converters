@@ -81,23 +81,7 @@ const tzLocal = {
 
 };
 
-const fzLocal={
-    command_stop_move_raw: {
-        cluster: "lightingColorCtrl",
-        type: "raw",
-        convert: (model, msg, publish, options, meta) => {
-            // commandStopMove without params
-            if (msg.data[2] !== 71) return;
-            if (hasAlreadyProcessedMessage(msg, model)) return;
-            const movestop = "stop";
-            const action = postfixWithEndpointName(`hue_${movestop}`, msg, model, meta);
-            const payload = {action};
-            addActionGroup(payload, msg, model);
-            return payload;
-        },
-    } satisfies Fz.Converter<"lightingColorCtrl", undefined, "raw">,
- 
-};
+
 
 export const definitions: DefinitionWithExtend[] = [
     {
