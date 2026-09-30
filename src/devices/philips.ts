@@ -1248,6 +1248,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
+        zigbeeModel: ["929004320801"],
+        model: "929004320801",
+        vendor: "Philips",
+        description: "Hue Play Floor lamp large",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
+    },
+    {
         zigbeeModel: ["915005988001"],
         model: "915005988001",
         vendor: "Philips",
@@ -5072,6 +5079,12 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "Philips",
                 description: "Hue White and Color Lightstrip Flux (4m)",
                 fingerprint: [{modelID: "929004610502"}],
+            },
+            {
+                model: "929004610603",
+                vendor: "Philips",
+                description: "Hue White and Color Lightstrip Flux (5m)",
+                fingerprint: [{modelID: "929004610603"}],
             },
             {
                 model: "929004610602",

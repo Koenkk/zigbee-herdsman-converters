@@ -359,6 +359,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [glydeaWindowCovering],
     },
     {
+        zigbeeModel: ["Glydea 2 Ultra WF Curtain"],
+        model: "1246595",
+        vendor: "Somfy",
+        description: "Glydea2 Ultra 50 WF Zigbee curtain motor",
+        extend: [m.windowCovering({controls: ["lift"]}), m.battery()],
+    },
+    {
         zigbeeModel: ["Tilt & Lift 25 WF Roller"],
         model: "1245602",
         vendor: "Somfy",

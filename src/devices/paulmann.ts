@@ -412,6 +412,19 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        fingerprint: [
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5A00",
+            },
+        ],
+        model: "291.45",
+        vendor: "Paulmann",
+        description: "Smart Home Zigbee LED bulb 11W Matt E27 RGBWW",
+        extend: [m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+    },
+    {
         fingerprint: tuya.fingerprint("TS000F", ["_TZ3210_hjxqqofs\u0000"]),
         model: "501.39",
         vendor: "Paulmann",

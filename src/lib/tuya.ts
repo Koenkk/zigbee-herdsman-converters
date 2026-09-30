@@ -5022,6 +5022,7 @@ const tuyaModernExtend = {
             powerOnBehavior2 = false,
             powerOnBehavior3 = false,
             switchType = false,
+            switchTypeButton = false,
         } = args;
         const exposes: (Expose | DefinitionExposesFunction)[] = args.endpoints
             ? args.endpoints.map((ee) => e.switch().withEndpoint(ee))
@@ -5120,10 +5121,14 @@ const tuyaModernExtend = {
             toZigbee.push(tuyaTz.switch_type_curtain);
             exposes.push(tuyaExposes.switchTypeCurtain());
         }
-        if (args.switchTypeButton) {
+        if (switchTypeButton) {
             fromZigbee.push(tuyaFz.switch_type_button);
             toZigbee.push(tuyaTz.switch_type_button);
-            exposes.push(tuyaExposes.switchTypeButton());
+            if (typeof switchTypeButton === "function") {
+                exposes.push((d) => (switchTypeButton(d.manufacturerName) ? [tuyaExposes.switchTypeButton()] : []));
+            } else {
+                exposes.push(tuyaExposes.switchTypeButton());
+            }
         }
         if (backlightModeOffOn) {
             fromZigbee.push(tuyaFz.backlight_mode_off_on);
