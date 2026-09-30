@@ -576,7 +576,8 @@ const edgeSensorModeValueLookup: KeyValue = {
 };
 const edgeOnOffLookup: KeyValue = {OFF: 0, ON: 1};
 // Week program (0x8003), mapped on real hardware by changing it on the device.
-const edgeWeekProgramLookup: KeyValue = {"0": "mon_fri_sat_sun", "1": "mon_sat_sun", "2": "no_time_off", "3": "off"};
+// Names follow the device's own labels: "no time off" = every day a work day, "time off" = every day off.
+const edgeWeekProgramLookup: KeyValue = {"0": "mon_fri_sat_sun", "1": "mon_sat_sun", "2": "no_time_off", "3": "time_off"};
 const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
 // id 2/3 confirmed against real hardware (Namron's own Homey driver agrees).
 const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "30s", "3": "60s"};
@@ -1270,8 +1271,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
             e
-                .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "off"])
-                .withDescription("Week program split set on the device (read-only). Changes made on the device show up at the next poll."),
+                .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
+                .withDescription(
+                    'Week program split set on the device (read-only): work days / days off. "no_time_off" = every day a work day, "time_off" = every day off. Changes made on the device show up at the next poll.',
+                ),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
             e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
