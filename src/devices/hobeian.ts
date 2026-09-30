@@ -194,45 +194,4 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-     {
-        zigbeeModel: ["ZG-308Z"],
-        model: "ZG-308Z",
-        vendor: "HOBEIAN",
-        description: "Water valve",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.binary('switch', ea.STATE_SET, 'ON', 'OFF').withDescription('Valve on/off'),
-            e.enum("valve_status", ea.STATE, ["auto", "manual", "idle"]).withDescription("Valve 1 status (manual, auto, idle)"),
-            e
-                .numeric("countdown", ea.STATE_SET)
-                .withUnit("s")
-                .withDescription("Valve countdown in seconds")
-                .withValueMin(0)
-                .withValueMax(86400),
-            e.numeric("valve_duration", ea.STATE).withUnit("s").withDescription("Valve  irrigation last duration in seconds"),
-            e.numeric("total_irrigation_duration", ea.STATE).withUnit("s").withDescription("Valve  irrigation last duration in seconds"),
-            e.enum("weather_delay", ea.STATE_SET, ["cancel", "hour_12h", "hour_24h","hour_48h", "hour_72h"]).withDescription("Weather delay: No operation when raining"),
-            e.enum("current_weather", ea.STATE_SET, ["sunny", "clear", "cloud","cloudy", "rainy","snow","fog"]).withDescription("Weather status needs to be sent to the device"),
-            e.binary('weather_onoff', ea.STATE_SET, 'ON', 'OFF').withDescription('smart weather_onoff on/off'),
-            e.binary('get_weather', ea.STATE, 'ON', 'OFF').withDescription('The device actively requests weather data from the gateway, and the gateway shall respond with current_weather information to the device'),
-            e.enum("weather_status", ea.STATE, ["sunny","cloudy","rainy","snow","null"]).withDescription('Weather information feedback received'),
-            e.battery(),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "switch", tuya.valueConverter.onOff], 
-                [12, "valve_status", tuya.valueConverterBasic.lookup({auto: 0,manual: 1,  idle: 2})], // Valve status
-                [11, "countdown", tuya.valueConverter.raw], 
-                [15, "valve_duration", tuya.valueConverter.raw], 
-                [9, "total_irrigation_duration", tuya.valueConverter.raw], 
-                [10, "weather_delay", tuya.valueConverterBasic.lookup({cancel: 0, hour_12h: 1, hour_24h: 2,hour_48h:3,hour_72h:4})], 
-                [13, "current_weather", tuya.valueConverterBasic.lookup({sunny: 0, clear: 1, cloud: 2,cloudy:3, rainy:4,snow:5,fog:6})], 
-                [101, "weather_status", tuya.valueConverterBasic.lookup({sunny: 0, cloudy: 1, rainy: 2,snow:3,null:4})], 
-                [14, "weather_onoff", tuya.valueConverter.onOff], 
-                [102, "get_weather", tuya.valueConverter.onOff], 
-                [7, "battery", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    
 ];
