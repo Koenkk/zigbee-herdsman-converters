@@ -944,11 +944,11 @@ const tzEdge = {
     // meaningless value (1325465600), confirmed on real hardware.
     //
     // Hysteresis is not exposed: it is not reachable over Zigbee (checked on firmware 1.12 and 1.14).
-    // HZC's documentation for the related Simplify thermostat puts it at 0x8045 (INT16S, 0.1 °C),
-    // but both firmwares answer UNSUPPORTED_ATTRIBUTE for 0x8045, 0x8041, 0x8035 and 0x8052
-    // (1.14 also for 0x802a-0x8040).
-    // 0x8003 is not hysteresis but Work_days (ENUM8: 5+2, 6+1, 7+0, 0+7). The "Intelligence"
-    // on/off setting is not reachable over Zigbee either.
+    // Both firmwares answer UNSUPPORTED_ATTRIBUTE for 0x8035, 0x8041, 0x8045 and 0x8052 (1.14 also
+    // for 0x802a-0x8040), and changing hysteresis on the device changes no readable attribute.
+    // 0x8003 is not hysteresis but the device's week program / work days setting (ENUM8). Confirmed
+    // on 1.14 by changing it on the device: 0 = Mon-Fri + Sat-Sun, 2 = off. Other values unmapped.
+    // The "Intelligence" on/off setting is not reachable over Zigbee either.
 
     screen_on_time: {
         key: ["screen_on_time"],
