@@ -1102,6 +1102,22 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             edgeThermostatCommands(),
+            // Hysteresis changed on the device is not reported, but reads return it (confirmed on real
+            // hardware), so poll it to pick up changes made on the device.
+            m.poll({
+                key: "namron_edge_hysteresis_poll",
+                optionKey: "hysteresis_poll_interval",
+                option: e
+                    .numeric("hysteresis_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("How often hysteresis is read from the device, in seconds (default: 900, -1 to disable)."),
+                defaultIntervalSeconds: 900,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    if (!endpoint) return;
+                    await endpoint.read("hvacThermostat", [0x8003]);
+                },
+            }),
             m.onOff({powerOnBehavior: false}),
             m.humidity(),
             m.electricityMeter({voltage: false, configureReporting: false}),
@@ -1260,7 +1276,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(10)
                 .withValueStep(0.5)
                 .withDescription(
-                    'Temperature swing before the relay switches. Only used when "Intelligence" is turned off on the device; that setting can only be changed on the device itself.',
+                    'Temperature swing before the relay switches. Only used when "Intelligence" is turned off on the device (that setting can only be changed on the device). The device uses whichever value was set last, here or on the device, but its screen does not show values set here, and values set on the device only show up here at the next poll (see hysteresis_poll_interval).',
                 ),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
