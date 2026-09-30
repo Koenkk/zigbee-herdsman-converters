@@ -6099,15 +6099,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "ntc_sensor_type",
-                lookup: {ntc_10k: 10, ntc_50k: 50, ntc_100k: 100, unknown: 10000},
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0315, type: Zcl.DataType.UINT32},
-                description: "NTC sensor type (k - KOhm)",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            lumi.lumiModernExtend.w500NtcSensor(),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "window_detection",
                 valueOn: ["ON", 1],
