@@ -575,6 +575,8 @@ const edgeSensorModeValueLookup: KeyValue = {
     regulator: 6,
 };
 const edgeOnOffLookup: KeyValue = {OFF: 0, ON: 1};
+// Week program (0x8003), mapped on real hardware by changing it on the device.
+const edgeWeekProgramLookup: KeyValue = {"0": "mon_fri_sat_sun", "1": "mon_sat_sun", "2": "no_time_off", "3": "off"};
 const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
 // id 2/3 confirmed against real hardware (Namron's own Homey driver agrees).
 const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "30s", "3": "60s"};
@@ -662,6 +664,9 @@ const fzEdge = {
                         break;
                     case 0x8002:
                         result["window_state"] = value ? "open" : "closed";
+                        break;
+                    case 0x8003:
+                        result["week_program"] = edgeWeekProgramLookup[String(value as number)] ?? String(value);
                         break;
                     case 0x8004:
                         result["sensor_mode"] = edgeSensorModeLookup[String(value as number)] ?? String(value);
@@ -940,15 +945,23 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
+    // Week program (0x8003) is read-only: changes made on the device read back, but the device is not
+    // confirmed to act on writes, and it does not report changes, so it is polled.
+    week_program: {
+        key: ["week_program"],
+        convertGet: async (entity) => {
+            await entity.read("hvacThermostat", [0x8003]);
+        },
+    } satisfies Tz.Converter,
+
     // countdownLeft (0x8024) is not exposed: this firmware answers reads on it with a
     // meaningless value (1325465600), confirmed on real hardware.
     //
     // Hysteresis is not exposed: it is not reachable over Zigbee (checked on firmware 1.12 and 1.14).
     // Both firmwares answer UNSUPPORTED_ATTRIBUTE for 0x8035, 0x8041, 0x8045 and 0x8052 (1.14 also
     // for 0x802a-0x8040), and changing hysteresis on the device changes no readable attribute.
-    // 0x8003 is not hysteresis but the device's week program / work days setting (ENUM8). Confirmed
-    // on 1.14 by changing it on the device: 0 = Mon-Fri + Sat-Sun, 2 = off. Other values unmapped.
-    // The "Intelligence" on/off setting is not reachable over Zigbee either.
+    // 0x8003 is not hysteresis but the week program setting (week_program above). The "Intelligence"
+    // on/off setting is not reachable over Zigbee either.
 
     screen_on_time: {
         key: ["screen_on_time"],
@@ -1090,6 +1103,21 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             edgeThermostatCommands(),
+            // The week program changed on the device is not reported, so read it periodically.
+            m.poll({
+                key: "namron_edge_week_program_poll",
+                optionKey: "week_program_poll_interval",
+                option: e
+                    .numeric("week_program_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("How often week_program is read from the device, in seconds (default: 900, -1 to disable)."),
+                defaultIntervalSeconds: 900,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    if (!endpoint) return;
+                    await endpoint.read("hvacThermostat", [0x8003]);
+                },
+            }),
             m.onOff({powerOnBehavior: false}),
             m.humidity(),
             m.electricityMeter({voltage: false, configureReporting: false}),
@@ -1114,6 +1142,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzEdge.auto_time,
             tzEdge.sync_time,
             tzEdge.countdown_set,
+            tzEdge.week_program,
             tzEdge.screen_on_time,
             tzEdge.panel_brightness,
             tzEdge.regulator_percentage,
@@ -1189,8 +1218,8 @@ export const definitions: DefinitionWithExtend[] = [
                 endpoint,
                 "hvacThermostat",
                 [
-                    0x8000, 0x8001, 0x8002, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011, 0x8012,
-                    0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
+                    0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x800e, 0x800f, 0x8010, 0x8011,
+                    0x8012, 0x8013, 0x801b, 0x801d, 0x801f, 0x8020, 0x8021, 0x8022, 0x8023, 0x8025, 0x8026, 0x8027, 0x8028, 0x8029,
                 ],
             );
             await safeReadEdge(endpoint, "hvacUserInterfaceCfg", ["keypadLockout", "tempDisplayMode"]);
@@ -1240,6 +1269,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
+            e
+                .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "off"])
+                .withDescription("Week program split set on the device (read-only). Changes made on the device show up at the next poll."),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
             e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
