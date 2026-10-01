@@ -1,8 +1,9 @@
 import {describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
+import * as legacy from "../src/lib/legacy";
 import * as tuya from "../src/lib/tuya";
-import type {Fz} from "../src/lib/types";
+import type {Definition, Fz, KeyValueAny} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
@@ -495,5 +496,25 @@ describe("lib/tuya", () => {
 
             await expect(definition.configure?.(device, device.getEndpoint(1), definition)).rejects.toThrow("Timeout");
         });
+    });
+});
+
+describe("legacy.fz.moes_thermostat", () => {
+    const convert = (dpValue: KeyValueAny) =>
+        legacy.fz.moes_thermostat.convert(
+            {model: "BHT-002"} as Definition,
+            {type: "commandDataResponse", data: {dpValues: [dpValue]}} as unknown as Fz.Message,
+            () => {},
+            {},
+            {device: {manufacturerName: "_TZE200_aoclfnxz", ieeeAddr: "0x84ba20fffee2b3da"}} as unknown as Fz.Meta,
+        );
+
+    it("converts a heating setpoint report", () => {
+        expect(convert({dp: 16, datatype: 2, data: Buffer.from([0, 0, 0, 18])})).toStrictEqual({current_heating_setpoint: 18});
+    });
+
+    it("ignores a data point with an unknown datatype instead of publishing undefined", () => {
+        // Captured from a BHT-002: an undefined setpoint is dropped by JSON serialisation and erases the cached state
+        expect(convert({dp: 16, datatype: 85, data: Buffer.from([17, 217, 6, 0])})).toBeUndefined();
     });
 });
