@@ -31888,7 +31888,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: [{modelID: "TS0505B", manufacturerName: "_TZ3210_ffuna0nr"}],
-        model: "TS0505B",
+        model: "TS0505B_hs",
         vendor: "Tuya",
         description: "Smart LED bulb (RGBCW)",
         extend: [
@@ -31903,7 +31903,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "TS0503B", manufacturerName: "_TZ3210_rbixajyp"},
             {modelID: "TS0503B", manufacturerName: "_TZ3210_w7ge4ldo"},
         ],
-        model: "TS0503B",
+        model: "TS0503B_hs",
         vendor: "Tuya",
         description: "RGB COB LED Strip",
         extend: [
