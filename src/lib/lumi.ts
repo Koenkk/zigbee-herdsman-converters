@@ -3963,6 +3963,7 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
+    w500NtcSensor: (): ModernExtend => createW500NtcSensor(),
     w600ExternalTempSensor: (): ModernExtend => createW600ExternalTempSensor(),
     w600Heartbeat: (): ModernExtend => createW600Heartbeat(),
     w600Thermostat: (): ModernExtend => createW600Thermostat(),
@@ -5548,6 +5549,159 @@ function matchesW600WeeklyScheduleOtaRequest(data: KeyValue | undefined, require
     }
 
     return !requireFileVersion || getNumericW600OtaRequestField(data, "fileVersion") === W600_WEEKLY_SCHEDULE_FILE_VERSION;
+}
+
+const W500_ATTR_NTC_R25 = 0x0315;
+const W500_ATTR_NTC_BETA = 0x0316;
+const W500_NTC_PRESET_BETA = 3950;
+const W500_NTC_PRESETS: Record<string, number> = {ntc_10k: 10, ntc_50k: 50, ntc_100k: 100};
+const W500_NTC_R25_MIN = 1;
+const W500_NTC_R25_MAX = 999;
+const W500_NTC_BETA_MIN = 1000;
+const W500_NTC_BETA_MAX = 9999;
+
+/**
+ * NTC floor sensor parameters of the Aqara W500 (firmware 0.0.0_1030).
+ *
+ * - 0x0315 (uint32) is the sensor resistance at 25 °C. It is written in kOhm, but after a power cycle
+ *   the device reports the stored value in Ohm (e.g. 10 is read back as 10000).
+ * - 0x0316 only accepts float32, but the firmware uses the 2 least significant bytes of the written value
+ *   as an uint16 beta (writing 3950.0 = 0x4576E000 results in a beta of 0xE000 = 57344). After a power cycle
+ *   the device reports the beta it actually uses as a whole number.
+ *
+ * The temperature is calculated as 1 / (1 / 298.15 + ln(R / R25) / beta) - 273.15.
+ */
+export const w500Ntc = {
+    encodeBeta: (beta: number): number => {
+        // Of all float32 values ending with the requested 16 bits, take the one closest to the requested beta,
+        // that way the value is still reasonable in case a future firmware parses the float properly.
+        // Whole numbers are skipped since those are indistinguishable from the value reported after a power cycle.
+        const buffer = Buffer.alloc(4);
+        let result: number | undefined;
+        for (let high = 0x3f80; high <= 0x47ff; high++) {
+            buffer.writeUInt16BE(high, 0);
+            buffer.writeUInt16BE(beta, 2);
+            const candidate = buffer.readFloatBE(0);
+            if (Number.isInteger(candidate)) continue;
+            if (result === undefined || Math.abs(candidate - beta) < Math.abs(result - beta)) result = candidate;
+        }
+        return result;
+    },
+    decodeBeta: (value: number): number => {
+        if (Number.isInteger(value)) return value;
+        const buffer = Buffer.alloc(4);
+        buffer.writeFloatBE(value, 0);
+        return buffer.readUInt16BE(2);
+    },
+    decodeR25: (value: number): number => (value >= 1000 ? value / 1000 : value),
+    sensorType: (r25: unknown, beta: unknown): string => {
+        const preset = Object.keys(W500_NTC_PRESETS).find((key) => W500_NTC_PRESETS[key] === r25);
+        return preset && (beta == null || beta === W500_NTC_PRESET_BETA) ? preset : "custom";
+    },
+};
+
+function createW500NtcSensor(): ModernExtend {
+    const sensorTypes = [...Object.keys(W500_NTC_PRESETS), "custom"];
+    const parse = (value: unknown, property: string, min: number, max: number) => {
+        const number = toNumber(value, property);
+        if (!Number.isInteger(number) || number < min || number > max) {
+            throw new Error(`${property} must be a whole number between ${min} and ${max}, got '${value}'`);
+        }
+        return number;
+    };
+    const parseR25 = (value: unknown) => parse(value, "ntc_r25", W500_NTC_R25_MIN, W500_NTC_R25_MAX);
+    const parseBeta = (value: unknown) => parse(value, "ntc_beta", W500_NTC_BETA_MIN, W500_NTC_BETA_MAX);
+    const writeR25 = (entity: Zh.Endpoint | Zh.Group, r25: number) =>
+        entity.write(W600_LUMI_CLUSTER, {[W500_ATTR_NTC_R25]: {value: r25, type: Zcl.DataType.UINT32}}, {manufacturerCode});
+    const writeBeta = (entity: Zh.Endpoint | Zh.Group, beta: number) =>
+        entity.write(
+            W600_LUMI_CLUSTER,
+            {[W500_ATTR_NTC_BETA]: {value: w500Ntc.encodeBeta(beta), type: Zcl.DataType.SINGLE_PREC}},
+            {manufacturerCode},
+        );
+    const convertGet: Tz.Converter["convertGet"] = async (entity) => {
+        await entity.read(W600_LUMI_CLUSTER, [W500_ATTR_NTC_R25, W500_ATTR_NTC_BETA] as never, {manufacturerCode});
+    };
+
+    return {
+        exposes: [
+            e
+                .enum("ntc_sensor_type", ea.ALL, sensorTypes)
+                .withDescription(
+                    `NTC sensor type (k - kOhm), the presets use a beta of ${W500_NTC_PRESET_BETA}. ` +
+                        "For other sensors set 'ntc_r25' and 'ntc_beta', the type then becomes custom",
+                ),
+            e
+                .numeric("ntc_r25", ea.ALL)
+                .withUnit("kΩ")
+                .withValueMin(W500_NTC_R25_MIN)
+                .withValueMax(W500_NTC_R25_MAX)
+                .withValueStep(1)
+                .withDescription("Resistance of the NTC sensor at 25 °C (R25) as a whole number of kOhm, e.g. 2 for a 2 kOhm sensor")
+                .withCategory("config"),
+            e
+                .numeric("ntc_beta", ea.ALL)
+                .withUnit("K")
+                .withValueMin(W500_NTC_BETA_MIN)
+                .withValueMax(W500_NTC_BETA_MAX)
+                .withValueStep(1)
+                .withDescription("Beta (B) value of the NTC sensor as stated in its datasheet, e.g. 3950")
+                .withCategory("config"),
+        ],
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const r25 = msg.data[W500_ATTR_NTC_R25];
+                    const beta = msg.data[W500_ATTR_NTC_BETA];
+                    if (typeof r25 === "number") result.ntc_r25 = w500Ntc.decodeR25(r25);
+                    if (typeof beta === "number") result.ntc_beta = w500Ntc.decodeBeta(beta);
+                    if (Object.keys(result).length === 0) return;
+                    result.ntc_sensor_type = w500Ntc.sensorType(result.ntc_r25 ?? meta?.state?.ntc_r25, result.ntc_beta ?? meta?.state?.ntc_beta);
+                    return result;
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["ntc_sensor_type"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertString(value, key);
+                    if (!sensorTypes.includes(value)) throw new Error(`ntc_sensor_type must be one of: ${sensorTypes.join(", ")}, got '${value}'`);
+                    const custom = value === "custom";
+                    const r25 = custom ? (meta.message.ntc_r25 ?? meta.state.ntc_r25) : W500_NTC_PRESETS[value];
+                    const beta = custom ? (meta.message.ntc_beta ?? meta.state.ntc_beta) : W500_NTC_PRESET_BETA;
+                    if (r25 == null || beta == null) throw new Error("Set 'ntc_r25' and 'ntc_beta' to use a custom NTC sensor");
+                    const state = {ntc_r25: parseR25(r25), ntc_beta: parseBeta(beta)};
+                    await writeR25(entity, state.ntc_r25);
+                    await writeBeta(entity, state.ntc_beta);
+                    return {state: {ntc_sensor_type: w500Ntc.sensorType(state.ntc_r25, state.ntc_beta), ...state}};
+                },
+                convertGet,
+            },
+            {
+                key: ["ntc_r25"],
+                convertSet: async (entity, key, value, meta) => {
+                    const r25 = parseR25(value);
+                    await writeR25(entity, r25);
+                    return {state: {ntc_r25: r25, ntc_sensor_type: w500Ntc.sensorType(r25, meta.message.ntc_beta ?? meta.state.ntc_beta)}};
+                },
+                convertGet,
+            },
+            {
+                key: ["ntc_beta"],
+                convertSet: async (entity, key, value, meta) => {
+                    const beta = parseBeta(value);
+                    await writeBeta(entity, beta);
+                    return {state: {ntc_beta: beta, ntc_sensor_type: w500Ntc.sensorType(meta.message.ntc_r25 ?? meta.state.ntc_r25, beta)}};
+                },
+                convertGet,
+            },
+        ],
+        isModernExtend: true,
+    };
 }
 
 function createW600ExternalTempSensor(): ModernExtend {
