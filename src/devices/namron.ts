@@ -530,20 +530,18 @@ function edgeLocalTime(): number {
     return Math.round(now.getTime() / 1000 - now.getTimezoneOffset() * 60);
 }
 
+// Vacation dates (0x8020/0x8021): days since 1970-01-01, the same encoding as Namron's own Homey driver.
 function edgeDateDecode(value: number): string | null {
     if (!value) return null;
-    try {
-        const s = String(value).padStart(6, "0");
-        return `20${s.slice(0, 2)}-${s.slice(2, 4)}-${s.slice(4, 6)}`;
-    } catch (_) {
-        return null;
-    }
+    return new Date(value * 86400000).toISOString().slice(0, 10);
 }
 
 function edgeDateEncode(value: string): number {
-    const match = String(value).match(/^20(\d{2})-(\d{2})-(\d{2})$/);
-    if (!match) throw new Error(`Invalid date: ${value}. Use YYYY-MM-DD format, e.g. 2026-06-05.`);
-    return Number(match[1] + match[2] + match[3]);
+    const [year, month, day] = String(value).split("-").map(Number);
+    const days = Date.UTC(year, month - 1, day) / 86400000;
+    const valid = String(value).length === 10 && Number.isInteger(days) && edgeDateDecode(days) === value;
+    if (!valid) throw new Error(`Invalid date: ${value}. Use YYYY-MM-DD format, e.g. 2026-06-05.`);
+    return days;
 }
 
 function deriveEdgeThermostatMode(frost: string, vacationMode: string, sensorMode: string, progOpMode: string, countdownSet: number): string {
