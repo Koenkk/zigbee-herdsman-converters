@@ -1,6 +1,13 @@
 import {describe, expect, test} from "vitest";
 import {ColorXY} from "../src/lib/color";
-import {DecodeManuSpecificPhilips2, EncodeManuSpecificPhilips2, HueEffectType, HueGradientStyle, type Philips2Data} from "../src/lib/philips";
+import {
+    DecodeManuSpecificPhilips2,
+    EncodeManuSpecificPhilips2,
+    encodeGradientColors,
+    HueEffectType,
+    HueGradientStyle,
+    type Philips2Data,
+} from "../src/lib/philips";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -656,5 +663,37 @@ describe("empty encoding", () => {
         const buf = EncodeManuSpecificPhilips2({});
         expect(buf.byteLength).toBe(2);
         expect(Buffer.from(buf).readUInt16LE(0)).toBe(0);
+    });
+});
+
+describe("encodeGradientColors fade speed", () => {
+    const colors = ["#ff0000", "#00ff00", "#0000ff"];
+
+    test("defaults to 4 deciseconds when no fadeSpeed is given", () => {
+        const hex = encodeGradientColors(colors, {style: HueGradientStyle.Scattered});
+        expect(hex.startsWith("50010400")).toBe(true);
+        expect(DecodeManuSpecificPhilips2(hexToBuffer(hex)).fadeSpeed).toBe(4);
+    });
+
+    test("encodes fadeSpeed as u16 little-endian", () => {
+        // 50 ds (5s) = 0x0032 → "3200"; 200 ds (20s) = 0x00c8 → "c800"; 1000 ds = 0x03e8 → "e803"
+        for (const fadeSpeed of [0, 50, 200, 1000, 0xffff]) {
+            const hex = encodeGradientColors(colors, {style: HueGradientStyle.Scattered, fadeSpeed});
+            expect(DecodeManuSpecificPhilips2(hexToBuffer(hex)).fadeSpeed).toBe(fadeSpeed);
+        }
+        expect(encodeGradientColors(colors, {fadeSpeed: 50}).startsWith("50013200")).toBe(true);
+    });
+
+    test("clamps out-of-range fadeSpeed into the u16 field", () => {
+        expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: -1}))).fadeSpeed).toBe(0);
+        expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: 70000}))).fadeSpeed).toBe(0xffff);
+    });
+
+    test("fadeSpeed does not disturb the colors, style or params", () => {
+        const plain = DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {style: HueGradientStyle.Mirrored})));
+        const faded = DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {style: HueGradientStyle.Mirrored, fadeSpeed: 50})));
+        expect(faded.gradientColors?.style).toBe(plain.gradientColors?.style);
+        expect(faded.gradientColors?.colors).toHaveLength(3);
+        expect(faded.gradientParams).toStrictEqual(plain.gradientParams);
     });
 });
