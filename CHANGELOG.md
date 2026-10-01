@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.115.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.115.0...v26.115.1) (2026-10-01)
+
+
+### Bug Fixes
+
+* **ignore:** fix KES-606US-L1 ([16c2b50](https://github.com/Koenkk/zigbee-herdsman-converters/commit/16c2b500beb5ca781ae38df803afe4879c8578af))
+
 ## [26.115.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.114.0...v26.115.0) (2026-10-01)
 
 
