@@ -646,7 +646,49 @@ function edgeProgrammingOperationMode(value: number): string {
     return "setpoint";
 }
 
+// Week program schedule: the device sends its whole week program on the private cluster 0xE002 (command 0x07,
+// server to client) whenever it is changed on the device. 32 bytes = 8 entries of [hour][minute][temperature x10,
+// 2 bytes big-endian]: 6 work-day entries followed by 2 day-off entries. Attribute 0x0007 of the same cluster holds
+// the program too, but the firmware returns it as a CHAR_STRING whose length byte is the first program byte (the
+// wake hour), so reads come back truncated and corrupted. Writing it restarted the Zigbee module, so it is read-only.
+const edgeWeekProgramParameters = Array.from({length: 32}, (_, i) => ({name: `p${i}`, type: Zcl.DataType.UINT8}));
+
+interface NamronEdgeWeekProgram {
+    attributes: never;
+    commands: never;
+    commandResponses: {weekProgram: Record<string, number>};
+}
+
+function edgeWeekProgramCluster() {
+    return m.deviceAddCustomCluster("namronEdgeWeekProgram", {
+        ID: 0xe002,
+        name: "namronEdgeWeekProgram",
+        attributes: {},
+        commands: {},
+        commandsResponse: {weekProgram: {ID: 0x07, name: "weekProgram", parameters: edgeWeekProgramParameters}},
+    });
+}
+
+function edgeWeekProgramSchedule(bytes: number[]): string {
+    const entries: string[] = [];
+    for (let i = 0; i + 3 < bytes.length; i += 4) {
+        const time = `${String(bytes[i]).padStart(2, "0")}:${String(bytes[i + 1]).padStart(2, "0")}`;
+        const temperature = (((bytes[i + 2] & 0x0f) << 8) | bytes[i + 3]) / 10;
+        entries.push(`${time} ${temperature}`);
+    }
+    return `Work days: ${entries.slice(0, 6).join(", ")} | Days off: ${entries.slice(6).join(", ")}`;
+}
+
 const fzEdge = {
+    week_program_schedule: {
+        cluster: "namronEdgeWeekProgram",
+        type: ["commandWeekProgram"],
+        convert: (model, msg) => {
+            const bytes = edgeWeekProgramParameters.map((p) => Number(msg.data[p.name] ?? 0));
+            return {week_program_schedule: edgeWeekProgramSchedule(bytes)};
+        },
+    } satisfies Fz.Converter<"namronEdgeWeekProgram", NamronEdgeWeekProgram, ["commandWeekProgram"]>,
+
     thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
@@ -988,7 +1030,8 @@ const tzEdge = {
     // Both firmwares answer UNSUPPORTED_ATTRIBUTE for 0x8035, 0x8041, 0x8045 and 0x8052 (1.14 also
     // for 0x802a-0x8040), and changing hysteresis on the device changes no readable attribute.
     // 0x8003 is not hysteresis but the week program setting (week_program above). The "Intelligence"
-    // on/off setting is not reachable over Zigbee either.
+    // on/off setting is not reachable over Zigbee either. Discover Attributes on hvacThermostat ends at
+    // 0x8029, and manufacturer-specific discover (0x126a) returns no attributes on any cluster.
 
     screen_on_time: {
         key: ["screen_on_time"],
@@ -1130,6 +1173,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             edgeThermostatCommands(),
+            edgeWeekProgramCluster(),
             // The device accepts a calibration of -10 to +10 °C (confirmed on the device), wider than the ZCL default of ±2.5 °C.
             m.customLocalTemperatureCalibrationRange({min: -10, max: 10}),
             // The week program changed on the device is not reported, so read it periodically.
@@ -1152,7 +1196,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({voltage: false, configureReporting: false}),
         ],
 
-        fromZigbee: [fzEdge.basic, fzEdge.thermostat, fzEdge.edge_custom, fz.hvac_user_interface],
+        fromZigbee: [fzEdge.basic, fzEdge.thermostat, fzEdge.edge_custom, fz.hvac_user_interface, fzEdge.week_program_schedule],
 
         toZigbee: [
             tzEdge.system_mode,
@@ -1302,6 +1346,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
                 .withDescription(
                     'Week program split set on the device (read-only): work days / days off. "no_time_off" = every day a work day, "time_off" = every day off. Changes made on the device show up at the next poll.',
+                ),
+            e
+                .text("week_program_schedule", ea.STATE)
+                .withDescription(
+                    "Week program times and temperatures (read-only), sent by the device when the program is changed on the device. Shows nothing until the program is changed.",
                 ),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
