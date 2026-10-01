@@ -1763,6 +1763,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["lumi.sensor_ht.agl02"],
         model: "WSDCGQ12LM",
         vendor: "Aqara",
+        version: "0.0.1",
         description: "Temperature and humidity sensor T1",
         whiteLabel: [
             {vendor: "Aqara", model: "TH-S02D"},
@@ -1774,7 +1775,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.temperature(),
             m.humidity(),
-            m.pressure({}),
+            m.pressure({
+                unit: "hPa",
+                scale: 1,
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
+            }),
             m.battery({
                 voltage: true,
                 voltageReporting: true,
@@ -2517,7 +2522,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Smart smoke detector",
         whiteLabel: [{vendor: "Aqara", model: "JY-GZ-03AQ"}],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [
             lumi.toZigbee.lumi_alarm,
             lumi.toZigbee.lumi_density,
@@ -6094,15 +6099,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "ntc_sensor_type",
-                lookup: {ntc_10k: 10, ntc_50k: 50, ntc_100k: 100, unknown: 10000},
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0315, type: Zcl.DataType.UINT32},
-                description: "NTC sensor type (k - KOhm)",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            lumi.lumiModernExtend.w500NtcSensor(),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "window_detection",
                 valueOn: ["ON", 1],

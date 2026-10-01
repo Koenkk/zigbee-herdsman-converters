@@ -682,6 +682,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "EFEKTA CO2 Smart Monitor, rgb indicator, can control the relay, binding",
         extend: [
+            m.identify(),
             m.co2({
                 reporting: co2Reporting,
                 access: "STATE",
@@ -839,6 +840,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "EFEKTA CO2 & VOC Index Smart Monitor, rgb indicator, can control the relay, binding",
         extend: [
+            m.identify(),
             m.co2({
                 reporting: co2Reporting,
                 access: "STATE",
@@ -1465,7 +1467,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["EFEKTA_eTH_POW_E_LR", "EFEKTA_eTH_POW_R_LR"],
+        zigbeeModel: [
+            "EFEKTA_eTH_POW_E_LR",
+            "EFEKTA_eTH_POW_R_LR",
+            "EFEKTA_eTH_POW_E",
+            "EFEKTA_eTH_POW_E_WT",
+            "EFEKTA_eTH_POW_E_LR_WT",
+            "EFEKTA_eTH_POW_R_LR_WT",
+        ],
         model: "EFEKTA_eTH_POW",
         vendor: "EFEKTA",
         description: "Temperature and humidity smart sensor with with e-ink display",
@@ -3073,6 +3082,14 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
+            m.enumLookup({
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
         ],
     },
     {
@@ -3209,6 +3226,14 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
+            m.enumLookup({
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
         ],
     },
     {
@@ -3307,7 +3332,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "sensor_type",
-                lookup: {"0-1bar": 1, "0-5bar": 5, "0-6bar": 6, "0-10bar": 10, "0-12bar": 12, "0-40bar": 40},
+                lookup: {"0-1bar": 1, "0-5bar": 5, "0-6bar": 6, "0-8bar": 8, "0-10bar": 10, "0-12bar": 12},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
                 description: "Set sensor type",
@@ -3483,6 +3508,14 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
+            m.enumLookup({
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
         ],
     },
     {
@@ -3531,7 +3564,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 endpointNames: ["1"],
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3597,7 +3630,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 endpointNames: ["2"],
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3677,6 +3710,24 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
+            m.enumLookup({
+                endpointName: "1",
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
+            m.enumLookup({
+                endpointName: "2",
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
         ],
     },
     {
@@ -3725,7 +3776,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 endpointNames: ["1"],
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3791,7 +3842,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 endpointNames: ["2"],
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3879,6 +3930,24 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
             }),
+            m.enumLookup({
+                endpointName: "1",
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
+            m.enumLookup({
+                endpointName: "2",
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
         ],
     },
     {
@@ -3927,7 +3996,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 endpointNames: ["1"],
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -3993,7 +4062,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric({
                 endpointNames: ["2"],
                 name: "pressure_offset",
-                unit: "kPa",
+                unit: "hPa",
                 valueMin: -100.0,
                 valueMax: 100.0,
                 cluster: "msPressureMeasurement",
@@ -4089,6 +4158,24 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0205, type: Zcl.DataType.BOOLEAN},
                 description: "Enable сontrol of comparison with previous data",
                 access: "STATE_SET",
+            }),
+            m.enumLookup({
+                endpointName: "1",
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
+            }),
+            m.enumLookup({
+                endpointName: "2",
+                name: "overheating",
+                lookup: {FALSE: 0, TRUE: 1},
+                cluster: "msPressureMeasurement",
+                attribute: {ID: 0x0020, type: 0x10},
+                description: "Sensor overheating detection",
+                access: "STATE",
             }),
         ],
     },
@@ -4256,7 +4343,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "sensor_type",
-                lookup: {"0-1bar": 1, "0-5bar": 5, "0-6bar": 6, "0-10bar": 10, "0-12bar": 12, "0-40bar": 40},
+                lookup: {"0-1bar": 1, "0-5bar": 5, "0-6bar": 6, "0-8bar": 8, "0-10bar": 10, "0-12bar": 12},
                 cluster: "genPowerCfg",
                 attribute: {ID: 0x0280, type: Zcl.DataType.UINT8},
                 description: "Set sensor type",
@@ -4305,6 +4392,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "EFEKTA",
         description: "EFEKTA Smart Air Quality Box, can control the relay, binding on some other devices",
         extend: [
+            m.identify(),
             m.co2({
                 reporting: co2Reporting,
                 access: "STATE",
@@ -5238,6 +5326,15 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: soilMoistureReporting,
                 access: "STATE",
             }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
+                access: "STATE",
+            }),
             m.battery({
                 percentage: true,
                 lowStatus: true,
@@ -5346,6 +5443,15 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.soilMoisture({
                 reporting: soilMoistureReporting,
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
                 access: "STATE",
             }),
             m.battery({
@@ -5457,6 +5563,15 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: soilMoistureReporting,
                 access: "STATE",
             }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
+                access: "STATE",
+            }),
             m.battery({
                 percentage: true,
                 lowStatus: true,
@@ -5545,6 +5660,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.soilMoisture({
                 reporting: soilMoistureReporting,
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
                 access: "STATE",
             }),
             m.battery({
@@ -5643,6 +5767,15 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.soilMoisture({
                 reporting: soilMoistureReporting,
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msSoilMoisture",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
                 access: "STATE",
             }),
             m.battery({
@@ -7054,6 +7187,33 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.numeric({
+                name: "dew_point",
+                unit: "°C",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0x0341, type: 0x29},
+                description: "Dew point calculated from built-in sensor data",
+                scale: 100,
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "air_enthalpy",
+                unit: "kJ/kg",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0x0343, type: 0x29},
+                description: "Air enthalpy derived from built-in sensor",
+                scale: 100,
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "vpd",
+                unit: "kPa",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0x0340, type: 0x29},
+                description: "Vapor Pressure Deficit (VPD) from built-in sensor",
+                scale: 100,
+                access: "STATE",
+            }),
+            m.numeric({
                 name: "reading_interval",
                 unit: "sec",
                 valueMin: 3,
@@ -7908,7 +8068,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["EFEKTA_ePST_POW_V2_E_LR", "EFEKTA_ePST_POW_V2_R_LR"],
+        zigbeeModel: ["EFEKTA_ePST_POW_V2_E_LR", "EFEKTA_ePST_POW_V2_R_LR", "EFEKTA_ePST_POW_V2_E"],
         model: "EFEKTA_ePST_POW_V2",
         vendor: "EFEKTA",
         description: "Smart water/gas pressure monitor with e-ink display.",
@@ -8003,7 +8163,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.enumLookup({
                 name: "sensor_type",
-                lookup: {"0-1bar": 1, "0-5bar": 5, "0-6bar": 6, "0-10bar": 10, "0-12bar": 12, "0-40bar": 40},
+                lookup: {"0-1bar": 1, "0-5bar": 5, "0-6bar": 6, "0-8bar": 8, "0-10bar": 10, "0-12bar": 12},
                 cluster: "msPressureMeasurement",
                 attribute: {ID: 0x0280, type: 0x20},
                 description: "Set sensor type",
