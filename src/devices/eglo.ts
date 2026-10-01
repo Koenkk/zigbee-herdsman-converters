@@ -192,7 +192,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ROVITO-Z ceiling light (separated CCT panel and RGB ring)",
         meta: {multiEndpoint: true},
         extend: [
-            m.deviceEndpoints({endpoints: {"white": 1, "rgb": 3}}),
+            m.deviceEndpoints({endpoints: {white: 1, rgb: 3}}),
             m.light({
                 endpointName: "white",
                 colorTemp: {range: [153, 370]},
