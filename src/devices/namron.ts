@@ -1358,15 +1358,16 @@ export const definitions: DefinitionWithExtend[] = [
             e.text("fault", ea.STATE).withDescription('Active fault codes reported by the device, or "none".'),
             e.text("firmware_version", ea.STATE).withDescription("Reported software build ID."),
             e.text("firmware_date", ea.STATE).withDescription("Reported firmware date code."),
-            e.numeric("min_heat_setpoint_limit", ea.STATE_GET).withUnit("°C"),
-            e.numeric("max_heat_setpoint_limit", ea.STATE_GET).withUnit("°C"),
-            e.numeric("min_heat_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
-            e.numeric("max_heat_setpoint_limit_f", ea.STATE_GET).withUnit("°F"),
+            // The device has the absolute limits (0x0003/0x0004) but not minHeatSetpointLimit/maxHeatSetpointLimit (0x0015/0x0016).
+            e.numeric("abs_min_heat_setpoint_limit", ea.STATE).withUnit("°C").withDescription("Lowest heating setpoint the device allows."),
+            e.numeric("abs_max_heat_setpoint_limit", ea.STATE).withUnit("°C").withDescription("Highest heating setpoint the device allows."),
+            e.numeric("min_heat_setpoint_limit_f", ea.STATE).withUnit("°F").withDescription("Lowest heating setpoint the device allows (°F)."),
+            e.numeric("max_heat_setpoint_limit_f", ea.STATE).withUnit("°F").withDescription("Highest heating setpoint the device allows (°F)."),
             e
-                .numeric("occupied_heating_setpoint_f", ea.STATE_GET)
+                .numeric("occupied_heating_setpoint_f", ea.STATE)
                 .withUnit("°F")
                 .withDescription("Device's own Fahrenheit-mode heating setpoint mirror."),
-            e.numeric("local_temperature_f", ea.STATE_GET).withUnit("°F").withDescription("Device's own Fahrenheit-mode temperature mirror."),
+            e.numeric("local_temperature_f", ea.STATE).withUnit("°F").withDescription("Device's own Fahrenheit-mode temperature mirror."),
         ],
     },
     {
