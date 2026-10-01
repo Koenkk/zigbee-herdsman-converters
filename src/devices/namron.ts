@@ -611,7 +611,7 @@ async function safeReadEdge(endpoint: any, cluster: string, attrs: (string | num
 // small groups. Used by configure and on every Zigbee2MQTT start, so the state is filled in without a reconfigure.
 const edgeCustomAttributes = [
     0x8000, 0x8001, 0x8002, 0x8003, 0x8004, 0x8005, 0x8006, 0x8007, 0x800a, 0x800b, 0x800c, 0x800d, 0x8011, 0x8012, 0x8013, 0x801b, 0x801d, 0x801f,
-    0x8020, 0x8021, 0x8022, 0x8023, 0x8025, 0x8026, 0x8029,
+    0x8020, 0x8021, 0x8022, 0x8023, 0x8024, 0x8025, 0x8026, 0x8029,
 ];
 // biome-ignore lint/suspicious/noExplicitAny: endpoint type is complex generic
 async function edgeReadAll(endpoint: any): Promise<void> {
