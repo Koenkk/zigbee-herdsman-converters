@@ -31892,7 +31892,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart LED bulb (RGBCW)",
         extend: [
-            tuya.m.tuyaLight({
+            tuya.modernExtend.tuyaLight({
                 colorTemp: {range: [153, 500]},
                 color: {modes: ["hs"]},
             }),
@@ -31907,7 +31907,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "RGB COB LED Strip",
         extend: [
-            tuya.m.tuyaLight({
+            tuya.modernExtend.tuyaLight({
                 color: {modes: ["hs"]},
             }),
         ],
