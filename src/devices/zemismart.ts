@@ -1158,9 +1158,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KES-606US-L1",
         vendor: "Zemismart",
         description: "Smart light switch - 1 gang (US)",
-        extend: [tuya.modernExtend.tuyaBase()],
-        fromZigbee: [tuya.fz.on_off, tuya.fz.power_on_behavior_2, tuya.fz.indicator_mode],
-        toZigbee: [tuya.tz.on_off, tuya.tz.power_on_behavior_2, {...tuya.tz.backlight_indicator_mode_1, key: ["indicator_mode"]}],
+        extend: [tuya.modernExtend.tuyaBase(), m.onOff()],
+        fromZigbee: [tuya.fz.power_on_behavior_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_2, {...tuya.tz.backlight_indicator_mode_1, key: ["indicator_mode"]}],
         exposes: [e.switch(), e.power_on_behavior(), tuya.exposes.indicatorMode()],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
