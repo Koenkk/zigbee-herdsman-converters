@@ -1161,7 +1161,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase(), m.onOff()],
         fromZigbee: [tuya.fz.power_on_behavior_2, tuya.fz.indicator_mode],
         toZigbee: [tuya.tz.power_on_behavior_2, {...tuya.tz.backlight_indicator_mode_1, key: ["indicator_mode"]}],
-        exposes: [e.switch(), e.power_on_behavior(), tuya.exposes.indicatorMode()],
+        exposes: [e.switch(), tuya.exposes.indicatorMode()],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
