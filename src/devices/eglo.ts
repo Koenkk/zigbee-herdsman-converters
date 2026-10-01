@@ -194,11 +194,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.deviceEndpoints({endpoints: {white: 1, rgb: 3}}),
             m.light({
-                endpointName: "white",
+                endpointNames: "white",
                 colorTemp: {range: [153, 370]},
             }),
             m.light({
-                endpointName: "rgb",
+                endpointNames: "rgb",
                 color: {modes: ["xy", "hs"], enhancedHue: true},
             }),
             m.commandsOnOff(),
