@@ -918,7 +918,7 @@ const philipsTz = {
                 // Map transition time to Philips2 fadeSpeed, as the native light path does.
                 // Without this the gradient command always uses encodeGradientColors' default.
                 if (message.transition != null) {
-                    mergedOpts.fadeSpeed = Math.round(Number(message.transition) * 10);
+                    mergedOpts.fadeSpeed = Math.round(toNumber(message.transition, "transition") * 10);
                 } else if (options.transition != null && options.transition !== "") {
                     mergedOpts.fadeSpeed = Math.round(toNumber(options.transition, "transition") * 10);
                 }
@@ -1969,10 +1969,11 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
     const stylePayload = style.toString(16).padStart(2, "0");
 
     // Fade speed, in deciseconds, u16 little-endian. Defaults to 4 (0.4s), which is the
-    // value this was previously hard-coded to, so behaviour is unchanged unless a
-    // transition is given.
+    // value this was previously hard-coded to, so the encoding is unchanged when no fade
+    // speed is supplied. A non-finite value falls back to that default rather than
+    // packing NaN, which would otherwise encode as 0 and fade instantly.
     let fadeSpeed = 4;
-    if (opts.fadeSpeed != null) {
+    if (opts.fadeSpeed != null && Number.isFinite(Number(opts.fadeSpeed))) {
         fadeSpeed = clamp(Math.round(Number(opts.fadeSpeed)), 0, 0xffff);
     }
     const fadeSpeedPayload = (fadeSpeed & 0xff).toString(16).padStart(2, "0") + ((fadeSpeed >> 8) & 0xff).toString(16).padStart(2, "0");

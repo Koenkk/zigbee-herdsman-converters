@@ -1,4 +1,4 @@
-import {describe, expect, test} from "vitest";
+import {describe, expect, test, vi} from "vitest";
 import {ColorXY} from "../src/lib/color";
 import {
     DecodeManuSpecificPhilips2,
@@ -7,7 +7,10 @@ import {
     HueEffectType,
     HueGradientStyle,
     type Philips2Data,
+    tz as philipsTz,
 } from "../src/lib/philips";
+import type {KeyValueAny, Tz} from "../src/lib/types";
+import {mockDevice} from "./utils";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -687,6 +690,39 @@ describe("encodeGradientColors fade speed", () => {
     test("clamps out-of-range fadeSpeed into the u16 field", () => {
         expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: -1}))).fadeSpeed).toBe(0);
         expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: 70000}))).fadeSpeed).toBe(0xffff);
+    });
+
+    test("falls back to the default for a non-finite fadeSpeed rather than fading instantly", () => {
+        // NaN survives clamp() and would pack as 0x0000, i.e. an instant fade.
+        expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: Number.NaN}))).fadeSpeed).toBe(4);
+    });
+
+    test("the gradient converter maps transition onto fadeSpeed", async () => {
+        const device = mockDevice({
+            modelID: "LCX004",
+            manufacturerName: "Signify Netherlands B.V.",
+            endpoints: [{ID: 11, inputClusters: ["genBasic", "genOnOff", "genLevelCtrl", "lightingColorCtrl"], outputClusters: []}],
+        });
+        const endpoint = device.getEndpoint(11);
+        const converter = philipsTz.gradient({reverse: true});
+
+        const sent = async (message: KeyValueAny, options: KeyValueAny = {}) => {
+            vi.mocked(endpoint.command).mockClear();
+            await converter.convertSet(endpoint, "gradient", message.gradient, {device, message, options, state: {}} as unknown as Tz.Meta);
+            const payload = vi.mocked(endpoint.command).mock.calls[0][2] as {data: Buffer};
+            return DecodeManuSpecificPhilips2(payload.data).fadeSpeed;
+        };
+
+        // 5s in the message → 50 deciseconds
+        expect(await sent({gradient: ["#ff0000", "#00ff00"], transition: 5})).toBe(50);
+        // no transition anywhere → the unchanged 0.4s default
+        expect(await sent({gradient: ["#ff0000", "#00ff00"]})).toBe(4);
+        // device-level option applies when the message is silent
+        expect(await sent({gradient: ["#ff0000", "#00ff00"]}, {transition: 3})).toBe(30);
+        // an empty option string is not a transition
+        expect(await sent({gradient: ["#ff0000", "#00ff00"]}, {transition: ""})).toBe(4);
+        // the message wins over the option
+        expect(await sent({gradient: ["#ff0000", "#00ff00"], transition: 5}, {transition: 3})).toBe(50);
     });
 
     test("fadeSpeed does not disturb the colors, style or params", () => {
