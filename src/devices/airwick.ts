@@ -136,8 +136,7 @@ function liionPercentFromMv(value: unknown): number | undefined {
         const [highMv, highX2] = LIION_CURVE_X2[i - 1];
         const [lowMv, lowX2] = LIION_CURVE_X2[i];
         if (mv >= lowMv) {
-            const x2 =
-                lowX2 + Math.floor(((mv - lowMv) * (highX2 - lowX2) + Math.floor((highMv - lowMv) / 2)) / (highMv - lowMv));
+            const x2 = lowX2 + Math.floor(((mv - lowMv) * (highX2 - lowX2) + Math.floor((highMv - lowMv) / 2)) / (highMv - lowMv));
             return x2 / 2;
         }
     }
