@@ -6,18 +6,7 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {
-    DefinitionWithExtend,
-    DummyDevice,
-    Expose,
-    Fz,
-    KeyValue,
-    KeyValueAny,
-    ModernExtend,
-    OnEvent,
-    Tz,
-    Zh,
-} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from "../lib/utils";
 
@@ -982,10 +971,7 @@ const readOnlyGet: Tz.Converter = {
 };
 
 const ui: Expose[] = [
-    e
-        .enum("spray", ea.SET, ["SPRAY"])
-        .withLabel("Spray")
-        .withDescription("One action triggers one spray. This control has no persistent state."),
+    e.enum("spray", ea.SET, ["SPRAY"]).withLabel("Spray").withDescription("One action triggers one spray. This control has no persistent state."),
     e
         .enum("mode", ea.STATE_GET, [...MODE_NAMES])
         .withLabel("Mode")
