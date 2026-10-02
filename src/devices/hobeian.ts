@@ -1761,7 +1761,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.ias_contact_alarm_1, fz.battery, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: (device, options) => {
-            const exps: Expose[] = [e.contact(), e.battery(), e.battery_voltage()];
+            const exps: Expose[] = [e.contact(), e.battery_low(), e.tamper(), e.battery(), e.battery_voltage()];
             return exps;
         },
         meta: {
