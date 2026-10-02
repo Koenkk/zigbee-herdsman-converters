@@ -26013,47 +26013,99 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"]),
             {model: "ZS-304Z", fingerprint: [{manufacturerName: "_TZE284_0ints6wl"}, {manufacturerName: "_TZE284_yzr43ayq"}, {modelID: "ZS-304Z"}]},
         ],
+        fromZigbee: [
+            // Handle all the normal DPs automatically
+            tuya.fz.datapoints,
+            // Attempt to handle asymmetric DP 110 (soil moisture warning: bool)
+            {
+                cluster: 'manuSpecificTuya',
+                type: ['commandDataResponse', 'commandDataReport'],
+                convert: (model, msg, publish, options, meta) => {
+                    // Explicitly type 'd as any' to satisfy TypeScript strict mode
+                    const dpValue = msg?.data?.dpValues?.find((item: any) => item.dp === 110);
+                    if (dpValue) {
+                        return { soil_moisture_warning: dpValue.data[0] === 1 };
+                    }
+                },
+            },
+        ],
+        toZigbee: [
+            // Attempt to handle asymmetric DP 110 (soil moisture warning threshold: [0, 100])
+            {
+                key: ['soil_moisture_warning_threshold'],
+                convertSet: async (entity, key, value, meta) => {
+                    // Send DP 110 as a numeric value [0, 100] denoting the percentage.
+                    await tuya.sendDataPointValue(entity, 110, value as number);
+                    return { state: { [key]: value } };
+                },
+            },
+            // Handle all the normal DPs automatically
+            tuya.tz.datapoints,
+        ],
         exposes: [
-            e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning"),
-            e
-                .enum("battery_state", ea.STATE, ["low", "middle", "high"])
-                .withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%")
-                .withCategory("diagnostic"),
             e.soil_moisture(),
+            e.binary("soil_moisture_warning", ea.STATE, true, false)
+                .withDescription(
+                    "True when soil moisture is below the configured warning threshold"
+                )
+                .withCategory("diagnostic"),
+            e.numeric("soil_moisture_warning_threshold", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription(
+                    "Soil moisture percentage below which the soil moisture warning activates"
+                )
+                .withCategory("config"),
+
             e.temperature(),
+            tuya.exposes.temperatureCalibration(),
+
             e.humidity(),
-            e.illuminance(),
+            tuya.exposes.humidityCalibration(),
+
             tuya.exposes.soilSampling(),
             tuya.exposes.soilCalibration(),
-            tuya.exposes.humidityCalibration(),
-            e
-                .numeric("illuminance_calibration", ea.STATE_SET)
+
+            e.illuminance(),
+            e.numeric("illuminance_calibration", ea.STATE_SET)
                 .withValueMin(-1000)
                 .withValueMax(1000)
                 .withValueStep(1)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
-            tuya.exposes.temperatureCalibration(),
-            tuya.exposes.soilWarning(),
+
+            e.enum("water_warning", ea.STATE, ["none", "alarm"])
+                .withDescription("Water shortage warning")
+                .withCategory("diagnostic"),
+
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                .withDescription(
+                    "low: 16.67%, middle:16.68-83.33%, high: 83.34-100%"
+                )
+                .withCategory("diagnostic"),
         ],
         meta: {
             tuyaDatapoints: [
                 [3, "soil_moisture", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy10],
+                [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.raw],
-                [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [103, "soil_sampling", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
                 [105, "humidity_calibration", tuya.valueConverter.raw],
                 [106, "illuminance_calibration", tuya.valueConverter.raw],
                 [107, "temperature_calibration", tuya.valueConverter.divideBy10],
-                [110, "soil_warning", tuya.valueConverter.raw],
+                // DP 110 is unusual on the ZS-304Z; it is asymmetric relative to the direction.
+                //  - Z2M -> device: numeric soil moisture warning threshold; [0, 100]
+                //  - device -> Z2M: boolean soil moisture warning state (active / inactive)
+                // For this reason, it cannot use the bidirectional, 'standard' datapoint mapping.
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
             ],
         },
     },
-
     {
         fingerprint: tuya.fingerprint("TS0049", ["_TZ3000_kz1anoi8"]),
         model: "HZ-WT02",
