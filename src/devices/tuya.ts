@@ -30240,4 +30240,27 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_ffuna0nr"]),
+        model: "TS0505B_hs",
+        vendor: "Tuya",
+        description: "Smart LED bulb (RGBCW)",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                colorTemp: {range: [153, 500]},
+                color: {modes: ["hs"]},
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0503B", ["_TZ3210_rbixajyp", "_TZ3210_w7ge4ldo"]),
+        model: "TS0503B_hs",
+        vendor: "Tuya",
+        description: "RGB COB LED Strip",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                color: {modes: ["hs"]},
+            }),
+        ],
+    },
 ];
