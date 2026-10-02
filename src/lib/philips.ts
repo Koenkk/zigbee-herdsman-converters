@@ -917,10 +917,9 @@ const philipsTz = {
                 const {message, options} = meta;
                 // Map transition time to Philips2 fadeSpeed, as the native light path does.
                 // Without this the gradient command always uses encodeGradientColors' default.
-                if (message.transition != null) {
-                    mergedOpts.fadeSpeed = Math.round(toNumber(message.transition, "transition") * 10);
-                } else if (options.transition != null && options.transition !== "") {
-                    mergedOpts.fadeSpeed = Math.round(toNumber(options.transition, "transition") * 10);
+                const transition = message.transition ?? options.transition;
+                if (transition != null && transition !== "") {
+                    mergedOpts.fadeSpeed = Math.round(toNumber(transition, "transition") * 10);
                 }
                 if (message.gradient_style != null) {
                     const styleLookup: Record<string, number> = {

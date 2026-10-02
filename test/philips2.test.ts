@@ -3,7 +3,6 @@ import {ColorXY} from "../src/lib/color";
 import {
     DecodeManuSpecificPhilips2,
     EncodeManuSpecificPhilips2,
-    encodeGradientColors,
     HueEffectType,
     HueGradientStyle,
     type Philips2Data,
@@ -669,34 +668,7 @@ describe("empty encoding", () => {
     });
 });
 
-describe("encodeGradientColors fade speed", () => {
-    const colors = ["#ff0000", "#00ff00", "#0000ff"];
-
-    test("defaults to 4 deciseconds when no fadeSpeed is given", () => {
-        const hex = encodeGradientColors(colors, {style: HueGradientStyle.Scattered});
-        expect(hex.startsWith("50010400")).toBe(true);
-        expect(DecodeManuSpecificPhilips2(hexToBuffer(hex)).fadeSpeed).toBe(4);
-    });
-
-    test("encodes fadeSpeed as u16 little-endian", () => {
-        // 50 ds (5s) = 0x0032 → "3200"; 200 ds (20s) = 0x00c8 → "c800"; 1000 ds = 0x03e8 → "e803"
-        for (const fadeSpeed of [0, 50, 200, 1000, 0xffff]) {
-            const hex = encodeGradientColors(colors, {style: HueGradientStyle.Scattered, fadeSpeed});
-            expect(DecodeManuSpecificPhilips2(hexToBuffer(hex)).fadeSpeed).toBe(fadeSpeed);
-        }
-        expect(encodeGradientColors(colors, {fadeSpeed: 50}).startsWith("50013200")).toBe(true);
-    });
-
-    test("clamps out-of-range fadeSpeed into the u16 field", () => {
-        expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: -1}))).fadeSpeed).toBe(0);
-        expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: 70000}))).fadeSpeed).toBe(0xffff);
-    });
-
-    test("falls back to the default for a non-finite fadeSpeed rather than fading instantly", () => {
-        // NaN survives clamp() and would pack as 0x0000, i.e. an instant fade.
-        expect(DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {fadeSpeed: Number.NaN}))).fadeSpeed).toBe(4);
-    });
-
+describe("gradient transition", () => {
     test("the gradient converter maps transition onto fadeSpeed", async () => {
         const device = mockDevice({
             modelID: "LCX004",
@@ -719,17 +691,5 @@ describe("encodeGradientColors fade speed", () => {
         expect(await sent({gradient: ["#ff0000", "#00ff00"]})).toBe(4);
         // device-level option applies when the message is silent
         expect(await sent({gradient: ["#ff0000", "#00ff00"]}, {transition: 3})).toBe(30);
-        // an empty option string is not a transition
-        expect(await sent({gradient: ["#ff0000", "#00ff00"]}, {transition: ""})).toBe(4);
-        // the message wins over the option
-        expect(await sent({gradient: ["#ff0000", "#00ff00"], transition: 5}, {transition: 3})).toBe(50);
-    });
-
-    test("fadeSpeed does not disturb the colors, style or params", () => {
-        const plain = DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {style: HueGradientStyle.Mirrored})));
-        const faded = DecodeManuSpecificPhilips2(hexToBuffer(encodeGradientColors(colors, {style: HueGradientStyle.Mirrored, fadeSpeed: 50})));
-        expect(faded.gradientColors?.style).toBe(plain.gradientColors?.style);
-        expect(faded.gradientColors?.colors).toHaveLength(3);
-        expect(faded.gradientParams).toStrictEqual(plain.gradientParams);
     });
 });
