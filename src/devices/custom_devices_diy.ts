@@ -1166,7 +1166,7 @@ function airwickFeatures(): ModernExtend {
     };
 }
 
-const definitions: DefinitionWithExtend[] = [
+export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["AirWick_nRF52840"],
         model: "AirWick_nRF52840",
