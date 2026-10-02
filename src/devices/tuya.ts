@@ -26018,13 +26018,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.fz.datapoints,
             // Attempt to handle asymmetric DP 110 (soil moisture warning: bool)
             {
-                cluster: 'manuSpecificTuya',
-                type: ['commandDataResponse', 'commandDataReport'],
+                cluster: "manuSpecificTuya",
+                type: ["commandDataResponse", "commandDataReport"],
                 convert: (model, msg, publish, options, meta) => {
                     // Explicitly type 'd as any' to satisfy TypeScript strict mode
                     const dpValue = msg?.data?.dpValues?.find((item: {dp: number; data: number[]}) => item.dp === 110);
                     if (dpValue) {
-                        return { soil_moisture_warning: dpValue.data[0] === 1 };
+                        return {soil_moisture_warning: dpValue.data[0] === 1};
                     }
                 },
             },
@@ -26032,11 +26032,11 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [
             // Attempt to handle asymmetric DP 110 (soil moisture warning threshold: [0, 100])
             {
-                key: ['soil_moisture_warning_threshold'],
+                key: ["soil_moisture_warning_threshold"],
                 convertSet: async (entity, key, value, meta) => {
                     // Send DP 110 as a numeric value [0, 100] denoting the percentage.
                     await tuya.sendDataPointValue(entity, 110, value as number);
-                    return { state: { [key]: value } };
+                    return {state: {[key]: value}};
                 },
             },
             // Handle all the normal DPs automatically
@@ -26044,19 +26044,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.soil_moisture(),
-            e.binary("soil_moisture_warning", ea.STATE, true, false)
-                .withDescription(
-                    "True when soil moisture is below the configured warning threshold"
-                )
+            e
+                .binary("soil_moisture_warning", ea.STATE, true, false)
+                .withDescription("True when soil moisture is below the configured warning threshold")
                 .withCategory("diagnostic"),
-            e.numeric("soil_moisture_warning_threshold", ea.STATE_SET)
+            e
+                .numeric("soil_moisture_warning_threshold", ea.STATE_SET)
                 .withValueMin(0)
                 .withValueMax(100)
                 .withValueStep(1)
                 .withUnit("%")
-                .withDescription(
-                    "Soil moisture percentage below which the soil moisture warning activates"
-                )
+                .withDescription("Soil moisture percentage below which the soil moisture warning activates")
                 .withCategory("config"),
 
             e.temperature(),
@@ -26069,21 +26067,19 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.soilCalibration(),
 
             e.illuminance(),
-            e.numeric("illuminance_calibration", ea.STATE_SET)
+            e
+                .numeric("illuminance_calibration", ea.STATE_SET)
                 .withValueMin(-1000)
                 .withValueMax(1000)
                 .withValueStep(1)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
 
-            e.enum("water_warning", ea.STATE, ["none", "alarm"])
-                .withDescription("Water shortage warning")
-                .withCategory("diagnostic"),
+            e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning").withCategory("diagnostic"),
 
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"])
-                .withDescription(
-                    "low: 16.67%, middle:16.68-83.33%, high: 83.34-100%"
-                )
+            e
+                .enum("battery_state", ea.STATE, ["low", "middle", "high"])
+                .withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%")
                 .withCategory("diagnostic"),
         ],
         meta: {
