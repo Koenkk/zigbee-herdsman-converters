@@ -327,7 +327,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_goecjd1t"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_goecjd1t", "_TZE284_goecjd1t"]),
         model: "ZWPM16",
         vendor: "AVATTO",
         description: "Zigbee smart energy meter",
