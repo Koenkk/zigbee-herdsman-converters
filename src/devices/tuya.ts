@@ -6842,6 +6842,39 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_f5efvtbv", "_TZE204_m9dzckna"]),
+        model: "OXT-4CH-RELAY-AC",
+        vendor: "Tuya",
+        description: "4 channel relay module",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            ...["l1", "l2", "l3", "l4"].map((ep) => tuya.exposes.switch().withEndpoint(ep)),
+            ...["l1", "l2", "l3", "l4"].map((ep) => tuya.exposes.countdown().withEndpoint(ep)),
+            ...["l1", "l2", "l3", "l4"].map((ep) => e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET).withEndpoint(ep)),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [7, "countdown_l1", tuya.valueConverter.countdown],
+                [8, "countdown_l2", tuya.valueConverter.countdown],
+                [9, "countdown_l3", tuya.valueConverter.countdown],
+                [10, "countdown_l4", tuya.valueConverter.countdown],
+                [14, "power_on_behavior_l1", tuya.valueConverter.powerOnBehavior],
+                [15, "power_on_behavior_l2", tuya.valueConverter.powerOnBehavior],
+                [16, "power_on_behavior_l3", tuya.valueConverter.powerOnBehavior],
+                [17, "power_on_behavior_l4", tuya.valueConverter.powerOnBehavior],
+            ],
+        },
+        whiteLabel: [tuya.whitelabel("Tuya", "OXT-4CH-RELAY-DC", "4 channel relay module DC", ["_TZE204_m9dzckna"])],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jwsjbxjs", "_TZE200_leaqthqq"]),
         model: "TS0601_switch_5_gang",
         vendor: "Tuya",
@@ -30264,106 +30297,3 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 ];
-import * as exposes from 'zigbee-herdsman-converters/lib/exposes';
-import * as tuya from 'zigbee-herdsman-converters/lib/tuya';
-
-const e = exposes.presets;
-const ea = exposes.access;
-
-const definition1 = {
-    fingerprint: tuya.fingerprint('TS0601', ['_TZE28C1000000_f5efvtbv']),
-    model: 'OXT-4CH-RELAY-AC',
-    vendor: 'Tuya',
-    description: '4 channel relay module AC',
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    onEvent: tuya.onEventSetTime,
-    configure: tuya.configureMagicPacket,
-    options: [
-        e.numeric('time_start', ea.SET).withValueMin(1970).withValueMax(2000).withDescription('Tuya time sync mode'),
-    ],
-    exposes: [
-        e.switch().withEndpoint('l1'),
-        e.switch().withEndpoint('l2'),
-        e.switch().withEndpoint('l3'),
-        e.switch().withEndpoint('l4'),
-        e.numeric('countdown_l1', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L1 countdown'),
-        e.numeric('countdown_l2', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L2 countdown'),
-        e.numeric('countdown_l3', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L3 countdown'),
-        e.numeric('countdown_l4', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L4 countdown'),
-        e.enum('power_on_behavior_l1', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L1 power on behavior'),
-        e.enum('power_on_behavior_l2', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L2 power on behavior'),
-        e.enum('power_on_behavior_l3', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L3 power on behavior'),
-        e.enum('power_on_behavior_l4', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L4 power on behavior'),
-    ],
-    meta: {
-        multiEndpoint: true,
-        tuyaDatapoints: [
-            [1, 'state_l1', tuya.valueConverter.onOff],
-            [2, 'state_l2', tuya.valueConverter.onOff],
-            [3, 'state_l3', tuya.valueConverter.onOff],
-            [4, 'state_l4', tuya.valueConverter.onOff],
-            [7, 'countdown_l1', tuya.valueConverter.countdown],
-            [8, 'countdown_l2', tuya.valueConverter.countdown],
-            [9, 'countdown_l3', tuya.valueConverter.countdown],
-            [10, 'countdown_l4', tuya.valueConverter.countdown],
-            [14, 'power_on_behavior_l1', tuya.valueConverter.powerOnBehavior],
-            [15, 'power_on_behavior_l2', tuya.valueConverter.powerOnBehavior],
-            [16, 'power_on_behavior_l3', tuya.valueConverter.powerOnBehavior],
-            [17, 'power_on_behavior_l4', tuya.valueConverter.powerOnBehavior],
-        ],
-    },
-    endpoint: (device) => {
-        return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
-    },
-};
-
-const definition2 = {
-    fingerprint: tuya.fingerprint('TS0601', ['_TZE204_m9dzckna']),
-    model: 'OXT-4CH-RELAY-DC',
-    vendor: 'Tuya',
-    description: '4 channel relay module DC',
-    fromZigbee: [tuya.fz.datapoints],
-    toZigbee: [tuya.tz.datapoints],
-    onEvent: tuya.onEventSetTime,
-    configure: tuya.configureMagicPacket,
-    options: [
-        e.numeric('time_start', ea.SET).withValueMin(1970).withValueMax(2000).withDescription('Tuya time sync mode'),
-    ],
-    exposes: [
-        e.switch().withEndpoint('l1'),
-        e.switch().withEndpoint('l2'),
-        e.switch().withEndpoint('l3'),
-        e.switch().withEndpoint('l4'),
-        e.numeric('countdown_l1', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L1 countdown'),
-        e.numeric('countdown_l2', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L2 countdown'),
-        e.numeric('countdown_l3', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L3 countdown'),
-        e.numeric('countdown_l4', ea.STATE_SET).withValueMin(0).withValueMax(86400).withUnit('s').withDescription('L4 countdown'),
-        e.enum('power_on_behavior_l1', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L1 power on behavior'),
-        e.enum('power_on_behavior_l2', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L2 power on behavior'),
-        e.enum('power_on_behavior_l3', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L3 power on behavior'),
-        e.enum('power_on_behavior_l4', ea.STATE_SET, ['off', 'on', 'previous']).withDescription('L4 power on behavior'),
-    ],
-    meta: {
-        multiEndpoint: true,
-        tuyaDatapoints: [
-            [1, 'state_l1', tuya.valueConverter.onOff],
-            [2, 'state_l2', tuya.valueConverter.onOff],
-            [3, 'state_l3', tuya.valueConverter.onOff],
-            [4, 'state_l4', tuya.valueConverter.onOff],
-            [7, 'countdown_l1', tuya.valueConverter.countdown],
-            [8, 'countdown_l2', tuya.valueConverter.countdown],
-            [9, 'countdown_l3', tuya.valueConverter.countdown],
-            [10, 'countdown_l4', tuya.valueConverter.countdown],
-            [14, 'power_on_behavior_l1', tuya.valueConverter.powerOnBehavior],
-            [15, 'power_on_behavior_l2', tuya.valueConverter.powerOnBehavior],
-            [16, 'power_on_behavior_l3', tuya.valueConverter.powerOnBehavior],
-            [17, 'power_on_behavior_l4', tuya.valueConverter.powerOnBehavior],
-        ],
-    },
-    endpoint: (device) => {
-        return {'l1': 1, 'l2': 1, 'l3': 1, 'l4': 1};
-    },
-};
-
-export default [definition1, definition2];
