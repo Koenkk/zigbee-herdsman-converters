@@ -845,7 +845,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({
                 zoneType: "smoke",
                 zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
-                zoneStatusReporting: true,
             }),
             m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 600}}),
         ],
