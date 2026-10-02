@@ -5,7 +5,6 @@ import {definitions as adeo} from "./adeo";
 import {definitions as adurosmart} from "./adurosmart";
 import {definitions as aeotec} from "./aeotec";
 import {definitions as airam} from "./airam";
-import {definitions as airwick} from "./airwick";
 import {definitions as airzoneAidoo} from "./airzone_aidoo";
 import {definitions as ajaxOnline} from "./ajax_online";
 import {definitions as akuvox} from "./akuvox";
@@ -405,7 +404,6 @@ const definitions: DefinitionWithExtend[] = [
     ...adurosmart,
     ...aeotec,
     ...airam,
-    ...airwick,
     ...airzoneAidoo,
     ...ajaxOnline,
     ...akuvox,
