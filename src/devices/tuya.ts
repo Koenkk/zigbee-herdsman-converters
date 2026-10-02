@@ -14479,7 +14479,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rfpyqax9"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rfpyqax9", "_TZE204_rfpyqax9"]),
         model: "Pro Line X10",
         vendor: "Tervix",
         description: "Underfloor heating controller - 8 zones",
