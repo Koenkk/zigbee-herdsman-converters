@@ -1166,7 +1166,8 @@ function airwickFeatures(): ModernExtend {
     };
 }
 
-const airwickDefinition: DefinitionWithExtend = {
+const definitions: DefinitionWithExtend[] = [
+    {
         zigbeeModel: ["AirWick_nRF52840"],
         model: "AirWick_nRF52840",
         vendor: "Custom devices (DiY)",
@@ -1178,10 +1179,7 @@ const airwickDefinition: DefinitionWithExtend = {
             withoutExposes(m.onOff()),
             airwickFeatures(),
         ],
-};
-
-const definitions: DefinitionWithExtend[] = [
-    airwickDefinition,
+    },
     {
         /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
         fingerprint: [
