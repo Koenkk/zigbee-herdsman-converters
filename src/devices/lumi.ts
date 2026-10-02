@@ -6651,4 +6651,36 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
     },
+    {
+        zigbeeModel: ["lumi.plug.aeu008"],
+        model: "lumi.plug.aeu008",
+        vendor: "Aqara",
+        description: "Smart Plug H2 UK with power and energy monitoring",
+
+        extend: [
+            m.onOff({
+                powerOnBehavior: true,
+            }),
+
+            m.electricityMeter({
+                cluster: "both",
+                power: {},
+                energy: {},
+                voltage: false,
+                current: false,
+            }),
+
+            m.poll({
+                key: "measurement",
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+
+                    await endpoint.read("haElectricalMeasurement", ["activePower"]);
+
+                    await endpoint.read("seMetering", ["currentSummDelivered"]);
+                },
+            }),
+        ],
+    },
 ];
