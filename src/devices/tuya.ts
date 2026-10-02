@@ -26013,35 +26013,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Arteco", "ZS-302Z", "Soil moisture sensor", ["_TZE284_65gzcss7"]),
             {model: "ZS-304Z", fingerprint: [{manufacturerName: "_TZE284_0ints6wl"}, {manufacturerName: "_TZE284_yzr43ayq"}, {modelID: "ZS-304Z"}]},
         ],
-        fromZigbee: [
-            // Handle all the normal DPs automatically
-            tuya.fz.datapoints,
-            // Attempt to handle asymmetric DP 110 (soil moisture warning: bool)
-            {
-                cluster: "manuSpecificTuya",
-                type: ["commandDataResponse", "commandDataReport"],
-                convert: (model, msg, publish, options, meta) => {
-                    // Explicitly type 'd as any' to satisfy TypeScript strict mode
-                    const dpValue = msg?.data?.dpValues?.find((item: {dp: number; data: number[]}) => item.dp === 110);
-                    if (dpValue) {
-                        return {soil_moisture_warning: dpValue.data[0] === 1};
-                    }
-                },
-            },
-        ],
-        toZigbee: [
-            // Attempt to handle asymmetric DP 110 (soil moisture warning threshold: [0, 100])
-            {
-                key: ["soil_moisture_warning_threshold"],
-                convertSet: async (entity, key, value, meta) => {
-                    // Send DP 110 as a numeric value [0, 100] denoting the percentage.
-                    await tuya.sendDataPointValue(entity, 110, value as number);
-                    return {state: {[key]: value}};
-                },
-            },
-            // Handle all the normal DPs automatically
-            tuya.tz.datapoints,
-        ],
         exposes: [
             e.soil_moisture(),
             e
@@ -26056,16 +26027,12 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withDescription("Soil moisture percentage below which the soil moisture warning activates")
                 .withCategory("config"),
-
             e.temperature(),
             tuya.exposes.temperatureCalibration(),
-
             e.humidity(),
             tuya.exposes.humidityCalibration(),
-
             tuya.exposes.soilSampling(),
             tuya.exposes.soilCalibration(),
-
             e.illuminance(),
             e
                 .numeric("illuminance_calibration", ea.STATE_SET)
@@ -26074,9 +26041,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
-
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning").withCategory("diagnostic"),
-
             e
                 .enum("battery_state", ea.STATE, ["low", "middle", "high"])
                 .withDescription("low: 16.67%, middle:16.68-83.33%, high: 83.34-100%")
@@ -26094,10 +26059,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [105, "humidity_calibration", tuya.valueConverter.raw],
                 [106, "illuminance_calibration", tuya.valueConverter.raw],
                 [107, "temperature_calibration", tuya.valueConverter.divideBy10],
-                // DP 110 is unusual on the ZS-304Z; it is asymmetric relative to the direction.
-                //  - Z2M -> device: numeric soil moisture warning threshold; [0, 100]
-                //  - device -> Z2M: boolean soil moisture warning state (active / inactive)
-                // For this reason, it cannot use the bidirectional, 'standard' datapoint mapping.
+                // DP 110 is asymmetric: device reports the warning state, but setting it configures the threshold.
+                // First entry is used for incoming reports, the second one for setting.
+                [110, "soil_moisture_warning", tuya.valueConverter.trueFalse1],
+                [110, "soil_moisture_warning_threshold", tuya.valueConverter.raw],
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
             ],
         },
