@@ -26022,7 +26022,7 @@ export const definitions: DefinitionWithExtend[] = [
                 type: ['commandDataResponse', 'commandDataReport'],
                 convert: (model, msg, publish, options, meta) => {
                     // Explicitly type 'd as any' to satisfy TypeScript strict mode
-                    const dpValue = msg?.data?.dpValues?.find((item: any) => item.dp === 110);
+                    const dpValue = msg?.data?.dpValues?.find((item: {dp: number; data: number[]}) => item.dp === 110);
                     if (dpValue) {
                         return { soil_moisture_warning: dpValue.data[0] === 1 };
                     }
