@@ -1,6 +1,8 @@
 import {describe, expect, it, vi} from "vitest";
-import {fzLocal, definitions as onestiDefinitions} from "../src/devices/onesti";
+import * as tz from "../src/converters/toZigbee";
+import {fzLocal, definitions as onestiDefinitions, tzLocal} from "../src/devices/onesti";
 import {findByDevice} from "../src/index";
+import * as globalStore from "../src/lib/store";
 import type {Definition, DefinitionWithExtend, Expose, KeyValueAny} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
@@ -71,31 +73,270 @@ describe("Onesti Products AS locks", () => {
 
     describe("last action source and user", () => {
         it("decodes a keypad unlock with a user slot", () => {
-            // Capture: slot 3 unlocked with a code.
-            expect(convert({256: 0x02020003})).toStrictEqual({last_unlock_source: "keypad", last_unlock_user: "3"});
+            expect(convert({256: 0x02020003})).toStrictEqual({
+                last_unlock_source: "keypad",
+                last_unlock_user: "3",
+                action: "unlock",
+                action_user: 3,
+                action_source_name: "keypad",
+            });
         });
 
         it("decodes an auto relock", () => {
             // The name "self" is kept here on purpose; renaming it to "auto" changes an
             // enum value users have in automations and belongs in its own change.
-            expect(convert({256: 0x0a010000})).toStrictEqual({last_lock_source: "self", last_lock_user: "0"});
+            expect(convert({256: 0x0a010000})).toStrictEqual({
+                last_lock_source: "self",
+                last_lock_user: "0",
+                action: "lock",
+                action_user: 0,
+                action_source_name: "self",
+            });
         });
 
         it("decodes source 0x05 as unattributed instead of unknown", () => {
             // NimlyCodePRO (fw 4.8.02) and NimlyPRO24 use 0x05 for Zigbee commands, auto
             // relock and the interior keypad alike, always with user 0.
-            expect(convert({256: 0x05010000})).toStrictEqual({last_lock_source: "unattributed", last_lock_user: "0"});
-            expect(convert({256: 0x05020000})).toStrictEqual({last_unlock_source: "unattributed", last_unlock_user: "0"});
+            expect(convert({256: 0x05010000})).toStrictEqual({
+                last_lock_source: "unattributed",
+                last_lock_user: "0",
+                action: "lock",
+                action_user: 0,
+                action_source_name: "unattributed",
+            });
+
+            expect(convert({256: 0x05020000})).toStrictEqual({
+                last_unlock_source: "unattributed",
+                last_unlock_user: "0",
+                action: "unlock",
+                action_user: 0,
+                action_source_name: "unattributed",
+            });
         });
 
         it("reports an unmapped source as unknown", () => {
-            expect(convert({256: 0x07020000})).toStrictEqual({last_unlock_source: "unknown", last_unlock_user: "0"});
+            expect(convert({256: 0x07020000})).toStrictEqual({
+                last_unlock_source: "unknown",
+                last_unlock_user: "0",
+                action: "unlock",
+                action_user: 0,
+                action_source_name: "unknown",
+            });
         });
 
         it("reads the user slot as 16 bits", () => {
             // The lock supports slots 0-999. No slot above 255 has been captured, so this
             // pins the existing behaviour rather than a verified frame.
-            expect(convert({256: 0x0202012c})).toStrictEqual({last_unlock_source: "keypad", last_unlock_user: "300"});
+            expect(convert({256: 0x0202012c})).toStrictEqual({
+                last_unlock_source: "keypad",
+                last_unlock_user: "300",
+                action: "unlock",
+                action_user: 300,
+                action_source_name: "keypad",
+            });
+        });
+    });
+
+    describe("PIN code responses", () => {
+        it("reports a successful PIN code add with the stored user", () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+
+            const endpoint = device.getEndpoint(11);
+
+            globalStore.putValue(endpoint, "nimly_last_pin_user", 7);
+
+            const result = fzLocal.nimly_set_pin_code_response.convert(
+                {} as Definition,
+                {
+                    data: {status: 0},
+                    type: "commandSetPinCodeRsp",
+                    cluster: "closuresDoorLock",
+                    endpoint,
+                } as never,
+                vi.fn(),
+                {},
+                {} as never,
+            );
+
+            expect(result).toStrictEqual({
+                action: "pin_code_added",
+                action_user: 7,
+            });
+
+            expect(globalStore.getValue(endpoint, "nimly_last_pin_user", undefined)).toBeUndefined();
+        });
+
+        it("reports a successful PIN code delete with the stored user", () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+
+            const endpoint = device.getEndpoint(11);
+
+            globalStore.putValue(endpoint, "nimly_last_pin_user", 12);
+
+            const result = fzLocal.nimly_clear_pin_code_response.convert(
+                {} as Definition,
+                {
+                    data: {status: 0},
+                    type: "commandClearPinCodeRsp",
+                    cluster: "closuresDoorLock",
+                    endpoint,
+                } as never,
+                vi.fn(),
+                {},
+                {} as never,
+            );
+
+            expect(result).toStrictEqual({
+                action: "pin_code_deleted",
+                action_user: 12,
+            });
+
+            expect(globalStore.getValue(endpoint, "nimly_last_pin_user", undefined)).toBeUndefined();
+        });
+
+        it("does not report a failed PIN code add", () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+
+            const endpoint = device.getEndpoint(11);
+
+            globalStore.putValue(endpoint, "nimly_last_pin_user", 7);
+
+            const result = fzLocal.nimly_set_pin_code_response.convert(
+                {} as Definition,
+                {
+                    data: {status: 1},
+                    type: "commandSetPinCodeRsp",
+                    cluster: "closuresDoorLock",
+                    endpoint,
+                } as never,
+                vi.fn(),
+                {},
+                {} as never,
+            );
+
+            expect(result).toBeUndefined();
+            expect(globalStore.getValue(endpoint, "nimly_last_pin_user", undefined)).toBeUndefined();
+        });
+
+        it("does not report a failed PIN code delete", () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+
+            const endpoint = device.getEndpoint(11);
+
+            globalStore.putValue(endpoint, "nimly_last_pin_user", 12);
+
+            const result = fzLocal.nimly_clear_pin_code_response.convert(
+                {} as Definition,
+                {
+                    data: {status: 1},
+                    type: "commandClearPinCodeRsp",
+                    cluster: "closuresDoorLock",
+                    endpoint,
+                } as never,
+                vi.fn(),
+                {},
+                {} as never,
+            );
+
+            expect(result).toBeUndefined();
+
+            expect(globalStore.getValue(endpoint, "nimly_last_pin_user", undefined)).toBeUndefined();
+        });
+
+        it("stores the PIN user before sending the PIN command", async () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+
+            const endpoint = device.getEndpoint(11);
+
+            const delegated = vi.spyOn(tz.pincode_lock, "convertSet").mockResolvedValue({});
+
+            try {
+                await tzLocal.nimly_pincode_lock.convertSet(
+                    endpoint,
+                    "pin_code",
+                    {
+                        user: 7,
+                        user_type: "unrestricted",
+                        user_enabled: true,
+                        pin_code: 1234,
+                    },
+                    {} as never,
+                );
+
+                expect(globalStore.getValue(endpoint, "nimly_last_pin_user", undefined)).toBe(7);
+                expect(delegated).toHaveBeenCalledOnce();
+            } finally {
+                delegated.mockRestore();
+                globalStore.clearValue(endpoint, "nimly_last_pin_user");
+            }
+        });
+
+        it("stores the PIN user before clearing the PIN", async () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+
+            const endpoint = device.getEndpoint(11);
+
+            const delegated = vi.spyOn(tz.pincode_lock, "convertSet").mockResolvedValue({});
+
+            try {
+                await tzLocal.nimly_pincode_lock.convertSet(
+                    endpoint,
+                    "pin_code",
+                    {
+                        user: 12,
+                        pin_code: null,
+                    },
+                    {} as never,
+                );
+
+                expect(globalStore.getValue(endpoint, "nimly_last_pin_user", undefined)).toBe(12);
+                expect(delegated).toHaveBeenCalledOnce();
+            } finally {
+                delegated.mockRestore();
+                globalStore.clearValue(endpoint, "nimly_last_pin_user");
+            }
         });
     });
 
@@ -139,6 +380,75 @@ describe("Onesti Products AS locks", () => {
             expect(exposes.map((expose) => expose.property)).not.toContain("max_pin_users");
         });
 
+        it("exposes Nimly Code PRO battery voltage in mV", () => {
+            const definition = definitionFor("NimlyCodePRO");
+            const exposes = definition.exposes as Expose[];
+            const voltage = exposes.find((expose) => expose.property === "voltage");
+
+            expect(voltage).toBeDefined();
+            expect(voltage?.unit).toBe("mV");
+        });
+
+        it("NimlyCodePRO supports 50 PIN code users", () => {
+            const definition = definitionFor("NimlyCodePRO");
+
+            expect(definition.meta?.pinCodeCount).toBe(50);
+        });
+
+        it("NimlyCodePRO exposes action information", () => {
+            const definition = definitionFor("NimlyCodePRO");
+            const exposes = definition.exposes as Expose[];
+            const properties = exposes.map((expose) => expose.property);
+
+            expect(properties).toContain("action");
+            expect(properties).toContain("action_user");
+            expect(properties).toContain("action_source_name");
+
+            expect(exposeValues(definition, "action_source_name")).toEqual([
+                "zigbee",
+                "keypad",
+                "fingerprintsensor",
+                "rfid",
+                "unattributed",
+                "self",
+                "unknown",
+            ]);
+        });
+
+        it("NimlyCodePRO exposes a writable auto relock time", () => {
+            const definition = definitionFor("NimlyCodePRO");
+            const exposes = definition.exposes as Expose[];
+            const autoRelockTime = exposes.find((expose) => expose.property === "auto_relock_time");
+
+            expect(autoRelockTime).toBeDefined();
+            expect(autoRelockTime?.access).toBe(3);
+            expect(autoRelockTime?.value_min).toBe(0);
+            expect(autoRelockTime?.value_max).toBe(255);
+        });
+
+        it("NimlyCodePRO uses the native auto relock time converter", () => {
+            const definition = definitionFor("NimlyCodePRO");
+
+            expect(definition.toZigbee).toContain(tz.lock_auto_relock_time);
+        });
+
+        it("NimlyCodePRO keeps the auto relock control", () => {
+            const definition = definitionFor("NimlyCodePRO");
+            const exposes = definition.exposes as Expose[];
+
+            const autoRelock = exposes.find((expose) => expose.property === "auto_relock");
+
+            expect(autoRelock).toBeDefined();
+            expect(autoRelock?.access).toBe(3);
+            expect(definition.toZigbee).toContain(tzLocal.easycode_auto_relock);
+        });
+
+        it("NimlyCodePRO uses the local PIN code converter", () => {
+            const definition = definitionFor("NimlyCodePRO");
+
+            expect(definition.toZigbee).toContain(tzLocal.nimly_pincode_lock);
+        });
+
         it("reads the capabilities of a Nimly lock on configure", async () => {
             const device = mockDevice(
                 {
@@ -156,6 +466,26 @@ describe("Onesti Products AS locks", () => {
             expect(vi.mocked(device.getEndpoint(11).read).mock.calls).toContainEqual([
                 "closuresDoorLock",
                 ["numOfPinUsersSupported", "minPinLen", "maxPinLen"],
+            ]);
+        });
+
+        it("reads the auto relock time of a Nimly Code PRO on configure", async () => {
+            const device = mockDevice(
+                {
+                    modelID: "NimlyCodePRO",
+                    manufacturerName: "Onesti Products AS",
+                    endpoints: [{ID: 11, inputClusters: ["genBasic", "genPowerCfg", "closuresDoorLock"]}],
+                },
+                "EndDevice",
+            );
+            const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).endpoints[0];
+            const definition = await findByDevice(device);
+
+            await definition.configure?.(device, coordinatorEndpoint, definition);
+
+            expect(vi.mocked(device.getEndpoint(11).read).mock.calls).toContainEqual([
+                "closuresDoorLock",
+                ["lockState", "soundVolume", "autoRelockTime"],
             ]);
         });
     });
