@@ -6,6 +6,80 @@ import type {Definition, Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/lumi", () => {
+    describe("DS-K02D/DS-K02E wireless button actions", () => {
+        const extend = lumiModernExtend.lumiAqaraH2EuShutterSwitchAction();
+        const converter = extend.fromZigbee[0];
+        const definition = {model: "DS-K02D/DS-K02E"} as Definition;
+
+        const convert = (endpoint: number, data: Record<string, unknown>) =>
+            // @ts-expect-error mock message
+            converter.convert(definition, {endpoint: {ID: endpoint}, data}, vi.fn(), {}, {} as Fz.Meta);
+
+        it.each([
+            {endpoint: 3, value: 0, action: "hold_top_wireless_button"},
+            {endpoint: 3, value: 1, action: "single_top_wireless_button"},
+            {endpoint: 3, value: 2, action: "double_top_wireless_button"},
+            {endpoint: 3, value: 255, action: "release_top_wireless_button"},
+            {endpoint: 4, value: 0, action: "hold_bottom_wireless_button"},
+            {endpoint: 4, value: 1, action: "single_bottom_wireless_button"},
+            {endpoint: 4, value: 2, action: "double_bottom_wireless_button"},
+            {endpoint: 4, value: 255, action: "release_bottom_wireless_button"},
+        ])("converts endpoint $endpoint presentValue $value to $action", async ({endpoint, value, action}) => {
+            expect(await convert(endpoint, {presentValue: value})).toStrictEqual({action});
+        });
+
+        it.each([1, 2, 5, 242])("ignores reports from endpoint %i", async (endpoint) => {
+            for (const value of [0, 1, 2, 255]) {
+                expect(await convert(endpoint, {presentValue: value})).toBeNull();
+            }
+        });
+
+        it.each([3, 4])("ignores unknown or missing values on endpoint %i", async (endpoint) => {
+            for (const value of [-1, 3, 254, 256, 1.5, undefined, null, "1", "toString"]) {
+                expect(await convert(endpoint, {presentValue: value})).toBeNull();
+            }
+            expect(await convert(endpoint, {numberOfStates: 4})).toBeNull();
+        });
+
+        it("only handles attribute reports, not read responses", () => {
+            expect(converter.cluster).toBe("genMultistateInput");
+            expect(converter.type).toStrictEqual(["attributeReport"]);
+        });
+
+        it("restores all eight original action names", () => {
+            expect(extend.exposes[0]).toMatchObject({
+                property: "action",
+                values: [
+                    "hold_top_wireless_button",
+                    "hold_bottom_wireless_button",
+                    "single_top_wireless_button",
+                    "single_bottom_wireless_button",
+                    "double_top_wireless_button",
+                    "double_bottom_wireless_button",
+                    "release_top_wireless_button",
+                    "release_bottom_wireless_button",
+                ],
+            });
+        });
+
+        it("keeps periodic presentValue reporting disabled on both wireless endpoints", async () => {
+            const device = mockDevice({
+                modelID: "lumi.switch.aeu003",
+                endpoints: [{ID: 1, inputClusters: ["seMetering", "closuresWindowCovering"]}, {ID: 3}, {ID: 4}],
+            });
+            const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+            const deviceDefinition = await findByDevice(device);
+
+            await deviceDefinition.configure?.(device, coordinatorEndpoint, deviceDefinition);
+
+            for (const endpoint of [3, 4]) {
+                expect(device.getEndpoint(endpoint).configureReporting).toHaveBeenCalledWith("genMultistateInput", [
+                    {attribute: "presentValue", minimumReportInterval: 0, maximumReportInterval: 65535, reportableChange: 1},
+                ]);
+            }
+        });
+    });
+
     describe("SP-EUC01 event mode", () => {
         it("enables event mode during configure", async () => {
             const device = mockDevice({modelID: "lumi.plug.maeu01", endpoints: [{ID: 1}]});
