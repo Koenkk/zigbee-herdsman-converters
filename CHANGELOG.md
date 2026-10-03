@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.117.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.116.0...v26.117.0) (2026-10-03)
+
+
+### Features
+
+* **add:** AirWick_nRF52840 ([#13348](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13348)) ([82f3b91](https://github.com/Koenkk/zigbee-herdsman-converters/commit/82f3b9115814e66ddc433a27a3d908949accc54a))
+* **add:** NimlyCodePRO ([#13365](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13365)) ([eb77ec1](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb77ec10e6d931d277908ade895c93e955a06ccf))
+* Schneider Electric EKO07259: expose regulator level in P9 mode ([#13364](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13364)) ([e6209d3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e6209d31dd940e69796103f5c2d3916b26b31355))
+
+
+### Bug Fixes
+
+* Aqara ZNJLBL01LM: skip optimistic position updates ([#13362](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13362)) ([95b689a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/95b689a8081570f761c70c22fd13436e87833fa9))
+* ENGO EONE-230W and EONE-BATB: use 1970 time base for thermostat time sync ([#13366](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13366)) ([bbff444](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bbff44453e1169fa4421b6740c663f21e2cef48e))
+* Ubisys LD6: fix input configuration writes and reads, read start-up settings, update write hint ([#13359](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13359)) ([35ed1f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/35ed1f3dc505f0358fbc69684183da1494561b86))
+
 ## [26.116.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.115.2...v26.116.0) (2026-10-02)
 
 
