@@ -330,7 +330,7 @@ function gledoptoLight(args?: m.LightArgs) {
             tzLocal.gledopto_light_colortemp,
             tzLocal.gledopto_light_color,
             tzLocal.gledopto_light_color_colortemp,
-        ],
+        ].map((converter) => (args.endpointNames ? {...converter, endpoints: args.endpointNames} : converter)),
         false,
     );
     return result;
@@ -603,14 +603,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-C-008-2ID", // 2 ID controls color temperature and color separate
         vendor: "Gledopto",
         description: "Zigbee LED Controller RGB+CCT (2 ID)",
-        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
-        exposes: [e.light_brightness_colorxy().withEndpoint("rgb"), e.light_brightness_colortemp([158, 495]).withEndpoint("cct")],
+        extend: [
+            m.deviceEndpoints({endpoints: {rgb: 11, cct: 15}}),
+            gledoptoLight({endpointNames: ["rgb"], color: {modes: ["xy"]}}),
+            gledoptoLight({endpointNames: ["cct"], colorTemp: {range: [158, 495], startup: false}}),
+        ],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
         meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
-        endpoint: (device) => {
-            return {rgb: 11, cct: 15};
-        },
     },
     {
         fingerprint: [
