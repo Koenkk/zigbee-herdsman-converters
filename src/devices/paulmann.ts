@@ -398,6 +398,11 @@ export const definitions: DefinitionWithExtend[] = [
                 manufacturerName: "Paulmann Licht GmbH",
                 softwareBuildID: "PIIC5809",
             },
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC51104",
+            },
         ],
         model: "291.46",
         vendor: "Paulmann",
@@ -408,6 +413,11 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "Paulmann",
                 model: "291.52",
                 fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC5800"}],
+            },
+            {
+                vendor: "Paulmann",
+                model: "291.50",
+                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"}],
             },
         ],
     },
