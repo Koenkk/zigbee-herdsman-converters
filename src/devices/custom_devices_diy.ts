@@ -7,7 +7,7 @@ import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from "../lib/utils";
 
@@ -621,17 +621,465 @@ interface MiCasaGasMetering {
     commandResponses: never;
 }
 
+const AIRWICK_CLUSTER = "airwickCtrl";
+const AIRWICK_ENDPOINT = 10;
+const AIRWICK_SCHEDULE_INFO = "Mon–Fri 07:00–22:00; Sat–Sun 09:00–22:00; every 30 min; duration is configured separately";
+const AIRWICK_DAYS = [
+    {key: "mon", label: "Monday"},
+    {key: "tue", label: "Tuesday"},
+    {key: "wed", label: "Wednesday"},
+    {key: "thu", label: "Thursday"},
+    {key: "fri", label: "Friday"},
+    {key: "sat", label: "Saturday"},
+    {key: "sun", label: "Sunday"},
+] as const;
+
 interface AirwickCtrl {
     attributes: {
         mode: number;
         autoIntervalMin: number;
+        scheduleDays: number;
+        scheduleStartMin: number;
+        scheduleEndMin: number;
+        scheduleIntervalMin: number;
+        timezoneMin: number;
         sprayCount: number;
+        lastSprayReason: number;
+        lastSprayTime: number;
+        nextSprayTime: number;
+        timeValid: boolean;
+        physicalMode: number;
+        resetCounter: boolean;
+        settingsVersion: number;
         syncTime: number;
         batteryMv: number;
         sprayDurationMs: number;
+        program1Enabled: boolean;
+        program1Days: number;
+        program1StartMin: number;
+        program1EndMin: number;
+        program1IntervalMin: number;
+        program2Enabled: boolean;
+        program2Days: number;
+        program2StartMin: number;
+        program2EndMin: number;
+        program2IntervalMin: number;
+        program3Enabled: boolean;
+        program3Days: number;
+        program3StartMin: number;
+        program3EndMin: number;
+        program3IntervalMin: number;
+        program4Enabled: boolean;
+        program4Days: number;
+        program4StartMin: number;
+        program4EndMin: number;
+        program4IntervalMin: number;
+        program5Enabled: boolean;
+        program5Days: number;
+        program5StartMin: number;
+        program5EndMin: number;
+        program5IntervalMin: number;
+        program6Enabled: boolean;
+        program6Days: number;
+        program6StartMin: number;
+        program6EndMin: number;
+        program6IntervalMin: number;
+        program7Enabled: boolean;
+        program7Days: number;
+        program7StartMin: number;
+        program7EndMin: number;
+        program7IntervalMin: number;
     };
     commands: never;
     commandResponses: never;
+}
+
+const AIRWICK_LIION_CURVE_X2 = [
+    [4200, 200],
+    [4180, 196],
+    [4160, 192],
+    [4140, 188],
+    [4120, 184],
+    [4100, 180],
+    [4080, 176],
+    [4060, 171],
+    [4040, 166],
+    [4020, 160],
+    [4000, 154],
+    [3980, 148],
+    [3960, 142],
+    [3940, 135],
+    [3920, 128],
+    [3900, 120],
+    [3880, 112],
+    [3860, 104],
+    [3840, 96],
+    [3820, 88],
+    [3800, 80],
+    [3780, 72],
+    [3760, 64],
+    [3740, 56],
+    [3720, 48],
+    [3700, 40],
+    [3680, 32],
+    [3660, 25],
+    [3640, 19],
+    [3620, 14],
+    [3600, 10],
+    [3580, 7],
+    [3560, 5],
+    [3540, 3],
+    [3520, 2],
+    [3500, 1],
+    [3400, 0],
+] as const;
+
+const airwickLastClockSyncAttempt = new Map<string, number>();
+const AIRWICK_CLOCK_SYNC_THROTTLE_MS = 60000;
+
+function airwickBatteryPercent(value: unknown): number | undefined {
+    const mv = Number(value);
+    if (!Number.isFinite(mv) || mv < 2500 || mv > 4400) return undefined;
+    if (mv >= AIRWICK_LIION_CURVE_X2[0][0]) return 100;
+
+    for (let i = 1; i < AIRWICK_LIION_CURVE_X2.length; i++) {
+        const [highMv, highX2] = AIRWICK_LIION_CURVE_X2[i - 1];
+        const [lowMv, lowX2] = AIRWICK_LIION_CURVE_X2[i];
+        if (mv >= lowMv) {
+            const x2 =
+                lowX2 +
+                Math.floor(((mv - lowMv) * (highX2 - lowX2) + Math.floor((highMv - lowMv) / 2)) / (highMv - lowMv));
+            return x2 / 2;
+        }
+    }
+
+    return 0;
+}
+
+function airwickMinutesToTime(value: unknown): string {
+    const minutes = Number(value);
+    if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1439) return "—";
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return String(hours).padStart(2, "0") + ":" + String(mins).padStart(2, "0");
+}
+
+function airwickTimeToMinutes(value: unknown): number {
+    const text = String(value).trim();
+    const match = /^(\d{1,2}):(\d{2})$/.exec(text);
+    if (!match) throw new Error("Time must be entered as HH:MM, e.g. 07:30");
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) throw new Error("Invalid time; allowed range is 00:00–23:59");
+    return hours * 60 + minutes;
+}
+
+function airwickTimezoneMinutes(meta: Fz.Meta): number {
+    const hours = Number(meta.state?.timezone_hours);
+    return Number.isFinite(hours) ? Math.round(hours * 60) : 180;
+}
+
+function airwickFormatZigbeeTime(value: unknown, timezoneMinutes: number): string {
+    const seconds = Number(value);
+    if (!Number.isFinite(seconds) || seconds <= 0 || seconds >= 0xffffffff) return "—";
+
+    const date = new Date(constants.OneJanuary2000 + (seconds + timezoneMinutes * 60) * 1000);
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const year = date.getUTCFullYear();
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    return day + "." + month + "." + year + " " + hours + ":" + minutes;
+}
+
+function airwickDelay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function airwickRetry<T>(operation: () => Promise<T>, attempts = 3, delayMs = 350): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error;
+            if (attempt < attempts) await airwickDelay(delayMs * attempt);
+        }
+    }
+    throw lastError;
+}
+
+async function airwickSyncClock(device: Zh.Device): Promise<void> {
+    const endpoint = device.getEndpoint(AIRWICK_ENDPOINT);
+    if (!endpoint) throw new Error("AirWick endpoint 10 not found");
+
+    const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
+    await endpoint.write<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, {syncTime: time});
+}
+
+function airwickMode(): ModernExtend {
+    const extension = m.enumLookup<"airwickCtrl", AirwickCtrl>({
+        name: "mode",
+        cluster: AIRWICK_CLUSTER,
+        attribute: "mode",
+        lookup: {OFF: 0, AUTO: 1, SCHEDULE: 2, PROGRAMMABLE: 3},
+        description: "Current mode set by the physical selector",
+        label: "Mode",
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg) => {
+            if (msg.data.mode === undefined) return;
+            const names = ["OFF", "AUTO", "SCHEDULE", "PROGRAMMABLE"];
+            return {
+                mode: names[Number(msg.data.mode)] ?? "UNKNOWN",
+                schedule_info: AIRWICK_SCHEDULE_INFO,
+            };
+        },
+    });
+
+    extension.exposes = [
+        ...(extension.exposes ?? []),
+        e.text("schedule_info", ea.STATE).withLabel("SCHEDULE").withDescription("Built-in schedule; no editing required."),
+    ];
+    extension.configure = [
+        ...(extension.configure ?? []),
+        async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(AIRWICK_ENDPOINT);
+            if (!endpoint) throw new Error("AirWick endpoint 10 not found");
+            await airwickRetry(() => endpoint.bind(AIRWICK_CLUSTER, coordinatorEndpoint));
+            await airwickRetry(() =>
+                endpoint.configureReporting<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, [
+                    {attribute: "mode", minimumReportInterval: 0, maximumReportInterval: 3600},
+                ]),
+            );
+        },
+    ];
+    return extension;
+}
+
+function airwickBattery(): ModernExtend {
+    return m.numeric<"airwickCtrl", AirwickCtrl>({
+        name: "battery",
+        cluster: AIRWICK_CLUSTER,
+        attribute: "batteryMv",
+        description: "Battery level",
+        label: "Battery level",
+        unit: "%",
+        valueMin: 0,
+        valueMax: 100,
+        valueStep: 0.5,
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg) => {
+            if (msg.data.batteryMv === undefined) return;
+            const battery = airwickBatteryPercent(msg.data.batteryMv);
+            return battery === undefined ? undefined : {battery};
+        },
+    });
+}
+
+function airwickProgramTime(
+    name: string,
+    attribute: keyof AirwickCtrl["attributes"],
+    label: string,
+): ModernExtend {
+    const extension = m.numeric<"airwickCtrl", AirwickCtrl>({
+        name,
+        cluster: AIRWICK_CLUSTER,
+        attribute,
+        description: "HH:MM",
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg) => {
+            const value = msg.data[attribute];
+            return value === undefined ? undefined : {[name]: airwickMinutesToTime(value)};
+        },
+    });
+
+    extension.exposes = [e.text(name, ea.ALL).withLabel(label).withDescription("HH:MM").withCategory("config")];
+    const converter = extension.toZigbee?.[0];
+    if (converter) {
+        converter.convertSet = async (entity, key, value) => {
+            const minutes = airwickTimeToMinutes(value);
+            await (entity as Zh.Endpoint).write<"airwickCtrl", AirwickCtrl>(
+                AIRWICK_CLUSTER,
+                {[attribute]: minutes} as Partial<AirwickCtrl["attributes"]>,
+            );
+            return {state: {[key]: airwickMinutesToTime(minutes)}};
+        };
+    }
+    return extension;
+}
+
+function airwickFormattedTime(
+    name: "last_spray_time" | "next_spray_time",
+    attribute: "lastSprayTime" | "nextSprayTime",
+    label: string,
+): ModernExtend {
+    const extension = m.numeric<"airwickCtrl", AirwickCtrl>({
+        name,
+        cluster: AIRWICK_CLUSTER,
+        attribute,
+        description: label,
+        access: "STATE_GET",
+        reporting: {min: 0, max: "1_HOUR", change: 1},
+        fzConvert: (model, msg, publish, options, meta) => {
+            const value = msg.data[attribute];
+            if (value === undefined) return;
+            const timezone = msg.data.timezoneMin !== undefined ? Number(msg.data.timezoneMin) : airwickTimezoneMinutes(meta);
+            return {[name]: airwickFormatZigbeeTime(value, timezone)};
+        },
+    });
+    extension.exposes = [e.text(name, ea.STATE_GET).withLabel(label).withCategory("diagnostic")];
+    return extension;
+}
+
+function airwickTimeValid(): ModernExtend {
+    const extension = m.enumLookup<"airwickCtrl", AirwickCtrl>({
+        name: "time_valid",
+        cluster: AIRWICK_CLUSTER,
+        attribute: "timeValid",
+        lookup: {OFF: false, ON: true},
+        description: "Whether device time is synchronized",
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg, publish, options, meta) => {
+            if (msg.data.timeValid === undefined) return;
+            const valid = Boolean(msg.data.timeValid);
+
+            if (!valid && meta.device) {
+                const key = meta.device.ieeeAddr ?? "airwick";
+                const now = Date.now();
+                const last = airwickLastClockSyncAttempt.get(key) ?? 0;
+                if (now - last >= AIRWICK_CLOCK_SYNC_THROTTLE_MS) {
+                    airwickLastClockSyncAttempt.set(key, now);
+                    void airwickSyncClock(meta.device).catch(() => {});
+                }
+            }
+
+            return {time_valid: valid ? "ON" : "OFF"};
+        },
+    });
+
+    extension.exposes = [
+        e.binary("time_valid", ea.STATE_GET, "ON", "OFF").withLabel("Time synchronized").withCategory("diagnostic"),
+    ];
+    extension.configure = [
+        ...(extension.configure ?? []),
+        async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(AIRWICK_ENDPOINT);
+            if (!endpoint) throw new Error("AirWick endpoint 10 not found");
+            await airwickRetry(() => endpoint.bind(AIRWICK_CLUSTER, coordinatorEndpoint));
+            await airwickRetry(() =>
+                endpoint.configureReporting<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, [
+                    {attribute: "timeValid", minimumReportInterval: 0, maximumReportInterval: 3600},
+                ]),
+            );
+        },
+    ];
+    return extension;
+}
+
+function airwickSprayAction(): ModernExtend {
+    return {
+        exposes: [
+            e
+                .enum("spray", ea.SET, ["SPRAY"])
+                .withLabel("Spray")
+                .withDescription("One action triggers one spray. This control has no persistent state."),
+        ],
+        toZigbee: [
+            {
+                key: ["spray"],
+                convertSet: async (entity) => {
+                    await entity.command("genOnOff", "on", {}, {});
+                    return {state: {spray: null}};
+                },
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function airwickResetCounter(): ModernExtend {
+    return {
+        exposes: [e.enum("reset_counter", ea.SET, ["RESET"]).withLabel("Reset counter").withCategory("config")],
+        toZigbee: [
+            {
+                key: ["reset_counter"],
+                convertSet: async (entity) => {
+                    await (entity as Zh.Endpoint).write<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, {resetCounter: true});
+                    return {state: {reset_counter: null, spray_count: 0}};
+                },
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function airwickClockSync(): ModernExtend {
+    return {
+        configure: [async (device) => airwickRetry(() => airwickSyncClock(device))],
+        onEvent: [
+            async (event) => {
+                if (event.type === "start") {
+                    await airwickDelay(800);
+                    try {
+                        await airwickRetry(() => airwickSyncClock(event.data.device), 2, 500);
+                    } catch {
+                        // Firmware keeps time from uptime and will retry later.
+                    }
+                    return;
+                }
+
+                if (event.type === "deviceAnnounce") {
+                    await airwickDelay(1200);
+                    try {
+                        await airwickSyncClock(event.data.device);
+                    } catch {
+                        // Non-fatal for a sleepy end device.
+                    }
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function airwickProgramDay(day: (typeof AIRWICK_DAYS)[number], slot: number): ModernExtend[] {
+    const enabledAttribute = ("program" + slot + "Enabled") as keyof AirwickCtrl["attributes"];
+    const startAttribute = ("program" + slot + "StartMin") as keyof AirwickCtrl["attributes"];
+    const endAttribute = ("program" + slot + "EndMin") as keyof AirwickCtrl["attributes"];
+    const intervalAttribute = ("program" + slot + "IntervalMin") as keyof AirwickCtrl["attributes"];
+    const prefix = "program_" + day.key;
+
+    return [
+        m.binary<"airwickCtrl", AirwickCtrl>({
+            name: prefix + "_enabled",
+            cluster: AIRWICK_CLUSTER,
+            attribute: enabledAttribute,
+            valueOn: ["ON", true],
+            valueOff: ["OFF", false],
+            description: "Enable this weekday program",
+            label: "PROGRAM — " + day.label + ": enabled",
+            entityCategory: "config",
+        }),
+        airwickProgramTime(prefix + "_start", startAttribute, "PROGRAM — " + day.label + ": start"),
+        airwickProgramTime(prefix + "_end", endAttribute, "PROGRAM — " + day.label + ": end"),
+        m.numeric<"airwickCtrl", AirwickCtrl>({
+            name: prefix + "_interval_min",
+            cluster: AIRWICK_CLUSTER,
+            attribute: intervalAttribute,
+            description: "Spray interval for this weekday program",
+            label: "PROGRAM — " + day.label + ": interval",
+            unit: "min",
+            valueMin: 1,
+            valueMax: 1440,
+            valueStep: 1,
+            entityCategory: "config",
+        }),
+    ];
 }
 
 export const definitions: DefinitionWithExtend[] = [
@@ -641,78 +1089,146 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Custom devices (DiY)",
         description: "AirWick smart aerosol dispenser",
         extend: [
-            m.deviceAddCustomCluster("airwickCtrl", {
-                name: "airwickCtrl",
+            m.deviceAddCustomCluster(AIRWICK_CLUSTER, {
+                name: AIRWICK_CLUSTER,
                 ID: 0xfc00,
                 attributes: {
                     mode: {name: "mode", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 3},
                     autoIntervalMin: {name: "autoIntervalMin", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    scheduleDays: {name: "scheduleDays", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    scheduleStartMin: {name: "scheduleStartMin", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    scheduleEndMin: {name: "scheduleEndMin", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    scheduleIntervalMin: {name: "scheduleIntervalMin", ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    timezoneMin: {name: "timezoneMin", ID: 0x0006, type: Zcl.DataType.INT16, write: true, min: -720, max: 840},
                     sprayCount: {name: "sprayCount", ID: 0x0007, type: Zcl.DataType.UINT32},
+                    lastSprayReason: {name: "lastSprayReason", ID: 0x0008, type: Zcl.DataType.UINT8, max: 5},
+                    lastSprayTime: {name: "lastSprayTime", ID: 0x0009, type: Zcl.DataType.UTC},
+                    nextSprayTime: {name: "nextSprayTime", ID: 0x000a, type: Zcl.DataType.UTC},
+                    timeValid: {name: "timeValid", ID: 0x000b, type: Zcl.DataType.BOOLEAN},
+                    physicalMode: {name: "physicalMode", ID: 0x000d, type: Zcl.DataType.UINT8},
+                    resetCounter: {name: "resetCounter", ID: 0x000e, type: Zcl.DataType.BOOLEAN, write: true},
+                    settingsVersion: {name: "settingsVersion", ID: 0x000f, type: Zcl.DataType.UINT8},
                     syncTime: {name: "syncTime", ID: 0x0010, type: Zcl.DataType.UINT32, write: true},
                     batteryMv: {name: "batteryMv", ID: 0x0011, type: Zcl.DataType.UINT16},
                     sprayDurationMs: {name: "sprayDurationMs", ID: 0x0012, type: Zcl.DataType.UINT16, write: true, min: 300, max: 1000},
+                    program1Enabled: {name: "program1Enabled", ID: 0x0020, type: Zcl.DataType.BOOLEAN, write: true},
+                    program1Days: {name: "program1Days", ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program1StartMin: {name: "program1StartMin", ID: 0x0022, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program1EndMin: {name: "program1EndMin", ID: 0x0023, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program1IntervalMin: {name: "program1IntervalMin", ID: 0x0024, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program2Enabled: {name: "program2Enabled", ID: 0x0028, type: Zcl.DataType.BOOLEAN, write: true},
+                    program2Days: {name: "program2Days", ID: 0x0029, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program2StartMin: {name: "program2StartMin", ID: 0x002a, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program2EndMin: {name: "program2EndMin", ID: 0x002b, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program2IntervalMin: {name: "program2IntervalMin", ID: 0x002c, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program3Enabled: {name: "program3Enabled", ID: 0x0030, type: Zcl.DataType.BOOLEAN, write: true},
+                    program3Days: {name: "program3Days", ID: 0x0031, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program3StartMin: {name: "program3StartMin", ID: 0x0032, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program3EndMin: {name: "program3EndMin", ID: 0x0033, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program3IntervalMin: {name: "program3IntervalMin", ID: 0x0034, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program4Enabled: {name: "program4Enabled", ID: 0x0038, type: Zcl.DataType.BOOLEAN, write: true},
+                    program4Days: {name: "program4Days", ID: 0x0039, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program4StartMin: {name: "program4StartMin", ID: 0x003a, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program4EndMin: {name: "program4EndMin", ID: 0x003b, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program4IntervalMin: {name: "program4IntervalMin", ID: 0x003c, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program5Enabled: {name: "program5Enabled", ID: 0x0040, type: Zcl.DataType.BOOLEAN, write: true},
+                    program5Days: {name: "program5Days", ID: 0x0041, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program5StartMin: {name: "program5StartMin", ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program5EndMin: {name: "program5EndMin", ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program5IntervalMin: {name: "program5IntervalMin", ID: 0x0044, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program6Enabled: {name: "program6Enabled", ID: 0x0048, type: Zcl.DataType.BOOLEAN, write: true},
+                    program6Days: {name: "program6Days", ID: 0x0049, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program6StartMin: {name: "program6StartMin", ID: 0x004a, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program6EndMin: {name: "program6EndMin", ID: 0x004b, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program6IntervalMin: {name: "program6IntervalMin", ID: 0x004c, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program7Enabled: {name: "program7Enabled", ID: 0x0050, type: Zcl.DataType.BOOLEAN, write: true},
+                    program7Days: {name: "program7Days", ID: 0x0051, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program7StartMin: {name: "program7StartMin", ID: 0x0052, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program7EndMin: {name: "program7EndMin", ID: 0x0053, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program7IntervalMin: {name: "program7IntervalMin", ID: 0x0054, type: Zcl.DataType.UINT16, write: true, max: 1440},
                 },
                 commands: {},
                 commandsResponse: {},
             }),
-            m.onOff({powerOnBehavior: false}),
-            m.enumLookup<"airwickCtrl", AirwickCtrl>({
-                name: "mode",
-                cluster: "airwickCtrl",
-                attribute: "mode",
-                lookup: {off: 0, auto: 1, schedule: 2, programmable: 3},
-                description: "Mode set by the physical selector",
+            m.forcePowerSource({powerSource: "Battery"}),
+            airwickSprayAction(),
+            airwickMode(),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "battery_v",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "batteryMv",
+                description: "Battery voltage",
+                label: "Battery voltage",
+                unit: "V",
+                valueStep: 0.001,
+                scale: 1000,
                 access: "STATE_GET",
-                reporting: {min: 0, max: "1_HOUR", change: 1},
+                reporting: {min: 30, max: "1_HOUR", change: 10},
             }),
+            airwickBattery(),
             m.numeric<"airwickCtrl", AirwickCtrl>({
-                name: "auto_interval",
-                cluster: "airwickCtrl",
-                attribute: "autoIntervalMin",
-                description: "Spray interval in auto mode",
-                unit: "min",
-                valueMin: 1,
-                valueMax: 1440,
-                entityCategory: "config",
-            }),
-            m.numeric<"airwickCtrl", AirwickCtrl>({
-                name: "spray_duration",
-                cluster: "airwickCtrl",
+                name: "spray_duration_ms",
+                cluster: AIRWICK_CLUSTER,
                 attribute: "sprayDurationMs",
-                description: "Spray duration",
+                description: "Shared by OFF, AUTO, SCHEDULE and PROGRAMMABLE; persists when switching modes.",
+                label: "Spray duration",
                 unit: "ms",
                 valueMin: 300,
                 valueMax: 1000,
                 valueStep: 10,
+            }),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "auto_interval_min",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "autoIntervalMin",
+                description: "Spray interval in AUTO mode",
+                label: "AUTO: interval",
+                unit: "min",
+                valueMin: 1,
+                valueMax: 1440,
+                valueStep: 1,
+                entityCategory: "config",
+            }),
+            ...AIRWICK_DAYS.flatMap((day, index) => airwickProgramDay(day, index + 1)),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "timezone_hours",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "timezoneMin",
+                description: "UTC timezone",
+                label: "UTC timezone",
+                unit: "h",
+                valueMin: -12,
+                valueMax: 14,
+                valueStep: 0.5,
+                scale: 60,
                 entityCategory: "config",
             }),
             m.numeric<"airwickCtrl", AirwickCtrl>({
                 name: "spray_count",
-                cluster: "airwickCtrl",
+                cluster: AIRWICK_CLUSTER,
                 attribute: "sprayCount",
                 description: "Number of sprays",
+                label: "Spray counter",
+                valueMin: 0,
                 access: "STATE_GET",
                 reporting: {min: 0, max: "1_HOUR", change: 1},
             }),
-            m.numeric<"airwickCtrl", AirwickCtrl>({
-                name: "voltage",
-                cluster: "airwickCtrl",
-                attribute: "batteryMv",
-                description: "Battery voltage",
-                unit: "mV",
+            airwickResetCounter(),
+            m.enumLookup<"airwickCtrl", AirwickCtrl>({
+                name: "last_spray_reason",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "lastSprayReason",
+                lookup: {None: 0, Zigbee: 1, Button: 2, AUTO: 3, SCHEDULE: 4, PROGRAM: 5},
+                description: "Reason for the last spray",
+                label: "Last spray reason",
                 access: "STATE_GET",
-                reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10},
+                reporting: {min: 0, max: "1_HOUR", change: 1},
+                entityCategory: "diagnostic",
             }),
-            {
-                configure: [
-                    async (device) => {
-                        // Firmware has no RTC, sync time (seconds since 2000-01-01)
-                        const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
-                        await device.getEndpoint(10).write<"airwickCtrl", AirwickCtrl>("airwickCtrl", {syncTime: time});
-                    },
-                ],
-                isModernExtend: true,
-            },
+            airwickFormattedTime("last_spray_time", "lastSprayTime", "Last spray"),
+            airwickFormattedTime("next_spray_time", "nextSprayTime", "Next spray"),
+            airwickTimeValid(),
+            airwickClockSync(),
         ],
     },
     {
