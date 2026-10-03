@@ -3918,7 +3918,7 @@ const tuyaFz = {
 
             for (const dpValue of msg.data.dpValues) {
                 // Attempt finding a configuration with the relevant DP-id', and a valid decoder.
-                const [dpIdentifier, dpEntity, dpCodec] = model.meta.tuyaDatapoints.find(
+                const [_dpIdentifier, dpEntity, dpCodec] = model.meta.tuyaDatapoints.find(
                     ([dpIdentifier, dpEntity, dpCodec]) =>
                         (dpIdentifier === dpValue.dp) &&
                         (dpCodec?.from !== undefined)
