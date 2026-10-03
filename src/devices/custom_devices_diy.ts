@@ -746,9 +746,7 @@ function airwickBatteryPercent(value: unknown): number | undefined {
         const [highMv, highX2] = AIRWICK_LIION_CURVE_X2[i - 1];
         const [lowMv, lowX2] = AIRWICK_LIION_CURVE_X2[i];
         if (mv >= lowMv) {
-            const x2 =
-                lowX2 +
-                Math.floor(((mv - lowMv) * (highX2 - lowX2) + Math.floor((highMv - lowMv) / 2)) / (highMv - lowMv));
+            const x2 = lowX2 + Math.floor(((mv - lowMv) * (highX2 - lowX2) + Math.floor((highMv - lowMv) / 2)) / (highMv - lowMv));
             return x2 / 2;
         }
     }
@@ -879,11 +877,7 @@ function airwickBattery(): ModernExtend {
     });
 }
 
-function airwickProgramTime(
-    name: string,
-    attribute: keyof AirwickCtrl["attributes"],
-    label: string,
-): ModernExtend {
+function airwickProgramTime(name: string, attribute: keyof AirwickCtrl["attributes"], label: string): ModernExtend {
     const extension = m.numeric<"airwickCtrl", AirwickCtrl>({
         name,
         cluster: AIRWICK_CLUSTER,
@@ -902,10 +896,9 @@ function airwickProgramTime(
     if (converter) {
         converter.convertSet = async (entity, key, value) => {
             const minutes = airwickTimeToMinutes(value);
-            await (entity as Zh.Endpoint).write<"airwickCtrl", AirwickCtrl>(
-                AIRWICK_CLUSTER,
-                {[attribute]: minutes} as Partial<AirwickCtrl["attributes"]>,
-            );
+            await (entity as Zh.Endpoint).write<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, {[attribute]: minutes} as Partial<
+                AirwickCtrl["attributes"]
+            >);
             return {state: {[key]: airwickMinutesToTime(minutes)}};
         };
     }
@@ -962,9 +955,7 @@ function airwickTimeValid(): ModernExtend {
         },
     });
 
-    extension.exposes = [
-        e.binary("time_valid", ea.STATE_GET, "ON", "OFF").withLabel("Time synchronized").withCategory("diagnostic"),
-    ];
+    extension.exposes = [e.binary("time_valid", ea.STATE_GET, "ON", "OFF").withLabel("Time synchronized").withCategory("diagnostic")];
     extension.configure = [
         ...(extension.configure ?? []),
         async (device, coordinatorEndpoint) => {
