@@ -759,7 +759,7 @@ function airwickMinutesToTime(value: unknown): string {
     if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1439) return "—";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return String(hours).padStart(2, "0") + ":" + String(mins).padStart(2, "0");
+    return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
 }
 
 function airwickTimeToMinutes(value: unknown): number {
@@ -788,7 +788,7 @@ function airwickFormatZigbeeTime(value: unknown, timezoneMinutes: number): strin
     const year = date.getUTCFullYear();
     const hours = String(date.getUTCHours()).padStart(2, "0");
     const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-    return day + "." + month + "." + year + " " + hours + ":" + minutes;
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
 }
 
 function airwickDelay(ms: number): Promise<void> {
@@ -1039,31 +1039,31 @@ function airwickClockSync(): ModernExtend {
 }
 
 function airwickProgramDay(day: (typeof AIRWICK_DAYS)[number], slot: number): ModernExtend[] {
-    const enabledAttribute = ("program" + slot + "Enabled") as keyof AirwickCtrl["attributes"];
-    const startAttribute = ("program" + slot + "StartMin") as keyof AirwickCtrl["attributes"];
-    const endAttribute = ("program" + slot + "EndMin") as keyof AirwickCtrl["attributes"];
-    const intervalAttribute = ("program" + slot + "IntervalMin") as keyof AirwickCtrl["attributes"];
-    const prefix = "program_" + day.key;
+    const enabledAttribute = `program${slot}Enabled` as keyof AirwickCtrl["attributes"];
+    const startAttribute = `program${slot}StartMin` as keyof AirwickCtrl["attributes"];
+    const endAttribute = `program${slot}EndMin` as keyof AirwickCtrl["attributes"];
+    const intervalAttribute = `program${slot}IntervalMin` as keyof AirwickCtrl["attributes"];
+    const prefix = `program_${day.key}`;
 
     return [
         m.binary<"airwickCtrl", AirwickCtrl>({
-            name: prefix + "_enabled",
+            name: `${prefix}_enabled`,
             cluster: AIRWICK_CLUSTER,
             attribute: enabledAttribute,
             valueOn: ["ON", true],
             valueOff: ["OFF", false],
             description: "Enable this weekday program",
-            label: "PROGRAM — " + day.label + ": enabled",
+            label: `PROGRAM — ${day.label}: enabled`,
             entityCategory: "config",
         }),
-        airwickProgramTime(prefix + "_start", startAttribute, "PROGRAM — " + day.label + ": start"),
-        airwickProgramTime(prefix + "_end", endAttribute, "PROGRAM — " + day.label + ": end"),
+        airwickProgramTime(`${prefix}_start`, startAttribute, `PROGRAM — ${day.label}: start`),
+        airwickProgramTime(`${prefix}_end`, endAttribute, `PROGRAM — ${day.label}: end`),
         m.numeric<"airwickCtrl", AirwickCtrl>({
-            name: prefix + "_interval_min",
+            name: `${prefix}_interval_min`,
             cluster: AIRWICK_CLUSTER,
             attribute: intervalAttribute,
             description: "Spray interval for this weekday program",
-            label: "PROGRAM — " + day.label + ": interval",
+            label: `PROGRAM — ${day.label}: interval`,
             unit: "min",
             valueMin: 1,
             valueMax: 1440,
