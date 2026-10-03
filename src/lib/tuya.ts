@@ -3947,7 +3947,7 @@ const tuyaFz = {
 
                 // Populate, or define, result, based on entity validity.
                 if (dpEntity !== undefined) result[dpEntity] = decodedValue;
-                else Object.assign(result, decodedValue);
+                else Object.assign(result, { ...(decodedValue as KeyValue), ...result });
             }
 
             return result;
