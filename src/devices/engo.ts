@@ -668,7 +668,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EONE-230W",
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", queryOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970", queryOnConfigure: true})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
@@ -1041,7 +1041,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EONE-BATB",
         vendor: "ENGO",
         description: "Zigbee smart thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000", queryOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970", queryOnConfigure: true})],
         exposes: [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
