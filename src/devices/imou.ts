@@ -79,16 +79,32 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Topband",
         description: "Smart Thermostat",
         extend: [
-            m.deviceEndpoints({"endpoints":{"1":1,"2":2},"multiEndpointSkip":["state","on","off","power_on_behavior","local_temperature","occupied_heating_setpoint","occupied_cooling_setpoint","system_mode","running_state","keypad_lockout","temperature_display_mode","programming_operation_mode"]}),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2},
+                multiEndpointSkip: [
+                    "state",
+                    "on",
+                    "off",
+                    "power_on_behavior",
+                    "local_temperature",
+                    "occupied_heating_setpoint",
+                    "occupied_cooling_setpoint",
+                    "system_mode",
+                    "running_state",
+                    "keypad_lockout",
+                    "temperature_display_mode",
+                    "programming_operation_mode",
+                ],
+            }),
             m.battery(),
             m.identify(),
             m.onOff(),
             m.thermostat({
-                "localTemperature": {},
-                "runningState": {"values": ["idle", "heat"]},
-                "setpoints": {"values": {"occupiedHeatingSetpoint": {"min": 7, "max": 30, "step": 0.5}}},
-                "systemMode": {"values": ["off", "heat"]}
-            })
+                localTemperature: {},
+                runningState: {values: ["idle", "heat"]},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 30, step: 0.5}}},
+                systemMode: {values: ["off", "heat"]},
+            }),
         ],
     },
 ];
