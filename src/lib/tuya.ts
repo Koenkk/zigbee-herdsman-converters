@@ -3909,23 +3909,47 @@ const tuyaFz = {
         type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+
             const result: KeyValue = {};
+
             if (!model.meta?.tuyaDatapoints) throw new Error("No datapoints map defined");
-            const datapoints = model.meta.tuyaDatapoints;
+
             for (const dpValue of msg.data.dpValues) {
-                const dpId = dpValue.dp;
-                const dpEntry = datapoints.find((d) => d[0] === dpId);
-                const value = getDataValue(dpValue);
-                if (dpEntry?.[2]?.from) {
-                    if (dpEntry[1]) {
-                        result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish, msg);
-                    } else {
-                        Object.assign(result, dpEntry[2].from(value, meta, options, publish, msg));
-                    }
-                } else {
-                    logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);
+                // Attempt finding a configuration with the relevant DP-id', and a valid decoder.
+                const [_dpIdentifier, dpEntity, dpCodec] =
+                    model.meta.tuyaDatapoints.find(
+                        ([dpIdentifier, dpEntity, dpCodec]) => dpIdentifier === dpValue.dp && dpCodec?.from !== undefined,
+                    ) ?? [];
+
+                // Skip processing on invalid codec.
+                if (dpCodec === undefined) {
+                    logger.debug(
+                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: skipped processing; no viable decoder!.`,
+                        NS,
+                    );
+                    continue;
                 }
+
+                // Retrieve encoded value.
+                const encodedValue = getDataValue(dpValue);
+
+                // Attempt to decode the DP value, and retrieve the result.
+                const decodedValue = dpCodec.from(encodedValue, meta, options, publish, msg);
+
+                // Skip state-updates on invalid results.
+                if (decodedValue === undefined) {
+                    logger.debug(
+                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: "${dpEntity}" decoding value "${encodedValue}" failed; skipping.`,
+                        NS,
+                    );
+                    continue;
+                }
+
+                // Populate, or define, result, based on entity validity.
+                if (dpEntity !== undefined) result[dpEntity] = decodedValue;
+                else Object.assign(result, {...(decodedValue as KeyValue), ...result});
             }
+
             return result;
         },
     } satisfies Fz.Converter<
