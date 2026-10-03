@@ -9618,6 +9618,14 @@ export const toZigbee = {
                     await entity.write("genAnalogOutput", payload);
                 }
 
+                if (["ZNJLBL01LM"].includes(meta.mapped.model)) {
+                    // ZNJLBL01LM reports motor_state while moving and the actual position is read
+                    // back once the motor stops (lumiReadPositionOnReport), so publishing the target
+                    // position optimistically makes Home Assistant treat the target as the current
+                    // position and skip the opening/closing state (Koenkk/zigbee2mqtt#33254).
+                    return;
+                }
+
                 return {state: {position: value}};
             }
         },
