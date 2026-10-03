@@ -410,7 +410,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_xnwxmj8z"]),
-        model: "MG-AU06ZLP",
+        model: "MG-AU01ZLMV01-XX",
         vendor: "MakeGood",
         description: "1 gang light switch, energy monitoring and RGB backlights",
         whiteLabel: [tuya.whitelabel("Sparkelec", "SWS1TZ", "1 gang light switch, energy monitoring and RGB backlights", ["_TZE200_xnwxmj8z"])],
