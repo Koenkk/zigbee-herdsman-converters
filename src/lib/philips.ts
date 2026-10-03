@@ -914,7 +914,13 @@ const philipsTz = {
             convertSet: async (entity, key, value, meta) => {
                 // Merge gradient_style from the message into opts if present
                 const mergedOpts: KeyValueAny = {...opts};
-                const {message} = meta;
+                const {message, options} = meta;
+                // Map transition time to Philips2 fadeSpeed, as the native light path does.
+                // Without this the gradient command always uses encodeGradientColors' default.
+                const transition = message.transition ?? options.transition;
+                if (transition != null && transition !== "") {
+                    mergedOpts.fadeSpeed = Math.round(toNumber(transition, "transition") * 10);
+                }
                 if (message.gradient_style != null) {
                     const styleLookup: Record<string, number> = {
                         linear: HueGradientStyle.Linear,
@@ -1961,9 +1967,18 @@ export function encodeGradientColors(value: string[], opts: KeyValueAny) {
     }
     const stylePayload = style.toString(16).padStart(2, "0");
 
-    // 5001 - mode? set gradient?
-    // 0400 - unknown
-    const scene = `50010400${length}${nColors}${stylePayload}0000${colorsPayload}${segmentsPayload}${offsetPayload}`;
+    // Fade speed, in deciseconds, u16 little-endian. Defaults to 4 (0.4s), which is the
+    // value this was previously hard-coded to, so the encoding is unchanged when no fade
+    // speed is supplied. A non-finite value falls back to that default rather than
+    // packing NaN, which would otherwise encode as 0 and fade instantly.
+    let fadeSpeed = 4;
+    if (opts.fadeSpeed != null && Number.isFinite(Number(opts.fadeSpeed))) {
+        fadeSpeed = clamp(Math.round(Number(opts.fadeSpeed)), 0, 0xffff);
+    }
+    const fadeSpeedPayload = (fadeSpeed & 0xff).toString(16).padStart(2, "0") + ((fadeSpeed >> 8) & 0xff).toString(16).padStart(2, "0");
+
+    // 5001 - flags, u16 little-endian: GradientColors (0x100) | GradientParams (0x40) | FadeSpeed (0x10)
+    const scene = `5001${fadeSpeedPayload}${length}${nColors}${stylePayload}0000${colorsPayload}${segmentsPayload}${offsetPayload}`;
 
     return scene;
 }

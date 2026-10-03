@@ -6842,6 +6842,39 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_f5efvtbv", "_TZE204_m9dzckna"]),
+        model: "OXT-4CH-RELAY-AC",
+        vendor: "Tuya",
+        description: "4 channel relay module",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            ...["l1", "l2", "l3", "l4"].map((ep) => tuya.exposes.switch().withEndpoint(ep)),
+            ...["l1", "l2", "l3", "l4"].map((ep) => tuya.exposes.countdown().withEndpoint(ep)),
+            ...["l1", "l2", "l3", "l4"].map((ep) => e.power_on_behavior(["off", "on", "previous"]).withAccess(ea.STATE_SET).withEndpoint(ep)),
+        ],
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [7, "countdown_l1", tuya.valueConverter.countdown],
+                [8, "countdown_l2", tuya.valueConverter.countdown],
+                [9, "countdown_l3", tuya.valueConverter.countdown],
+                [10, "countdown_l4", tuya.valueConverter.countdown],
+                [14, "power_on_behavior_l1", tuya.valueConverter.powerOnBehavior],
+                [15, "power_on_behavior_l2", tuya.valueConverter.powerOnBehavior],
+                [16, "power_on_behavior_l3", tuya.valueConverter.powerOnBehavior],
+                [17, "power_on_behavior_l4", tuya.valueConverter.powerOnBehavior],
+            ],
+        },
+        whiteLabel: [tuya.whitelabel("Tuya", "OXT-4CH-RELAY-DC", "4 channel relay module DC", ["_TZE204_m9dzckna"])],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jwsjbxjs", "_TZE200_leaqthqq"]),
         model: "TS0601_switch_5_gang",
         vendor: "Tuya",
@@ -14479,7 +14512,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rfpyqax9"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_rfpyqax9", "_TZE204_rfpyqax9"]),
         model: "Pro Line X10",
         vendor: "Tervix",
         description: "Underfloor heating controller - 8 zones",
@@ -30252,5 +30285,28 @@ export const definitions: DefinitionWithExtend[] = [
                 [103, "noise_delay", tuya.valueConverter.raw],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_ffuna0nr"]),
+        model: "TS0505B_hs",
+        vendor: "Tuya",
+        description: "Smart LED bulb (RGBCW)",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                colorTemp: {range: [153, 500]},
+                color: {modes: ["hs"]},
+            }),
+        ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0503B", ["_TZ3210_rbixajyp", "_TZ3210_w7ge4ldo"]),
+        model: "TS0503B_hs",
+        vendor: "Tuya",
+        description: "RGB COB LED Strip",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                color: {modes: ["hs"]},
+            }),
+        ],
     },
 ];

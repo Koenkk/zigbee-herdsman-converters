@@ -1,5 +1,21 @@
 # Changelog
 
+## [26.116.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.115.2...v26.116.0) (2026-10-02)
+
+
+### Features
+
+* **add:** OXT-4CH-RELAY-AC, OXT-4CH-RELAY-DC ([#13356](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13356)) ([4dc4411](https://github.com/Koenkk/zigbee-herdsman-converters/commit/4dc441196c31d08849bd3d114b3cf2a52c056dec))
+* **add:** TS0505B_hs, TS0503B_hs ([#13344](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13344)) ([c370eab](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c370eab15cb00a8cd3681f3295a5256c5e55cc1b))
+* Schneider Electric: enable OTA for multiple devices ([#13357](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13357)) ([a436903](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a43690317d520098fac9184f71ad672d7c0a157c))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_rfpyqax9` as Tervix Pro Line X10 https://github.com/Koenkk/zigbee-herdsman-converters/pull/13342 ([d0f4615](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d0f4615fab01ceeaf16b8da090b28a07e46ce6dc))
+* **detect:** Detect `_TZE284_goecjd1t` as AVATTO ZWPM16 https://github.com/Koenkk/zigbee2mqtt/discussions/33260 ([3165793](https://github.com/Koenkk/zigbee-herdsman-converters/commit/31657936025816de11f45b5b844fcf3a11d7784e))
+* Philips Hue gradient lights: honor transition for gradient colors ([#13352](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13352)) ([ed96707](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ed96707e09d736d36a3f1503e4ad79b779fe1f86))
+
 ## [26.115.2](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.115.1...v26.115.2) (2026-10-02)
 
 
