@@ -3908,26 +3908,25 @@ const tuyaFz = {
         cluster: "manuSpecificTuya",
         type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
-            if (utils.hasAlreadyProcessedMessage(msg, model))
-                return;
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
 
             const result: KeyValue = {};
 
-            if (!model.meta?.tuyaDatapoints)
-                throw new Error("No datapoints map defined");
+            if (!model.meta?.tuyaDatapoints) throw new Error("No datapoints map defined");
 
             for (const dpValue of msg.data.dpValues) {
                 // Attempt finding a configuration with the relevant DP-id', and a valid decoder.
-                const [_dpIdentifier, dpEntity, dpCodec] = model.meta.tuyaDatapoints.find(
-                    ([dpIdentifier, dpEntity, dpCodec]) =>
-                        (dpIdentifier === dpValue.dp) &&
-                        (dpCodec?.from !== undefined)
-                ) ?? []
+                const [_dpIdentifier, dpEntity, dpCodec] =
+                    model.meta.tuyaDatapoints.find(
+                        ([dpIdentifier, dpEntity, dpCodec]) => dpIdentifier === dpValue.dp && dpCodec?.from !== undefined,
+                    ) ?? [];
 
                 // Skip processing on invalid codec.
-                if (dpCodec === undefined)
-                {
-                    logger.debug(`[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: skipped processing; no viable decoder!.`, NS);
+                if (dpCodec === undefined) {
+                    logger.debug(
+                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: skipped processing; no viable decoder!.`,
+                        NS,
+                    );
                     continue;
                 }
 
@@ -3938,9 +3937,11 @@ const tuyaFz = {
                 const decodedValue = dpCodec.from(encodedValue, meta, options, publish, msg);
 
                 // Skip state-updates on invalid results.
-                if (decodedValue === undefined)
-                {
-                    logger.debug(`[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: "${dpEntity}" decoding value "${encodedValue}" failed; skipping.`, NS);
+                if (decodedValue === undefined) {
+                    logger.debug(
+                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: "${dpEntity}" decoding value "${encodedValue}" failed; skipping.`,
+                        NS,
+                    );
                     continue;
                 }
 
