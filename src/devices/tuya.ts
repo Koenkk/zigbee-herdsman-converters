@@ -26061,8 +26061,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "temperature_calibration", tuya.valueConverter.divideBy10],
                 // DP 110 is asymmetric: device reports the warning state, but setting it configures the threshold.
                 // First entry is used for incoming reports, the second one for setting.
-                [110, "soil_moisture_warning", tuya.valueConverter.trueFalse1],
-                [110, "soil_moisture_warning_threshold", tuya.valueConverter.raw],
+                [110, "soil_moisture_warning", {from: tuya.valueConverter.raw.from}],
+                [110, "soil_moisture_warning_threshold", {to: tuya.valueConverter.raw.to}],
                 [111, "water_warning", tuya.valueConverterBasic.lookup({none: tuya.enum(0), alarm: tuya.enum(1)})],
             ],
         },
