@@ -940,8 +940,9 @@ const tzEdge = {
             if (value === "regulator" && (meta.state as KeyValue)?.["system_mode"] === "cool") {
                 throw new Error("Cannot switch to regulator mode while in cooling mode");
             }
+            // No optimistic state: the device accepts the write but falls back to "air" when the selected
+            // sensor is not connected, so sensor_mode comes from the read-back only.
             await writeThenReadEdgeHvac(entity, 0x8004, raw as number, Zcl.DataType.ENUM8, [0x8004, 0x801d, 0x8007]);
-            return {state: {sensor_mode: value}};
         },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8004]);
