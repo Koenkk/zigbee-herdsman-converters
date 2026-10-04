@@ -1307,7 +1307,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(10)
                 .withValueMax(40)
                 .withValueStep(0.5)
-                .withDescription("Cooling setpoint."),
+                .withDescription(
+                    "Cooling setpoint. The device has one setpoint on its display: writing this while heating also changes occupied_heating_setpoint.",
+                ),
             e
                 .enum("programming_operation_mode", ea.ALL, ["setpoint", "schedule", "eco"])
                 .withDescription('Run mode. "setpoint" = manual, "schedule" = follow the weekly program, "eco" = ECO mode.'),
