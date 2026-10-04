@@ -1151,7 +1151,10 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x8007, type: Zcl.DataType.UINT8},
                 unit: "min",
-                access: "STATE_GET",
+                valueMin: 1,
+                valueMax: 30,
+                valueStep: 1,
+                zigbeeCommandOptions: {disableDefaultResponse: false},
                 description:
                     "Regulator cycle length as held by the Zigbee module (read-only). The cycle is set on the device (1-30 min) and this value is not always updated from it, so it can differ from the display.",
                 reporting: false,
