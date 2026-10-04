@@ -1117,6 +1117,15 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
+    // In Fahrenheit display mode localTemp is stale and the °F mirror (0x8012) holds the current temperature.
+    local_temperature: {
+        key: ["local_temperature"],
+        convertGet: async (entity, key, meta) => {
+            const fahrenheit = (meta.state as KeyValue)?.temperature_display_mode === "fahrenheit";
+            await entity.read("hvacThermostat", fahrenheit ? [0x8012] : ["localTemp"]);
+        },
+    } satisfies Tz.Converter,
+
     holiday_temp_set: {
         key: ["holiday_temp_set"],
         convertSet: async (entity, key, value) => {
@@ -1187,6 +1196,8 @@ export const definitions: DefinitionWithExtend[] = [
             tzEdge.system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_occupied_cooling_setpoint,
+            tz.thermostat_running_state,
+            tzEdge.local_temperature,
             tz.thermostat_local_temperature_calibration,
             tz.thermostat_temperature_display_mode,
             tz.thermostat_keypad_lockout,
