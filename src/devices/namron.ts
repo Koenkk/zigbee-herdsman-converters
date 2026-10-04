@@ -1115,14 +1115,10 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
+    // Read-only: 0x8007 follows the cycle set on the device, but a write is acknowledged without reaching the
+    // regulation (the device kept its own cycle, confirmed on firmware 1.12 and 1.14). Changes are not reported.
     regulator_cycle: {
         key: ["regulator_cycle"],
-        convertSet: async (entity, key, value) => {
-            const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 0 || num > 30) throw new Error("regulator_cycle must be 0-30");
-            await writeEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8);
-            return {state: {regulator_cycle: num}};
-        },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8007]);
         },
@@ -1188,12 +1184,14 @@ export const definitions: DefinitionWithExtend[] = [
                 option: e
                     .numeric("week_program_poll_interval", ea.SET)
                     .withValueMin(-1)
-                    .withDescription("How often week_program is read from the device, in seconds (default: 900, -1 to disable)."),
+                    .withDescription(
+                        "How often week_program and regulator_cycle are read from the device, in seconds (default: 900, -1 to disable).",
+                    ),
                 defaultIntervalSeconds: 900,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
                     if (!endpoint) return;
-                    await endpoint.read("hvacThermostat", [0x8003]);
+                    await endpoint.read("hvacThermostat", [0x8003, 0x8007]);
                 },
             }),
             m.onOff({powerOnBehavior: false}),
@@ -1326,12 +1324,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e
-                .numeric("regulator_cycle", ea.ALL)
+                .numeric("regulator_cycle", ea.STATE_GET)
                 .withUnit("min")
-                .withValueMin(0)
-                .withValueMax(30)
                 .withDescription(
-                    "Not linked to the regulator cycle the device uses (set on the device, 1-30 min): writing it does not change that cycle, and a change on the device is not reported (firmware 1.12 and 1.14).",
+                    "Regulator cycle length (1-30 min), set on the device. Read-only: writing it over Zigbee does not change the cycle the device uses. Not reported when changed, so it is read periodically.",
                 ),
             e
                 .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
