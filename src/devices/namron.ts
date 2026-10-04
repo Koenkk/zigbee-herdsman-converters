@@ -1303,7 +1303,14 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
-            e.numeric("regulator_cycle", ea.ALL).withUnit("min").withValueMin(0).withValueMax(30).withDescription("Regulator cycle length."),
+            e
+                .numeric("regulator_cycle", ea.ALL)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(30)
+                .withDescription(
+                    "Regulator cycle length. Stored by the device, but firmware 1.14 was seen to regulate with a fixed 3 min cycle regardless of this value.",
+                ),
             e
                 .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
                 .withDescription(
