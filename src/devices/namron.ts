@@ -712,6 +712,10 @@ function edgeWeekProgramSchedule(bytes: number[], fahrenheit: boolean): string {
     return `Work days: ${entries.slice(0, 6).join(", ")} | Days off: ${entries.slice(6).join(", ")}`;
 }
 
+function edgeFahrenheitToCelsius(value: number): number {
+    return Math.round((((value / 100 - 32) * 5) / 9) * 10) / 10;
+}
+
 const fzEdge = {
     week_program_schedule: {
         cluster: "namronEdgeWeekProgram",
@@ -805,11 +809,18 @@ const fzEdge = {
                     case 0x800d:
                         result["max_heat_setpoint_limit_f"] = (value as number) / 100;
                         break;
+                    // Fahrenheit setpoint and temperature (°F x100). While the display is in Fahrenheit the device
+                    // reports only these, not occupiedHeatingSetpoint/localTemp, so they are converted to °C for the
+                    // climate entity. In Celsius mode they are stale and ignored. Confirmed on firmware 1.12 and 1.14.
                     case 0x8011:
-                        result["occupied_heating_setpoint_f"] = (value as number) / 100;
+                        if (meta.state.temperature_display_mode === "fahrenheit") {
+                            result["occupied_heating_setpoint"] = edgeFahrenheitToCelsius(value as number);
+                        }
                         break;
                     case 0x8012:
-                        result["local_temperature_f"] = (value as number) / 100;
+                        if (meta.state.temperature_display_mode === "fahrenheit") {
+                            result["local_temperature"] = edgeFahrenheitToCelsius(value as number);
+                        }
                         break;
                     case 0x8013:
                         result["holiday_temp_set"] = (value as number) / 100;
@@ -1376,11 +1387,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("abs_max_heat_setpoint_limit", ea.STATE).withUnit("°C").withDescription("Highest heating setpoint the device allows."),
             e.numeric("min_heat_setpoint_limit_f", ea.STATE).withUnit("°F").withDescription("Lowest heating setpoint the device allows (°F)."),
             e.numeric("max_heat_setpoint_limit_f", ea.STATE).withUnit("°F").withDescription("Highest heating setpoint the device allows (°F)."),
-            e
-                .numeric("occupied_heating_setpoint_f", ea.STATE)
-                .withUnit("°F")
-                .withDescription("Device's own Fahrenheit-mode heating setpoint mirror."),
-            e.numeric("local_temperature_f", ea.STATE).withUnit("°F").withDescription("Device's own Fahrenheit-mode temperature mirror."),
         ],
     },
     {
