@@ -1255,9 +1255,9 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.vibration(),
             e.tilt(),
-            e.numeric("x", ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription("X coordinate"),
-            e.numeric("y", ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription("Y coordinate"),
-            e.numeric("z", ea.STATE).withValueMin(0).withValueMax(256).withValueStep(1).withDescription("Z coordinate"),
+            e.numeric("x", ea.STATE).withValueMin(0).withValueMax(127).withValueStep(1).withDescription("X coordinate"),
+            e.numeric("y", ea.STATE).withValueMin(0).withValueMax(127).withValueStep(1).withDescription("Y coordinate"),
+            e.numeric("z", ea.STATE).withValueMin(0).withValueMax(127).withValueStep(1).withDescription("Z coordinate"),
             e.battery(),
             e.enum("sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Vibration detection sensitivity"),
         ],
@@ -1265,9 +1265,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "vibration", tuya.valueConverter.trueFalseEnum1],
                 [7, "tilt", tuya.valueConverter.trueFalseEnum1],
-                [101, "x", tuya.valueConverter.raw],
-                [102, "y", tuya.valueConverter.raw],
-                [103, "z", tuya.valueConverter.raw],
+                [101, "x", {from: (v: number) => (v > 127 ? v - 256 : v) * -1}],
+                [102, "y", {from: (v: number) => (v > 127 ? v - 256 : v) * -1}],
+                [103, "z", {from: (v: number) => (v > 127 ? v - 256 : v) * -1}],
                 [
                     104,
                     "sensitivity",
@@ -1281,7 +1281,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
         model: "ZG-303Z",
