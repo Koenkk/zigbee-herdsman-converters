@@ -811,7 +811,7 @@ const fzEdge = {
                         if (value === 1) {
                             writeEdgeHvac(msg.endpoint, 0x800b, edgeLocalTime(), Zcl.DataType.UINT32)
                                 .then(() => writeEdgeHvac(msg.endpoint, 0x800a, 0, Zcl.DataType.BOOLEAN))
-                                .then(() => msg.endpoint.read("hvacThermostat", [0x800b]))
+                                .then(() => msg.endpoint.read("hvacThermostat", [0x800a, 0x800b]))
                                 .catch(() => {});
                         }
                         break;
