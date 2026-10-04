@@ -25368,11 +25368,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS208Z",
         vendor: "HYSYIOT",
         description: "PIR 24Ghz human presence sensor",
-        extend: [
-            tuya.modernExtend.tuyaBase({dp: true}),
-            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
-            m.battery(),
-        ],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}), m.battery()],
 
         meta: {
             tuyaDatapoints: [
