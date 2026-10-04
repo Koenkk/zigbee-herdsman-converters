@@ -787,12 +787,11 @@ const fzEdge = {
                         result["panel_brightness"] = value;
                         break;
                     case 0x8006: {
-                        // Bitmap, arrives as a plain number. Bit 5 shows "External Sensor Error" on the display
-                        // (floor sensor selected but not connected); other bits use the er0-er7 names of Namron's own
-                        // Homey driver until their meaning is known.
+                        // Bitmap, arrives as a plain number. Bit n is ERRn in the manual; bit 5 (ERR5, external sensor)
+                        // is confirmed on the display. Bit 0 has no ERR code and keeps the er0 name of Namron's Homey driver.
                         const faults: string[] = [];
                         for (let bit = 0; bit < 8; bit++) {
-                            if ((value as number) & (1 << bit)) faults.push(bit === 5 ? "external_sensor_error" : `er${bit}`);
+                            if ((value as number) & (1 << bit)) faults.push(edgeFaultNames[bit] ?? `er${bit}`);
                         }
                         result["fault"] = faults.length ? faults.join(",") : "none";
                         break;
@@ -869,6 +868,17 @@ const fzEdge = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+};
+
+// fault (0x8006) bit -> ERR code in the manual (ERR1-ERR7).
+const edgeFaultNames: Record<number, string> = {
+    1: "zigbee_error",
+    2: "bluetooth_error",
+    3: "internal_sensor_error",
+    4: "floor_sensor_error",
+    5: "external_sensor_error",
+    6: "overheat_error",
+    7: "overload_error",
 };
 
 const tzEdge = {
@@ -1368,7 +1378,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .text("fault", ea.STATE)
                 .withDescription(
-                    'Active faults reported by the device, or "none". "external_sensor_error" = floor/external sensor missing or faulty.',
+                    'Active faults reported by the device, or "none": zigbee_error (ERR1), bluetooth_error (ERR2), internal_sensor_error (ERR3), ' +
+                        "floor_sensor_error (ERR4), external_sensor_error (ERR5), overheat_error (ERR6), overload_error (ERR7).",
                 ),
             e.text("firmware_version", ea.STATE).withDescription("Reported software build ID."),
             e.text("firmware_date", ea.STATE).withDescription("Reported firmware date code."),
