@@ -1295,7 +1295,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("sensor_mode", ea.ALL, ["air", "floor", "air_floor", "external", "external_floor", "floor_percent", "regulator"])
                 .withDescription(
-                    'Which sensor(s) control heating, or "regulator" for plain duty-cycle % control instead of a thermostat. A sensor mode changed on the device itself is not reported over Zigbee, so this shows the last mode set from Zigbee2MQTT.',
+                    'Which sensor(s) control heating, or "regulator" for plain duty-cycle % control instead of a thermostat. A mode chosen on the device whose sensor is not connected is shown on the device but not reported, so this can then differ from the device.',
                 ),
             e
                 .numeric("regulator_percentage", ea.ALL)
@@ -1309,7 +1309,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMin(0)
                 .withValueMax(30)
                 .withDescription(
-                    "Regulator cycle length. Stored by the device, but firmware 1.14 was seen to regulate with a fixed 3 min cycle regardless of this value.",
+                    "Not linked to the regulator cycle the device uses (set on the device, 1-30 min): writing it does not change that cycle, and a change on the device is not reported (firmware 1.12 and 1.14).",
                 ),
             e
                 .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
