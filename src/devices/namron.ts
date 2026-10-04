@@ -720,6 +720,14 @@ function edgeFahrenheitToCelsius(value: number): number {
     return Math.round((((value / 100 - 32) * 5) / 9) * 10) / 10;
 }
 
+// runningState is a bitmap. While cooling the device reports 258 (0x0102: bit 1 = cool plus a non-standard bit 8),
+// which fz.thermostat's lookup rejects with an exception that also drops the rest of the message.
+function edgeRunningState(value: number): string {
+    if (value & 0x01) return "heat";
+    if (value & 0x02) return "cool";
+    return "idle";
+}
+
 const fzEdge = {
     week_program_schedule: {
         cluster: "namronEdgeWeekProgram",
@@ -735,11 +743,14 @@ const fzEdge = {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"] as const,
         convert: (model, msg, publish, options, meta) => {
-            const {programingOperMode, ...rest} = msg.data;
+            const {programingOperMode, runningState, ...rest} = msg.data;
             const result: KeyValue =
                 Object.keys(rest).length > 0 ? ((fz.thermostat.convert(model, {...msg, data: rest}, publish, options, meta) as KeyValue) ?? {}) : {};
             if (programingOperMode !== undefined) {
                 result.programming_operation_mode = edgeProgrammingOperationMode(programingOperMode as number);
+            }
+            if (runningState !== undefined) {
+                result.running_state = edgeRunningState(runningState as number);
             }
             return result;
         },
