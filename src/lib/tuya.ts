@@ -3924,7 +3924,7 @@ const tuyaFz = {
                 // Skip processing on invalid codec.
                 if (dpCodec === undefined) {
                     logger.debug(
-                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: skipped processing; no viable decoder!.`,
+                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp} (${ Object.keys(dataTypes)[dpValue.datatype] ?? "?"})]: skipped processing; no viable decoder for Data[${dpValue.data.length}]: ${dpValue.data.toString("hex")}`,
                         NS,
                     );
                     continue;
@@ -3939,7 +3939,7 @@ const tuyaFz = {
                 // Skip state-updates on invalid results.
                 if (decodedValue === undefined) {
                     logger.debug(
-                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp}; T:${dpValue.datatype}]: "${dpEntity}" decoding value "${encodedValue}" failed; skipping.`,
+                        `[${meta.device.manufacturerName}; ${meta.device.modelID}; DP-${dpValue.dp} (${ Object.keys(dataTypes)[dpValue.datatype] ?? "?"})]: "${dpEntity}" decoding failed; Data[${dpValue.data.length}]: ${dpValue.data.toString("hex")}`,
                         NS,
                     );
                     continue;
