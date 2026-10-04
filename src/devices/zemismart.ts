@@ -1154,6 +1154,20 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_w5s3mbyn"]),
+        model: "KES-606US-L1",
+        vendor: "Zemismart",
+        description: "Smart light switch - 1 gang (US)",
+        extend: [tuya.modernExtend.tuyaBase(), m.onOff()],
+        fromZigbee: [tuya.fz.power_on_behavior_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_2, {...tuya.tz.backlight_indicator_mode_1, key: ["indicator_mode"]}],
+        exposes: [tuya.exposes.indicatorMode()],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_nsa76jai", "_TZ3000_a37eix1s"]),
         model: "KES-606US-L4",
         vendor: "Zemismart",

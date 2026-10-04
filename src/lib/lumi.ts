@@ -387,7 +387,8 @@ export const numericAttributes2Payload = async (
                 } else if (["RTCGQ15LM"].includes(model.model)) {
                     payload.occupancy = value;
                 } else if (["PS-S04D"].includes(model.model)) {
-                    payload.presence = value === 1;
+                    // Not the live presence: it stays 0 while the device reports presence via 0x0142, which would
+                    // overwrite it whenever the 0x00F7 struct is read (fp300BatteryPoll). Presence comes from 0x0142.
                 } else if (["WSDCGQ01LM", "WSDCGQ11LM", "WSDCGQ12LM", "VOCKQJK11LM"].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
@@ -514,7 +515,7 @@ export const numericAttributes2Payload = async (
                     // const color_temp_min = (value & 0xffff); // 2700
                     // const color_temp_max = (value >> 16) & 0xffff; // 6500
                 } else if (["PS-S04D"].includes(model.model)) {
-                    payload.pir_detection = value === 1;
+                    // Not the live PIR state (same as tag 100 above). PIR detection comes from 0x014D.
                 }
                 break;
             case "105":
@@ -9616,6 +9617,14 @@ export const toZigbee = {
                 } else {
                     const payload = {presentValue: value as number};
                     await entity.write("genAnalogOutput", payload);
+                }
+
+                if (["ZNJLBL01LM"].includes(meta.mapped.model)) {
+                    // ZNJLBL01LM reports motor_state while moving and the actual position is read
+                    // back once the motor stops (lumiReadPositionOnReport), so publishing the target
+                    // position optimistically makes Home Assistant treat the target as the current
+                    // position and skip the opening/closing state (Koenkk/zigbee2mqtt#33254).
+                    return;
                 }
 
                 return {state: {position: value}};
