@@ -1144,17 +1144,15 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             // Read-only. The regulator cycle (1-30 min) is set on the device. 0x8007 is the Zigbee module's own copy: writes
             // are acknowledged but never reach the display or the regulation (tried a plain write, read-before-write,
-            // read-write-read and a write together with sensorMode as Namron's Homey app does; firmware 1.12 and 1.14), and
+            // read-write-read, a write together with sensorMode as Namron's Homey app does, and m.numeric; firmware 1.12 and
+            // 1.14, MCU 1.1.2 and 1.1.3), and
             // changes made on the device only sometimes update it.
             m.numeric({
                 name: "regulator_cycle",
                 cluster: "hvacThermostat",
                 attribute: {ID: 0x8007, type: Zcl.DataType.UINT8},
                 unit: "min",
-                valueMin: 1,
-                valueMax: 30,
-                valueStep: 1,
-                zigbeeCommandOptions: {disableDefaultResponse: false},
+                access: "STATE_GET",
                 description:
                     "Regulator cycle length as held by the Zigbee module (read-only). The cycle is set on the device (1-30 min) and this value is not always updated from it, so it can differ from the display.",
                 reporting: false,
