@@ -575,7 +575,7 @@ const edgeSensorModeValueLookup: KeyValue = {
 const edgeOnOffLookup: KeyValue = {OFF: 0, ON: 1};
 // Week program (0x8003), mapped on real hardware by changing it on the device.
 // Names follow the device's own labels: "no time off" = every day a work day, "time off" = every day off.
-const edgeWeekProgramLookup: KeyValue = {"0": "mon_fri_sat_sun", "1": "mon_sat_sun", "2": "no_time_off", "3": "time_off"};
+const edgeWeekProgramLookup: KeyValue = {mon_fri_sat_sun: 0, mon_sat_sun: 1, no_time_off: 2, time_off: 3};
 const edgeOnOffReverseLookup: KeyValue = {"0": "OFF", "1": "ON"};
 // id 2/3 confirmed against real hardware (Namron's own Homey driver agrees).
 const edgeScreenOnTimeLookup: KeyValue = {"0": "always_on", "1": "10s", "2": "30s", "3": "60s"};
@@ -780,12 +780,6 @@ const fzEdge = {
                     case 0x8001:
                         result["frost"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         break;
-                    case 0x8002:
-                        result["window_state"] = value ? "open" : "closed";
-                        break;
-                    case 0x8003:
-                        result["week_program"] = edgeWeekProgramLookup[String(value as number)] ?? String(value);
-                        break;
                     case 0x8004:
                         result["sensor_mode"] = edgeSensorModeLookup[String(value as number)] ?? String(value);
                         break;
@@ -803,9 +797,6 @@ const fzEdge = {
                         result["fault"] = faults.length ? faults.join(",") : "none";
                         break;
                     }
-                    case 0x8007:
-                        result["regulator_cycle"] = value;
-                        break;
                     case 0x800a:
                         result["auto_time_sync_pending"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         if (value === 1) {
@@ -839,9 +830,6 @@ const fzEdge = {
                     case 0x8013:
                         result["holiday_temp_set"] = (value as number) / 100;
                         break;
-                    case 0x801d:
-                        result["regulator_percentage"] = value;
-                        break;
                     case 0x801f:
                         result["vacation_mode"] = edgeOnOffReverseLookup[String(value as number)] ?? String(value);
                         break;
@@ -857,11 +845,6 @@ const fzEdge = {
                     case 0x8023:
                         // 5-minute steps (0-24 -> 0-120 min), confirmed against real hardware.
                         result["countdown_set"] = (value as number) * 5;
-                        break;
-                    case 0x8024:
-                        // Minutes left while a countdown runs. With no countdown running the firmware
-                        // holds a meaningless value (e.g. 1325465600), so anything above 120 is shown as 0.
-                        result["countdown_left"] = (value as number) <= 120 ? value : 0;
                         break;
                     case 0x8025:
                         result["max_heat_temp"] = (value as number) / 10;
@@ -1060,12 +1043,6 @@ const tzEdge = {
 
     // Week program (0x8003) is read-only: changes made on the device read back, but the device is not
     // confirmed to act on writes, and it does not report changes, so it is polled.
-    week_program: {
-        key: ["week_program"],
-        convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8003]);
-        },
-    } satisfies Tz.Converter,
 
     // Hysteresis is not exposed: it is not reachable over Zigbee (checked on firmware 1.12 and 1.14).
     // Both firmwares answer UNSUPPORTED_ATTRIBUTE for 0x8035, 0x8041, 0x8045 and 0x8052 (1.14 also
@@ -1099,30 +1076,6 @@ const tzEdge = {
         },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8005]);
-        },
-    } satisfies Tz.Converter,
-
-    regulator_percentage: {
-        key: ["regulator_percentage"],
-        convertSet: async (entity, key, value) => {
-            const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 0 || num > 100) throw new Error("regulator_percentage must be 0-100");
-            await writeEdgeHvac(entity, 0x801d, num, Zcl.DataType.INT16);
-            return {state: {regulator_percentage: num}};
-        },
-        convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x801d]);
-        },
-    } satisfies Tz.Converter,
-
-    // Read-only. The regulator cycle (1-30 min) is set on the device. 0x8007 is the Zigbee module's own copy: writes
-    // are acknowledged but never reach the display or the regulation (tried a plain write, read-before-write,
-    // read-write-read and a write together with sensorMode as Namron's Homey app does; firmware 1.12 and 1.14), and
-    // changes made on the device only sometimes update it.
-    regulator_cycle: {
-        key: ["regulator_cycle"],
-        convertGet: async (entity) => {
-            await entity.read("hvacThermostat", [0x8007]);
         },
     } satisfies Tz.Converter,
 
@@ -1177,6 +1130,62 @@ export const definitions: DefinitionWithExtend[] = [
             edgeThermostatCommands(),
             edgeWeekProgramCluster(),
             edgeReadOnStartup(),
+            m.numeric({
+                name: "regulator_percentage",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x801d, type: Zcl.DataType.INT16},
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                description: 'Output duty cycle when sensor_mode is "regulator".',
+                zigbeeCommandOptions: {disableDefaultResponse: false},
+                reporting: false,
+            }),
+            // Read-only. The regulator cycle (1-30 min) is set on the device. 0x8007 is the Zigbee module's own copy: writes
+            // are acknowledged but never reach the display or the regulation (tried a plain write, read-before-write,
+            // read-write-read and a write together with sensorMode as Namron's Homey app does; firmware 1.12 and 1.14), and
+            // changes made on the device only sometimes update it.
+            m.numeric({
+                name: "regulator_cycle",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x8007, type: Zcl.DataType.UINT8},
+                unit: "min",
+                access: "STATE_GET",
+                description:
+                    "Regulator cycle length as held by the Zigbee module (read-only). The cycle is set on the device (1-30 min) and this value is not always updated from it, so it can differ from the display.",
+                reporting: false,
+            }),
+            m.enumLookup({
+                name: "week_program",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x8003, type: Zcl.DataType.ENUM8},
+                lookup: edgeWeekProgramLookup,
+                access: "STATE_GET",
+                description:
+                    'Week program split set on the device (read-only): work days / days off. "no_time_off" = every day a work day, "time_off" = every day off. Changes made on the device show up at the next poll.',
+                reporting: false,
+            }),
+            m.enumLookup({
+                name: "window_state",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x8002, type: Zcl.DataType.BOOLEAN},
+                lookup: {closed: 0, open: 1},
+                access: "STATE",
+                description: "Open-window detection result.",
+                reporting: false,
+            }),
+            m.numeric({
+                name: "countdown_left",
+                cluster: "hvacThermostat",
+                attribute: {ID: 0x8024, type: Zcl.DataType.UINT32},
+                unit: "min",
+                access: "STATE_GET",
+                // With no countdown running the firmware holds a meaningless value (e.g. 1325465600), shown as 0.
+                scale: (value, type) => (type === "from" && value > 120 ? 0 : value),
+                description: "Minutes left of a running countdown, as reported by the device.",
+                reporting: false,
+            }),
             // The device accepts a calibration of -10 to +10 °C (confirmed on the device), wider than the ZCL default of ±2.5 °C.
             m.customLocalTemperatureCalibrationRange({min: -10, max: 10}),
             // The week program changed on the device is not reported, so read it periodically.
@@ -1220,11 +1229,8 @@ export const definitions: DefinitionWithExtend[] = [
             tzEdge.auto_time,
             tzEdge.sync_time,
             tzEdge.countdown_set,
-            tzEdge.week_program,
             tzEdge.screen_on_time,
             tzEdge.panel_brightness,
-            tzEdge.regulator_percentage,
-            tzEdge.regulator_cycle,
             tzEdge.holiday_temp_set,
             tzEdge.max_heat_temp,
         ],
@@ -1318,30 +1324,12 @@ export const definitions: DefinitionWithExtend[] = [
                     'Which sensor(s) control heating, or "regulator" for plain duty-cycle % control instead of a thermostat. A mode chosen on the device whose sensor is not connected is shown on the device but not reported, so this can then differ from the device.',
                 ),
             e
-                .numeric("regulator_percentage", ea.ALL)
-                .withUnit("%")
-                .withValueMin(0)
-                .withValueMax(100)
-                .withDescription('Output duty cycle when sensor_mode is "regulator".'),
-            e
-                .numeric("regulator_cycle", ea.STATE_GET)
-                .withUnit("min")
-                .withDescription(
-                    "Regulator cycle length as held by the Zigbee module (read-only). The cycle is set on the device (1-30 min) and this value is not always updated from it, so it can differ from the display.",
-                ),
-            e
-                .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
-                .withDescription(
-                    'Week program split set on the device (read-only): work days / days off. "no_time_off" = every day a work day, "time_off" = every day off. Changes made on the device show up at the next poll.',
-                ),
-            e
                 .text("week_program_schedule", ea.STATE)
                 .withDescription(
                     "Week program times and temperatures (read-only), sent by the device when the program is changed on the device. Shows nothing until the program is changed.",
                 ),
             e.binary("frost", ea.ALL, "ON", "OFF").withDescription('Frost protection. Only usable while system_mode is "heat".'),
             e.binary("window_open_check", ea.ALL, "ON", "OFF").withDescription("Open-window detection (auto pause heating)."),
-            e.enum("window_state", ea.STATE, ["open", "closed"]).withDescription("Open-window detection result."),
             e.binary("keypad_lockout", ea.ALL, "lock1", "unlock").withDescription("Physical button lock on the device."),
             e.enum("temperature_display_mode", ea.ALL, ["celsius", "fahrenheit"]).withDescription("Unit shown on the device's own screen."),
             e
@@ -1358,7 +1346,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(120)
                 .withValueStep(5)
                 .withDescription("Countdown timer; heating stops when it reaches 0. 0 = cancelled. Not usable in cooling mode."),
-            e.numeric("countdown_left", ea.STATE).withUnit("min").withDescription("Minutes left of a running countdown, as reported by the device."),
             e.binary("vacation_mode", ea.ALL, "ON", "OFF").withDescription("Holds holiday_temp_set until vacation_end."),
             e.text("vacation_start", ea.ALL).withDescription("Vacation start date, format YYYY-MM-DD."),
             e.text("vacation_end", ea.ALL).withDescription("Vacation end date, format YYYY-MM-DD."),
