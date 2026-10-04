@@ -53,6 +53,27 @@ describe("lib/lumi", () => {
             );
             expect(globalStore.getValue(device, "lumi_struct_last_received")).toBeGreaterThanOrEqual(before);
         });
+
+        it("does not take presence or PIR detection from the 0x00F7 struct", async () => {
+            const device = mockDevice({modelID: "lumi.sensor_occupy.agl8", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            // 0x00F7 read response from firmware 0.0.0_6542, received while the device reported presence (0x0142) = 1:
+            // tag 100 = 0, tag 101 = 2, tag 103 = 0
+            const struct = Buffer.from([
+                5, 33, 2, 0, 10, 33, 73, 229, 12, 32, 10, 13, 35, 42, 65, 0, 0, 19, 32, 0, 23, 33, 196, 11, 24, 32, 100, 28, 16, 0, 100, 32, 0, 101,
+                32, 2, 103, 32, 0,
+            ]);
+            const convert = (data: KeyValueAny) =>
+                // @ts-expect-error mock
+                fromZigbee.lumi_specific.convert(definition, {data, device, endpoint: device.getEndpoint(1)}, null, {}, {device});
+
+            const structPayload = await convert({247: struct});
+            expect(structPayload).not.toHaveProperty("presence");
+            expect(structPayload).not.toHaveProperty("pir_detection");
+            expect(structPayload).not.toHaveProperty("state");
+            expect(await convert({322: 1})).toStrictEqual({presence: true});
+            expect(await convert({322: 0})).toStrictEqual({presence: false});
+        });
     });
 
     describe("WP-P09D optional exposes", () => {
