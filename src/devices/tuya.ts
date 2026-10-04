@@ -25368,16 +25368,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS208Z",
         vendor: "HYSYIOT",
         description: "PIR 24Ghz human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.battery()],
-        fromZigbee: [
-            {
-                cluster: "ssIasZone",
-                type: "commandStatusChangeNotification",
-                convert: (model, msg, publish, options, meta) => {
-                    const zs = msg.data.zonestatus;
-                    return {occupancy: (zs & 1) > 0};
-                },
-            },
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            m.iasZoneAlarm({zoneType: 'occupancy', zoneAttributes: ['alarm_1']}),
+            m.battery(),
         ],
 
         meta: {
@@ -25432,7 +25426,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         exposes: [
-            e.occupancy(),
+            //e.occupancy(),
             e.enum("motion_state", ea.STATE, ["none", "move", "Micro-move", "static"]).withDescription("Radar Motion State Detail"),
             e.vibration(),
             e.illuminance(),
@@ -25462,7 +25456,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("°C")
                 .withDescription("Temperature Calibration"),
             e.numeric("humidity_calibration", ea.STATE_SET).withValueMin(-10).withValueMax(10).withUnit("%").withDescription("Humidity Calibration"),
-            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(50).withDescription("Vibration Sensitivity"),
+            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Vibration Sensitivity"),
             e.numeric("vibration_delay", ea.STATE_SET).withValueMin(1).withValueMax(1440).withUnit("s").withDescription("Vibration Clear Delay Time"),
         ],
     },
