@@ -1115,10 +1115,16 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
-    // Read-only: 0x8007 follows the cycle set on the device, but a write is acknowledged without reaching the
-    // regulation (the device kept its own cycle, confirmed on firmware 1.12 and 1.14). Changes are not reported.
+    // 0x8007 follows the cycle set on the device (1-30 min); changes there are not reported. A plain write was
+    // acknowledged without changing the cycle the device uses, so it is written like the other settings shown on the
+    // display: read, write, then read back.
     regulator_cycle: {
         key: ["regulator_cycle"],
+        convertSet: async (entity, key, value) => {
+            const num = Math.round(Number(value));
+            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error("regulator_cycle must be 1-30");
+            await writeThenReadEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8, [0x8007]);
+        },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8007]);
         },
@@ -1324,11 +1330,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e
-                .numeric("regulator_cycle", ea.STATE_GET)
+                .numeric("regulator_cycle", ea.ALL)
                 .withUnit("min")
-                .withDescription(
-                    "Regulator cycle length (1-30 min), set on the device. Read-only: writing it over Zigbee does not change the cycle the device uses. Not reported when changed, so it is read periodically.",
-                ),
+                .withValueMin(1)
+                .withValueMax(30)
+                .withDescription("Regulator cycle length. Not reported when changed on the device, so it is read periodically."),
             e
                 .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
                 .withDescription(
