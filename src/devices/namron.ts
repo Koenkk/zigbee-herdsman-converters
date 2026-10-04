@@ -1115,16 +1115,12 @@ const tzEdge = {
         },
     } satisfies Tz.Converter,
 
-    // 0x8007 follows the cycle set on the device (1-30 min); changes there are not reported. A plain write was
-    // acknowledged without changing the cycle the device uses, so it is written like the other settings shown on the
-    // display: read, write, then read back.
+    // Read-only. The regulator cycle (1-30 min) is set on the device. 0x8007 is the Zigbee module's own copy: writes
+    // are acknowledged but never reach the display or the regulation (tried a plain write, read-before-write,
+    // read-write-read and a write together with sensorMode as Namron's Homey app does; firmware 1.12 and 1.14), and
+    // changes made on the device only sometimes update it.
     regulator_cycle: {
         key: ["regulator_cycle"],
-        convertSet: async (entity, key, value) => {
-            const num = Math.round(Number(value));
-            if (Number.isNaN(num) || num < 1 || num > 30) throw new Error("regulator_cycle must be 1-30");
-            await writeThenReadEdgeHvac(entity, 0x8007, num, Zcl.DataType.UINT8, [0x8007]);
-        },
         convertGet: async (entity) => {
             await entity.read("hvacThermostat", [0x8007]);
         },
@@ -1190,14 +1186,12 @@ export const definitions: DefinitionWithExtend[] = [
                 option: e
                     .numeric("week_program_poll_interval", ea.SET)
                     .withValueMin(-1)
-                    .withDescription(
-                        "How often week_program and regulator_cycle are read from the device, in seconds (default: 900, -1 to disable).",
-                    ),
+                    .withDescription("How often week_program is read from the device, in seconds (default: 900, -1 to disable)."),
                 defaultIntervalSeconds: 900,
                 poll: async (device) => {
                     const endpoint = device.getEndpoint(1);
                     if (!endpoint) return;
-                    await endpoint.read("hvacThermostat", [0x8003, 0x8007]);
+                    await endpoint.read("hvacThermostat", [0x8003]);
                 },
             }),
             m.onOff({powerOnBehavior: false}),
@@ -1330,11 +1324,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(100)
                 .withDescription('Output duty cycle when sensor_mode is "regulator".'),
             e
-                .numeric("regulator_cycle", ea.ALL)
+                .numeric("regulator_cycle", ea.STATE_GET)
                 .withUnit("min")
-                .withValueMin(1)
-                .withValueMax(30)
-                .withDescription("Regulator cycle length. Not reported when changed on the device, so it is read periodically."),
+                .withDescription(
+                    "Regulator cycle length as held by the Zigbee module (read-only). The cycle is set on the device (1-30 min) and this value is not always updated from it, so it can differ from the display.",
+                ),
             e
                 .enum("week_program", ea.STATE_GET, ["mon_fri_sat_sun", "mon_sat_sun", "no_time_off", "time_off"])
                 .withDescription(
