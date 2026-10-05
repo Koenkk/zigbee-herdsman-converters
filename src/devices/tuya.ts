@@ -5998,11 +5998,13 @@ export const definitions: DefinitionWithExtend[] = [
         version: "0.0.2",
         fromZigbee: [fz.on_off, fz.brightness],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            await reporting.onOff(endpoint, {max: 0});
-            await reporting.brightness(endpoint, {max: 0});
+            try {
+                await tuya.configureMagicPacket(device, coordinatorEndpoint);
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+                await reporting.onOff(endpoint, {max: 0});
+                await reporting.brightness(endpoint, {max: 0});
+            } catch {}
         },
         exposes: (device, options) => {
             const exps: Expose[] = [
