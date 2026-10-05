@@ -9294,6 +9294,29 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"])],
     },
     {
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ly9apzky"]),
+        model: "TS0003_QS-Zigbee-S10-3C",
+        vendor: "Tuya",
+        description: "3 gang switch module",
+        whiteLabel: [{vendor: "Auronen", model: "Zigbee-3C"}],
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                switchType: true,
+                powerOutageMemory: true,
+                endpoints: ["l1", "l2", "l3"],
+            }),
+        ],
+        endpoint: (device) => ({l1: 1, l2: 2, l3: 3}),
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const endpoint of [1, 2, 3]) {
+                await reporting.bind(device.getEndpoint(endpoint), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
         model: "TW-03",
         vendor: "Tuya",
