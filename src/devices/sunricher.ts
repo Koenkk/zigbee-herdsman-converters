@@ -1043,6 +1043,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
+        zigbeeModel: ["ZGRC-KEY-008"],
+        model: "SR-ZG9001K8-CCT",
+        vendor: "Sunricher",
+        description: "CCT wireless wall switch with 2 scene buttons",
+        extend: [
+            m.battery(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["color_temperature_step_up", "color_temperature_step_down"],
+            }),
+            m.commandsScenes({
+                commands: ["recall", "store"],
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["HK-ZRC-K10N-E"],
         model: "SR-ZG2856-Pro",
         vendor: "Sunricher",
