@@ -1259,21 +1259,21 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("x", ea.STATE)
                 .withLabel("Accel. X Component")
                 .withValueMin(-128)
-                .withValueMax(128)
+                .withValueMax(127)
                 .withValueStep(1)
                 .withDescription("Gravitational acceleration component along the X-axis"),
             e
                 .numeric("y", ea.STATE)
                 .withLabel("Accel. Y Component")
                 .withValueMin(-128)
-                .withValueMax(128)
+                .withValueMax(127)
                 .withValueStep(1)
                 .withDescription("Gravitational acceleration component along the Y-axis"),
             e
                 .numeric("z", ea.STATE)
                 .withLabel("Accel. Z Component")
                 .withValueMin(-128)
-                .withValueMax(128)
+                .withValueMax(127)
                 .withValueStep(1)
                 .withDescription("Gravitational acceleration component along the Z-axis"),
             e.battery(),
@@ -1283,9 +1283,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "vibration", tuya.valueConverter.trueFalseEnum1],
                 [7, "tilt", tuya.valueConverter.trueFalseEnum1],
-                [101, "x", {from: (v: number) => (v > 127 ? v - 256 : v) * -1}],
-                [102, "y", {from: (v: number) => (v > 127 ? v - 256 : v) * -1}],
-                [103, "z", {from: (v: number) => (v > 127 ? v - 256 : v) * -1}],
+                [101, "x", {from: (v: number) => (v > 127 ? v - 256 : v)}],
+                [102, "y", {from: (v: number) => (v > 127 ? v - 256 : v)}],
+                [103, "z", {from: (v: number) => (v > 127 ? v - 256 : v)}],
                 [
                     104,
                     "sensitivity",
