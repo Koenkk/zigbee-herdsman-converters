@@ -4424,6 +4424,7 @@ const W600_ATTR_SYSTEM_MODE = 0x0271;
 const W600_ATTR_SCHEDULE = 0x027d;
 const W600_ATTR_PRESET = 0x0311;
 const W600_ATTR_PRESET_TEMPERATURE_TABLE = 0x0317;
+const W600_ATTR_EXTERNAL_SENSOR_STATUS = 0x027e;
 const W600_ATTR_SENSOR_SOURCE = 0x0280;
 const W600_ATTR_SENSOR_BINDING = 0xfff2;
 const W600_ATTR_HEARTBEAT = 0x00f7;
@@ -4456,7 +4457,16 @@ const W600_EXTERNAL_SENSOR_CHANNELS = {
 type W600ExternalSensorChannel = keyof typeof W600_EXTERNAL_SENSOR_CHANNELS;
 type W600ExternalTemperatureSample = {centiDegrees: number; receivedAt: number};
 type W600ExternalSensorActivation = {sample?: W600ExternalTemperatureSample; availabilitySent: boolean; requests: Map<string, number>};
-type W600ExternalSensorContext = {tail: Promise<unknown>; generation: number; activation?: W600ExternalSensorActivation};
+type W600ExternalSensorStatusRead = {state: KeyValue; statusRevision: number};
+type W600ExternalSensorContext = {
+    tail: Promise<unknown>;
+    generation: number;
+    activation?: W600ExternalSensorActivation;
+    problem: boolean | null;
+    statusRevision: number;
+    statusReadRevision: number;
+    statusRead?: {revision: number; promise: Promise<W600ExternalSensorStatusRead | undefined>};
+};
 
 const W600_PRESET_ORDER = ["home", "away", "sleep", "vacation", "wind_down"] as const;
 type W600PresetName = (typeof W600_PRESET_ORDER)[number];
@@ -4649,6 +4659,9 @@ function getW600SensorSelectionFromState(value: unknown) {
 }
 
 function parseW600ExternalTemperatureInput(value: unknown, key: string) {
+    if (typeof value !== "number" && (typeof value !== "string" || value.trim() === "")) {
+        throw new Error(`${key} must be a number or a nonblank numeric string`);
+    }
     const numeric = Number(value);
 
     if (!Number.isFinite(numeric)) {
@@ -4930,6 +4943,11 @@ function createW600Heartbeat(): ModernExtend {
     return {
         exposes: [
             e.battery().withDescription("Battery percentage"),
+            e
+                .battery_voltage()
+                .withLabel("Voltage")
+                .withDescription("Battery voltage reported by the thermostat, in millivolts.")
+                .withHomeAssistant({deviceClass: "voltage", name: "Voltage", icon: "mdi:current-dc"}),
             e.valve_alarm().withDescription("Indicates whether temperature control abnormal notification has reported an active alert"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Indicates whether open window detection has reported an open window"),
         ],
@@ -4954,6 +4972,11 @@ function createW600Heartbeat(): ModernExtend {
 
                     if (typeof heartbeat[0x18] === "number" && Number.isFinite(heartbeat[0x18])) {
                         result.battery = Math.max(0, Math.min(100, heartbeat[0x18] as number));
+                    }
+
+                    const voltage = heartbeat[0x17];
+                    if (typeof voltage === "number" && Number.isInteger(voltage) && voltage > 0) {
+                        result.voltage = voltage;
                     }
 
                     if (Buffer.isBuffer(heartbeat[0x9c])) {
@@ -5706,15 +5729,61 @@ function createW500NtcSensor(): ModernExtend {
 
 function createW600ExternalTempSensor(): ModernExtend {
     const contexts = new Map<string, W600ExternalSensorContext>();
-    const combinedCommands = new WeakMap<object, Promise<Tz.ConvertSetResult>>();
-    const context = (entity: Zh.Endpoint) => {
+    const statusProblem = (status: unknown) => (status === 2 ? true : status === 0 || status === 1 ? false : null);
+    const context = (entity: Zh.Endpoint, state?: KeyValue) => {
         const key = entity.deviceIeeeAddress;
         let value = contexts.get(key);
         if (!value) {
-            value = {tail: Promise.resolve(), generation: 0};
+            const problem = state?.external_temperature_problem;
+            value = {
+                tail: Promise.resolve(),
+                generation: 0,
+                problem: typeof problem === "boolean" ? problem : null,
+                statusRevision: 0,
+                statusReadRevision: 0,
+            };
             contexts.set(key, value);
         }
         return value;
+    };
+    const receiveStatus = (ctx: W600ExternalSensorContext, data: KeyValue): KeyValue | undefined => {
+        if (!Object.hasOwn(data, W600_ATTR_EXTERNAL_SENSOR_STATUS)) return;
+        ctx.statusRevision++;
+        ctx.problem = statusProblem(data[W600_ATTR_EXTERNAL_SENSOR_STATUS]);
+        return {external_temperature_problem: ctx.problem};
+    };
+    const readStatus = async (entity: Zh.Endpoint, state?: KeyValue, publish?: W600Publish, afterChange = false): Promise<void> => {
+        const ctx = context(entity, state);
+        if (afterChange) ctx.statusReadRevision++;
+        const requestedRevision = ctx.statusReadRevision;
+        const read = (): Promise<W600ExternalSensorStatusRead | undefined> => {
+            const pending = ctx.statusRead;
+            if (pending) {
+                if (pending.revision >= requestedRevision) return pending.promise;
+                // A read started before this source change/sample cannot refresh its resulting status.
+                return pending.promise.catch((): undefined => undefined).then(read);
+            }
+            const promise = readW600LumiAttribute(entity, W600_ATTR_EXTERNAL_SENSOR_STATUS)
+                .then((data) => {
+                    const result = receiveStatus(ctx, data);
+                    return result ? {state: result, statusRevision: ctx.statusRevision} : undefined;
+                })
+                .finally(() => {
+                    if (ctx.statusRead?.promise === promise) ctx.statusRead = undefined;
+                });
+            ctx.statusRead = {revision: ctx.statusReadRevision, promise};
+            return promise;
+        };
+        const result = await read();
+        if (result && ctx.statusRevision === result.statusRevision) publish?.(result.state);
+    };
+    const automaticallyReadStatus = async (entity: Zh.Endpoint, state?: KeyValue, publish?: W600Publish, afterChange = false) => {
+        try {
+            await readStatus(entity, state, publish, afterChange);
+        } catch (error) {
+            const details = error instanceof Error ? error.message : String(error);
+            logger.debug(`W600 external temperature status read failed for ${entity.deviceIeeeAddress}: ${details}`, W600_NS);
+        }
     };
     const clear = (ctx: W600ExternalSensorContext) => {
         ctx.generation++;
@@ -5728,31 +5797,22 @@ function createW600ExternalTempSensor(): ModernExtend {
     const convertSet: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
         assertEndpoint(entity);
         if (entity.ID !== 1) throw new Error("W600 external temperature is only supported on endpoint 1");
-        const message = meta.message;
-        const combined = message?.sensor != null && message?.external_temperature_input != null;
-        if (combined && combinedCommands.has(message)) return await combinedCommands.get(message);
-        const requested =
-            key === "sensor"
-                ? parseW600SensorSelection(value, key)
-                : message?.sensor != null
-                  ? parseW600SensorSelection(message.sensor, "sensor")
-                  : undefined;
-        const hasInput = key === "external_temperature_input" || combined;
+        const message = {...meta.message, [key]: value};
+        const requested = Object.hasOwn(message, "sensor") ? parseW600SensorSelection(message.sensor, "sensor") : undefined;
+        const hasInput = Object.hasOwn(message, "external_temperature_input");
         // Validate the complete command before changing the device, including either ordering of combined keys.
         const centiDegrees = hasInput
-            ? parseW600ExternalTemperatureInput(
-                  key === "external_temperature_input" ? value : message.external_temperature_input,
-                  "external_temperature_input",
-              )
+            ? parseW600ExternalTemperatureInput(message.external_temperature_input, "external_temperature_input")
             : undefined;
         const current = getW600SensorSelectionFromState(meta.state?.sensor);
         if (hasInput && (requested ?? current) !== "external") {
             throw new Error("external_temperature_input can only be used when sensor is external");
         }
         const receivedAt = Date.now();
-        const ctx = context(entity);
+        const ctx = context(entity, meta.state);
         if (requested != null) clear(ctx);
         const generation = ctx.generation;
+        let shouldReadStatus = false;
         const operation = enqueue(ctx, async () => {
             if (ctx.generation !== generation) return;
             const requireFreshInput = () => {
@@ -5764,6 +5824,7 @@ function createW600ExternalTempSensor(): ModernExtend {
             const refresh = key === "sensor" || current !== "external" || requested === "external" || !ctx.activation;
             if (requested === "internal") {
                 await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 0);
+                shouldReadStatus = true;
                 await writeW600ExternalSensorBinding(entity, true);
                 return {state: {sensor: "internal"}};
             }
@@ -5774,6 +5835,7 @@ function createW600ExternalTempSensor(): ModernExtend {
                 try {
                     await writeW600ExternalSensorBinding(entity, false);
                     await writeW600LumiAttribute(entity, W600_ATTR_SENSOR_SOURCE, 1);
+                    shouldReadStatus = true;
                 } catch (error) {
                     if (ctx.activation === activation) clear(ctx);
                     throw error;
@@ -5783,6 +5845,7 @@ function createW600ExternalTempSensor(): ModernExtend {
             if (hasInput) {
                 requireFreshInput();
                 await writeW600ExternalSensorSample(entity, "temperature", centiDegrees);
+                if (ctx.problem === true) shouldReadStatus = true;
                 if (ctx.generation === generation && ctx.activation === activation) {
                     activation.sample = {centiDegrees, receivedAt};
                     if (!activation.availabilitySent && Date.now() - receivedAt <= W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS) {
@@ -5791,10 +5854,19 @@ function createW600ExternalTempSensor(): ModernExtend {
                     }
                 }
             }
-            return {state: {...(refresh ? {sensor: "external"} : {}), ...(hasInput ? {external_temperature_input: centiDegrees / 100} : {})}};
+            return {
+                state: {
+                    ...(refresh ? {sensor: "external"} : {}),
+                    ...(hasInput ? {external_temperature_input: centiDegrees / 100} : {}),
+                },
+            };
         });
-        if (combined) combinedCommands.set(message, operation);
-        return await operation;
+        try {
+            return await operation;
+        } finally {
+            // Read outside the write queue so incoming requests and concurrent commands can still run.
+            if (shouldReadStatus) await automaticallyReadStatus(entity, meta.state, meta.publish, true);
+        }
     };
     const convertGet: Tz.Converter["convertGet"] = async (entity) => {
         assertEndpoint(entity);
@@ -5816,24 +5888,42 @@ function createW600ExternalTempSensor(): ModernExtend {
                 .withValueStep(0.01)
                 .withDescription("Manual external temperature forwarded to the W600 when temperature source is external")
                 .withCategory("config"),
+            e
+                .binary("external_temperature_problem", ea.STATE_GET, true, false)
+                .withLabel("External temperature status")
+                .withDescription(
+                    "Indicates a problem with the external temperature sensor readings. Triggers after 75 minutes without a fresh external temperature report.",
+                )
+                .withCategory("diagnostic")
+                .withHomeAssistant({
+                    deviceClass: "problem",
+                    name: "External temperature",
+                    valueTemplate: "{{ value_json.external_temperature_problem | default(none) }}",
+                }),
         ],
         fromZigbee: [
             {
                 cluster: W600_LUMI_CLUSTER,
                 type: ["attributeReport", "readResponse"],
-                convert: async (model, msg) => {
+                convert: async (model, msg, publish, options, meta) => {
                     if (msg.endpoint.ID !== 1) return;
                     const source = msg.data[W600_ATTR_SENSOR_SOURCE];
-                    const result: KeyValue = {};
-                    const ctx = context(msg.endpoint);
+                    let result: KeyValue = {};
+                    const ctx = context(msg.endpoint, meta?.state);
                     if (source === 0 || source === 1) {
                         result.sensor = source === 1 ? "external" : "internal";
                         if (source === 0) clear(ctx);
                     }
+                    Object.assign(result, receiveStatus(ctx, msg.data));
                     const value = msg.data[W600_ATTR_SENSOR_BINDING];
                     const channel = getW600ExternalSensorRequestChannel(value);
                     const activation = ctx.activation;
                     if (channel && activation && Buffer.isBuffer(value)) {
+                        // Publish telemetry before waiting for the channel reply; its acknowledgement may arrive after a newer status.
+                        if (Object.keys(result).length) {
+                            publish(result);
+                            result = {};
+                        }
                         const now = Date.now();
                         for (const [key, time] of activation.requests) {
                             if (now - time > W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS) activation.requests.delete(key);
@@ -5856,6 +5946,9 @@ function createW600ExternalTempSensor(): ModernExtend {
                                 }
                                 try {
                                     await writeW600ExternalSensorSample(msg.endpoint, channel, cached.centiDegrees);
+                                    if (channel === "temperature" && ctx.problem === true) {
+                                        void automaticallyReadStatus(msg.endpoint, meta.state, publish, true);
+                                    }
                                 } catch (error) {
                                     activation.requests.delete(identity);
                                     throw error;
@@ -5868,17 +5961,25 @@ function createW600ExternalTempSensor(): ModernExtend {
             } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
-            {key: ["sensor"], convertSet, convertGet},
-            {key: ["external_temperature_input"], convertSet, convertGet},
+            {key: ["sensor", "external_temperature_input"], convertSet, convertGet},
+            {
+                key: ["external_temperature_problem"],
+                convertGet: async (entity, key, meta) => {
+                    assertEndpoint(entity);
+                    if (entity.ID !== 1) throw new Error("W600 external temperature status is only supported on endpoint 1");
+                    await readStatus(entity, meta.state, meta.publish);
+                },
+            },
         ],
         configure: [
             async (device) => {
                 const endpoint = device.getEndpoint(1);
                 await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE], {manufacturerCode});
+                await automaticallyReadStatus(endpoint);
             },
         ],
         onEvent: [
-            (event) => {
+            async (event) => {
                 if (
                     event.type === "stop" ||
                     event.type === "start" ||
@@ -5889,6 +5990,16 @@ function createW600ExternalTempSensor(): ModernExtend {
                     const key = event.type === "stop" ? event.data.ieeeAddr : event.data.device.ieeeAddr;
                     const ctx = contexts.get(key);
                     if (ctx) clear(ctx);
+                }
+                if (
+                    event.type === "start" ||
+                    event.type === "deviceAnnounce" ||
+                    event.type === "deviceJoined" ||
+                    (event.type === "deviceInterview" && event.data.status === "successful")
+                ) {
+                    if (event.data.device.interviewState === "SUCCESSFUL") {
+                        await automaticallyReadStatus(event.data.device.getEndpoint(1), event.data.state);
+                    }
                 }
             },
         ],
@@ -5927,7 +6038,8 @@ function createW600Thermostat(): ModernExtend {
             .withUnit("°C")
             .withLabel("Internal sensor temperature")
             .withDescription("Temperature measured by the thermostat's internal sensor")
-            .withCategory("diagnostic"),
+            .withCategory("diagnostic")
+            .withHomeAssistant({deviceClass: "temperature", name: "Internal sensor temperature"}),
     );
 
     const thermostatConverter = {
@@ -5955,9 +6067,12 @@ function createW600Thermostat(): ModernExtend {
         options: tz.thermostat_occupied_heating_setpoint.options,
         convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
             assertEndpoint(entity);
+            // A target write can move the valve while the W600 still reports power off.
+            const wake = meta.state?.system_mode === "off";
+            const heatResult = wake ? await systemModeConverter.convertSet(entity, "system_mode", "heat", meta) : undefined;
             const result = await tz.thermostat_occupied_heating_setpoint.convertSet(entity, key, value, meta);
             const resultState = result && "state" in result ? result.state : undefined;
-            const shouldUseHold = getRequestedW600ScheduleEnabled(meta) !== false;
+            const shouldUseHold = !wake && getRequestedW600ScheduleEnabled(meta) !== false;
 
             if (shouldUseHold) {
                 await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
@@ -5967,6 +6082,7 @@ function createW600Thermostat(): ModernExtend {
 
             return {
                 state: {
+                    ...heatResult?.state,
                     ...(resultState ?? {}),
                     ...(shouldUseHold ? {system_mode: "auto", schedule: "ON", override_active: true} : {}),
                     preset: "none",
@@ -6012,6 +6128,41 @@ function createW600Thermostat(): ModernExtend {
             await readW600LumiAttribute(entity, W600_ATTR_SYSTEM_MODE);
             await readW600LumiAttribute(entity, W600_ATTR_SCHEDULE);
             await entity.read(W600_THERMOSTAT_CLUSTER, ["tempSetpointHold"]);
+        },
+    } satisfies Tz.Converter;
+
+    const climateCommandConverter = {
+        key: ["system_mode", "occupied_heating_setpoint"],
+        options: tz.thermostat_occupied_heating_setpoint.options,
+        convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
+            assertEndpoint(entity);
+            const message = {...meta.message, [key]: value};
+            const hasMode = Object.hasOwn(message, "system_mode");
+            const hasTarget = Object.hasOwn(message, "occupied_heating_setpoint");
+            const mode = hasMode ? parseW600EnumName(message.system_mode, {off: 0, heat: 1, auto: 2}, "system_mode") : undefined;
+
+            // Explicit off wins: even a target written before power-off can start the motor.
+            if (mode === "off") return await systemModeConverter.convertSet(entity, "system_mode", mode, meta);
+
+            if (hasTarget) {
+                assertNumber(message.occupied_heating_setpoint, "occupied_heating_setpoint");
+                if (!Number.isFinite(message.occupied_heating_setpoint)) throw new Error("occupied_heating_setpoint must be finite");
+            }
+
+            // Use one converter for both keys: Z2M dispatches it once regardless of key order.
+            const modeResult = hasMode ? await systemModeConverter.convertSet(entity, "system_mode", mode, meta) : undefined;
+            if (!hasTarget) return modeResult;
+            const targetResult = await occupiedHeatingSetpointConverter.convertSet(
+                entity,
+                "occupied_heating_setpoint",
+                message.occupied_heating_setpoint,
+                {...meta, message, state: {...meta.state, ...modeResult?.state}},
+            );
+            return {state: {...modeResult?.state, ...targetResult.state}};
+        },
+        convertGet: async (entity: Zh.Endpoint | Zh.Group, key: string, meta: Tz.Meta) => {
+            if (key === "system_mode") await systemModeConverter.convertGet(entity);
+            else await occupiedHeatingSetpointConverter.convertGet(entity, key, meta);
         },
     } satisfies Tz.Converter;
 
@@ -6081,9 +6232,9 @@ function createW600Thermostat(): ModernExtend {
     } satisfies Tz.Converter;
 
     extend.toZigbee = replaceToZigbeeConvertersInArray(
-        extend.toZigbee ?? [],
-        [tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.thermostat_temperature_setpoint_hold_duration],
-        [occupiedHeatingSetpointConverter, systemModeConverter, holdDurationConverter],
+        (extend.toZigbee ?? []).filter((converter) => converter !== tz.thermostat_system_mode),
+        [tz.thermostat_occupied_heating_setpoint, tz.thermostat_temperature_setpoint_hold_duration],
+        [climateCommandConverter, holdDurationConverter],
     );
     extend.toZigbee ??= [];
     extend.toZigbee.push(presetConverter, runningStateConverter);
