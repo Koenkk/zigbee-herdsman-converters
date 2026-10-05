@@ -10347,9 +10347,8 @@ export const definitions: DefinitionWithExtend[] = [
                 )
                 .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
-            e.battery(),
         ],
-        fromZigbee: [fz.thermostat, fz.battery],
+        fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
@@ -10358,6 +10357,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_running_state,
         ],
         extend: [
+            m.battery(),
             m.customLocalTemperatureCalibrationRange({
                 min: sonoffTrvzbtLocalTemperatureCalibrationRange.min,
                 max: sonoffTrvzbtLocalTemperatureCalibrationRange.max,
