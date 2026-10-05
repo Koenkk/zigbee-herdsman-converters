@@ -2439,7 +2439,7 @@ function sp107e(): ModernExtend {
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zajeikkt"]),
-        model: "TY-SP107E-Zigbee",
+        model: "SP107E-Zigbee",
         vendor: "Tuya",
         description: "SP107E LED music controller",
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true}), sp107e()],
