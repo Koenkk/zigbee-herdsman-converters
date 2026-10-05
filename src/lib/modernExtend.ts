@@ -989,10 +989,10 @@ export function pressure(args: Partial<NumericArgs<"msPressureMeasurement">> = {
         name: "pressure",
         cluster: "msPressureMeasurement",
         attribute: "measuredValue",
-        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 50}, // 5 kPa
+        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}, // 5 hPa
         description: "The measured atmospheric pressure",
-        unit: "kPa",
-        scale: 10,
+        unit: "hPa",
+        scale: 1,
         access: "STATE_GET",
         ...args,
     });
