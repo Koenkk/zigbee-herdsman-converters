@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tuya, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -2305,7 +2305,145 @@ const ts130fCoverSwitchType = tuya.modernExtend.tuyaCoverSwitchType();
 const [ts130fCoverSwitchTypeExpose] = ts130fCoverSwitchType.exposes as Expose[];
 ts130fCoverSwitchType.exposes = [(device) => (device.manufacturerName === moesZm108mManufacturerName ? [] : [ts130fCoverSwitchTypeExpose])];
 
+function sp107e(): ModernExtend {
+    const enumMap = (names: string[]) => Object.fromEntries(names.map((name, index) => [name, tuya.enum(index)]));
+
+    const modes = enumMap(["off", "solid", "effects", "music_strip", "music_screen"]);
+    const colorOrders = enumMap(["RGB", "RBG", "GRB", "GBR", "BRG", "BGR"]);
+    const chipModels = enumMap(["WS2811", "DMX512", "FW1935", "APA102", "SC6803", "WS2801", "UCS1903", "TM1812", "TM1814", "SK6812"]);
+
+    const number = (property: string, label: string, min: number, max: number, unit?: string) => {
+        const field = e.numeric(property, 3).withLabel(label).withValueMin(min).withValueMax(max).withValueStep(1);
+        return unit ? field.withUnit(unit) : field;
+    };
+
+    // Slider selects a pattern; the preset sends 0 for automatic cycling.
+    const pattern = (property: string, label: string, max: number) =>
+        number(property, label, 1, max).withPreset("Auto cycle", 0, "Automatically cycle through patterns");
+
+    const choice = (property: string, label: string, values: string[]) => e.enum(property, 3, values).withLabel(label);
+
+    const setting = (field: Expose) => field.withCategory("config");
+    const lookup = (values: Parameters<typeof tuya.valueConverterBasic.lookup>[0]) => tuya.valueConverterBasic.lookup(values);
+
+    const checked = (value: unknown, min: number, max: number) => {
+        const n = Number(value);
+        if (!Number.isInteger(n) || n < min || n > max) {
+            throw new Error(`Expected an integer from ${min} to ${max}`);
+        }
+        return n;
+    };
+
+    const integer = (min: number, max: number): Tuya.ValueConverterSingle => ({
+        to: (value) => checked(value, min, max),
+        from: (value) => Number(value),
+    });
+
+    // Display 0–100; the device uses 100–1.
+    const speed: Tuya.ValueConverterSingle = {
+        to: (value) => Math.round(100 - (checked(value, 0, 100) * 99) / 100),
+        from: (value) => Math.round(((100 - Number(value)) * 100) / 99),
+    };
+
+    const dotColors: Record<string, string> = {
+        red: "000003e803e8",
+        green: "007803e803e8",
+        blue: "00f003e803e8",
+        cyan: "00b403e803e8",
+    };
+
+    const dotColor: Tuya.ValueConverterSingle = {
+        to: (value) => {
+            if (!Object.hasOwn(dotColors, value)) {
+                throw new Error(`Unknown color preset: ${value}`);
+            }
+            return dotColors[value];
+        },
+        from: (value) => Object.keys(dotColors).find((name) => dotColors[name] === String(value).toLowerCase()),
+    };
+
+    const hex = (value: number) => Math.round(value).toString(16).padStart(4, "0");
+
+    const color: Tuya.ValueConverterSingle = {
+        to: (value, meta) => {
+            const parsed = libColor.Color.fromConverterArg(value);
+            const hsv = parsed.hsv ?? (parsed.rgb ? parsed.rgb.toHSV() : parsed.xy.toHSV());
+            const previous = (meta.state?.color ?? {}) as KeyValue;
+            const hue = Number(hsv.hue ?? previous.hue ?? previous.h ?? 0);
+            const saturation = Number(hsv.saturation ?? previous.saturation ?? previous.s ?? 100);
+
+            if (!Number.isFinite(hue) || !Number.isFinite(saturation) || hue < 0 || hue > 360 || saturation < 0 || saturation > 100) {
+                throw new Error(`Invalid color: ${JSON.stringify(value)}`);
+            }
+
+            // DP5 controls solid, Music Strip and Music Screen column color.
+            // Brightness is controlled separately by DP106.
+            return `${hex(hue === 360 ? 0 : hue)}${hex(saturation * 10)}03e8`;
+        },
+        from: (value) => {
+            const text = String(value);
+            if (!/^[0-9a-f]{12}$/i.test(text)) return;
+            return {
+                hue: Number.parseInt(text.slice(0, 4), 16),
+                saturation: Number.parseInt(text.slice(4, 8), 16) / 10,
+            };
+        },
+    };
+
+    return {
+        isModernExtend: true,
+        exposes: [
+            // Main controls
+            e.light_colorhs(),
+            number("brightness_percent", "Brightness", 0, 100, "%"),
+            number("speed_test", "Effect speed", 0, 100).withDescription("0 = slowest, 100 = fastest"),
+            choice("mode", "Mode", ["solid", "effects", "music_strip", "music_screen"]),
+
+            // Patterns
+            pattern("effect", "Effect", 180),
+            pattern("music_effect", "Music Strip pattern", 22),
+            pattern("dp114_test", "Music Screen pattern", 30),
+            choice("color_dp113_test", "Falling dot color", Object.keys(dotColors)),
+            number("sensitivity_test", "Microphone sensitivity", 1, 100, "%"),
+
+            // Hardware settings
+            setting(number("segment_pixels_test", "Lights and seg", 1, 100)),
+            setting(number("lights_and_strips_test", "Lights and strips", 1, 300)),
+            setting(choice("light_bar_type", "Type of light bar", Object.keys(colorOrders))),
+            setting(choice("lamp_bead_model", "Lamp bead model", Object.keys(chipModels))),
+        ],
+
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [5, "color", color],
+                [101, "segment_pixels_test", integer(1, 100)],
+                [102, "lights_and_strips_test", integer(1, 300)],
+                [103, "light_bar_type", lookup(colorOrders)],
+                [104, "mode", lookup(modes)],
+                [106, "brightness_percent", integer(0, 100)],
+                [107, "speed_test", speed],
+
+                // Accept 0 from the Auto cycle presets.
+                [108, "effect", integer(0, 180)],
+                [109, "music_effect", integer(0, 22)],
+                [110, "sensitivity_test", integer(1, 100)],
+                [112, "lamp_bead_model", lookup(chipModels)],
+                [113, "color_dp113_test", dotColor],
+                [114, "dp114_test", integer(0, 30)],
+            ],
+        },
+    };
+}
+
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zajeikkt"]),
+        model: "TY-SP107E-Zigbee",
+        vendor: "Tuya",
+        description: "SP107E LED music controller",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true}), sp107e()],
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
         model: "CTL-Mini-DTP-TYZ/AC",
