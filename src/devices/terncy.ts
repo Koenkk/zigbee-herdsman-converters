@@ -4,7 +4,8 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -18,6 +19,13 @@ const terncyManufacturerOptions = {manufacturerCode: XIAOYAN_MANUFACTURER_CODE};
 interface AduroSmart {
     attributes: {
         terncyRotation: number;
+        illuminanceTrigger: number;
+        pirIntLeftDelay: number;
+        pirIntRightDelay: number;
+        pirLeftSensitivity: number;
+        pirRightSensitivity: number;
+        pirLeftPulseCount: number;
+        pirRightPulseCount: number;
         cfgSwPureInput: boolean;
         cfgButtonLedPolarity: number;
         cfgButtonLedStatus: number;
@@ -213,6 +221,13 @@ const terncyExtend = {
             ID: 0xfccc,
             manufacturerCode: XIAOYAN_MANUFACTURER_CODE,
             attributes: {
+                illuminanceTrigger: {name: "illuminanceTrigger", ID: 0x000a, type: Zcl.DataType.UINT16},
+                pirIntLeftDelay: {name: "pirIntLeftDelay", ID: 0x002b, type: Zcl.DataType.UINT32},
+                pirIntRightDelay: {name: "pirIntRightDelay", ID: 0x002c, type: Zcl.DataType.UINT32},
+                pirLeftSensitivity: {name: "pirLeftSensitivity", ID: 0x002e, type: Zcl.DataType.UINT8},
+                pirRightSensitivity: {name: "pirRightSensitivity", ID: 0x002f, type: Zcl.DataType.UINT8},
+                pirLeftPulseCount: {name: "pirLeftPulseCount", ID: 0x0032, type: Zcl.DataType.UINT8},
+                pirRightPulseCount: {name: "pirRightPulseCount", ID: 0x0033, type: Zcl.DataType.UINT8},
                 terncyRotation: {name: "terncyRotation", ID: 0x001b, type: Zcl.DataType.UINT16},
                 cfgSwPureInput: {name: "cfgSwPureInput", ID: 0x001c, type: Zcl.DataType.BOOLEAN},
                 cfgButtonLedPolarity: {name: "cfgButtonLedPolarity", ID: 0x001f, type: Zcl.DataType.UINT8, write: true},
@@ -298,6 +313,134 @@ const terncyExtend = {
             description: "Indicates if the contact is closed (= true) or open (= false)",
         }),
 };
+
+// PP01 private attributes differ between hardware/firmware revisions. Only expose diagnostics
+// for attributes already present in the endpoint cache; do not probe or write sleeping devices.
+function pp01Diagnostic(attribute: keyof AduroSmart["attributes"], name: string, description: string, unit?: string): ModernExtend {
+    const result = m.numeric<typeof ADURO_SMART_CLUSTER, AduroSmart>({
+        name,
+        cluster: ADURO_SMART_CLUSTER,
+        attribute,
+        description,
+        unit,
+        access: "STATE",
+        entityCategory: "diagnostic",
+        reporting: false,
+    });
+    result.fromZigbee = result.fromZigbee.map((converter) => ({
+        ...converter,
+        convert: (model, msg, publish, options, meta) => {
+            const payload = converter.convert(model, msg, publish, options, meta);
+            const supportedKey = `pp01_supported_${attribute}`;
+            if (payload && !globalStore.hasValue(msg.device, supportedKey)) {
+                globalStore.putValue(msg.device, supportedKey, true);
+                const exposesChanged = globalStore.getValue(msg.device, "pp01_exposes_changed");
+                if (typeof exposesChanged === "function") exposesChanged();
+            }
+            return payload;
+        },
+    }));
+    const exposes = result.exposes.filter((expose) => typeof expose !== "function");
+    result.exposes = [
+        (device) =>
+            !device || "isDummyDevice" in device || device.getEndpoint(1)?.getClusterAttributeValue(ADURO_SMART_CLUSTER, attribute) !== undefined
+                ? exposes
+                : [],
+    ];
+    return result;
+}
+
+function pp01Motion(): ModernExtend {
+    const fromZigbee: Fz.Converter<typeof ADURO_SMART_CLUSTER, AduroSmart, "raw"> = {
+        cluster: ADURO_SMART_CLUSTER,
+        type: "raw",
+        options: [exposes.options.occupancy_timeout(), exposes.options.no_occupancy_since_true()],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            // Manufacturer-specific, cluster-specific, client-to-server frame for Xiaoyan (0x1228).
+            if (data.length < 5 || data[0] !== 0x0d || data[1] !== 0x28 || data[2] !== 0x12) return;
+            if (data[4] === 0x00) {
+                if (data.length < 7) return;
+                const actions: Record<number, string> = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
+                return actions[data[6]] ? {action: actions[data[6]]} : undefined;
+            }
+            if (data[4] !== 0x04 || data.length < 8) return;
+
+            // Gateway EzspZclXyanReportLuminanceAndOccupancy: uint16 LE lux, uint8 PIR flags.
+            const payload: KeyValue = {};
+            const illuminance = data.readUInt16LE(5);
+            if (illuminance !== 0xffff) {
+                payload.illuminance = illuminance;
+                if (options.illuminance_raw) payload.illuminance_raw = illuminance;
+            }
+            const status = data[7];
+            const sides = [
+                {name: "left", interrupt: 0x20, detection: 0x08, delay: "pirIntLeftDelay"},
+                {name: "right", interrupt: 0x04, detection: 0x01, delay: "pirIntRightDelay"},
+            ] as const;
+            let detected = false;
+            for (const side of sides) {
+                // An unset interrupt bit means this side was not updated, not that it is clear.
+                if (!(status & side.interrupt)) continue;
+                const occupied = !!(status & side.detection);
+                const property = `occupancy_${side.name}`;
+                const timerKey = `pp01_${property}_timer`;
+                clearTimeout(globalStore.getValue(msg.endpoint, timerKey));
+                globalStore.clearValue(msg.endpoint, timerKey);
+                payload[property] = occupied;
+                if (!occupied) continue;
+                detected = true;
+                // Preserve legacy direction keys on detections. If both sides are flagged, left
+                // wins, matching the gateway's left-first event dispatch.
+                if (payload.action_side === undefined) {
+                    payload.action_side = side.name;
+                    payload.side = side.name;
+                }
+                const delay = msg.endpoint.getClusterAttributeValue(ADURO_SMART_CLUSTER, side.delay);
+                const timeoutMs =
+                    options.occupancy_timeout != null ? Number(options.occupancy_timeout) * 1000 : typeof delay === "number" ? delay + 100 : 9000;
+                // JS timers cannot represent values larger than a signed 32-bit millisecond delay.
+                if (Number.isFinite(timeoutMs) && timeoutMs > 0 && timeoutMs <= 0x7fffffff) {
+                    const timer = setTimeout(() => {
+                        globalStore.clearValue(msg.endpoint, timerKey);
+                        publish({[property]: false});
+                    }, timeoutMs).unref();
+                    globalStore.putValue(msg.endpoint, timerKey, timer);
+                }
+            }
+            if (detected) {
+                const occupancyMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
+                Object.assign(payload, fz.occupancy_with_timeout.convert(model, occupancyMsg, publish, options, meta));
+            }
+            return payload;
+        },
+    };
+    return {
+        isModernExtend: true,
+        fromZigbee: [fromZigbee],
+        exposes: [
+            e.binary("occupancy_left", ea.STATE, true, false).withDescription("Motion detected by the left PIR sensor"),
+            e.binary("occupancy_right", ea.STATE, true, false).withDescription("Motion detected by the right PIR sensor"),
+            e.enum("action_side", ea.STATE, ["left", "right"]).withDescription("Side of the most recent motion detection"),
+        ],
+        onEvent: [
+            (event) => {
+                if (event.type === "start") {
+                    globalStore.putValue(event.data.device, "pp01_exposes_changed", event.data.deviceExposesChanged);
+                    return;
+                }
+                if (event.type !== "stop") return;
+                globalStore.clearValue(event.data.ieeeAddr, "pp01_exposes_changed");
+                const endpointKey = `${event.data.ieeeAddr}_1`;
+                for (const side of ["left", "right"]) {
+                    const timerKey = `pp01_occupancy_${side}_timer`;
+                    clearTimeout(globalStore.getValue(endpointKey, timerKey));
+                    globalStore.clearValue(endpointKey, timerKey);
+                }
+            },
+        ],
+    };
+}
 
 const fzLocal = {
     terncy_knob: {
@@ -786,11 +929,24 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TERNCY-PP01",
         vendor: "TERNCY",
         description: "Awareness switch",
-        fromZigbee: [fz.occupancy_with_timeout, fzLocal.terncy_raw, fz.battery],
-        exposes: [e.occupancy(), e.action(["single", "double", "triple", "quadruple"])],
+        fromZigbee: [fz.occupancy_with_timeout, fz.battery],
+        exposes: [e.occupancy(), e.battery(), e.action(["single", "double", "triple", "quadruple"])],
         toZigbee: [],
         meta: {battery: {dontDividePercentage: true}},
-        extend: [terncyExtend.addClusterAduroSmart(), m.temperature({scale: 10}), m.illuminance()],
+        extend: [
+            terncyExtend.addClusterAduroSmart(),
+            pp01Motion(),
+            m.temperature({scale: 10}),
+            // PP01 uses direct lux rather than the standard logarithmic encoding (#24210).
+            m.illuminance({scale: 1}),
+            pp01Diagnostic("illuminanceTrigger", "illuminance_trigger_raw", "Reported illuminance trigger threshold (raw device value)"),
+            pp01Diagnostic("pirIntLeftDelay", "pir_left_delay", "Reported left PIR interrupt delay", "ms"),
+            pp01Diagnostic("pirIntRightDelay", "pir_right_delay", "Reported right PIR interrupt delay", "ms"),
+            pp01Diagnostic("pirLeftSensitivity", "pir_left_sensitivity_raw", "Reported left PIR sensitivity (raw device value)"),
+            pp01Diagnostic("pirRightSensitivity", "pir_right_sensitivity_raw", "Reported right PIR sensitivity (raw device value)"),
+            pp01Diagnostic("pirLeftPulseCount", "pir_left_pulse_count", "Reported left PIR pulse count"),
+            pp01Diagnostic("pirRightPulseCount", "pir_right_pulse_count", "Reported right PIR pulse count"),
+        ],
     },
     {
         zigbeeModel: ["TERNCY-SD01"],
