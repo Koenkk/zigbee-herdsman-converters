@@ -1322,6 +1322,34 @@ describe("FP400", () => {
         expect(report(3)).toStrictEqual({});
     });
 
+    it("reads room settings and counts only from endpoint 1; endpoints 3-10 repeat those clusters for the sensor's own zones", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const report = (Id: number, cluster: string, data: KeyValueAny) => {
+            const msg = {device, endpoint: device.getEndpoint(Id), data, type: "attributeReport", cluster};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === cluster)
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean));
+        };
+        const cases: [string, KeyValueAny, KeyValueAny][] = [
+            ["aqaraFp400Radar", {humanCount: 7}, {human_count: 7}],
+            ["aqaraFp400Location", {activityState: 2}, {activity_state: "still"}],
+            ["aqaraFp400Sensitivity", {presenceSensitivity: 0}, {presence_sensitivity: "low"}],
+            ["msOccupancySensing", {3: 0}, {absence_timeout: 0}],
+        ];
+        for (const [cluster, data, expected] of cases) {
+            expect(report(1, cluster, data)).toMatchObject(expected);
+            expect(report(3, cluster, data)).toStrictEqual({});
+        }
+    });
+
+    it("is versioned so that sensors set up by community converters get configured once", async () => {
+        const definition = await findByDevice(fp400());
+        expect(definition.version).toBe("0.0.1");
+    });
+
     it("starts spatial learning with command 3 on 0xFC0A", async () => {
         const device = fp400();
         const definition = await findByDevice(device);

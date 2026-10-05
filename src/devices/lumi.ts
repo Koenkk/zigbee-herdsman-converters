@@ -112,6 +112,17 @@ interface AqaraFp400Sensitivity {
     commands: never;
     commandResponses: never;
 }
+// Endpoints 3-10 repeat some of the FP400's clusters for its own zones; only endpoint 1 describes the room.
+function fp400RoomOnly(extend: ModernExtend): ModernExtend {
+    return {
+        ...extend,
+        fromZigbee: extend.fromZigbee?.map((converter): typeof converter => ({
+            ...converter,
+            convert: (model, msg, publish, options, meta) =>
+                msg.endpoint.ID === 1 ? converter.convert(model, msg, publish, options, meta) : undefined,
+        })),
+    };
+}
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
@@ -6692,6 +6703,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "FP400",
         vendor: "Aqara",
         description: "Presence multi-sensor FP400",
+        // Sensors set up earlier by community converters are marked configured as 0.0.0; this makes Zigbee2MQTT run
+        // configure once, so that room presence gets bound and reported.
+        version: "0.0.1",
         extend: [
             m.deviceAddCustomCluster("aqaraFp400Config", {
                 name: "aqaraFp400Config",
@@ -6744,27 +6758,32 @@ export const definitions: DefinitionWithExtend[] = [
             m.deviceEndpoints({endpoints: Object.fromEntries(Array.from({length: 10}, (_, i) => [`${i + 1}`, i + 1]))}),
             m.occupancy({endpointNames: ["1"]}),
             m.illuminance({endpointNames: ["2"], reporting: false}),
-            m.enumLookup<"aqaraFp400Sensitivity", AqaraFp400Sensitivity>({
-                name: "presence_sensitivity",
-                lookup: {low: 0, medium: 1, high: 2},
-                cluster: "aqaraFp400Sensitivity",
-                attribute: "presenceSensitivity",
-                description: "Presence detection sensitivity",
-                reporting: false,
-                entityCategory: "config",
-            }),
-            m.numeric<"msOccupancySensing", undefined>({
-                name: "absence_timeout",
-                cluster: "msOccupancySensing",
-                attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
-                valueMin: 10,
-                valueMax: 300,
-                valueStep: 1,
-                unit: "s",
-                description: "Time without detection before the sensor reports the room as empty",
-                reporting: false,
-                entityCategory: "config",
-            }),
+            fp400RoomOnly(
+                m.enumLookup<"aqaraFp400Sensitivity", AqaraFp400Sensitivity>({
+                    name: "presence_sensitivity",
+                    lookup: {low: 0, medium: 1, high: 2},
+                    cluster: "aqaraFp400Sensitivity",
+                    attribute: "presenceSensitivity",
+                    description: "Presence detection sensitivity",
+                    reporting: false,
+                    entityCategory: "config",
+                }),
+            ),
+            fp400RoomOnly(
+                m.numeric<"msOccupancySensing", undefined>({
+                    name: "absence_timeout",
+                    cluster: "msOccupancySensing",
+                    attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    // The sensor reports 10 s as its minimum (attribute 0x0004) but accepts 0, as the Aqara app allows.
+                    valueMin: 0,
+                    valueMax: 300,
+                    valueStep: 1,
+                    unit: "s",
+                    description: "Time without detection before the sensor reports the room as empty",
+                    reporting: false,
+                    entityCategory: "config",
+                }),
+            ),
             m.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
                 name: "installation_mode",
                 lookup: {unknown: 0, wall: 1, ceiling: 2},
@@ -6870,25 +6889,29 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: false,
                 entityCategory: "config",
             }),
-            m.numeric<"aqaraFp400Radar", AqaraFp400Radar>({
-                name: "human_count",
-                cluster: "aqaraFp400Radar",
-                attribute: "humanCount",
-                description: "People the radar detects",
-                zigbeeCommandOptions: {manufacturerCode},
-                access: "STATE_GET",
-                reporting: false,
-            }),
-            m.enumLookup<"aqaraFp400Location", AqaraFp400Location>({
-                name: "activity_state",
-                lookup: {unknown: 0, active: 1, still: 2},
-                cluster: "aqaraFp400Location",
-                attribute: "activityState",
-                description: "Whether people in the room are moving",
-                zigbeeCommandOptions: {manufacturerCode},
-                access: "STATE_GET",
-                reporting: false,
-            }),
+            fp400RoomOnly(
+                m.numeric<"aqaraFp400Radar", AqaraFp400Radar>({
+                    name: "human_count",
+                    cluster: "aqaraFp400Radar",
+                    attribute: "humanCount",
+                    description: "People the radar detects",
+                    zigbeeCommandOptions: {manufacturerCode},
+                    access: "STATE_GET",
+                    reporting: false,
+                }),
+            ),
+            fp400RoomOnly(
+                m.enumLookup<"aqaraFp400Location", AqaraFp400Location>({
+                    name: "activity_state",
+                    lookup: {unknown: 0, active: 1, still: 2},
+                    cluster: "aqaraFp400Location",
+                    attribute: "activityState",
+                    description: "Whether people in the room are moving",
+                    zigbeeCommandOptions: {manufacturerCode},
+                    access: "STATE_GET",
+                    reporting: false,
+                }),
+            ),
             {
                 isModernExtend: true,
                 exposes: [
