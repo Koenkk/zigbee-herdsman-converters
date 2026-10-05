@@ -561,6 +561,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs", "xy"]}})],
     },
     {
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_umi6vbsz"]),
+        model: "HG08010",
+        vendor: "Lidl",
+        description: "Livarno Outdoor LED Floodlight RGB+CCT",
+        extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs", "xy"]}})],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_iystcadi"]),
         model: "14149505L/14149506L_2",
         vendor: "Lidl",
