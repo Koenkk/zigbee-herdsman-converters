@@ -291,7 +291,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({reporting: rarestReporting}),
             m.humidity({reporting: rarestReporting}),
-            m.pressure({reporting: rarestReporting}),
+            m.pressure({
+                unit: "kPa",
+                scale: 10,
+                reporting: rarestReporting,
+            }),
         ],
     },
     {
@@ -360,7 +364,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({reporting: rareReporting}),
             m.humidity({reporting: rareReporting}),
-            m.pressure({reporting: rareReporting}),
+            m.pressure({
+                unit: "kPa",
+                scale: 10,
+                reporting: rareReporting,
+            }),
         ],
     },
     {
@@ -376,7 +384,11 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.temperature({reporting: rareReporting}),
             m.humidity({reporting: rareReporting}),
-            m.pressure({reporting: rareReporting}),
+            m.pressure({
+                unit: "kPa",
+                scale: 10,
+                reporting: rareReporting,
+            }),
         ],
     },
     {
@@ -427,7 +439,11 @@ export const definitions: DefinitionWithExtend[] = [
             m.illuminance({reporting: rareReporting}),
             m.temperature({reporting: rareReporting}),
             m.humidity({reporting: rareReporting}),
-            m.pressure({reporting: rareReporting}),
+            m.pressure({
+                unit: "kPa",
+                scale: 10,
+                reporting: rareReporting,
+            }),
         ],
     },
     {
@@ -4462,6 +4478,8 @@ export const definitions: DefinitionWithExtend[] = [
                 reporting: threeReporting,
             }),
             m.pressure({
+                unit: "kPa",
+                scale: 10,
                 reporting: threeReporting,
                 access: "STATE",
             }),
@@ -4957,6 +4975,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.pressure({
+                unit: "kPa",
+                scale: 10,
                 reporting: threeReporting,
                 access: "STATE",
             }),
@@ -7810,6 +7830,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.pressure({
                 unit: "kPa",
+                scale: 10,
                 precision: 2,
                 description: "Measured pressure value in kPa",
                 reporting: threeReporting,
@@ -8555,6 +8576,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.pressure({
+                unit: "kPa",
+                scale: 10,
                 reporting: {min: 60, max: 1800, change: 1},
                 access: "STATE_GET",
             }),
@@ -9762,6 +9785,8 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
             }),
             m.pressure({
+                unit: "kPa",
+                scale: 10,
                 reporting: false,
                 access: "STATE",
             }),
