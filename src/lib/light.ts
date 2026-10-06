@@ -1,9 +1,12 @@
 import type {TClusterAttributeKeys} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {logger} from "./logger";
-import type {Tz, Zh} from "./types";
+import type {Definition, KeyValue, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
+type ColorMode = "hs" | "xy" | "color_temp";
+
 const NS = "zhc:light";
+const colorModeFeatures: Record<string, ColorMode> = {color_hs: "hs", color_xy: "xy", color_temp: "color_temp"};
 
 export async function readColorCapabilities(endpoint: Zh.Endpoint) {
     await endpoint.read("lightingColorCtrl", ["colorCapabilities"]);
@@ -112,4 +115,36 @@ export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpo
             /* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */
         }
     }
+}
+
+/** Color modes exposed by the light of `definition` (on `endpointName` if given), `undefined` if unknown. */
+export function exposedColorModes(definition: Definition, device: Zh.Device, options: KeyValue, endpointName?: string): Set<ColorMode> | undefined {
+    const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, options);
+    const lights = exposes.filter((e) => e.type === "light" && e.endpoint === endpointName);
+    if (lights.length === 0) return undefined;
+
+    const modes = new Set<ColorMode>();
+    for (const light of lights) {
+        for (const feature of light.features ?? []) {
+            const mode = colorModeFeatures[feature.name];
+            if (mode) modes.add(mode);
+        }
+    }
+    return modes;
+}
+
+/**
+ * Some lights report a `colorMode` they don't support, e.g. color temperature only lights (Tuya TS0502B) that keep reporting
+ * the ZCL default 0 (hs), or color lights exposing only xy that report hs. Map `mode` to the closest color mode the light
+ * exposes so consumers (e.g. Home Assistant) don't receive a color mode the light doesn't have.
+ * Returns `undefined` when the light exposes no color mode at all.
+ */
+export function toExposedColorMode(mode: ColorMode, exposed: Set<ColorMode>): ColorMode | undefined {
+    if (exposed.has(mode)) return mode;
+    if (mode === "hs" && exposed.has("xy")) return "xy";
+    if (mode === "xy" && exposed.has("hs")) return "hs";
+    if (exposed.has("color_temp")) return "color_temp";
+    if (exposed.has("xy")) return "xy";
+    if (exposed.has("hs")) return "hs";
+    return undefined;
 }

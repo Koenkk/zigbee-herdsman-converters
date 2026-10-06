@@ -1,6 +1,7 @@
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
+import * as libLight from "../lib/light";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type {Fz, KeyValue, KeyValueAny} from "../lib/types";
@@ -709,8 +710,16 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
 
         if (msg.data.colorMode !== undefined) {
             const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
-            result[color_mode] =
-                constants.colorModeLookup[msg.data.colorMode] !== undefined ? constants.colorModeLookup[msg.data.colorMode] : msg.data.colorMode;
+            const reported = constants.colorModeLookup[msg.data.colorMode];
+            if (reported === undefined) {
+                result[color_mode] = msg.data.colorMode;
+            } else {
+                // Don't publish a color mode the light doesn't expose, see `toExposedColorMode`.
+                const endpointName = color_mode === "color_mode" ? undefined : color_mode.slice("color_mode_".length);
+                const exposed = libLight.exposedColorModes(model, meta.device, options, endpointName);
+                const mode = exposed ? libLight.toExposedColorMode(reported as "hs" | "xy" | "color_temp", exposed) : reported;
+                if (mode !== undefined) result[color_mode] = mode;
+            }
         }
 
         if (

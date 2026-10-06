@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {definitions as develcoDefinitions} from "../src/devices/develco";
 import {findByDevice, fromZigbee} from "../src/index";
 import {mockDevice} from "./utils";
@@ -252,6 +252,31 @@ describe("converters/fromZigbee", () => {
         expect(payload).toStrictEqual({
             battery: 42,
             voltage: 2900,
+        });
+    });
+
+    describe("color_colortemp color_mode", () => {
+        const convert = async (modelID: string, colorMode: number) => {
+            const device = mockDevice({modelID, endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]});
+            const definition = await findByDevice(device);
+            const msg = {data: {colorMode}, endpoint: device.endpoints[0], device, type: "attributeReport", cluster: "lightingColorCtrl"};
+            return fromZigbee.color_colortemp.convert(definition, msg as never, vi.fn(), {}, {state: {}, device, deviceExposesChanged: vi.fn()});
+        };
+
+        it.each([0, 1, 2])("color temperature only light reporting colorMode %d publishes color_temp", async (colorMode) => {
+            expect(await convert("TS0502B", colorMode)).toStrictEqual({color_mode: "color_temp"});
+        });
+
+        it.each([
+            [0, "xy"],
+            [1, "xy"],
+            [2, "color_temp"],
+        ])("xy + color temperature light reporting colorMode %d publishes %s", async (colorMode, expected) => {
+            expect(await convert("TRADFRI bulb GU10 CWS 345lm", colorMode)).toStrictEqual({color_mode: expected});
+        });
+
+        it("keeps an unknown colorMode as is", async () => {
+            expect(await convert("TS0502B", 3)).toStrictEqual({color_mode: 3});
         });
     });
 
