@@ -2307,6 +2307,110 @@ ts130fCoverSwitchType.exposes = [(device) => (device.manufacturerName === moesZm
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zajeikkt"]),
+        model: "SP107E-Zigbee",
+        vendor: "Tuya",
+        description: "LED music controller",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [
+            e.light_brightness_colorhs(),
+            e.enum("mode", ea.STATE_SET, ["solid", "effects", "music_strip", "music_screen"]).withDescription("Work mode"),
+            e.numeric("speed", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Effect speed (1 = slowest, 100 = fastest)"),
+            e.numeric("effect_pattern", ea.STATE_SET).withValueMin(1).withValueMax(180).withPreset("auto", 0, "Cycle through patterns"),
+            e.numeric("music_strip_pattern", ea.STATE_SET).withValueMin(1).withValueMax(22).withPreset("auto", 0, "Cycle through patterns"),
+            e.numeric("music_screen_pattern", ea.STATE_SET).withValueMin(1).withValueMax(30).withPreset("auto", 0, "Cycle through patterns"),
+            e.enum("falling_dot_color", ea.STATE_SET, ["red", "green", "blue", "cyan"]).withDescription("Falling dot color in music mode"),
+            e.numeric("sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(100).withUnit("%").withDescription("Microphone sensitivity"),
+            e.numeric("segment_count", ea.STATE_SET).withValueMin(1).withValueMax(100).withCategory("config"),
+            e.numeric("pixels_per_segment", ea.STATE_SET).withValueMin(1).withValueMax(300).withCategory("config"),
+            e.enum("light_bead_sequence", ea.STATE_SET, ["RGB", "RBG", "GRB", "GBR", "BRG", "BGR"]).withCategory("config"),
+            e
+                .enum("chip_type", ea.STATE_SET, [
+                    "WS2811",
+                    "DMX512",
+                    "FW1935",
+                    "APA102",
+                    "SC6803",
+                    "WS2801",
+                    "UCS1903",
+                    "TM1812",
+                    "TM1814",
+                    "SK6812",
+                ])
+                .withCategory("config"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff],
+                [
+                    5,
+                    "color",
+                    {
+                        to: (v) => {
+                            const color = libColor.Color.fromConverterArg(v);
+                            const hsv = color.hsv ?? (color.rgb?.gammaCorrected().toXY() ?? color.xy).toHSV();
+                            return [hsv.hue ?? 0, (hsv.saturation ?? 100) * 10, 1000]
+                                .map((i) => Math.round(i).toString(16).padStart(4, "0"))
+                                .join("");
+                        },
+                        from: (v: string) => ({hue: Number.parseInt(v.slice(0, 4), 16), saturation: Number.parseInt(v.slice(4, 8), 16) / 10}),
+                    },
+                ],
+                [101, "segment_count", tuya.valueConverter.raw],
+                [102, "pixels_per_segment", tuya.valueConverter.raw],
+                [
+                    103,
+                    "light_bead_sequence",
+                    tuya.valueConverterBasic.lookup({
+                        RGB: tuya.enum(0),
+                        RBG: tuya.enum(1),
+                        GRB: tuya.enum(2),
+                        GBR: tuya.enum(3),
+                        BRG: tuya.enum(4),
+                        BGR: tuya.enum(5),
+                    }),
+                ],
+                [
+                    104,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        solid: tuya.enum(1),
+                        effects: tuya.enum(2),
+                        music_strip: tuya.enum(3),
+                        music_screen: tuya.enum(4),
+                    }),
+                ],
+                [106, "brightness", tuya.valueConverterBasic.scale(0, 254, 0, 100)],
+                [107, "speed", tuya.valueConverterBasic.scale(1, 100, 100, 1)],
+                [108, "effect_pattern", tuya.valueConverter.raw],
+                [109, "music_strip_pattern", tuya.valueConverter.raw],
+                [110, "sensitivity", tuya.valueConverter.raw],
+                [
+                    112,
+                    "chip_type",
+                    tuya.valueConverterBasic.lookup({
+                        WS2811: tuya.enum(0),
+                        DMX512: tuya.enum(1),
+                        FW1935: tuya.enum(2),
+                        APA102: tuya.enum(3),
+                        SC6803: tuya.enum(4),
+                        WS2801: tuya.enum(5),
+                        UCS1903: tuya.enum(6),
+                        TM1812: tuya.enum(7),
+                        TM1814: tuya.enum(8),
+                        SK6812: tuya.enum(9),
+                    }),
+                ],
+                [
+                    113,
+                    "falling_dot_color",
+                    tuya.valueConverterBasic.lookup({red: "000003e803e8", green: "007803e803e8", blue: "00f003e803e8", cyan: "00b403e803e8"}),
+                ],
+                [114, "music_screen_pattern", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
         model: "CTL-Mini-DTP-TYZ/AC",
         vendor: "CTL",
