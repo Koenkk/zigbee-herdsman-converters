@@ -1775,11 +1775,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.temperature(),
             m.humidity(),
-            m.pressure({
-                unit: "hPa",
-                scale: 1,
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
-            }),
+            m.pressure({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}}),
             m.battery({
                 voltage: true,
                 voltageReporting: true,

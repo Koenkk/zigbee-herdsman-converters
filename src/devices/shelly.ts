@@ -3056,6 +3056,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
         model: "WS90",
+        version: "0.0.1",
         vendor: "Shelly",
         description: "Weather station",
         extend: [
