@@ -1475,7 +1475,7 @@ const tzLocal = {
         ...tz.cover_position_tilt,
         convertSet: async (entity, key, value, meta) => {
             if (
-                meta.device.manufacturerName === "_TZ3000_yruungrl" &&
+                meta.device?.manufacturerName === "_TZ3000_yruungrl" &&
                 key === "position" &&
                 utils.isEndpoint(entity) &&
                 utils.isNumber(value) &&
