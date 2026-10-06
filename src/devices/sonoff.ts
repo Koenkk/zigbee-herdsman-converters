@@ -11179,6 +11179,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S60ZBTPF",
         vendor: "SONOFF",
         description: "Zigbee smart plug",
+        version: "0.0.1",
         fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
         exposes: [e.energy()],
         extend: [
@@ -11231,7 +11232,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Active power",
                 unit: "W",
                 access: "STATE_GET",
-                reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+                reporting: {min: "10_SECONDS", max: "MAX", change: 1},
                 fzConvert: (model, msg, publish, options, meta) => {
                     // Device keeps reporting a acCurrentPowerValue after turning OFF.
                     // Make sure power = 0 when turned OFF
