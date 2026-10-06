@@ -1,6 +1,8 @@
 import {describe, expect, it, vi} from "vitest";
 import {definitions as develcoDefinitions} from "../src/devices/develco";
 import {findByDevice, fromZigbee} from "../src/index";
+import {ColorHSV} from "../src/lib/color";
+import type {KeyValue} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("converters/fromZigbee", () => {
@@ -256,15 +258,17 @@ describe("converters/fromZigbee", () => {
     });
 
     describe("color_colortemp color_mode", () => {
-        const convert = async (modelID: string, colorMode: number) => {
+        const TS0502B = "TS0502B";
+        const LED2110R3 = "TRADFRI bulb GU10 CWS 345lm";
+        const convert = async (modelID: string, data: KeyValue, state: KeyValue = {}) => {
             const device = mockDevice({modelID, endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]});
             const definition = await findByDevice(device);
-            const msg = {data: {colorMode}, endpoint: device.endpoints[0], device, type: "attributeReport", cluster: "lightingColorCtrl"};
-            return fromZigbee.color_colortemp.convert(definition, msg as never, vi.fn(), {}, {state: {}, device, deviceExposesChanged: vi.fn()});
+            const msg = {data, endpoint: device.endpoints[0], device, type: "attributeReport", cluster: "lightingColorCtrl"};
+            return fromZigbee.color_colortemp.convert(definition, msg as never, vi.fn(), {}, {state, device, deviceExposesChanged: vi.fn()});
         };
 
         it.each([0, 1, 2])("color temperature only light reporting colorMode %d publishes color_temp", async (colorMode) => {
-            expect(await convert("TS0502B", colorMode)).toStrictEqual({color_mode: "color_temp"});
+            expect(await convert(TS0502B, {colorMode})).toStrictEqual({color_mode: "color_temp"});
         });
 
         it.each([
@@ -272,11 +276,29 @@ describe("converters/fromZigbee", () => {
             [1, "xy"],
             [2, "color_temp"],
         ])("xy + color temperature light reporting colorMode %d publishes %s", async (colorMode, expected) => {
-            expect(await convert("TRADFRI bulb GU10 CWS 345lm", colorMode)).toStrictEqual({color_mode: expected});
+            expect(await convert(LED2110R3, {colorMode})).toStrictEqual({color_mode: expected});
         });
 
         it("keeps an unknown colorMode as is", async () => {
-            expect(await convert("TS0502B", 3)).toStrictEqual({color_mode: 3});
+            expect(await convert(TS0502B, {colorMode: 3})).toStrictEqual({color_mode: 3});
+        });
+
+        it("color temperature only light keeps the reported color temperature when the cached mode is xy", async () => {
+            // Syncing in xy mode would derive color_temp from the stale x/y instead
+            const state = {color_mode: "xy", color: {x: 0.3, y: 0.3}, color_temp: 200};
+            const result = await convert(TS0502B, {colorTemperature: 400}, state);
+            expect(result).toMatchObject({color_mode: "color_temp", color_temp: 400});
+        });
+
+        it("corrects a stale cached unexposed color mode", async () => {
+            expect(await convert(TS0502B, {colorTemperature: 300}, {color_mode: "hs"})).toMatchObject({color_mode: "color_temp", color_temp: 300});
+        });
+
+        it("xy light reporting hs keeps the reported hue/saturation leading over stale x/y", async () => {
+            // currentHue 127 -> 180°, currentSaturation 254 -> 100%
+            const result = await convert(LED2110R3, {colorMode: 0, currentHue: 127, currentSaturation: 254}, {color: {x: 0.1, y: 0.1}});
+            const xy = new ColorHSV(180, 100).toXY().rounded(4);
+            expect(result).toStrictEqual({color_mode: "xy", color: {hue: 180, saturation: 100, x: xy.x, y: xy.y}});
         });
     });
 

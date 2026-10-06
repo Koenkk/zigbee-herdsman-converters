@@ -29,6 +29,13 @@ describe("lib/light color modes", () => {
         expect(exposedColorModes(definition(exp), device, {})).toStrictEqual(new Set(["color_temp"]));
     });
 
+    it("exposedColorModes returns undefined when the exposes function throws", () => {
+        const exp = () => {
+            throw new Error("failed");
+        };
+        expect(exposedColorModes(definition(exp), device, {})).toBeUndefined();
+    });
+
     it.each([
         ["hs", ["hs", "color_temp"], "hs"],
         ["hs", ["xy", "color_temp"], "xy"],

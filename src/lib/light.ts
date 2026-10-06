@@ -1,6 +1,6 @@
 import type {TClusterAttributeKeys} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {logger} from "./logger";
-import type {Definition, KeyValue, Tz, Zh} from "./types";
+import type {Definition, Expose, KeyValue, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
 type ColorMode = "hs" | "xy" | "color_temp";
@@ -119,7 +119,14 @@ export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpo
 
 /** Color modes exposed by the light of `definition` (on `endpointName` if given), `undefined` if unknown. */
 export function exposedColorModes(definition: Definition, device: Zh.Device, options: KeyValue, endpointName?: string): Set<ColorMode> | undefined {
-    const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, options);
+    let exposes: Expose[];
+    try {
+        exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, options);
+    } catch (error) {
+        logger.debug(`Failed to get exposes to determine color modes: ${(error as Error).message}`, NS);
+        return undefined;
+    }
+
     const lights = exposes.filter((e) => e.type === "light" && e.endpoint === endpointName);
     if (lights.length === 0) return undefined;
 

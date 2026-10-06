@@ -710,16 +710,8 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
 
         if (msg.data.colorMode !== undefined) {
             const color_mode = postfixWithEndpointName("color_mode", msg, model, meta);
-            const reported = constants.colorModeLookup[msg.data.colorMode];
-            if (reported === undefined) {
-                result[color_mode] = msg.data.colorMode;
-            } else {
-                // Don't publish a color mode the light doesn't expose, see `toExposedColorMode`.
-                const endpointName = color_mode === "color_mode" ? undefined : color_mode.slice("color_mode_".length);
-                const exposed = libLight.exposedColorModes(model, meta.device, options, endpointName);
-                const mode = exposed ? libLight.toExposedColorMode(reported as "hs" | "xy" | "color_temp", exposed) : reported;
-                if (mode !== undefined) result[color_mode] = mode;
-            }
+            result[color_mode] =
+                constants.colorModeLookup[msg.data.colorMode] !== undefined ? constants.colorModeLookup[msg.data.colorMode] : msg.data.colorMode;
         }
 
         if (
@@ -764,10 +756,36 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
         // needs to be added to the result key.
         const epPostfix = postfixWithEndpointName("", msg, model, meta);
 
+        // Don't publish a color mode the light doesn't expose, see `toExposedColorMode`.
+        const colorModeKey = `color_mode${epPostfix}`;
+        let exposed: ReturnType<typeof libLight.exposedColorModes> | null = null;
+        const toExposed = (mode: unknown) => {
+            if (mode !== "hs" && mode !== "xy" && mode !== "color_temp") return mode;
+            if (exposed === null) exposed = libLight.exposedColorModes(model, meta.device, options, epPostfix ? epPostfix.slice(1) : undefined);
+            return exposed ? libLight.toExposedColorMode(mode, exposed) : mode;
+        };
+
+        // A light that exposes no color (hs/xy) can only be in color temperature mode, so make that the leading
+        // mode for the sync below. Otherwise e.g. stale x/y would overwrite the reported color temperature.
+        const currentColorMode = result[colorModeKey] ?? meta.state?.[colorModeKey];
+        if (currentColorMode !== undefined && currentColorMode !== "color_temp" && toExposed(currentColorMode) === "color_temp") {
+            result[colorModeKey] = "color_temp";
+        }
+
         // handle color property sync
-        // NOTE: this should the last thing we do, as we need to have processed all attributes,
+        // NOTE: this should be the last thing we do, as we need to have processed all attributes,
         //       we use assign here so we do not lose other attributes.
-        return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
+        Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
+
+        // Other unexposed modes (hs <-> xy, color_temp on a color only light) are relabelled after the sync, so the
+        // mode the light reported determines which color values are leading and the published values are consistent.
+        if (result[colorModeKey] !== undefined) {
+            const mode = toExposed(result[colorModeKey]);
+            if (mode === undefined) delete result[colorModeKey];
+            else result[colorModeKey] = mode;
+        }
+
+        return result;
     },
 };
 export const meter_identification: Fz.Converter<"seMeterIdentification", undefined, ["readResponse"]> = {
