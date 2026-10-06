@@ -2751,6 +2751,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.onOff({endpointNames: ["l1", "l2"]}),
             m.electricityMeter({endpointNames: ["l1", "l2"]}),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["4512761"],
@@ -3069,6 +3070,7 @@ export const definitions: DefinitionWithExtend[] = [
                 energy: {multiplier: 1, divisor: 100}, // kWh
             }),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["4512793", "4512794"],
@@ -3220,6 +3222,7 @@ export const definitions: DefinitionWithExtend[] = [
                 // Not all firmware versions support reading these
             }
         },
+        ota: true,
     },
     {
         zigbeeModel: ["4512785"],
