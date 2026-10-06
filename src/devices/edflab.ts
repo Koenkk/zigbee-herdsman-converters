@@ -49,13 +49,13 @@ const toText = (value: unknown): string => String(value).replaceAll(NUL_BYTE, ""
 const nowAsZclUtc = (): number => Math.round((Date.now() - OneJanuary2000) / 1000);
 
 /** Renders a ZCL timestamp as Y-M-D HH:MM:SS in the coordinator time zone. The meter local time stays
- * available separately through the LocalTime attribute. 0x00000000 and 0xFFFFFFFF mean "not set".
+ * available separately through the LocalTime attribute. 0x00000000 and 0xFFFFFFFF mean "not_set".
  * A missing timestamp may also surface as NaN, which has to be rejected explicitly: it passes every
  * comparison and would render as "NaN-NaN-NaN NaN:NaN:NaN". The published JSON gives no hint of it,
  * since JSON.stringify renders NaN as null. */
 const zclUtcToText = (seconds: number | undefined): string => {
     const value = Number(seconds);
-    if (seconds === undefined || seconds === null || !Number.isFinite(value) || value === 0 || value === 0xffffffff) return "not set";
+    if (seconds === undefined || seconds === null || !Number.isFinite(value) || value === 0 || value === 0xffffffff) return "not_set";
     const date = new Date(OneJanuary2000 + value * 1000);
     const pad = (value: number) => String(value).padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
@@ -65,55 +65,55 @@ const zclUtcToText = (seconds: number | undefined): string => {
 const minutesToClock = (minutes: number): string => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 
 /** Time reference of the schedule start times. */
-const scheduleTimeReferences: {[key: number]: string} = {0: "UTC time", 1: "standard time", 2: "local time"};
+const scheduleTimeReferences: {[key: number]: string} = {0: "utc_time", 1: "standard_time", 2: "local_time"};
 
 /** Schedule type. Only the Linky tariff calendar is defined. */
-const scheduleTypes: {[key: number]: string} = {0: "Linky tariff calendar", 255: "unspecified"};
+const scheduleTypes: {[key: number]: string} = {0: "linky_tariff_calendar", 255: "unspecified"};
 
 /** Day colour, two bits each in LinkyPeakPeriodStatus. */
-const linkyDayColors: {[key: number]: string} = {0: "not used", 1: "blue", 2: "white", 3: "red"};
+const linkyDayColors: {[key: number]: string} = {0: "not_used", 1: "blue", 2: "white", 3: "red"};
 
 /** Mobile peak prior notice, bits 4 and 5. */
-const linkyPeakPriorNotices: {[key: number]: string} = {0: "no peak planned", 1: "peak 1 notice", 2: "peak 2 notice", 3: "peak 3 notice"};
+const linkyPeakPriorNotices: {[key: number]: string} = {0: "no_peak_planned", 1: "peak_1_notice", 2: "peak_2_notice", 3: "peak_3_notice"};
 
 /** Mobile peak in progress, bits 6 and 7. */
-const linkyOnPeakStates: {[key: number]: string} = {0: "off peak", 1: "peak 1 in progress", 2: "peak 2 in progress", 3: "peak 3 in progress"};
+const linkyOnPeakStates: {[key: number]: string} = {0: "off_peak", 1: "peak_1_in_progress", 2: "peak_2_in_progress", 3: "peak_3_in_progress"};
 
 /** Integration period returned by GetProfileResponse. Value 8 (1 minute) extends the historical ZCL
  * enumeration, which stopped at 7. */
 const profileIntervalPeriods: {[key: number]: string} = {
     0: "daily",
-    1: "60 minutes",
-    2: "30 minutes",
-    3: "15 minutes",
-    4: "10 minutes",
-    5: "7.5 minutes",
-    6: "5 minutes",
-    7: "2.5 minutes",
-    8: "1 minute",
+    1: "60_minutes",
+    2: "30_minutes",
+    3: "15_minutes",
+    4: "10_minutes",
+    5: "7_5_minutes",
+    6: "5_minutes",
+    7: "2_5_minutes",
+    8: "1_minute",
 };
 
 /** Status returned by GetProfileResponse. */
 const profileStatuses: {[key: number]: string} = {
     0: "success",
-    1: "undefined interval channel requested",
-    2: "interval channel not supported",
-    3: "invalid end time",
-    4: "no intervals available",
+    1: "undefined_interval_channel_requested",
+    2: "interval_channel_not_supported",
+    3: "invalid_end_time",
+    4: "no_intervals_available",
 };
 
 /** Format of the PublishSnapshot sub-payload. "Delivered" is the energy drawn from the grid,
  * "Received" the energy fed back into it. */
 const snapshotPayloadTypes: {[key: number]: string} = {
-    0: "TOU registers delivered, with billing",
-    1: "TOU registers received, with billing",
-    2: "block tier registers delivered, with billing",
-    3: "block tier registers received, with billing",
-    4: "TOU registers delivered, no billing",
-    5: "TOU registers received, no billing",
-    6: "block tier registers delivered, no billing",
-    7: "block tier registers received, no billing",
-    128: "data unavailable",
+    0: "tou_registers_delivered_with_billing",
+    1: "tou_registers_received_with_billing",
+    2: "block_tier_registers_delivered_with_billing",
+    3: "block_tier_registers_received_with_billing",
+    4: "tou_registers_delivered_no_billing",
+    5: "tou_registers_received_no_billing",
+    6: "block_tier_registers_delivered_no_billing",
+    7: "block_tier_registers_received_no_billing",
+    128: "data_unavailable",
 };
 
 /** Snapshot cause, a 32 bit bitmap: a scheduled snapshot is bit 16, that is 0x00010000. Some ERL
@@ -121,23 +121,23 @@ const snapshotPayloadTypes: {[key: number]: string} = {
  * accepted when reading the field. */
 const snapshotCauses: {[key: number]: string} = {
     0: "general",
-    1: "end of billing period",
-    2: "end of block period",
-    3: "change of tariff information",
-    4: "change of price matrix",
-    5: "change of block thresholds",
-    6: "change of calorific value",
-    7: "change of conversion factor",
-    8: "change of calendar",
-    9: "critical peak pricing",
-    10: "manually triggered from client",
-    11: "end of resolve period",
-    12: "change of tenancy",
-    13: "change of supplier",
-    14: "change of meter mode",
-    15: "debt payment",
-    16: "scheduled snapshot",
-    17: "OTA firmware download",
+    1: "end_of_billing_period",
+    2: "end_of_block_period",
+    3: "change_of_tariff_information",
+    4: "change_of_price_matrix",
+    5: "change_of_block_thresholds",
+    6: "change_of_calorific_value",
+    7: "change_of_conversion_factor",
+    8: "change_of_calendar",
+    9: "critical_peak_pricing",
+    10: "manually_triggered_from_client",
+    11: "end_of_resolve_period",
+    12: "change_of_tenancy",
+    13: "change_of_supplier",
+    14: "change_of_meter_mode",
+    15: "debt_payment",
+    16: "scheduled_snapshot",
+    17: "ota_firmware_download",
 };
 
 /** Being a bitmap, the field may be reported as a BigInt.
@@ -149,12 +149,12 @@ const snapshotCauseToText = (cause: number | undefined): string | undefined => {
     const value = Number(cause);
     if (!Number.isFinite(value)) return undefined;
     const lastRank = Math.max(...Object.keys(snapshotCauses).map(Number));
-    if (value <= lastRank) return snapshotCauses[value] ?? `unknown (${value})`;
+    if (value <= lastRank) return snapshotCauses[value] ?? `unknown_${value}`;
     const causes: string[] = [];
     for (let bit = 0; bit < 32; bit += 1) {
-        if ((value >>> bit) & 1) causes.push(snapshotCauses[bit] ?? `bit ${bit}`);
+        if ((value >>> bit) & 1) causes.push(snapshotCauses[bit] ?? `bit_${bit}`);
     }
-    return causes.length > 0 ? causes.join(", ") : `unknown (${value})`;
+    return causes.length > 0 ? causes.join(", ") : `unknown_${value}`;
 };
 
 /** A snapshot is returned as several PublishSnapshot commands: one per energy direction, the delivered
@@ -774,8 +774,8 @@ const fzLocal = {
                     day_id: data.dayId,
                     start_time: data.startTime,
                     start_time_text: zclUtcToText(data.startTime),
-                    schedule_type: scheduleTypes[data.scheduleType] ?? `unknown (${data.scheduleType})`,
-                    schedule_time_reference: scheduleTimeReferences[data.scheduleTimeReference] ?? `unknown (${data.scheduleTimeReference})`,
+                    schedule_type: scheduleTypes[data.scheduleType] ?? `unknown_${data.scheduleType}`,
+                    schedule_time_reference: scheduleTimeReferences[data.scheduleTimeReference] ?? `unknown_${data.scheduleTimeReference}`,
                     schedule_name: toText(data.scheduleName),
                 }),
             };
@@ -799,7 +799,7 @@ const fzLocal = {
                     provider_id: data.providerId,
                     issuer_event_id: data.issuerEventId,
                     day_id: data.dayId,
-                    schedule_type: scheduleTypes[data.scheduleType] ?? `unknown (${data.scheduleType})`,
+                    schedule_type: scheduleTypes[data.scheduleType] ?? `unknown_${data.scheduleType}`,
                     total_number_of_schedule_entries: data.totalNumberOfScheduleEntries,
                     entries: entries,
                 }),
@@ -815,7 +815,7 @@ const fzLocal = {
                 schedule_cancellation: toJson({
                     provider_id: data.providerId,
                     schedule_id: data.scheduleId,
-                    schedule_type: scheduleTypes[data.scheduleType] ?? `unknown (${data.scheduleType})`,
+                    schedule_type: scheduleTypes[data.scheduleType] ?? `unknown_${data.scheduleType}`,
                 }),
             };
         },
@@ -834,8 +834,8 @@ const fzLocal = {
                 profile_data: toJson({
                     end_time: data.endTime,
                     end_time_text: zclUtcToText(data.endTime),
-                    status: profileStatuses[data.status] ?? `unknown (${data.status})`,
-                    interval_period: profileIntervalPeriods[data.profileIntervalPeriod] ?? `unknown (${data.profileIntervalPeriod})`,
+                    status: profileStatuses[data.status] ?? `unknown_${data.status}`,
+                    interval_period: profileIntervalPeriods[data.profileIntervalPeriod] ?? `unknown_${data.profileIntervalPeriod}`,
                     number_of_periods_delivered: data.numberOfPeriodsDelivered,
                     intervals: data.intervals,
                 }),
@@ -891,7 +891,7 @@ const fzLocal = {
 
             snapshot[section] = {
                 payload_type: data.payloadType,
-                payload_type_text: snapshotPayloadTypes[data.payloadType] ?? `unknown (${data.payloadType})`,
+                payload_type_text: snapshotPayloadTypes[data.payloadType] ?? `unknown_${data.payloadType}`,
                 fragments: expected,
                 ...(parseSnapshotSubPayload(data.payloadType, subPayload) ?? {}),
                 sub_payload_hex: subPayload.length > 0 ? subPayload.toString("hex") : undefined,
