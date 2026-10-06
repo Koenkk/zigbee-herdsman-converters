@@ -11179,6 +11179,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S60ZBTPF",
         vendor: "SONOFF",
         description: "Zigbee smart plug",
+        version: "0.0.1",
         fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
         exposes: [e.energy()],
         extend: [
