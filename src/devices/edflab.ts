@@ -8,6 +8,14 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 
+/** EDFLab ZIGBEE_ERL - Zigbee interface for the TIC port of the French Linky meter.
+ *
+ * Specifications published by the Connectivity Standards Alliance:
+ * - ERL interface device: https://csa-iot.org/wp-content/uploads/2025/06/17-05031-011-ERL_Interface_Device_Specification.pdf
+ * - Linky Metering cluster: https://csa-iot.org/wp-content/uploads/2025/06/17-05019-012-Linky-Metering-Cluster.pdf
+ * - DailySchedule cluster: https://csa-iot.org/wp-content/uploads/2025/06/17-05035-016-Daily_Schedule_Cluster.pdf
+ */
+
 const e = exposes.presets;
 const ea = exposes.access;
 
