@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.117.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.117.0...v26.117.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **detect:** Detect `SLZB-07MG26` as SMLIGHT SLZB-07MG26 ([#13414](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13414)) ([8b1ce40](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b1ce4085344cfbd9c90518ec093dd7cfdf2af6f))
+
 ## [26.117.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.116.0...v26.117.0) (2026-10-06)
 
 
