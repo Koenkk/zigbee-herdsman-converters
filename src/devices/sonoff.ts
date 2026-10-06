@@ -10356,6 +10356,7 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
+        version: "0.0.1",
         extend: [
             m.battery(),
             m.customLocalTemperatureCalibrationRange({
