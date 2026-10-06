@@ -1,4 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
 import {fromZigbee, lumiModernExtend, numericAttributes2Payload, type TrvScheduleConfig, toZigbee, trv, w500Ntc} from "../src/lib/lumi";
 import * as globalStore from "../src/lib/store";
@@ -18,6 +19,35 @@ describe("lib/lumi", () => {
                 "manuSpecificLumi",
                 {mode: 1},
                 {manufacturerCode: 0x115f, disableResponse: true},
+            );
+        });
+    });
+
+    describe("FP310 presence reporting", () => {
+        it("configures reporting for presence (0x0142)", async () => {
+            const device = mockDevice(
+                {
+                    modelID: "lumi.sensor_occupy.acn1",
+                    endpoints: [
+                        {
+                            ID: 1,
+                            inputClusterIDs: [0xfcc0, 1024, 1029, 1026],
+                        },
+                    ],
+                },
+                "EndDevice",
+            );
+            const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+            const definition = await findByDevice(device);
+
+            await definition.configure?.(device, coordinatorEndpoint, definition);
+
+            const endpoint = device.getEndpoint(1);
+            expect(endpoint.bind).toHaveBeenCalledWith("manuSpecificLumi", coordinatorEndpoint);
+            expect(endpoint.configureReporting).toHaveBeenCalledWith(
+                "manuSpecificLumi",
+                [{attribute: {ID: 0x0142, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1}],
+                {manufacturerCode: 0x115f},
             );
         });
     });

@@ -1772,6 +1772,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
+        version: "0.0.1",
         vendor: "Third Reality",
         description: "Smart Filter Sensor",
         extend: [

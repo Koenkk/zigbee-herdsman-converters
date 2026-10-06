@@ -3164,6 +3164,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["AirQ_Monitor_S01"],
         model: "AirQ_Monitor_S01",
+        version: "0.0.1",
         vendor: "Slacky-DIY",
         description: "Air quality monitor",
         configure: async (device, coordinatorEndpoint, logger) => {

@@ -1775,11 +1775,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.temperature(),
             m.humidity(),
-            m.pressure({
-                unit: "hPa",
-                scale: 1,
-                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
-            }),
+            m.pressure({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}}),
             m.battery({
                 voltage: true,
                 voltageReporting: true,
@@ -6440,6 +6436,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Presence sensor FP310",
         fromZigbee: [lumi.fromZigbee.lumi_specific],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -6447,6 +6444,15 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0142], {manufacturerCode: manufacturerCode}); // Read current presence
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+
+            // Configure reporting so presence (0x0142) updates autonomously. Without this the CN firmware can stop
+            // sending 0x0142 after idle while temp/humidity keep reporting (same class of bug as PS-S04D / #12383).
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.configureReporting<"manuSpecificLumi", ManuSpecificLumi>(
+                "manuSpecificLumi",
+                [{attribute: {ID: 0x0142, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1}],
+                {manufacturerCode: manufacturerCode},
+            );
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),

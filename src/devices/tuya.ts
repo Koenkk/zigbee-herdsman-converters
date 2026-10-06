@@ -1475,7 +1475,7 @@ const tzLocal = {
         ...tz.cover_position_tilt,
         convertSet: async (entity, key, value, meta) => {
             if (
-                meta.device.manufacturerName === "_TZ3000_yruungrl" &&
+                meta.device?.manufacturerName === "_TZ3000_yruungrl" &&
                 key === "position" &&
                 utils.isEndpoint(entity) &&
                 utils.isNumber(value) &&
@@ -3550,7 +3550,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zpvusbtv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zpvusbtv", "_TZE284_zpvusbtv"]),
         model: "ZN2S-RS02E",
         vendor: "Tuya",
         description: "Two gang switch with colored backlight modes",
@@ -5489,6 +5489,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_soil",
         vendor: "Tuya",
         description: "Soil sensor",
+        ota: true,
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
@@ -8801,10 +8802,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i", "_TZ3000_pxfjrzyj"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i", "_TZ3000_pxfjrzyj", "_TZ3000_hopb2kjm"]),
         model: "TS0002_power",
         vendor: "Tuya",
         description: "2 gang switch with power monitoring",
+        ota: true,
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
@@ -8842,7 +8844,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Tuya", "XSH01B", "2 gang switch module with power monitoring", ["_TZ3000_irrmjcgi"]),
-            tuya.whitelabel("Nous", "B3Z", "2 gang switch module with power monitoring", ["_TZ3000_aaifmpuq"]),
+            tuya.whitelabel("Nous", "B3Z", "2 gang switch module with power monitoring", ["_TZ3000_aaifmpuq", "_TZ3000_hopb2kjm"]),
         ],
     },
     {
@@ -25368,13 +25370,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS208Z",
         vendor: "HYSYIOT",
         description: "PIR 24Ghz human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}), m.battery()],
 
         meta: {
             tuyaDatapoints: [
-                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                //[1, "occupancy", tuya.valueConverter.trueFalse0],
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
-                [4, "battery", tuya.valueConverter.raw],
+                //[4, "battery", tuya.valueConverter.raw],
                 [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
                 [11, "illuminance", tuya.valueConverter.raw],
                 [12, "pir_delay", tuya.valueConverter.raw],
@@ -25422,13 +25424,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         exposes: [
-            e.occupancy(),
+            //e.occupancy(),
             e.enum("motion_state", ea.STATE, ["none", "move", "Micro-move", "static"]).withDescription("Radar Motion State Detail"),
             e.vibration(),
             e.illuminance(),
             e.temperature(),
             e.humidity(),
-            e.battery(),
+            //e.battery(),
             tuya.exposes.temperatureUnit(),
             e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery State"),
             e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR Sensitivity"),
@@ -25452,7 +25454,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("°C")
                 .withDescription("Temperature Calibration"),
             e.numeric("humidity_calibration", ea.STATE_SET).withValueMin(-10).withValueMax(10).withUnit("%").withDescription("Humidity Calibration"),
-            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(50).withDescription("Vibration Sensitivity"),
+            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Vibration Sensitivity"),
             e.numeric("vibration_delay", ea.STATE_SET).withValueMin(1).withValueMax(1440).withUnit("s").withDescription("Vibration Clear Delay Time"),
         ],
     },
