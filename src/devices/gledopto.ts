@@ -65,12 +65,9 @@ const MUSIC_DATA = {
     ],
 } as const;
 
-// GL-SPI-206P brightness is 10-1000 and colour temperature 0-1000 (0 = warm)
-const GLSPI206P_COLOR_TEMP_RANGE: [number, number] = [153, 370];
-const glspi206pBrightnessToDevice = (v: number) => utils.mapNumberRange(utils.numberWithinRange(v, 1, 254), 1, 254, 10, 1000);
-const glspi206pBrightnessFromDevice = (v: number) => utils.mapNumberRange(utils.numberWithinRange(v, 10, 1000), 10, 1000, 1, 254);
-const glspi206pColorTempToDevice = (v: number) => utils.mapNumberRange(utils.numberWithinRange(v, 153, 370), 153, 370, 1000, 0);
-const glspi206pColorTempFromDevice = (v: number) => utils.mapNumberRange(utils.numberWithinRange(v, 0, 1000), 0, 1000, 370, 153);
+// GL-SPI-206P brightness is 10-1000 and color temperature 0-1000 (0 = warm)
+const glspi206pBrightness = tuya.valueConverterBasic.scale(1, 254, 10, 1000);
+const glspi206pColorTemp = tuya.valueConverterBasic.scale(370, 153, 0, 1000);
 
 const localValueConverter = {
     scene_data_converter: {
@@ -116,28 +113,19 @@ const localValueConverter = {
         },
     },
     glspi206p_work_mode: {
-        from: (v: number) => {
-            const workMode = ["white", "colour", "scene", "music"][v];
-            if (workMode === "white") return {work_mode: workMode, color_mode: "color_temp"};
-            if (workMode === "colour") return {work_mode: workMode, color_mode: "hs"};
-            return {work_mode: workMode};
-        },
+        from: (v: number) => ({work_mode: ["white", "colour", "scene", "music"][v], color_mode: ["color_temp", "hs"][v]}),
     },
     glspi206p_brightness: {
-        // Brightness of the white mode only, in colour mode the brightness is part of the paint colour
-        from: (v: number, meta: Fz.Meta) => (meta.state?.work_mode === "white" ? {brightness: glspi206pBrightnessFromDevice(v)} : {}),
-    },
-    glspi206p_color_temp: {
-        from: (v: number) => ({color_temp: glspi206pColorTempFromDevice(v)}),
+        // Only for white mode, in colour mode the brightness is part of DP61
+        from: (v: number, meta: Fz.Meta) => (meta.state?.work_mode === "white" ? {brightness: glspi206pBrightness.from(v)} : {}),
     },
     glspi206p_paint_colour: {
         // 0x00, mode (0x01 = colour), gradient, 0x14, segment, hue (0-360), saturation (0-1000), value (10-1000)
         from: (v: Buffer | number[]) => {
             const data = Buffer.from(v);
             if (data.length < 11 || data[1] === 0x00) return {};
-            const hue = data.readUInt16BE(5);
-            const saturation = Math.round(data.readUInt16BE(7) / 10);
-            return {color_mode: "hs", color: {hue, saturation}, brightness: glspi206pBrightnessFromDevice(data.readUInt16BE(9))};
+            const color = {hue: data.readUInt16BE(5), saturation: Math.round(data.readUInt16BE(7) / 10)};
+            return {color_mode: "hs", color, brightness: glspi206pBrightness.from(data.readUInt16BE(9))};
         },
     },
 };
@@ -300,82 +288,48 @@ const tzLocal = {
             return {state: {state: "ON", work_mode: "music", music_mode: musicMode, music_sensitivity: sensitivity}};
         },
     } satisfies Tz.Converter,
-    glspi206p_brightness_color: {
-        // Handles state too, so that state + brightness/color/color_temp ends up in a single datapoints request
-        // (a burst of requests can hang the MCU: https://github.com/Koenkk/zigbee2mqtt/issues/32754)
+    glspi206p_light: {
+        // Everything is sent in a single request, bursts of requests can hang the MCU
+        // https://github.com/Koenkk/zigbee2mqtt/issues/32754
         key: ["state", "brightness", "color", "color_temp", "transition"],
         convertSet: async (entity, key, value, meta) => {
+            const {message, state} = meta;
             const ep = meta.device.endpoints[0];
-            const message = meta.message;
-            const hasLight = "brightness" in message || "color" in message || "color_temp" in message;
-            if ("state" in message) {
-                utils.assertString(message.state, "state");
-                const state = message.state.toUpperCase();
-                utils.validateValue(state, ["ON", "OFF", "TOGGLE"]);
-                const on = state === "TOGGLE" ? meta.state?.state !== "ON" : state === "ON";
-                if (!on || !hasLight) {
-                    await tuya.sendDataPointBool(ep, 1, on);
-                    return {state: {state: on ? "ON" : "OFF"}};
-                }
-            }
-            if (!hasLight) return;
-
-            // The color mode is switched by setting color (colour mode) or color temperature (white mode)
-            let workMode = meta.state?.work_mode === "white" ? "white" : "colour";
-            if ("color_temp" in message) workMode = "white";
-            if ("color" in message) workMode = "colour";
-            const brightness = utils.numberWithinRange(utils.toNumber(message.brightness ?? meta.state?.brightness ?? 254, "brightness"), 1, 254);
-            const dpValues: Tuya.DpValue[] = [];
-            if (meta.state?.state !== "ON") {
-                dpValues.push(tuya.dpValueFromBool(1, true));
-            }
-            if (meta.state?.work_mode !== workMode) {
-                dpValues.push(tuya.dpValueFromEnum(2, workMode === "white" ? 0 : 1));
-            }
-
-            if (workMode === "white") {
-                const colorTemp = utils.numberWithinRange(
-                    utils.toNumber(message.color_temp ?? meta.state?.color_temp ?? GLSPI206P_COLOR_TEMP_RANGE[1], "color_temp"),
-                    ...GLSPI206P_COLOR_TEMP_RANGE,
-                );
-                if ("color_temp" in message || meta.state?.work_mode !== "white") {
-                    dpValues.push(tuya.dpValueFromNumberValue(4, glspi206pColorTempToDevice(colorTemp)));
-                }
-                // In white mode the brightness is DP3, in colour mode it is the value of the paint colour (DP61)
-                dpValues.push(tuya.dpValueFromNumberValue(3, glspi206pBrightnessToDevice(brightness)));
+            const command = String(message.state ?? "ON").toUpperCase();
+            utils.validateValue(command, ["ON", "OFF", "TOGGLE"]);
+            const on = command === "TOGGLE" ? state.state !== "ON" : command === "ON";
+            const dpValues: Tuya.DpValue[] = [tuya.dpValueFromBool(1, on)];
+            if (!on || !("brightness" in message || "color" in message || "color_temp" in message)) {
                 await tuya.sendDataPoints(ep, dpValues);
-                return {state: {state: "ON", work_mode: "white", color_mode: "color_temp", brightness, color_temp: colorTemp}};
+                return {state: {state: on ? "ON" : "OFF"}};
             }
 
-            const color = (meta.state?.color ?? {}) as {hue?: number; saturation?: number};
-            let hsv = new libColor.ColorHSV(color.hue ?? 0, color.saturation ?? 100);
+            const white = "color_temp" in message || (!("color" in message) && state.work_mode === "white");
+            const workMode = white ? "white" : "colour";
+            if (state.work_mode !== workMode) dpValues.push(tuya.dpValueFromEnum(2, white ? 0 : 1));
+            const brightness = utils.numberWithinRange(utils.toNumber(message.brightness ?? state.brightness ?? 254, "brightness"), 1, 254);
+            const deviceBrightness = glspi206pBrightness.to(brightness);
+
+            if (white) {
+                const colorTemp = utils.numberWithinRange(utils.toNumber(message.color_temp ?? state.color_temp ?? 370, "color_temp"), 153, 370);
+                dpValues.push(tuya.dpValueFromNumberValue(4, glspi206pColorTemp.to(colorTemp)), tuya.dpValueFromNumberValue(3, deviceBrightness));
+                await tuya.sendDataPoints(ep, dpValues);
+                return {state: {state: "ON", work_mode: workMode, color_mode: "color_temp", brightness, color_temp: colorTemp}};
+            }
+
+            let color = (state.color ?? {hue: 0, saturation: 100}) as {hue: number; saturation: number};
             if ("color" in message) {
                 const c = libColor.Color.fromConverterArg(message.color);
-                if (c.isRGB()) hsv = c.rgb.toHSV();
-                else if (c.isXY()) hsv = c.xy.toHSV();
-                else hsv = c.hsv;
+                const hsv = c.isRGB() ? c.rgb.toHSV() : c.isXY() ? c.xy.toHSV() : c.hsv;
+                color = {hue: Math.round(hsv.hue ?? 0) % 360, saturation: utils.numberWithinRange(Math.round(hsv.saturation ?? 100), 0, 100)};
             }
-            const h = utils.numberWithinRange(Math.round(hsv.hue ?? 0), 0, 360);
-            const s = utils.numberWithinRange(Math.round(hsv.saturation ?? 100), 0, 100);
-            const sat1000 = s * 10;
-            const val1000 = glspi206pBrightnessToDevice(brightness);
-
-            const dp61Payload = [
-                0x00,
-                0x01,
-                0x01,
-                0x14,
-                0x00,
-                (h >> 8) & 0xff,
-                h & 0xff,
-                (sat1000 >> 8) & 0xff,
-                sat1000 & 0xff,
-                (val1000 >> 8) & 0xff,
-                val1000 & 0xff,
-            ];
-            dpValues.push(tuya.dpValueFromRaw(61, Buffer.from(dp61Payload)));
+            const payload = Buffer.from([0x00, 0x01, 0x01, 0x14, 0x00, 0, 0, 0, 0, 0, 0]);
+            payload.writeUInt16BE(color.hue, 5);
+            payload.writeUInt16BE(color.saturation * 10, 7);
+            payload.writeUInt16BE(deviceBrightness, 9);
+            dpValues.push(tuya.dpValueFromRaw(61, payload));
             await tuya.sendDataPoints(ep, dpValues);
-            return {state: {state: "ON", work_mode: "colour", color_mode: "hs", brightness, color: {hue: h, saturation: s}}};
+            return {state: {state: "ON", work_mode: workMode, color_mode: "hs", brightness, color}};
         },
     } satisfies Tz.Converter,
 };
@@ -1307,13 +1261,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-SPI-206P",
         vendor: "Gledopto",
         description: "SPI pixel controller RGBCCT/RGBW/RGB",
-        toZigbee: [tzLocal.glspi206p_brightness_color, tzLocal.glspi206p_music, tzLocal.glspi206p_music],
+        toZigbee: [tzLocal.glspi206p_light, tzLocal.glspi206p_music, tzLocal.glspi206p_music],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e
                 .light()
                 .withBrightness()
-                .withColorTemp(GLSPI206P_COLOR_TEMP_RANGE)
+                .withColorTemp([153, 370])
                 .withColor(["hs"])
                 .setAccess("state", exposes.access.STATE_SET)
                 .setAccess("brightness", exposes.access.STATE_SET)
@@ -1387,7 +1341,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.onOff],
-                // Incoming datapoints use the first entry with the same DP: this one also reports the color_mode
+                // Incoming DP2 uses this first entry (also reports color_mode), the next one is for setting work_mode
                 [2, null, localValueConverter.glspi206p_work_mode],
                 [
                     2,
@@ -1400,7 +1354,7 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [3, null, localValueConverter.glspi206p_brightness],
-                [4, null, localValueConverter.glspi206p_color_temp],
+                [4, "color_temp", glspi206pColorTemp],
                 [61, null, localValueConverter.glspi206p_paint_colour],
                 [7, "countdown", tuya.valueConverter.countdown],
                 [51, "scene", localValueConverter.scene_data_converter],
