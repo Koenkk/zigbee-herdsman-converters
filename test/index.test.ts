@@ -531,6 +531,7 @@ describe("ZHC", () => {
         const ts0601Soil = await findByDevice(ts0601SoilDevice);
         expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
             "time_start",
+            "query_on_announce",
             "temperature_calibration",
             "temperature_precision",
             "soil_moisture_calibration",
@@ -554,6 +555,7 @@ describe("ZHC", () => {
         const ts011fPlug1 = await findByDevice(ts0111fPlug1Device);
         expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
             "time_start",
+            "query_on_announce",
             "power_calibration",
             "power_precision",
             "current_calibration",
@@ -569,6 +571,56 @@ describe("ZHC", () => {
         const options3 = {current_calibration: -50};
         postProcessConvertedFromZigbeeMessage(ts011fPlug1, payload3, options3, ts0111fPlug1Device);
         expect(payload3).toStrictEqual({current: 0.03});
+    });
+
+    it("applies the query on announce option selected by the user", async () => {
+        const disabledDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE2841000000_qf5mzewi", endpoints: [{}]});
+        const disabledDefinition = await findByDevice(disabledDevice);
+        const disabledCommand = vi.spyOn(disabledDevice.endpoints[0], "command");
+
+        await disabledDefinition.onEvent?.({
+            type: "deviceAnnounce",
+            data: {
+                device: disabledDevice,
+                options: {query_on_announce: true},
+                state: {},
+                deviceExposesChanged: vi.fn(),
+            },
+        });
+
+        expect(disabledCommand).toHaveBeenCalledWith("manuSpecificTuya", "dataQuery", {});
+
+        const enabledDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_qf5mzewi", endpoints: [{}]});
+        const enabledDefinition = await findByDevice(enabledDevice);
+        const enabledCommand = vi.spyOn(enabledDevice.endpoints[0], "command");
+
+        await enabledDefinition.onEvent?.({
+            type: "deviceAnnounce",
+            data: {
+                device: enabledDevice,
+                options: {query_on_announce: false},
+                state: {},
+                deviceExposesChanged: vi.fn(),
+            },
+        });
+
+        expect(enabledCommand).not.toHaveBeenCalledWith("manuSpecificTuya", "dataQuery", {});
+
+        const configurableDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: [{}]});
+        const configurableDefinition = await findByDevice(configurableDevice);
+        const configurableCommand = vi.spyOn(configurableDevice.endpoints[0], "command");
+
+        await configurableDefinition.onEvent?.({
+            type: "deviceAnnounce",
+            data: {
+                device: configurableDevice,
+                options: {query_on_announce: true},
+                state: {},
+                deviceExposesChanged: vi.fn(),
+            },
+        });
+
+        expect(configurableCommand).toHaveBeenCalledWith("manuSpecificTuya", "dataQuery", {});
     });
 
     it("instantiates list expose of number type", () => {
