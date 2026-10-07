@@ -1881,10 +1881,7 @@ const fromZigbee = {
             const dp = dpValue.dp;
             const value = getDataValue(dpValue);
             // BHT-002 firmware occasionally sends DP 16 with an invalid datatype, which would publish an undefined setpoint
-            if (value === undefined) {
-                logUnexpectedDataPoint("moes_thermostat", msg, dpValue, meta);
-                return;
-            }
+            if (value === undefined) return;
             const stateLookup: KeyValueAny = {"0": "cool", "1": "heat", "2": "fan_only"};
             // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
             let temperature;
