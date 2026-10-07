@@ -317,12 +317,10 @@ const tzLocal = {
                 return {state: {state: "ON", work_mode: workMode, color_mode: "color_temp", brightness, color_temp: colorTemp}};
             }
 
-            let color = (state.color ?? {hue: 0, saturation: 100}) as {hue: number; saturation: number};
-            if ("color" in message) {
-                const c = libColor.Color.fromConverterArg(message.color);
-                const hsv = c.isRGB() ? c.rgb.toHSV() : c.isXY() ? c.xy.toHSV() : c.hsv;
-                color = {hue: Math.round(hsv.hue ?? 0) % 360, saturation: utils.numberWithinRange(Math.round(hsv.saturation ?? 100), 0, 100)};
-            }
+            // state.color may still be in the format of the previous definition ({h, s}, {x, y}, {hex})
+            const c = libColor.Color.fromConverterArg(message.color ?? state.color ?? {hue: 0, saturation: 100});
+            const hsv = c.isRGB() ? c.rgb.toHSV() : c.isXY() ? c.xy.toHSV() : c.hsv;
+            const color = {hue: Math.round(hsv.hue ?? 0) % 360, saturation: utils.numberWithinRange(Math.round(hsv.saturation ?? 100), 0, 100)};
             const payload = Buffer.from([0x00, 0x01, 0x01, 0x14, 0x00, 0, 0, 0, 0, 0, 0]);
             payload.writeUInt16BE(color.hue, 5);
             payload.writeUInt16BE(color.saturation * 10, 7);
