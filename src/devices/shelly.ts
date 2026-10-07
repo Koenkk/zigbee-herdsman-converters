@@ -3074,7 +3074,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.illuminance({valueMin: 0, valueMax: 200000}),
             m.temperature({valueMin: -40, valueMax: 60}),
-            m.pressure({valueMin: 30, valueMax: 110}),
+            m.pressure({valueMin: 300, valueMax: 1100}),
             m.humidity({valueMin: 1, valueMax: 99}),
             m.deviceAddCustomCluster("shellyWS90Wind", {
                 name: "shellyWS90Wind",
