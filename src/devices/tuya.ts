@@ -20039,84 +20039,98 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu", "_TZE204_clrdrnya"]),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.presence(),
-            e.illuminance(),
-            e.numeric("target_distance", ea.STATE).withDescription("Distance to target").withUnit("m"),
-            e
-                .numeric("radar_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(9)
-                .withValueStep(1)
-                .withDescription("Detection threshold for the strength of object energy"),
-            e
-                .numeric("detection_range", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(8)
-                .withValueStep(0.1)
-                .withUnit("m")
-                .withDescription("Maximum distance detected by the sensor"),
-            e
-                .numeric("shield_range", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(8)
-                .withValueStep(0.1)
-                .withUnit("m")
-                .withDescription("Nearest distance detected by the sensor"),
-            e
-                .numeric("entry_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(9)
-                .withValueStep(1)
-                .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range"),
-            e
-                .numeric("entry_distance_indentation", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(8)
-                .withValueStep(0.1)
-                .withUnit("m")
-                .withDescription("Indent the distance inward based on the detection distance"),
-            e
-                .numeric("entry_filter_time", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(0.1)
-                .withUnit("s")
-                .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range "),
-            e
-                .numeric("departure_delay", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(600)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Confirmation time after the target disappears"),
-            e
-                .numeric("block_time", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(0.1)
-                .withUnit("s")
-                .withDescription("Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode"),
-            e.binary("breaker_status", ea.STATE_SET, "ON", "OFF").withDescription("Remotely control the breaker in standard mode"),
-            e
-                .enum("breaker_mode", ea.STATE_SET, ["standard", "local"])
-                .withDescription("Breaker mode: standard is remotely controlled, local is automatic"),
-            e
-                .numeric("illuminance_threshold", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(420)
-                .withValueStep(0.1)
-                .withUnit("lx")
-                .withDescription("Illumination threshold for local (automatic) switching mode operation"),
-            e.enum("status_indication", ea.STATE_SET, ["OFF", "ON"]).withDescription("Indicator light will flash when human presence is detected"),
-            e
-                .enum("sensor", ea.STATE_SET, ["on", "off", "occupied", "unoccupied"])
-                .withDescription(
-                    "The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, " +
-                        "it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied " +
-                        "state will be maintained permanently.",
-                ),
-        ],
+        exposes: (device) => {
+            const exps: Expose[] = [
+                e.presence(),
+                e.illuminance(),
+                e.numeric("target_distance", ea.STATE).withDescription("Distance to target").withUnit("m"),
+                e
+                    .numeric("radar_sensitivity", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(9)
+                    .withValueStep(1)
+                    .withDescription("Detection threshold for the strength of object energy"),
+                e
+                    .numeric("detection_range", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(0.1)
+                    .withUnit("m")
+                    .withDescription("Maximum distance detected by the sensor"),
+                e
+                    .numeric("shield_range", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(0.1)
+                    .withUnit("m")
+                    .withDescription("Nearest distance detected by the sensor"),
+                e
+                    .numeric("entry_sensitivity", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(9)
+                    .withValueStep(1)
+                    .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range"),
+                e
+                    .numeric("entry_distance_indentation", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(0.1)
+                    .withUnit("m")
+                    .withDescription("Indent the distance inward based on the detection distance"),
+                e
+                    .numeric("entry_filter_time", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("s")
+                    .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range "),
+                e
+                    .numeric("departure_delay", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(600)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Confirmation time after the target disappears"),
+                e
+                    .numeric("block_time", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("s")
+                    .withDescription("Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode"),
+                e.binary("breaker_status", ea.STATE_SET, "ON", "OFF").withDescription("Remotely control the breaker in standard mode"),
+                e
+                    .enum("breaker_mode", ea.STATE_SET, ["standard", "local"])
+                    .withDescription("Breaker mode: standard is remotely controlled, local is automatic"),
+                e
+                    .numeric("illuminance_threshold", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(420)
+                    .withValueStep(0.1)
+                    .withUnit("lx")
+                    .withDescription("Illumination threshold for local (automatic) switching mode operation"),
+                e
+                    .enum("status_indication", ea.STATE_SET, ["OFF", "ON"])
+                    .withDescription("Indicator light will flash when human presence is detected"),
+                e
+                    .enum("sensor", ea.STATE_SET, ["on", "off", "occupied", "unoccupied"])
+                    .withDescription(
+                        "The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, " +
+                            "it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied " +
+                            "state will be maintained permanently.",
+                    ),
+            ];
+            if (!device || device.manufacturerName === "_TZE204_dtzziy1e") {
+                // MTG275-ZB-RL: DP 116 switches the continuous target_distance reports (about 1/s) on/off.
+                // Requires MCU firmware 1.0.5 or newer.
+                exps.push(
+                    e
+                        .binary("distance_report", ea.STATE_SET, "ON", "OFF")
+                        .withDescription("Report target distance continuously (about once per second), requires MCU firmware 1.0.5 or newer"),
+                );
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
@@ -20175,6 +20189,14 @@ export const definitions: DefinitionWithExtend[] = [
                         off: tuya.enum(1),
                         occupied: tuya.enum(2),
                         unoccupied: tuya.enum(3),
+                    }),
+                ],
+                [
+                    116,
+                    "distance_report",
+                    tuya.valueConverterBasic.lookup({
+                        OFF: tuya.enum(0),
+                        ON: tuya.enum(1),
                     }),
                 ],
             ],
