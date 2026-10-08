@@ -989,10 +989,10 @@ export function pressure(args: Partial<NumericArgs<"msPressureMeasurement">> = {
         name: "pressure",
         cluster: "msPressureMeasurement",
         attribute: "measuredValue",
-        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 50}, // 5 kPa
+        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}, // 5 hPa
         description: "The measured atmospheric pressure",
-        unit: "kPa",
-        scale: 10,
+        unit: "hPa",
+        scale: 1,
         access: "STATE_GET",
         ...args,
     });
@@ -3459,6 +3459,43 @@ export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP)
     ];
 
     return {configure, isModernExtend: true};
+}
+
+export interface PollControlArgs {
+    /** Quarter-seconds. */
+    longPollInterval: number;
+    /** Quarter-seconds. */
+    checkinInterval?: number;
+    endpointId?: number;
+}
+
+// longPollInterval is read-only, so it takes the setLongPollInterval command. Some sleepy devices reset it
+// to a very short factory value on power-up (battery swap), so it is reapplied on every announce.
+export function pollControl(args: PollControlArgs): ModernExtend {
+    const {longPollInterval, checkinInterval, endpointId = 1} = args;
+    const apply = async (device: Zh.Device) => {
+        const endpoint = device.getEndpoint(endpointId);
+        if (!endpoint) return;
+        try {
+            await endpoint.command("genPollCtrl", "setLongPollInterval", {newLongPollInterval: longPollInterval});
+            if (checkinInterval !== undefined) {
+                await endpoint.write("genPollCtrl", {checkinInterval});
+            }
+        } catch (error) {
+            // Sleepy device may go back to sleep before acking; retried on the next announce.
+            logger.debug(`Failed to set poll control intervals of '${device.ieeeAddr}': ${error}`, NS);
+        }
+    };
+    const configure: Configure[] = [async (device) => await apply(device)];
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type === "deviceAnnounce") {
+                await apply(event.data.device);
+            }
+        },
+    ];
+
+    return {configure, onEvent, isModernExtend: true};
 }
 
 export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {

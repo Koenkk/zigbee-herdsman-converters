@@ -1240,6 +1240,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "SLZB-06MG26U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-07MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-MR1U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-MR2U", manufacturerName: "SMLIGHT", applicationVersion: 200},
             {modelID: "SLZB-MR3U", manufacturerName: "SMLIGHT", applicationVersion: 200},

@@ -547,4 +547,25 @@ describe("ModernExtend", () => {
         expect(childLock).toStrictEqual([{child_lock: "UNLOCK"}]);
         expect(ledEnable).toStrictEqual([{led_enable: "TRUE"}]);
     });
+
+    test("pollControl sets intervals on configure and on device announce", async () => {
+        const device = mockDevice(
+            {modelID: "XHS2-SE", endpoints: [{ID: 1, inputClusters: ["genPowerCfg", "genPollCtrl", "msTemperatureMeasurement", "ssIasZone"]}]},
+            "EndDevice",
+        );
+        const endpoint = device.getEndpoint(1);
+        const definition = await findByDevice(device);
+        const expectIntervalsSet = () => {
+            expect(endpoint.command).toHaveBeenCalledWith("genPollCtrl", "setLongPollInterval", {newLongPollInterval: 24});
+            expect(endpoint.write).toHaveBeenCalledWith("genPollCtrl", {checkinInterval: 13200});
+        };
+
+        await definition.configure?.(device, endpoint, definition);
+        expectIntervalsSet();
+
+        vi.mocked(endpoint.command).mockClear();
+        vi.mocked(endpoint.write).mockClear();
+        await definition.onEvent?.({type: "deviceAnnounce", data: {device, deviceExposesChanged: () => {}, state: {}, options: {}}});
+        expectIntervalsSet();
+    });
 });

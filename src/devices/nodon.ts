@@ -362,8 +362,48 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                     },
                 },
-                commands: {},
-                commandsResponse: {},
+                // Documented by NodOn in "IRB-4-1_User-Guidelines_V1.2", section 3.2.8.
+                // Declared here so the cluster matches the vendor specification; no expose
+                // uses them yet, and a frame received from the device is parsed under the
+                // right name instead of as an unknown command.
+                commands: {
+                    sendRemoteControlCommand: {
+                        name: "sendRemoteControlCommand",
+                        ID: 0xf0,
+                        parameters: [
+                            // Target device number, range 0-3.
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            // Remote control button number, range 0-32.
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                    learnRemoteControlCode: {
+                        name: "learnRemoteControlCode",
+                        ID: 0xf1,
+                        parameters: [
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                commandsResponse: {
+                    learnRemoteControlCodeResponse: {
+                        name: "learnRemoteControlCodeResponse",
+                        ID: 0xf2,
+                        parameters: [
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                            // 1 = success, 0 = failure.
+                            {name: "resultStatus", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                // 0xF3 "Select Learning Data Source" and 0xF4 are deliberately NOT declared.
+                // Per the same document, 0xF3 switches the device between learned IR data and
+                // the code set downloaded by the vendor app ("1 = use learned data, 0 = use
+                // app-downloaded data"), and the latter is what drives normal AC control.
+                // Exposing that switch without a way to read back which source is active would
+                // be a footgun; it can be added later with proper state handling.
             }),
         ],
         toZigbee: [nodonIrbTz.irb_holder_temperature_calibration],

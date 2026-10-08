@@ -1475,7 +1475,7 @@ const tzLocal = {
         ...tz.cover_position_tilt,
         convertSet: async (entity, key, value, meta) => {
             if (
-                meta.device.manufacturerName === "_TZ3000_yruungrl" &&
+                meta.device?.manufacturerName === "_TZ3000_yruungrl" &&
                 key === "position" &&
                 utils.isEndpoint(entity) &&
                 utils.isNumber(value) &&
@@ -3688,7 +3688,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zpvusbtv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_zpvusbtv", "_TZE284_zpvusbtv"]),
         model: "ZN2S-RS02E",
         vendor: "Tuya",
         description: "Two gang switch with colored backlight modes",
@@ -5627,6 +5627,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0601_soil",
         vendor: "Tuya",
         description: "Soil sensor",
+        ota: true,
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [e.temperature(), e.soil_moisture(), tuya.exposes.temperatureUnit(), e.battery(), tuya.exposes.batteryState()],
         meta: {
@@ -6035,7 +6036,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nt4pquef"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nt4pquef", "_TZE2841000000_nt4pquef"]),
         model: "SGS02Z",
         vendor: "Tuya",
         description: "Soil sensor",
@@ -8939,10 +8940,11 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i", "_TZ3000_pxfjrzyj"]),
+        fingerprint: tuya.fingerprint("TS0002", ["_TZ3000_aaifmpuq", "_TZ3000_irrmjcgi", "_TZ3000_huvxrx4i", "_TZ3000_pxfjrzyj", "_TZ3000_hopb2kjm"]),
         model: "TS0002_power",
         vendor: "Tuya",
         description: "2 gang switch with power monitoring",
+        ota: true,
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
@@ -8980,7 +8982,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         whiteLabel: [
             tuya.whitelabel("Tuya", "XSH01B", "2 gang switch module with power monitoring", ["_TZ3000_irrmjcgi"]),
-            tuya.whitelabel("Nous", "B3Z", "2 gang switch module with power monitoring", ["_TZ3000_aaifmpuq"]),
+            tuya.whitelabel("Nous", "B3Z", "2 gang switch module with power monitoring", ["_TZ3000_aaifmpuq", "_TZ3000_hopb2kjm"]),
         ],
     },
     {
@@ -9408,7 +9410,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pf7swkqp"]),
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_pf7swkqp", "_TZ3000_ly9apzky"]),
         model: "TS0003_switch_module_3",
         vendor: "Tuya",
         description: "3 gang switch module",
@@ -9416,6 +9418,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 switchType: true,
+                powerOutageMemory: (m) => m === "_TZ3000_ly9apzky",
                 endpoints: ["l1", "l2", "l3"],
             }),
         ],
@@ -9429,7 +9432,11 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
         },
-        whiteLabel: [tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"])],
+        whiteLabel: [
+            tuya.whitelabel("RSH", "SB03-Zigbee", "3 gang switch module", ["_TZ3000_pf7swkqp"]),
+            tuya.whitelabel("Tuya", "QS-Zigbee-S10-3C", "3 gang switch module", ["_TZ3000_ly9apzky"]),
+            {vendor: "Auronen", model: "Zigbee-3C"},
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_ju82pu2b"]),
@@ -20170,84 +20177,98 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("QA", "QASZ24R", "mmWave 24 Ghz sensor with relay", ["_TZE284_4qznlkbu", "_TZE204_clrdrnya"]),
         ],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.presence(),
-            e.illuminance(),
-            e.numeric("target_distance", ea.STATE).withDescription("Distance to target").withUnit("m"),
-            e
-                .numeric("radar_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(9)
-                .withValueStep(1)
-                .withDescription("Detection threshold for the strength of object energy"),
-            e
-                .numeric("detection_range", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(8)
-                .withValueStep(0.1)
-                .withUnit("m")
-                .withDescription("Maximum distance detected by the sensor"),
-            e
-                .numeric("shield_range", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(8)
-                .withValueStep(0.1)
-                .withUnit("m")
-                .withDescription("Nearest distance detected by the sensor"),
-            e
-                .numeric("entry_sensitivity", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(9)
-                .withValueStep(1)
-                .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range"),
-            e
-                .numeric("entry_distance_indentation", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(8)
-                .withValueStep(0.1)
-                .withUnit("m")
-                .withDescription("Indent the distance inward based on the detection distance"),
-            e
-                .numeric("entry_filter_time", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(0.1)
-                .withUnit("s")
-                .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range "),
-            e
-                .numeric("departure_delay", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(600)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Confirmation time after the target disappears"),
-            e
-                .numeric("block_time", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(10)
-                .withValueStep(0.1)
-                .withUnit("s")
-                .withDescription("Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode"),
-            e.binary("breaker_status", ea.STATE_SET, "ON", "OFF").withDescription("Remotely control the breaker in standard mode"),
-            e
-                .enum("breaker_mode", ea.STATE_SET, ["standard", "local"])
-                .withDescription("Breaker mode: standard is remotely controlled, local is automatic"),
-            e
-                .numeric("illuminance_threshold", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(420)
-                .withValueStep(0.1)
-                .withUnit("lx")
-                .withDescription("Illumination threshold for local (automatic) switching mode operation"),
-            e.enum("status_indication", ea.STATE_SET, ["OFF", "ON"]).withDescription("Indicator light will flash when human presence is detected"),
-            e
-                .enum("sensor", ea.STATE_SET, ["on", "off", "occupied", "unoccupied"])
-                .withDescription(
-                    "The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, " +
-                        "it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied " +
-                        "state will be maintained permanently.",
-                ),
-        ],
+        exposes: (device) => {
+            const exps: Expose[] = [
+                e.presence(),
+                e.illuminance(),
+                e.numeric("target_distance", ea.STATE).withDescription("Distance to target").withUnit("m"),
+                e
+                    .numeric("radar_sensitivity", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(9)
+                    .withValueStep(1)
+                    .withDescription("Detection threshold for the strength of object energy"),
+                e
+                    .numeric("detection_range", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(0.1)
+                    .withUnit("m")
+                    .withDescription("Maximum distance detected by the sensor"),
+                e
+                    .numeric("shield_range", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(0.1)
+                    .withUnit("m")
+                    .withDescription("Nearest distance detected by the sensor"),
+                e
+                    .numeric("entry_sensitivity", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(9)
+                    .withValueStep(1)
+                    .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range"),
+                e
+                    .numeric("entry_distance_indentation", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(0.1)
+                    .withUnit("m")
+                    .withDescription("Indent the distance inward based on the detection distance"),
+                e
+                    .numeric("entry_filter_time", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("s")
+                    .withDescription("Sensitivity threshold triggered for the first time when the target enters the detection range "),
+                e
+                    .numeric("departure_delay", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(600)
+                    .withValueStep(1)
+                    .withUnit("s")
+                    .withDescription("Confirmation time after the target disappears"),
+                e
+                    .numeric("block_time", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(10)
+                    .withValueStep(0.1)
+                    .withUnit("s")
+                    .withDescription("Time for the target to be detected again after switching from manned(occupy) to unmanned(unoccupy) mode"),
+                e.binary("breaker_status", ea.STATE_SET, "ON", "OFF").withDescription("Remotely control the breaker in standard mode"),
+                e
+                    .enum("breaker_mode", ea.STATE_SET, ["standard", "local"])
+                    .withDescription("Breaker mode: standard is remotely controlled, local is automatic"),
+                e
+                    .numeric("illuminance_threshold", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(420)
+                    .withValueStep(0.1)
+                    .withUnit("lx")
+                    .withDescription("Illumination threshold for local (automatic) switching mode operation"),
+                e
+                    .enum("status_indication", ea.STATE_SET, ["OFF", "ON"])
+                    .withDescription("Indicator light will flash when human presence is detected"),
+                e
+                    .enum("sensor", ea.STATE_SET, ["on", "off", "occupied", "unoccupied"])
+                    .withDescription(
+                        "The radar sensor can be set in four states: on, off, occupied and unoccupied. For example, if set to occupied, " +
+                            "it will continue to maintain presence regardless of whether someone is present or not. If set to unoccupied, the unoccupied " +
+                            "state will be maintained permanently.",
+                    ),
+            ];
+            if (!device || device.manufacturerName === "_TZE204_dtzziy1e") {
+                // MTG275-ZB-RL: DP 116 switches the continuous target_distance reports (about 1/s) on/off.
+                // Requires MCU firmware 1.0.5 or newer.
+                exps.push(
+                    e
+                        .binary("distance_report", ea.STATE_SET, "ON", "OFF")
+                        .withDescription("Report target distance continuously (about once per second), requires MCU firmware 1.0.5 or newer"),
+                );
+            }
+            return exps;
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "presence", tuya.valueConverter.trueFalse1],
@@ -20306,6 +20327,14 @@ export const definitions: DefinitionWithExtend[] = [
                         off: tuya.enum(1),
                         occupied: tuya.enum(2),
                         unoccupied: tuya.enum(3),
+                    }),
+                ],
+                [
+                    116,
+                    "distance_report",
+                    tuya.valueConverterBasic.lookup({
+                        OFF: tuya.enum(0),
+                        ON: tuya.enum(1),
                     }),
                 ],
             ],
@@ -25506,13 +25535,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS208Z",
         vendor: "HYSYIOT",
         description: "PIR 24Ghz human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}), m.battery()],
 
         meta: {
             tuyaDatapoints: [
-                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                //[1, "occupancy", tuya.valueConverter.trueFalse0],
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
-                [4, "battery", tuya.valueConverter.raw],
+                //[4, "battery", tuya.valueConverter.raw],
                 [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
                 [11, "illuminance", tuya.valueConverter.raw],
                 [12, "pir_delay", tuya.valueConverter.raw],
@@ -25560,13 +25589,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         exposes: [
-            e.occupancy(),
+            //e.occupancy(),
             e.enum("motion_state", ea.STATE, ["none", "move", "Micro-move", "static"]).withDescription("Radar Motion State Detail"),
             e.vibration(),
             e.illuminance(),
             e.temperature(),
             e.humidity(),
-            e.battery(),
+            //e.battery(),
             tuya.exposes.temperatureUnit(),
             e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery State"),
             e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR Sensitivity"),
@@ -25590,7 +25619,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("°C")
                 .withDescription("Temperature Calibration"),
             e.numeric("humidity_calibration", ea.STATE_SET).withValueMin(-10).withValueMax(10).withUnit("%").withDescription("Humidity Calibration"),
-            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(50).withDescription("Vibration Sensitivity"),
+            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Vibration Sensitivity"),
             e.numeric("vibration_delay", ea.STATE_SET).withValueMin(1).withValueMax(1440).withUnit("s").withDescription("Vibration Clear Delay Time"),
         ],
     },
