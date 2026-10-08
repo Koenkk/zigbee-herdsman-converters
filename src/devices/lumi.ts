@@ -5428,7 +5428,7 @@ export const definitions: DefinitionWithExtend[] = [
                     features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
                 },
             }),
-            lumiKnobRotation({withButtonState: false}),
+            lumiKnobRotation({withButtonState: true, pressedEndpoint: 72}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiMultiClick(),
