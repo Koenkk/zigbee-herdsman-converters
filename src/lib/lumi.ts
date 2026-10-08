@@ -3270,8 +3270,8 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    lumiKnobRotation: (args?: {withButtonState: boolean}): ModernExtend => {
-        const withButtonState = args?.withButtonState || true;
+    lumiKnobRotation: (args?: {withButtonState?: boolean; pressedEndpoint?: number}): ModernExtend => {
+        const withButtonState = args?.withButtonState ?? true;
         const exposes: Expose[] = [
             e.action(["start_rotating", "rotation", "stop_rotating"]),
             e.numeric("action_rotation_angle", ea.STATE).withUnit("*").withDescription("Rotation angle").withCategory("diagnostic"),
@@ -3296,10 +3296,17 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[570] !== undefined) {
                         const act: KeyValueNumberString = {1: "start_rotating", 2: "rotation", 3: "stop_rotating"};
-                        const state: KeyValueNumberString = {0: "released", 128: "pressed"};
-                        return {
+                          return {
                             action: act[(msg.data[570] as number) & ~128],
-                            action_rotation_button_state: state[(msg.data[570] as number) & 128],
+                            ...(withButtonState
+                                ? {
+                                      action_rotation_button_state:
+                                          (args?.pressedEndpoint !== undefined && msg.endpoint.ID === args.pressedEndpoint) ||
+                                          ((msg.data[570] as number) & 128) !== 0
+                                              ? "pressed"
+                                              : "released",
+                                  }
+                                : {}),
                             action_rotation_angle: msg.data[558],
                             action_rotation_angle_speed: msg.data[560],
                             action_rotation_percent: msg.data[563],
