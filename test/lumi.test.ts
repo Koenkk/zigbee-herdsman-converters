@@ -97,6 +97,31 @@ describe("lib/lumi", () => {
         });
     });
 
+    describe("WSDCGQ12LM pressure", () => {
+        const convert = async (data: KeyValueAny) => {
+            const device = mockDevice(
+                {
+                    modelID: "lumi.sensor_ht.agl02",
+                    endpoints: [{ID: 1, attributes: {msPressureMeasurement: {attributes: {scale: -1}}}}],
+                },
+                "EndDevice",
+            );
+            const definition = await findByDevice(device);
+            const converter = definition.fromZigbee.find((c) => c.cluster === "msPressureMeasurement");
+            // @ts-expect-error mock message
+            return await converter.convert(definition, {data, endpoint: device.getEndpoint(1), device}, vi.fn(), {}, {device} as Fz.Meta);
+        };
+
+        it("uses the precise scaledValue when reported", async () => {
+            const result = await convert({measuredValue: 1012, scale: -1, scaledValue: 10128});
+            expect(result.pressure).toBeCloseTo(1012.8);
+        });
+
+        it("falls back to measuredValue", async () => {
+            expect(await convert({measuredValue: 1012})).toStrictEqual({pressure: 1012});
+        });
+    });
+
     describe("FP310 presence reporting", () => {
         it("configures reporting for presence (0x0142)", async () => {
             const device = mockDevice(
