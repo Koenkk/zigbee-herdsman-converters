@@ -1393,17 +1393,12 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
-            // Zone type 0x0225 (standard warning device): the siren has no sensor. Alarm 1 is not tied to the
-            // siren sounding (it stays clear during a warning), supervision/restore are capability flags.
             m.iasZoneAlarm({
                 zoneType: "generic",
                 zoneAttributes: ["tamper", "battery_low", "ac_status", "test"],
                 zoneStatusReporting: true,
             }),
-            // ZCL layout (mode << 4 | strobe << 2 | level), unlike the SIRZB-110:
-            // https://github.com/Koenkk/zigbee2mqtt/issues/30583 https://github.com/Koenkk/zigbee2mqtt/issues/33296
-            // Full max_duration range: 1800 s written and read back on firmware 2.0.4, the manual gives no upper bound.
-            m.iasWarning({maxDuration: true, stopWithZeroInfo: true, warningActive: true}),
+            m.iasWarning({maxDuration: true, stopWithZeroInfo: true}),
             {
                 exposes: [e.squawk()],
                 toZigbee: [tz.squawk],
