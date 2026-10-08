@@ -490,6 +490,7 @@ const edflabExtend = {
                 type: ["commandGetProfileRsp"],
                 convert: (model, msg) => ({
                     profile_data: toJson({
+                        end_time: msg.data.endTime,
                         end_time_text: zclUtcToText(msg.data.endTime),
                         status: profileStatuses[msg.data.status] ?? `unknown_${msg.data.status}`,
                         interval_period: profileIntervalPeriods[msg.data.profileIntervalPeriod] ?? `unknown_${msg.data.profileIntervalPeriod}`,
@@ -504,6 +505,7 @@ const edflabExtend = {
                 convert: (model, msg) => ({
                     sampled_data: toJson({
                         id: msg.data.id,
+                        start_time: msg.data.startTime,
                         start_time_text: zclUtcToText(msg.data.startTime),
                         type: msg.data.type,
                         request_interval: msg.data.requestInterval,
@@ -538,6 +540,7 @@ const edflabExtend = {
                         ? previous
                         : {
                               id: msg.data.id,
+                              time: msg.data.time,
                               time_text: zclUtcToText(msg.data.time),
                               total_snapshots_found: msg.data.totalSnapshotsFound,
                               cause: snapshotCauseToText(msg.data.cause),
@@ -553,6 +556,10 @@ const edflabExtend = {
                         ...(parseSnapshotSubPayload(msg.data.payloadType, subPayload) ?? {}),
                         sub_payload_hex: subPayload.length > 0 ? subPayload.toString("hex") : undefined,
                     };
+                    snapshot.commands_received = ["delivered", "received", "unavailable"].reduce(
+                        (total, name) => total + (((snapshot[name] as KeyValue | undefined)?.fragments as number | undefined) ?? 0),
+                        0,
+                    );
                     snapshotAggregates.set(device, snapshot);
                     return {snapshot_data: toJson(snapshot)};
                 },
@@ -565,6 +572,7 @@ const edflabExtend = {
                         issuer_event_id: msg.data.issuerEventId,
                         schedule_id: msg.data.scheduleId,
                         day_id: msg.data.dayId,
+                        start_time: msg.data.startTime,
                         start_time_text: zclUtcToText(msg.data.startTime),
                         schedule_type: scheduleTypes[msg.data.scheduleType] ?? `unknown_${msg.data.scheduleType}`,
                         schedule_time_reference:
@@ -616,6 +624,7 @@ const edflabExtend = {
                     message_data: toJson({
                         message_id: msg.data.messageId,
                         message_control: msg.data.messageControl,
+                        start_time: msg.data.startTime,
                         start_time_text: zclUtcToText(msg.data.startTime),
                         // null is the invalid 16-bit value, meaning an unbounded display duration
                         duration_in_minutes: msg.data.durationInMinutes ?? "unlimited",
