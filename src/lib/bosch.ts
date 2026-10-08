@@ -5,7 +5,7 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import type {BatteryArgs} from "../lib/modernExtend";
 import * as m from "../lib/modernExtend";
-import {repInterval} from "./constants";
+import {repInterval, thermostatDayOfWeek} from "./constants";
 import {logger} from "./logger";
 import type {ElectricityMeterArgs} from "./modernExtend";
 import {payload} from "./reporting";
@@ -4217,6 +4217,288 @@ export const boschThermostatExtend = {
                 access: ea.STATE_GET,
             }),
             m.setupConfigureForReading<"hvacThermostat", BoschThermostatCluster>("hvacThermostat", ["automaticValveAdapt"]),
+        ];
+
+        return {
+            exposes,
+            fromZigbee,
+            toZigbee,
+            configure,
+            isModernExtend: true,
+        };
+    },
+    raWeeklySchedule: (): ModernExtend => {
+        // The thermostat stores and runs 10 transitions per day, more than its numberOfDailyTrans
+        // attribute advertises. 10 is also the most zigbee-herdsman accepts in one command.
+        const maxTransitions = 10;
+        const minSetpoint = 5;
+        const maxSetpoint = 30;
+        const heatMode = 0x01;
+        const readAttempts = 3;
+        const retryDelay = 2000;
+        const sendOptions = {sendPolicy: <SendPolicy>"immediate"};
+        const transitionRegex = /^([01]?\d|2[0-3]):([0-5]\d)\/(\d{1,2}(?:[.,]\d)?)$/;
+
+        const days = ([1, 2, 3, 4, 5, 6, 0] as const).map((dayNumber) => {
+            const dayName = thermostatDayOfWeek[dayNumber];
+
+            return {
+                key: `weekly_schedule_${dayName}`,
+                name: `${dayName.charAt(0).toUpperCase()}${dayName.slice(1)}`,
+                bit: 1 << dayNumber,
+            };
+        });
+        type Day = (typeof days)[number];
+        type Transition = {transitionTime: number; heatSetpoint?: number};
+
+        const statusName = (statusCode: number) => Zcl.Status[statusCode] ?? `status ${statusCode}`;
+        const quote = (text: string) => JSON.stringify(text.length > 24 ? `${text.slice(0, 24)}...` : text);
+        const formatTime = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+        const formatTransitions = (transitions: Transition[]) =>
+            transitions
+                .filter((transition) => transition.heatSetpoint !== undefined)
+                .sort((a, b) => a.transitionTime - b.transitionTime)
+                .map((transition) => `${formatTime(transition.transitionTime)}/${transition.heatSetpoint / 100}`)
+                .join(" ");
+
+        const parseTransitions = (day: Day, value: string) => {
+            const rawTransitions = value.trim().split(/\s+/).filter(Boolean);
+
+            if (rawTransitions.length === 0) {
+                throw new Error(`${day.name}: at least one transition is required!`);
+            }
+
+            if (rawTransitions.length > maxTransitions) {
+                throw new Error(`${day.name}: at most ${maxTransitions} transitions are possible, got ${rawTransitions.length}!`);
+            }
+
+            const transitions = rawTransitions.map((rawTransition) => {
+                const match = transitionRegex.exec(rawTransition);
+
+                if (!match) {
+                    throw new Error(
+                        `${day.name}: ${quote(rawTransition)} is not a transition, expected HH:MM/temperature (e.g. 06:00/21 or 22:30/17.5)!`,
+                    );
+                }
+
+                const temperature = Number(match[3].replace(",", "."));
+
+                if (temperature < minSetpoint || temperature > maxSetpoint) {
+                    throw new Error(`${day.name}: ${temperature} °C in ${quote(rawTransition)} is outside of ${minSetpoint}-${maxSetpoint} °C!`);
+                }
+
+                return {transitionTime: Number(match[1]) * 60 + Number(match[2]), heatSetpoint: Math.round(temperature * 100)};
+            });
+
+            transitions.sort((a, b) => a.transitionTime - b.transitionTime);
+
+            for (let i = 1; i < transitions.length; i++) {
+                if (transitions[i].transitionTime === transitions[i - 1].transitionTime) {
+                    throw new Error(`${day.name}: two transitions at ${formatTime(transitions[i].transitionTime)}!`);
+                }
+            }
+
+            return transitions;
+        };
+
+        const singleEndpoint = (entity: Zh.Endpoint | Zh.Group) => {
+            if (!utils.isEndpoint(entity)) {
+                throw new Error("The weekly schedule can only be set or read per device, not for a group!");
+            }
+
+            return entity;
+        };
+
+        // Requests to one thermostat are sent one after the other, also across messages. Otherwise,
+        // several days set at once pile up at the parent of the sleeping thermostat and fail more often.
+        const serialized = async <T>(endpoint: Zh.Endpoint, task: () => Promise<T>) => {
+            const previous: Promise<unknown> = globalStore.getValue(endpoint, "weeklyScheduleQueue", Promise.resolve());
+            const current = previous.then(task, task);
+            globalStore.putValue(endpoint, "weeklyScheduleQueue", current);
+
+            return await current;
+        };
+
+        // Only the newest value per day is sent. A write still waiting in the queue is skipped
+        // when a newer one for the same day comes in.
+        const registerWrite = (endpoint: Zh.Endpoint, day: Day) => {
+            const storeKey = `weeklyScheduleWrite_${day.bit}`;
+            const ticket: number = globalStore.getValue(endpoint, storeKey, 0) + 1;
+            globalStore.putValue(endpoint, storeKey, ticket);
+
+            return () => globalStore.getValue(endpoint, storeKey) === ticket;
+        };
+
+        // The response also reaches the fromZigbee converter, which publishes it.
+        const readDay = async (endpoint: Zh.Endpoint, day: Day, options: KeyValue, sendError?: string) => {
+            const writeNote = sendError ? `, the write was not confirmed either (${sendError})` : "";
+            let lastError = "";
+
+            for (let attempt = 1; attempt <= readAttempts; attempt++) {
+                if (attempt > 1) {
+                    await sleep(retryDelay);
+                }
+
+                let response: KeyValue;
+
+                try {
+                    response = await endpoint.command(
+                        "hvacThermostat",
+                        "getWeeklySchedule",
+                        {daystoreturn: day.bit, modetoreturn: heatMode},
+                        options,
+                    );
+                } catch (error) {
+                    lastError = (error as Error).message;
+                    logger.debug(`${day.name}: weekly schedule read attempt ${attempt} failed (${lastError})`, NS);
+                    continue;
+                }
+
+                if (response?.dayofweek === day.bit && Array.isArray(response.transitions)) {
+                    const transitions = formatTransitions(response.transitions);
+
+                    if (transitions === "") {
+                        logger.warning(
+                            `Weekly schedule for ${day.name} on device '${endpoint.deviceIeeeAddress}' is empty, ` +
+                                "this can result in a setpoint of 0 °C in operating mode 'schedule'",
+                            NS,
+                        );
+                    }
+
+                    return transitions;
+                }
+
+                if (typeof response?.statusCode === "number" && response.statusCode !== Zcl.Status.SUCCESS) {
+                    throw new Error(
+                        `${day.name}: the thermostat refused to read the weekly schedule (${statusName(response.statusCode)})${writeNote}!`,
+                    );
+                }
+
+                lastError = "no weekly schedule for this day in the response";
+                logger.debug(`${day.name}: weekly schedule read attempt ${attempt} failed (${lastError})`, NS);
+            }
+
+            throw new Error(`${day.name}: no weekly schedule received after ${readAttempts} attempts (${lastError})${writeNote}!`);
+        };
+
+        // The thermostat often stores a day but acknowledges it too late, which zigbee-herdsman reports as a
+        // failed delivery. Only a rejection by the thermostat is an error here, the read-back decides the rest.
+        const sendDay = async (endpoint: Zh.Endpoint, day: Day, transitions: Transition[], options: KeyValue) => {
+            let response: KeyValue;
+
+            try {
+                response = await endpoint.command(
+                    "hvacThermostat",
+                    "setWeeklySchedule",
+                    {dayofweek: day.bit, numoftrans: transitions.length, mode: heatMode, transitions},
+                    options,
+                );
+            } catch (error) {
+                const sendError = (error as Error).message;
+                logger.debug(`${day.name}: weekly schedule write not confirmed (${sendError}), checking with a read-back`, NS);
+                await sleep(retryDelay);
+
+                return sendError;
+            }
+
+            if (typeof response?.statusCode === "number" && response.statusCode !== Zcl.Status.SUCCESS) {
+                throw new Error(`${day.name}: the thermostat refused the weekly schedule (${statusName(response.statusCode)})!`);
+            }
+        };
+
+        // If the read-back differs, the write most likely got lost and the day is sent once more. The cached
+        // state is not used for comparison, as it is outdated once a request had to wait in the queue.
+        const writeDay = async (endpoint: Zh.Endpoint, day: Day, transitions: Transition[], options: KeyValue) => {
+            const expected = formatTransitions(transitions);
+            const firstError = await sendDay(endpoint, day, transitions, options);
+            const first = await readDay(endpoint, day, options, firstError);
+
+            if (first === expected) {
+                return;
+            }
+
+            logger.debug(`${day.name}: thermostat reports '${first}' after the weekly schedule write, sending it once more`, NS);
+            const secondError = await sendDay(endpoint, day, transitions, options);
+            const second = await readDay(endpoint, day, options, secondError);
+
+            if (second !== expected) {
+                throw new Error(
+                    `${day.name}: weekly schedule not stored after two attempts ` +
+                        `(first: ${firstError ?? "acknowledged"}, second: ${secondError ?? "acknowledged"}), ` +
+                        `the thermostat reports '${second}' instead of '${expected}'!`,
+                );
+            }
+        };
+
+        const exposes: Expose[] = days.map((day) => e.text(day.key, ea.ALL).withCategory("config"));
+
+        const fromZigbee = [
+            {
+                cluster: "hvacThermostat",
+                type: ["commandGetWeeklyScheduleRsp"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const day = days.find((entry) => entry.bit === msg.data.dayofweek);
+
+                    if (day && msg.data.mode & heatMode) {
+                        result[day.key] = formatTransitions(msg.data.transitions);
+                    }
+
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
+        ];
+
+        // One converter per day, as Zigbee2MQTT uses a converter only once per message. No state is
+        // returned, it is published from the read-back.
+        const toZigbee: Tz.Converter[] = days.map((day) => ({
+            key: [day.key],
+            convertSet: async (entity, key, value, meta) => {
+                const endpoint = singleEndpoint(entity);
+                utils.assertString(value, key);
+                const transitions = parseTransitions(day, value);
+                const isNewest = registerWrite(endpoint, day);
+                const options = utils.getOptions(meta.mapped, endpoint, sendOptions);
+
+                await serialized(endpoint, async () => {
+                    if (isNewest()) {
+                        await writeDay(endpoint, day, transitions, options);
+                    } else {
+                        logger.debug(`${day.name}: weekly schedule write skipped, a newer one is queued`, NS);
+                    }
+                });
+            },
+            convertGet: async (entity, key, meta) => {
+                const endpoint = singleEndpoint(entity);
+                const options = utils.getOptions(meta.mapped, endpoint, sendOptions);
+
+                await serialized(endpoint, () => readDay(endpoint, day, options));
+            },
+        }));
+
+        // Read at pairing and on reconfigure. A thermostat that does not answer must not fail the whole configure.
+        const configure: Configure[] = [
+            async (device, coordinatorEndpoint, definition) => {
+                const endpoint = device.getEndpoint(1);
+
+                if (!endpoint) {
+                    return;
+                }
+
+                const options = utils.getOptions(definition, endpoint, sendOptions);
+
+                for (const day of days) {
+                    try {
+                        await serialized(endpoint, () => readDay(endpoint, day, options));
+                    } catch (error) {
+                        logger.warning(
+                            `Reading the weekly schedule of device '${device.ieeeAddr}' failed during configure: ${(error as Error).message}`,
+                            NS,
+                        );
+                        return;
+                    }
+                }
+            },
         ];
 
         return {

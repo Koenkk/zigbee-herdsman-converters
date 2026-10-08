@@ -449,6 +449,64 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("MTG075-ZB-RL distance_report (DP 116)", () => {
+        const resolve = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS0601", manufacturerName, endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            return {device, definition, properties: exposes.map((expose) => expose.property)};
+        };
+
+        it("exposes distance_report only for the MTG275-ZB-RL (_TZE204_dtzziy1e)", async () => {
+            const mtg275 = await resolve("_TZE204_dtzziy1e");
+            expect(mtg275.definition.model).toStrictEqual("MTG275-ZB-RL");
+            expect(mtg275.properties).toContain("distance_report");
+
+            // Same definition, DP 116 not verified on this one.
+            const other = await resolve("_TZE204_sbyx0lm6");
+            expect(other.definition.model).toStrictEqual("MTG075-ZB-RL");
+            expect(other.properties).toContain("target_distance");
+            expect(other.properties).not.toContain("distance_report");
+        });
+
+        it("writes distance_report to DP 116 as enum", async () => {
+            const {device, definition} = await resolve("_TZE204_dtzziy1e");
+            const endpoint = device.getEndpoint(1);
+            expect(definition.toZigbee).toContain(tuya.tz.datapoints);
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                deviceExposesChanged: () => {},
+                message: {distance_report: "OFF"},
+                mapped: definition,
+                options: {},
+                publish: null,
+                endpoint_name: null,
+            };
+            await tuya.tz.datapoints.convertSet(endpoint, "distance_report", "OFF", meta);
+            expect(endpoint.command).toHaveBeenCalledWith(
+                "manuSpecificTuya",
+                "dataRequest",
+                expect.objectContaining({dpValues: [{dp: 116, datatype: 4, data: Buffer.from([0])}]}),
+                expect.anything(),
+            );
+        });
+
+        it("reads distance_report from DP 116", async () => {
+            const {device, definition} = await resolve("_TZE204_dtzziy1e");
+            expect(definition.fromZigbee).toContain(tuya.fz.datapoints);
+            const msg = {
+                data: {dpValues: [{dp: 116, datatype: 4, data: Buffer.from([1])}]},
+                device,
+                endpoint: device.getEndpoint(1),
+                meta: {zclTransactionSequenceNumber: 1},
+                // biome-ignore lint/suspicious/noExplicitAny: generic
+            } as Fz.Message<any, any, any>;
+            const result = await tuya.fz.datapoints.convert(definition, msg, null, {}, {state: {}, device, deviceExposesChanged: () => {}});
+            expect(result).toStrictEqual({distance_report: "ON"});
+        });
+    });
+
     describe("TS004F knob configure (ZG-101ZD)", () => {
         // https://github.com/Koenkk/zigbee2mqtt/issues/31917
         const unsupported = () => new Error("ZCL command genBasic.read(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')");
