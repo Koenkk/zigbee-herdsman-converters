@@ -612,7 +612,7 @@ function decodeTuyaVersion(value: number) {
 }
 
 // Return `seq` - transaction ID for handling concrete response
-async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
+export async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
@@ -622,15 +622,15 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpV
     return seq;
 }
 
-function dpValueFromNumberValue(dp: number, value: number) {
+export function dpValueFromNumberValue(dp: number, value: number) {
     return {dp, datatype: dataTypes.number, data: Buffer.from(convertDecimalValueTo4ByteHexArray(value))};
 }
 
-function dpValueFromBool(dp: number, value: boolean) {
+export function dpValueFromBool(dp: number, value: boolean) {
     return {dp, datatype: dataTypes.bool, data: Buffer.from([value ? 1 : 0])};
 }
 
-function dpValueFromEnum(dp: number, value: number) {
+export function dpValueFromEnum(dp: number, value: number) {
     return {dp, datatype: dataTypes.enum, data: Buffer.from([value])};
 }
 
@@ -638,7 +638,7 @@ export function dpValueFromString(dp: number, string: string) {
     return {dp, datatype: dataTypes.string, data: Buffer.from(convertStringToHexArray(string))};
 }
 
-function dpValueFromRaw(dp: number, rawBuffer: Buffer) {
+export function dpValueFromRaw(dp: number, rawBuffer: Buffer) {
     return {dp, datatype: dataTypes.raw, data: rawBuffer};
 }
 

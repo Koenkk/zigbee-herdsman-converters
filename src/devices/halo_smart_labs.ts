@@ -937,6 +937,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["halo"],
         model: "HALO",
         vendor: "Halo Smart Labs",
+        version: "0.0.1",
         description: "Halo smart smoke & CO detector",
         extend: [...haloCommonExtend],
         meta: {disableDefaultResponse: true},
@@ -955,6 +956,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["halo+", "haloWX", "SABDA1"],
         model: "HALO+",
         vendor: "Halo Smart Labs",
+        version: "0.0.1",
         description: "Halo+ smart smoke & CO detector with weather radio",
         extend: [
             ...haloCommonExtend,

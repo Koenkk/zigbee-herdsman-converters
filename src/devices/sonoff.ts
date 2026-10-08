@@ -10347,9 +10347,8 @@ export const definitions: DefinitionWithExtend[] = [
                 )
                 .withSystemMode(["off", "auto", "heat"], ea.ALL, "Mode of the thermostat")
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
-            e.battery(),
         ],
-        fromZigbee: [fz.thermostat, fz.battery],
+        fromZigbee: [fz.thermostat],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_local_temperature_calibration,
@@ -10357,7 +10356,9 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_system_mode,
             tz.thermostat_running_state,
         ],
+        version: "0.0.1",
         extend: [
+            m.battery(),
             m.customLocalTemperatureCalibrationRange({
                 min: sonoffTrvzbtLocalTemperatureCalibrationRange.min,
                 max: sonoffTrvzbtLocalTemperatureCalibrationRange.max,
@@ -11179,6 +11180,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S60ZBTPF",
         vendor: "SONOFF",
         description: "Zigbee smart plug",
+        version: "0.0.1",
         fromZigbee: [fzLocal.on_off_clear_electricity, fz.metering],
         exposes: [e.energy()],
         extend: [
@@ -11231,7 +11233,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Active power",
                 unit: "W",
                 access: "STATE_GET",
-                reporting: {min: "10_SECONDS", max: "MAX", change: 0},
+                reporting: {min: "10_SECONDS", max: "MAX", change: 1},
                 fzConvert: (model, msg, publish, options, meta) => {
                     // Device keeps reporting a acCurrentPowerValue after turning OFF.
                     // Make sure power = 0 when turned OFF

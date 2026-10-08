@@ -81,6 +81,8 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
+        // Ships at 4 qs (1 s); ZHA sets 24 qs (6 s).
+        extend: [m.pollControl({longPollInterval: 24, checkinInterval: 13200})],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {

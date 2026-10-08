@@ -2667,9 +2667,11 @@ export const lumiModernExtend = {
             ...args,
         }),
     lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
+        const buttonMap: {[key: number]: string} = {3: "top_wireless_button", 4: "bottom_wireless_button"};
+        const actionMap: {[key: number]: string} = {0: "hold", 1: "single", 2: "double", 255: "release"};
         return {
             isModernExtend: true,
-            exposes: [e.action(["button_3_single", "button_4_single"])],
+            exposes: [e.action(Object.values(actionMap).flatMap((action) => Object.values(buttonMap).map((button) => `${action}_${button}`)))],
             fromZigbee: [
                 {
                     cluster: "genMultistateInput",
@@ -2677,11 +2679,10 @@ export const lumiModernExtend = {
                     convert: (model, msg, publish, options, meta) => {
                         const endpoint = msg.endpoint.ID;
                         const value = msg.data.presentValue;
-                        // Don't map any other actions/endpoint, create ghost events
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
-                        const buttonMap: {[key: number]: string} = {3: "button_3", 4: "button_4"};
-                        if (endpoint in buttonMap && value === 1) {
-                            return {action: `${buttonMap[endpoint]}_single`};
+                        // Only the wireless buttons emit actions. Periodic stale reports are disabled in configure.
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/33045
+                        if (endpoint in buttonMap && typeof value === "number" && value in actionMap) {
+                            return {action: `${actionMap[value]}_${buttonMap[endpoint]}`};
                         }
                         return null;
                     },
