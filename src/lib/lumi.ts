@@ -991,7 +991,11 @@ export const numericAttributes2Payload = async (
                 break;
             case "mode":
                 assertNumber(value);
-                payload.operation_mode = ["command", "event"][value];
+                if (model.model === "KD-R01D") {
+                    payload.event_mode = ["command", "event"][value];
+                } else {
+                    payload.operation_mode = ["command", "event"][value];
+                }
                 break;
             case "modelId":
                 // We ignore it, but we add it here to not shown an unknown key in the log
