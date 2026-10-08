@@ -9,7 +9,7 @@ import * as light from "./light";
 import {logger} from "./logger";
 import * as modernExtend from "./modernExtend";
 import * as globalStore from "./store";
-import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Configure, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, OnEvent, Publish, Tz} from "./types";
 import * as utils from "./utils";
 import {determineEndpoint, exposeEndpoints, hasAlreadyProcessedMessage, isObject, numberWithinRange, toNumber} from "./utils";
 
@@ -203,6 +203,97 @@ export const manuSpecificPhilips2Fz: Fz.Converter<"manuSpecificPhilips2", ManuSp
 const philips2Keys = ["effect_speed", "gradient_scale", "gradient_offset", "gradient_style", "effect_color"];
 
 const philipsModernExtend = {
+    hueDimmerMultiPress: () => {
+        const buttons: Record<number, string> = {1: "on", 2: "up", 3: "down", 4: "off"};
+        const names = ["single_press", "double_press", "triple_press"];
+        type Queue = {count: number; pressed: boolean; lastRelease: number; publish: Publish; button: string; timer?: ReturnType<typeof setTimeout>};
+        const queues = new Map<string, Queue>();
+        const cancel = (queue: Queue) => {
+            clearTimeout(queue.timer);
+            queue.timer = undefined;
+        };
+        const clearDevice = (ieeeAddr: string) => {
+            for (const [key, queue] of queues) {
+                if (key.startsWith(`${ieeeAddr}/`)) {
+                    cancel(queue);
+                    queues.delete(key);
+                }
+            }
+        };
+        const emit = (queue: Queue) => {
+            cancel(queue);
+            const count = queue.count;
+            queue.count = 0;
+            if (!count) return;
+            const payload = {action: `${queue.button}_${names[Math.min(count, 3) - 1]}`};
+            try {
+                Promise.resolve(queue.publish(payload)).catch((error) => logger.error(`Failed to publish Hue multi-press: ${error}`, NS));
+            } catch (error) {
+                logger.error(`Failed to publish Hue multi-press: ${error}`, NS);
+            }
+        };
+        const converter = {
+            ...philipsFz.hue_dimmer_switch,
+            convert: (model, msg, publish, options, meta) => {
+                // Retain the native payload and transaction duplicate filter.
+                const payload = philipsFz.hue_dimmer_switch.convert(model, msg, publish, options, meta);
+                if (!payload) return payload;
+                if (options.multi_press_enabled !== true) {
+                    clearDevice(msg.device.ieeeAddr);
+                    return payload;
+                }
+                const button = buttons[msg.data.button];
+                if (!button || ![0, 1, 2, 3].includes(msg.data.type)) return payload;
+                const key = `${msg.device.ieeeAddr}/${msg.endpoint.ID}/${msg.data.button}`;
+                let queue = queues.get(key);
+                if (!queue) {
+                    queue = {count: 0, pressed: false, lastRelease: 0, publish, button};
+                    queues.set(key, queue);
+                }
+                queue.publish = publish;
+                const value = Number(options.multi_press_timeout ?? 300);
+                const timeout = Number.isFinite(value) && value >= 100 && value <= 1500 ? value : 300;
+                if (msg.data.type === 0) {
+                    if (queue.count && Date.now() - queue.lastRelease >= timeout) emit(queue);
+                    cancel(queue);
+                    queue.pressed = true;
+                } else if (msg.data.type === 1 || msg.data.type === 3) {
+                    // A held press is separate from earlier completed short clicks.
+                    emit(queue);
+                    queue.pressed = false;
+                } else if (queue.pressed) {
+                    queue.pressed = false;
+                    queue.count++;
+                    queue.lastRelease = Date.now();
+                    cancel(queue);
+                    queue.timer = setTimeout(() => emit(queue), timeout);
+                }
+                return payload;
+            },
+        } satisfies typeof philipsFz.hue_dimmer_switch;
+        return {
+            isModernExtend: true,
+            fromZigbee: [converter],
+            exposes: [e.action(Object.values(buttons).flatMap((button) => names.map((name) => `${button}_${name}`)))],
+            options: [
+                e
+                    .binary("multi_press_enabled", ea.SET, true, false)
+                    .withDescription("Add software single/double/triple short-press actions. Disabled by default; native actions are retained."),
+                e
+                    .numeric("multi_press_timeout", ea.SET)
+                    .withUnit("ms")
+                    .withValueMin(100)
+                    .withValueMax(1500)
+                    .withDescription("Maximum gap from a short release to the next press of the same button. Default: 300 ms."),
+            ],
+            onEvent: [
+                (event: OnEvent.Event) => {
+                    if (event.type === "stop") clearDevice(event.data.ieeeAddr);
+                    else if (event.type === "deviceOptionsChanged") clearDevice(event.data.device.ieeeAddr);
+                },
+            ],
+        } satisfies ModernExtend;
+    },
     addPhilipsGenBasicCluster: () =>
         modernExtend.deviceAddCustomCluster("genBasic", {
             name: "genBasic",
