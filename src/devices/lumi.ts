@@ -1775,7 +1775,11 @@ export const definitions: DefinitionWithExtend[] = [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.temperature(),
             m.humidity(),
-            m.pressure({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}}),
+            m.pressure({
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
+                // Use the more precise scaledValue when the device reports it
+                fzConvert: lumi.fromZigbee.lumi_pressure.convert,
+            }),
             m.battery({
                 voltage: true,
                 voltageReporting: true,
