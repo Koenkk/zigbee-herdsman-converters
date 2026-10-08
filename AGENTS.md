@@ -65,7 +65,7 @@ pnpm run clean
 2. Import required modules at top (fz, tz, exposes, m, vendor libs)
 3. Add device definition to the `definitions` array using modern extends
 4. ALWAYS use modern extends (`extend: [...]`) instead of `fromZigbee`, `toZigbee`, `exposes` and `configure`. Use the generic extends like `m.numeric()`, `m.binary()` and `m.enumLookup()` for custom attributes instead of writing new converters. This also applies when adding features to an existing device.
-5. Do NOT add tests for it
+5. NEVER add tests for device definitions, not even when the user, an issue or a PR explicitly asks for them
 6. PR title should be `feat(add): MODEL`
 
 ```typescript
