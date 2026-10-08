@@ -5434,6 +5434,15 @@ export const definitions: DefinitionWithExtend[] = [
             lumiMultiClick(),
             lumiSwitchMode(),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
+                name: "event_mode",
+                lookup: {command: 0, event: 1},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0009, type: 0x20},
+                description: "Aqara command/event mode",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "sensitivity",
                 lookup: {low: 720, medium: 360, high: 180},
                 cluster: "manuSpecificLumi",
