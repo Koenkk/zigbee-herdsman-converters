@@ -2347,7 +2347,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_heating_setpoint", 1, 50, 0.5)
                 .withLocalTemperature(ea.STATE_GET, "Current temperature value used by thermostat")
                 .withSystemMode(["heat", "off", "sleep"])
-                .withLocalTemperatureCalibration(-10, 10, 0.5, ea.ALL)
+                .withLocalTemperatureCalibration(-12.8, 12.7, 0.1, ea.ALL)
                 .withControlSequenceOfOperation(["heating_only"], ea.ALL)
                 .withRunningMode(["off", "heat"])
                 .withRunningState(["idle", "heat"], ea.STATE_GET),
