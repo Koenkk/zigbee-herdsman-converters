@@ -150,7 +150,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [e.occupancy(), e.enum("human_motion_state", ea.STATE, ["none", "active", "static"]).withDescription("Human Motion State")],
     },
-
+    {
+        zigbeeModel: ["MIR-SR100"],
+        model: "MIR-SR100",
+        vendor: "MultIR",
+        description: "Zigbee SR100 siren",
+        extend: [m.onOff(), m.forceDeviceType({type: "EndDevice"}), m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]})],
+        meta: {disableDefaultResponse: true},
+    },
     {
         zigbeeModel: ["MIR-SM100-E"],
         model: "MIR-SM100-E",
