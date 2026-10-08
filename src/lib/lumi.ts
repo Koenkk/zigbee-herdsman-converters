@@ -3300,7 +3300,7 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[570] !== undefined) {
                         const act: KeyValueNumberString = {1: "start_rotating", 2: "rotation", 3: "stop_rotating"};
-                          return {
+                        return {
                             action: act[(msg.data[570] as number) & ~128],
                             ...(withButtonState
                                 ? {
