@@ -3920,7 +3920,7 @@ const tuyaFz = {
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish, msg);
                     } else {
-                        Object.assign(result, dpEntry[2].from(value, meta, options, publish, msg));
+                        Object.assign(result, {...(dpEntry[2].from(value, meta, options, publish, msg) as KeyValue), ...result});
                     }
                 } else {
                     logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);
