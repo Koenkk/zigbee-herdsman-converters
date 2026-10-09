@@ -1,5 +1,24 @@
 # Changelog
 
+## [26.119.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.118.0...v26.119.0) (2026-10-09)
+
+
+### Features
+
+* **add:** 3ROR0194Z ([#13442](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13442)) ([952ce27](https://github.com/Koenkk/zigbee-herdsman-converters/commit/952ce279c2ce5fc944ae018517e69e89b7b89066))
+* Aqara WXKG15LM: support OTA firmware updates ([#13441](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13441)) ([9ec14e9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9ec14e9216b504243faf409258954492a22a6536))
+* Eurotronic CoZB_dha: expose additional thermostat properties ([#13448](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13448)) ([1b0c659](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1b0c659a0d048b9ab4002ed538f1dc26d455b091))
+* Lidl HG06467: expose white mode and animated effect controls ([#13419](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13419)) ([78dd0be](https://github.com/Koenkk/zigbee-herdsman-converters/commit/78dd0be811ee1990a7dab7ad31d85715e947e155))
+
+
+### Bug Fixes
+
+* **detect:** Detect `929003811401_01`, `929003811401_02` as Philips 929003046601 ([#13440](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13440)) ([683e2f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/683e2f5ac176c12fb33cfec98f80cc08a38f4c81))
+* Philips 9290022267: fix color temperature limits ([#13436](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13436)) ([d436575](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d436575ffdcf9e7d35a9bfd0a6d45b47fc0e6458))
+* SONOFF: show relay settings as configuration entities ([#13434](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13434)) ([442d68b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/442d68b5a6768f99de72f88359c93268d1436483))
+* STREDA STREDA: fix buzzer timeouts and duplicate buzzing ([#13438](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13438)) ([f106458](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f1064588a9c7329a3b599114c256ba918f42d40d))
+* Tuya ZS-304Z: fix illuminance readings reported too low ([#13445](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13445)) ([cbfc978](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cbfc97899381a94297abafeeebffc15ac57dec18))
+
 ## [26.118.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.117.1...v26.118.0) (2026-10-08)
 
 
