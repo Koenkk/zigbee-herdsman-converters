@@ -4718,7 +4718,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true}), m.identify()],
     },
     {
-        zigbeeModel: ["929003046601_01", "929003046601_02"],
+        zigbeeModel: ["929003046601_01", "929003046601_02", "929003811401_01", "929003811401_02"],
         model: "929003046601",
         vendor: "Philips",
         description: "Philips Hue white ambiance pillar double spot (2 spot) with Bluetooth",
