@@ -1,8 +1,9 @@
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "./exposes";
+import * as globalStore from "./store";
 import * as tuya from "./tuya";
-import type {Fz, KeyValueAny, ModernExtend, Tz} from "./types";
+import type {Fz, KeyValueAny, ModernExtend, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
 interface Rgb {
@@ -55,6 +56,19 @@ const activeColors = (slots: Slot[]) => slots.filter((slot) => slot.on).map((slo
 const isSwitch = (value: unknown) => value === "ON" || value === "OFF";
 const rgbHex = (color: Rgb) => `#${hex(color.r, 2)}${hex(color.g, 2)}${hex(color.b, 2)}`;
 
+// Z2M handles SET messages concurrently, each with the state from when it arrived, and HA's
+// palette entities send a color and then ON as two messages. Keep the computed state briefly
+// so that overlapping commands build on each other.
+function recentState(entity: Zh.Endpoint | Zh.Group): KeyValueAny {
+    const recent = globalStore.getValue(entity, "hg06467State");
+    return recent && Date.now() - recent.time < 10000 ? recent.state : {};
+}
+
+function remember(entity: Zh.Endpoint | Zh.Group, update: KeyValueAny) {
+    globalStore.putValue(entity, "hg06467State", {state: {...recentState(entity), ...update}, time: Date.now()});
+    return {state: update};
+}
+
 function parseHex(value: unknown): Rgb {
     utils.assertString(value, "color");
     if (!/^#[\da-f]{6}$/i.test(value)) throw new Error(`'${value}' is not a hex RGB color, e.g. #ff8000`);
@@ -98,11 +112,17 @@ function effectInput(message: KeyValueAny, previous?: EffectSettings): EffectSet
     // The legacy nested command {effect: {effect, speed, colors}} is still accepted.
     const legacy: KeyValueAny = message.effect ?? {};
     let slots = previous?.slots ?? fillSlots([red]);
-    if (legacy.colors !== undefined)
+    if (legacy.colors !== undefined) {
+        // Round and clamp: the stored palette must stay valid #rrggbb for later commands.
+        const channel = (value: unknown = 0) => {
+            utils.assertNumber(value, "color");
+            return utils.numberWithinRange(Math.round(value), 0, 255);
+        };
         slots = fillSlots(
-            legacy.colors.map((c: KeyValueAny) => ({r: c.r ?? 0, g: c.g ?? 0, b: c.b ?? 0})),
+            legacy.colors.map((c: KeyValueAny) => ({r: channel(c.r), g: channel(c.g), b: channel(c.b)})),
             slots,
         );
+    }
     if (message.gradient !== undefined) slots = fillSlots(message.gradient.map(parseHex), slots);
     slots = slots.map((slot) => ({...slot}));
     for (const [i, key] of paletteKeys.entries()) {
@@ -130,12 +150,17 @@ const toLight: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         // Z2M calls this converter once per message, whichever of its keys comes first.
         const message: KeyValueAny = meta.message;
-        const state: KeyValueAny = meta.state;
+        const state: KeyValueAny = {...meta.state, ...recentState(entity)};
         const previous = cachedEffect(state);
-        // HA switches palette positions with plain ON/OFF, also for "turn off all lights".
-        // Outside effect mode this only updates the stored palette for the next effect.
-        const switchesOnly = keys.every((k) => message[k] === undefined || (paletteKeys.includes(k) && isSwitch(message[k])));
-        if (switchesOnly && state.light_mode !== "effect") return {state: effectState(effectInput(message, previous))};
+        // HA switches palette positions with plain ON/OFF, also for "turn off all lights", and sends
+        // ON after each color edit. Outside effect mode this and the speed only update the stored
+        // settings for the next effect; an unchanged palette sends nothing.
+        const storedOnly = keys.every((k) => message[k] === undefined || k === "effect_speed" || (paletteKeys.includes(k) && isSwitch(message[k])));
+        if (storedOnly) {
+            const next = effectState(effectInput(message, previous));
+            if (message.effect_speed === undefined && previous && next.effect_colors_on.join() === state.effect_colors_on.join()) return;
+            if (state.light_mode !== "effect") return remember(entity, next);
+        }
 
         const hasEffect = message.effect !== undefined || effectKeys.some((k) => message[k] !== undefined);
         const requested = hasEffect ? "effect" : message.color !== undefined ? "color" : undefined;
@@ -145,18 +170,18 @@ const toLight: Tz.Converter = {
         if (brightness !== undefined) utils.assertNumber(brightness, "brightness");
         // Brightness does not change an effect. It is kept and applied when the effect is left.
         if (mode === "effect" && !hasEffect && message.light_mode === undefined && brightness !== undefined) {
-            return {state: {brightness: utils.numberWithinRange(brightness, 0, 254)}};
+            return remember(entity, {brightness: utils.numberWithinRange(brightness, 0, 254)});
         }
 
         const result: KeyValueAny = {light_mode: mode, color_mode: mode === "white" ? "white" : "hs"};
         const leavingEffect = state.light_mode === "effect" && utils.isNumber(state.brightness) ? state.brightness : undefined;
-        await tuya.sendDataPointEnum(entity, dataPoints.mode, modes.indexOf(mode));
+        // Encode everything before sending even the mode command.
+        let data: string | undefined;
         if (mode === "white") {
             const level = brightness ?? leavingEffect;
             if (level !== undefined) {
                 result.brightness = utils.numberWithinRange(level, 0, 254);
                 result.white_brightness = result.brightness;
-                await tuya.sendDataPointValue(entity, dataPoints.brightness, scale(result.brightness, 254, 1000));
             } else if (state.white_brightness !== undefined) {
                 result.brightness = state.white_brightness;
             }
@@ -165,23 +190,38 @@ const toLight: Tz.Converter = {
             const hue = Math.round(color.h ?? color.hue ?? state.color?.hue ?? 0) % 360;
             const saturation = utils.numberWithinRange(color.s ?? color.saturation ?? state.color?.saturation ?? 100, 0, 100);
             const level = utils.numberWithinRange(brightness ?? leavingEffect ?? state.color_brightness ?? state.brightness ?? 254, 0, 254);
-            const data = hex(hue, 4) + hex(scale(saturation, 100, 1000), 4) + hex(scale(level, 254, 1000), 4);
-            await tuya.sendDataPointStringBuffer(entity, dataPoints.color, data);
+            data = hex(hue, 4) + hex(scale(saturation, 100, 1000), 4) + hex(scale(level, 254, 1000), 4);
             Object.assign(result, {color: {hue, saturation}, brightness: level, color_brightness: level});
         } else {
             const settings = effectInput(message, previous);
             const speed = scale(settings.speed, 100, 64);
             // Effect ID and RGB channels are hexadecimal; speed is DECIMAL ASCII.
             const colors = activeColors(settings.slots).map((c) => rgbHex(c).slice(1));
-            await tuya.sendDataPointStringBuffer(
-                entity,
-                dataPoints.effect,
-                hex(effects.indexOf(settings.effect), 2) + String(speed).padStart(2, "0") + colors.join(""),
-            );
+            data = hex(effects.indexOf(settings.effect), 2) + String(speed).padStart(2, "0") + colors.join("");
             Object.assign(result, effectState({...settings, speed: scale(speed, 64, 100)}));
             if (brightness !== undefined) result.brightness = utils.numberWithinRange(brightness, 0, 254);
         }
-        return {state: result};
+        const level = mode === "white" && result.white_brightness !== undefined ? scale(result.white_brightness, 254, 1000) : undefined;
+        const dataPoint = mode === "color" ? dataPoints.color : dataPoints.effect;
+        remember(entity, result);
+        const own = globalStore.getValue(entity, "hg06467State");
+        // The string echoes each write, sometimes after a newer one was sent. Only the echo of the
+        // latest write per datapoint is published (with optimistic: false, the only state update).
+        const write = async <T>(dp: number, value: T, send: (entity: Zh.Endpoint | Zh.Group, dp: number, value: T) => Promise<unknown>) => {
+            globalStore.putValue(entity, "hg06467Sent", {...globalStore.getValue(entity, "hg06467Sent"), [dp]: String(value)});
+            await send(entity, dp, value);
+        };
+        try {
+            await write(dataPoints.mode, modes.indexOf(mode), tuya.sendDataPointEnum);
+            if (level !== undefined) await write(dataPoints.brightness, level, tuya.sendDataPointValue);
+            if (data !== undefined) await write(dataPoint, data, tuya.sendDataPointStringBuffer);
+        } catch (error) {
+            // Later commands must not build on a state the string may not have, unless a newer command replaced it.
+            if (globalStore.getValue(entity, "hg06467State") === own) globalStore.clearValue(entity, "hg06467State");
+            throw error;
+        }
+        // Commands can finish out of order (stored settings return at once), so publish the latest state.
+        return {state: {...result, ...recentState(entity)}};
     },
 };
 
@@ -191,9 +231,15 @@ const fromLight: Fz.Converter<"manuSpecificTuya", undefined, ["commandDataRespon
     convert: (model, msg, publish, options, meta) => {
         const result: KeyValueAny = {};
         let reported: {effect: string; speed: number; colors: Rgb[]} | undefined;
+        const sent = globalStore.getValue(msg.endpoint, "hg06467Sent", {});
         for (const {dp, data} of msg.data.dpValues) {
             const buffer = Buffer.from(data);
             const text = buffer.toString("ascii");
+            // A response echoing a superseded write is skipped. The string's own changes (e.g. the
+            // button) arrive as reports.
+            const value =
+                dp === dataPoints.mode ? String(buffer[0]) : dp === dataPoints.brightness ? String(buffer.readUInt32BE()) : text.toLowerCase();
+            if (msg.type === "commandDataResponse" && dp !== dataPoints.power && sent[dp] !== value) continue;
             if (dp === dataPoints.power) {
                 // The button switches the string with this DP only, without a genOnOff report.
                 result.state = buffer[0] ? "ON" : "OFF";
@@ -212,24 +258,26 @@ const fromLight: Fz.Converter<"manuSpecificTuya", undefined, ["commandDataRespon
                 reported = {effect: effects[Number.parseInt(text.slice(0, 2), 16)], speed: scale(speed, 64, 100), colors};
             }
         }
-        const mode = result.light_mode ?? meta.state.light_mode;
-        if (reported) {
+        // Build on the state just computed by SETs: Z2M may not have published it yet (or at all).
+        const state: KeyValueAny = {...meta.state, ...recentState(msg.endpoint)};
+        const mode = result.light_mode ?? state.light_mode;
+        const cached = reported && cachedEffect(state);
+        // Outside effect mode the stored settings are newer than the string's: e.g. a speed kept for
+        // the next effect, a late echo, or the older palette reported after a power cycle.
+        if (reported && (!cached || mode === undefined || mode === "effect")) {
             // Reporting the palette that was sent keeps the switched-off positions; any other
-            // palette fills positions 1..n. Outside effect mode a reported palette is the
-            // string's older one and must not replace the stored positions.
-            const cached = cachedEffect(meta.state);
+            // palette fills positions 1..n.
             const sent = cached ? activeColors(cached.slots).map(rgbHex).join() : undefined;
-            const keep = cached && (sent === reported.colors.map(rgbHex).join() || (mode !== undefined && mode !== "effect"));
-            const slots = keep ? cached.slots : fillSlots(reported.colors, cached?.slots);
+            const slots = cached && sent === reported.colors.map(rgbHex).join() ? cached.slots : fillSlots(reported.colors, cached?.slots);
             Object.assign(result, effectState({effect: reported.effect, speed: reported.speed, slots}));
         }
         if (Object.keys(result).length === 0) return result;
         if (mode) result.color_mode = mode === "white" ? "white" : "hs";
         const brightness =
             mode === "white"
-                ? (result.white_brightness ?? meta.state.white_brightness)
+                ? (result.white_brightness ?? state.white_brightness)
                 : mode === "color"
-                  ? (result.color_brightness ?? meta.state.color_brightness)
+                  ? (result.color_brightness ?? state.color_brightness)
                   : undefined;
         if (brightness !== undefined) result.brightness = brightness;
         return result;
@@ -295,7 +343,7 @@ export function hg06467(): ModernExtend {
                 .withValueStep(1)
                 // Z2M discovers effect_speed as a config entity next to the palette; keep it enabled.
                 .withHomeAssistant({enabledByDefault: true})
-                .withDescription("Animation speed (device resolution: 0..64). Setting this enters effect mode."),
+                .withDescription("Animation speed (device resolution: 0..64). Outside effect mode it is kept for the next effect."),
             // The name selects Z2M's native RGB palette editor. SET-only avoids an
             // extra read-only HA sensor; state is still supplied for the frontend.
             e
