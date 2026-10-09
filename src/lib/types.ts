@@ -184,6 +184,8 @@ export interface DefinitionMeta {
      */
     turnsOffAtBrightness1?: boolean;
     moveToLevelWithOnOffDisable?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /** Stop an active level transition before OFF or TOGGLE so it cannot turn the light back on. */
+    stopBeforeOff?: boolean;
     /**
      * Omit optional optionsMask/optionsOverride parameters for devices with strict ZCL v1 compliance
      *

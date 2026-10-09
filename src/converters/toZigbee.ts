@@ -1293,6 +1293,10 @@ export const light_onoff_brightness: Tz.Converter = {
         let publishBrightness = brightness !== undefined;
         const targetState = state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state;
 
+        if ((targetState === "off" || state === "toggle") && utils.getMetaValue(entity, meta.mapped, "stopBeforeOff", {atLeastOnce: true}, false)) {
+            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+        }
+
         if (targetState === "off") {
             // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.
             // TODO: if this is a group where some members don't support Level Control, turning them off
