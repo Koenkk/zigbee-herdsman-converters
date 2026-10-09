@@ -1127,7 +1127,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_xibaabmu"]),
         model: "ZMS-208US-4",
         vendor: "Zemismart",
