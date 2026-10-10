@@ -155,11 +155,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MIR-SR100",
         vendor: "MultIR",
         description: "Zigbee SR100 siren",
-        extend: [
-            m.iasWarning(),
-            m.forceDeviceType({type: "EndDevice"}),
-            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]})
-        ],
+        extend: [m.iasWarning(), m.forceDeviceType({type: "EndDevice"}), m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]})],
         meta: {disableDefaultResponse: true},
     },
     {
