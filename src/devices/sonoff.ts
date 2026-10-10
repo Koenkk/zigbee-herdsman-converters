@@ -12675,6 +12675,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BASIC-ZB1GSP",
         vendor: "SONOFF",
         description: "Zigbee smart plug with power monitoring",
+        version: "0.0.1",
         extend: [
             m.deviceAddCustomCluster("customClusterEwelink", {
                 name: "customClusterEwelink",
