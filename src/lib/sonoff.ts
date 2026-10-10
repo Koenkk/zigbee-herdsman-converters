@@ -1,5 +1,6 @@
+import type {ClusterOrRawAttributeKeys, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
 import {logger} from "./logger";
-import type {Fz, KeyValue} from "./types";
+import type {Fz, KeyValue, Zh} from "./types";
 
 const NS = "zhc:sonoff";
 
@@ -249,4 +250,36 @@ export const parseTimeToSecondsSinceMidnight = (time: string, field = "value"): 
         throw new Error(`Invalid ${field}, 24:00 is not supported. Use 00:00 of the next day instead.`);
     }
     return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3] ?? 0);
+};
+/**
+ * Read attributes in batches of four; retry failed batches one attribute at a time.
+ * Log individual failures and continue so unsupported attributes do not stop configuration.
+ * @param cluster Cluster name or ID (e.g. 0xfc11).
+ * @param attributes Attribute names or IDs to read.
+ * @param endpoint Device endpoint to read from.
+ * @param options Optional Zigbee read options, also used for retries.
+ */
+export const readAttributesInBatches = async <Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
+    endpoint: Zh.Endpoint,
+    options?: Parameters<typeof endpoint.read<Cl, Custom>>[2],
+): Promise<void> => {
+    const readAttributes = async (batch: ClusterOrRawAttributeKeys<Cl, Custom>) => {
+        try {
+            await endpoint.read<Cl, Custom>(cluster, batch, options);
+        } catch (error) {
+            if (batch.length === 1) {
+                const attribute = typeof batch[0] === "number" ? `0x${batch[0].toString(16)}` : batch[0];
+                logger.error(`Failed to read cluster ${cluster} attribute ${attribute}: ${error}`, NS);
+                return;
+            }
+            for (const attribute of batch) {
+                await readAttributes([attribute] as ClusterOrRawAttributeKeys<Cl, Custom>);
+            }
+        }
+    };
+    for (let i = 0; i < attributes.length; i += 4) {
+        await readAttributes(attributes.slice(i, i + 4) as ClusterOrRawAttributeKeys<Cl, Custom>);
+    }
 };

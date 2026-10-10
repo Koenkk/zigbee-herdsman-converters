@@ -13,6 +13,7 @@ import {
     getRuntimeLocalOffsetSeconds,
     parseIsoWithOffsetToUtcSeconds,
     parseSWVZFRawZclCommand,
+    readAttributesInBatches,
     readUInt16LE,
     readUInt32LE,
     shiftUtcSecondsByOffsetMonths,
@@ -10635,22 +10636,7 @@ export const definitions: DefinitionWithExtend[] = [
                 0x0000, 0x0010, 0x0021, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600b, 0x600c, 0x600d, 0x600e, 0x6011, 0x6013,
                 0x6014, 0x6015, 0x6016, 0x601c, 0x601d, 0x601e, 0x6033, 0x6037,
             ];
-            const readCustomAttributes = async (attributes: number[]) => {
-                try {
-                    await endpoint.read(0xfc11, attributes);
-                } catch (error) {
-                    if (attributes.length === 1) {
-                        logger.error(`TRV-ZBT failed to read private attribute 0x${attributes[0].toString(16)}: ${error}`, NS);
-                        return;
-                    }
-                    for (const attribute of attributes) {
-                        await readCustomAttributes([attribute]);
-                    }
-                }
-            };
-            for (let i = 0; i < customAttributes.length; i += 4) {
-                await readCustomAttributes(customAttributes.slice(i, i + 4));
-            }
+            await readAttributesInBatches(0xfc11, customAttributes, endpoint);
         },
     },
     {
@@ -13000,13 +12986,18 @@ export const definitions: DefinitionWithExtend[] = [
             if (firmwareSupportFeaturesVersion(device, "1.3.0", "BASIC-ZB1GSP", "higher")) {
                 configureReadAttributes.push("outputEnergyToday", "outputEnergyMonth", "totalOutputEnergyConsumption");
             }
-            await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", configureReadAttributes, defaultResponseOptions);
             await endpoint.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "energyMonth", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyYesterday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "energyToday", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
                 {attribute: "totalEnergyConsumption", minimumReportInterval: 60, maximumReportInterval: 3600, reportableChange: 50},
             ]);
+            await readAttributesInBatches<"customClusterEwelink", SonoffEwelink>(
+                "customClusterEwelink",
+                configureReadAttributes,
+                endpoint,
+                defaultResponseOptions,
+            );
             await endpoint.read("seMetering", ["multiplier", "divisor"]);
             await reporting.currentSummDelivered(endpoint);
         },
