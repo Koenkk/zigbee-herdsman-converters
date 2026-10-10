@@ -2859,7 +2859,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_tdg4ckyh"]),
         model: "ZRF01",
         vendor: "Tuya",
@@ -2867,21 +2867,27 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.illuminance(),
-            e.binary("state", ea.STATE_SET, true, false)
+            e
+                .binary("state", ea.STATE_SET, true, false)
                 .withLabel("State")
                 .withDescription("Enable RF learning mode. Must be enabled before 'Learn' can be pressed for any button."),
-            e.binary("pack", ea.STATE_SET, true, false)
+            e
+                .binary("pack", ea.STATE_SET, true, false)
                 .withLabel("Packet Mode")
                 .withDescription("Enable for 'Long Packet' mode, Disable for 'Short Packet' mode."),
             ...Array.from({length: 8}, (_, i) => {
                 const n = i + 1;
-                return e.enum(`button${n}`, ea.STATE_SET, ["Learn", "Delete", "Saved"])
+                return e
+                    .enum(`button${n}`, ea.STATE_SET, ["Learn", "Delete", "Saved"])
                     .withLabel(`Button ${n} Code Learning`)
-                    .withDescription("Press 'Learn' to clone RF code. Press 'Delete' to clear RF code. 'Saved' gets enabled automatically after successful RF cloning.");
+                    .withDescription(
+                        "Press 'Learn' to clone RF code. Press 'Delete' to clear RF code. 'Saved' gets enabled automatically after successful RF cloning.",
+                    );
             }),
             ...Array.from({length: 8}, (_, i) => {
                 const n = i + 1;
-                return e.enum(`start${n}`, ea.SET, ["Transmit"])
+                return e
+                    .enum(`start${n}`, ea.SET, ["Transmit"])
                     .withLabel(`Button ${n} Code Transmit`)
                     .withDescription("Press 'Transmit' to send saved code.");
             }),
