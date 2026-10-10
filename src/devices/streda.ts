@@ -1,6 +1,7 @@
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Tz} from "../lib/types";
+import {getOptions} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -93,7 +94,10 @@ const tzLocal = {
         key: ["doorbell"],
         convertSet: async (entity, key, value, meta) => {
             const endpoint = meta.device.getEndpoint(6);
-            await endpoint.command("genOnOff", "on", {});
+            // getOptions applies the definition's meta to the command, the same
+            // way tz.on_off does for the relays, so options such as
+            // disableDefaultResponse take effect for the buzzer too.
+            await endpoint.command("genOnOff", "on", {}, getOptions(meta.mapped, endpoint));
             return {};
         },
     } as Tz.Converter,
