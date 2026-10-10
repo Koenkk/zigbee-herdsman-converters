@@ -4351,7 +4351,7 @@ const sonoffExtend = {
                 .withCategory("config"),
             e
                 .numeric("remote_temperature", ea.STATE_SET)
-                .withValueMin(-20)
+                .withValueMin(-50)
                 .withValueMax(60)
                 .withUnit("°C")
                 .withValueStep(0.1)
@@ -4361,8 +4361,8 @@ const sonoffExtend = {
                 .withCategory("config"),
             e
                 .numeric("remote_humidity", ea.STATE_SET)
-                .withValueMin(5)
-                .withValueMax(95)
+                .withValueMin(1)
+                .withValueMax(99)
                 .withUnit("%")
                 .withDescription(
                     "Remote humidity value displayed on the E-ink screen. Note: wake up the device by pressing the button on the back before changing this value.",
