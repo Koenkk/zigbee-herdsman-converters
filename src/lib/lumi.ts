@@ -5939,7 +5939,7 @@ function createW600Thermostat(): ModernExtend {
             .withLabel("Internal sensor temperature")
             .withDescription("Temperature measured by the thermostat's internal sensor")
             .withCategory("diagnostic")
-            .withHomeAssistant({deviceClass: "temperature"}),
+            .withHomeAssistant({deviceClass: "temperature", name: "Internal sensor temperature"}),
     );
 
     const thermostatConverter = {
