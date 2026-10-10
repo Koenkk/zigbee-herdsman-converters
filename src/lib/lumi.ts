@@ -5818,7 +5818,7 @@ function createW600ExternalTempSensor(): ModernExtend {
                 .binary("external_temperature_problem", ea.STATE_GET, true, false)
                 .withDescription("Thermostat fell back to its internal sensor after 75 minutes without a fresh external temperature")
                 .withCategory("diagnostic")
-                .withHomeAssistant({deviceClass: "problem"}),
+                .withHomeAssistant({deviceClass: "problem", name: "External temperature status"}),
         ],
         fromZigbee: [
             {
