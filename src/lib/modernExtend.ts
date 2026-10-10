@@ -2021,15 +2021,20 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
         {
             key: ["warning"],
             convertSet: async (entity, key, value, meta) => {
+                // @ts-expect-error ignore
+                const mode = value.mode || "emergency";
+                // When stopping the warning, don't let the "emergency" defaults (strobe on, duration 10s, etc.)
+                // cause the device to (re)start sounding/flashing instead of actually stopping.
+                const isStop = mode === "stop";
+
                 const values = {
+                    mode,
                     // @ts-expect-error ignore
-                    mode: value.mode || "emergency",
+                    level: value.level || (isStop ? "low" : "medium"),
                     // @ts-expect-error ignore
-                    level: value.level || "medium",
+                    strobe: value.strobe != null ? value.strobe : !isStop,
                     // @ts-expect-error ignore
-                    strobe: value.strobe != null ? value.strobe : true,
-                    // @ts-expect-error ignore
-                    duration: value.duration != null ? value.duration : 10,
+                    duration: value.duration != null ? value.duration : isStop ? 0 : 10,
                     // @ts-expect-error ignore
                     strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
