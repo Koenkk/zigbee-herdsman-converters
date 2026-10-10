@@ -2305,6 +2305,19 @@ const ts130fCoverSwitchType = tuya.modernExtend.tuyaCoverSwitchType();
 const [ts130fCoverSwitchTypeExpose] = ts130fCoverSwitchType.exposes as Expose[];
 ts130fCoverSwitchType.exposes = [(device) => (device.manufacturerName === moesZm108mManufacturerName ? [] : [ts130fCoverSwitchTypeExpose])];
 
+const sp107eLedChips = {
+    WS2811: tuya.enum(0),
+    DMX512: tuya.enum(1),
+    FW1935: tuya.enum(2),
+    APA102: tuya.enum(3),
+    SC6803: tuya.enum(4),
+    WS2801: tuya.enum(5),
+    UCS1903: tuya.enum(6),
+    TM1812: tuya.enum(7),
+    TM1814: tuya.enum(8),
+    SK6812: tuya.enum(9),
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
@@ -30153,6 +30166,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
             e.light_colorhs(),
+            new exposes.Composite("color_hs", "falling_dot_color", ea.STATE_SET)
+                .withLabel("Falling dot color")
+                .withDescription("Falling dot color in music screen mode")
+                .withFeature(e.numeric("hue", ea.STATE_SET).withValueMin(0).withValueMax(360))
+                .withFeature(e.numeric("saturation", ea.STATE_SET).withValueMin(0).withValueMax(100)),
             e
                 .numeric("brightness_percent", ea.STATE_SET)
                 .withValueMin(0)
@@ -30183,24 +30201,24 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withDescription("Microphone sensitivity"),
             e
-                .numeric("segment_pixels", ea.STATE_SET)
+                .numeric("segment_count", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(100)
                 .withValueStep(1)
-                .withDescription("Pixels per segment")
+                .withDescription("Number of segments")
                 .withCategory("config"),
             e
-                .numeric("segment_count", ea.STATE_SET)
+                .numeric("segment_pixels", ea.STATE_SET)
                 .withValueMin(1)
                 .withValueMax(300)
                 .withValueStep(1)
-                .withDescription("Number of segments")
+                .withDescription("Pixels per segment")
                 .withCategory("config"),
             e
                 .enum("rgb_order", ea.STATE_SET, Object.keys(ms032zColorOrder))
                 .withDescription("Colour channel order of the strip")
                 .withCategory("config"),
-            e.enum("led_chip", ea.STATE_SET, Object.keys(ms032zLedChips)).withDescription("LED driver chip used by the strip").withCategory("config"),
+            e.enum("led_chip", ea.STATE_SET, Object.keys(sp107eLedChips)).withDescription("LED driver chip used by the strip").withCategory("config"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -30215,8 +30233,8 @@ export const definitions: DefinitionWithExtend[] = [
                         from: (v: string) => ({hue: Number.parseInt(v.slice(0, 4), 16), saturation: Number.parseInt(v.slice(4, 8), 16) / 10}),
                     },
                 ],
-                [101, "segment_pixels", tvc.raw],
-                [102, "segment_count", tvc.raw],
+                [101, "segment_count", tvc.raw],
+                [102, "segment_pixels", tvc.raw],
                 [103, "rgb_order", tuya.valueConverterBasic.lookup(ms032zColorOrder, "unknown")],
                 [
                     104,
@@ -30233,7 +30251,17 @@ export const definitions: DefinitionWithExtend[] = [
                 [108, "effect", tvc.raw],
                 [109, "music_strip_pattern", tvc.raw],
                 [110, "sensitivity", tvc.raw],
-                [112, "led_chip", tuya.valueConverterBasic.lookup(ms032zLedChips, "unknown")],
+                [112, "led_chip", tuya.valueConverterBasic.lookup(sp107eLedChips, "unknown")],
+                [
+                    113,
+                    "falling_dot_color",
+                    {
+                        // HHHHSSSSVVVV hex string, hue 0-360, saturation and value 0-1000
+                        to: (v: KeyValueAny) =>
+                            [v.hue ?? v.h, (v.saturation ?? v.s) * 10, 1000].map((n) => Math.round(n).toString(16).padStart(4, "0")).join(""),
+                        from: (v: string) => ({hue: Number.parseInt(v.slice(0, 4), 16), saturation: Number.parseInt(v.slice(4, 8), 16) / 10}),
+                    },
+                ],
                 [114, "music_screen_pattern", tvc.raw],
             ],
         },
