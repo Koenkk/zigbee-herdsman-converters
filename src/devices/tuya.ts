@@ -26115,7 +26115,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [101, "humidity", tuya.valueConverter.raw],
-                [102, "illuminance", tuya.valueConverter.raw],
+                [102, "illuminance", tuya.valueConverter.multiplyBy10],
                 [103, "soil_sampling", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
                 [105, "humidity_calibration", tuya.valueConverter.raw],

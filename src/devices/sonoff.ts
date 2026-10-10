@@ -2631,6 +2631,7 @@ const sonoffExtend = {
         const exposes = sequences.map((seq) => {
             return e
                 .composite(`programmable_stepper_seq${seq}`, `programmable_stepper_seq${seq}`, ea.ALL)
+                .withCategory("config")
                 .withDescription(`Configure programmable stepper sequence ${seq}.`)
                 .withFeature(e.binary("enable_stepper", ea.ALL, true, false).withDescription("Enable/disable the stepper sequence."))
                 .withFeature(
@@ -2769,6 +2770,7 @@ const sonoffExtend = {
         const exposes = utils.exposeEndpoints(
             e
                 .composite("inching_control_set", "inching_control_set", ea.SET)
+                .withCategory("config")
                 .withDescription(
                     "Device Inching function Settings. The device will automatically turn off (turn on) " +
                         "after each turn on (turn off) for a specified period of time.",
@@ -5167,7 +5169,7 @@ const sonoffExtend = {
     detachRelayModeControl: (relayCount: number): ModernExtend => {
         const clusterName = "customClusterEwelink";
         const attributeName = "detachRelayMode2";
-        const exposes = e.composite("detach_relay_mode", "detach_relay_mode", ea.ALL);
+        const exposes = e.composite("detach_relay_mode", "detach_relay_mode", ea.ALL).withCategory("config");
         if (1 === relayCount) {
             exposes
                 .withDescription(
@@ -11661,6 +11663,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Network indicator settings, turn off/on the blue online status network indicator.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.detachRelayModeControl(1),
         ],
@@ -11709,6 +11712,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Network indicator settings, turn off/on the blue online status network indicator.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.detachRelayModeControl(2),
         ],
@@ -11762,6 +11766,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Network indicator settings, turn off/on the blue online status network indicator.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             sonoffExtend.detachRelayModeControl(3),
         ],
@@ -11869,6 +11874,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Network indicator settings, turn off/on the blue online status network indicator.",
                 valueOff: [false, 0],
                 valueOn: [true, 1],
+                entityCategory: "config",
             }),
             m.binary<"customClusterEwelink", SonoffEwelink>({
                 name: "turbo_mode",
