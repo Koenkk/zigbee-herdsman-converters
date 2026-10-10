@@ -76,6 +76,53 @@ const {
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
+
+// Aqara FP400 (lumi.models.4447_8295): settings live in its own clusters 0xFC0A-0xFC0C (manufacturer 0x115F) and in 0x0080.
+interface AqaraFp400Config {
+    attributes: {
+        installationMode: number;
+        sideInstallation: number;
+        installationHeight: number;
+        installationHeightMin: number;
+        installationHeightMax: number;
+        humanCountEnabled: number;
+        aiHighPrecision: number;
+        aiAdaptiveSensitivity: number;
+        aiEntryExitRecognition: number;
+        aiInterferenceRecognition: number;
+        coordinateReverse: number;
+        detectionDirection: number;
+        proximityDistance: number;
+    };
+    commands: {startLearning: Record<string, never>};
+    commandResponses: never;
+}
+interface AqaraFp400Radar {
+    attributes: {humanCount: number};
+    commands: never;
+    commandResponses: never;
+}
+interface AqaraFp400Location {
+    attributes: {activityState: number};
+    commands: never;
+    commandResponses: never;
+}
+interface AqaraFp400Sensitivity {
+    attributes: {presenceSensitivity: number};
+    commands: never;
+    commandResponses: never;
+}
+// Endpoints 3-10 repeat some of the FP400's clusters for its own zones; only endpoint 1 describes the room.
+function fp400RoomOnly(extend: ModernExtend): ModernExtend {
+    return {
+        ...extend,
+        fromZigbee: extend.fromZigbee?.map((converter): typeof converter => ({
+            ...converter,
+            convert: (model, msg, publish, options, meta) =>
+                msg.endpoint.ID === 1 ? converter.convert(model, msg, publish, options, meta) : undefined,
+        })),
+    };
+}
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
@@ -6659,6 +6706,261 @@ export const definitions: DefinitionWithExtend[] = [
             // OTA
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.models.4447_8295"],
+        model: "FP400",
+        vendor: "Aqara",
+        description: "Presence multi-sensor FP400",
+        // Sensors set up earlier by community converters are marked configured as 0.0.0; this makes Zigbee2MQTT run
+        // configure once, so that room presence gets bound and reported.
+        version: "0.0.1",
+        extend: [
+            m.deviceAddCustomCluster("aqaraFp400Config", {
+                name: "aqaraFp400Config",
+                ID: 0xfc0a,
+                manufacturerCode,
+                attributes: {
+                    installationMode: {name: "installationMode", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 2},
+                    sideInstallation: {name: "sideInstallation", ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 3},
+                    installationHeight: {name: "installationHeight", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+                    installationHeightMin: {name: "installationHeightMin", ID: 0x0005, type: Zcl.DataType.UINT16},
+                    installationHeightMax: {name: "installationHeightMax", ID: 0x0006, type: Zcl.DataType.UINT16},
+                    humanCountEnabled: {name: "humanCountEnabled", ID: 0x0023, type: Zcl.DataType.BOOLEAN, write: true},
+                    aiHighPrecision: {name: "aiHighPrecision", ID: 0x0029, type: Zcl.DataType.BOOLEAN, write: true},
+                    aiAdaptiveSensitivity: {name: "aiAdaptiveSensitivity", ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
+                    aiEntryExitRecognition: {name: "aiEntryExitRecognition", ID: 0x002b, type: Zcl.DataType.BOOLEAN, write: true},
+                    aiInterferenceRecognition: {name: "aiInterferenceRecognition", ID: 0x002c, type: Zcl.DataType.BOOLEAN, write: true},
+                    coordinateReverse: {name: "coordinateReverse", ID: 0x002d, type: Zcl.DataType.ENUM8, write: true, max: 2},
+                    detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
+                    proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
+                },
+                commands: {startLearning: {name: "startLearning", ID: 0x03, parameters: []}},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("aqaraFp400Radar", {
+                name: "aqaraFp400Radar",
+                ID: 0xfc0b,
+                manufacturerCode,
+                attributes: {humanCount: {name: "humanCount", ID: 0x0002, type: Zcl.DataType.UINT16}},
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("aqaraFp400Location", {
+                name: "aqaraFp400Location",
+                ID: 0xfc0c,
+                manufacturerCode,
+                attributes: {activityState: {name: "activityState", ID: 0x0007, type: Zcl.DataType.ENUM8}},
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.deviceAddCustomCluster("aqaraFp400Sensitivity", {
+                name: "aqaraFp400Sensitivity",
+                ID: 0x0080,
+                attributes: {presenceSensitivity: {name: "presenceSensitivity", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 2}},
+                commands: {},
+                commandsResponse: {},
+            }),
+            // Endpoint 1 is the room and 2 the light sensor. 3-10 belong to the sensor's own zones, which are not exposed
+            // yet; they are mapped so that their reports are ignored quietly. The reporting table holds 5 entries, so only
+            // room presence is reported and the rest is polled.
+            m.deviceEndpoints({endpoints: Object.fromEntries(Array.from({length: 10}, (_, i) => [`${i + 1}`, i + 1]))}),
+            m.occupancy({endpointNames: ["1"]}),
+            m.illuminance({endpointNames: ["2"], reporting: false}),
+            fp400RoomOnly(
+                m.enumLookup<"aqaraFp400Sensitivity", AqaraFp400Sensitivity>({
+                    name: "presence_sensitivity",
+                    lookup: {low: 0, medium: 1, high: 2},
+                    cluster: "aqaraFp400Sensitivity",
+                    attribute: "presenceSensitivity",
+                    description: "Presence detection sensitivity",
+                    reporting: false,
+                    entityCategory: "config",
+                }),
+            ),
+            fp400RoomOnly(
+                m.numeric<"msOccupancySensing", undefined>({
+                    name: "absence_timeout",
+                    cluster: "msOccupancySensing",
+                    attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                    // The sensor reports 10 s as its minimum (attribute 0x0004) but accepts 0, as the Aqara app allows.
+                    valueMin: 0,
+                    valueMax: 300,
+                    valueStep: 1,
+                    unit: "s",
+                    description: "Time without detection before the sensor reports the room as empty",
+                    reporting: false,
+                    entityCategory: "config",
+                }),
+            ),
+            m.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
+                name: "installation_mode",
+                lookup: {unknown: 0, wall: 1, ceiling: 2},
+                cluster: "aqaraFp400Config",
+                attribute: "installationMode",
+                description: "How the sensor is mounted",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
+                name: "side_installation",
+                lookup: {unknown: 0, wall: 1, left_corner: 2, right_corner: 3},
+                cluster: "aqaraFp400Config",
+                attribute: "sideInstallation",
+                description: "Where on the wall the sensor is mounted",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.numeric<"aqaraFp400Config", AqaraFp400Config>({
+                name: "installation_height",
+                cluster: "aqaraFp400Config",
+                attribute: "installationHeight",
+                valueMin: 0,
+                valueMax: 65535,
+                unit: "mm",
+                description: "Mounting height",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.numeric<"aqaraFp400Config", AqaraFp400Config>({
+                name: "installation_height_min",
+                cluster: "aqaraFp400Config",
+                attribute: "installationHeightMin",
+                unit: "mm",
+                description: "Lowest mounting height the sensor accepts; 0 when it reports no limit",
+                zigbeeCommandOptions: {manufacturerCode},
+                access: "STATE_GET",
+                reporting: false,
+                entityCategory: "diagnostic",
+            }),
+            m.numeric<"aqaraFp400Config", AqaraFp400Config>({
+                name: "installation_height_max",
+                cluster: "aqaraFp400Config",
+                attribute: "installationHeightMax",
+                unit: "mm",
+                description: "Highest mounting height the sensor accepts; 0 when it reports no limit",
+                zigbeeCommandOptions: {manufacturerCode},
+                access: "STATE_GET",
+                reporting: false,
+                entityCategory: "diagnostic",
+            }),
+            ...(
+                [
+                    ["human_count_enabled", "humanCountEnabled", "People counting"],
+                    ["ai_high_precision", "aiHighPrecision", "AI enhanced person recognition"],
+                    ["ai_adaptive_sensitivity", "aiAdaptiveSensitivity", "AI adaptive sensitivity"],
+                    ["ai_entry_exit_recognition", "aiEntryExitRecognition", "AI recognition of entrances and exits"],
+                    ["ai_interference_recognition", "aiInterferenceRecognition", "AI recognition of interference sources"],
+                ] as const
+            ).map(([name, attribute, description]) =>
+                m.binary<"aqaraFp400Config", AqaraFp400Config>({
+                    name,
+                    valueOn: ["ON", 1],
+                    valueOff: ["OFF", 0],
+                    cluster: "aqaraFp400Config",
+                    attribute,
+                    description,
+                    zigbeeCommandOptions: {manufacturerCode},
+                    reporting: false,
+                    entityCategory: "config",
+                }),
+            ),
+            m.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
+                name: "coordinate_reverse",
+                lookup: {disabled: 0, enabled: 1, auto: 2},
+                cluster: "aqaraFp400Config",
+                attribute: "coordinateReverse",
+                description: "Mirror left and right in the sensor's coordinates",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
+                name: "detection_direction",
+                lookup: {omnidirectional: 0, left_right: 1},
+                cluster: "aqaraFp400Config",
+                attribute: "detectionDirection",
+                description: "Which movement events the sensor sends",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+                entityCategory: "config",
+            }),
+            m.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
+                name: "proximity_distance",
+                lookup: {far: 0, medium: 1, near: 2},
+                cluster: "aqaraFp400Config",
+                attribute: "proximityDistance",
+                description: "Distance at which someone counts as approaching",
+                zigbeeCommandOptions: {manufacturerCode},
+                reporting: false,
+                entityCategory: "config",
+            }),
+            fp400RoomOnly(
+                m.numeric<"aqaraFp400Radar", AqaraFp400Radar>({
+                    name: "human_count",
+                    cluster: "aqaraFp400Radar",
+                    attribute: "humanCount",
+                    description: "People the radar detects",
+                    zigbeeCommandOptions: {manufacturerCode},
+                    access: "STATE_GET",
+                    reporting: false,
+                }),
+            ),
+            fp400RoomOnly(
+                m.enumLookup<"aqaraFp400Location", AqaraFp400Location>({
+                    name: "activity_state",
+                    lookup: {unknown: 0, active: 1, still: 2},
+                    cluster: "aqaraFp400Location",
+                    attribute: "activityState",
+                    description: "Whether people in the room are moving",
+                    zigbeeCommandOptions: {manufacturerCode},
+                    access: "STATE_GET",
+                    reporting: false,
+                }),
+            ),
+            {
+                isModernExtend: true,
+                exposes: [
+                    e
+                        .enum("spatial_learning", ea.SET, ["start"])
+                        .withCategory("config")
+                        .withDescription("Start AI spatial learning. Leave the room empty while it runs."),
+                ],
+                toZigbee: [
+                    {
+                        key: ["spatial_learning"],
+                        convertSet: async (entity, key, value, meta) => {
+                            await entity.command<"aqaraFp400Config", "startLearning", AqaraFp400Config>(
+                                "aqaraFp400Config",
+                                "startLearning",
+                                {},
+                                {manufacturerCode},
+                            );
+                        },
+                    },
+                ],
+            } satisfies ModernExtend,
+            // Only room presence is reported (the reporting table is small); poll the rest.
+            m.poll({
+                key: "fp400",
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint = device.getEndpoint(1);
+                    await device
+                        .getEndpoint(2)
+                        .read("msIlluminanceMeasurement", ["measuredValue"])
+                        .catch(() => {});
+                    await endpoint.read<"aqaraFp400Radar", AqaraFp400Radar>("aqaraFp400Radar", ["humanCount"], {manufacturerCode}).catch(() => {});
+                    await endpoint
+                        .read<"aqaraFp400Location", AqaraFp400Location>("aqaraFp400Location", ["activityState"], {manufacturerCode})
+                        .catch(() => {});
+                },
+            }),
+            m.identify(),
         ],
     },
 ];
