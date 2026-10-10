@@ -4936,7 +4936,7 @@ function createW600Heartbeat(): ModernExtend {
     return {
         exposes: [
             e.battery().withDescription("Battery percentage"),
-            e.battery_voltage(),
+            e.battery_voltage().withHomeAssistant({icon: "mdi:current-dc"}),
             e.valve_alarm().withDescription("Indicates whether temperature control abnormal notification has reported an active alert"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Indicates whether open window detection has reported an open window"),
         ],
@@ -5817,7 +5817,8 @@ function createW600ExternalTempSensor(): ModernExtend {
             e
                 .binary("external_temperature_problem", ea.STATE_GET, true, false)
                 .withDescription("Thermostat fell back to its internal sensor after 75 minutes without a fresh external temperature")
-                .withCategory("diagnostic"),
+                .withCategory("diagnostic")
+                .withHomeAssistant({deviceClass: "problem"}),
         ],
         fromZigbee: [
             {
@@ -5937,7 +5938,8 @@ function createW600Thermostat(): ModernExtend {
             .withUnit("°C")
             .withLabel("Internal sensor temperature")
             .withDescription("Temperature measured by the thermostat's internal sensor")
-            .withCategory("diagnostic"),
+            .withCategory("diagnostic")
+            .withHomeAssistant({deviceClass: "temperature"}),
     );
 
     const thermostatConverter = {
