@@ -1962,10 +1962,20 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 export interface IasWarningArgs {
     reversePayload?: boolean;
     maxDuration?: boolean | {min?: number; max?: number};
+    /**
+     * Send an all-zero warning info byte whenever `mode` is `stop`, whatever the other fields say.
+     * Some devices keep sounding, or start a short warning, when the stop byte carries strobe or level bits.
+     */
     stopWithZeroInfo?: boolean;
+    /**
+     * Expose `warning_active`. The IAS WD cluster has no attribute telling whether a warning is sounding,
+     * so the state is derived from the warnings acknowledged by the device: on after a start, off after a stop
+     * or once the warning duration (capped by `max_duration`) has elapsed.
+     */
+    warningActive?: boolean;
 }
 export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
-    const {reversePayload = false, maxDuration = false, stopWithZeroInfo = false} = args;
+    const {reversePayload = false, maxDuration = false, stopWithZeroInfo = false, warningActive = false} = args;
     const warningMode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
     // levels for siren, strobe and squawk are identical
     const level = {low: 0, medium: 1, high: 2, very_high: 3};
@@ -1993,7 +2003,15 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
         );
     }
 
-    const fromZigbee = maxDuration
+    if (warningActive) {
+        exposes.push(
+            e
+                .binary("warning_active", ea.STATE, true, false)
+                .withDescription("Indicates whether a warning is sounding, derived from the warnings sent (the device does not report it)"),
+        );
+    }
+
+    const fromZigbee: NonNullable<ModernExtend["fromZigbee"]> = maxDuration
         ? [
               {
                   cluster: "ssIasWd",
@@ -2006,6 +2024,21 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
               } satisfies Fz.Converter<"ssIasWd", undefined, ["attributeReport", "readResponse"]>,
           ]
         : [];
+
+    if (warningActive) {
+        // The end time lives in the device meta, which outlives a restart, while the timer does not.
+        // Any IAS zone message (the device sends one at least every few minutes) sets the state from it,
+        // which clears a state left on and initialises an unknown one.
+        fromZigbee.push({
+            cluster: "ssIasZone",
+            type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
+            convert: (model, msg, publish, options, meta) => {
+                const until = meta.device.meta.warningActiveUntil;
+                const active = typeof until === "number" && Date.now() < until;
+                if (meta.state.warning_active !== active) return {warning_active: active};
+            },
+        } satisfies Fz.Converter<"ssIasZone", undefined, ["commandStatusChangeNotification", "attributeReport", "readResponse"]>);
+    }
 
     const maxDurationConverter: Tz.Converter = {
         key: ["max_duration"],
@@ -2037,9 +2070,11 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     strobeLevel: value.strobe_level != null ? getFromLookup(value.strobe_level, level) : 1,
                 };
 
+                const stop = values.mode === "stop";
+
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let info;
-                if (stopWithZeroInfo && values.mode === "stop") {
+                if (stop && stopWithZeroInfo) {
                     info = 0;
                 } else if (reversePayload) {
                     info = getFromLookup(values.mode, warningMode) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
@@ -2054,7 +2089,30 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     strobelevel: values.strobeLevel,
                 };
 
+                // Only reached when the device acknowledged the command: a failed start or stop leaves the state as it was.
                 await entity.command("ssIasWd", "startWarning", payload, getOptions(meta.mapped, entity));
+
+                if (warningActive && meta.device) {
+                    clearTimeout(globalStore.getValue(entity, "warningActiveTimer"));
+                    globalStore.clearValue(entity, "warningActiveTimer");
+
+                    let seconds = stop ? 0 : Number(values.duration);
+                    if (typeof meta.state.max_duration === "number") seconds = Math.min(seconds, meta.state.max_duration);
+                    if (!(seconds > 0)) {
+                        delete meta.device.meta.warningActiveUntil;
+                        meta.device.save();
+                        return {state: {warning_active: false}};
+                    }
+
+                    meta.device.meta.warningActiveUntil = Date.now() + seconds * 1000;
+                    meta.device.save();
+                    const timer = setTimeout(() => {
+                        globalStore.clearValue(entity, "warningActiveTimer");
+                        meta.publish({warning_active: false});
+                    }, seconds * 1000).unref();
+                    globalStore.putValue(entity, "warningActiveTimer", timer);
+                    return {state: {warning_active: true}};
+                }
             },
         },
         ...(maxDuration ? [maxDurationConverter] : []),
