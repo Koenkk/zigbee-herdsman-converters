@@ -10881,22 +10881,7 @@ export const definitions: DefinitionWithExtend[] = [
                 0x0000, 0x0029, 0x6000, 0x6002, 0x6014, 0x6015, 0x6016, 0x601d, 0x601f, 0x6020, 0x6021, 0x6022, 0x6023, 0x6024, 0x6025, 0x6026,
                 0x6027, 0x6028, 0x601e, 0x6031, 0x6032, 0x6034, 0x6035,
             ];
-            const readCustomAttributes = async (attributes: number[]) => {
-                try {
-                    await endpoint.read(0xfc11, attributes);
-                } catch (error) {
-                    if (attributes.length === 1) {
-                        logger.error(`TP-WGZBA failed to read private attribute 0x${attributes[0].toString(16)}: ${error}`, NS);
-                        return;
-                    }
-                    for (const attribute of attributes) {
-                        await readCustomAttributes([attribute]);
-                    }
-                }
-            };
-            for (let i = 0; i < customAttributes.length; i += 4) {
-                await readCustomAttributes(customAttributes.slice(i, i + 4));
-            }
+            await readAttributesInBatches(0xfc11, customAttributes, endpoint);
         },
     },
     {
@@ -11143,22 +11128,7 @@ export const definitions: DefinitionWithExtend[] = [
                 0x0000, 0x0010, 0x0021, 0x6000, 0x6002, 0x6003, 0x6004, 0x6005, 0x6006, 0x6007, 0x600b, 0x600c, 0x6011, 0x6013, 0x6014, 0x6016,
                 0x601c, 0x601d, 0x601e, 0x6033, 0x6037,
             ];
-            const readCustomAttributes = async (attributes: number[]) => {
-                try {
-                    await endpoint.read(0xfc11, attributes);
-                } catch (error) {
-                    if (attributes.length === 1) {
-                        logger.error(`TRV-ZBT failed to read private attribute 0x${attributes[0].toString(16)}: ${error}`, NS);
-                        return;
-                    }
-                    for (const attribute of attributes) {
-                        await readCustomAttributes([attribute]);
-                    }
-                }
-            };
-            for (let i = 0; i < customAttributes.length; i += 4) {
-                await readCustomAttributes(customAttributes.slice(i, i + 4));
-            }
+            await readAttributesInBatches(0xfc11, customAttributes, endpoint);
         },
     },
     {
