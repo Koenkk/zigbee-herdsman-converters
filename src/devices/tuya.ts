@@ -26821,6 +26821,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
             e.binary("window_open", ea.STATE, "OPEN", "CLOSE"),
             e.binary("frost_protection", ea.STATE_SET, "ON", "OFF"),
+            e
+                .numeric("frost_protection_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5)
+                .withDescription("Frost protection: the valve opens when the room temperature falls below this value"),
             e.binary("scale_protection", ea.STATE_SET, "ON", "OFF"),
             e.numeric("error", ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF").withDescription("Boost Heating: the device will enter the boost heating mode."),
