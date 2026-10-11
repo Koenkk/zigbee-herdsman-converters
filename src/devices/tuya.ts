@@ -26808,6 +26808,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withPreset(["manual", "schedule", "eco", "comfort", "frost_protection", "holiday", "off"])
+                .withSystemMode(["off", "heat", "auto"], ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
             e.child_lock(),
@@ -26828,15 +26829,43 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "manual", systemMode: "heat", preset: "manual"},
+                            1: {deviceMode: "schedule", systemMode: "auto", preset: "schedule"},
+                            2: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            3: {deviceMode: "comfort", systemMode: "heat", preset: "comfort"},
+                            4: {deviceMode: "frost_protection", systemMode: "heat", preset: "frost_protection"},
+                            5: {deviceMode: "holiday", systemMode: "heat", preset: "holiday"},
+                            6: {deviceMode: "off", systemMode: "off", preset: "off"},
+                        },
+                    }),
+                ],
+                [
+                    2,
                     "preset",
-                    tuya.valueConverterBasic.lookup({
-                        manual: tuya.enum(0),
-                        schedule: tuya.enum(1),
-                        eco: tuya.enum(2),
-                        comfort: tuya.enum(3),
-                        frost_protection: tuya.enum(4),
-                        holiday: tuya.enum(5),
-                        off: tuya.enum(6),
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            manual: tuya.enum(0),
+                            schedule: tuya.enum(1),
+                            eco: tuya.enum(2),
+                            comfort: tuya.enum(3),
+                            frost_protection: tuya.enum(4),
+                            holiday: tuya.enum(5),
+                            off: tuya.enum(6),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            heat: tuya.enum(0),
+                            auto: tuya.enum(1),
+                            off: tuya.enum(6),
+                        },
                     }),
                 ],
                 [3, "running_state", tuya.valueConverterBasic.lookup({idle: 0, heat: 1})],
