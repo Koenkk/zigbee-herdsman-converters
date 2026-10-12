@@ -41,7 +41,6 @@ import {
     replaceToZigbeeConvertersInArray,
     sleep,
     toNumber,
-    toPercentage,
 } from "./utils";
 
 const NS = "zhc:lumi";
@@ -236,7 +235,8 @@ export const numericAttributes2Payload = async (
                 payload.voltage = value;
                 if (model.meta?.battery?.voltageToPercentage) {
                     assertNumber(value);
-                    payload.battery = batteryVoltageToPercentage(value, model.meta.battery.voltageToPercentage);
+                    const r = options?.battery_voltage_range;
+                    payload.battery = batteryVoltageToPercentage(value, isValidBatteryVoltageRange(r) ? r : model.meta.battery.voltageToPercentage);
                 }
                 break;
             case "2":
@@ -2068,6 +2068,8 @@ const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
 };
 const p1DetectionDistanceLookup = {"10mm": 1, "20mm": 2, "30mm": 3} as const;
+const isValidBatteryVoltageRange = (r: unknown): r is BatteryLinearVoltage =>
+    isObject(r) && typeof r.min === "number" && typeof r.max === "number" && r.min < r.max;
 
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
@@ -2677,6 +2679,20 @@ export const lumiModernExtend = {
     lumiP1Battery: (): ModernExtend => ({
         isModernExtend: true,
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
+        options: [
+            e
+                .composite("battery_voltage_range", "battery_voltage_range", ea.SET)
+                .withDescription(
+                    "Custom battery voltage range in mV (0% to 100%). " +
+                        "Both min and max are required (min < max). " +
+                        "Default: 2850-3000 (standard CR123A). " +
+                        "Takes effect on next report.",
+                )
+                .withFeature(e.numeric("min", ea.SET).withUnit("mV").withDescription("0% voltage threshold in mV. Default: 2850"))
+                .withFeature(
+                    e.numeric("max", ea.SET).withUnit("mV").withDescription("100% voltage threshold in mV (sensor max ~3700 mV). Default: 3000"),
+                ),
+        ],
         fromZigbee: [
             {
                 cluster: "genPowerCfg",
@@ -2685,11 +2701,29 @@ export const lumiModernExtend = {
                     const payload: KeyValueAny = {};
                     if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
                         payload.voltage = msg.data.batteryVoltage * 100;
-                        payload.battery = toPercentage(payload.voltage, 2850, 3000);
+                        if (model.meta?.battery?.voltageToPercentage) {
+                            const r = options?.battery_voltage_range;
+                            payload.battery = batteryVoltageToPercentage(
+                                payload.voltage,
+                                isValidBatteryVoltageRange(r) ? r : model.meta.battery.voltageToPercentage,
+                            );
+                        }
                     }
                     return payload;
                 },
             } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        onEvent: [
+            (event) => {
+                if (event.type !== "deviceOptionsChanged") return;
+                const r = event.data.options?.battery_voltage_range as Partial<BatteryLinearVoltage> | undefined;
+                if (r != null && !isValidBatteryVoltageRange(r)) {
+                    logger.warning(
+                        `MCCGQ13LM: invalid battery_voltage_range [${r?.min}, ${r?.max}] (both min and max are required, min must be < max). Using default.`,
+                        NS,
+                    );
+                }
+            },
         ],
         exposes: [e.battery(), e.battery_voltage()],
     }),
