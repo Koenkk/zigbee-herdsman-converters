@@ -223,8 +223,10 @@ export const numericAttributes2Payload = async (
     model: Definition,
     options: KeyValue,
     dataObject: KeyValue,
+    distanceReadback?: {confirmed: boolean},
 ) => {
     let payload: KeyValue = {};
+    let p1DistanceReadback = distanceReadback;
 
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
@@ -595,7 +597,7 @@ export const numericAttributes2Payload = async (
             case "159":
                 if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
-                } else if (["MCCGQ13LM"].includes(model.model)) {
+                } else if (model.model === "MCCGQ13LM" && !p1DistanceReadback?.confirmed && (value === 1 || value === 2 || value === 3)) {
                     payload.detection_distance = getFromLookup(value, {1: "10mm", 2: "20mm", 3: "30mm"});
                 }
                 break;
@@ -687,7 +689,8 @@ export const numericAttributes2Payload = async (
                             payload.operation_mode = getFromLookup(dataObject247[155], {0: "action_mode", 1: "scene_mode"});
                         }
                     }
-                    const payload247 = await numericAttributes2Payload(msg, meta, model, options, dataObject247);
+                    if (model.model === "MCCGQ13LM") p1DistanceReadback ??= {confirmed: false};
+                    const payload247 = await numericAttributes2Payload(msg, meta, model, options, dataObject247, p1DistanceReadback);
                     payload = {...payload, ...payload247};
                 }
                 break;
@@ -699,6 +702,10 @@ export const numericAttributes2Payload = async (
                     payload.motion_sensitivity = getFromLookup(value, {1: "low", 2: "medium", 3: "high"});
                 } else if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
+                } else if (model.model === "MCCGQ13LM" && (value === 1 || value === 2 || value === 3)) {
+                    payload.detection_distance = getFromLookup(value, {1: "10mm", 2: "20mm", 3: "30mm"});
+                    p1DistanceReadback ??= {confirmed: false};
+                    p1DistanceReadback.confirmed = true;
                 }
                 break;
             case "293":
@@ -967,8 +974,9 @@ export const numericAttributes2Payload = async (
                 break;
             case "65281":
                 {
+                    if (model.model === "MCCGQ13LM") p1DistanceReadback ??= {confirmed: false};
                     // @ts-expect-error ignore
-                    const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value);
+                    const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value, p1DistanceReadback);
                     payload = {...payload, ...payload65281};
                 }
                 break;
@@ -8641,7 +8649,7 @@ export const toZigbee = {
                 {268: {value: getFromLookup(value, lookup), type: 0x20}},
                 {manufacturerCode},
             );
-            return {state: {detection_distance: value}};
+            await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
         },
         convertGet: async (entity, key, meta) => {
             await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
