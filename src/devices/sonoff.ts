@@ -1492,7 +1492,8 @@ const featureGates = {
     basiczb1gsp_support_output_energy: firmwareSupportFeaturesVersion("1.3.0", "higher"),
     basiczb1gsp_legacy_read_consumption: firmwareSupportFeaturesVersion("1.3.0", "lower"),
     basiczb1gsp_legacy_on_off_reporting: firmwareSupportFeaturesVersion("1.0.5", "lower"),
-    snzb02dr2_legacy_remote_source: firmwareSupportFeaturesVersion("1.0.5", "lower"),
+    // Unknown firmware retains the legacy display controls, matching the original firmwareAtLeast fallback.
+    snzb02dr2_legacy_remote_source: (device: Zh.Device): boolean => !featureGates.snzb02dr2_support_remote_source(device),
     snzb02dr2_support_remote_source: firmwareSupportFeaturesVersion("1.0.5", "higher"),
     zbminir2_external_switch_actions: firmwareSupportFeaturesVersion("1.1.0", "higher", {modelID: "ZBMINIR2"}),
     snzb09p_support_chime: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
@@ -9383,6 +9384,7 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 }),
                 featureGates.snzb02dr2_legacy_remote_source,
+                {exposeOnDummy: false},
             ),
             withConditionalExpose(
                 m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
@@ -9399,6 +9401,7 @@ export const definitions: DefinitionWithExtend[] = [
                     unit: "°C",
                 }),
                 featureGates.snzb02dr2_legacy_remote_source,
+                {exposeOnDummy: false},
             ),
             withConditionalExpose(
                 m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
@@ -9415,6 +9418,7 @@ export const definitions: DefinitionWithExtend[] = [
                     unit: "%",
                 }),
                 featureGates.snzb02dr2_legacy_remote_source,
+                {exposeOnDummy: false},
             ),
             withConditionalExpose(sonoffExtend.snzb02dr2RemoteSource(), featureGates.snzb02dr2_support_remote_source),
             m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({

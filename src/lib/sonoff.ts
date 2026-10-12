@@ -286,12 +286,16 @@ export const readAttributesInBatches = async <Cl extends string | number, Custom
     }
 };
 
-/** Hide the wrapped exposes when the device is a dummy or the predicate does not hold. */
-export const withConditionalExpose = (extend: ModernExtend, predicate: FirmwareFeatureGate): ModernExtend => {
+/** Gate real-device exposes by the predicate; retain dummy exposes for definition exports unless explicitly disabled. */
+export const withConditionalExpose = (
+    extend: ModernExtend,
+    predicate: FirmwareFeatureGate,
+    {exposeOnDummy = true}: {exposeOnDummy?: boolean} = {},
+): ModernExtend => {
     const originalExposes = extend.exposes ?? [];
 
     const expose: DefinitionExposesFunction = (device, options) => {
-        if (utils.isDummyDevice(device) || !predicate(device)) return [];
+        if (utils.isDummyDevice(device) ? !exposeOnDummy : !predicate(device)) return [];
 
         return originalExposes.flatMap((item) => (typeof item === "function" ? item(device, options) : [item]));
     };
