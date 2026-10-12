@@ -2678,6 +2678,22 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiP1Action: (): ModernExtend => ({
+        isModernExtend: true,
+        exposes: [e.action(["single"])],
+        fromZigbee: [
+            {
+                cluster: "genBasic",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (hasAlreadyProcessedMessage(msg, model)) return;
+                    if (msg.data.modelId === "lumi.magnet.ac01") {
+                        return {action: "single"};
+                    }
+                },
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport"]>,
+        ],
+    }),
     lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
         const buttonMap: {[key: number]: string} = {3: "top_wireless_button", 4: "bottom_wireless_button"};
         const actionMap: {[key: number]: string} = {0: "hold", 1: "single", 2: "double", 255: "release"};

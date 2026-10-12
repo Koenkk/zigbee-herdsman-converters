@@ -277,6 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumi.modernExtend.lumiP1Action(),
             m.quirkCheckinInterval("1_HOUR"),
             m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true, percentageReporting: false}),
         ],
