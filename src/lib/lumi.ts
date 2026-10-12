@@ -41,6 +41,7 @@ import {
     replaceToZigbeeConvertersInArray,
     sleep,
     toNumber,
+    toPercentage,
 } from "./utils";
 
 const NS = "zhc:lumi";
@@ -223,10 +224,8 @@ export const numericAttributes2Payload = async (
     model: Definition,
     options: KeyValue,
     dataObject: KeyValue,
-    distanceReadback?: {confirmed: boolean},
 ) => {
     let payload: KeyValue = {};
-    let p1DistanceReadback = distanceReadback;
 
     for (const [key, value] of Object.entries(dataObject)) {
         switch (key) {
@@ -597,8 +596,8 @@ export const numericAttributes2Payload = async (
             case "159":
                 if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
-                } else if (model.model === "MCCGQ13LM" && !p1DistanceReadback?.confirmed && (value === 1 || value === 2 || value === 3)) {
-                    payload.detection_distance = getFromLookup(value, {1: "10mm", 2: "20mm", 3: "30mm"});
+                } else if (["MCCGQ13LM"].includes(model.model)) {
+                    payload.detection_distance = getKey(p1DetectionDistanceLookup, value);
                 }
                 break;
             case "160":
@@ -689,8 +688,7 @@ export const numericAttributes2Payload = async (
                             payload.operation_mode = getFromLookup(dataObject247[155], {0: "action_mode", 1: "scene_mode"});
                         }
                     }
-                    if (model.model === "MCCGQ13LM") p1DistanceReadback ??= {confirmed: false};
-                    const payload247 = await numericAttributes2Payload(msg, meta, model, options, dataObject247, p1DistanceReadback);
+                    const payload247 = await numericAttributes2Payload(msg, meta, model, options, dataObject247);
                     payload = {...payload, ...payload247};
                 }
                 break;
@@ -702,10 +700,6 @@ export const numericAttributes2Payload = async (
                     payload.motion_sensitivity = getFromLookup(value, {1: "low", 2: "medium", 3: "high"});
                 } else if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
-                } else if (model.model === "MCCGQ13LM" && (value === 1 || value === 2 || value === 3)) {
-                    payload.detection_distance = getFromLookup(value, {1: "10mm", 2: "20mm", 3: "30mm"});
-                    p1DistanceReadback ??= {confirmed: false};
-                    p1DistanceReadback.confirmed = true;
                 }
                 break;
             case "293":
@@ -974,9 +968,8 @@ export const numericAttributes2Payload = async (
                 break;
             case "65281":
                 {
-                    if (model.model === "MCCGQ13LM") p1DistanceReadback ??= {confirmed: false};
                     // @ts-expect-error ignore
-                    const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value, p1DistanceReadback);
+                    const payload65281 = await numericAttributes2Payload(msg, meta, model, options, value);
                     payload = {...payload, ...payload65281};
                 }
                 break;
@@ -2072,6 +2065,7 @@ export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
 };
+const p1DetectionDistanceLookup = {"10mm": 1, "20mm": 2, "30mm": 3} as const;
 
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
@@ -2678,6 +2672,68 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiP1Battery: (): ModernExtend => ({
+        isModernExtend: true,
+        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
+        fromZigbee: [
+            {
+                cluster: "genPowerCfg",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
+                        payload.voltage = msg.data.batteryVoltage * 100;
+                        payload.battery = toPercentage(payload.voltage, 2850, 3000);
+                    }
+                    return payload;
+                },
+            } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        exposes: [e.battery(), e.battery_voltage()],
+    }),
+    lumiP1DetectionDistance: (): ModernExtend => ({
+        isModernExtend: true,
+        exposes: [
+            e
+                .enum("detection_distance", ea.STATE_SET, Object.keys(p1DetectionDistanceLookup))
+                .withDescription(
+                    'The sensor will be considered "off" within the set distance. ' +
+                        'Press the device button right before changing this value (this press triggers an "action: single" event).',
+                ),
+        ],
+        fromZigbee: [
+            {
+                cluster: "manuSpecificLumi",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data[268] !== undefined) {
+                        const value = msg.data[268];
+                        if (value === 1 || value === 2 || value === 3) {
+                            return {detection_distance: getKey(p1DetectionDistanceLookup, value)};
+                        }
+                    }
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["detection_distance"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertString(value, "detection_distance");
+                    value = value.toLowerCase();
+                    await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+                        "manuSpecificLumi",
+                        {268: {value: getFromLookup(value, p1DetectionDistanceLookup), type: 0x20}},
+                        {manufacturerCode},
+                    );
+                    await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
+                },
+            } satisfies Tz.Converter,
+        ],
+    }),
     lumiP1Action: (): ModernExtend => ({
         isModernExtend: true,
         exposes: [e.action(["single"])],
@@ -8652,23 +8708,6 @@ export const toZigbee = {
                     logger.warning(`Unhandled key ${key}`, "zhc:lumi:feeder");
             }
             return {state: {[key]: value}};
-        },
-    } satisfies Tz.Converter,
-    lumi_detection_distance: {
-        key: ["detection_distance"],
-        convertSet: async (entity, key, value, meta) => {
-            assertString(value, "detection_distance");
-            value = value.toLowerCase();
-            const lookup = {"10mm": 1, "20mm": 2, "30mm": 3};
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
-                "manuSpecificLumi",
-                {268: {value: getFromLookup(value, lookup), type: 0x20}},
-                {manufacturerCode},
-            );
-            await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_trv: {

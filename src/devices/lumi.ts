@@ -267,19 +267,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Door and window sensor P1",
         fromZigbee: [lumi.fromZigbee.lumi_contact, fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.lumi_detection_distance],
-        exposes: [
-            e.contact(),
-            e.tamper(),
-            e
-                .enum("detection_distance", ea.ALL, ["10mm", "20mm", "30mm"])
-                .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
-        ],
+        exposes: [e.contact(), e.tamper()],
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
-            lumi.modernExtend.lumiP1Action(),
             m.quirkCheckinInterval("1_HOUR"),
-            m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true, percentageReporting: false}),
+            lumi.modernExtend.lumiP1Battery(),
+            lumi.modernExtend.lumiP1DetectionDistance(),
+            lumi.modernExtend.lumiP1Action(),
         ],
     },
     {
