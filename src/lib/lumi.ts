@@ -246,7 +246,9 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "3":
-                if (["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "MCCGQ14LM", "GZCGQ01LM", "JY-GZ-01AQ", "CTP-R01"].includes(model.model)) {
+                if (
+                    ["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "MCCGQ13LM", "MCCGQ14LM", "GZCGQ01LM", "JY-GZ-01AQ", "CTP-R01"].includes(model.model)
+                ) {
                     // The temperature value is constant 25 °C and does not change, so we ignore it
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11126
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3585
