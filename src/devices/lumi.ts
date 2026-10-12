@@ -268,17 +268,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Door and window sensor P1",
         fromZigbee: [lumi.fromZigbee.lumi_contact, fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [lumi.toZigbee.lumi_detection_distance],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
         exposes: [
             e.contact(),
-            e.battery(),
-            e.battery_voltage(),
             e.tamper(),
             e
                 .enum("detection_distance", ea.ALL, ["10mm", "20mm", "30mm"])
                 .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
         ],
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR")],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.quirkCheckinInterval("1_HOUR"),
+            m.battery({voltageToPercentage: {min: 2850, max: 3000}, voltage: true, percentageReporting: false}),
+        ],
     },
     {
         zigbeeModel: ["lumi.dimmer.rcbac1"],
