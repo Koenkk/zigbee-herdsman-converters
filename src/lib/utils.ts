@@ -639,7 +639,8 @@ export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, fail
     try {
         await func();
     } catch (error) {
-        if ((error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
+        const message = (error as Error).message;
+        if (message.includes("UNSUPPORTED_ATTRIBUTE") || message.includes("UNREPORTABLE_ATTRIBUTE")) {
             logger.debug(`Ignoring unsupported attribute error: ${failMessage}`, NS);
         } else {
             throw error;

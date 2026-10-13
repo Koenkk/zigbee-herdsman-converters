@@ -1046,7 +1046,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1123ZB",
         vendor: "Sinopé",
         description: "Zigbee line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster(), m.electricityMeter()],
+        extend: [
+            sinopeExtend.addManuSpecificSinopeCluster(),
+            sinopeExtend.addSinopeHvacThermostatCluster(),
+            m.electricityMeter({configureReporting: false}),
+        ],
         fromZigbee: [fzLocal.thermostat, fzLocal.sinope, fz.hvac_user_interface, fz.ignore_temperature_report],
         toZigbee: [
             tz.thermostat_local_temperature,
@@ -1143,6 +1147,16 @@ export const definitions: DefinitionWithExtend[] = [
                     reportableChange: 1,
                 },
             ]);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ["seMetering", "haElectricalMeasurement"]);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.currentSummDelivered(endpoint, {min: 60, max: 300, change: 10});
+            await reporting.readEletricalMeasurementMultiplierDivisors(endpoint);
+            // Some firmwares (e.g. TH1123ZB-C4) don't support reporting these attributes
+            // https://github.com/Koenkk/zigbee2mqtt/issues/32734
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.activePower(endpoint, {min: 10, change: 5}), "activePower");
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.rmsCurrent(endpoint, {min: 10, change: 50}), "rmsCurrent");
+            await utils.ignoreUnsupportedAttribute(async () => await reporting.rmsVoltage(endpoint, {min: 10, change: 50}), "rmsVoltage");
             try {
                 await reporting.thermostatSystemMode(endpoint);
             } catch {
