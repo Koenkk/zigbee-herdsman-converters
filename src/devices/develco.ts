@@ -1319,7 +1319,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.voc(),
+            develcoModernExtend.voc({maxPpb: 60000}),
             develcoModernExtend.airQuality(),
             develcoModernExtend.temperature(),
             m.humidity(),
