@@ -1693,7 +1693,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true}), m.identify()],
     },
     {
-        zigbeeModel: ["LCE002"],
+        zigbeeModel: ["LCE002", "LCE006"],
         model: "929002294203",
         vendor: "Philips",
         description: "Hue White and Color Ambiance E14 with bluetooth",
