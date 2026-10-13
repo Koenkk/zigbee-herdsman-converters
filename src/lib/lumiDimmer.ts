@@ -1,15 +1,12 @@
-import * as exposes from "./exposes";
+import {level_config as levelConfigReport} from "../converters/fromZigbee";
 import {logger} from "./logger";
 import * as m from "./modernExtend";
 import type {Definition, Fz, KeyValue, ModernExtend, Publish, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
-const e = exposes.presets;
-const ea = exposes.access;
 const NS = "zhc:lumi:dimmer";
-const LEVEL_KEY = "kdR01dFixedOnLevel";
-const PHYSICAL_KEY = "kdR01dFixedOnLevelPhysical";
-type Status = "disabled" | "pending" | "applied" | "mismatch" | "error";
+const LEVEL_KEY = "kdR01dOnLevel";
+type OnLevel = number | "previous";
 type Readback = {currentLevel: number; onLevel: number; onOff: 0 | 1};
 type Intent = {inFlight: boolean; expires: number};
 type Repair = {timer?: ReturnType<typeof setTimeout>};
@@ -17,11 +14,9 @@ type Session = {
     device?: Zh.Device;
     active: boolean;
     generation: number;
-
     onOff?: 0 | 1;
     intent?: Intent;
     repair?: Repair;
-    readback?: Readback;
 };
 type Context = {
     endpoint: Zh.Endpoint;
@@ -33,7 +28,7 @@ type Context = {
 };
 class Cancelled extends Error {}
 
-/** KD-R01D only: native OnLevel guarding and separately opt-in, report-driven physical turn-on correction. */
+/** KD-R01D: retain explicitly selected OnLevel intent independently of firmware's mutable native attribute. */
 export function dimmerH2Light(): ModernExtend {
     const light = m.light({
         powerOnBehavior: false,
@@ -44,11 +39,14 @@ export function dimmerH2Light(): ModernExtend {
     const sessions = new Map<string, Session>();
     // Keep the queue across session replacement: an already-dispatched request cannot be unsent.
     const queues = new Map<string, Promise<unknown>>();
-    const fixedLevel = (device: Zh.Device): number => {
-        const value: unknown = device.meta[LEVEL_KEY];
-        return typeof value === "number" && Number.isInteger(value) && value > 0 && value <= 254 ? value : 0;
+    const canonical = (value: unknown): OnLevel | undefined =>
+        value === "previous" || (typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 254) ? value : undefined;
+    // Never adopt cached state, native reads/reports, group controls or legacy trial metadata as user intent.
+    const selected = (device: Zh.Device): OnLevel | undefined => canonical(device.meta[LEVEL_KEY]);
+    const targetLevel = (device: Zh.Device): number | undefined => {
+        const value = selected(device);
+        return typeof value === "number" ? value : undefined;
     };
-    const physicalEnabled = (device: Zh.Device) => device.meta[PHYSICAL_KEY] === true && fixedLevel(device) > 0;
     const sessionFor = (device: Zh.Device): Session => {
         let session = sessions.get(device.ieeeAddr);
         if (!session) {
@@ -73,12 +71,6 @@ export function dimmerH2Light(): ModernExtend {
             publish: meta.publish,
         };
     };
-    const requireContext = (entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta): Context => {
-        const ctx = context(entity, meta);
-        if (!ctx) throw new Error("Configure/read fixed turn-on settings on one KD-R01D, not a group.");
-        check(ctx);
-        return ctx;
-    };
     const invalidate = (session: Session) => {
         session.generation++;
     };
@@ -90,7 +82,6 @@ export function dimmerH2Light(): ModernExtend {
         if (session.repair?.timer) clearTimeout(session.repair.timer);
         session.repair = undefined;
     };
-
     const enqueue = async <T>(ctx: Context, operation: () => Promise<T>): Promise<T> => {
         const key = ctx.device.ieeeAddr;
         const previous = queues.get(key) ?? Promise.resolve();
@@ -108,33 +99,30 @@ export function dimmerH2Light(): ModernExtend {
         }
     };
     const levelConfig = (state: KeyValue): KeyValue => (utils.isObject(state.level_config) ? state.level_config : {});
-    const settings = (ctx: Context, status: Status): KeyValue => ({
-        fixed_on_level: fixedLevel(ctx.device),
-        fixed_on_level_physical: ctx.device.meta[PHYSICAL_KEY] === true,
-        fixed_on_level_status: status,
-    });
-    const snapshot = (ctx: Context, raw: Readback): KeyValue => ({
-        brightness: raw.currentLevel,
-        state: raw.onOff ? "ON" : "OFF",
-        level_config: {
-            ...levelConfig(ctx.state),
-            on_level: raw.onLevel === 255 ? "previous" : raw.onLevel,
-        },
-    });
-    const nativeStatus = (ctx: Context, raw?: Readback): Status =>
-        !fixedLevel(ctx.device) ? "disabled" : ctx.session.repair ? "pending" : raw?.onLevel === fixedLevel(ctx.device) ? "applied" : "mismatch";
-    const failure = async (ctx: Context, operation: string, error: unknown) => {
+    const retainSelection = (device: Zh.Device, payload: KeyValue): KeyValue => {
+        const value = selected(device);
+        if (value === undefined || !utils.isObject(payload.level_config)) return payload;
+        return {
+            ...payload,
+            level_config: {...payload.level_config, on_level: value},
+        };
+    };
+    const snapshot = (ctx: Context, raw: Readback): KeyValue =>
+        retainSelection(ctx.device, {
+            brightness: raw.currentLevel,
+            state: raw.onOff ? "ON" : "OFF",
+            level_config: {
+                ...levelConfig(ctx.state),
+                on_level: raw.onLevel === 255 ? "previous" : raw.onLevel,
+            },
+        });
+    const failure = (ctx: Context, operation: string, error: unknown) => {
         if (error instanceof Cancelled || !active(ctx)) return;
         logger.error(
             `KD-R01D ${ctx.device.ieeeAddr}: ${operation} failed: ${error instanceof Error ? error.message : String(error)}. ` +
-                "Check device connectivity and refresh fixed_on_level; disable fixed_on_level_physical if correction is unwanted.",
+                "Check device connectivity and re-save level_config.on_level; select 'previous' to disable automatic correction.",
             NS,
         );
-        try {
-            await ctx.publish(settings(ctx, "error"));
-        } catch (publishError) {
-            logger.error(`KD-R01D ${ctx.device.ieeeAddr}: cannot publish ${operation} failure: ${String(publishError)}`, NS);
-        }
     };
     const readState = async (ctx: Context, guard: () => void = () => check(ctx)): Promise<Readback> => {
         guard();
@@ -152,15 +140,13 @@ export function dimmerH2Light(): ModernExtend {
             level.onLevel > 255 ||
             (state?.onOff !== 0 && state?.onOff !== 1)
         ) {
-            throw new Error("Incomplete currentLevel/onLevel/onOff readback; fixed turn-on level cannot be verified.");
+            throw new Error("Incomplete currentLevel/onLevel/onOff readback; selected OnLevel cannot be verified.");
         }
         const raw: Readback = {
             currentLevel: level.currentLevel,
             onLevel: level.onLevel,
             onOff: state.onOff,
         };
-        ctx.session.readback = raw;
-        // Only our completed fresh reads may seed an unknown baseline; readResponse converters never do.
         if (ctx.endpoint.ID === 1 && ctx.session.onOff === undefined) ctx.session.onOff = raw.onOff;
         return raw;
     };
@@ -169,7 +155,14 @@ export function dimmerH2Light(): ModernExtend {
         await ctx.endpoint.write("genLevelCtrl", {onLevel: value}, utils.getOptions(ctx.mapped, ctx.endpoint));
         guard();
     };
-    const applyAndRead = async (ctx: Context, value: number, guard: () => void = () => check(ctx)) => {
+    const confirmLevel = async (ctx: Context, value: OnLevel) => {
+        check(ctx);
+        const raw = await ctx.endpoint.read("genLevelCtrl", ["onLevel"], utils.getOptions(ctx.mapped, ctx.endpoint));
+        check(ctx);
+        const expected = value === "previous" ? 255 : value;
+        if (raw?.onLevel !== expected) throw new Error(`Cannot confirm selected OnLevel: expected ${expected}, read ${raw?.onLevel}.`);
+    };
+    const applyAndRead = async (ctx: Context, value: number, guard: () => void) => {
         await writeLevel(ctx, value, guard);
         const raw = await readState(ctx, guard);
         if (raw.onLevel !== value) throw new Error(`OnLevel write did not stick: expected ${value}, read ${raw.onLevel}.`);
@@ -189,37 +182,37 @@ export function dimmerH2Light(): ModernExtend {
         ctx.session.repair = job;
         const guard = () => {
             check(ctx);
-            if (ctx.session.repair !== job || fixedLevel(ctx.device) !== value) throw new Cancelled("Native OnLevel repair superseded.");
+            if (ctx.session.repair !== job || targetLevel(ctx.device) !== value) throw new Cancelled("Native OnLevel repair superseded.");
         };
-        // Settling must not occupy the wire queue, otherwise dragging brightness builds a command backlog.
+        // Settling must not occupy the wire queue or dragging brightness builds a command backlog.
         job.timer = setTimeout(() => {
             void enqueue(ctx, async () => {
                 try {
-                    guard();
                     const raw = await applyAndRead(ctx, value, guard);
                     guard();
-                    await ctx.publish({
-                        ...snapshot(ctx, raw),
-                        ...settings(ctx, "applied"),
-                    });
+                    await ctx.publish(snapshot(ctx, raw));
                 } catch (error) {
-                    await failure(ctx, "native OnLevel repair", error);
+                    failure(ctx, "native OnLevel repair", error);
                 } finally {
                     if (ctx.session.repair === job) ctx.session.repair = undefined;
                 }
             }).catch((error: unknown) => failure(ctx, "native OnLevel repair queue", error));
         }, delay);
     };
-    // Upstream converters may perform multiple awaited requests. Guard each delegated request too,
-    // without mutating shared converters/endpoints. Herdsman store keys use endpoint address/ID, not object identity.
+    // Guard each delegated wire request across awaits without mutating shared converters/endpoints.
+    // Herdsman store keys use endpoint address/ID, not object identity.
     const guardedEndpoint = (ctx: Context): Zh.Endpoint =>
         new Proxy(ctx.endpoint, {
-            get: (target, property) => {
+            get: (endpoint, property) => {
                 if (property === "read") {
                     const read: Zh.Endpoint["read"] = async (cluster, attributes, options) => {
                         check(ctx);
-                        const result = await target.read(cluster, attributes, options);
+                        const result = await endpoint.read(cluster, attributes, options);
                         check(ctx);
+                        if (cluster === "genOnOff" && ctx.endpoint.ID === 1 && ctx.session.onOff === undefined) {
+                            const onOff: unknown = utils.isObject(result) ? result.onOff : undefined;
+                            if (onOff === 0 || onOff === 1) ctx.session.onOff = onOff;
+                        }
                         return result;
                     };
                     return read;
@@ -227,70 +220,87 @@ export function dimmerH2Light(): ModernExtend {
                 if (property === "write")
                     return async (...args: Parameters<Zh.Endpoint["write"]>) => {
                         check(ctx);
-                        await target.write(...args);
+                        await endpoint.write(...args);
                         check(ctx);
                     };
                 if (property === "command")
                     return async (...args: Parameters<Zh.Endpoint["command"]>) => {
                         check(ctx);
-                        const result = await target.command(...args);
+                        const result = await endpoint.command(...args);
                         check(ctx);
                         return result;
                     };
-                const value: unknown = Reflect.get(target, property, target);
-                return typeof value === "function" && property !== "constructor" ? value.bind(target) : value;
+                const value: unknown = Reflect.get(endpoint, property, endpoint);
+                return typeof value === "function" && property !== "constructor" ? value.bind(endpoint) : value;
             },
         });
+    const saveSelection = async (ctx: Context, value: OnLevel) => {
+        await confirmLevel(ctx, value);
+        check(ctx);
+        // Seed from a fresh read, never an initial/readResponse report. Enabling must not dim an already-On light.
+        if (typeof value === "number" && ctx.endpoint.ID === 1 && ctx.session.onOff === undefined) {
+            const raw = await ctx.endpoint.read("genOnOff", ["onOff"], utils.getOptions(ctx.mapped, ctx.endpoint));
+            check(ctx);
+            if (raw?.onOff !== 0 && raw?.onOff !== 1) throw new Error("Cannot read OnOff baseline for selected OnLevel.");
+            if (ctx.session.onOff === undefined) ctx.session.onOff = raw.onOff;
+        }
+        check(ctx);
+        const previous: unknown = ctx.device.meta[LEVEL_KEY];
+        ctx.device.meta[LEVEL_KEY] = value;
+        try {
+            await ctx.device.save();
+        } catch (error) {
+            if (previous === undefined) delete ctx.device.meta[LEVEL_KEY];
+            else ctx.device.meta[LEVEL_KEY] = previous;
+            throw error;
+        }
+        check(ctx);
+        cancelRepair(ctx.session); // Only confirmed, persisted choices supersede a prior successful command's repair.
+        invalidate(ctx.session);
+    };
     const wrap = (converter: Tz.Converter): Tz.Converter => {
-        // These no-op option converters may run after brightness in the same MQTT message.
-        // They must not consume the explicit brightness intent reserved for its later On report.
+        // Option-only no-ops can run after brightness in the same message; leave its explicit intent intact.
         if (converter.key?.every((key) => key === "transition" || key === "rate")) return converter;
         const set = converter.convertSet;
         const get = converter.convertGet;
         const brightnessControl = converter.key?.includes("brightness") && converter.key.includes("state");
-        // Configuration/effect controls can follow brightness in the same MQTT message before its On report.
+        const configuration = converter.key?.includes("level_config");
         const invalidateControl = brightnessControl ? invalidateIntent : invalidate;
         const wrapped: Tz.Converter = {...converter};
-        if (set) {
+        if (set)
             wrapped.convertSet = async (entity, key, value, meta) => {
                 const ctx = context(entity, meta);
                 if (!ctx) return await set(entity, key, value, meta);
                 check(ctx);
-                invalidateControl(ctx.session); // Invalidate at entry, not just when this request reaches the queue.
+                invalidateControl(ctx.session); // Cancel queued physical work at request entry, preserving configuration-only intent.
                 return await enqueue(ctx, async () => {
                     try {
-                        const desired = fixedLevel(ctx.device);
-                        let forwarded = meta;
+                        const desired = targetLevel(ctx.device);
                         const explicit = meta.message.brightness != null || meta.message.brightness_percent != null;
                         const state = typeof meta.message.state === "string" ? meta.message.state.toLowerCase() : undefined;
-                        if (brightnessControl && desired && !explicit && (state === "on" || state === "toggle")) {
+                        let forwarded = meta;
+                        if (brightnessControl && desired !== undefined && !explicit && (state === "on" || state === "toggle")) {
                             await writeLevel(ctx, desired);
-                            check(ctx);
-                            const confirmed = await ctx.endpoint.read("genLevelCtrl", ["onLevel"], utils.getOptions(meta.mapped, ctx.endpoint));
-                            check(ctx);
-                            if (confirmed.onLevel !== desired) throw new Error(`Cannot confirm fixed OnLevel ${desired} before turning on.`);
+                            await confirmLevel(ctx, desired);
                             forwarded = {
                                 ...meta,
-                                state: {
+                                state: retainSelection(ctx.device, {
                                     ...meta.state,
-                                    level_config: {
-                                        ...levelConfig(meta.state),
-                                        on_level: desired,
-                                    },
-                                },
+                                    level_config: levelConfig(meta.state),
+                                }),
                             };
                         }
-                        const delay = brightnessControl && desired ? settleDelay(ctx.endpoint, forwarded) : 0;
+                        const delay = brightnessControl ? settleDelay(ctx.endpoint, forwarded) : 0;
                         check(ctx);
-                        invalidateControl(ctx.session); // Overlapping requests/reports may have queued a correction during preflight.
+                        invalidateControl(ctx.session); // Reports arriving during preflight must not leave a queued correction behind dispatch.
                         let intent: Intent | undefined;
                         if (
                             brightnessControl &&
-                            desired &&
                             explicit &&
                             state !== "off" &&
                             (Number(meta.message.brightness ?? meta.message.brightness_percent) > 0 || state === "on" || state === "toggle")
                         ) {
+                            // Track even before a first selection, so a mixed brightness + on_level payload retains explicit brightness.
                             intent = {inFlight: true, expires: 0};
                             ctx.session.intent = intent;
                         }
@@ -302,101 +312,46 @@ export function dimmerH2Light(): ModernExtend {
                             throw error;
                         }
                         check(ctx);
-                        if (!brightnessControl || !desired) return result;
                         if (intent && ctx.session.intent === intent) {
                             intent.inFlight = false;
                             intent.expires = Date.now() + Math.max(5000, delay + 1000);
                         }
-                        scheduleRepair(ctx, desired, delay);
                         const response: Exclude<Tz.ConvertSetResult, void> = result || {};
-                        return {
-                            ...response,
-                            state: {...response.state, ...settings(ctx, "pending")},
-                        };
+                        if (configuration && Object.hasOwn(levelConfig(response.state ?? {}), "on_level")) {
+                            // Generic level_config owns JSON parsing, numeric strings, presets and clamping.
+                            const choice = canonical(levelConfig(response.state).on_level);
+                            if (choice === undefined)
+                                throw new Error("Normalized level_config.on_level must be an integer from 1 to 254 or 'previous'.");
+                            await saveSelection(ctx, choice);
+                        }
+                        if (brightnessControl && desired !== undefined) scheduleRepair(ctx, desired, delay);
+                        return response.state
+                            ? {
+                                  ...response,
+                                  state: retainSelection(ctx.device, response.state),
+                              }
+                            : result;
                     } catch (error) {
-                        if (fixedLevel(ctx.device)) await failure(ctx, "MQTT light control", error);
+                        if (configuration || targetLevel(ctx.device) !== undefined) failure(ctx, `MQTT ${key} control`, error);
                         throw error;
                     }
                 });
             };
-        }
-        if (get) {
+        if (get)
             wrapped.convertGet = async (entity, key, meta) => {
                 const ctx = context(entity, meta);
                 if (!ctx) return await get(entity, key, meta);
+                // Standard GET is read-only: no intent adoption, repair or additional state fields.
                 return await enqueue(ctx, async () => await get(guardedEndpoint(ctx), key, meta));
             };
-        }
         return wrapped;
     };
-    const saveSetting = async (ctx: Context, key: string, value: number | boolean) => {
-        check(ctx);
-        const previous: unknown = ctx.device.meta[key];
-        ctx.device.meta[key] = value;
-        try {
-            await ctx.device.save();
-        } catch (error) {
-            if (previous === undefined) delete ctx.device.meta[key];
-            else ctx.device.meta[key] = previous;
-            throw error;
-        }
-        check(ctx);
-    };
-    const configuration: Tz.Converter = {
-        key: ["fixed_on_level", "fixed_on_level_physical", "fixed_on_level_status"],
-        convertSet: async (entity, key, value, meta) => {
-            if (key === "fixed_on_level") {
-                if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 254) {
-                    throw new Error("fixed_on_level must be an integer from 0 to 254; 0 disables the workaround.");
-                }
-            } else if (key !== "fixed_on_level_physical" || typeof value !== "boolean") {
-                throw new Error("Only fixed_on_level and fixed_on_level_physical are writable; physical correction requires true or false.");
-            }
-            const ctx = requireContext(entity, meta);
-            invalidate(ctx.session);
-            return await enqueue(ctx, async () => {
-                try {
-                    invalidate(ctx.session);
-                    let raw: Readback | undefined;
-                    if (key === "fixed_on_level") {
-                        utils.assertNumber(value, key);
-                        if (value) raw = await applyAndRead(ctx, value);
-                        await saveSetting(ctx, LEVEL_KEY, value);
-                        cancelRepair(ctx.session);
-                    } else {
-                        if (typeof value !== "boolean") throw new Error("fixed_on_level_physical must be true or false.");
-                        if (value && !fixedLevel(ctx.device)) throw new Error("Set fixed_on_level above 0 before enabling physical correction.");
-                        if (value) raw = await readState(ctx);
-                        await saveSetting(ctx, PHYSICAL_KEY, value);
-                        if (!value) return {state: {fixed_on_level_physical: false}};
-                    }
-                    return {
-                        state: {
-                            ...(raw ? snapshot(ctx, raw) : {}),
-                            ...settings(ctx, raw ? nativeStatus(ctx, raw) : "disabled"),
-                        },
-                    };
-                } catch (error) {
-                    await failure(ctx, "fixed turn-on configuration", error);
-                    throw error;
-                }
-            });
-        },
-        convertGet: async (entity, _key, meta) => {
-            const ctx = requireContext(entity, meta);
-            await enqueue(ctx, async () => {
-                try {
-                    const raw = fixedLevel(ctx.device) ? await readState(ctx) : undefined;
-                    check(ctx);
-                    await ctx.publish({
-                        ...settings(ctx, nativeStatus(ctx, raw)),
-                        ...(raw ? snapshot(ctx, raw) : {}),
-                    });
-                } catch (error) {
-                    await failure(ctx, "fixed turn-on refresh", error);
-                    throw error;
-                }
-            });
+    const reports: typeof levelConfigReport = {
+        ...levelConfigReport,
+        convert: (model, msg, publish, options, meta) => {
+            const result = levelConfigReport.convert(model, msg, (payload) => publish(retainSelection(msg.device, payload)), options, meta);
+            if (!result || result instanceof Promise) return result;
+            return retainSelection(msg.device, result);
         },
     };
     const turnOn: Fz.Converter<"genOnOff", undefined, ["attributeReport"]> = {
@@ -412,34 +367,31 @@ export function dimmerH2Light(): ModernExtend {
                 state: meta.state,
                 publish,
             };
-            if (!active(ctx)) return; // Late reports must not seed a stopped/replaced session's baseline.
+            if (!active(ctx)) return; // Late reports must not poison a stopped/replaced session's baseline.
             const session = ctx.session;
             const wasOff = session.onOff === 0;
             const wasOn = session.onOff === 1;
             session.onOff = msg.data.onOff;
             if (msg.data.onOff === 0) {
-                if (wasOn) invalidateIntent(session); // Only a real On-to-Off edge clears intent; duplicate/initial Off must preserve it.
+                if (wasOn) invalidateIntent(session); // Duplicate/initial Off must preserve reserved explicit On intent.
                 return;
             }
             const explicit = session.intent && (session.intent.inFlight || session.intent.expires > Date.now());
             session.intent = undefined; // Consume on the first On, even a duplicate report.
-            if (!wasOff || explicit || !physicalEnabled(ctx.device)) return;
+            const target = targetLevel(ctx.device);
+            if (!wasOff || explicit || target === undefined) return;
             const generation = session.generation;
-            const target = fixedLevel(ctx.device);
             const guard = () => {
                 check(ctx);
-                if (session.generation !== generation || !physicalEnabled(ctx.device) || fixedLevel(ctx.device) !== target) {
+                if (session.generation !== generation || targetLevel(ctx.device) !== target)
                     throw new Cancelled("Physical turn-on correction superseded.");
-                }
             };
             void enqueue(ctx, async () => {
                 try {
                     const before = await readState(ctx, guard);
+                    guard();
                     if (!before.onOff) {
-                        await publish({
-                            ...snapshot(ctx, before),
-                            ...settings(ctx, nativeStatus(ctx, before)),
-                        });
+                        await publish(snapshot(ctx, before));
                         return;
                     }
                     const changed = before.currentLevel !== target;
@@ -462,19 +414,17 @@ export function dimmerH2Light(): ModernExtend {
                     if (changed || before.onLevel !== target) await writeLevel(ctx, target, guard);
                     const after = await readState(ctx, guard);
                     guard();
-                    const status: Status = after.onOff === 1 && after.currentLevel === target && after.onLevel === target ? "applied" : "mismatch";
-                    if (status === "mismatch") {
+                    if (after.onOff !== 1 || after.currentLevel !== target || after.onLevel !== target) {
                         logger.warning(
-                            `KD-R01D ${ctx.device.ieeeAddr}: physical turn-on readback differs from ${target}: level=${after.currentLevel}, onLevel=${after.onLevel}, onOff=${after.onOff}. Refresh fixed_on_level or disable physical correction.`,
+                            `KD-R01D ${ctx.device.ieeeAddr}: turn-on readback differs from selected ${target}: level=${after.currentLevel}, onLevel=${after.onLevel}, onOff=${after.onOff}. Check connectivity or select level_config.on_level='previous'.`,
                             NS,
                         );
                     }
-                    await publish({...snapshot(ctx, after), ...settings(ctx, status)});
+                    await publish(snapshot(ctx, after));
                 } catch (error) {
-                    await failure(ctx, "physical turn-on correction", error);
+                    failure(ctx, "physical turn-on correction", error);
                 }
             }).catch((error: unknown) => failure(ctx, "physical turn-on queue", error));
-            return settings(ctx, "pending");
         },
     };
     const rotation: Fz.Converter<"manuSpecificLumi", undefined, ["attributeReport"]> = {
@@ -483,39 +433,25 @@ export function dimmerH2Light(): ModernExtend {
         convert: (_model, msg) => {
             const value = msg.data[570];
             const session = sessions.get(msg.device.ieeeAddr);
-            if (session?.active && session.device === msg.device && typeof value === "number" && [1, 2, 3, 129, 130, 131].includes(value)) {
+            if (session?.active && session.device === msg.device && typeof value === "number" && [1, 2, 3, 129, 130, 131].includes(value))
                 invalidateIntent(session);
-            }
         },
     };
     return {
         ...light,
-        toZigbee: [...(light.toZigbee ?? []).map(wrap), configuration],
-        fromZigbee: [...(light.fromZigbee ?? []), turnOn, rotation],
-        exposes: [
-            ...(light.exposes ?? []),
-            e
-                .numeric("fixed_on_level", ea.ALL)
-                .withValueMin(0)
-                .withValueMax(254)
-                .withValueStep(1)
-                .withCategory("config")
-                .withDescription(
-                    "Persistent fixed turn-on brightness; 0 disables the workaround. Reapplies native OnLevel after MQTT brightness changes without changing their brightness. Physical correction is a separate opt-in.",
-                ),
-            e
-                .binary("fixed_on_level_physical", ea.ALL, true, false)
-                .withCategory("config")
-                .withDescription(
-                    "Opt-in correction after an Off-to-On report; requires fixed_on_level above 0. May briefly show the previous brightness. Does not protect group, scene, move or step controls.",
-                ),
-            e
-                .enum("fixed_on_level_status", ea.STATE_GET, ["disabled", "pending", "applied", "mismatch", "error"])
-                .withCategory("diagnostic")
-                .withDescription(
-                    "Applied confirms the latest readback, not that physical turn-on natively honors OnLevel or that future turn-ons will match. Refresh reads current device state without changing brightness.",
-                ),
-        ],
+        toZigbee: (light.toZigbee ?? []).map(wrap),
+        fromZigbee: [...(light.fromZigbee ?? []).map((converter) => (converter === levelConfigReport ? reports : converter)), turnOn, rotation],
+        exposes: light.exposes?.map((expose) => {
+            if (typeof expose === "function") return expose;
+            const copy = expose.clone();
+            const onLevel = copy.features
+                ?.find((feature) => feature.name === "level_config")
+                ?.features?.find((feature) => feature.name === "on_level");
+            onLevel?.withDescription(
+                "Turn-on brightness. Re-save once to retain your selection: numeric values are reapplied after MQTT brightness changes and corrected after physical Off-to-On reports, which may briefly show the previous brightness. 'previous' disables correction. Group, scene, move and step controls are not protected.",
+            );
+            return copy;
+        }),
         onEvent: [
             ...(light.onEvent ?? []),
             (event) => {
