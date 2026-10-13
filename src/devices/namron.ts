@@ -670,7 +670,8 @@ const simplifyThermostatExtend = {
                 // Only these two binds fit in the binding table of the device, the other clusters report without one.
                 await simplifyTry("bind hvacThermostat", () => endpoint.bind("hvacThermostat", coordinatorEndpoint));
                 await simplifyTry("bind genOnOff", () => endpoint.bind("genOnOff", coordinatorEndpoint));
-                await simplifyTry("report localTemp", () => reporting.thermostatTemperature(endpoint));
+                // The temperature flips between two 0.5 °C steps every few seconds, so limit how often it is reported.
+                await simplifyTry("report localTemp", () => reporting.thermostatTemperature(endpoint, {min: 30}));
                 await simplifyTry("report occupiedHeatingSetpoint", () => reporting.thermostatOccupiedHeatingSetpoint(endpoint));
                 await simplifyTry("report pIHeatingDemand", () => reporting.thermostatPIHeatingDemand(endpoint));
                 await simplifyTry("report systemMode", () => reporting.thermostatSystemMode(endpoint));
