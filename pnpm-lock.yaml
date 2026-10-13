@@ -116,8 +116,8 @@ importers:
         specifier: ^7.8.5
         version: 7.8.5
       zigbee-herdsman:
-        specifier: ^11.0.0
-        version: 11.0.0(supports-color@7.2.0)
+        specifier: ^11.1.0
+        version: 11.1.0(supports-color@7.2.0)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.3
@@ -1163,8 +1163,8 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  zigbee-herdsman@11.0.0:
-    resolution: {integrity: sha512-WGY+rA9IlX6gaEAtQR22rDLh18T9Amcmtu9DT0xhNoBLrHRJVyQANCrwlpOEDcqMosMYUFQgLaqLTEKlfBqqqQ==}
+  zigbee-herdsman@11.1.0:
+    resolution: {integrity: sha512-/c8MlSrwSUp1LaJvqa69hoA6n1XLM3AnnVvVHRXm5GyxspyLh0g6mXewaKoRpcE4cQSFaLKPMfmwxr5FCoJsYw==}
     engines: {node: ^22.2.0 || ^24 || <=26.2}
 
   zigbee-on-host@0.3.0:
@@ -1946,7 +1946,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zigbee-herdsman@11.0.0(supports-color@7.2.0):
+  zigbee-herdsman@11.1.0(supports-color@7.2.0):
     dependencies:
       '@date-fns/tz': 1.5.0
       '@serialport/bindings-cpp': 13.0.1(supports-color@7.2.0)
