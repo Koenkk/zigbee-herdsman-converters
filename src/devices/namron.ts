@@ -685,23 +685,10 @@ const simplifyThermostatExtend = {
         ];
         return {fromZigbee, toZigbee, exposes, configure, isModernExtend: true};
     },
-    // Power and energy: reporting can't be configured on the device (INSUFFICIENT_SPACE), so poll instead.
+    // Power and energy: the device reports these by itself (every few seconds while heating), but rejects
+    // reporting configuration (INSUFFICIENT_SPACE), so only the multiplier/divisor are read during configure.
     metering: (): ModernExtend[] => [
         m.electricityMeter({configureReporting: false}),
-        m.poll({
-            key: "namron_4512795_metering",
-            optionKey: "measurement_poll_interval",
-            option: e
-                .numeric("measurement_poll_interval", ea.SET)
-                .withValueMin(-1)
-                .withDescription("Polling interval for power and energy (default: 60s, -1 to disable)"),
-            defaultIntervalSeconds: 60,
-            poll: async (device) => {
-                const endpoint = device.getEndpoint(1);
-                await endpoint.read("haElectricalMeasurement", ["activePower", "rmsCurrent", "rmsVoltage"]);
-                await endpoint.read("seMetering", ["currentSummDelivered"]);
-            },
-        }),
         {
             configure: [
                 async (device) => {
