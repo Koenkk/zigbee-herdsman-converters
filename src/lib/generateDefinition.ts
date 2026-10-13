@@ -8,7 +8,7 @@ import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as philips from "./philips";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "./types";
-import {getClusterAttributeValue} from "./utils";
+import {getClusterAttributeValue, resolutionToDecimalPrecision} from "./utils";
 
 const NS = "zhc:gendef";
 
@@ -986,6 +986,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
     const valueMins: number[] = [];
     const valueMaxs: number[] = [];
     const valueSteps: number[] = [];
+    const precisions: number[] = [];
 
     if (!onlyFirstDeviceEnpoint(device, endpoints)) {
         endpointNames = endpoints.map((e) => e.ID.toString());
@@ -1019,9 +1020,18 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         }
 
         const description = `Analog Input ${label ?? name} on endpoint ${endpoint.ID}`;
-        const valueMin = await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined);
-        const valueMax = await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined);
-        const valueStep = await getClusterAttributeValue(endpoint, "genAnalogInput", "resolution", undefined);
+        let valueMin = await getClusterAttributeValue(endpoint, "genAnalogInput", "minPresentValue", undefined);
+        let valueMax = await getClusterAttributeValue(endpoint, "genAnalogInput", "maxPresentValue", undefined);
+        let valueStep = await getClusterAttributeValue(endpoint, "genAnalogInput", "resolution", undefined);
+        let precision: number | undefined;
+
+        if (valueMin && !Number.isFinite(valueMin)) valueMin = undefined;
+        if (valueMax && !Number.isFinite(valueMax)) valueMax = undefined;
+        if (valueStep && Number.isFinite(valueStep) && valueStep > 0) {
+            precision = resolutionToDecimalPrecision(valueStep);
+        } else {
+            valueStep = undefined;
+        }
 
         labels.push(label);
         descriptions.push(description);
@@ -1031,6 +1041,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         valueMins.push(valueMin);
         valueMaxs.push(valueMax);
         valueSteps.push(valueStep);
+        precisions.push(precision);
     }
 
     const args: m.NumericArgs<"genAnalogInput"> = {
@@ -1047,6 +1058,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
         endpointNames: endpointNames,
         unit: units,
         homeassistant: homeassistants,
+        precision: precisions,
     };
     return [new ExtendGenerator({extend: m.numeric, args, source: "numeric"})];
 }
@@ -1061,6 +1073,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     const valueMins: number[] = [];
     const valueMaxs: number[] = [];
     const valueSteps: number[] = [];
+    const precisions: number[] = [];
 
     if (!onlyFirstDeviceEnpoint(device, endpoints)) {
         endpointNames = endpoints.map((e) => e.ID.toString());
@@ -1094,9 +1107,18 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         }
 
         const description = `Analog Output ${label ?? name} on endpoint ${endpoint.ID}`;
-        const valueMin = await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined);
-        const valueMax = await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined);
-        const valueStep = await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution", undefined);
+        let valueMin = await getClusterAttributeValue(endpoint, "genAnalogOutput", "minPresentValue", undefined);
+        let valueMax = await getClusterAttributeValue(endpoint, "genAnalogOutput", "maxPresentValue", undefined);
+        let valueStep = await getClusterAttributeValue(endpoint, "genAnalogOutput", "resolution", undefined);
+        let precision: number | undefined;
+
+        if (valueMin && !Number.isFinite(valueMin)) valueMin = undefined;
+        if (valueMax && !Number.isFinite(valueMax)) valueMax = undefined;
+        if (valueStep && Number.isFinite(valueStep) && valueStep > 0) {
+            precision = resolutionToDecimalPrecision(valueStep);
+        } else {
+            valueStep = undefined;
+        }
 
         labels.push(label);
         descriptions.push(description);
@@ -1106,6 +1128,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         valueMins.push(valueMin);
         valueMaxs.push(valueMax);
         valueSteps.push(valueStep);
+        precisions.push(precision);
     }
 
     const args: m.NumericArgs<"genAnalogOutput"> = {
@@ -1122,6 +1145,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
         endpointNames: endpointNames,
         unit: units,
         homeassistant: homeassistants,
+        precision: precisions,
     };
     return [new ExtendGenerator({extend: m.numeric, args, source: "numeric"})];
 }

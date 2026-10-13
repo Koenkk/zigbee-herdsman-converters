@@ -43,6 +43,26 @@ export function precisionRound(number: number, precision: number): number {
     return number;
 }
 
+export function resolutionToDecimalPrecision(resolution: number, epsilon: number = 2 ** -23, maxDigits = 16) {
+    /** Calculate the decimal precision for the provided resolution. */
+    const threshold = epsilon * Math.max(Math.abs(resolution), 1.0);
+
+    // If the resolution can be closely represented by a fraction n/10^d for some d, we
+    // can assume that this is what was intended as the "real" resolution that was then
+    // modified during float32 conversion
+    for (let d = 0; d < maxDigits; d++) {
+        const k = 10 ** d;
+        const n = Math.round(resolution * k);
+
+        if (n === 0) continue;
+
+        // `abs(resolution - n / k) <= threshold` with less division
+        if (Math.abs(resolution * k - n) <= threshold * k) return d;
+    }
+    // If nothing was found, fall back to the number of decimal places in epsilon
+    return Math.ceil(-Math.log10(epsilon));
+}
+
 export function toLocalISOString(dDate: Date) {
     const tzOffset = -dDate.getTimezoneOffset();
     const plusOrMinus = tzOffset >= 0 ? "+" : "-";
