@@ -1,0 +1,139 @@
+import * as fz from "../converters/fromZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
+
+const e = exposes.presets;
+
+async function readNyceIasState(endpoint: Zh.Endpoint) {
+    return await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneStatus"], {sendPolicy: "immediate"});
+}
+
+function hasExpectedNyceIasState(state: {zoneState?: number; iasCieAddr?: string}, coordinatorIeeeAddress: string): boolean {
+    return state.zoneState === 1 && state.iasCieAddr?.toLowerCase() === coordinatorIeeeAddress.toLowerCase();
+}
+
+// NYCE NCZ-3011-HA fails IAS CIE address write during interview: https://github.com/Koenkk/zigbee2mqtt/issues/32480
+// This is fixable in the configure step. Usually it is enough to read the iasState to finish the enrollment; but this code can also attempt to re-write it.
+async function ensureNyceIasEnrollment(endpoint: Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint) {
+    const coordinatorIeeeAddress = coordinatorEndpoint.deviceIeeeAddress;
+    let state = await readNyceIasState(endpoint);
+
+    if (hasExpectedNyceIasState(state, coordinatorIeeeAddress)) {
+        return;
+    }
+
+    let enrollmentError: unknown;
+
+    try {
+        await endpoint.write("ssIasZone", {iasCieAddr: coordinatorIeeeAddress}, {sendPolicy: "immediate"});
+        await endpoint.command("ssIasZone", "enrollRsp", {enrollrspcode: 0, zoneid: 23}, {disableDefaultResponse: true, sendPolicy: "immediate"});
+    } catch (error) {
+        enrollmentError = error;
+    }
+
+    await utils.sleep(500);
+    state = await readNyceIasState(endpoint);
+
+    if (!hasExpectedNyceIasState(state, coordinatorIeeeAddress)) {
+        throw new Error(
+            `NYCE IAS enrollment failed; expected zoneState=1 and iasCieAddr=${coordinatorIeeeAddress}, got ${JSON.stringify(state)}${
+                enrollmentError ? ` after enrollment error: ${enrollmentError}` : ""
+            }`,
+        );
+    }
+}
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["3010"],
+        model: "NCZ-3010",
+        vendor: "Nyce",
+        description: "Door hinge sensor",
+        fromZigbee: [fz.ias_contact_alarm_1, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.battery()],
+    },
+    {
+        zigbeeModel: ["3011"],
+        model: "NCZ-3011-HA",
+        vendor: "Nyce",
+        description: "Door/window sensor",
+        fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report, fz.battery],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await ensureNyceIasEnrollment(endpoint, coordinatorEndpoint);
+        },
+        exposes: [e.contact(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ["3014"],
+        model: "NCZ-3014-HA",
+        vendor: "Nyce",
+        description: "Garage door tilt sensor",
+        extend: [m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}), m.battery()],
+    },
+    {
+        zigbeeModel: ["3043"],
+        model: "NCZ-3043-HA",
+        vendor: "Nyce",
+        description: "Ceiling motion sensor",
+        fromZigbee: [
+            fz.occupancy,
+            fz.humidity,
+            fz.temperature,
+            fz.ignore_genIdentify,
+            fz.battery,
+            fz.ignore_iaszone_report,
+            fz.ias_occupancy_alarm_2,
+        ],
+        toZigbee: [],
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["3041"],
+        model: "NCZ-3041-HA",
+        vendor: "Nyce",
+        description: "Wall motion sensor",
+        fromZigbee: [
+            fz.occupancy,
+            fz.humidity,
+            fz.temperature,
+            fz.ignore_genIdentify,
+            fz.battery,
+            fz.ignore_iaszone_report,
+            fz.ias_occupancy_alarm_2,
+        ],
+        toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["3045"],
+        model: "NCZ-3045-HA",
+        vendor: "Nyce",
+        description: "Curtain motion sensor",
+        fromZigbee: [
+            fz.occupancy,
+            fz.humidity,
+            fz.temperature,
+            fz.ignore_genIdentify,
+            fz.battery,
+            fz.ignore_iaszone_report,
+            fz.ias_occupancy_alarm_2,
+        ],
+        toZigbee: [],
+        meta: {battery: {dontDividePercentage: true}},
+        exposes: [e.occupancy(), e.humidity(), e.temperature(), e.battery(), e.battery_low(), e.tamper()],
+    },
+];

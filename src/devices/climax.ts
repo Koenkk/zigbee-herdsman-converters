@@ -1,0 +1,165 @@
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, Fz} from "../lib/types";
+
+const e = exposes.presets;
+const ea = exposes.access;
+
+const fzLocal = {
+    ias_keypad: {
+        cluster: "ssIasZone",
+        type: "commandStatusChangeNotification",
+        convert: (model, msg, publish, options, meta) => {
+            const zoneStatus = msg.data.zonestatus;
+            return {
+                tamper: (zoneStatus & (1 << 2)) > 0,
+                battery_low: (zoneStatus & (1 << 3)) > 0,
+                restore_reports: (zoneStatus & (1 << 5)) > 0,
+            };
+        },
+    } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+};
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["PSS_00.00.00.15TC"],
+        model: "PSS-23ZBS",
+        vendor: "Climax",
+        description: "Power plug",
+        extend: [m.onOff()],
+    },
+    {
+        zigbeeModel: ["SD8SC_00.00.03.12TC"],
+        model: "SD-8SCZBS",
+        vendor: "Climax",
+        description: "Smoke detector",
+        fromZigbee: [fz.ias_smoke_alarm_1, fz.battery],
+        toZigbee: [tz.warning],
+        exposes: [e.smoke(), e.battery(), e.battery_low(), e.tamper(), e.warning()],
+    },
+    {
+        zigbeeModel: ["WS15_00.00.00.10TC"],
+        model: "WLS-15ZBS",
+        vendor: "Climax",
+        description: "Water leakage sensor",
+        fromZigbee: [fz.ias_water_leak_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ["SCM-3_00.00.03.15"],
+        model: "SCM-5ZBS",
+        vendor: "Climax",
+        description: "Roller shutter",
+        fromZigbee: [fz.cover_position_via_brightness, fz.cover_state_via_onoff],
+        toZigbee: [tz.cover_via_brightness],
+        exposes: [e.cover_position().setAccess("state", ea.ALL)],
+    },
+    {
+        zigbeeModel: [
+            "PSM_00.00.00.35TC",
+            "PSMP5_00.00.02.02TC",
+            "PSMP5_00.00.05.01TC",
+            "PSMP5_00.00.05.10TC",
+            "PSMP5_00.00.03.15TC",
+            "PSMP5_00.00.03.16TC",
+            "PSMP5_00.00.03.19TC",
+        ],
+        model: "PSM-29ZBSR",
+        vendor: "Climax",
+        description: "Power plug",
+        fromZigbee: [fz.on_off, fz.metering],
+        toZigbee: [tz.on_off, tz.ignore_transition],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "seMetering"]);
+            await reporting.onOff(endpoint);
+            await reporting.readMeteringMultiplierDivisor(endpoint);
+            await reporting.instantaneousDemand(endpoint, {min: 10, change: 2});
+        },
+        whiteLabel: [{vendor: "Blaupunkt", model: "PSM-S1"}],
+        exposes: [e.switch(), e.power(), e.energy()],
+    },
+    {
+        zigbeeModel: ["PSMP5_00.00.03.12TC"],
+        model: "PSM-29ZBS",
+        vendor: "Climax",
+        description: "Power plug",
+        extend: [m.onOff({powerOnBehavior: false}), m.electricityMeter({current: false, voltage: false})],
+    },
+    {
+        zigbeeModel: ["RS_00.00.02.06TC"],
+        model: "RS-23ZBS",
+        vendor: "Climax",
+        description: "Temperature & humidity sensor",
+        fromZigbee: [fz.temperature, fz.humidity],
+        toZigbee: [],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "msRelativeHumidity"]);
+            await reporting.temperature(endpoint);
+            // configureReporting.humidity(endpoint); not needed and fails
+            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1312
+        },
+        exposes: [e.temperature(), e.humidity()],
+    },
+    {
+        zigbeeModel: ["SRACBP5_00.00.03.06TC", "SRAC_00.00.00.16TC", "SRACBP5_00.00.05.10TC", "SRACB_00.00.03.07TC"],
+        model: "SRAC-23B-ZBSR",
+        vendor: "Climax",
+        description: "Smart siren",
+        extend: [
+            m.battery({lowStatus: true, percentage: false, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.iasWarning({maxDuration: {min: 0, max: 600}}),
+            {
+                exposes: [e.squawk()],
+                toZigbee: [tz.squawk],
+                isModernExtend: true,
+            },
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
+            await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("ssIasWd", ["maxDuration"]);
+        },
+    },
+    {
+        zigbeeModel: ["WS15_00.00.00.14TC"],
+        model: "WS-15ZBS",
+        vendor: "Climax",
+        description: "Water leak sensor",
+        fromZigbee: [fz.ias_water_leak_alarm_1],
+        toZigbee: [],
+        exposes: [e.water_leak(), e.battery_low(), e.tamper()],
+    },
+    {
+        zigbeeModel: ["CO_00.00.00.15TC", "CO_00.00.00.22TC"],
+        model: "CO-8ZBS",
+        vendor: "Climax",
+        description: "Smart carbon monoxide sensor",
+        fromZigbee: [fz.ias_carbon_monoxide_alarm_1, fz.battery],
+        toZigbee: [],
+        exposes: [e.carbon_monoxide(), e.battery_low(), e.tamper(), e.battery()],
+    },
+    {
+        zigbeeModel: ["KP-ACE_00.00.03.12TC", "KP-ACE_00.00.03.11TC"],
+        model: "KP-23EL-ZBS-ACE",
+        vendor: "Climax",
+        description: "Remote Keypad",
+        fromZigbee: [fzLocal.ias_keypad, fz.battery, fz.command_arm, fz.command_panic, fz.command_emergency],
+        toZigbee: [],
+        exposes: [e.battery_low(), e.tamper(), e.action(["emergency", "panic", "disarm", "arm_all_zones", "arm_day_zones"])],
+    },
+    {
+        zigbeeModel: ["PRL_00.00.03.04TC"],
+        model: "PRL-1ZBS-12/24V",
+        vendor: "Climax",
+        description: "Zigbee 12-24V relay controller",
+        extend: [m.identify(), m.onOff(), m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
+];

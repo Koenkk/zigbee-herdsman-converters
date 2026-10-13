@@ -1,0 +1,138 @@
+[
+    {
+        "fileName": "0x1209_0x3011_0x03076a30.ota",
+        "fileVersion": 50817584,
+        "fileSize": 264354,
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Bosch/0x1209_0x3011_0x03076a30.ota",
+        "imageType": 12305,
+        "manufacturerCode": 4617,
+        "sha512": "63f232232252af0fbb3c4cc2efe2ce2564101405de4923238c71ccef2e66e6abef022deee45399a886af4019dfce64fdea969ff60f5b4b854e222b5ffcf7bcc2",
+        "otaHeaderString": "RTH2_230\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+    },
+    {
+        "fileName": "GL-S-007P_V15_A1_OTAV5_20210201_90%.ota",
+        "fileVersion": 5,
+        "fileSize": 291622,
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Gledopto/GL-S-007P_V15_A1_OTAV5_20210201_90%.ota",
+        "imageType": 0,
+        "manufacturerCode": 4687,
+        "sha512": "ce512a11f0d4e603edd3a93686cf5d666ee447bee1d24a6e06ce544e2ebf941a4a4e3fcc737cdf8c65821f8e008366b269d9a221fb55cfa54065380442c5f432",
+        "otaHeaderString": "EBL ARGBW_V_0_1\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "modelId": "GL-S-007P"
+    },
+    {
+        "fileName": "TICMeter.ota",
+        "fileVersion": 197133,
+        "fileSize": 1140668,
+        "originalUrl": "https://update.gammatroniques.fr/ticmeter/V3.2.13/download/TICMeter.ota",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/GammaTroniques/TICMeter.ota",
+        "imageType": 200,
+        "manufacturerCode": 65535,
+        "sha512": "67f0bfdbb7d2cdeee4d54d2ad44dc04b42ac9401f02c92fcde5db3010d5706027d793405a601bcf18bb789cfc46cacc4887bee1b59f42c234177135d1ea9ffb0",
+        "otaHeaderString": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "modelId": "TICMeter"
+    },
+    {
+        "fileName": "inspelning-smart-plug-soc_release_prod_v33816645_02579ff4-6fec-42f6-8957-4048def87def.ota",
+        "fileVersion": 33816645,
+        "fileSize": 294530,
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/IKEA/inspelning-smart-plug-soc_release_prod_v33816645_02579ff4-6fec-42f6-8957-4048def87def.ota",
+        "imageType": 40766,
+        "manufacturerCode": 4476,
+        "sha512": "76f16f4c2ca48a2b6a66693c3a2d4f85d2f52ff440cc09a565b5856d46a872435b28c5a9b6746d50cb2425555db9bdf41ae05e1a17b0292095198af53552e5eb",
+        "otaHeaderString": "GBL inspelning_smart_plug_soc\u0000\u0000\u0000"
+    },
+    {
+        "fileName": "1166-022D-24031511-upgradeMe-BY 266.zigbee",
+        "fileVersion": 604181777,
+        "fileSize": 262013,
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Innr/1166-022D-24031511-upgradeMe-BY 266.zigbee",
+        "imageType": 557,
+        "manufacturerCode": 4454,
+        "sha512": "e3a75926cd6e19441dac4aec5a6c81aba32c0fc09fb74481cb1140e4284954497167ae2a897346d53b5cd14bb80bb52b6f14bf7356d5de300b1868f62b6ca8e7",
+        "otaHeaderString": "Light\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+    },
+    {
+        "fileName": "VZM31-SN_2.18-Production.ota",
+        "fileVersion": 16908818,
+        "fileSize": 310258,
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Inovelli/VZM31-SN_2.18-Production.ota",
+        "imageType": 257,
+        "manufacturerCode": 4655,
+        "sha512": "6d480a5d621a16bb3a57fcc1af09071fc528dab2a8f3e479620c3bd75ddfa9e8f624c32b1dc35d5c1bc8db0f67a70ee150ce3a516a2026f717076dcbeba23df7",
+        "otaHeaderString": "EBL VM_SWITCH\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+    },
+    {
+        "fileName": "jethome_zigbee_release_13_zigbee.ota.zigbee",
+        "fileVersion": 13,
+        "fileSize": 160226,
+        "originalUrl": "https://fw.jethome.ru/media/firmwares/jethome/zigbee/release/13/jethome_zigbee_release_13_zigbee.ota.zigbee",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/JetHome/jethome_zigbee_release_13_zigbee.ota.zigbee",
+        "imageType": 61441,
+        "manufacturerCode": 61731,
+        "sha512": "d2d185fc25b28d8e5ed4323550e630e5ada864add2bafc805b07113d9df9c95b7c37047e535784c0277f4fd5e9d9f06d91a558e4fc2a04080b2d85f9a1999a19",
+        "otaHeaderString": "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "manufacturerName": ["JetHome"],
+        "releaseNotes": "https://fw.jethome.ru/devices/jethome/WS7/fw/release/latest/CHANGELOG.md"
+    },
+    {
+        "fileName": "A60_TW_Value_II-0x1189-0x008B-0x03177310-MF_DIS-20240426150951-3221010102432.ota",
+        "fileVersion": 51868432,
+        "fileSize": 307510,
+        "originalUrl": "https://api.update.ledvance.com/v1/zigbee/firmwares/download?company=4489&product=139&version=3.23.115.16",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/LEDVANCE/A60_TW_Value_II-0x1189-0x008B-0x03177310-MF_DIS-20240426150951-3221010102432.ota",
+        "imageType": 139,
+        "manufacturerCode": 4489,
+        "sha512": "8366767213db679d702c51e9130554afcd55730ff8a1203d08d4d43729b2f9905f061f6a89b51bfce7d8da85bc5102ee38948680c002861822683cc451ed4211",
+        "otaHeaderString": "A60_TW_Value_II\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "releaseNotes": "(1) Add security patch. "
+    },
+    {
+        "fileName": "ZLinky_router_v14_limited.ota",
+        "fileVersion": 14,
+        "fileSize": 249694,
+        "originalUrl": "https://github.com/fairecasoimeme/Zlinky_TIC/releases/download/v14.0/ZLinky_router_v14_limited.ota",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/LiXee/ZLinky_router_v14_limited.ota",
+        "imageType": 2,
+        "manufacturerCode": 4151,
+        "sha512": "f851cbff7297ba6223a969ba8da5182f9ef199cf9c8459c8408432e48485c1a8f018f6e1703a42f40143cccd3bf460c0acd92117d899e507a36845f24e970595",
+        "otaHeaderString": "OM15081-RTR-LIMITED-JN5189-00000",
+        "manufacturerName": ["LiXee"],
+        "releaseNotes": "https://github.com/fairecasoimeme/Zlinky_TIC/releases/tag/v14.0"
+    },
+    {
+        "fileName": "WindowSensor_20240103.ota",
+        "fileVersion": 539230467,
+        "fileSize": 264290,
+        "originalUrl": "http://ec2-18-194-20-66.eu-central-1.compute.amazonaws.com/firmware/UG-SYS/SW600/2024-0103/NTSW600_20240103.tar.gz",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/SalusControls/WindowSensor_20240103.ota",
+        "imageType": 63,
+        "manufacturerCode": 4216,
+        "sha512": "64a5fc3fe95770ca5c8a947a9a19665389374296a055671cdd9fcf1ac98d5f25cc287fc6196c16e1c7fdf69771c67f01bb6bb1d8baf34e05e41667a723906e19",
+        "otaHeaderString": "EBL WindowSensor\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "manufacturerName": ["SalusControls"]
+    },
+    {
+        "fileName": "ZPS_CS5490_039.ota",
+        "fileVersion": 57,
+        "fileSize": 155646,
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Tuya/ZPS_CS5490_039.ota",
+        "imageType": 24256,
+        "manufacturerCode": 4098,
+        "sha512": "69f0bd7ecf971546743b5422265a1713741df87a6c0344831ee09b938b751c948bf2251f2c76c0dff09d048b3ce785c3d7f07295afde9acb02255263d275322f",
+        "otaHeaderString": "peanut Power Plug\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"
+    },
+    {
+        "fileName": "10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee",
+        "fileVersion": 38798407,
+        "fileSize": 123902,
+        "originalUrl": "http://fwu.ubisys.de/smarthome/OTA/release/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee",
+        "url": "https://github.com/Koenkk/zigbee-OTA/raw/master/images/Ubisys/10F2-7B3A-0000-0005-02500447-m7b-r0.ota.zigbee",
+        "imageType": 31546,
+        "manufacturerCode": 4338,
+        "sha512": "aace578a76c957613c25fa47f533af0dadaa7150ad1d62ef019ab081d186bc6fe79cb2f6e008015b7f5aa890ad542b71c8c95beafe78480b76e399aa68783b2f",
+        "otaHeaderString": "ubisys R0 2.5.0\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+        "hardwareVersionMin": 0,
+        "hardwareVersionMax": 5
+    }
+]

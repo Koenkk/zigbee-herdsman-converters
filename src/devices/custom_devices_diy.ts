@@ -1,0 +1,2297 @@
+import {Zcl} from "zigbee-herdsman";
+
+import * as fz from "../converters/fromZigbee";
+import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
+import * as exposes from "../lib/exposes";
+import * as legacy from "../lib/legacy";
+import * as m from "../lib/modernExtend";
+import * as reporting from "../lib/reporting";
+import type {DefinitionWithExtend, DummyDevice, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
+import {calibrateAndPrecisionRoundOptions, getFromLookup, getKey, isEndpoint, postfixWithEndpointName} from "../lib/utils";
+
+const e = exposes.presets;
+const ea = exposes.access;
+
+const switchTypesList = {
+    switch: 0x00,
+    "multi-click": 0x02,
+};
+
+// genOnOffSwitchCfg.switchType is defined as read-only. Allow override with write: true.
+const genOnOffSwitchCfgSwitchTypeWritable = m.deviceAddCustomCluster("genOnOffSwitchCfg", {
+    name: "genOnOffSwitchCfg",
+    ID: 0x0007,
+    attributes: {
+        switchType: {name: "switchType", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, min: 0x00, max: 0x02},
+    },
+    commands: {},
+    commandsResponse: {},
+});
+
+export const tzLocal = {
+    tirouter: {
+        key: ["transmit_power"],
+        convertSet: async (entity, key, value, meta) => {
+            await entity.write("genBasic", {4919: {value, type: 0x28}});
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genBasic", [0x1337]);
+        },
+    } satisfies Tz.Converter,
+    multi_zig_sw_switch_type: {
+        key: ["switch_type_1", "switch_type_2", "switch_type_3", "switch_type_4"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read("genOnOffSwitchCfg", ["switchType"]);
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const data = getFromLookup(value, switchTypesList);
+            const payload = {switchType: data};
+            await entity.write("genOnOffSwitchCfg", payload);
+            return {state: {[`${key}`]: value}};
+        },
+    } satisfies Tz.Converter,
+    ptvo_on_off: {
+        key: ["state"],
+        convertSet: async (entity, key, value, meta) => {
+            return await tz.on_off.convertSet(entity, key, value, meta);
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = "genOnOff";
+            if (isEndpoint(entity) && (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster))) {
+                return await tz.on_off.convertGet(entity, key, meta);
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    ZigUP_lock: {
+        key: ["led"],
+        convertSet: async (entity, key, value, meta) => {
+            const lookup = {off: "lockDoor" as const, on: "unlockDoor" as const, toggle: "toggleDoor" as const};
+            await entity.command("closuresDoorLock", utils.getFromLookup(value, lookup), {pincodevalue: Buffer.alloc(0)});
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_trigger: {
+        key: ["trigger", "interval"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            utils.assertEndpoint(entity);
+            if (key === "trigger") {
+                await entity.command("genOnOff", "onWithTimedOff", {ctrlbits: 0, ontime: Math.round(value / 100), offwaittime: 0});
+            } else if (key === "interval") {
+                const cluster = "genOnOff";
+                if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                    await entity.configureReporting(cluster, [
+                        {
+                            attribute: "onOff",
+                            minimumReportInterval: value,
+                            maximumReportInterval: value,
+                            reportableChange: 0,
+                        },
+                    ]);
+                } else if (utils.hasEndpoints(meta.device, [1])) {
+                    const endpoint = meta.device.getEndpoint(1);
+                    await endpoint.configureReporting("genBasic", [
+                        {
+                            attribute: "zclVersion",
+                            minimumReportInterval: value,
+                            maximumReportInterval: value,
+                            reportableChange: 0,
+                        },
+                    ]);
+                }
+            }
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_uart: {
+        key: ["action"],
+        convertSet: async (entity, key, value, meta) => {
+            if (!value) {
+                return;
+            }
+            const payload = {14: {value, type: 0x42}};
+            for (const endpoint of meta.device.endpoints) {
+                const cluster = "genMultistateValue";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+            }
+            await entity.write("genMultistateValue", payload);
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_analog_input: {
+        key: ["l1", "l2", "l3", "l4", "l5", "l6", "l7", "l8", "l9", "l10", "l11", "l12", "l13", "l14", "l15", "l16"],
+        convertGet: async (entity, key, meta) => {
+            const epId = Number.parseInt(key.substr(1, 2), 10);
+            if (utils.hasEndpoints(meta.device, [epId])) {
+                const endpoint = meta.device.getEndpoint(epId);
+                await endpoint.read("genAnalogInput", ["presentValue", "description"]);
+            }
+        },
+        convertSet: async (entity, key, value, meta) => {
+            const epId = Number.parseInt(key.substr(1, 2), 10);
+            if (utils.hasEndpoints(meta.device, [epId])) {
+                const endpoint = meta.device.getEndpoint(epId);
+                let cluster = "genLevelCtrl";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = Number(value);
+                    if (Number.isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {currentLevel: value2};
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+
+                cluster = "genAnalogInput";
+                if (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster)) {
+                    const value2 = Number(value);
+                    if (Number.isNaN(value2)) {
+                        return;
+                    }
+                    const payload = {presentValue: value2};
+                    await endpoint.write(cluster, payload);
+                    return;
+                }
+            }
+            return;
+        },
+    } satisfies Tz.Converter,
+    ptvo_switch_light_brightness: {
+        key: ["brightness", "brightness_percent", "transition"],
+        options: [exposes.options.transition()],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "transition") {
+                return;
+            }
+            const cluster = "genLevelCtrl";
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                const message = meta.message;
+
+                let brightness: number;
+                if (message.brightness != null) {
+                    brightness = Number(message.brightness);
+                } else if (message.brightness_percent != null) brightness = Math.round(Number(message.brightness_percent) * 2.55);
+
+                if (brightness !== undefined && brightness === 0) {
+                    message.state = "off";
+                    message.brightness = 1;
+                }
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
+            }
+            throw new Error("LevelControl not supported on this endpoint.");
+        },
+        convertGet: async (entity, key, meta) => {
+            const cluster = "genLevelCtrl";
+            utils.assertEndpoint(entity);
+            if (entity.supportsInputCluster(cluster) || entity.supportsOutputCluster(cluster)) {
+                return await tz.light_onoff_brightness.convertGet(entity, key, meta);
+            }
+            throw new Error("LevelControl not supported on this endpoint.");
+        },
+    } satisfies Tz.Converter,
+};
+
+export const fzLocal = {
+    tirouter: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {linkquality: msg.linkquality};
+            if (msg.data["4919"] !== undefined) result.transmit_power = msg.data["4919"];
+            return result;
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+    humidity2: {
+        cluster: "msRelativeHumidity",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // multi-endpoint version based on the stastard onverter 'fz.humidity'
+            let humidity = msg.data.measuredValue / 100.0;
+            humidity = calibrateAndPrecisionRoundOptions(humidity, options, "humidity");
+
+            // https://github.com/Koenkk/zigbee2mqtt/issues/798
+            // Sometimes the sensor publishes non-realistic vales, it should only publish message
+            // in the 0 - 100 range, don't produce messages beyond these values.
+            if (humidity >= 0 && humidity <= 100) {
+                const multiEndpoint = model.meta?.multiEndpoint;
+                const property = multiEndpoint ? postfixWithEndpointName("humidity", msg, model, meta) : "humidity";
+                return {[property]: humidity};
+            }
+        },
+    } satisfies Fz.Converter<"msRelativeHumidity", undefined, ["attributeReport", "readResponse"]>,
+    illuminance2: {
+        cluster: "msIlluminanceMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // multi-endpoint version based on the stastard onverter 'fz.illuminance'
+            const illuminance = msg.data.measuredValue;
+            let illuminanceLux = illuminance === 0 ? 0 : 10 ** ((illuminance - 1) / 10000);
+            illuminanceLux = calibrateAndPrecisionRoundOptions(illuminanceLux, options, "illuminance");
+            const multiEndpoint = model.meta?.multiEndpoint;
+            const property1 = multiEndpoint ? postfixWithEndpointName("illuminance", msg, model, meta) : "illuminance";
+            return {[property1]: illuminanceLux};
+        },
+    } satisfies Fz.Converter<"msIlluminanceMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    pressure2: {
+        cluster: "msPressureMeasurement",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            // multi-endpoint version based on the stastard onverter 'fz.pressure'
+            let pressure = 0;
+            if (msg.data.scaledValue !== undefined) {
+                const scale = msg.endpoint.getClusterAttributeValue("msPressureMeasurement", "scale") as number;
+                pressure = msg.data.scaledValue / 10 ** scale / 100.0; // convert to hPa
+            } else {
+                pressure = msg.data.measuredValue;
+            }
+            pressure = calibrateAndPrecisionRoundOptions(pressure, options, "pressure");
+            const multiEndpoint = model.meta?.multiEndpoint;
+            const property = multiEndpoint ? postfixWithEndpointName("pressure", msg, model, meta) : "pressure";
+            return {[property]: pressure};
+        },
+    } satisfies Fz.Converter<"msPressureMeasurement", undefined, ["attributeReport", "readResponse"]>,
+    multi_zig_sw_battery: {
+        cluster: "genPowerCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const voltage = msg.data.batteryVoltage * 100;
+            const battery = (voltage - 2200) / 8;
+            return {battery: battery > 100 ? 100 : battery, voltage: voltage};
+        },
+    } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+    multi_zig_sw_switch_buttons: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const button = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
+            const actionLookup: {[key: number]: string} = {0: "release", 1: "single", 2: "double", 3: "triple", 4: "hold"};
+            const value = msg.data.presentValue;
+            const action = actionLookup[value];
+            return {action: `${button}_${action}`};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
+    multi_zig_sw_switch_config: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["readResponse", "attributeReport"],
+        convert: (model, msg, publish, options, meta) => {
+            const channel = getKey(model.endpoint?.(msg.device) ?? {}, msg.endpoint.ID);
+            const {switchType} = msg.data;
+            return {[`switch_type_${channel}`]: getKey(switchTypesList, switchType)};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["readResponse", "attributeReport"]>,
+
+    acw02_clean_status: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID === 7 && Object.hasOwn(msg.data, "onOff")) {
+                return {filter_clean_status: msg.data["onOff"] === 1 ? "ON" : "OFF"};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    acw02_error_status: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID === 9 && Object.hasOwn(msg.data, "onOff")) {
+                return {ac_error_status: msg.data["onOff"] === 1 ? "ON" : "OFF"};
+            }
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    acw02_error_text: {
+        cluster: "genBasic",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.endpoint.ID === 1 && msg.data["locationDesc"] !== undefined) {
+                let errorText = "";
+                const locationDesc = msg.data["locationDesc"] as string | number[] | undefined;
+
+                if (typeof locationDesc === "string") {
+                    errorText = locationDesc;
+                } else if (Array.isArray(locationDesc) && locationDesc.length > 0) {
+                    const textLength = locationDesc[0] as number;
+                    const textData = locationDesc.slice(1, 1 + textLength) as number[];
+                    errorText = String.fromCharCode(...textData);
+                }
+                return {error_text: errorText.trim()};
+            }
+        },
+    } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport", "readResponse"]>,
+    acw02_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result: KeyValue = {};
+            if (Object.hasOwn(msg.data, "localTemp")) {
+                result.local_temperature = (msg.data.localTemp as number) / 100;
+            }
+            if (Object.hasOwn(msg.data, "runningMode")) {
+                const modeMap: {[key: number]: string} = {
+                    0: "idle",
+                    3: "cool",
+                    4: "heat",
+                    7: "fan_only",
+                };
+                result.running_state = modeMap[msg.data.runningMode as number] || "idle";
+            }
+            if (Object.hasOwn(msg.data, "systemMode")) {
+                const sysModeMap: {[key: number]: string} = {
+                    0: "off",
+                    1: "auto",
+                    3: "cool",
+                    4: "heat",
+                    7: "fan_only",
+                    8: "dry",
+                };
+                result.system_mode = sysModeMap[msg.data.systemMode as number] || "off";
+            }
+            if (Object.hasOwn(msg.data, "occupiedHeatingSetpoint")) {
+                result.occupied_heating_setpoint = (msg.data.occupiedHeatingSetpoint as number) / 100;
+            } else if (Object.hasOwn(msg.data, "occupiedCoolingSetpoint")) {
+                result.occupied_heating_setpoint = (msg.data.occupiedCoolingSetpoint as number) / 100;
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
+    ZigUP: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const lookup: KeyValueAny = {
+                "0": "timer",
+                "1": "key",
+                "2": "dig-in",
+            };
+
+            let ds18b20Id = null;
+            let ds18b20Value = null;
+            if (msg.data["41368"]) {
+                ds18b20Id = (msg.data["41368"] as string).split(":")[0];
+                ds18b20Value = utils.precisionRound(Number.parseFloat((msg.data["41368"] as string).split(":")[1]), 2);
+            }
+
+            return {
+                state: msg.data.onOff === 1 ? "ON" : "OFF",
+                cpu_temperature: utils.precisionRound(msg.data["41361"] as number, 2),
+                external_temperature: utils.precisionRound(msg.data["41362"] as number, 1),
+                external_humidity: utils.precisionRound(msg.data["41363"] as number, 1),
+                s0_counts: msg.data["41364"],
+                adc_volt: utils.precisionRound(msg.data["41365"] as number, 3),
+                dig_input: msg.data["41366"],
+                reason: lookup[msg.data["41367"] as number],
+                [`${ds18b20Id}`]: ds18b20Value,
+            };
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_led: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            return {led: msg.data.onOff === 1};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    CC2530ROUTER_meta: {
+        cluster: "genBinaryValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const data = msg.data;
+            return {
+                description: data.description,
+                type: data.inactiveText,
+                rssi: data.presentValue,
+            };
+        },
+    } satisfies Fz.Converter<"genBinaryValue", undefined, ["attributeReport", "readResponse"]>,
+    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+    DNCKAT_S00X_buttons: {
+        cluster: "genOnOff",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const action = msg.data.onOff === 1 ? "release" : "hold";
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_uart: {
+        cluster: "genMultistateValue",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            let data: unknown[] | string = msg.data.stateText as unknown[]; // ZclArray is only for write
+            if (Array.isArray(data)) {
+                let bHex = false;
+                let code: number;
+                let index: number;
+                for (index = 0; index < data.length; index += 1) {
+                    code = data[index] as number;
+                    if (code < 32 || code > 127) {
+                        bHex = true;
+                        break;
+                    }
+                }
+                if (!bHex) {
+                    data = data.toString();
+                } else {
+                    data = [...data];
+                }
+            }
+            return {action: data};
+        },
+    } satisfies Fz.Converter<"genMultistateValue", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_switch_analog_input: {
+        cluster: "genAnalogInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const payload: KeyValueAny = {};
+            const channel = msg.endpoint.ID;
+            const name = `l${channel}`;
+            const endpoint = msg.endpoint;
+            payload[name] = utils.precisionRound(msg.data.presentValue, 3);
+            const cluster = "genLevelCtrl";
+            if (endpoint && (endpoint.supportsInputCluster(cluster) || endpoint.supportsOutputCluster(cluster))) {
+                payload[`brightness_${name}`] = msg.data.presentValue;
+            } else if (msg.data.description !== undefined) {
+                const data1 = msg.data.description;
+                if (data1) {
+                    const data2 = data1.split(",");
+                    const devid = data2[1];
+                    const unit = data2[0];
+                    if (devid) {
+                        payload[`device_${name}`] = devid;
+                    }
+
+                    const valRaw = msg.data.presentValue;
+                    if (unit) {
+                        let val = utils.precisionRound(valRaw, 1);
+
+                        const nameLookup: KeyValueAny = {
+                            C: "temperature",
+                            "%": "humidity",
+                            m: "altitude",
+                            Pa: "pressure",
+                            ppm: "quality",
+                            psize: "particle_size",
+                            V: "voltage",
+                            A: "current",
+                            Wh: "energy",
+                            W: "power",
+                            Hz: "frequency",
+                            pf: "power_factor",
+                            lx: "illuminance",
+                        };
+
+                        let nameAlt = "";
+                        if (unit === "A" || unit === "pf") {
+                            if (valRaw < 1) {
+                                val = utils.precisionRound(valRaw, 3);
+                            }
+                        }
+                        if (unit.startsWith("mcpm") || unit.startsWith("ncpm")) {
+                            const num = unit.substr(4, 1);
+                            nameAlt = num === "A" ? `${unit.substr(0, 4)}10` : unit;
+                            val = utils.precisionRound(valRaw, 2);
+                        } else {
+                            nameAlt = nameLookup[unit];
+                        }
+                        if (nameAlt === undefined) {
+                            const valueIndex = Number.parseInt(unit, 10);
+                            if (!Number.isNaN(valueIndex)) {
+                                nameAlt = `val${unit}`;
+                            }
+                        }
+
+                        if (nameAlt !== undefined) {
+                            payload[`${nameAlt}_${name}`] = val;
+                        }
+                    }
+                }
+            }
+            return payload;
+        },
+    } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    ptvo_multistate_action: {
+        cluster: "genMultistateInput",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const actionLookup: KeyValueAny = {0: "release", 1: "single", 2: "double", 3: "tripple", 4: "hold"};
+            const value = msg.data.presentValue;
+            const action = actionLookup[value];
+            return {action: postfixWithEndpointName(action, msg, model, meta)};
+        },
+    } satisfies Fz.Converter<"genMultistateInput", undefined, ["attributeReport", "readResponse"]>,
+};
+
+function ptvoGetMetaOption(device: Zh.Device | DummyDevice, key: string, defaultValue: unknown) {
+    if (!utils.isDummyDevice(device) && device.meta) {
+        const value = device.meta[key];
+        if (value === undefined) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    return defaultValue;
+}
+
+function ptvoSetMetaOption(device: Zh.Device, key: string, value: unknown) {
+    if (device != null && key != null) {
+        device.meta[key] = value;
+    }
+}
+
+function ptvoAddStandardExposes(endpoint: Zh.Endpoint, expose: Expose[], options: KeyValue, deviceOptions: KeyValue) {
+    const epId = endpoint.ID;
+    const epName = `l${epId}`;
+    if (endpoint.supportsInputCluster("lightingColorCtrl")) {
+        expose.push(e.light_brightness_colorxy().withEndpoint(epName));
+        options.exposed_onoff = true;
+        options.exposed_analog = true;
+        options.exposed_colorcontrol = true;
+    } else if (endpoint.supportsInputCluster("genLevelCtrl")) {
+        expose.push(e.light_brightness().withEndpoint(epName));
+        options.exposed_onoff = true;
+        options.exposed_analog = true;
+        options.exposed_levelcontrol = true;
+    }
+    if (endpoint.supportsInputCluster("genOnOff")) {
+        if (!options.exposed_onoff) {
+            expose.push(e.switch().withEndpoint(epName));
+        }
+    }
+    if (endpoint.supportsInputCluster("genAnalogInput") || endpoint.supportsOutputCluster("genAnalogInput")) {
+        if (!options.exposed_analog) {
+            options.exposed_analog = true;
+            expose.push(e.text(epName, ea.ALL).withEndpoint(epName).withProperty(epName).withDescription("State or sensor value"));
+        }
+    }
+    if (endpoint.supportsInputCluster("msTemperatureMeasurement")) {
+        expose.push(e.temperature().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster("msRelativeHumidity")) {
+        expose.push(e.humidity().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster("msPressureMeasurement")) {
+        expose.push(e.pressure().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster("msIlluminanceMeasurement")) {
+        expose.push(e.illuminance().withEndpoint(epName));
+    }
+    if (endpoint.supportsInputCluster("msCO2")) {
+        expose.push(e.co2());
+    }
+    if (endpoint.supportsInputCluster("pm25Measurement")) {
+        expose.push(e.pm25());
+    }
+    if (endpoint.supportsInputCluster("haElectricalMeasurement")) {
+        // haElectricalMeasurement may expose only one value defined explicitly
+        if (!(options.exposed_voltage || options.exposed_current || options.exposed_power)) {
+            expose.push(e.voltage().withEndpoint(epName));
+            expose.push(e.current().withEndpoint(epName));
+            expose.push(e.power().withEndpoint(epName));
+        }
+    }
+    if (endpoint.supportsInputCluster("seMetering")) {
+        if (!options.exposed_energy) {
+            expose.push(e.energy().withEndpoint(epName));
+        }
+    }
+    if (endpoint.supportsInputCluster("genPowerCfg")) {
+        deviceOptions.expose_battery = true;
+    }
+    if (
+        endpoint.supportsInputCluster("genMultistateInput") ||
+        endpoint.supportsOutputCluster("genMultistateInput") ||
+        Object.hasOwn(endpoint.clusters, "genMultistateInput")
+    ) {
+        deviceOptions.expose_action = true;
+    }
+}
+
+interface MiCasaGasMetering {
+    attributes: {
+        setSummationDelivered: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const AIRWICK_CLUSTER = "airwickCtrl";
+const AIRWICK_ENDPOINT = 10;
+const AIRWICK_SCHEDULE_INFO = "Mon–Fri 07:00–22:00; Sat–Sun 09:00–22:00; every 30 min; duration is configured separately";
+const AIRWICK_DAYS = [
+    {key: "mon", label: "Monday"},
+    {key: "tue", label: "Tuesday"},
+    {key: "wed", label: "Wednesday"},
+    {key: "thu", label: "Thursday"},
+    {key: "fri", label: "Friday"},
+    {key: "sat", label: "Saturday"},
+    {key: "sun", label: "Sunday"},
+] as const;
+
+interface AirwickCtrl {
+    attributes: {
+        mode: number;
+        autoIntervalMin: number;
+        scheduleDays: number;
+        scheduleStartMin: number;
+        scheduleEndMin: number;
+        scheduleIntervalMin: number;
+        timezoneMin: number;
+        sprayCount: number;
+        lastSprayReason: number;
+        lastSprayTime: number;
+        nextSprayTime: number;
+        timeValid: boolean;
+        physicalMode: number;
+        resetCounter: boolean;
+        settingsVersion: number;
+        syncTime: number;
+        batteryMv: number;
+        sprayDurationMs: number;
+        program1Enabled: boolean;
+        program1Days: number;
+        program1StartMin: number;
+        program1EndMin: number;
+        program1IntervalMin: number;
+        program2Enabled: boolean;
+        program2Days: number;
+        program2StartMin: number;
+        program2EndMin: number;
+        program2IntervalMin: number;
+        program3Enabled: boolean;
+        program3Days: number;
+        program3StartMin: number;
+        program3EndMin: number;
+        program3IntervalMin: number;
+        program4Enabled: boolean;
+        program4Days: number;
+        program4StartMin: number;
+        program4EndMin: number;
+        program4IntervalMin: number;
+        program5Enabled: boolean;
+        program5Days: number;
+        program5StartMin: number;
+        program5EndMin: number;
+        program5IntervalMin: number;
+        program6Enabled: boolean;
+        program6Days: number;
+        program6StartMin: number;
+        program6EndMin: number;
+        program6IntervalMin: number;
+        program7Enabled: boolean;
+        program7Days: number;
+        program7StartMin: number;
+        program7EndMin: number;
+        program7IntervalMin: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+const AIRWICK_LIION_CURVE_X2 = [
+    [4200, 200],
+    [4180, 196],
+    [4160, 192],
+    [4140, 188],
+    [4120, 184],
+    [4100, 180],
+    [4080, 176],
+    [4060, 171],
+    [4040, 166],
+    [4020, 160],
+    [4000, 154],
+    [3980, 148],
+    [3960, 142],
+    [3940, 135],
+    [3920, 128],
+    [3900, 120],
+    [3880, 112],
+    [3860, 104],
+    [3840, 96],
+    [3820, 88],
+    [3800, 80],
+    [3780, 72],
+    [3760, 64],
+    [3740, 56],
+    [3720, 48],
+    [3700, 40],
+    [3680, 32],
+    [3660, 25],
+    [3640, 19],
+    [3620, 14],
+    [3600, 10],
+    [3580, 7],
+    [3560, 5],
+    [3540, 3],
+    [3520, 2],
+    [3500, 1],
+    [3400, 0],
+] as const;
+
+const airwickLastClockSyncAttempt = new Map<string, number>();
+const AIRWICK_CLOCK_SYNC_THROTTLE_MS = 60000;
+
+function airwickBatteryPercent(value: unknown): number | undefined {
+    const mv = Number(value);
+    if (!Number.isFinite(mv) || mv < 2500 || mv > 4400) return undefined;
+    if (mv >= AIRWICK_LIION_CURVE_X2[0][0]) return 100;
+
+    for (let i = 1; i < AIRWICK_LIION_CURVE_X2.length; i++) {
+        const [highMv, highX2] = AIRWICK_LIION_CURVE_X2[i - 1];
+        const [lowMv, lowX2] = AIRWICK_LIION_CURVE_X2[i];
+        if (mv >= lowMv) {
+            const x2 = lowX2 + Math.floor(((mv - lowMv) * (highX2 - lowX2) + Math.floor((highMv - lowMv) / 2)) / (highMv - lowMv));
+            return x2 / 2;
+        }
+    }
+
+    return 0;
+}
+
+function airwickMinutesToTime(value: unknown): string {
+    const minutes = Number(value);
+    if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1439) return "—";
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
+
+function airwickTimeToMinutes(value: unknown): number {
+    const text = String(value).trim();
+    const match = /^(\d{1,2}):(\d{2})$/.exec(text);
+    if (!match) throw new Error("Time must be entered as HH:MM, e.g. 07:30");
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) throw new Error("Invalid time; allowed range is 00:00–23:59");
+    return hours * 60 + minutes;
+}
+
+function airwickTimezoneMinutes(meta: Fz.Meta): number {
+    const hours = Number(meta.state?.timezone_hours);
+    return Number.isFinite(hours) ? Math.round(hours * 60) : 180;
+}
+
+function airwickFormatZigbeeTime(value: unknown, timezoneMinutes: number): string {
+    const seconds = Number(value);
+    if (!Number.isFinite(seconds) || seconds <= 0 || seconds >= 0xffffffff) return "—";
+
+    const date = new Date(constants.OneJanuary2000 + (seconds + timezoneMinutes * 60) * 1000);
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const year = date.getUTCFullYear();
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+}
+
+function airwickDelay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function airwickRetry<T>(operation: () => Promise<T>, attempts = 3, delayMs = 350): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            return await operation();
+        } catch (error) {
+            lastError = error;
+            if (attempt < attempts) await airwickDelay(delayMs * attempt);
+        }
+    }
+    throw lastError;
+}
+
+async function airwickSyncClock(device: Zh.Device): Promise<void> {
+    const endpoint = device.getEndpoint(AIRWICK_ENDPOINT);
+    if (!endpoint) throw new Error("AirWick endpoint 10 not found");
+
+    const time = Math.round((Date.now() - constants.OneJanuary2000) / 1000);
+    await endpoint.write<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, {syncTime: time});
+}
+
+function airwickMode(): ModernExtend {
+    const extension = m.enumLookup<"airwickCtrl", AirwickCtrl>({
+        name: "mode",
+        cluster: AIRWICK_CLUSTER,
+        attribute: "mode",
+        lookup: {OFF: 0, AUTO: 1, SCHEDULE: 2, PROGRAMMABLE: 3},
+        description: "Current mode set by the physical selector",
+        label: "Mode",
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg) => {
+            if (msg.data.mode === undefined) return;
+            const names = ["OFF", "AUTO", "SCHEDULE", "PROGRAMMABLE"];
+            return {
+                mode: names[Number(msg.data.mode)] ?? "UNKNOWN",
+                schedule_info: AIRWICK_SCHEDULE_INFO,
+            };
+        },
+    });
+
+    extension.exposes = [
+        ...(extension.exposes ?? []),
+        e.text("schedule_info", ea.STATE).withLabel("SCHEDULE").withDescription("Built-in schedule; no editing required."),
+    ];
+    extension.configure = [
+        ...(extension.configure ?? []),
+        async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(AIRWICK_ENDPOINT);
+            if (!endpoint) throw new Error("AirWick endpoint 10 not found");
+            await airwickRetry(() => endpoint.bind(AIRWICK_CLUSTER, coordinatorEndpoint));
+            await airwickRetry(() =>
+                endpoint.configureReporting<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, [
+                    {attribute: "mode", minimumReportInterval: 0, maximumReportInterval: 3600},
+                ]),
+            );
+        },
+    ];
+    return extension;
+}
+
+function airwickBattery(): ModernExtend {
+    return m.numeric<"airwickCtrl", AirwickCtrl>({
+        name: "battery",
+        cluster: AIRWICK_CLUSTER,
+        attribute: "batteryMv",
+        description: "Battery level",
+        label: "Battery level",
+        unit: "%",
+        valueMin: 0,
+        valueMax: 100,
+        valueStep: 0.5,
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg) => {
+            if (msg.data.batteryMv === undefined) return;
+            const battery = airwickBatteryPercent(msg.data.batteryMv);
+            return battery === undefined ? undefined : {battery};
+        },
+    });
+}
+
+function airwickProgramTime(name: string, attribute: keyof AirwickCtrl["attributes"], label: string): ModernExtend {
+    const extension = m.numeric<"airwickCtrl", AirwickCtrl>({
+        name,
+        cluster: AIRWICK_CLUSTER,
+        attribute,
+        description: "HH:MM",
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg) => {
+            const value = msg.data[attribute];
+            return value === undefined ? undefined : {[name]: airwickMinutesToTime(value)};
+        },
+    });
+
+    extension.exposes = [e.text(name, ea.ALL).withLabel(label).withDescription("HH:MM").withCategory("config")];
+    const converter = extension.toZigbee?.[0];
+    if (converter) {
+        converter.convertSet = async (entity, key, value) => {
+            const minutes = airwickTimeToMinutes(value);
+            await (entity as Zh.Endpoint).write<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, {[attribute]: minutes} as Partial<
+                AirwickCtrl["attributes"]
+            >);
+            return {state: {[key]: airwickMinutesToTime(minutes)}};
+        };
+    }
+    return extension;
+}
+
+function airwickFormattedTime(
+    name: "last_spray_time" | "next_spray_time",
+    attribute: "lastSprayTime" | "nextSprayTime",
+    label: string,
+): ModernExtend {
+    const extension = m.numeric<"airwickCtrl", AirwickCtrl>({
+        name,
+        cluster: AIRWICK_CLUSTER,
+        attribute,
+        description: label,
+        access: "STATE_GET",
+        reporting: {min: 0, max: "1_HOUR", change: 1},
+        fzConvert: (model, msg, publish, options, meta) => {
+            const value = msg.data[attribute];
+            if (value === undefined) return;
+            const timezone = msg.data.timezoneMin !== undefined ? Number(msg.data.timezoneMin) : airwickTimezoneMinutes(meta);
+            return {[name]: airwickFormatZigbeeTime(value, timezone)};
+        },
+    });
+    extension.exposes = [e.text(name, ea.STATE_GET).withLabel(label).withCategory("diagnostic")];
+    return extension;
+}
+
+function airwickTimeValid(): ModernExtend {
+    const extension = m.enumLookup<"airwickCtrl", AirwickCtrl>({
+        name: "time_valid",
+        cluster: AIRWICK_CLUSTER,
+        attribute: "timeValid",
+        lookup: {OFF: false, ON: true},
+        description: "Whether device time is synchronized",
+        access: "STATE_GET",
+        reporting: false,
+        fzConvert: (model, msg, publish, options, meta) => {
+            if (msg.data.timeValid === undefined) return;
+            const valid = Boolean(msg.data.timeValid);
+
+            if (!valid && meta.device) {
+                const key = meta.device.ieeeAddr ?? "airwick";
+                const now = Date.now();
+                const last = airwickLastClockSyncAttempt.get(key) ?? 0;
+                if (now - last >= AIRWICK_CLOCK_SYNC_THROTTLE_MS) {
+                    airwickLastClockSyncAttempt.set(key, now);
+                    void airwickSyncClock(meta.device).catch(() => {});
+                }
+            }
+
+            return {time_valid: valid ? "ON" : "OFF"};
+        },
+    });
+
+    extension.exposes = [e.binary("time_valid", ea.STATE_GET, "ON", "OFF").withLabel("Time synchronized").withCategory("diagnostic")];
+    extension.configure = [
+        ...(extension.configure ?? []),
+        async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(AIRWICK_ENDPOINT);
+            if (!endpoint) throw new Error("AirWick endpoint 10 not found");
+            await airwickRetry(() => endpoint.bind(AIRWICK_CLUSTER, coordinatorEndpoint));
+            await airwickRetry(() =>
+                endpoint.configureReporting<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, [
+                    {attribute: "timeValid", minimumReportInterval: 0, maximumReportInterval: 3600},
+                ]),
+            );
+        },
+    ];
+    return extension;
+}
+
+function airwickSprayAction(): ModernExtend {
+    return {
+        exposes: [
+            e
+                .enum("spray", ea.SET, ["SPRAY"])
+                .withLabel("Spray")
+                .withDescription("One action triggers one spray. This control has no persistent state."),
+        ],
+        toZigbee: [
+            {
+                key: ["spray"],
+                convertSet: async (entity) => {
+                    await entity.command("genOnOff", "on", {}, {});
+                    return {state: {spray: null}};
+                },
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function airwickResetCounter(): ModernExtend {
+    return {
+        exposes: [e.enum("reset_counter", ea.SET, ["RESET"]).withLabel("Reset counter").withCategory("config")],
+        toZigbee: [
+            {
+                key: ["reset_counter"],
+                convertSet: async (entity) => {
+                    await (entity as Zh.Endpoint).write<"airwickCtrl", AirwickCtrl>(AIRWICK_CLUSTER, {resetCounter: true});
+                    return {state: {reset_counter: null, spray_count: 0}};
+                },
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function airwickClockSync(): ModernExtend {
+    return {
+        configure: [async (device) => airwickRetry(() => airwickSyncClock(device))],
+        onEvent: [
+            async (event) => {
+                if (event.type === "start") {
+                    await airwickDelay(800);
+                    try {
+                        await airwickRetry(() => airwickSyncClock(event.data.device), 2, 500);
+                    } catch {
+                        // Firmware keeps time from uptime and will retry later.
+                    }
+                    return;
+                }
+
+                if (event.type === "deviceAnnounce") {
+                    await airwickDelay(1200);
+                    try {
+                        await airwickSyncClock(event.data.device);
+                    } catch {
+                        // Non-fatal for a sleepy end device.
+                    }
+                }
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function airwickProgramDay(day: (typeof AIRWICK_DAYS)[number], slot: number): ModernExtend[] {
+    const enabledAttribute = `program${slot}Enabled` as keyof AirwickCtrl["attributes"];
+    const startAttribute = `program${slot}StartMin` as keyof AirwickCtrl["attributes"];
+    const endAttribute = `program${slot}EndMin` as keyof AirwickCtrl["attributes"];
+    const intervalAttribute = `program${slot}IntervalMin` as keyof AirwickCtrl["attributes"];
+    const prefix = `program_${day.key}`;
+
+    return [
+        m.binary<"airwickCtrl", AirwickCtrl>({
+            name: `${prefix}_enabled`,
+            cluster: AIRWICK_CLUSTER,
+            attribute: enabledAttribute,
+            valueOn: ["ON", true],
+            valueOff: ["OFF", false],
+            description: "Enable this weekday program",
+            label: `PROGRAM — ${day.label}: enabled`,
+            entityCategory: "config",
+        }),
+        airwickProgramTime(`${prefix}_start`, startAttribute, `PROGRAM — ${day.label}: start`),
+        airwickProgramTime(`${prefix}_end`, endAttribute, `PROGRAM — ${day.label}: end`),
+        m.numeric<"airwickCtrl", AirwickCtrl>({
+            name: `${prefix}_interval_min`,
+            cluster: AIRWICK_CLUSTER,
+            attribute: intervalAttribute,
+            description: "Spray interval for this weekday program",
+            label: `PROGRAM — ${day.label}: interval`,
+            unit: "min",
+            valueMin: 1,
+            valueMax: 1440,
+            valueStep: 1,
+            entityCategory: "config",
+        }),
+    ];
+}
+
+export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["AirWick_nRF52840"],
+        model: "AirWick_nRF52840",
+        vendor: "Custom devices (DiY)",
+        description: "AirWick smart aerosol dispenser",
+        extend: [
+            m.deviceAddCustomCluster(AIRWICK_CLUSTER, {
+                name: AIRWICK_CLUSTER,
+                ID: 0xfc00,
+                attributes: {
+                    mode: {name: "mode", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 3},
+                    autoIntervalMin: {name: "autoIntervalMin", ID: 0x0001, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    scheduleDays: {name: "scheduleDays", ID: 0x0002, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    scheduleStartMin: {name: "scheduleStartMin", ID: 0x0003, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    scheduleEndMin: {name: "scheduleEndMin", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    scheduleIntervalMin: {name: "scheduleIntervalMin", ID: 0x0005, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    timezoneMin: {name: "timezoneMin", ID: 0x0006, type: Zcl.DataType.INT16, write: true, min: -720, max: 840},
+                    sprayCount: {name: "sprayCount", ID: 0x0007, type: Zcl.DataType.UINT32},
+                    lastSprayReason: {name: "lastSprayReason", ID: 0x0008, type: Zcl.DataType.UINT8, max: 5},
+                    lastSprayTime: {name: "lastSprayTime", ID: 0x0009, type: Zcl.DataType.UTC},
+                    nextSprayTime: {name: "nextSprayTime", ID: 0x000a, type: Zcl.DataType.UTC},
+                    timeValid: {name: "timeValid", ID: 0x000b, type: Zcl.DataType.BOOLEAN},
+                    physicalMode: {name: "physicalMode", ID: 0x000d, type: Zcl.DataType.UINT8},
+                    resetCounter: {name: "resetCounter", ID: 0x000e, type: Zcl.DataType.BOOLEAN, write: true},
+                    settingsVersion: {name: "settingsVersion", ID: 0x000f, type: Zcl.DataType.UINT8},
+                    syncTime: {name: "syncTime", ID: 0x0010, type: Zcl.DataType.UINT32, write: true},
+                    batteryMv: {name: "batteryMv", ID: 0x0011, type: Zcl.DataType.UINT16},
+                    sprayDurationMs: {name: "sprayDurationMs", ID: 0x0012, type: Zcl.DataType.UINT16, write: true, min: 300, max: 1000},
+                    program1Enabled: {name: "program1Enabled", ID: 0x0020, type: Zcl.DataType.BOOLEAN, write: true},
+                    program1Days: {name: "program1Days", ID: 0x0021, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program1StartMin: {name: "program1StartMin", ID: 0x0022, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program1EndMin: {name: "program1EndMin", ID: 0x0023, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program1IntervalMin: {name: "program1IntervalMin", ID: 0x0024, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program2Enabled: {name: "program2Enabled", ID: 0x0028, type: Zcl.DataType.BOOLEAN, write: true},
+                    program2Days: {name: "program2Days", ID: 0x0029, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program2StartMin: {name: "program2StartMin", ID: 0x002a, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program2EndMin: {name: "program2EndMin", ID: 0x002b, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program2IntervalMin: {name: "program2IntervalMin", ID: 0x002c, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program3Enabled: {name: "program3Enabled", ID: 0x0030, type: Zcl.DataType.BOOLEAN, write: true},
+                    program3Days: {name: "program3Days", ID: 0x0031, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program3StartMin: {name: "program3StartMin", ID: 0x0032, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program3EndMin: {name: "program3EndMin", ID: 0x0033, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program3IntervalMin: {name: "program3IntervalMin", ID: 0x0034, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program4Enabled: {name: "program4Enabled", ID: 0x0038, type: Zcl.DataType.BOOLEAN, write: true},
+                    program4Days: {name: "program4Days", ID: 0x0039, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program4StartMin: {name: "program4StartMin", ID: 0x003a, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program4EndMin: {name: "program4EndMin", ID: 0x003b, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program4IntervalMin: {name: "program4IntervalMin", ID: 0x003c, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program5Enabled: {name: "program5Enabled", ID: 0x0040, type: Zcl.DataType.BOOLEAN, write: true},
+                    program5Days: {name: "program5Days", ID: 0x0041, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program5StartMin: {name: "program5StartMin", ID: 0x0042, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program5EndMin: {name: "program5EndMin", ID: 0x0043, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program5IntervalMin: {name: "program5IntervalMin", ID: 0x0044, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program6Enabled: {name: "program6Enabled", ID: 0x0048, type: Zcl.DataType.BOOLEAN, write: true},
+                    program6Days: {name: "program6Days", ID: 0x0049, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program6StartMin: {name: "program6StartMin", ID: 0x004a, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program6EndMin: {name: "program6EndMin", ID: 0x004b, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program6IntervalMin: {name: "program6IntervalMin", ID: 0x004c, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                    program7Enabled: {name: "program7Enabled", ID: 0x0050, type: Zcl.DataType.BOOLEAN, write: true},
+                    program7Days: {name: "program7Days", ID: 0x0051, type: Zcl.DataType.UINT8, write: true, max: 0x7f},
+                    program7StartMin: {name: "program7StartMin", ID: 0x0052, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program7EndMin: {name: "program7EndMin", ID: 0x0053, type: Zcl.DataType.UINT16, write: true, max: 1439},
+                    program7IntervalMin: {name: "program7IntervalMin", ID: 0x0054, type: Zcl.DataType.UINT16, write: true, max: 1440},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.forcePowerSource({powerSource: "Battery"}),
+            airwickSprayAction(),
+            airwickMode(),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "battery_v",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "batteryMv",
+                description: "Battery voltage",
+                label: "Battery voltage",
+                unit: "V",
+                valueStep: 0.001,
+                scale: 1000,
+                access: "STATE_GET",
+                reporting: {min: 30, max: "1_HOUR", change: 10},
+            }),
+            airwickBattery(),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "spray_duration_ms",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "sprayDurationMs",
+                description: "Shared by OFF, AUTO, SCHEDULE and PROGRAMMABLE; persists when switching modes.",
+                label: "Spray duration",
+                unit: "ms",
+                valueMin: 300,
+                valueMax: 1000,
+                valueStep: 10,
+            }),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "auto_interval_min",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "autoIntervalMin",
+                description: "Spray interval in AUTO mode",
+                label: "AUTO: interval",
+                unit: "min",
+                valueMin: 1,
+                valueMax: 1440,
+                valueStep: 1,
+                entityCategory: "config",
+            }),
+            ...AIRWICK_DAYS.flatMap((day, index) => airwickProgramDay(day, index + 1)),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "timezone_hours",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "timezoneMin",
+                description: "UTC timezone",
+                label: "UTC timezone",
+                unit: "h",
+                valueMin: -12,
+                valueMax: 14,
+                valueStep: 0.5,
+                scale: 60,
+                entityCategory: "config",
+            }),
+            m.numeric<"airwickCtrl", AirwickCtrl>({
+                name: "spray_count",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "sprayCount",
+                description: "Number of sprays",
+                label: "Spray counter",
+                valueMin: 0,
+                access: "STATE_GET",
+                reporting: {min: 0, max: "1_HOUR", change: 1},
+            }),
+            airwickResetCounter(),
+            m.enumLookup<"airwickCtrl", AirwickCtrl>({
+                name: "last_spray_reason",
+                cluster: AIRWICK_CLUSTER,
+                attribute: "lastSprayReason",
+                lookup: {None: 0, Zigbee: 1, Button: 2, AUTO: 3, SCHEDULE: 4, PROGRAM: 5},
+                description: "Reason for the last spray",
+                label: "Last spray reason",
+                access: "STATE_GET",
+                reporting: {min: 0, max: "1_HOUR", change: 1},
+                entityCategory: "diagnostic",
+            }),
+            airwickFormattedTime("last_spray_time", "lastSprayTime", "Last spray"),
+            airwickFormattedTime("next_spray_time", "nextSprayTime", "Next spray"),
+            airwickTimeValid(),
+            airwickClockSync(),
+        ],
+    },
+    {
+        /** @see https://github.com/Nerivec/silabs-firmware-builder/releases */
+        fingerprint: [
+            {modelID: "ZGA008", manufacturerName: "Aeotec", applicationVersion: 200},
+            {modelID: "ZB-GW04", manufacturerName: "easyiot", applicationVersion: 200},
+            {modelID: "ZB-GW04-1v1", manufacturerName: "easyiot", applicationVersion: 200},
+            {modelID: "ZB-GW04-1v2", manufacturerName: "easyiot", applicationVersion: 200},
+            {modelID: "ZBM-MG24", manufacturerName: "Inswift", applicationVersion: 200},
+            {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
+            {modelID: "ZBT-2", manufacturerName: "NabuCasa", applicationVersion: 200},
+            {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MU", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG24U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-06MG26U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-07", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-07MG24", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-07MG26", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR1U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR2U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR3U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR4U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "SLZB-MR5U", manufacturerName: "SMLIGHT", applicationVersion: 200},
+            {modelID: "DONGLE-E", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "Dongle-LMG21", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "Dongle-M", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "Dongle-PMG24", manufacturerName: "SONOFF", applicationVersion: 200},
+            {modelID: "MGM240P", manufacturerName: "SparkFun", applicationVersion: 200},
+            {modelID: "MGM24", manufacturerName: "TubesZB", applicationVersion: 200},
+            {modelID: "BM24", manufacturerName: "TubesZB", applicationVersion: 200},
+            {modelID: "V6", manufacturerName: "EGONY", applicationVersion: 200},
+        ],
+        model: "Silabs series 2 router",
+        vendor: "Silabs",
+        description: "Silabs series 2 adapter with router firmware",
+        toZigbee: [tz.factory_reset],
+        exposes: [
+            e
+                .enum("reset", ea.SET, ["reset"])
+                .withDescription(
+                    "Resets and launches the bootloader for flashing. If USB, ensure the device is already connected to the machine where you intend to flash it before triggering this.",
+                ),
+        ],
+        extend: [m.linkQuality({reporting: true})],
+        // prevent timeout with tz.factory_reset (reboots adapter into bootloader, hence disconnected)
+        // since this is the only tz, it's not a problem to disable this globally
+        meta: {disableDefaultResponse: true},
+    },
+    {
+        zigbeeModel: ["ti.router"],
+        model: "ti.router",
+        vendor: "Custom devices (DiY)",
+        description: "Texas Instruments router",
+        whiteLabel: [{vendor: "SONOFF", model: "ZBDongle-P", description: "Sonoff Zigbee 3.0 USB Dongle Plus (CC2652P) with router firmware"}],
+        fromZigbee: [fzLocal.tirouter],
+        toZigbee: [tzLocal.tirouter],
+        exposes: [
+            e
+                .numeric("transmit_power", ea.ALL)
+                .withValueMin(-20)
+                .withValueMax(20)
+                .withValueStep(1)
+                .withUnit("dBm")
+                .withDescription(
+                    "Transmit power, supported from firmware 20221102. The max is 20 dBm for CC1352P/CC2652P (default 9 dBm) and " +
+                        "5 dBm for CC2652R/CC2652RB (any higher value is converted to 5 dBm)",
+                ),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(8);
+            const payload = [{attribute: "zclVersion" as const, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0}];
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
+            await endpoint.configureReporting("genBasic", payload);
+        },
+    },
+    {
+        zigbeeModel: ["lumi.router"],
+        model: "CC2530.ROUTER",
+        vendor: "Custom devices (DiY)",
+        description: "CC2530 router",
+        fromZigbee: [fzLocal.CC2530ROUTER_led, fzLocal.CC2530ROUTER_meta],
+        toZigbee: [tzLocal.ptvo_switch_trigger],
+        exposes: [e.binary("led", ea.STATE, true, false)],
+    },
+    {
+        zigbeeModel: ["cc2538.router.v1"],
+        model: "CC2538.ROUTER.V1",
+        vendor: "Custom devices (DiY)",
+        description: "MODKAM stick CC2538 router",
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
+        zigbeeModel: ["cc2538.router.v2"],
+        model: "CC2538.ROUTER.V2",
+        vendor: "Custom devices (DiY)",
+        description: "MODKAM stick CC2538 router with temperature sensor",
+        fromZigbee: [fz.device_temperature],
+        toZigbee: [],
+        exposes: [e.device_temperature()],
+    },
+    {
+        zigbeeModel: ["ptvo.switch"],
+        model: "ptvo.switch",
+        vendor: "Custom devices (DiY)",
+        description: "Multi-functional device",
+        fromZigbee: [
+            fz.battery,
+            fz.on_off,
+            fzLocal.ptvo_multistate_action,
+            fzLocal.ptvo_switch_uart,
+            fzLocal.ptvo_switch_analog_input,
+            fz.brightness,
+            fz.temperature,
+            fzLocal.humidity2,
+            fzLocal.pressure2,
+            fzLocal.illuminance2,
+            fz.electrical_measurement,
+            fz.metering,
+            fz.co2,
+            fz.color_colortemp,
+        ],
+        toZigbee: [
+            tzLocal.ptvo_switch_trigger,
+            tzLocal.ptvo_switch_uart,
+            tzLocal.ptvo_switch_analog_input,
+            tzLocal.ptvo_switch_light_brightness,
+            tzLocal.ptvo_on_off,
+            tz.light_color,
+        ],
+        exposes: (device, options) => {
+            const expose: Expose[] = [];
+            const exposeDeviceOptions: KeyValue = {};
+            const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
+            if (deviceConfig === "" || utils.isDummyDevice(device)) {
+                if (!utils.isDummyDevice(device)) {
+                    for (const endpoint of device.endpoints) {
+                        const exposeEpOptions: KeyValue = {};
+                        ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
+                    }
+                } else {
+                    // fallback code
+                    for (let epId = 1; epId <= 8; epId++) {
+                        const epName = `l${epId}`;
+                        expose.push(e.text(epName, ea.ALL).withEndpoint(epName).withProperty(epName).withDescription("State or sensor value"));
+                        expose.push(e.switch().withEndpoint(epName));
+                    }
+                }
+            } else {
+                // device configuration description from a device
+                const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
+                const allEndpoints: {[key: number]: string} = {};
+                const allEndpointsSorted = [];
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                let epConfig;
+                for (let i = 0; i < deviceConfigArray.length; i++) {
+                    epConfig = deviceConfigArray[i];
+                    const matches = epConfig.match(/^([0-9A-F]+)/);
+                    if (!matches || matches.length === 0) {
+                        continue;
+                    }
+                    const epId = Number.parseInt(matches[0], 16);
+                    const epId2 = epId < 10 ? `0${epId}` : epId;
+                    epConfig = epConfig.replace(/^[0-9A-F]+/, epId2);
+                    allEndpoints[epId] = "1";
+                    allEndpointsSorted.push(epConfig);
+                }
+
+                for (const endpoint of device.endpoints) {
+                    if (allEndpoints[endpoint.ID] !== undefined) {
+                        continue;
+                    }
+                    epConfig = endpoint.ID.toString();
+                    if (endpoint.ID < 10) {
+                        epConfig = `0${epConfig}`;
+                    }
+                    allEndpointsSorted.push(epConfig);
+                }
+                allEndpointsSorted.sort();
+
+                for (let i = 0; i < allEndpointsSorted.length; i++) {
+                    epConfig = allEndpointsSorted[i];
+                    const epId = Number.parseInt(epConfig.substr(0, 2), 10);
+                    epConfig = epConfig.substring(2);
+                    const epName = `l${epId}`;
+                    const epValueAccessRights = epConfig.substr(0, 1);
+                    const epStateType = epValueAccessRights === "W" || epValueAccessRights === "*" ? ea.STATE_SET : ea.STATE;
+                    const valueConfig = epConfig.substr(1);
+                    const valueConfigItems = valueConfig ? valueConfig.split(",") : [];
+                    let valueId = valueConfigItems[0] ? valueConfigItems[0] : "";
+                    let valueDescription = valueConfigItems[1] ? valueConfigItems[1] : "";
+                    let valueUnit = valueConfigItems[2] !== undefined ? valueConfigItems[2] : "";
+                    if (exposeDeviceOptions[epName] === undefined) {
+                        exposeDeviceOptions[epName] = {};
+                    }
+                    const exposeEpOptions: KeyValueAny = exposeDeviceOptions[epName];
+                    if (valueId === "*") {
+                        // GPIO output (Generic)
+                        exposeEpOptions.exposed_onoff = true;
+                        expose.push(e.switch().withEndpoint(epName));
+                    } else if (valueId === "#") {
+                        // GPIO state (contact, gas, noise, occupancy, presence, smoke, sos, tamper, vibration, water leak)
+                        exposeEpOptions.exposed_onoff = true;
+                        let exposeObj: Expose;
+                        switch (valueDescription) {
+                            case "g":
+                                exposeObj = e.gas();
+                                break;
+                            case "n":
+                                exposeObj = e.noise_detected();
+                                break;
+                            case "o":
+                                exposeObj = e.occupancy();
+                                break;
+                            case "p":
+                                exposeObj = e.presence();
+                                break;
+                            case "m":
+                                exposeObj = e.smoke();
+                                break;
+                            case "s":
+                                exposeObj = e.sos();
+                                break;
+                            case "t":
+                                exposeObj = e.tamper();
+                                break;
+                            case "v":
+                                exposeObj = e.vibration();
+                                break;
+                            case "w":
+                                exposeObj = e.water_leak();
+                                break;
+                            default: // 'c'
+                                exposeObj = e.contact();
+                        }
+                        expose.push(exposeObj.withProperty("state").withEndpoint(epName));
+                    } else if (valueConfigItems.length > 0) {
+                        let valueName: string; // name in Z2M
+                        let valueNumIndex: string;
+                        const idxPos = valueId.search(/(\d+)$/);
+                        if (valueId.startsWith("mcpm") || valueId.startsWith("ncpm")) {
+                            const num = Number.parseInt(valueId.substr(4, 1), 16);
+                            valueName = valueId.substr(0, 4) + num;
+                        } else if (idxPos >= 0) {
+                            valueNumIndex = valueId.substr(idxPos);
+                            valueId = valueId.substr(0, idxPos);
+                        }
+
+                        // analog value
+                        // 1: value name (if empty, use the EP name)
+                        // 2: description (if empty or undefined, use the value name)
+                        // 3: units (if undefined, use the key name)
+                        const infoLookup: {[key: string]: string} = {
+                            C: "temperature",
+                            "%": "humidity",
+                            m: "altitude",
+                            Pa: "pressure",
+                            ppm: "quality",
+                            psize: "particle_size",
+                            V: "voltage",
+                            A: "current",
+                            Wh: "energy",
+                            W: "power",
+                            Hz: "frequency",
+                            pf: "power_factor",
+                            lx: "illuminance",
+                        };
+                        valueName = valueName !== undefined ? valueName : infoLookup[valueId];
+
+                        if (valueName === undefined && valueNumIndex) {
+                            valueName = `val${valueNumIndex}`;
+                        }
+                        if (valueName) {
+                            exposeEpOptions[`exposed_${valueName}`] = true;
+                        }
+
+                        valueName = valueName === undefined ? epName : `${valueName}_${epName}`;
+
+                        if (valueDescription === undefined || valueDescription === "") {
+                            if (infoLookup[valueId]) {
+                                valueDescription = infoLookup[valueId];
+                                valueDescription = valueDescription.replace("_", " ");
+                            } else {
+                                valueDescription = "Sensor value";
+                            }
+                        }
+                        valueDescription = valueDescription.substring(0, 1).toUpperCase() + valueDescription.substring(1);
+
+                        if (valueNumIndex) {
+                            valueDescription = `${valueDescription} ${valueNumIndex}`;
+                        }
+
+                        if ((valueUnit === undefined || valueUnit === "") && infoLookup[valueId]) {
+                            valueUnit = valueId;
+                        }
+
+                        exposeEpOptions.exposed_analog = true;
+                        expose.push(
+                            e
+                                .numeric(valueName, epStateType)
+                                .withValueMin(-9999999)
+                                .withValueMax(9999999)
+                                .withValueStep(1)
+                                .withDescription(valueDescription)
+                                .withUnit(valueUnit),
+                        );
+                    }
+
+                    const epConfigNext = allEndpointsSorted[i + 1] || "-1";
+                    const epIdNext = Number.parseInt(epConfigNext.substr(0, 2), 10);
+                    if (epIdNext !== epId) {
+                        const endpoint = device.getEndpoint(epId);
+                        if (!endpoint) {
+                            continue;
+                        }
+                        ptvoAddStandardExposes(endpoint, expose, exposeEpOptions, exposeDeviceOptions);
+                    }
+                }
+            }
+            if (exposeDeviceOptions.expose_action) {
+                expose.push(e.action(["single", "double", "triple", "hold", "release"]));
+            }
+            if (exposeDeviceOptions.expose_battery) {
+                expose.push(e.battery());
+            }
+
+            return expose;
+        },
+        meta: {multiEndpoint: true, tuyaThermostatPreset: legacy.fz /* for subclassed custom converters */},
+        endpoint: (device) => {
+            const endpointList: Record<string, number> = {};
+            let count = 0;
+            const deviceConfig = ptvoGetMetaOption(device, "device_config", "");
+            if (device?.endpoints) {
+                for (const endpoint of device.endpoints) {
+                    const epId = endpoint.ID;
+                    const epName = `l${epId}`;
+                    endpointList[epName] = epId;
+                    count++;
+                }
+            }
+            if (deviceConfig === "") {
+                if (count === 0) {
+                    // fallback code
+                    for (let epId = 1; epId <= 8; epId++) {
+                        const epName = `l${epId}`;
+                        endpointList[epName] = epId;
+                    }
+                }
+            } else {
+                const deviceConfigArray = deviceConfig.split(/[\r\n]+/);
+                // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
+                let epConfig;
+                for (let i = 0; i < deviceConfigArray.length; i++) {
+                    epConfig = deviceConfigArray[i];
+                    const matches = epConfig.match(/^([0-9A-F]+)/);
+                    if (!matches || matches.length === 0) {
+                        continue;
+                    }
+                    const epId = Number.parseInt(matches[0], 16);
+                    const epName = `l${epId}`;
+                    endpointList[epName] = epId;
+                }
+            }
+            endpointList.action = 1;
+            return endpointList;
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            if (device != null) {
+                const controlEp = device.getEndpoint(1);
+                if (controlEp != null) {
+                    try {
+                        const deviceConfig = await controlEp.read("genBasic", [32768]);
+                        if (deviceConfig) {
+                            ptvoSetMetaOption(device, "device_config", deviceConfig[32768]);
+                            device.save();
+                        }
+                    } catch {
+                        /* do nothing */
+                    }
+                }
+                for (const endpoint of device.endpoints) {
+                    if (endpoint.supportsInputCluster("haElectricalMeasurement")) {
+                        endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {
+                            dcCurrentDivisor: 1000,
+                            dcCurrentMultiplier: 1,
+                            dcPowerDivisor: 10,
+                            dcPowerMultiplier: 1,
+                            dcVoltageDivisor: 100,
+                            dcVoltageMultiplier: 1,
+                            acVoltageDivisor: 100,
+                            acVoltageMultiplier: 1,
+                            acCurrentDivisor: 1000,
+                            acCurrentMultiplier: 1,
+                            acPowerDivisor: 1,
+                            acPowerMultiplier: 1,
+                        });
+                    }
+                    if (endpoint.supportsInputCluster("seMetering")) {
+                        endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 1000, multiplier: 1});
+                    }
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ["DNCKAT_D001"],
+        model: "DNCKATSD001",
+        vendor: "Custom devices (DiY)",
+        description: "DNCKAT single key wired wall dimmable light switch",
+        extend: [m.light()],
+    },
+    {
+        zigbeeModel: ["DNCKAT_S001"],
+        model: "DNCKATSW001",
+        vendor: "Custom devices (DiY)",
+        description: "DNCKAT single key wired wall light switch",
+        extend: [m.onOff()],
+    },
+    {
+        zigbeeModel: ["DNCKAT_S002"],
+        model: "DNCKATSW002",
+        vendor: "Custom devices (DiY)",
+        description: "DNCKAT double key wired wall light switch",
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, right: 2}}), m.onOff({endpointNames: ["left", "right"]})],
+        exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right"])],
+    },
+    {
+        zigbeeModel: ["DNCKAT_S003"],
+        model: "DNCKATSW003",
+        vendor: "Custom devices (DiY)",
+        description: "DNCKAT triple key wired wall light switch",
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
+        extend: [m.deviceEndpoints({endpoints: {left: 1, center: 2, right: 3}}), m.onOff({endpointNames: ["left", "center", "right"]})],
+        exposes: [e.action(["release_left", "hold_left", "release_right", "hold_right", "release_center", "hold_center"])],
+    },
+    {
+        zigbeeModel: ["DNCKAT_S004"],
+        model: "DNCKATSW004",
+        vendor: "Custom devices (DiY)",
+        description: "DNCKAT quadruple key wired wall light switch",
+        fromZigbee: [fzLocal.DNCKAT_S00X_buttons],
+        extend: [
+            m.deviceEndpoints({endpoints: {bottom_left: 1, bottom_right: 2, top_left: 3, top_right: 4}}),
+            m.onOff({endpointNames: ["bottom_left", "bottom_right", "top_left", "top_right"]}),
+        ],
+        exposes: [
+            e.action([
+                "release_bottom_left",
+                "hold_bottom_left",
+                "release_bottom_right",
+                "hold_bottom_right",
+                "release_top_left",
+                "hold_top_left",
+                "release_top_right",
+                "hold_top_right",
+            ]),
+        ],
+    },
+    {
+        zigbeeModel: ["ZigUP"],
+        model: "ZigUP",
+        vendor: "Custom devices (DiY)",
+        description: "CC2530 based Zigbee relais, switch, sensor and router",
+        fromZigbee: [fzLocal.ZigUP],
+        toZigbee: [tz.on_off, tz.light_color, tzLocal.ZigUP_lock],
+        exposes: [e.switch()],
+    },
+    {
+        zigbeeModel: ["ZWallRemote0"],
+        model: "ZWallRemote0",
+        vendor: "Custom devices (DiY)",
+        description: "Matts Wall Switch Remote",
+        fromZigbee: [fz.command_toggle],
+        toZigbee: [],
+        exposes: [e.action(["toggle"])],
+    },
+    {
+        zigbeeModel: ["ZeeFlora"],
+        model: "ZeeFlora",
+        vendor: "Custom devices (DiY)",
+        description: "Flower sensor with rechargeable battery",
+        fromZigbee: [fz.temperature, fz.soil_moisture, fz.battery],
+        toZigbee: [],
+        meta: {multiEndpoint: true},
+        configure: async (device, coordinatorEndpoint) => {
+            const firstEndpoint = device.getEndpoint(1);
+            await reporting.bind(firstEndpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement", "msSoilMoisture"]);
+            const overrides = {min: 0, max: 3600, change: 0};
+            await reporting.batteryVoltage(firstEndpoint, overrides);
+            await reporting.batteryPercentageRemaining(firstEndpoint, overrides);
+            await reporting.temperature(firstEndpoint, overrides);
+            await reporting.soil_moisture(firstEndpoint, overrides);
+        },
+        exposes: [e.soil_moisture(), e.battery(), e.temperature()],
+        extend: [m.illuminance()],
+    },
+    {
+        zigbeeModel: ["UT-01"],
+        model: "EFR32MG21.Router.1",
+        vendor: "Custom devices (DiY)",
+        description: "EFR32MG21 Zigbee bridge router",
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
+    {
+        zigbeeModel: ["UT-02"],
+        model: "EFR32MG21.Router.2",
+        vendor: "Custom devices (DiY)",
+        description: "EFR32MG21 router",
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+    },
+    {
+        zigbeeModel: ["b-parasite"],
+        model: "b-parasite",
+        vendor: "Custom devices (DiY)",
+        description: "b-parasite open source soil moisture sensor",
+        fromZigbee: [fz.temperature, fz.humidity, fz.battery, fz.soil_moisture],
+        toZigbee: [],
+        exposes: [e.temperature(), e.humidity(), e.battery(), e.soil_moisture()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(10);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement", "msRelativeHumidity", "msSoilMoisture"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.temperature(endpoint);
+            await reporting.humidity(endpoint);
+            await reporting.soil_moisture(endpoint);
+        },
+        extend: [m.illuminance(), m.identify()],
+    },
+    {
+        zigbeeModel: ["MULTI-ZIG-SW"],
+        model: "MULTI-ZIG-SW",
+        vendor: "smarthjemmet.dk",
+        description: "Multi switch from Smarthjemmet.dk",
+        fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
+        exposes: [
+            ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
+            ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
+            ...[e.enum("switch_type_3", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_3")],
+            ...[e.enum("switch_type_4", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_4")],
+            e.battery(),
+            e.action(["single", "double", "triple", "hold", "release"]),
+            e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genBasic", ["modelId", "swBuildId", "powerSource"]);
+        },
+    },
+    {
+        // https://github.com/devbis/z03mmc/
+        zigbeeModel: ["LYWSD03MMC"],
+        model: "LYWSD03MMC",
+        vendor: "Custom devices (DiY)",
+        description: "Xiaomi temperature & humidity sensor with custom firmware",
+        extend: [
+            m.quirkAddEndpointCluster({
+                endpointID: 1,
+                outputClusters: [],
+                inputClusters: ["genPowerCfg", "msTemperatureMeasurement", "msRelativeHumidity", "hvacUserInterfaceCfg"],
+            }),
+            m.battery(),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The units of the temperature displayed on the device screen.",
+            }),
+            m.binary({
+                name: "show_smiley",
+                valueOn: ["SHOW", 1],
+                valueOff: ["HIDE", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0010, type: Zcl.DataType.BOOLEAN},
+                description: "Whether to show a smiley on the device screen.",
+            }),
+            m.binary({
+                name: "enable_display",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0011, type: Zcl.DataType.BOOLEAN},
+                description: "Whether to turn display on/off.",
+            }),
+            m.numeric({
+                name: "temperature_calibration",
+                unit: "°C",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                valueStep: 0.01,
+                scale: 100,
+                description: "The temperature calibration offset is set in 0.01° steps.",
+            }),
+            m.numeric({
+                name: "humidity_calibration",
+                unit: "%",
+                cluster: "msRelativeHumidity",
+                attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                valueStep: 0.01,
+                scale: 100,
+                description: "The humidity calibration offset is set in 0.01 % steps.",
+            }),
+            m.numeric({
+                name: "comfort_temperature_min",
+                unit: "°C",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: "Comfort parameters/Temperature minimum, in 0.01°C steps.",
+            }),
+            m.numeric({
+                name: "comfort_temperature_max",
+                unit: "°C",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
+                valueMin: -100.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: "Comfort parameters/Temperature maximum, in 0.01°C steps.",
+            }),
+            m.numeric({
+                name: "comfort_humidity_min",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0104, type: Zcl.DataType.UINT16},
+                valueMin: 0.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: "Comfort parameters/Humidity minimum, in 0.01% steps.",
+            }),
+            m.numeric({
+                name: "comfort_humidity_max",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0105, type: Zcl.DataType.UINT16},
+                valueMin: 0.0,
+                valueMax: 100.0,
+                scale: 100,
+                description: "Comfort parameters/Humidity maximum, in 0.01% steps.",
+            }),
+        ],
+        ota: true,
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            const bindClusters = ["msTemperatureMeasurement", "msRelativeHumidity", "genPowerCfg"];
+            await reporting.bind(endpoint, coordinatorEndpoint, bindClusters);
+            await reporting.temperature(endpoint, {min: 10, max: 300, change: 10});
+            await reporting.humidity(endpoint, {min: 10, max: 300, change: 50});
+            await reporting.batteryPercentageRemaining(endpoint);
+            try {
+                await endpoint.read("hvacThermostat", [0x0010, 0x0011, 0x0102, 0x0103, 0x0104, 0x0105]);
+                await endpoint.read("msTemperatureMeasurement", [0x0010]);
+                await endpoint.read("msRelativeHumidity", [0x0010]);
+            } catch {
+                /* backward compatibility */
+            }
+        },
+    },
+    {
+        zigbeeModel: ["MHO-C401N"],
+        model: "MHO-C401N",
+        vendor: "Custom devices (DiY)",
+        description: "Xiaomi temperature & humidity sensor with custom firmware",
+        extend: [
+            m.quirkAddEndpointCluster({
+                endpointID: 1,
+                outputClusters: ["hvacUserInterfaceCfg"],
+                inputClusters: ["genPowerCfg", "msTemperatureMeasurement", "msRelativeHumidity", "hvacUserInterfaceCfg"],
+            }),
+            m.battery(),
+            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
+            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
+            // Temperature display and show smile.
+            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issue-2033984519
+            m.enumLookup({
+                name: "temperature_display_mode",
+                lookup: {celsius: 0, fahrenheit: 1},
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "tempDisplayMode",
+                description: "The units of the temperature displayed on the device screen.",
+            }),
+            m.binary({
+                name: "show_smile",
+                valueOn: ["HIDE", 1],
+                valueOff: ["SHOW", 0],
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "programmingVisibility",
+                description: "Whether to show a smile on the device screen.",
+            }),
+            // Setting offsets for temperature and humidity.
+            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
+            m.numeric({
+                name: "temperature_calibration",
+                unit: "C",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0100, type: 40},
+                valueMin: -12.7,
+                valueMax: 12.7,
+                valueStep: 0.1,
+                scale: 10,
+                description: "The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.",
+            }),
+            m.numeric({
+                name: "humidity_calibration",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0101, type: 40},
+                valueMin: -12.7,
+                valueMax: 12.7,
+                valueStep: 0.1,
+                scale: 10,
+                description: "The humidity offset is set in 0.1 % steps. Requires v0.1.1.6 or newer.",
+            }),
+            // Comfort parameters.
+            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issuecomment-1855763432
+            m.numeric({
+                name: "comfort_temperature_min",
+                unit: "C",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0102, type: 40},
+                valueMin: -127,
+                valueMax: 127,
+                description: "Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.",
+            }),
+            m.numeric({
+                name: "comfort_temperature_max",
+                unit: "C",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0103, type: 40},
+                valueMin: -127,
+                valueMax: 127,
+                description: "Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.",
+            }),
+            m.numeric({
+                name: "comfort_humidity_min",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0104, type: 32},
+                valueMin: 0,
+                valueMax: 100,
+                description: "Comfort parameters/Humidity minimum, in 1% steps. Requires v0.1.1.7 or newer.",
+            }),
+            m.numeric({
+                name: "comfort_humidity_max",
+                unit: "%",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: {ID: 0x0105, type: 32},
+                valueMin: 0,
+                valueMax: 100,
+                description: "Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.",
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["QUAD-ZIG-SW"],
+        model: "QUAD-ZIG-SW",
+        vendor: "smarthjemmet.dk",
+        description: "FUGA compatible switch from Smarthjemmet.dk",
+        fromZigbee: [fzLocal.multi_zig_sw_switch_buttons, fzLocal.multi_zig_sw_battery, fzLocal.multi_zig_sw_switch_config],
+        toZigbee: [tzLocal.multi_zig_sw_switch_type],
+        extend: [genOnOffSwitchCfgSwitchTypeWritable],
+        exposes: [
+            ...[e.enum("switch_type_1", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_1")],
+            ...[e.enum("switch_type_2", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_2")],
+            ...[e.enum("switch_type_3", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_3")],
+            ...[e.enum("switch_type_4", exposes.access.ALL, Object.keys(switchTypesList)).withEndpoint("button_4")],
+            e.battery(),
+            e.action(["single", "double", "triple", "hold", "release"]),
+            e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {button_1: 2, button_2: 3, button_3: 4, button_4: 5};
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("genBasic", ["modelId", "swBuildId", "powerSource"]);
+        },
+    },
+    {
+        zigbeeModel: ["ptvo_counter_2ch"],
+        model: "ptvo_counter_2ch",
+        vendor: "Custom devices (DiY)",
+        description: "2 channel counter",
+        fromZigbee: [fz.battery, fzLocal.ptvo_switch_analog_input, fz.on_off],
+        toZigbee: [tzLocal.ptvo_switch_trigger, tzLocal.ptvo_switch_analog_input, tz.on_off],
+        exposes: [
+            e.battery(),
+            e
+                .numeric("l3", ea.ALL)
+                .withValueMin(-999999999)
+                .withValueMax(999999999)
+                .withDescription(
+                    "Counter 1 value. Write zero or positive value to set a counter value. " +
+                        "Write a negative value to set a wakeup interval in minutes",
+                ),
+            e
+                .numeric("l5", ea.ALL)
+                .withValueMin(-999999999)
+                .withValueMax(999999999)
+                .withDescription(
+                    "Counter 2 value. Write zero or positive value to set a counter value. " +
+                        "Write a negative value to set a wakeup interval in minutes",
+                ),
+            e.switch().withEndpoint("l6"),
+            e.battery_voltage(),
+        ],
+        meta: {multiEndpoint: true},
+        endpoint: (device) => {
+            return {l3: 3, l5: 5, l6: 6};
+        },
+    },
+    {
+        zigbeeModel: ["alab.switch"],
+        model: "alab.switch",
+        vendor: "Alab",
+        description: "Four channel relay board with four inputs",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4, in1: 5, in2: 6, in3: 7, in4: 8}}),
+            m.onOff({
+                powerOnBehavior: false,
+                configureReporting: false,
+                endpointNames: ["l1", "l2", "l3", "l4"],
+            }),
+            m.commandsOnOff({endpointNames: ["l1", "l2", "l3", "l4"]}),
+            m.numeric({
+                name: "input_state",
+                valueMin: 0,
+                valueMax: 1,
+                cluster: "genAnalogInput",
+                attribute: "presentValue",
+                description: "Input state",
+                endpointNames: ["in1", "in2", "in3", "in4"],
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["FanBee1", "Fanbox2"],
+        model: "FanBee",
+        vendor: "Lorenz Brun",
+        description: "Fan with valve",
+        fromZigbee: [fz.on_off, fz.fan_speed],
+        toZigbee: [tz.on_off, tz.fan_speed],
+        exposes: [e.fan().withState().withSpeed()],
+    },
+    {
+        zigbeeModel: ["ZBColorLightBulb"],
+        model: "m5NanoC6",
+        vendor: "Custom devices (DiY)",
+        description: "DIY Zigbee light using M5NanoC6",
+        extend: [m.light({color: {modes: ["xy", "hs"]}})],
+    },
+    {
+        zigbeeModel: ["acw02-z"],
+        model: "ACW02-ZB",
+        vendor: "Custom devices (DiY)",
+        description: "ACW02 HVAC Thermostat Controller via Zigbee (Router)",
+        meta: {multiEndpoint: true},
+        fromZigbee: [fzLocal.acw02_thermostat, fzLocal.acw02_clean_status, fzLocal.acw02_error_status, fz.on_off, fzLocal.acw02_error_text],
+        toZigbee: [tz.thermostat_local_temperature, tz.thermostat_occupied_heating_setpoint, tz.thermostat_system_mode, tz.on_off],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("occupied_heating_setpoint", 16, 31, 1)
+                .withLocalTemperature()
+                .withSystemMode(["off", "auto", "cool", "heat", "dry", "fan_only"])
+                .withRunningState(["idle", "heat", "cool", "fan_only"]),
+            exposes.text("error_text", ea.STATE_GET).withDescription("Error message from AC unit (read-only)"),
+            exposes.binary("ac_error_status", ea.STATE_GET, "ON", "OFF").withDescription("Error status indicator (read-only)"),
+            e.switch().withEndpoint("eco_mode").withDescription("Eco mode"),
+            e.switch().withEndpoint("swing_mode").withDescription("Swing mode"),
+            e.switch().withEndpoint("display").withDescription("Display control"),
+            e.switch().withEndpoint("night_mode").withDescription("Night/sleep mode"),
+            e.switch().withEndpoint("purifier").withDescription("Air purifier/ionizer"),
+            exposes.binary("filter_clean_status", ea.STATE_GET, "ON", "OFF").withDescription("Filter cleaning reminder (read-only)"),
+            e.switch().withEndpoint("mute").withDescription("Mute beep sounds"),
+        ],
+        endpoint: (device) => {
+            return {
+                default: 1,
+                eco_mode: 2,
+                swing_mode: 3,
+                display: 4,
+                night_mode: 5,
+                purifier: 6,
+                clean_sensor: 7,
+                mute: 8,
+                error_sensor: 9,
+            };
+        },
+        configure: async (device, coordinatorEndpoint, logger) => {
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
+            const endpoint3 = device.getEndpoint(3);
+            const endpoint4 = device.getEndpoint(4);
+            const endpoint5 = device.getEndpoint(5);
+            const endpoint6 = device.getEndpoint(6);
+            const endpoint7 = device.getEndpoint(7);
+            const endpoint8 = device.getEndpoint(8);
+            const endpoint9 = device.getEndpoint(9);
+
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genBasic", "hvacThermostat", "hvacFanCtrl"]);
+            await reporting.thermostatTemperature(endpoint1);
+            await reporting.thermostatOccupiedHeatingSetpoint(endpoint1);
+            await endpoint1.configureReporting("hvacThermostat", [
+                {
+                    attribute: "systemMode",
+                    minimumReportInterval: 1,
+                    maximumReportInterval: 300,
+                    reportableChange: 1,
+                },
+            ]);
+
+            // Configure all switch endpoints
+            for (const ep of [endpoint2, endpoint3, endpoint4, endpoint5, endpoint6, endpoint7, endpoint8, endpoint9]) {
+                await reporting.bind(ep, coordinatorEndpoint, ["genOnOff"]);
+                await reporting.onOff(ep);
+            }
+
+            // Initial read of unreportable attributes
+            await endpoint1.read("hvacThermostat", ["runningMode"]);
+            await endpoint1.read("genBasic", ["locationDesc"]);
+            await endpoint1.read("hvacFanCtrl", ["fanMode"]);
+        },
+        extend: [
+            m.enumLookup({
+                name: "fan_mode",
+                cluster: "hvacFanCtrl",
+                attribute: "fanMode",
+                lookup: {
+                    auto: 0x00,
+                    low: 0x01,
+                    "low-med": 0x02,
+                    medium: 0x03,
+                    "med-high": 0x04,
+                    high: 0x05,
+                    quiet: 0x06,
+                },
+                description: "Fan speed: Quiet=SILENT, Low=P20, Low-Med=P40, Medium=P60, Med-High=P80, High=P100, Auto=AUTO",
+            }),
+            m.poll({
+                key: "acw02_state",
+                option: e
+                    .numeric("acw02_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Polling interval in seconds for unreportable attributes (default: 60s, -1 to disable)"),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    const endpoint1 = device.getEndpoint(1);
+                    if (!endpoint1) return;
+
+                    try {
+                        await endpoint1.read("hvacThermostat", ["runningMode"]);
+                        await endpoint1.read("hvacFanCtrl", ["fanMode"]);
+                        await endpoint1.read("genBasic", ["locationDesc"]);
+                    } catch (error) {
+                        console.error(`ACW02 polling failed: ${(error as Error).message}`);
+                    }
+                },
+            }),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["MiCASAGasCounter"],
+        model: "MiCASAGasCounter",
+        vendor: "Custom devices (DiY)",
+        description: "Zigbee Gas counter",
+        ota: true,
+        extend: [
+            m.gasMeter({cluster: "metering", power: false}),
+            m.battery({voltage: true, lowStatus: true}),
+
+            m.deviceAddCustomCluster("seMetering", {
+                ID: 0x0702,
+                attributes: {
+                    setSummationDelivered: {
+                        ID: 0xf000,
+                        name: "setCurrentSummationDelivered",
+                        type: Zcl.DataType.UINT48,
+                        manufacturerCode: 0x8888,
+                        write: true,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+                name: "seMetering",
+            }),
+
+            m.numeric<"seMetering", MiCasaGasMetering>({
+                name: "gas_counter_set",
+                cluster: "seMetering",
+                attribute: "setSummationDelivered",
+                description: "Write absolute gas meter value",
+                access: "SET",
+                valueMin: 0,
+                valueMax: 281474976710655,
+            }),
+        ],
+        meta: {
+            publishDuplicateTransaction: true,
+        },
+    },
+    {
+        zigbeeModel: ["ZG-204ZL-z"],
+        model: "ZG-204ZL-z",
+        vendor: "Custom devices (DiY)",
+        description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [
+            m.battery(),
+            m.occupancy(),
+            m.illuminance(),
+            m.enumLookup({
+                name: "power_on_behavior",
+                cluster: "genOnOff",
+                attribute: "startUpOnOff",
+                lookup: {
+                    off: 0,
+                    on: 1,
+                    toggle: 2,
+                    previous: 255,
+                },
+                description: "Power-on behavior",
+            }),
+            m.numeric({
+                name: "pir_timeout",
+                cluster: "msOccupancySensing",
+                attribute: "pirOToUDelay",
+                unit: "s",
+                valueMin: 0,
+                valueMax: 65535,
+                access: "ALL",
+                description: "PIR timeout in seconds",
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["LIGHT-CCT-TRK", "LIGHT-CCT-STR", "LIGHT-CCT-CUST"],
+        model: "TLSR-DIY-ZR01-LIGHT-CCT",
+        vendor: "Custom devices (DiY)",
+        description: "CCT LED lamp/dimmer with custom firmware",
+        ota: true,
+        extend: [
+            m.light({
+                colorTemp: {range: [130, 560], startup: false},
+                configureReporting: true,
+            }),
+            m.identify(),
+        ],
+    },
+];

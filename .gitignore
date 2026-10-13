@@ -1,0 +1,20 @@
+node_modules/
+.vs/slnx.sqlite
+.vs/ProjectSettings.json
+.idea
+.DS_Store
+.remote-sync.json
+tmp
+# Eclipse project files
+.project
+.settings/
+/index*
+/converters/
+/devices/
+/lib/
+tsconfig.tsbuildinfo
+coverage/
+.jest-tmp/
+dist/
+.pnpm-store/
+models-index.json
