@@ -2878,7 +2878,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...Array.from({length: 8}, (_, i) => {
                 const n = i + 1;
                 return e
-                    .enum(`button${n}`, ea.STATE_SET, ["Learn", "Delete", "Saved"])
+                    .enum(`button_${n}`, ea.STATE_SET, ["Learn", "Delete", "Saved"])
                     .withLabel(`Button ${n} Code Learning`)
                     .withDescription(
                         "Press 'Learn' to clone RF code. Press 'Delete' to clear RF code. 'Saved' gets enabled automatically after successful RF cloning.",
@@ -2887,7 +2887,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...Array.from({length: 8}, (_, i) => {
                 const n = i + 1;
                 return e
-                    .enum(`start${n}`, ea.SET, ["Transmit"])
+                    .enum(`start_${n}`, ea.SET, ["Transmit"])
                     .withLabel(`Button ${n} Code Transmit`)
                     .withDescription("Press 'Transmit' to send saved code.");
             }),
@@ -2897,22 +2897,22 @@ export const definitions: DefinitionWithExtend[] = [
                 [117, "state", tuya.valueConverter.raw],
                 [118, "pack", tuya.valueConverter.raw],
                 [119, "illuminance", tuya.valueConverter.raw],
-                [101, "button1", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [102, "button2", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [103, "button3", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [104, "button4", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [105, "button5", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [106, "button6", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [107, "button7", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [108, "button8", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
-                [109, "start1", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [110, "start2", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [111, "start3", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [112, "start4", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [113, "start5", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [114, "start6", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [115, "start7", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
-                [116, "start8", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [101, "button_1", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [102, "button_2", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [103, "button_3", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [104, "button_4", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [105, "button_5", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [106, "button_6", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [107, "button_7", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [108, "button_8", tuya.valueConverterBasic.lookup({Learn: tuya.enum(0), Delete: tuya.enum(2), Saved: tuya.enum(1)})],
+                [109, "start_1", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [110, "start_2", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [111, "start_3", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [112, "start_4", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [113, "start_5", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [114, "start_6", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [115, "start_7", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
+                [116, "start_8", tuya.valueConverterBasic.lookup({Transmit: tuya.enum(0)})],
             ],
         },
     },
