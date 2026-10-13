@@ -839,7 +839,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["Hospitality on off plug"],
+        zigbeeModel: ["Hospitality on off plug", "Hospitality on off plug\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"],
         model: "WNP10",
         vendor: "Legrand",
         description: "Smart plug-in switch with Netatmo",
