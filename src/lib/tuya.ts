@@ -579,11 +579,14 @@ export function convertDecimalValueTo4ByteHexArray(value: number) {
     // +4294967294 -> 0XFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
     //          -2 -> 0xFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
 
+    // Scaled values can carry floating point noise (e.g. 1.12 * 100 = 112.00000000000001)
+    let intValue = Math.round(value);
+
     // Encode negative values as 2s complement
-    if (value < 0) {
-        value = 0x100000000 + value;
+    if (intValue < 0) {
+        intValue = 0x100000000 + intValue;
     }
-    const hexValue = Number(value).toString(16).padStart(8, "0");
+    const hexValue = Number(intValue).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
     const chunk3 = hexValue.substring(4, 6);
