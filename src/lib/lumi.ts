@@ -991,7 +991,11 @@ export const numericAttributes2Payload = async (
                 break;
             case "mode":
                 assertNumber(value);
-                payload.operation_mode = ["command", "event"][value];
+                if (model.model === "KD-R01D") {
+                    payload.event_mode = ["command", "event"][value];
+                } else {
+                    payload.operation_mode = ["command", "event"][value];
+                }
                 break;
             case "modelId":
                 // We ignore it, but we add it here to not shown an unknown key in the log
@@ -3270,8 +3274,8 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    lumiKnobRotation: (args?: {withButtonState: boolean}): ModernExtend => {
-        const withButtonState = args?.withButtonState || true;
+    lumiKnobRotation: (args?: {withButtonState?: boolean; pressedEndpoint?: number}): ModernExtend => {
+        const withButtonState = args?.withButtonState ?? true;
         const exposes: Expose[] = [
             e.action(["start_rotating", "rotation", "stop_rotating"]),
             e.numeric("action_rotation_angle", ea.STATE).withUnit("*").withDescription("Rotation angle").withCategory("diagnostic"),
@@ -3296,10 +3300,17 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[570] !== undefined) {
                         const act: KeyValueNumberString = {1: "start_rotating", 2: "rotation", 3: "stop_rotating"};
-                        const state: KeyValueNumberString = {0: "released", 128: "pressed"};
                         return {
                             action: act[(msg.data[570] as number) & ~128],
-                            action_rotation_button_state: state[(msg.data[570] as number) & 128],
+                            ...(withButtonState
+                                ? {
+                                      action_rotation_button_state:
+                                          (args?.pressedEndpoint !== undefined && msg.endpoint.ID === args.pressedEndpoint) ||
+                                          ((msg.data[570] as number) & 128) !== 0
+                                              ? "pressed"
+                                              : "released",
+                                  }
+                                : {}),
                             action_rotation_angle: msg.data[558],
                             action_rotation_angle_speed: msg.data[560],
                             action_rotation_percent: msg.data[563],
@@ -4426,6 +4437,7 @@ const W600_ATTR_SYSTEM_MODE = 0x0271;
 const W600_ATTR_SCHEDULE = 0x027d;
 const W600_ATTR_PRESET = 0x0311;
 const W600_ATTR_PRESET_TEMPERATURE_TABLE = 0x0317;
+const W600_ATTR_EXTERNAL_SENSOR_STATUS = 0x027e;
 const W600_ATTR_SENSOR_SOURCE = 0x0280;
 const W600_ATTR_SENSOR_BINDING = 0xfff2;
 const W600_ATTR_HEARTBEAT = 0x00f7;
@@ -4651,6 +4663,9 @@ function getW600SensorSelectionFromState(value: unknown) {
 }
 
 function parseW600ExternalTemperatureInput(value: unknown, key: string) {
+    if (typeof value !== "number" && (typeof value !== "string" || value.trim() === "")) {
+        throw new Error(`${key} must be a number`);
+    }
     const numeric = Number(value);
 
     if (!Number.isFinite(numeric)) {
@@ -4932,6 +4947,7 @@ function createW600Heartbeat(): ModernExtend {
     return {
         exposes: [
             e.battery().withDescription("Battery percentage"),
+            e.battery_voltage().withHomeAssistant({icon: "mdi:current-dc"}),
             e.valve_alarm().withDescription("Indicates whether temperature control abnormal notification has reported an active alert"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Indicates whether open window detection has reported an open window"),
         ],
@@ -4956,6 +4972,10 @@ function createW600Heartbeat(): ModernExtend {
 
                     if (typeof heartbeat[0x18] === "number" && Number.isFinite(heartbeat[0x18])) {
                         result.battery = Math.max(0, Math.min(100, heartbeat[0x18] as number));
+                    }
+
+                    if (typeof heartbeat[0x17] === "number" && heartbeat[0x17] > 0) {
+                        result.voltage = heartbeat[0x17];
                     }
 
                     if (Buffer.isBuffer(heartbeat[0x9c])) {
@@ -5708,7 +5728,6 @@ function createW500NtcSensor(): ModernExtend {
 
 function createW600ExternalTempSensor(): ModernExtend {
     const contexts = new Map<string, W600ExternalSensorContext>();
-    const combinedCommands = new WeakMap<object, Promise<Tz.ConvertSetResult>>();
     const context = (entity: Zh.Endpoint) => {
         const key = entity.deviceIeeeAddress;
         let value = contexts.get(key);
@@ -5730,22 +5749,12 @@ function createW600ExternalTempSensor(): ModernExtend {
     const convertSet: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
         assertEndpoint(entity);
         if (entity.ID !== 1) throw new Error("W600 external temperature is only supported on endpoint 1");
-        const message = meta.message;
-        const combined = message?.sensor != null && message?.external_temperature_input != null;
-        if (combined && combinedCommands.has(message)) return await combinedCommands.get(message);
-        const requested =
-            key === "sensor"
-                ? parseW600SensorSelection(value, key)
-                : message?.sensor != null
-                  ? parseW600SensorSelection(message.sensor, "sensor")
-                  : undefined;
-        const hasInput = key === "external_temperature_input" || combined;
-        // Validate the complete command before changing the device, including either ordering of combined keys.
+        // Single converter for both keys, so a combined command is executed once.
+        const message = {...meta.message, [key]: value};
+        const requested = message.sensor != null ? parseW600SensorSelection(message.sensor, "sensor") : undefined;
+        const hasInput = message.external_temperature_input != null;
         const centiDegrees = hasInput
-            ? parseW600ExternalTemperatureInput(
-                  key === "external_temperature_input" ? value : message.external_temperature_input,
-                  "external_temperature_input",
-              )
+            ? parseW600ExternalTemperatureInput(message.external_temperature_input, "external_temperature_input")
             : undefined;
         const current = getW600SensorSelectionFromState(meta.state?.sensor);
         if (hasInput && (requested ?? current) !== "external") {
@@ -5755,7 +5764,7 @@ function createW600ExternalTempSensor(): ModernExtend {
         const ctx = context(entity);
         if (requested != null) clear(ctx);
         const generation = ctx.generation;
-        const operation = enqueue(ctx, async () => {
+        return await enqueue(ctx, async () => {
             if (ctx.generation !== generation) return;
             const requireFreshInput = () => {
                 if (hasInput && (Date.now() - receivedAt > W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS || Date.now() < receivedAt)) {
@@ -5795,8 +5804,6 @@ function createW600ExternalTempSensor(): ModernExtend {
             }
             return {state: {...(refresh ? {sensor: "external"} : {}), ...(hasInput ? {external_temperature_input: centiDegrees / 100} : {})}};
         });
-        if (combined) combinedCommands.set(message, operation);
-        return await operation;
     };
     const convertGet: Tz.Converter["convertGet"] = async (entity) => {
         assertEndpoint(entity);
@@ -5818,6 +5825,11 @@ function createW600ExternalTempSensor(): ModernExtend {
                 .withValueStep(0.01)
                 .withDescription("Manual external temperature forwarded to the W600 when temperature source is external")
                 .withCategory("config"),
+            e
+                .binary("external_temperature_problem", ea.STATE_GET, true, false)
+                .withDescription("Thermostat fell back to its internal sensor after 75 minutes without a fresh external temperature")
+                .withCategory("diagnostic")
+                .withHomeAssistant({deviceClass: "problem", name: "External temperature status"}),
         ],
         fromZigbee: [
             {
@@ -5832,6 +5844,8 @@ function createW600ExternalTempSensor(): ModernExtend {
                         result.sensor = source === 1 ? "external" : "internal";
                         if (source === 0) clear(ctx);
                     }
+                    const status = msg.data[W600_ATTR_EXTERNAL_SENSOR_STATUS];
+                    if (typeof status === "number") result.external_temperature_problem = status === 2;
                     const value = msg.data[W600_ATTR_SENSOR_BINDING];
                     const channel = getW600ExternalSensorRequestChannel(value);
                     const activation = ctx.activation;
@@ -5870,13 +5884,19 @@ function createW600ExternalTempSensor(): ModernExtend {
             } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
-            {key: ["sensor"], convertSet, convertGet},
-            {key: ["external_temperature_input"], convertSet, convertGet},
+            {key: ["sensor", "external_temperature_input"], convertSet, convertGet},
+            {
+                key: ["external_temperature_problem"],
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readW600LumiAttribute(entity, W600_ATTR_EXTERNAL_SENSOR_STATUS);
+                },
+            },
         ],
         configure: [
             async (device) => {
                 const endpoint = device.getEndpoint(1);
-                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE], {manufacturerCode});
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE, W600_ATTR_EXTERNAL_SENSOR_STATUS], {manufacturerCode});
             },
         ],
         onEvent: [
@@ -5929,7 +5949,8 @@ function createW600Thermostat(): ModernExtend {
             .withUnit("°C")
             .withLabel("Internal sensor temperature")
             .withDescription("Temperature measured by the thermostat's internal sensor")
-            .withCategory("diagnostic"),
+            .withCategory("diagnostic")
+            .withHomeAssistant({deviceClass: "temperature", name: "Internal sensor temperature"}),
     );
 
     const thermostatConverter = {
@@ -5957,9 +5978,13 @@ function createW600Thermostat(): ModernExtend {
         options: tz.thermostat_occupied_heating_setpoint.options,
         convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
             assertEndpoint(entity);
+            // Writing a target while off starts the valve, so skip it on explicit off and otherwise enable heating first.
+            if (meta.message.system_mode === "off") return;
+            const wake = meta.state?.system_mode === "off";
+            const heatResult = wake ? await systemModeConverter.convertSet(entity, "system_mode", "heat", meta) : undefined;
             const result = await tz.thermostat_occupied_heating_setpoint.convertSet(entity, key, value, meta);
             const resultState = result && "state" in result ? result.state : undefined;
-            const shouldUseHold = getRequestedW600ScheduleEnabled(meta) !== false;
+            const shouldUseHold = !wake && getRequestedW600ScheduleEnabled(meta) !== false;
 
             if (shouldUseHold) {
                 await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
@@ -5969,6 +5994,7 @@ function createW600Thermostat(): ModernExtend {
 
             return {
                 state: {
+                    ...heatResult?.state,
                     ...(resultState ?? {}),
                     ...(shouldUseHold ? {system_mode: "auto", schedule: "ON", override_active: true} : {}),
                     preset: "none",

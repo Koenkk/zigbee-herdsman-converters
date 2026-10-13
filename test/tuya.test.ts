@@ -555,6 +555,39 @@ describe("lib/tuya", () => {
             await expect(definition.configure?.(device, device.getEndpoint(1), definition)).rejects.toThrow("Timeout");
         });
     });
+
+    describe("number data point encoding", () => {
+        it("rounds values to whole numbers before encoding", () => {
+            // 1.12 * 100 = 112.00000000000001
+            expect(tuya.dpValueFromNumberValue(21, 1.12 * 100)).toStrictEqual({dp: 21, datatype: 2, data: Buffer.from([0, 0, 0, 112])});
+            expect(tuya.dpValueFromNumberValue(21, -1.12 * 100)).toStrictEqual({dp: 21, datatype: 2, data: Buffer.from([255, 255, 255, 144])});
+        });
+
+        it("writes ME201WZ liquid_depth_max 1.12 as 112", async () => {
+            // https://github.com/Koenkk/zigbee2mqtt/issues/33224
+            const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_kyyu8rbj", endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            expect(definition.model).toStrictEqual("ME201WZ");
+            const endpoint = device.getEndpoint(1);
+            const meta: Tz.Meta = {
+                state: {},
+                device,
+                deviceExposesChanged: () => {},
+                message: {liquid_depth_max: 1.12},
+                mapped: definition,
+                options: {},
+                publish: null,
+                endpoint_name: null,
+            };
+            await tuya.tz.datapoints.convertSet(endpoint, "liquid_depth_max", 1.12, meta);
+            expect(endpoint.command).toHaveBeenCalledWith(
+                "manuSpecificTuya",
+                "dataRequest",
+                expect.objectContaining({dpValues: [{dp: 21, datatype: 2, data: Buffer.from([0, 0, 0, 112])}]}),
+                expect.anything(),
+            );
+        });
+    });
 });
 
 describe("legacy.fz.moes_thermostat", () => {

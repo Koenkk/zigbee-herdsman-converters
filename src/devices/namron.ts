@@ -2613,6 +2613,7 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 attribute: "windowState",
                 description: "On if window is currently detected as open",
+                access: "STATE_GET",
             }),
 
             // displayActiveBacklight (0x8005) and backlightOnoff (0x8009) are addressed by ID: this model returns
