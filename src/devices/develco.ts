@@ -1381,6 +1381,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIRZB-111",
         vendor: "Develco",
         description: "Customizable siren",
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -1392,12 +1393,17 @@ export const definitions: DefinitionWithExtend[] = [
                 voltageReporting: true,
                 percentageReporting: false,
             }),
+            // Zone type 0x0225 (standard warning device): the siren has no sensor. Alarm 1 is not tied to the
+            // siren sounding (it stays clear during a warning), supervision/restore are capability flags.
             m.iasZoneAlarm({
-                zoneType: "smoke",
-                zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
+                zoneType: "generic",
+                zoneAttributes: ["tamper", "battery_low", "ac_status", "test"],
                 zoneStatusReporting: true,
             }),
-            m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 900}}),
+            // ZCL layout (mode << 4 | strobe << 2 | level), unlike the SIRZB-110:
+            // https://github.com/Koenkk/zigbee2mqtt/issues/30583 https://github.com/Koenkk/zigbee2mqtt/issues/33296
+            // Full max_duration range: 1800 s written and read back on firmware 2.0.4, the manual gives no upper bound.
+            m.iasWarning({maxDuration: true, stopWithZeroInfo: true, warningActive: true}),
             {
                 exposes: [e.squawk()],
                 toZigbee: [tz.squawk],
