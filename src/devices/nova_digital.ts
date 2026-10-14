@@ -155,4 +155,5 @@ export const definitions: DefinitionWithExtend[] = [
                 [16, "backlight", tuya.valueConverter.onOff],
             ],
         },
+    },
 ];
