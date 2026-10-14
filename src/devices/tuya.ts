@@ -7625,14 +7625,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: 'TS0601_1G_SWITCH',
         vendor: 'Tuya',
         description: '1-Gang wall switch with endpoint mapping',
-        extend: [
-            // 1. Explicitly maps the string name 'l1' to Zigbee endpoint 1
-            m.deviceEndpoints({endpoints: {l1: 1}}),
-            // 2. Instructs the UI toggle to generate bindings for 'l1'
-            tuya.modernExtend.tuyaOnOff({endpoints: ['l1']}),
-        ],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
-            e.switch().withEndpoint('l1')
+            e.switch().withEndpoint('l1'),
             e.enum('relay_status', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Power-on Behavior'),
         ],
         endpoint: (device) => {
