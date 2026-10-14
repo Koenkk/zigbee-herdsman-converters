@@ -1554,7 +1554,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "7299355PH",
         vendor: "Philips",
         description: "Hue white and color ambiance LightStrip",
-        extend: [philips.m.light({color: true}), m.identify()],
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true}), m.identify()],
     },
     {
         zigbeeModel: ["LST002"],
@@ -1693,7 +1693,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: undefined}, color: true}), m.identify()],
     },
     {
-        zigbeeModel: ["LCE002"],
+        zigbeeModel: ["LCE002", "LCE006"],
         model: "929002294203",
         vendor: "Philips",
         description: "Hue White and Color Ambiance E14 with bluetooth",
