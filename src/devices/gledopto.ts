@@ -4,7 +4,7 @@ import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
-import type {Configure, DefinitionWithExtend, Fz, ModernExtend, Tuya, Tz} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tuya, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const NS = "zhc:gledopto";
@@ -617,7 +617,26 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-C-008-2ID", // 2 ID controls color temperature and color separate
         vendor: "Gledopto",
         description: "Zigbee LED Controller RGB+CCT (2 ID)",
-        extend: [m.withCombinedOnOff(gledoptoLight({colorTemp: {range: undefined}, color: true}))],
+        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
+        toZigbee: [
+            {
+                ...tzLocal.gledopto_light_onoff_brightness,
+                convertSet: async (entity, key, value, meta) => {
+                    if (meta.endpoint_name || !utils.isEndpoint(entity) || typeof meta.message.state !== "string") {
+                        return await tzLocal.gledopto_light_onoff_brightness.convertSet(entity, key, value, meta);
+                    }
+                    // Generic state controls both channels, brightness/transition only apply to the default endpoint
+                    let state = meta.message.state.toUpperCase();
+                    if (state === "TOGGLE") state = meta.state.state === "ON" ? "OFF" : "ON";
+                    const message = {...meta.message, state};
+                    const result = (await tzLocal.gledopto_light_onoff_brightness.convertSet(entity, key, value, {...meta, message})) as KeyValueAny;
+                    for (const endpoint of [11, 15].filter((Id) => Id !== entity.ID).map((Id) => meta.device.getEndpoint(Id))) {
+                        await endpoint.command("genOnOff", state === "ON" ? "on" : "off", {}, utils.getOptions(meta.mapped, endpoint));
+                    }
+                    return {...result, state: {...result?.state, state_rgb: state, state_cct: state}};
+                },
+            },
+        ],
         exposes: [e.light_brightness_colorxy().withEndpoint("rgb"), e.light_brightness_colortemp([158, 495]).withEndpoint("cct")],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
