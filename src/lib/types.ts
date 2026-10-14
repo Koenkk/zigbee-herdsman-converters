@@ -183,8 +183,12 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     turnsOffAtBrightness1?: boolean;
-    /** Stop active or unknown level transitions before OFF. "device" includes coupled level-control endpoints. */
-    stopBeforeOff?: boolean | "device";
+    /**
+     * Send genLevelCtrl stop before OFF/TOGGLE, light ignores OFF while a level transition is active
+     *
+     * @defaultValue false
+     */
+    stopBeforeOff?: boolean;
     moveToLevelWithOnOffDisable?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**
      * Omit optional optionsMask/optionsOverride parameters for devices with strict ZCL v1 compliance

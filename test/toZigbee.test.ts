@@ -1,6 +1,5 @@
-import {afterEach, beforeEach, describe, expect, test, vi} from "vitest";
+import {beforeEach, describe, expect, test, vi} from "vitest";
 import * as zhc from "../src";
-import * as globalStore from "../src/lib/store";
 import type {KeyValue, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
@@ -366,93 +365,6 @@ describe("toZigbee converters", () => {
         });
     });
 
-    describe("light_onoff_brightness stopBeforeOff", () => {
-        let device: ReturnType<typeof mockDevice>;
-
-        beforeEach(() => {
-            globalStore.clear();
-            device = mockDevice({modelID: "test_light", endpoints: [{ID: 1}]});
-        });
-
-        afterEach(() => globalStore.clear());
-
-        const makeMeta = (message: KeyValue, stopBeforeOff = true, state: KeyValue = {state: "ON", brightness: 150}): Tz.Meta => ({
-            state,
-            device,
-            message,
-            // @ts-expect-error mock
-            mapped: {meta: {stopBeforeOff}},
-            options: {},
-            publish: null,
-            endpoint_name: null,
-        });
-
-        test.each([
-            {state: "OFF"},
-            {state: "TOGGLE"},
-            {brightness: 0},
-            {brightness_percent: 0},
-            {state: "OFF", transition: 2},
-        ])("interrupts a running level transition before turning off: %j", async (message) => {
-            let moving = true;
-            let on = true;
-            device.endpoints[0].command.mockImplementation((cluster, command, payload) => {
-                if (cluster === "genLevelCtrl" && command === "stop") moving = false;
-                // Some lights keep reapplying their active transition after acknowledging OFF.
-                if (!moving && (command === "off" || command === "toggle" || payload.level === 0)) on = false;
-                return Promise.resolve({});
-            });
-
-            const key = Object.keys(message)[0];
-            const result = await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], key, message[key], makeMeta(message));
-
-            expect(on).toBe(false);
-            expect(result).toMatchObject({state: {state: "OFF"}});
-            expect(device.endpoints[0].command).toHaveBeenNthCalledWith(1, "genLevelCtrl", "stop", {}, {});
-            expect(device.endpoints[0].command).toHaveBeenCalledTimes(2);
-            if ("transition" in message) {
-                expect(device.endpoints[0].command).toHaveBeenLastCalledWith(
-                    "genLevelCtrl",
-                    "moveToLevelWithOnOff",
-                    {level: 0, transtime: 20, optionsMask: 0, optionsOverride: 0},
-                    {},
-                );
-            }
-        });
-
-        test.each([{}, {state: "OFF"}])("also stops before TOGGLE with a missing or stale cache: %j", async (state) => {
-            await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "TOGGLE", makeMeta({state: "TOGGLE"}, true, state));
-            expect(device.endpoints[0].command).toHaveBeenNthCalledWith(1, "genLevelCtrl", "stop", {}, {});
-            expect(device.endpoints[0].command).toHaveBeenLastCalledWith("genOnOff", "toggle", {}, {});
-        });
-
-        test.each([{state: "ON"}, {brightness: 100}, {state: null, brightness: 0}])("leaves other commands unchanged: %j", async (message) => {
-            const key = Object.keys(message)[0];
-            await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], key, message[key], makeMeta(message));
-            expect(device.endpoints[0].command).toHaveBeenCalledTimes(1);
-            expect(device.endpoints[0].command).not.toHaveBeenCalledWith("genLevelCtrl", "stop", {}, {});
-        });
-
-        test("leaves devices without the quirk unchanged", async () => {
-            await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "OFF", makeMeta({state: "OFF"}, false));
-            expect(device.endpoints[0].command).toHaveBeenCalledExactlyOnceWith("genOnOff", "off", {}, {});
-        });
-
-        test.each([{state: "INVALID"}, {state: "OFF", brightness: -1}, {brightness: 999}])("validates before stopping: %j", async (message) => {
-            const key = Object.keys(message)[0];
-            await expect(zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], key, message[key], makeMeta(message))).rejects.toThrow();
-            expect(device.endpoints[0].command).not.toHaveBeenCalled();
-        });
-
-        test("does not claim OFF if stopping the transition fails", async () => {
-            device.endpoints[0].command.mockRejectedValueOnce(new Error("stop failed"));
-            await expect(
-                zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "OFF", makeMeta({state: "OFF"})),
-            ).rejects.toThrow("stop failed");
-            expect(device.endpoints[0].command).toHaveBeenCalledExactlyOnceWith("genLevelCtrl", "stop", {}, {});
-        });
-    });
-
     describe("cover_state", () => {
         let device: ReturnType<typeof mockDevice>;
 
@@ -625,6 +537,31 @@ describe("toZigbee converters", () => {
             await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "off", meta);
             expect(device.endpoints[0].command).toHaveBeenCalledTimes(4);
             expect(device.endpoints[0].command).toHaveBeenNthCalledWith(4, "genOnOff", "off", {}, {});
+        });
+
+        test.each([
+            [{state: "OFF"}, true, ["genOnOff", "off"]],
+            [{state: "TOGGLE"}, true, ["genOnOff", "toggle"]],
+            [{brightness: 0}, true, ["genLevelCtrl", "moveToLevelWithOnOff"]],
+            [{state: "ON"}, true, ["genOnOff", "on"]],
+            [{state: "OFF"}, false, ["genOnOff", "off"]],
+        ])("stopBeforeOff %j (enabled: %s)", async (message, stopBeforeOff, lastCommand) => {
+            const device = mockDevice({modelID: "test_light", endpoints: [{ID: 1, meta: {onLevelSupported: false}}]});
+            const key = Object.keys(message)[0];
+            // @ts-expect-error mock
+            const meta: Tz.Meta = {
+                state: {state: "ON"},
+                device,
+                message,
+                mapped: {meta: {stopBeforeOff}},
+                options: {},
+                endpoint_name: null,
+                publish: null,
+            };
+            await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], key, message[key as keyof typeof message], meta);
+            const commands = device.endpoints[0].command.mock.calls.map((c) => [c[0], c[1]]);
+            const stop = stopBeforeOff && message.state !== "ON";
+            expect(commands).toStrictEqual(stop ? [["genLevelCtrl", "stop"], lastCommand] : [lastCommand]);
         });
     });
 

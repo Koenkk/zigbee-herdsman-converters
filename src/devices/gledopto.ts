@@ -621,7 +621,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.light_brightness_colorxy().withEndpoint("rgb"), e.light_brightness_colortemp([158, 495]).withEndpoint("cct")],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
-        meta: {stopBeforeOff: "device", disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
+        meta: {stopBeforeOff: true, disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
         endpoint: (device) => {
             return {rgb: 11, cct: 15};
         },
