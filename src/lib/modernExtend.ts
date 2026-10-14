@@ -52,6 +52,7 @@ import {
     getEndpointsWithCluster,
     getFromLookup,
     getFromLookupByValue,
+    getKey,
     getOptions,
     hasAlreadyProcessedMessage,
     isEndpoint,
@@ -62,6 +63,7 @@ import {
     precisionRound,
     splitArrayIntoChunks,
     toNumber,
+    validateValue,
 } from "./utils";
 
 const NS = "zhc:modernextend";
@@ -1282,6 +1284,140 @@ export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): Modern
 // #endregion
 
 // #region Lighting
+
+/**
+ * Adds whole-device power controls for all named endpoints in the definition's endpoint mapping.
+ * Wrap a light or onOff extension; existing exposes and legacy properties are preserved.
+ * State is ON if any channel is ON, OFF only when every channel is known OFF.
+ */
+export function withCombinedOnOff(extend: ModernExtend): ModernExtend {
+    const result = {...extend};
+    const combinedState = (state: KeyValue, endpoints: Record<string, number>) => {
+        const states = Object.keys(endpoints).map((name) => state[`state_${name}`]);
+        if (states.includes("ON")) return "ON";
+        if (states.length && states.every((value) => value === "OFF")) return "OFF";
+    };
+    result.fromZigbee = result.fromZigbee?.map((converter) => ({
+        ...converter,
+        convert: async (model, msg, publish, options, meta) => {
+            const legacyState = await converter.convert(model, msg, publish, options, meta);
+            if (!legacyState) return legacyState;
+
+            // Keep legacy properties while using each endpoint's own cached state for color synchronization.
+            const endpointModel = {...model, meta: {...model.meta, multiEndpoint: true}};
+            const endpointState = getKey(model.endpoint(meta.device), msg.endpoint.ID)
+                ? await converter.convert(endpointModel, msg, publish, options, meta)
+                : undefined;
+            const payload = {...(endpointState ?? {}), ...legacyState};
+            if ("state" in payload || Object.keys(model.endpoint(meta.device)).some((name) => `state_${name}` in payload)) {
+                // An unknown channel must not be mistaken for an OFF channel.
+                delete payload.state;
+                const state = combinedState({...meta.state, ...payload}, model.endpoint(meta.device));
+                if (state !== undefined) payload.state = state;
+            }
+            return payload;
+        },
+    }));
+    // Multiple endpoint commands in one MQTT message share the same state snapshot.
+    const pendingStates = new WeakMap<KeyValue, KeyValue>();
+    result.toZigbee = result.toZigbee?.map((converter) => ({
+        ...converter,
+        ...(converter.convertSet && {
+            convertSet: async function convertSet(entity, key, value, meta): Promise<Tz.ConvertSetResult> {
+                const endpointName =
+                    isEndpoint(entity) && !Array.isArray(meta.mapped) ? getKey(meta.mapped.endpoint(meta.device), entity.ID) : undefined;
+                if (!endpointName || Array.isArray(meta.mapped)) return converter.convertSet(entity, key, value, meta);
+
+                const filtered = (property: string) =>
+                    Array.isArray(meta.options.filtered_optimistic) &&
+                    meta.options.filtered_optimistic.some((pattern) => new RegExp(pattern).test(property));
+                if (!meta.endpoint_name && converter.key.includes("state") && typeof meta.message.state === "string") {
+                    const endpoints = Object.entries(meta.mapped.endpoint(meta.device));
+                    let command = getFromLookup(meta.message.state, {on: "ON", off: "OFF", toggle: "TOGGLE"});
+                    if (command === "TOGGLE") {
+                        // Toggle the whole light once, including when a channel's cached state is missing or stale.
+                        const state = {...(pendingStates.get(meta.state) ?? meta.state)};
+                        for (const [name, ID] of endpoints) {
+                            const {onOff} = await meta.device.getEndpoint(ID).read("genOnOff", ["onOff"]);
+                            validateValue(onOff, [0, 1]);
+                            state[`state_${name}`] = onOff ? "ON" : "OFF";
+                        }
+                        pendingStates.set(meta.state, state);
+                        command = combinedState(state, meta.mapped.endpoint(meta.device)) === "ON" ? "OFF" : "ON";
+                    }
+                    const state: KeyValue = {};
+                    const payload: KeyValue = {};
+                    const errors: unknown[] = [];
+                    for (const [name, ID] of endpoints) {
+                        // Keep brightness and color routing unchanged; only power and its timing apply to all channels.
+                        const message: KeyValue = name === endpointName ? {...meta.message, state: command} : {state: command};
+                        for (const option of ["transition", "on_time", "off_wait_time"]) {
+                            if (meta.message[option] !== undefined) message[option] = meta.message[option];
+                        }
+                        try {
+                            const channelKey = name === endpointName ? key : "state";
+                            const converted = await convertSet(meta.device.getEndpoint(ID), channelKey, message[channelKey], {
+                                ...meta,
+                                endpoint_name: name,
+                                message,
+                            });
+                            if (!converted) continue;
+                            for (const [property, value] of Object.entries(converted.state ?? {})) {
+                                if (property !== "state" && name === endpointName && !filtered(property)) state[property] = value;
+                                if (!filtered(`${property}_${name}`)) payload[`${property}_${name}`] = value;
+                            }
+                            Object.assign(payload, converted.membersState?.[meta.device.ieeeAddr]);
+                        } catch (error) {
+                            errors.push(error);
+                        }
+                    }
+                    if (errors.length) {
+                        // Attempt all channels and retain successful updates without claiming that a failed channel changed.
+                        if (meta.options.optimistic !== false && Object.keys({...state, ...payload}).length)
+                            await meta.publish({...state, ...payload});
+                        throw errors[0];
+                    }
+                    return {state, membersState: {[meta.device.ieeeAddr]: payload}};
+                }
+
+                const state = pendingStates.get(meta.state) ?? meta.state;
+                // Command decisions such as TOGGLE must use the target channel, not the combined state.
+                const converted = await converter.convertSet(entity, key, value, {
+                    ...meta,
+                    state: {...state, state: state[`state_${endpointName}`], brightness: state[`brightness_${endpointName}`] ?? state.brightness},
+                });
+                if (!converted) return;
+                if (!converted.state?.state || meta.options.optimistic === false) return converted;
+
+                if (filtered(meta.endpoint_name ? `state_${meta.endpoint_name}` : "state")) return converted;
+
+                const payload: KeyValue = {[`state_${endpointName}`]: converted.state.state};
+                const combined = combinedState({...state, ...payload}, meta.mapped.endpoint(meta.device));
+                if (combined !== undefined && !filtered("state")) payload.state = combined;
+                pendingStates.set(meta.state, {...state, ...payload});
+                for (const property of Object.keys(payload)) {
+                    if (filtered(property)) delete payload[property];
+                }
+
+                const {state: _channelState, ...otherState} = converted.state;
+                // Fully qualified state avoids the caller suffixing the combined state as a channel property.
+                return {...converted, state: otherState, membersState: {...converted.membersState, [meta.device.ieeeAddr]: payload}};
+            },
+        }),
+        ...(converter.convertGet && {
+            convertGet: async (entity, key, meta) => {
+                if (key === "state" && !meta.endpoint_name && isEndpoint(entity) && !Array.isArray(meta.mapped)) {
+                    for (const ID of Object.values(meta.mapped.endpoint(meta.device))) {
+                        await converter.convertGet(meta.device.getEndpoint(ID), key, meta);
+                    }
+                    return;
+                }
+                return converter.convertGet(entity, key, meta);
+            },
+        }),
+    }));
+    return result;
+}
 
 export interface LightArgs {
     effect?: boolean;
