@@ -80,20 +80,59 @@ export function mapNumberRange(value: number, fromLow: number, fromHigh: number,
     return precisionRound(mappedValue, precision);
 }
 
-const transactionStore: {[s: string]: {id: number; expires: number}[]} = {};
-// Devices may reuse transaction sequence numbers, so entries must not outlive a retransmit window:
-// https://github.com/Koenkk/zigbee-herdsman-converters/issues/13131
-const transactionStoreTTL = 10_000;
+/** Maps transaction IDs with expiry by key (usually device+endpoint) */
+const transactionStore = new Map<string, Map<number, number>>();
+
 // biome-ignore lint/suspicious/noExplicitAny: generic
-export function hasAlreadyProcessedMessage(msg: Fz.Message<any, any, any>, model: Definition, id: number = null, key: string = null) {
-    if (model.meta?.publishDuplicateTransaction) return false;
-    const currentID = id !== null ? id : msg.meta.zclTransactionSequenceNumber;
+export function hasAlreadyProcessedMessage(msg: Fz.Message<any, any, any>, model: Definition, id?: number, key?: string) {
+    if (model.meta?.publishDuplicateTransaction) {
+        return false;
+    }
+
+    const currentId = id ?? msg.meta.zclTransactionSequenceNumber;
+
+    // safety, don't process if not uniquely identifiable
+    if (currentId === undefined) {
+        return false;
+    }
+
     const storeKey = key || `${msg.device.ieeeAddr}-${msg.endpoint.ID}`;
     const now = Date.now();
-    const recent = (transactionStore[storeKey] ?? []).filter((entry) => entry.expires > now);
-    if (recent.some((entry) => entry.id === currentID)) return true;
-    // Keep last 5, as they might come in different order: https://github.com/Koenkk/zigbee2mqtt/issues/20024
-    transactionStore[storeKey] = [{id: currentID, expires: now + transactionStoreTTL}, ...recent].slice(0, 5);
+    let entries = transactionStore.get(storeKey);
+
+    if (!entries) {
+        entries = new Map();
+
+        transactionStore.set(storeKey, entries);
+    } else {
+        const expiry = entries.get(currentId);
+
+        // duplicate, skip cleanup
+        if (expiry !== undefined && expiry > now) {
+            return true;
+        }
+
+        let oldestId: number | undefined;
+        let oldestExpiry = Number.MAX_SAFE_INTEGER;
+
+        // cleanup expired
+        for (const [entryId, entryExpiry] of entries) {
+            if (entryExpiry <= now) {
+                entries.delete(entryId);
+            } else if (oldestExpiry > entryExpiry) {
+                oldestExpiry = entryExpiry;
+                oldestId = entryId;
+            }
+        }
+
+        // keep last 5 (4 old + 1 new)
+        if (entries.size > 4 && oldestId !== undefined) {
+            entries.delete(oldestId);
+        }
+    }
+
+    entries.set(currentId, now + 10_000);
+
     return false;
 }
 
