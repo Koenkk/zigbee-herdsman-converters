@@ -7619,30 +7619,27 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
-    
+
     {
-        fingerprint: tuya.fingerprint('TS0601', ['_TZE28C1000000_yxun3xvr']),
-        model: 'TS0601_1G_SWITCH',
-        vendor: 'Tuya',
-        description: '1-Gang wall switch with endpoint mapping',
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_yxun3xvr"]),
+        model: "TS0601_1G_SWITCH",
+        vendor: "Tuya",
+        description: "1-Gang wall switch with endpoint mapping",
         fromZigbee: [tuya.fz.datapoints],
         toZigbee: [tuya.tz.datapoints],
-        exposes: [
-            e.switch().withEndpoint('l1'),
-            e.enum('relay_status', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Power-on Behavior'),
-        ],
+        exposes: [e.switch().withEndpoint("l1"), e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Power-on Behavior")],
         endpoint: (device) => {
             return {l1: 1};
         },
         meta: {
             multiEndpoint: true,
             tuyaDatapoints: [
-                [1, 'state_l1', tuya.valueConverter.onOff],
-                [14, 'relay_status', tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), memory: tuya.enum(2)})],
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [14, "relay_status", tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), memory: tuya.enum(2)})],
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_gbagoilo", "_TZE284_xnwxmj8z"]),
         model: "MG-ZG01W",
@@ -7670,7 +7667,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_lq0ffndf"]),
         model: "MG-AU03GPOZLP-XX",
