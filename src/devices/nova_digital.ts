@@ -184,18 +184,26 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "state_l4", tuya.valueConverter.onOff],
                 [5, "state_l5", tuya.valueConverter.onOff],
                 [6, "state_l6", tuya.valueConverter.onOff],
-                [101, 'state_l7', tuya.valueConverter.onOff],
-                [102, 'state_l8', tuya.valueConverter.onOff],
-                [14, 'power_on_behavior', tuya.valueConverterBasic.lookup({
-                    off: tuya.enum(0),
-                    on: tuya.enum(1),
-                    previous: tuya.enum(2),
-                })],
-                [15, 'backlight_mode', tuya.valueConverterBasic.lookup({
-                    off: tuya.enum(0),
-                    relay: tuya.enum(1),
-                    position: tuya.enum(2),
-                })],
+                [101, "state_l7", tuya.valueConverter.onOff],
+                [102, "state_l8", tuya.valueConverter.onOff],
+                [
+                    14,
+                    "power_on_behavior",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        on: tuya.enum(1),
+                        previous: tuya.enum(2),
+                    }),
+                ],
+                [
+                    15,
+                    "backlight_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        position: tuya.enum(2),
+                    }),
+                ],
             ],
         },
     },
