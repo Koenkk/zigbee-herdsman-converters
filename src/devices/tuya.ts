@@ -14625,6 +14625,111 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_xr5yfele"]),
+        model: "119710",
+        vendor: "Tervix",
+        description: "Pro Line Zigbee+RF wireless room thermostat",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970", forceTimeUpdates: true})],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.1, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withPreset(["manual", "program"]),
+            e.humidity(),
+            e.battery(),
+            e.child_lock(),
+            e.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Display backlight"),
+            e.enum("window_state", ea.STATE, ["close", "open"]).withDescription("Window state"),
+            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Open window detection"),
+            e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Frost protection"),
+            e
+                .numeric("comfort_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.1)
+                .withDescription("Comfort temperature"),
+            e
+                .numeric("eco_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.1)
+                .withDescription("Eco temperature"),
+            e
+                .numeric("window_open_detection_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withDescription("Open window detection time"),
+            e
+                .numeric("window_open_detection_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0)
+                .withValueMax(35)
+                .withValueStep(0.1)
+                .withDescription("Open window detection temperature drop"),
+            e
+                .numeric("window_open_delay_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(1440)
+                .withDescription("Open window detection delay"),
+            e.numeric("boost_time", ea.STATE_SET).withUnit("min").withValueMin(0).withValueMax(1440).withDescription("Boost duration"),
+            e.numeric("valve_init_opening", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Initial valve opening"),
+            e.numeric("valve_opening", ea.STATE).withUnit("%").withDescription("Current valve opening"),
+            e.numeric("pid_p", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("PID proportional coefficient"),
+            e.numeric("pid_i", ea.STATE_SET).withValueMin(0).withValueMax(100).withDescription("PID integral coefficient"),
+            e.numeric("trv_count", ea.STATE).withDescription("Number of paired TRVs"),
+            e.binary("quick_pair", ea.STATE_SET, "ON", "OFF").withDescription("Quick pairing of RF TRVs"),
+            e.binary("display_reversed", ea.STATE_SET, "ON", "OFF").withDescription("Reverse display orientation"),
+            e.binary("humidity_control", ea.STATE_SET, "ON", "OFF").withDescription("Humidity control"),
+            e.numeric("humidity_setpoint", ea.STATE_SET).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Humidity setpoint"),
+            e.numeric("heat_times_today", ea.STATE).withDescription("Heating cycles today"),
+            e.numeric("heat_times_month", ea.STATE).withDescription("Heating cycles this month"),
+            e.numeric("heat_times_total", ea.STATE).withDescription("Total heating cycles"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
+                [2, "preset", tuya.valueConverterBasic.lookup({manual: tuya.enum(0), program: tuya.enum(1)})],
+                [3, "backlight", tuya.valueConverterBasic.lookup({OFF: tuya.enum(0), ON: tuya.enum(1)})],
+                [8, "humidity", tuya.valueConverter.raw],
+                [9, "battery", tuya.valueConverter.raw],
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [17, "window_state", tuya.valueConverterBasic.lookup({close: tuya.enum(0), open: tuya.enum(1)})],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
+                [29, "window_detection", tuya.valueConverter.onOff],
+                [31, "frost_protection", tuya.valueConverter.onOff],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [101, "valve_init_opening", tuya.valueConverter.raw],
+                [102, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [103, "pid_p", tuya.valueConverter.raw],
+                [104, "valve_opening", tuya.valueConverter.raw],
+                [105, "eco_temperature", tuya.valueConverter.divideBy10],
+                [106, "window_open_detection_time", tuya.valueConverter.raw],
+                [107, "window_open_detection_temperature", tuya.valueConverter.divideBy10],
+                [108, "window_open_delay_time", tuya.valueConverter.raw],
+                [109, "boost_time", tuya.valueConverter.raw],
+                [110, "pid_i", tuya.valueConverter.raw],
+                [111, "trv_count", tuya.valueConverter.raw],
+                [112, "quick_pair", tuya.valueConverter.onOff],
+                [113, "display_reversed", tuya.valueConverter.onOff],
+                [115, "humidity_control", tuya.valueConverter.onOff],
+                [116, "humidity_setpoint", tuya.valueConverter.raw],
+                [118, "running_state", tuya.valueConverterBasic.lookup({idle: tuya.enum(0), heat: tuya.enum(1)})],
+                [119, "heat_times_today", tuya.valueConverter.raw],
+                [120, "heat_times_total", tuya.valueConverter.raw],
+                [121, "heat_times_month", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_2ekuz3dz"]),
         model: "X5H-GB-B",
         vendor: "Tuya",
