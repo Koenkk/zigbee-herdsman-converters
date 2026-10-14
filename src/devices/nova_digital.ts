@@ -129,7 +129,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l5"),
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.powerOnBehavior(),
-            tuya.exposes.backlight(),
+            tuya.exposes.backlightSwitch(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
@@ -152,7 +152,7 @@ export const definitions: DefinitionWithExtend[] = [
                         memory: tuya.enum(2),
                     }),
                 ],
-                [16, "backlight", tuya.valueConverter.onOff],
+                [16, "backlightSwitch", tuya.valueConverter.onOff],
             ],
         },
     },
@@ -171,6 +171,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switch().withEndpoint("l7"),
             tuya.exposes.switch().withEndpoint("l8"),
+            tuya.exposes.powerOnBehavior(),
+            tuya.exposes.backlight_mode(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1};
@@ -223,7 +225,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l7"),
             tuya.exposes.switch().withEndpoint("l8"),
             tuya.exposes.powerOnBehavior(),
-            tuya.exposes.backlight(),
+            tuya.exposes.backlightSwitch(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1};
@@ -248,7 +250,7 @@ export const definitions: DefinitionWithExtend[] = [
                         memory: tuya.enum(2),
                     }),
                 ],
-                [16, "backlight", tuya.valueConverter.onOff],
+                [16, "backlightSwitch", tuya.valueConverter.onOff],
             ],
         },
     },
