@@ -26,6 +26,7 @@ import {definitions as bankamp} from "./bankamp";
 import {definitions as beca} from "./beca";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
+import {definitions as besisglas} from "./besisglas";
 import {definitions as bitron} from "./bitron";
 import {definitions as bituoTechnik} from "./bituo_technik";
 import {definitions as blaupunkt} from "./blaupunkt";
@@ -425,6 +426,7 @@ const definitions: DefinitionWithExtend[] = [
     ...beca,
     ...bega,
     ...belkin,
+    ...besisglas,
     ...bitron,
     ...bituoTechnik,
     ...blaupunkt,
