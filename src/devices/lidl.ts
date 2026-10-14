@@ -533,12 +533,27 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06620",
         vendor: "Lidl",
         description: "Silvercrest garden spike with 2 sockets",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
+        fromZigbee: [
+            fz.on_off,
+            tuya.fz.on_off_countdown,
+            {
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"] as const,
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.offWaitTime !== undefined) {
+                        return {countdown: msg.data.offWaitTime};
+                    }
+                },
+            },
+        ],
+        toZigbee: [tz.on_off, tuya.tz.on_off_countdown],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
         },
+        ota: true,
+        exposes: [e.switch(), tuya.exposes.countdown()],
     },
     {
         fingerprint: tuya.fingerprint("TS0101", ["_TZ3000_pnzfdr9y"]),
