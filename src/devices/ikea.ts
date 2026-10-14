@@ -580,6 +580,7 @@ export const definitions: DefinitionWithExtend[] = [
             "KAJPLATS E27 CWS globe 1055lm",
             "KAJPLATS E14 CWS globe 806lm",
             "KAJPLATS GU10 CWS 575lm",
+            "KAJPLATS GU10 CWS 470lm",
             "KAJPLATS E26 CWS globe 1100lm",
             "KAJPLATS E12 CWS globe 800lm",
         ],
@@ -597,7 +598,7 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 model: "LED2410R5/LED2410R5NA",
                 description: "KAJPLATS GU10 bulb, color/white spectrum, 470/575 lm (Matter)",
-                fingerprint: [{modelID: "KAJPLATS GU10 CWS 575lm"}],
+                fingerprint: [{modelID: "KAJPLATS GU10 CWS 575lm"}, {modelID: "KAJPLATS GU10 CWS 470lm"}],
             },
             {
                 model: "LED2405G8NA",
@@ -616,7 +617,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
-                color: {modes: ["xy", "hs"], applyRedFix: false, enhancedHue: false},
+                color: {modes: ["hs", "xy"], applyRedFix: false, enhancedHue: false},
                 turnsOffAtBrightness1: true,
                 levelConfig: {features: ["on_off_transition_time", "execute_if_off", "current_level_startup"]},
             }),
@@ -761,7 +762,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             m.light({
                 colorTemp: {range: [153, 555]},
-                color: {modes: ["xy", "hs"], applyRedFix: false, enhancedHue: false},
+                color: {modes: ["hs", "xy"], applyRedFix: false, enhancedHue: false},
                 turnsOffAtBrightness1: true,
                 levelConfig: {features: ["on_off_transition_time", "execute_if_off", "current_level_startup"]},
             }),
