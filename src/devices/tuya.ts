@@ -30516,4 +30516,26 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint('TS0601', ['_TZE28C1000000_yxun3xvr']),
+        model: 'TS0601_1G_SWITCH',
+        vendor: 'Tuya',
+        description: '1-gang wall switch with endpoint mapping',
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tuya.tz.datapoints],
+        exposes: [
+            e.switch().withEndpoint('l1'),
+            e.enum('relay_status', ea.STATE_SET, ['off', 'on', 'memory']).withDescription('Power-on Behavior'),
+        ],
+        endpoint: (device) => {
+            return {l1: 1};
+        },
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, 'state_l1', tuya.valueConverter.onOff],
+                [14, 'relay_status', tuya.valueConverterBasic.lookup({off: tuya.enum(0), on: tuya.enum(1), memory: tuya.enum(2)})],
+            }),
+        ],
+    },
 ];
