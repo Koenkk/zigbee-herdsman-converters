@@ -642,8 +642,9 @@ describe("Tuya ME201WZ", () => {
 
     it("ignores false echoes", async () => {
         const {convert} = await setup();
-        // Captured: -1.1 m, 5 m and a steady 0.24 m while the tank holds 1.46 m
+        // Captured: -1.1 m, 5 m, 1.32 m and a steady 0.24 m while the tank holds 1.46 m
         expect(convert(reading(-110, 0, 1), state)).toStrictEqual({});
+        expect(convert(reading(132, 66, 0), state)).toStrictEqual({});
         expect(convert(reading(500, 100, 2), state)).toStrictEqual({});
         expect(convert(reading(24, 12, 1), state)).toStrictEqual({});
         expect(convert([tuya.dpValueFromNumberValue(22, 12)], state)).toStrictEqual({});
@@ -654,7 +655,7 @@ describe("Tuya ME201WZ", () => {
         expect(convert([tuya.dpValueFromNumberValue(22, 72)], state)).toStrictEqual({liquid_level_percent: 72});
     });
 
-    it("accepts a sudden change once it has been read steadily for 3 hours", async () => {
+    it("accepts a sudden change once it has been read steadily for 12 hours", async () => {
         const {convert} = await setup();
         vi.useFakeTimers();
         try {
@@ -664,7 +665,7 @@ describe("Tuya ME201WZ", () => {
             // A reading of the old level in between restarts the wait.
             expect(convert(reading(146, 73, 0), state)).toStrictEqual({liquid_depth: 1.46, liquid_level_percent: 73, liquid_state: "normal"});
             expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
-            vi.advanceTimersByTime(2 * 60 * 60 * 1000);
+            vi.advanceTimersByTime(11 * 60 * 60 * 1000);
             expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
             vi.advanceTimersByTime(60 * 60 * 1000);
             expect(convert(reading(20, 10, 1), state)).toStrictEqual({liquid_depth: 0.2, liquid_level_percent: 10, liquid_state: "low"});

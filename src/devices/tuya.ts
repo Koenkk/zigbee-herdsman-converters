@@ -2320,14 +2320,15 @@ const sp107eLedChips = {
 
 /**
  * The ME201WZ ultrasonic sensor regularly picks up false echoes: for minutes up to hours the depth bounces
- * between the real level and values like -1.1 m, 5 m or a steady 0.24 m, and the level percent and liquid
- * state follow. A real level changes gradually, so a reading is only published when it is within the tank
- * and close to the last published depth. A sudden jump is published once the new level has been read
- * steadily for 3 hours, so a real sudden change (tank emptied or refilled) still comes through.
+ * between the real level and values like -1.1 m, 5 m, 1.3 m or 0.24 m, sometimes steady for hours, and the
+ * level percent and liquid state follow. A real level changes by a centimetre or two between readings, so a
+ * reading is only published when it is within the tank and close to the last published depth. A sudden
+ * jump is published once the new level has been read steadily for 12 hours, so a real sudden change (e.g.
+ * while the sensor was offline) still comes through.
  */
-const ME201WZ_MAX_STEP = 0.15;
+const ME201WZ_MAX_STEP = 0.05;
 const ME201WZ_TOLERANCE = 0.03;
-const ME201WZ_CONFIRM_MS = 3 * 60 * 60 * 1000;
+const ME201WZ_CONFIRM_MS = 12 * 60 * 60 * 1000;
 
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device): KeyValue => {
     const filtered = {...result};
