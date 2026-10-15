@@ -3,7 +3,6 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
-import {determineEndpoint} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -48,15 +47,21 @@ const tzsr100Local = {
         const strobeLevel = {low: 0, medium: 1, high: 2, very_high: 3};
             
         const values = {
+            // @ts-expect-error ignore
             mode: value.mode || "emergency",
+            // @ts-expect-error ignore
             level: value.level || "medium",
+            // @ts-expect-error ignore
             strobe: (value.strobe === true || value.strobe === 'true' || value.strobe === 'ON') ? 1 : 0,
+            // @ts-expect-error ignore
             duration: value.duration != null ? value.duration : 10,
+            // @ts-expect-error ignore
             strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
+            // @ts-expect-error ignore
             strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 2,
         };
          let warningInfo;           
-         warningInfo = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
+         let warningInfo = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
 
             await entity.command(
                 'ssIasWd', 
