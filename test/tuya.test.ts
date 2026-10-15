@@ -609,3 +609,56 @@ describe("legacy.fz.moes_thermostat", () => {
         expect(convert({dp: 16, datatype: 85, data: Buffer.from([17, 217, 6, 0])})).toBeUndefined();
     });
 });
+
+describe("Tuya ME201WZ", () => {
+    const setup = async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_kyyu8rbj", endpoints: [{ID: 1}]});
+        const definition = await findByDevice(device);
+        const convert = (dpValues: unknown[], state: Record<string, unknown>) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === "manuSpecificTuya")
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data: {dpValues}, endpoint: device.getEndpoint(1), device, type: "commandDataReport", meta: {}} as never,
+                                vi.fn(),
+                                {},
+                                {device, state, deviceExposesChanged: () => {}} as never,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+        return {convert};
+    };
+    const state = {liquid_depth: 1.12, liquid_level_percent: 80, liquid_state: "normal"};
+
+    it("ignores a sudden drop to 0 and values out of range", async () => {
+        const {convert} = await setup();
+        expect(convert([tuya.dpValueFromNumberValue(2, 0), tuya.dpValueFromNumberValue(22, 0), tuya.dpValueFromEnum(1, 1)], state)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromNumberValue(22, 188)], state)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromNumberValue(19, 1929445372)], state)).toStrictEqual({});
+
+        // Real readings still go through and end the ignored drop.
+        expect(convert([tuya.dpValueFromNumberValue(2, 110), tuya.dpValueFromNumberValue(22, 79)], state)).toStrictEqual({
+            liquid_depth: 1.1,
+            liquid_level_percent: 79,
+        });
+        expect(convert([tuya.dpValueFromEnum(1, 1)], state)).toStrictEqual({liquid_state: "low"});
+    });
+
+    it("lets 0 through when the level was already low or stays at 0", async () => {
+        const {convert} = await setup();
+        expect(convert([tuya.dpValueFromNumberValue(22, 0)], {...state, liquid_level_percent: 3})).toStrictEqual({liquid_level_percent: 0});
+
+        vi.useFakeTimers();
+        try {
+            expect(convert([tuya.dpValueFromNumberValue(22, 0)], state)).toStrictEqual({});
+            vi.advanceTimersByTime(31 * 60 * 1000);
+            expect(convert([tuya.dpValueFromNumberValue(22, 0)], state)).toStrictEqual({liquid_level_percent: 0});
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});

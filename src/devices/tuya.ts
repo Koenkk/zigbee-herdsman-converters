@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tuya, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -2317,6 +2317,61 @@ const sp107eLedChips = {
     TM1814: tuya.enum(8),
     SK6812: tuya.enum(9),
 };
+
+/**
+ * Now and then the ME201WZ reports readings that cannot be real: the level drops to 0 for a few reports
+ * before the real value comes back, or a value far outside the sensor range shows up. Drop them, compared
+ * with the last published state. A level that stays at 0 for more than 30 minutes is taken as real (the
+ * tank was emptied), and a level that goes down step by step reaches 0 normally.
+ */
+const ME201WZ_ZERO_GRACE_MS = 30 * 60 * 1000;
+
+const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device): KeyValue => {
+    const filtered = {...result};
+    const outOfRange = (key: string, min: number, max: number) => typeof filtered[key] === "number" && (filtered[key] < min || filtered[key] > max);
+    for (const [key, min, max] of [
+        ["liquid_depth", 0, 10],
+        ["liquid_level_percent", 0, 100],
+        ["installation_height", 0, 10],
+        ["liquid_depth_max", 0, 10],
+    ] as const) {
+        if (outOfRange(key, min, max)) delete filtered[key];
+    }
+
+    const dropsToZero = (key: string, threshold: number) =>
+        filtered[key] === 0 && typeof state[key] === "number" && (state[key] as number) > threshold;
+    const levelKnown = typeof filtered.liquid_depth === "number" || typeof filtered.liquid_level_percent === "number";
+    if (dropsToZero("liquid_depth", 0.05) || dropsToZero("liquid_level_percent", 5)) {
+        const zeroSince = globalStore.getValue(device, "me201wzZeroSince", Date.now()) as number;
+        globalStore.putValue(device, "me201wzZeroSince", zeroSince);
+        if (Date.now() - zeroSince < ME201WZ_ZERO_GRACE_MS) {
+            delete filtered.liquid_depth;
+            delete filtered.liquid_level_percent;
+        }
+    } else if (levelKnown) {
+        globalStore.clearValue(device, "me201wzZeroSince");
+    }
+
+    // The liquid state follows the level: don't flip it to "low" while a drop to 0 is being ignored.
+    const zeroSince = globalStore.getValue(device, "me201wzZeroSince") as number | undefined;
+    if (filtered.liquid_state === "low" && zeroSince !== undefined && Date.now() - zeroSince < ME201WZ_ZERO_GRACE_MS) {
+        delete filtered.liquid_state;
+    }
+    return filtered;
+};
+
+const me201wzIgnoreGlitches = (extend: ModernExtend): ModernExtend => ({
+    ...extend,
+    fromZigbee: extend.fromZigbee?.map((converter) => ({
+        ...converter,
+        convert: (model, msg, publish, options, meta) => {
+            const result = converter.convert(model, msg, publish, options, meta);
+            return result && typeof result === "object" && !(result instanceof Promise)
+                ? me201wzFilterGlitches(result as KeyValue, meta.state, msg.device)
+                : result;
+        },
+    })),
+});
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -23537,7 +23592,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
         extend: [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
-            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
+            me201wzIgnoreGlitches(tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})),
         ],
         version: "0.0.1",
         exposes: (device, options) => [
