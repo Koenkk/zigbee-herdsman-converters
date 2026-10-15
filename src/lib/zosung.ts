@@ -4,6 +4,7 @@ import * as exposes from "./exposes";
 import {logger} from "./logger";
 import * as globalStore from "./store";
 import type {Fz, Tz, Zh} from "./types";
+import {isEndpoint} from "./utils";
 
 const NS = "zhc:zosung";
 const ea = exposes.access;
@@ -217,6 +218,11 @@ export const zosungExtend = {
 };
 
 function nextSeq(entity: Zh.Endpoint | Zh.Group) {
+    // ZG-IR01 echoes the supplied sequence in Code01, but requests all chunks
+    // with sequence zero. Keep its wire sequence fixed while serializing sends.
+    if (isEndpoint(entity) && entity.getDevice().modelID === "ZG-IR01") {
+        return 0;
+    }
     const seq = (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
     globalStore.putValue(entity, "seq", seq);
     return seq;

@@ -115,3 +115,18 @@ it("wraps the persisted sequence at the protocol limit", async () => {
     await complete(ep, 0);
     await sending;
 });
+
+it("serializes ZG-IR01 transfers with the zero sequence used by its chunk requests", async () => {
+    const ep = mockDevice({modelID: "ZG-IR01", ieeeAddr: "0x12345678", endpoints: [{ID: 1}]}).getEndpoint(1);
+    const first = send(ep);
+    const second = send(ep, "second");
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenCalledTimes(1);
+    await complete(ep, 0);
+    await first;
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.objectContaining({seq: 0}), expect.anything());
+    expect(store.getValue(ep, "irMessageInfo").data).toContain("second");
+    await complete(ep, 0);
+    await second;
+});
