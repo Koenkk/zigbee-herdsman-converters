@@ -235,7 +235,8 @@ interface PendingSend {
 }
 
 async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promise<void> {
-    const previous: Promise<void> = globalStore.getValue(entity, "irSendQueue", Promise.resolve());
+    // Serialize complete handshakes, including transfers to different IR blasters.
+    const previous: Promise<void> = globalStore.getValue("zosungIR", "irSendQueue", Promise.resolve());
     const sending = previous.then(async () => {
         const seq = nextSeq(entity);
         let pending: PendingSend;
@@ -263,14 +264,14 @@ async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promis
             }
         }
     });
-    // A failed transmission must not poison the per-endpoint queue.
+    // A failed transmission must not poison the IR queue.
     const tail = sending.catch(() => {});
-    globalStore.putValue(entity, "irSendQueue", tail);
+    globalStore.putValue("zosungIR", "irSendQueue", tail);
     try {
         await sending;
     } finally {
-        if (globalStore.getValue(entity, "irSendQueue") === tail) {
-            globalStore.clearValue(entity, "irSendQueue");
+        if (globalStore.getValue("zosungIR", "irSendQueue") === tail) {
+            globalStore.clearValue("zosungIR", "irSendQueue");
         }
     }
 }

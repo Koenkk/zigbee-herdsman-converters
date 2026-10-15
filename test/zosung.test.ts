@@ -40,15 +40,18 @@ it("waits for completion before replacing the frame and advances the sequence", 
     await second;
 });
 
-it("allows independent endpoints to transmit concurrently", async () => {
+it("waits for one endpoint to complete before starting another", async () => {
     const a = endpoint();
     const b = endpoint("0x87654321");
     const first = send(a);
     const second = send(b);
     await vi.advanceTimersByTimeAsync(0);
     expect(a.command).toHaveBeenCalledTimes(1);
-    expect(b.command).toHaveBeenCalledTimes(1);
+    expect(b.command).not.toHaveBeenCalled();
     await complete(a, 0);
+    await first;
+    await vi.advanceTimersByTimeAsync(0);
+    expect(b.command).toHaveBeenCalledTimes(1);
     await complete(b, 0);
     await Promise.all([first, second]);
 });
