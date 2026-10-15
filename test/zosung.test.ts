@@ -23,7 +23,7 @@ afterEach(() => {
     vi.useRealTimers();
 });
 
-it("waits for completion before replacing the frame", async () => {
+it("waits for completion before replacing the frame and advances the sequence", async () => {
     const ep = endpoint();
     const first = send(ep);
     await vi.advanceTimersByTimeAsync(0);
@@ -34,9 +34,9 @@ it("waits for completion before replacing the frame", async () => {
     await complete(ep, 0);
     await first;
     await vi.advanceTimersByTimeAsync(0);
-    expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.objectContaining({seq: 0}), expect.anything());
+    expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.objectContaining({seq: 1}), expect.anything());
     expect(store.getValue(ep, "irMessageInfo").data).toContain("second");
-    await complete(ep, 0);
+    await complete(ep, 1);
     await second;
 });
 
@@ -62,7 +62,7 @@ it("releases the next sender after initiation fails", async () => {
     await vi.advanceTimersByTimeAsync(0);
     await failure;
     expect(ep.command).toHaveBeenCalledTimes(2);
-    await complete(ep, 0);
+    await complete(ep, 1);
     await second;
 });
 
@@ -75,18 +75,21 @@ it("times out a missing completion and releases the queue", async () => {
     await vi.advanceTimersByTimeAsync(30000);
     await failure;
     expect(ep.command).toHaveBeenCalledTimes(2);
-    await complete(ep, 0);
+    await complete(ep, 1);
     await second;
 });
 
-it("rejects a completion with an unrelated sequence", async () => {
+it("does not complete a new transmission on a stale acknowledgement", async () => {
     const ep = endpoint();
-    const sending = send(ep);
-    await vi.advanceTimersByTimeAsync(0);
-    await expect(complete(ep, 123)).rejects.toThrow("Unexpected sequence");
-    expect(store.getValue(ep, "irMessageInfo").data).toContain("first");
-    await complete(ep, 0);
-    await sending;
+    const first = send(ep);
+    const failure = expect(first).rejects.toThrow(/timed out/i);
+    const second = send(ep, "second");
+    await vi.advanceTimersByTimeAsync(30000);
+    await failure;
+    await expect(complete(ep, 0)).rejects.toThrow("Unexpected sequence");
+    expect(store.getValue(ep, "irMessageInfo").data).toContain("second");
+    await complete(ep, 1);
+    await second;
 });
 
 it("releases the queue when the final acknowledgement fails", async () => {
@@ -99,6 +102,16 @@ it("releases the queue when the final acknowledgement fails", async () => {
     await expect(complete(ep, 0)).rejects.toThrow("disconnected");
     await failure;
     await vi.advanceTimersByTimeAsync(0);
-    await complete(ep, 0);
+    await complete(ep, 1);
     await second;
+});
+
+it("wraps the persisted sequence at the protocol limit", async () => {
+    const ep = endpoint();
+    store.putValue(ep, "seq", 0xffff);
+    const sending = send(ep);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.objectContaining({seq: 0}), expect.anything());
+    await complete(ep, 0);
+    await sending;
 });
