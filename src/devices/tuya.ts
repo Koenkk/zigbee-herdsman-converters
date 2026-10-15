@@ -2319,42 +2319,56 @@ const sp107eLedChips = {
 };
 
 /**
- * Now and then the ME201WZ reports readings that cannot be real: the level drops to 0 for a few reports
- * before the real value comes back, or a value far outside the sensor range shows up. Drop them, compared
- * with the last published state. A level that stays at 0 for more than 30 minutes is taken as real (the
- * tank was emptied), and a level that goes down step by step reaches 0 normally.
+ * The ME201WZ ultrasonic sensor regularly picks up false echoes: for minutes up to hours the depth bounces
+ * between the real level and values like -1.1 m, 5 m or a steady 0.24 m, and the level percent and liquid
+ * state follow. A real level changes gradually, so a reading is only published when it is within the tank
+ * and close to the last published depth. A sudden jump is published once the new level has been read
+ * steadily for 3 hours, so a real sudden change (tank emptied or refilled) still comes through.
  */
-const ME201WZ_ZERO_GRACE_MS = 30 * 60 * 1000;
+const ME201WZ_MAX_STEP = 0.15;
+const ME201WZ_TOLERANCE = 0.03;
+const ME201WZ_CONFIRM_MS = 3 * 60 * 60 * 1000;
 
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device): KeyValue => {
     const filtered = {...result};
-    const outOfRange = (key: string, min: number, max: number) => typeof filtered[key] === "number" && (filtered[key] < min || filtered[key] > max);
-    for (const [key, min, max] of [
-        ["liquid_depth", 0, 10],
-        ["liquid_level_percent", 0, 100],
-        ["installation_height", 0, 10],
-        ["liquid_depth_max", 0, 10],
-    ] as const) {
-        if (outOfRange(key, min, max)) delete filtered[key];
+    const num = (value: unknown) => (typeof value === "number" ? value : undefined);
+    for (const key of ["installation_height", "liquid_depth_max"]) {
+        if (num(filtered[key]) !== undefined && (filtered[key] < 0 || filtered[key] > 10)) delete filtered[key];
     }
+    const height = num(filtered.installation_height) ?? num(state.installation_height);
+    const depthMax = num(filtered.liquid_depth_max) ?? num(state.liquid_depth_max);
+    const lastDepth = num(state.liquid_depth);
+    const depth = num(filtered.liquid_depth);
 
-    const dropsToZero = (key: string, threshold: number) =>
-        filtered[key] === 0 && typeof state[key] === "number" && (state[key] as number) > threshold;
-    const levelKnown = typeof filtered.liquid_depth === "number" || typeof filtered.liquid_level_percent === "number";
-    if (dropsToZero("liquid_depth", 0.05) || dropsToZero("liquid_level_percent", 5)) {
-        const zeroSince = globalStore.getValue(device, "me201wzZeroSince", Date.now()) as number;
-        globalStore.putValue(device, "me201wzZeroSince", zeroSince);
-        if (Date.now() - zeroSince < ME201WZ_ZERO_GRACE_MS) {
-            delete filtered.liquid_depth;
-            delete filtered.liquid_level_percent;
+    let glitch = false;
+    if (depth !== undefined) {
+        if (depth < 0 || (height !== undefined && depth > height)) {
+            glitch = true;
+        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > ME201WZ_MAX_STEP) {
+            const now = Date.now();
+            const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number; count: number} | undefined;
+            if (candidate && Math.abs(depth - candidate.depth) <= ME201WZ_TOLERANCE) {
+                candidate.count += 1;
+                globalStore.putValue(device, "me201wzCandidate", candidate);
+                glitch = now - candidate.since < ME201WZ_CONFIRM_MS || candidate.count < 3;
+            } else {
+                globalStore.putValue(device, "me201wzCandidate", {depth, since: now, count: 1});
+                glitch = true;
+            }
         }
-    } else if (levelKnown) {
-        globalStore.clearValue(device, "me201wzZeroSince");
+        if (!glitch) globalStore.clearValue(device, "me201wzCandidate");
+    } else {
+        // The percent is the depth relative to liquid_depth_max: check it against the last published depth.
+        const percent = num(filtered.liquid_level_percent);
+        if (percent !== undefined && lastDepth !== undefined && depthMax) {
+            const expected = Math.min(100, Math.max(0, (lastDepth / depthMax) * 100));
+            glitch = Math.abs(percent - expected) > (ME201WZ_MAX_STEP / depthMax) * 100;
+        }
     }
 
-    // The liquid state follows the level: don't flip it to "low" while a drop to 0 is being ignored.
-    const zeroSince = globalStore.getValue(device, "me201wzZeroSince") as number | undefined;
-    if (filtered.liquid_state === "low" && zeroSince !== undefined && Date.now() - zeroSince < ME201WZ_ZERO_GRACE_MS) {
+    if (glitch) {
+        delete filtered.liquid_depth;
+        delete filtered.liquid_level_percent;
         delete filtered.liquid_state;
     }
     return filtered;

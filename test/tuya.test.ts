@@ -632,31 +632,42 @@ describe("Tuya ME201WZ", () => {
             ) as Record<string, unknown>;
         return {convert};
     };
-    const state = {liquid_depth: 1.12, liquid_level_percent: 80, liquid_state: "normal"};
+    const state = {liquid_depth: 1.46, liquid_level_percent: 73, liquid_state: "normal", installation_height: 2.17, liquid_depth_max: 2};
+    // Depth (cm), percent and liquid state as the sensor sends them together
+    const reading = (depth: number, percent: number, liquidState: number) => [
+        tuya.dpValueFromNumberValue(2, depth),
+        tuya.dpValueFromNumberValue(22, percent),
+        tuya.dpValueFromEnum(1, liquidState),
+    ];
 
-    it("ignores a sudden drop to 0 and values out of range", async () => {
+    it("ignores false echoes", async () => {
         const {convert} = await setup();
-        expect(convert([tuya.dpValueFromNumberValue(2, 0), tuya.dpValueFromNumberValue(22, 0), tuya.dpValueFromEnum(1, 1)], state)).toStrictEqual({});
-        expect(convert([tuya.dpValueFromNumberValue(22, 188)], state)).toStrictEqual({});
+        // Captured: -1.1 m, 5 m and a steady 0.24 m while the tank holds 1.46 m
+        expect(convert(reading(-110, 0, 1), state)).toStrictEqual({});
+        expect(convert(reading(500, 100, 2), state)).toStrictEqual({});
+        expect(convert(reading(24, 12, 1), state)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromNumberValue(22, 12)], state)).toStrictEqual({});
         expect(convert([tuya.dpValueFromNumberValue(19, 1929445372)], state)).toStrictEqual({});
 
-        // Real readings still go through and end the ignored drop.
-        expect(convert([tuya.dpValueFromNumberValue(2, 110), tuya.dpValueFromNumberValue(22, 79)], state)).toStrictEqual({
-            liquid_depth: 1.1,
-            liquid_level_percent: 79,
-        });
-        expect(convert([tuya.dpValueFromEnum(1, 1)], state)).toStrictEqual({liquid_state: "low"});
+        // The real level changing gradually still goes through.
+        expect(convert(reading(144, 72, 0), state)).toStrictEqual({liquid_depth: 1.44, liquid_level_percent: 72, liquid_state: "normal"});
+        expect(convert([tuya.dpValueFromNumberValue(22, 72)], state)).toStrictEqual({liquid_level_percent: 72});
     });
 
-    it("lets 0 through when the level was already low or stays at 0", async () => {
+    it("accepts a sudden change once it has been read steadily for 3 hours", async () => {
         const {convert} = await setup();
-        expect(convert([tuya.dpValueFromNumberValue(22, 0)], {...state, liquid_level_percent: 3})).toStrictEqual({liquid_level_percent: 0});
-
         vi.useFakeTimers();
         try {
-            expect(convert([tuya.dpValueFromNumberValue(22, 0)], state)).toStrictEqual({});
-            vi.advanceTimersByTime(31 * 60 * 1000);
-            expect(convert([tuya.dpValueFromNumberValue(22, 0)], state)).toStrictEqual({liquid_level_percent: 0});
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
+            vi.advanceTimersByTime(60 * 60 * 1000);
+            expect(convert(reading(21, 10, 1), state)).toStrictEqual({});
+            // A reading of the old level in between restarts the wait.
+            expect(convert(reading(146, 73, 0), state)).toStrictEqual({liquid_depth: 1.46, liquid_level_percent: 73, liquid_state: "normal"});
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
+            vi.advanceTimersByTime(2 * 60 * 60 * 1000);
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
+            vi.advanceTimersByTime(60 * 60 * 1000);
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({liquid_depth: 0.2, liquid_level_percent: 10, liquid_state: "low"});
         } finally {
             vi.useRealTimers();
         }
