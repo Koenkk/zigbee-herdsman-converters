@@ -2371,6 +2371,28 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
         delete filtered.liquid_depth;
         delete filtered.liquid_level_percent;
         delete filtered.liquid_state;
+        return filtered;
+    }
+
+    // The liquid state follows the percent against min_set / max_set and is often sent on its own: hold back a
+    // state that doesn't match the published percent, and publish it once an accepted percent matches it.
+    const minSet = num(filtered.min_set) ?? num(state.min_set);
+    const maxSet = num(filtered.max_set) ?? num(state.max_set);
+    const percent = num(filtered.liquid_level_percent) ?? num(state.liquid_level_percent);
+    if (minSet !== undefined && maxSet !== undefined && percent !== undefined) {
+        // Allow 1 % around the thresholds for rounding
+        const matches = (liquidState: unknown) =>
+            (liquidState === "low" && percent <= minSet + 1) ||
+            (liquidState === "high" && percent >= maxSet - 1) ||
+            (liquidState === "normal" && percent >= minSet - 1 && percent <= maxSet + 1);
+        if (filtered.liquid_state !== undefined && !matches(filtered.liquid_state)) {
+            globalStore.putValue(device, "me201wzPendingState", filtered.liquid_state);
+            delete filtered.liquid_state;
+        } else if (filtered.liquid_state === undefined && num(filtered.liquid_level_percent) !== undefined) {
+            const pending = globalStore.getValue(device, "me201wzPendingState");
+            if (pending !== undefined && pending !== state.liquid_state && matches(pending)) filtered.liquid_state = pending;
+        }
+        if (filtered.liquid_state !== undefined) globalStore.clearValue(device, "me201wzPendingState");
     }
     return filtered;
 };

@@ -655,6 +655,23 @@ describe("Tuya ME201WZ", () => {
         expect(convert([tuya.dpValueFromNumberValue(22, 72)], state)).toStrictEqual({liquid_level_percent: 72});
     });
 
+    it("holds back a liquid state that doesn't match the level", async () => {
+        const {convert} = await setup();
+        const withSets = {...state, liquid_depth: 1.4, liquid_level_percent: 70, min_set: 64, max_set: 100};
+        expect(convert([tuya.dpValueFromEnum(1, 2)], withSets)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromEnum(1, 1)], withSets)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromEnum(1, 0)], withSets)).toStrictEqual({liquid_state: "normal"});
+
+        // A real crossing: the state comes before the level, and is published with it.
+        const nearMin = {...withSets, liquid_depth: 1.3, liquid_level_percent: 66};
+        expect(convert([tuya.dpValueFromEnum(1, 1)], nearMin)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromNumberValue(2, 126), tuya.dpValueFromNumberValue(22, 63)], nearMin)).toStrictEqual({
+            liquid_depth: 1.26,
+            liquid_level_percent: 63,
+            liquid_state: "low",
+        });
+    });
+
     it("accepts a sudden change once it has been read steadily for 12 hours", async () => {
         const {convert} = await setup();
         vi.useFakeTimers();
