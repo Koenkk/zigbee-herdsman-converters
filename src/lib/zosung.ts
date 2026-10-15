@@ -217,7 +217,56 @@ export const zosungExtend = {
 };
 
 function nextSeq(entity: Zh.Endpoint | Zh.Group) {
-    return (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
+    const seq = (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
+    globalStore.putValue(entity, "seq", seq);
+    return seq;
+}
+
+interface PendingSend {
+    seq: number;
+    resolve: () => void;
+    reject: (error: Error) => void;
+}
+
+async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promise<void> {
+    const previous: Promise<void> = globalStore.getValue(entity, "irSendQueue", Promise.resolve());
+    const sending = previous.then(async () => {
+        const seq = nextSeq(entity);
+        let pending: PendingSend;
+        const completed = new Promise<void>((resolve, reject) => {
+            pending = {seq, resolve, reject};
+            globalStore.putValue(entity, "irPendingSend", pending);
+        });
+        // A completion can time out while the initial Zigbee command is pending.
+        completed.catch(() => {});
+        const timeout = setTimeout(() => pending.reject(new Error("IR transmission timed out")), 30000);
+        messagesSet(entity, seq, irMsg);
+        try {
+            await entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
+                "zosungIRTransmit",
+                "zosungSendIRCode00",
+                {seq, length: irMsg.length, unk1: 0x00000000, unk2: 0xe004, unk3: 0x01, cmd: 0x02, unk4: 0x0000},
+                {disableDefaultResponse: true},
+            );
+            await completed;
+        } finally {
+            clearTimeout(timeout);
+            globalStore.clearValue(entity, "irPendingSend");
+            if (globalStore.getValue(entity, "irMessageInfo")?.seq === seq) {
+                globalStore.clearValue(entity, "irMessageInfo");
+            }
+        }
+    });
+    // A failed transmission must not poison the per-endpoint queue.
+    const tail = sending.catch(() => {});
+    globalStore.putValue(entity, "irSendQueue", tail);
+    try {
+        await sending;
+    } finally {
+        if (globalStore.getValue(entity, "irSendQueue") === tail) {
+            globalStore.clearValue(entity, "irSendQueue");
+        }
+    }
 }
 
 function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
@@ -510,16 +559,26 @@ export const fzZosung = {
         convert: async (model, msg, publish, options, meta) => {
             logger.debug(`"IR-Message-Code04" received (msg:${JSON.stringify(msg.data)})`, NS);
             const seq = msg.data.seq;
-            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode05", ZosungIrTransmit>(
-                "zosungIRTransmit",
-                "zosungSendIRCode05",
-                {
-                    seq: seq,
-                    zero: 0,
-                },
-                {disableDefaultResponse: true},
-            );
-            messagesClear(msg.endpoint, seq);
+            const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
+            if (pending && pending.seq !== seq) {
+                throw new Error(`Unexpected sequence value (expected: ${pending.seq} current: ${seq}).`);
+            }
+            try {
+                await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode05", ZosungIrTransmit>(
+                    "zosungIRTransmit",
+                    "zosungSendIRCode05",
+                    {
+                        seq: seq,
+                        zero: 0,
+                    },
+                    {disableDefaultResponse: true},
+                );
+                messagesClear(msg.endpoint, seq);
+                pending?.resolve();
+            } catch (error) {
+                pending?.reject(error as Error);
+                throw error;
+            }
             logger.debug(`IRCode has been successfully sent. (seq:${seq})`, NS);
         },
     } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode04"]>,
@@ -654,23 +713,8 @@ export const tzZosung = {
 
             logger.debug(`Sending IR code: ${irMsg}`, NS);
 
-            const seq = nextSeq(entity);
-            messagesSet(entity, seq, irMsg);
-            await entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
-                "zosungIRTransmit",
-                "zosungSendIRCode00",
-                {
-                    seq: seq,
-                    length: irMsg.length,
-                    unk1: 0x00000000,
-                    unk2: 0xe004,
-                    unk3: 0x01,
-                    cmd: 0x02,
-                    unk4: 0x0000,
-                },
-                {disableDefaultResponse: true},
-            );
-            logger.debug("Sending IR code initiated.", NS);
+            await sendQueued(entity, irMsg);
+            logger.debug("Sending IR code completed.", NS);
         },
     } satisfies Tz.Converter,
     zosung_learn_ir_code: {
