@@ -4998,6 +4998,7 @@ const tuyaModernExtend = {
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior3?: boolean;
+            powerOnBehavior?: boolean | ((manufacturerName: string) => boolean);
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             switchTypeButton?: boolean | ((manufacturerName: string) => boolean);
@@ -5024,6 +5025,7 @@ const tuyaModernExtend = {
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
             powerOnBehavior3 = false,
+            powerOnBehavior = true,
             switchType = false,
             switchTypeButton = false,
         } = args;
@@ -5035,6 +5037,19 @@ const tuyaModernExtend = {
         const toZigbee: Tz.Converter[] = [];
         if (onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
+            // Some devices (e.g. Lidl HG06620) report offWaitTime for ON+countdown instead of onTime
+            fromZigbee.push({
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"] as const,
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.offWaitTime !== undefined) {
+                        const payload: KeyValue = {};
+                        const property = utils.postfixWithEndpointName("countdown", msg, model, meta);
+                        payload[property] = msg.data.offWaitTime;
+                        return payload;
+                    }
+                },
+            });
             toZigbee.push(tuyaTz.on_off_countdown);
             if (typeof onOffCountdown === "function") {
                 exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.countdown()] : []));
@@ -5104,7 +5119,7 @@ const tuyaModernExtend = {
                 toZigbee.push(...result.toZigbee);
                 exposes.push(...result.exposes);
             }
-        } else {
+        } else if (powerOnBehavior) {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
             toZigbee.push(tuyaTz.power_on_behavior_1);
             exposes.push(e.power_on_behavior());
