@@ -59,9 +59,8 @@ const tzsr100Local = {
             strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
             // @ts-expect-error ignore
             strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 2,
-        };
-         let warningInfo;           
-         let warningInfo = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
+        };        
+        const warningInfo = (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
 
             await entity.command(
                 'ssIasWd', 
