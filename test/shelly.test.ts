@@ -1360,8 +1360,8 @@ describe("Shelly WS90 rain rate", () => {
         expect(convertAll("shellyWS90Rain", {precipitation: 0, rainStatus: 0})).toStrictEqual({});
 
         // Real readings, a genuine 0 °C and a real counter reset still go through.
-        expect(convertAll("msPressureMeasurement", {measuredValue: 9980}).pressure).toBe(998);
-        expect(convertAll("msPressureMeasurement", {measuredValue: 7000}).pressure).toBe(700);
+        expect(convertAll("msPressureMeasurement", {measuredValue: 998}).pressure).toBe(998);
+        expect(convertAll("msPressureMeasurement", {measuredValue: 700}).pressure).toBe(700);
         expect(convertAll("msRelativeHumidity", {measuredValue: 0}, {...state, humidity: 3}).humidity).toBe(0);
         expect(convertAll("msTemperatureMeasurement", {measuredValue: 0}, {...state, temperature: 0.5}).temperature).toBe(0);
         expect(convertAll("shellyWS90Rain", {precipitation: 1}).precipitation).toBe(0.1);
