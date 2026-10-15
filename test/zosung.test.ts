@@ -5,14 +5,32 @@ import {fzZosung, tzZosung} from "../src/lib/zosung";
 import {mockDevice} from "./utils";
 
 const send = (endpoint: Zh.Endpoint, code = "first") => tzZosung.zosung_ir_code_to_send.convertSet(endpoint, "ir_code_to_send", code, {} as Tz.Meta);
-const complete = (endpoint: Zh.Endpoint, seq: number) =>
-    fzZosung.zosung_send_ir_code_04.convert(
+const ack = (endpoint: Zh.Endpoint, seq: number) =>
+    fzZosung.zosung_send_ir_code_01.convert(
+        {} as Parameters<typeof fzZosung.zosung_send_ir_code_01.convert>[0],
+        {endpoint, data: {seq}} as Parameters<typeof fzZosung.zosung_send_ir_code_01.convert>[1],
+        vi.fn(),
+        {},
+        {} as Fz.Meta,
+    );
+const requestChunk = (endpoint: Zh.Endpoint, seq: number) =>
+    fzZosung.zosung_send_ir_code_02.convert(
+        {} as Parameters<typeof fzZosung.zosung_send_ir_code_02.convert>[0],
+        {endpoint, data: {seq, position: 0, maxlen: 64}} as Parameters<typeof fzZosung.zosung_send_ir_code_02.convert>[1],
+        vi.fn(),
+        {},
+        {} as Fz.Meta,
+    );
+const complete = async (endpoint: Zh.Endpoint, seq: number) => {
+    await requestChunk(endpoint, seq);
+    return fzZosung.zosung_send_ir_code_04.convert(
         {} as Parameters<typeof fzZosung.zosung_send_ir_code_04.convert>[0],
         {endpoint, data: {seq}} as Parameters<typeof fzZosung.zosung_send_ir_code_04.convert>[1],
         vi.fn(),
         {},
         {} as Fz.Meta,
     );
+};
 const endpoint = (ieeeAddr = "0x12345678") => mockDevice({modelID: "TS1201", ieeeAddr, endpoints: [{ID: 1}]}).getEndpoint(1);
 
 beforeEach(() => {
@@ -101,8 +119,17 @@ it("releases the queue when the final acknowledgement fails", async () => {
     const failure = expect(first).rejects.toThrow("disconnected");
     const second = send(ep, "second");
     await vi.advanceTimersByTimeAsync(0);
+    await requestChunk(ep, 0);
     vi.mocked(ep.command).mockRejectedValueOnce(new Error("disconnected"));
-    await expect(complete(ep, 0)).rejects.toThrow("disconnected");
+    await expect(
+        fzZosung.zosung_send_ir_code_04.convert(
+            {} as Parameters<typeof fzZosung.zosung_send_ir_code_04.convert>[0],
+            {endpoint: ep, data: {seq: 0}} as Parameters<typeof fzZosung.zosung_send_ir_code_04.convert>[1],
+            vi.fn(),
+            {},
+            {} as Fz.Meta,
+        ),
+    ).rejects.toThrow("disconnected");
     await failure;
     await vi.advanceTimersByTimeAsync(0);
     await complete(ep, 1);
@@ -132,4 +159,38 @@ it("serializes ZG-IR01 transfers with the zero sequence used by its chunk reques
     expect(store.getValue(ep, "irMessageInfo").data).toContain("second");
     await complete(ep, 0);
     await second;
+});
+
+it("ignores a stale Code04 before the first chunk request and retries Code00", async () => {
+    const ep = endpoint();
+    const sending = send(ep);
+    await vi.advanceTimersByTimeAsync(0);
+    await ack(ep, 0);
+    // A leftover Code04 (ZG-IR01 reuses seq 0) must not complete a transfer whose
+    // device never requested a chunk.
+    await fzZosung.zosung_send_ir_code_04.convert(
+        {} as Parameters<typeof fzZosung.zosung_send_ir_code_04.convert>[0],
+        {endpoint: ep, data: {seq: 0}} as Parameters<typeof fzZosung.zosung_send_ir_code_04.convert>[1],
+        vi.fn(),
+        {},
+        {} as Fz.Meta,
+    );
+    expect(store.getValue(ep, "irMessageInfo").data).toContain("first");
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(ep.command).toHaveBeenCalledTimes(2);
+    await complete(ep, 0);
+    await sending;
+});
+
+it("stops retrying Code00 once the first chunk request arrives", async () => {
+    const ep = endpoint();
+    const sending = send(ep);
+    await vi.advanceTimersByTimeAsync(0);
+    await ack(ep, 0);
+    await requestChunk(ep, 0);
+    await vi.advanceTimersByTimeAsync(5000);
+    // Code00 + Code03 only; a Code00 retransmit would add a third call.
+    expect(ep.command).toHaveBeenCalledTimes(2);
+    await complete(ep, 0);
+    await sending;
 });

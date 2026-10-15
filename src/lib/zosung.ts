@@ -230,8 +230,61 @@ function nextSeq(entity: Zh.Endpoint | Zh.Group) {
 
 interface PendingSend {
     seq: number;
+    irMsg: string;
     resolve: () => void;
     reject: (error: Error) => void;
+    gotCode01: boolean;
+    started: boolean;
+    retries: number;
+    chunkWatch?: NodeJS.Timeout;
+}
+
+const CODE00_RETRY_MS = 2000;
+const CODE00_MAX_RETRIES = 2;
+
+function code00Payload(seq: number, length: number) {
+    return {seq, length, unk1: 0x00000000, unk2: 0xe004, unk3: 0x01, cmd: 0x02, unk4: 0x0000};
+}
+
+async function sendCode00(entity: Zh.Endpoint | Zh.Group, seq: number, irMsg: string): Promise<void> {
+    await entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
+        "zosungIRTransmit",
+        "zosungSendIRCode00",
+        code00Payload(seq, irMsg.length),
+        {disableDefaultResponse: true},
+    );
+}
+
+function clearChunkWatch(pending: PendingSend) {
+    if (pending.chunkWatch !== undefined) {
+        clearTimeout(pending.chunkWatch);
+        pending.chunkWatch = undefined;
+    }
+}
+
+function armChunkWatch(entity: Zh.Endpoint | Zh.Group, pending: PendingSend) {
+    clearChunkWatch(pending);
+    pending.chunkWatch = setTimeout(() => {
+        void retryCode00(entity, pending);
+    }, CODE00_RETRY_MS);
+}
+
+async function retryCode00(entity: Zh.Endpoint | Zh.Group, pending: PendingSend): Promise<void> {
+    const current: PendingSend | undefined = globalStore.getValue(entity, "irPendingSend");
+    if (current !== pending || pending.started || !pending.gotCode01) {
+        return;
+    }
+    if (pending.retries >= CODE00_MAX_RETRIES) {
+        return;
+    }
+    pending.retries += 1;
+    logger.debug(`Retransmitting IR Code00 after missing chunk request (retry ${pending.retries}, seq:${pending.seq})`, NS);
+    try {
+        await sendCode00(entity, pending.seq, pending.irMsg);
+        armChunkWatch(entity, pending);
+    } catch (error) {
+        pending.reject(error as Error);
+    }
 }
 
 async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promise<void> {
@@ -241,7 +294,7 @@ async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promis
         const seq = nextSeq(entity);
         let pending: PendingSend;
         const completed = new Promise<void>((resolve, reject) => {
-            pending = {seq, resolve, reject};
+            pending = {seq, irMsg, resolve, reject, gotCode01: false, started: false, retries: 0};
             globalStore.putValue(entity, "irPendingSend", pending);
         });
         // A completion can time out while the initial Zigbee command is pending.
@@ -249,15 +302,11 @@ async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promis
         const timeout = setTimeout(() => pending.reject(new Error("IR transmission timed out")), 30000);
         messagesSet(entity, seq, irMsg);
         try {
-            await entity.command<"zosungIRTransmit", "zosungSendIRCode00", ZosungIrTransmit>(
-                "zosungIRTransmit",
-                "zosungSendIRCode00",
-                {seq, length: irMsg.length, unk1: 0x00000000, unk2: 0xe004, unk3: 0x01, cmd: 0x02, unk4: 0x0000},
-                {disableDefaultResponse: true},
-            );
+            await sendCode00(entity, seq, irMsg);
             await completed;
         } finally {
             clearTimeout(timeout);
+            clearChunkWatch(pending);
             globalStore.clearValue(entity, "irPendingSend");
             if (globalStore.getValue(entity, "irMessageInfo")?.seq === seq) {
                 globalStore.clearValue(entity, "irMessageInfo");
@@ -531,6 +580,11 @@ export const fzZosung = {
             if (irMsg) {
                 logger.debug(`IRCode to send: ${JSON.stringify(irMsg)} (seq:${seq})`, NS);
             }
+            const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
+            if (pending && pending.seq === seq && !pending.started) {
+                pending.gotCode01 = true;
+                armChunkWatch(msg.endpoint, pending);
+            }
         },
     } satisfies Fz.Converter<"zosungIRTransmit", ZosungIrTransmit, ["commandZosungSendIRCode01"]>,
     zosung_send_ir_code_02: {
@@ -542,6 +596,11 @@ export const fzZosung = {
             const position = msg.data.position;
             const irMsg = messagesGet(msg.endpoint, seq);
             if (irMsg) {
+                const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
+                if (pending && pending.seq === seq) {
+                    pending.started = true;
+                    clearChunkWatch(pending);
+                }
                 const part = irMsg.substring(position, position + 0x32);
                 const sum = calcStringCrc(part);
                 await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode03", ZosungIrTransmit>(
@@ -569,6 +628,12 @@ export const fzZosung = {
             const pending: PendingSend | undefined = globalStore.getValue(msg.endpoint, "irPendingSend");
             if (pending && pending.seq !== seq) {
                 throw new Error(`Unexpected sequence value (expected: ${pending.seq} current: ${seq}).`);
+            }
+            // ZG-IR01 reuses sequence 0. A leftover Code04 from the previous
+            // handshake must not complete a transfer that has not started chunks.
+            if (pending && !pending.started) {
+                logger.debug(`Ignoring Code04 before the first chunk request (seq:${seq})`, NS);
+                return;
             }
             try {
                 await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode05", ZosungIrTransmit>(
