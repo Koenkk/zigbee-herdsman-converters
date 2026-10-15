@@ -217,9 +217,7 @@ export const zosungExtend = {
 };
 
 function nextSeq(entity: Zh.Endpoint | Zh.Group) {
-    const seq = (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
-    globalStore.putValue(entity, "seq", seq);
-    return seq;
+    return (globalStore.getValue(entity, "seq", -1) + 1) % 0x10000;
 }
 
 interface PendingSend {
