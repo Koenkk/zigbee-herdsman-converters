@@ -588,6 +588,57 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
+    lia_action: {
+        cluster: "closuresDoorLock",
+        type: ["raw"],
+        convert: (model, msg, publish, options, meta) => {
+            // The Lia sends the standard ZCL operation event notification (command 0x20)
+            // in a frame that fails ZCL parsing, so it lands here raw (same issue as the
+            // Solis above). Field layout follows the ZCL spec:
+            //   data[3] = operation event source
+            //   data[4] = operation event code (same table as fz.lock_operation_event)
+            //   data[5..6] = user id (uint16 LE)
+            // Verified against a real device exercising all 4 unlock methods: keypad
+            // (source=0), HA/remote unlock (source=1), manual thumbturn (source=2) and
+            // fingerprint (source=4). The ZCL spec labels source 4 "indeterminate", but
+            // on this device it is reported specifically for fingerprint unlocks.
+            // action_source is included (in addition to action_source_name) to match the
+            // shape of fz.lock_operation_event, used when the frame does parse as ZCL.
+            const eventLookup: {[key: number]: string} = {
+                0: "unknown",
+                1: "lock",
+                2: "unlock",
+                3: "lock_failure_invalid_pin_or_id",
+                4: "lock_failure_invalid_schedule",
+                5: "unlock_failure_invalid_pin_or_id",
+                6: "unlock_failure_invalid_schedule",
+                7: "one_touch_lock",
+                8: "key_lock",
+                9: "key_unlock",
+                10: "auto_lock",
+                11: "schedule_lock",
+                12: "schedule_unlock",
+                13: "manual_lock",
+                14: "manual_unlock",
+                15: "non_access_user_operational_event",
+            };
+            const sourceLookup: {[key: number]: string} = {
+                0: "keypad",
+                1: "rf",
+                2: "manual",
+                3: "rfid",
+                4: "fingerprint",
+            };
+            const source = msg.data[3];
+            const code = msg.data[4];
+            return {
+                action: eventLookup[code] ?? `unknown_${code}`,
+                action_source: source,
+                action_source_name: sourceLookup[source] ?? `unknown_${source}`,
+                action_user: msg.data[5] | (msg.data[6] << 8),
+            };
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["raw"]>,
 };
 
 const tzLocal = {
@@ -853,6 +904,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LIA",
         vendor: "Yale",
         description: "Digital Lock Lia",
+        fromZigbee: [fzLocal.lia_action],
         extend: [lockExtend()],
     },
     {

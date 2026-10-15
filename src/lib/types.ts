@@ -231,6 +231,8 @@ export interface DefinitionMeta {
      * Manufacturer specific
      */
     sinopeAlternateBacklightAutoDim?: boolean;
+    /** Indicates if the device does not report `swBuildId`, and a custom one was saved instead */
+    hasCustomFirmwareId?: boolean;
 }
 
 export type Configure = (device: Zh.Device, coordinatorEndpoint: Zh.Endpoint, definition: Definition) => Promise<void> | void;

@@ -365,6 +365,52 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     /*
+        ZigbeeTLc soil moisture:
+        - Temperature (+calibration)
+        - Humidity (+calibration)
+        - Soil moisture (EP2 as Relative Humidity Measurement)
+        - Measurement interval
+    */
+    {
+        // HOBEIAN / Sonoff ZG-303Z with ZigbeeTLc firmware
+        // https://pvvx.github.io/ZG-303Z/
+        zigbeeModel: ["ZG-303Z-z"],
+        model: "ZG-303Z-z",
+        vendor: "HOBEIAN",
+        description: "Soil moisture sensor (pvvx/ZigbeeTLc)",
+        extend: [
+            m.deviceEndpoints({
+                endpoints: {1: 1, 2: 2},
+                multiEndpointSkip: ["humidity", "temperature", "soil_moisture"],
+            }),
+            m.battery({voltage: true}),
+            m.identify(),
+            m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
+            m.humidity({
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+                // EP1 air humidity; EP2 also uses RH cluster for soil moisture
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 1 || msg.data.measuredValue === undefined) return;
+                    return {humidity: msg.data.measuredValue / 100};
+                },
+            }),
+            // FW exposes soil moisture on EP2 as Relative Humidity Measurement
+            m.humidity({
+                name: "soil_moisture",
+                description: "Measured soil moisture",
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 100},
+                fzConvert: (_model, msg) => {
+                    if (msg.endpoint.ID !== 2 || msg.data.measuredValue === undefined) return;
+                    return {soil_moisture: msg.data.measuredValue / 100};
+                },
+            }),
+            extend.temperatureCalibration,
+            extend.humidityCalibration,
+            extend.measurementInterval,
+        ],
+        ota: true,
+    },
+    /*
         ZigbeeTLc PIR devices supporting:
         - Occupancy
         - Remote On/Off binding (genOnOff state)

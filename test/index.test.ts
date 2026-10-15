@@ -227,6 +227,21 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("TS011F_plug_3");
     });
 
+    it("finds the Paulmann 291.52 white label for PIIC5800 firmware", async () => {
+        const device = mockDevice(
+            {
+                modelID: "RGBWW",
+                manufacturerName: "Paulmann Licht GmbH",
+                softwareBuildID: "PIIC5800",
+                endpoints: [],
+            },
+            "Router",
+        );
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toStrictEqual("291.52");
+    });
+
     it("finds definition by fingerprint - index of size 250+", async () => {
         const device = mockDevice(
             {
@@ -515,6 +530,7 @@ describe("ZHC", () => {
         const ts0601SoilDevice = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_myd45weu", endpoints: []});
         const ts0601Soil = await findByDevice(ts0601SoilDevice);
         expect(ts0601Soil.options.map((t) => t.name)).toStrictEqual([
+            "time_start",
             "temperature_calibration",
             "temperature_precision",
             "soil_moisture_calibration",
@@ -537,6 +553,7 @@ describe("ZHC", () => {
         const ts0111fPlug1Device = mockDevice({modelID: "TS011F", endpoints: []});
         const ts011fPlug1 = await findByDevice(ts0111fPlug1Device);
         expect(ts011fPlug1.options.map((t) => t.name)).toStrictEqual([
+            "time_start",
             "power_calibration",
             "power_precision",
             "current_calibration",

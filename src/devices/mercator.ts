@@ -22,10 +22,18 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {multiEndpoint: true, multiEndpointSkip: ["current", "voltage", "power", "energy"]},
         configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
+            const endpoint1 = device.getEndpoint(1);
+            const endpoint2 = device.getEndpoint(2);
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            endpoint.saveClusterAttributeKeyValue("haElectricalMeasurement", {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
-            endpoint.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genOnOff", "haElectricalMeasurement", "seMetering"]);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff"]);
+            await reporting.onOff(endpoint1);
+            await reporting.onOff(endpoint2);
+            await reporting.rmsVoltage(endpoint1, {change: 5});
+            await reporting.rmsCurrent(endpoint1, {change: 50});
+            await reporting.activePower(endpoint1, {change: 1});
+            endpoint1.saveClusterAttributeKeyValue("haElectricalMeasurement", {acCurrentDivisor: 1000, acCurrentMultiplier: 1});
+            endpoint1.saveClusterAttributeKeyValue("seMetering", {divisor: 100, multiplier: 1});
             device.save();
         },
     },

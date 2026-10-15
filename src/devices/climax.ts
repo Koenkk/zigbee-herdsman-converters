@@ -111,22 +111,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SRAC-23B-ZBSR",
         vendor: "Climax",
         description: "Smart siren",
-        fromZigbee: [fz.battery, fz.ias_enroll, fz.ias_siren],
-        toZigbee: [tz.warning_simple, tz.warning, tz.squawk],
-        extend: [m.iasWarningMaxDuration()],
+        extend: [
+            m.battery({lowStatus: true, percentage: false, percentageReporting: false}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
+            m.iasWarning({maxDuration: {min: 0, max: 600}}),
+            {
+                exposes: [e.squawk()],
+                toZigbee: [tz.squawk],
+                isModernExtend: true,
+            },
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic", "ssIasZone", "ssIasWd"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genBasic"]);
             await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr", "zoneId"]);
             await endpoint.read("ssIasWd", ["maxDuration"]);
         },
-        exposes: [
-            e.battery_low(),
-            e.tamper(),
-            e.warning(),
-            e.squawk(),
-            e.binary("alarm", ea.SET, "START", "OFF").withDescription("Manual start of siren"),
-        ],
     },
     {
         zigbeeModel: ["WS15_00.00.00.14TC"],

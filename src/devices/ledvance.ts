@@ -277,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075729025",
         vendor: "LEDVANCE",
         description: "SMART+ lamp E27 RGBTW",
-        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true})],
+        extend: [ledvanceLight({colorTemp: {range: [153, 370]}, color: true, powerOnBehavior: true})],
     },
     {
         zigbeeModel: ["GARDENPOLE RGBW T"],
@@ -397,13 +397,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4058075823976",
         vendor: "LEDVANCE",
         description: "LED Tube T8 EM Connected 1200 mm 16W 840",
-        extend: [ledvanceOnOff({powerOnBehavior: false})],
+        extend: [ledvanceLight(), m.identify()],
     },
     {
         zigbeeModel: ["TUBE_T8_CON_1500_24W_840ZBV"],
         model: "4058075824010",
         vendor: "LEDVANCE",
         description: "LED Tube T8 EM Connected P 1500mm 24W 840",
-        extend: [m.light(), m.electricityMeter()],
+        extend: [ledvanceLight(), m.electricityMeter()],
     },
 ];

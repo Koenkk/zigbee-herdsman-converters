@@ -17,6 +17,253 @@ const sentRpcData = (endpoint: {write: ReturnType<typeof vi.fn>}): string =>
         .map((call) => (call[1] as {data: string}).data)
         .join("");
 
+describe("Shelly 1L Gen4", () => {
+    const mockShelly1L = () =>
+        mockDevice({
+            modelID: "1L",
+            manufacturerName: "Shelly",
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 266, inputClusterIDs: [0, 3, 4, 5, 6], outputClusterIDs: [25]},
+                {ID: 2, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 3, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+            ],
+        });
+
+    it("maps the captured relay and input endpoint layout", async () => {
+        const device = mockShelly1L();
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toBe("S4SW-0A1X1EUL");
+        expect(definition.endpoint?.(device)).toStrictEqual({sw1: 2, sw2: 3});
+
+        const exposes = (definition.exposes as DefinitionExposesFunction)(device, {});
+        const names = exposes.map((expose) => `${expose.name}${expose.endpoint ? `_${expose.endpoint}` : ""}`);
+        expect(names).toContain("switch_type_sw1");
+        expect(names).toContain("switch_type_sw2");
+        expect(names).toContain("switch_mode_sw1");
+        expect(names).not.toContain("switch_mode_sw2");
+        expect(names).toContain("momentary_toggle_binding_sw1");
+        expect(names).toContain("momentary_toggle_binding_sw2");
+        const switchMode = exposes.find((expose) => expose.name === "switch_mode" && expose.endpoint === "sw1");
+        assert(switchMode && "values" in switchMode);
+        expect(switchMode.values).toStrictEqual(["momentary", "follow", "flip", "detached"]);
+    });
+
+    it("maps both input endpoints to separate actions and switch types", async () => {
+        const device = mockShelly1L();
+        const definition = await findByDevice(device);
+        const onOff = definition.fromZigbee.find((converter) => converter.cluster === "genOnOff") as Fz.Converter;
+        const [momentaryToggleBinding, switchType] = definition.fromZigbee.filter(
+            (converter) => converter.cluster === "genOnOffSwitchCfg",
+        ) as Fz.Converter[];
+        const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
+
+        expect(
+            onOff.convert(
+                definition,
+                {data: {}, endpoint: device.getEndpoint(2), device, type: "commandOff", meta: {zclTransactionSequenceNumber: 1}} as never,
+                vi.fn(),
+                {},
+                meta,
+            ),
+        ).toStrictEqual({action: "input_1_off"});
+        expect(
+            onOff.convert(
+                definition,
+                {data: {}, endpoint: device.getEndpoint(3), device, type: "commandOn", meta: {zclTransactionSequenceNumber: 2}} as never,
+                vi.fn(),
+                {},
+                meta,
+            ),
+        ).toStrictEqual({action: "input_2_on"});
+        expect(
+            switchType.convert(
+                definition,
+                {data: {switchType: 1}, endpoint: device.getEndpoint(3), device, type: "attributeReport"} as never,
+                vi.fn(),
+                {},
+                meta,
+            ),
+        ).toStrictEqual({switch_type_sw2: "momentary"});
+
+        expect(
+            momentaryToggleBinding.convert(
+                definition,
+                {data: {switchActions: 2}, endpoint: device.getEndpoint(2), device, type: "readResponse"} as never,
+                vi.fn(),
+                {},
+                meta,
+            ),
+        ).toStrictEqual({momentary_toggle_binding_sw1: "ON"});
+    });
+
+    it("configures both input endpoints", async () => {
+        const device = mockShelly1L();
+        const coordinator = mockDevice({endpoints: [{ID: 1}]}).getEndpoint(1);
+        const definition = await findByDevice(device);
+
+        await definition.configure?.(device, coordinator, definition);
+
+        for (const epID of [2, 3]) {
+            const endpoint = device.getEndpoint(epID);
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", coordinator);
+            expect(endpoint.bind).toHaveBeenCalledWith("genScenes", coordinator);
+            expect(endpoint.read).toHaveBeenCalledWith("genOnOffSwitchCfg", ["switchActions"]);
+        }
+    });
+
+    it("configures toggle actions for an opt-in momentary input binding", async () => {
+        const device = mockShelly1L();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key?.includes("momentary_toggle_binding")) as Tz.Converter;
+        vi.mocked(device.getEndpoint(2).read).mockResolvedValueOnce({switchType: 1});
+
+        await converter.convertSet?.(device.getEndpoint(2), "momentary_toggle_binding", "ON", {device, endpoint_name: "sw1"} as never);
+
+        expect(device.getEndpoint(2).write).toHaveBeenCalledWith("genOnOffSwitchCfg", {switchActions: 2});
+    });
+
+    it("disables toggle actions for an opt-in momentary input binding", async () => {
+        const device = mockShelly1L();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key?.includes("momentary_toggle_binding")) as Tz.Converter;
+        vi.mocked(device.getEndpoint(2).read).mockResolvedValueOnce({switchType: 1});
+
+        await converter.convertSet?.(device.getEndpoint(2), "momentary_toggle_binding", "OFF", {device, endpoint_name: "sw1"} as never);
+
+        expect(device.getEndpoint(2).write).toHaveBeenCalledWith("genOnOffSwitchCfg", {switchActions: 0});
+    });
+
+    it("rejects momentary toggle binding setup for a toggle input", async () => {
+        const device = mockShelly1L();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key?.includes("momentary_toggle_binding")) as Tz.Converter;
+        vi.mocked(device.getEndpoint(2).read).mockResolvedValueOnce({switchType: 0});
+
+        await expect(
+            converter.convertSet?.(device.getEndpoint(2), "momentary_toggle_binding", "ON", {device, endpoint_name: "sw1"} as never),
+        ).rejects.toThrow("Momentary toggle binding requires the input to use the momentary switch type");
+        expect(device.getEndpoint(2).write).not.toHaveBeenCalledWith("genOnOffSwitchCfg", {switchActions: 2});
+    });
+
+    it("only configures the relay-associated input mode", async () => {
+        const device = mockShelly1L();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key?.includes("switch_mode")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(2), "switch_mode", "detached", {
+            device,
+            endpoint_name: "sw1",
+            message: {},
+            state: {},
+        } as never);
+
+        expect(JSON.parse(sentRpcData(device.getEndpoint(239) as never))).toMatchObject({
+            method: "Switch.SetConfig",
+            params: {id: 0, config: {in_mode: "detached"}},
+        });
+    });
+});
+
+describe("Shelly i4 Gen4", () => {
+    // Endpoint layout captured from a device on firmware 2.1.99-i4g4prod1.
+    const mockShellyI4 = (ieeeAddr = "0x000000000000e401") =>
+        mockDevice({
+            modelID: "I4",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {ID: 1, profileID: 260, deviceID: 0, inputClusterIDs: [0, 3, 7], outputClusterIDs: [25, 4, 6, 3, 5]},
+                {ID: 2, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 3, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 4, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 5, profileID: 260, deviceID: 7, inputClusterIDs: [], outputClusterIDs: [4, 258, 8, 6, 3]},
+                {ID: 6, profileID: 260, deviceID: 7, inputClusterIDs: [], outputClusterIDs: [4, 258, 8, 6, 3]},
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+            ],
+        });
+
+    const convert = async (device: ReturnType<typeof mockDevice>, endpointId: number, type: string, data: object, sequence: number) => {
+        const definition = await findByDevice(device);
+        const cluster = type === "commandRecall" ? "genScenes" : "genOnOff";
+        const converter = definition.fromZigbee.find(
+            (c) => c.cluster === cluster && (Array.isArray(c.type) ? c.type.includes(type) : c.type === type),
+        ) as Fz.Converter;
+        return converter.convert(
+            definition,
+            {data, endpoint: device.getEndpoint(endpointId), device, type, meta: {zclTransactionSequenceNumber: sequence}} as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps the four inputs to sw1-sw4", async () => {
+        const device = mockShellyI4();
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toBe("S4SN-0A24X");
+        expect(definition.endpoint?.(device)).toStrictEqual({sw1: 1, sw2: 2, sw3: 3, sw4: 4});
+
+        const exposes = (definition.exposes as DefinitionExposesFunction)(device, {});
+        const names = exposes.map((expose) => `${expose.name}${expose.endpoint ? `_${expose.endpoint}` : ""}`);
+        for (const input of [1, 2, 3, 4]) {
+            expect(names).toContain(`switch_type_sw${input}`);
+            expect(names).toContain(`momentary_toggle_binding_sw${input}`);
+        }
+        const action = exposes.find((expose) => expose.name === "action");
+        assert(action && "values" in action);
+        expect(action.values).toContain("input_4_hold");
+    });
+
+    it("reports every input as its own action", async () => {
+        const device = mockShellyI4();
+
+        expect(await convert(device, 1, "commandOn", {}, 1)).toStrictEqual({action: "input_1_on"});
+        expect(await convert(device, 3, "commandToggle", {}, 2)).toStrictEqual({action: "input_3_toggle"});
+        expect(await convert(device, 4, "commandRecall", {sceneid: 2}, 3)).toStrictEqual({action: "input_4_double"});
+        expect(await convert(device, 2, "commandRecall", {sceneid: 4}, 4)).toStrictEqual({action: "input_2_hold"});
+    });
+
+    it("ignores commands from the endpoints that are no input", async () => {
+        const device = mockShellyI4();
+
+        expect(await convert(device, 5, "commandOn", {}, 5)).toBeUndefined();
+    });
+
+    it("configures all four input endpoints", async () => {
+        const device = mockShellyI4();
+        const coordinator = mockDevice({endpoints: [{ID: 1}]}).getEndpoint(1);
+        const definition = await findByDevice(device);
+
+        await definition.configure?.(device, coordinator, definition);
+
+        for (const epID of [1, 2, 3, 4]) {
+            const endpoint = device.getEndpoint(epID);
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", coordinator);
+            expect(endpoint.bind).toHaveBeenCalledWith("genScenes", coordinator);
+            expect(endpoint.read).toHaveBeenCalledWith("genOnOffSwitchCfg", ["switchType", "switchActions"]);
+        }
+        expect(device.getEndpoint(5).bind).not.toHaveBeenCalled();
+    });
+
+    it("writes the switch type of the fourth input through Input.SetConfig", async () => {
+        const device = mockShellyI4();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((converter) => converter.key?.includes("switch_type")) as Tz.Converter;
+
+        await converter.convertSet?.(device.getEndpoint(4), "switch_type", "momentary", {device, endpoint_name: "sw4"} as never);
+
+        expect(JSON.parse(sentRpcData(device.getEndpoint(239) as never))).toMatchObject({
+            method: "Input.SetConfig",
+            params: {id: 3, config: {type: "button"}},
+        });
+    });
+});
+
 describe("Shelly 2PM Gen4 cover mode", () => {
     const mockShelly2PMCover = (read?: ReturnType<typeof vi.fn>) =>
         mockDevice({
