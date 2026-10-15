@@ -29,10 +29,19 @@ export const on_off: Tz.Converter = {
             if (typeof offWaitTime !== "number") {
                 throw new Error("The off_wait_time value must be a number!");
             }
+            // Both are sent in tenths of a second as uint16
+            const ontime = Math.round(onTime * 10);
+            const offwaittime = Math.round(offWaitTime * 10);
+            if (!(ontime >= 0 && ontime <= 0xffff)) {
+                throw new Error(`The on_time value must be between 0 and 6553.5, got '${onTime}'`);
+            }
+            if (!(offwaittime >= 0 && offwaittime <= 0xffff)) {
+                throw new Error(`The off_wait_time value must be between 0 and 6553.5, got '${offWaitTime}'`);
+            }
             const payload = meta.converterOptions
                 ? // TODO: better typing? currently used in a single place??
                   (meta.converterOptions as TClusterCommandPayload<"genOnOff", "onWithTimedOff">)
-                : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+                : {ctrlbits: 0, ontime, offwaittime};
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
             await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
