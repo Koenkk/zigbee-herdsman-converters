@@ -93,11 +93,29 @@ it("times out a missing completion and releases the queue", async () => {
     const failure = expect(first).rejects.toThrow(/timed out/i);
     await vi.advanceTimersByTimeAsync(0);
     const second = send(ep, "second");
-    await vi.advanceTimersByTimeAsync(30000);
+    await vi.advanceTimersByTimeAsync(7999);
+    expect(ep.command).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
     await failure;
     expect(ep.command).toHaveBeenCalledTimes(2);
     await complete(ep, 1);
     await second;
+});
+
+it("holds a send behind an active learn until the learn stops", async () => {
+    const ep = endpoint();
+    const learn = tzZosung.zosung_learn_ir_code.convertSet(ep, "learn_ir_code", "ON", {} as Tz.Meta);
+    await vi.advanceTimersByTimeAsync(0);
+    await learn;
+    expect(ep.command).toHaveBeenCalledTimes(1);
+    const sent = send(ep);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenCalledTimes(1);
+    await tzZosung.zosung_learn_ir_code.convertSet(ep, "learn_ir_code", "OFF", {} as Tz.Meta);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(ep.command).toHaveBeenLastCalledWith("zosungIRTransmit", "zosungSendIRCode00", expect.anything(), expect.anything());
+    await complete(ep, 0);
+    await sent;
 });
 
 it("does not complete a new transmission on a stale acknowledgement", async () => {
@@ -105,7 +123,7 @@ it("does not complete a new transmission on a stale acknowledgement", async () =
     const first = send(ep);
     const failure = expect(first).rejects.toThrow(/timed out/i);
     const second = send(ep, "second");
-    await vi.advanceTimersByTimeAsync(30000);
+    await vi.advanceTimersByTimeAsync(8000);
     await failure;
     await expect(complete(ep, 0)).rejects.toThrow("Unexpected sequence");
     expect(store.getValue(ep, "irMessageInfo").data).toContain("second");

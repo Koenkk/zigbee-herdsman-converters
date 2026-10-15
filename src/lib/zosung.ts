@@ -287,10 +287,37 @@ async function retryCode00(entity: Zh.Endpoint | Zh.Group, pending: PendingSend)
     }
 }
 
+// Must cover the CODE00 retries: the first retry fires at 2 s, the second at 4 s,
+// and the chunk watch gives up at 6 s. The measured 478-byte transfer in
+// native-ir/on16-zosung-transmit.log finished in about 4 s (Code00 22:40:56, Code04 22:41:00).
+const IR_COMPLETION_TIMEOUT_MS = 8000;
+// Upper bound for a learn session that never produces a code. Assumed; not measured.
+const IR_LEARN_TIMEOUT_MS = 60000;
+
+interface PendingLearn {
+    release: () => void;
+}
+
+// Runs one IR operation at a time across all Zosung IR endpoints. The slot is
+// held until the task settles, so an active learn holds it until it releases.
+async function runQueued(task: () => Promise<void>): Promise<void> {
+    const previous: Promise<void> = globalStore.getValue("zosungIR", "irSendQueue", Promise.resolve());
+    const running = previous.then(task);
+    // A failed task must not poison the IR queue.
+    const tail = running.catch(() => {});
+    globalStore.putValue("zosungIR", "irSendQueue", tail);
+    try {
+        await running;
+    } finally {
+        if (globalStore.getValue("zosungIR", "irSendQueue") === tail) {
+            globalStore.clearValue("zosungIR", "irSendQueue");
+        }
+    }
+}
+
 async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promise<void> {
     // Serialize complete handshakes, including transfers to different IR blasters.
-    const previous: Promise<void> = globalStore.getValue("zosungIR", "irSendQueue", Promise.resolve());
-    const sending = previous.then(async () => {
+    await runQueued(async () => {
         const seq = nextSeq(entity);
         let pending: PendingSend;
         const completed = new Promise<void>((resolve, reject) => {
@@ -299,7 +326,7 @@ async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promis
         });
         // A completion can time out while the initial Zigbee command is pending.
         completed.catch(() => {});
-        const timeout = setTimeout(() => pending.reject(new Error("IR transmission timed out")), 30000);
+        const timeout = setTimeout(() => pending.reject(new Error("IR transmission timed out")), IR_COMPLETION_TIMEOUT_MS);
         messagesSet(entity, seq, irMsg);
         try {
             await sendCode00(entity, seq, irMsg);
@@ -313,16 +340,58 @@ async function sendQueued(entity: Zh.Endpoint | Zh.Group, irMsg: string): Promis
             }
         }
     });
-    // A failed transmission must not poison the IR queue.
-    const tail = sending.catch(() => {});
-    globalStore.putValue("zosungIR", "irSendQueue", tail);
-    try {
-        await sending;
-    } finally {
-        if (globalStore.getValue("zosungIR", "irSendQueue") === tail) {
-            globalStore.clearValue("zosungIR", "irSendQueue");
+}
+
+function releaseLearn(entity: Zh.Endpoint | Zh.Group) {
+    const pending: PendingLearn | undefined = globalStore.getValue(entity, "irPendingLearn");
+    pending?.release();
+}
+
+// Holds the IR queue from learn start until the learn releases: learned code,
+// stop, or timeout. Resolves once learning has started.
+async function learnQueued(entity: Zh.Endpoint | Zh.Group): Promise<void> {
+    let started!: () => void;
+    let failed!: (error: Error) => void;
+    const begun = new Promise<void>((resolve, reject) => {
+        started = resolve;
+        failed = reject;
+    });
+    const running = runQueued(async () => {
+        let timeout: NodeJS.Timeout | undefined;
+        try {
+            const learned = new Promise<void>((resolve) => {
+                globalStore.putValue(entity, "irPendingLearn", {release: resolve});
+            });
+            timeout = setTimeout(() => {
+                logger.debug("IR Code Learning timed out, stopping.", NS);
+                releaseLearn(entity);
+                sendStudy(entity, true).catch((error) => logger.error(`Failed to stop IR Code Learning: ${error}`, NS));
+            }, IR_LEARN_TIMEOUT_MS);
+            await sendStudy(entity, false);
+            started();
+            await learned;
+        } catch (error) {
+            failed(error as Error);
+            throw error;
+        } finally {
+            clearTimeout(timeout);
+            globalStore.clearValue(entity, "irPendingLearn");
         }
-    }
+    });
+    // A failed start is reported to the caller through begun.
+    running.catch(() => {});
+    await begun;
+}
+
+async function sendStudy(entity: Zh.Endpoint | Zh.Group, stop: boolean): Promise<void> {
+    await entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
+        "zosungIRControl",
+        "zosungControlIRCommand00",
+        {
+            data: Buffer.from(JSON.stringify({study: stop ? 1 : 0})),
+        },
+        {disableDefaultResponse: true},
+    );
 }
 
 function messagesGet(entity: Zh.Endpoint | Zh.Group, seq: number) {
@@ -759,6 +828,7 @@ export const fzZosung = {
                     },
                     {disableDefaultResponse: true},
                 );
+                releaseLearn(msg.endpoint);
 
                 // Clear learned IR timings for HA
                 clearTimeout(globalStore.getValue(msg.endpoint, "timer"));
@@ -794,15 +864,15 @@ export const tzZosung = {
         convertSet: async (entity, key, value, meta) => {
             const stop = value === "OFF" || value === false;
             logger.debug(stop ? "Stopping IR Code Learning..." : "Starting IR Code Learning...", NS);
-            await entity.command<"zosungIRControl", "zosungControlIRCommand00", ZosungIrControl>(
-                "zosungIRControl",
-                "zosungControlIRCommand00",
-                {
-                    data: Buffer.from(JSON.stringify({study: stop ? 1 : 0})),
-                },
-                {disableDefaultResponse: true},
-            );
-            logger.debug(stop ? "IR Code Learning stopped." : "IR Code Learning started.", NS);
+            if (stop) {
+                // Stopping releases a queued learn, so it must not wait behind that learn.
+                releaseLearn(entity);
+                await sendStudy(entity, true);
+                logger.debug("IR Code Learning stopped.", NS);
+            } else {
+                await learnQueued(entity);
+                logger.debug("IR Code Learning started.", NS);
+            }
         },
     } satisfies Tz.Converter,
 };
