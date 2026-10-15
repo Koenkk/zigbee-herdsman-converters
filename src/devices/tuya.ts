@@ -6069,11 +6069,13 @@ export const definitions: DefinitionWithExtend[] = [
         version: "0.0.2",
         fromZigbee: [fz.on_off, fz.brightness],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            await reporting.onOff(endpoint, {max: 0});
-            await reporting.brightness(endpoint, {max: 0});
+            if (["_TZE200_ykgar0ow", "_TZE200_4mh6tyyo"].includes(device.manufacturerName)) {
+                await tuya.configureMagicPacket(device, coordinatorEndpoint);
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+                await reporting.onOff(endpoint, {max: 0});
+                await reporting.brightness(endpoint, {max: 0});
+            }
         },
         exposes: (device, options) => {
             const exps: Expose[] = [
