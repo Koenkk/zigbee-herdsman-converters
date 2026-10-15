@@ -503,7 +503,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.coverPosition(),
             e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibration mode"),
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable button backlight"),
-            e.enum("motor_direction", ea.STATE_SET, ["normal", "reversed"]).withDescription("Direction of motor movement"),
+            te.motorDirection(),
             e
                 .numeric("motor_working_time", ea.STATE_SET)
                 .withUnit("s")
@@ -517,7 +517,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
                 [7, "backlight_switch", tuya.valueConverter.onOff],
-                [8, "motor_direction", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), reversed: tuya.enum(1)})],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [10, "motor_working_time", tuya.valueConverter.raw],
             ],
         },
