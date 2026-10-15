@@ -522,26 +522,26 @@ describe("toZigbee converters", () => {
         });
 
         test("sends on_time and off_wait_time in tenths of a second", async () => {
-            meta.message = {state: "ON", on_time: 6553.5, off_wait_time: 1.5};
+            meta.message = {state: "ON", on_time: 6553.4, off_wait_time: 1.5};
             await zhc.toZigbee.on_off.convertSet(device.endpoints[0], "state", "ON", meta);
             expect(device.endpoints[0].command).toHaveBeenCalledWith(
                 "genOnOff",
                 "onWithTimedOff",
-                {ctrlbits: 0, ontime: 65535, offwaittime: 15},
+                {ctrlbits: 0, ontime: 65534, offwaittime: 15},
                 expect.any(Object),
             );
         });
 
         test.each([
             ["on_time", 10800],
-            ["on_time", 6553.6],
+            ["on_time", 6553.5],
             ["on_time", -1],
             ["off_wait_time", 10800],
             ["off_wait_time", -1],
-        ])("rejects %s %d that does not fit in uint16 tenths of a second", async (key, value) => {
+        ])("rejects %s %d outside the ZCL range", async (key, value) => {
             meta.message = {state: "ON", [key]: value};
             await expect(zhc.toZigbee.on_off.convertSet(device.endpoints[0], "state", "ON", meta)).rejects.toThrow(
-                `The ${key} value must be between 0 and 6553.5, got '${value}'`,
+                `The ${key} value must be between 0 and 6553.4, got '${value}'`,
             );
             expect(device.endpoints[0].command).not.toHaveBeenCalled();
         });

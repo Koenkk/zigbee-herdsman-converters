@@ -29,14 +29,14 @@ export const on_off: Tz.Converter = {
             if (typeof offWaitTime !== "number") {
                 throw new Error("The off_wait_time value must be a number!");
             }
-            // Both are sent in tenths of a second as uint16
+            // Both are sent in tenths of a second as uint16, where the ZCL spec reserves 0xffff
             const ontime = Math.round(onTime * 10);
             const offwaittime = Math.round(offWaitTime * 10);
-            if (!(ontime >= 0 && ontime <= 0xffff)) {
-                throw new Error(`The on_time value must be between 0 and 6553.5, got '${onTime}'`);
+            if (!(ontime >= 0 && ontime <= 0xfffe)) {
+                throw new Error(`The on_time value must be between 0 and 6553.4, got '${onTime}'`);
             }
-            if (!(offwaittime >= 0 && offwaittime <= 0xffff)) {
-                throw new Error(`The off_wait_time value must be between 0 and 6553.5, got '${offWaitTime}'`);
+            if (!(offwaittime >= 0 && offwaittime <= 0xfffe)) {
+                throw new Error(`The off_wait_time value must be between 0 and 6553.4, got '${offWaitTime}'`);
             }
             const payload = meta.converterOptions
                 ? // TODO: better typing? currently used in a single place??
