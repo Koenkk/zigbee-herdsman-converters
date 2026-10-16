@@ -651,4 +651,27 @@ describe("toZigbee converters", () => {
             expect(device.endpoints[0].command).not.toHaveBeenCalledWith("lightingColorCtrl", "moveToColorTemp", {}, {});
         });
     });
+
+    describe("thermostat_ac_louver_position", () => {
+        let device: ReturnType<typeof mockDevice>;
+
+        beforeEach(() => {
+            vi.clearAllMocks();
+            device = mockDevice({modelID: "test_device", manufacturerName: "test_manufacturer", endpoints: [{ID: 1}]});
+        });
+
+        test.each([
+            ["fully_closed", 1],
+            ["fully_open", 2],
+            ["quarter_open", 3],
+            ["half_open", 4],
+            ["three_quarters_open", 5],
+        ])("writes %s as %d", async (value, expected) => {
+            const converter = zhc.toZigbee.thermostat_ac_louver_position;
+            const result = await converter.convertSet(device.endpoints[0], "ac_louver_position", value, {} as Tz.Meta);
+
+            expect(device.endpoints[0].write).toHaveBeenCalledWith("hvacThermostat", {acLouverPosition: expected});
+            expect(result).toStrictEqual({state: {ac_louver_position: value}});
+        });
+    });
 });

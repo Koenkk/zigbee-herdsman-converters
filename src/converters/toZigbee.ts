@@ -2022,7 +2022,9 @@ export const thermostat_max_cool_setpoint_limit: Tz.Converter = {
 export const thermostat_ac_louver_position: Tz.Converter = {
     key: ["ac_louver_position"],
     convertSet: async (entity, key, value, meta) => {
-        let acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, undefined, Number);
+        // thermostatAcLouverPositions maps both 0 and 1 to fully_closed so that a reported 0 is still parsed,
+        // but ZCL defines Fully Closed as 0x01 and 0 is not a valid value to write.
+        let acLouverPosition = value === "fully_closed" ? 1 : utils.getKey(constants.thermostatAcLouverPositions, value, undefined, Number);
         if (acLouverPosition === undefined) {
             acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, value as number, Number);
         }
