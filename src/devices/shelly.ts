@@ -3541,6 +3541,22 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: [{modelID: "BLU DoorWindow Outdoor ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-302C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow Outdoor ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
         fingerprint: [{modelID: "BLU Motion ZB", manufacturerName: "Shelly"}],
         model: "SBMO-103Z",
         vendor: "Shelly",
