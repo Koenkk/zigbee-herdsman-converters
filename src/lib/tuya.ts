@@ -548,7 +548,7 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-function getDataValue(dpValue: Tuya.DpValue) {
+export function getDataValue(dpValue: Tuya.DpValue) {
     let dataString = "";
     switch (dpValue.datatype) {
         case dataTypes.raw:

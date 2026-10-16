@@ -2370,6 +2370,22 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
     return result;
 };
 
+// Shared by the liquid state, depth and percent datapoints, which are filtered together once per message.
+const me201wzFiltered = new WeakMap<object, KeyValue>();
+const me201wzLevel: Tuya.ValueConverterSingle = {
+    from: (v, meta, options, publish, msg) => {
+        if (!me201wzFiltered.has(msg)) {
+            const dp = Object.fromEntries((msg.data.dpValues as Tuya.DpValue[]).map((d) => [d.dp, tuya.getDataValue(d)]));
+            const result: KeyValue = {};
+            if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
+            if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
+            if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
+            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device));
+        }
+        return me201wzFiltered.get(msg);
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
@@ -23589,20 +23605,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
         extend: [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
-            tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true}),
-            {
-                fromZigbee: [
-                    {
-                        ...tuya.fz.datapoints,
-                        convert: (model, msg, publish, options, meta) => {
-                            const result = tuya.fz.datapoints.convert(model, msg, publish, options, meta);
-                            return result && me201wzFilterGlitches(result, meta.state, msg.device);
-                        },
-                    },
-                ],
-                toZigbee: [tuya.tz.datapoints],
-                isModernExtend: true,
-            },
+            tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
         ],
         version: "0.0.1",
         exposes: (device, options) => [
@@ -23625,14 +23628,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "liquid_state", tvc.level],
-                [2, "liquid_depth", tvc.divideBy100],
+                [1, null, me201wzLevel],
+                [2, null, me201wzLevel],
                 [5, "voltage", tvc.divideBy10], // power_level
                 [7, "max_set", tvc.raw],
                 [8, "min_set", tvc.raw],
                 [19, "installation_height", tvc.divideBy100],
                 [21, "liquid_depth_max", tvc.divideBy100],
-                [22, "liquid_level_percent", tvc.raw],
+                [22, null, me201wzLevel],
                 [24, "relay_switch", tvc.onOff],
                 [101, "pump_mode", tvc.pumpMode],
                 [102, "pump_control", tvc.pumpControl], // auto_pump_control
