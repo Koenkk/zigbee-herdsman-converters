@@ -258,78 +258,42 @@ function calcStringCrc(str: string) {
     );
 }
 
-// Tuya FastLZ (level 1) block limits, matching decodeTuyaTimings below.
-const FASTLZ_MAX_LITERAL = 32;
-const FASTLZ_MIN_MATCH = 3;
-// Extended length byte is capped at 0xfe: decoders that accept the level 2
-// format treat 0xff as "add 255 and read another length byte".
-const FASTLZ_MAX_MATCH = 9 + 0xfe;
-const FASTLZ_MAX_DISTANCE = 0x2000;
-const FASTLZ_MAX_CHAIN = 64;
-
-function emitLiterals(out: number[], data: Uint8Array, start: number, end: number) {
-    for (let pos = start; pos < end; pos += FASTLZ_MAX_LITERAL) {
-        const len = Math.min(FASTLZ_MAX_LITERAL, end - pos);
-        out.push(len - 1);
-        for (let i = 0; i < len; i++) {
-            out.push(data[pos + i]);
-        }
-    }
-}
-
+// Greedy Tuya FastLZ (level 1) compressor, matching decodeTuyaTimings below.
 export function compressTuyaFastLz(data: Uint8Array): number[] {
     const out: number[] = [];
-    // Positions of earlier 3-byte prefixes, most recent last.
-    const chains = new Map<number, number[]>();
-    const prefixAt = (pos: number) => (data[pos] << 16) | (data[pos + 1] << 8) | data[pos + 2];
-    const remember = (pos: number) => {
-        if (pos + FASTLZ_MIN_MATCH > data.length) return;
-        const key = prefixAt(pos);
-        const chain = chains.get(key);
-        if (chain) chain.push(pos);
-        else chains.set(key, [pos]);
+    const pushLiterals = (start: number, end: number) => {
+        for (let i = start; i < end; i += 32) {
+            const chunk = data.subarray(i, Math.min(i + 32, end));
+            out.push(chunk.length - 1, ...chunk);
+        }
     };
 
     let literalStart = 0;
     let pos = 0;
     while (pos < data.length) {
-        let bestLength = 0;
-        let bestDistance = 0;
-        const chain = pos + FASTLZ_MIN_MATCH <= data.length ? chains.get(prefixAt(pos)) : undefined;
-        if (chain) {
-            const limit = Math.min(FASTLZ_MAX_MATCH, data.length - pos);
-            for (let i = chain.length - 1, tried = 0; i >= 0 && tried < FASTLZ_MAX_CHAIN; i--, tried++) {
-                const candidate = chain[i];
-                const distance = pos - candidate;
-                if (distance > FASTLZ_MAX_DISTANCE) break;
-                let length = 0;
-                while (length < limit && data[candidate + length] === data[pos + length]) length++;
-                if (length > bestLength) {
-                    bestLength = length;
-                    bestDistance = distance;
-                    if (length === limit) break;
-                }
-            }
+        // Find the longest earlier match within the 8 KiB window. Extended length byte is capped
+        // at 0xfe: level 2 decoders read 0xff as "add 255 and read another byte".
+        const maxLength = Math.min(9 + 0xfe, data.length - pos);
+        let length = 0;
+        let offset = 0;
+        for (let candidate = pos - 1; candidate >= Math.max(0, pos - 0x2000) && length < maxLength; candidate--) {
+            let l = 0;
+            while (l < maxLength && data[candidate + l] === data[pos + l]) l++;
+            if (l > length) [length, offset] = [l, pos - candidate - 1];
         }
 
-        if (bestLength < FASTLZ_MIN_MATCH) {
-            remember(pos);
+        if (length < 3) {
             pos++;
             continue;
         }
 
-        emitLiterals(out, data, literalStart, pos);
-        const offset = bestDistance - 1;
-        if (bestLength >= 9) {
-            out.push((7 << 5) | (offset >> 8), bestLength - 9, offset & 0xff);
-        } else {
-            out.push(((bestLength - 2) << 5) | (offset >> 8), offset & 0xff);
-        }
-        for (let i = 0; i < bestLength; i++) remember(pos + i);
-        pos += bestLength;
+        pushLiterals(literalStart, pos);
+        if (length >= 9) out.push(0xe0 | (offset >> 8), length - 9, offset & 0xff);
+        else out.push(((length - 2) << 5) | (offset >> 8), offset & 0xff);
+        pos += length;
         literalStart = pos;
     }
-    emitLiterals(out, data, literalStart, data.length);
+    pushLiterals(literalStart, data.length);
     return out;
 }
 
@@ -347,8 +311,6 @@ export function encodeTuyaTimings(timings: number[]): string {
         rawBytes[i * 2 + 1] = (v >> 8) & 0xff;
     }
 
-    // Every byte of the base64 key_code is one more 50-byte chunk round trip
-    // over Zigbee, so compress like captured codes are (often 5-10x smaller).
     return Buffer.from(Uint8Array.from(compressTuyaFastLz(rawBytes))).toString("base64");
 }
 
