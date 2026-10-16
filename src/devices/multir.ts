@@ -2,6 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -34,6 +35,46 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const tzsr100Local = {
+    MIRSR100: {
+        key: ["warning"],
+        convertSet: async (entity, key, value, meta) => {
+            const mode = {stop: 0, burglar: 1, fire: 2, emergency: 3, police_panic: 4, fire_panic: 5, emergency_panic: 6};
+            const level = {low: 0, medium: 1, high: 2, very_high: 3};
+            const strobeLevel = {low: 0, medium: 1, high: 2, very_high: 3};
+
+            const values = {
+                // @ts-expect-error ignore
+                mode: value.mode || "emergency",
+                // @ts-expect-error ignore
+                level: value.level || "medium",
+                // @ts-expect-error ignore
+                strobe: value.strobe === true || value.strobe === "true" || value.strobe === "ON" ? 1 : 0,
+                // @ts-expect-error ignore
+                duration: value.duration != null ? value.duration : 10,
+                // @ts-expect-error ignore
+                strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
+                // @ts-expect-error ignore
+                strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, strobeLevel) : 2,
+            };
+            const warningInfo =
+                (utils.getFromLookup(values.mode, mode) << 4) + ((values.strobe ? 1 : 0) << 2) + utils.getFromLookup(values.level, level);
+
+            await entity.command(
+                "ssIasWd",
+                "startWarning",
+                {
+                    startwarninginfo: warningInfo,
+                    warningduration: values.duration,
+                    strobedutycycle: values.strobeDutyCycle,
+                    strobelevel: values.strobeLevel,
+                },
+                utils.getOptions(meta.mapped, entity),
+            );
+            return {state: {warning: value}};
+        },
+    } satisfies Tz.Converter,
+};
 const fzhe300Local = {
     HE300: {
         cluster: "msOccupancySensing",
@@ -155,7 +196,30 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MIR-SR100",
         vendor: "MultIR",
         description: "Zigbee SR100 siren",
-        extend: [m.iasWarning(), m.forceDeviceType({type: "EndDevice"}), m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]})],
+        fromZigbee: [],
+        toZigbee: [tzsr100Local.MIRSR100],
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.forceDeviceType({type: "EndDevice"}),
+            m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "tamper"]}),
+        ],
+        exposes: [
+            exposes
+                .composite("warning", "warning", ea.SET)
+                .withFeature(exposes.enum("level", ea.SET, ["low", "medium", "high", "very_high"]).withDescription("Sound level"))
+                .withFeature(exposes.binary("strobe", ea.SET, "ON", "OFF").withDescription("Turn on/off the strobe (light) during warning"))
+                .withFeature(
+                    exposes
+                        .numeric("duration", ea.SET)
+                        .withUnit("s")
+                        .withValueMin(1)
+                        .withValueMax(1800)
+                        .withDescription("Duration of the warning in seconds"),
+                )
+                .withFeature(
+                    exposes.numeric("strobe_duty_cycle", ea.SET).withValueMin(0).withValueMax(10).withDescription("Length of the flash cycle"),
+                ),
+        ],
         meta: {disableDefaultResponse: true},
     },
     {

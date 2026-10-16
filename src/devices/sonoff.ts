@@ -12012,6 +12012,11 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Speed of brightness change via external switch.",
                 access: "ALL",
                 entityCategory: "config",
+                fzConvert: (model, msg) => {
+                    // Device reports 0 until brightness calibration has been run
+                    const rate = msg.data.dimmingLightRate;
+                    if (rate >= 1 && rate <= 5) return {dimming_light_rate: `${rate}x`};
+                },
             }),
         ],
         ota: true,

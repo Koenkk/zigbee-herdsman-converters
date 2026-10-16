@@ -191,7 +191,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: true}), m.identify()],
     },
     {
-        zigbeeModel: ["LCX030"],
+        zigbeeModel: ["LCX030", "LCX048"],
         model: "929004284702",
         vendor: "Philips",
         description: "Hue Festavia permanent outdoor string lights",
@@ -5134,7 +5134,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
     },
     {
-        zigbeeModel: ["929004276602", "929004276702", "929004276802"],
+        zigbeeModel: ["929004276602", "929004276603", "929004276702", "929004276802"],
         model: "929004276602",
         vendor: "Philips",
         description: "Hue White and Color Lightstrip Ultra Bright (3m)",

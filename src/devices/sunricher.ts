@@ -2757,6 +2757,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.electrical_measurement,
             namron.fromZigbee.namron_hvac_user_interface,
             fzLocal.ZG9095B,
+            fz.fan,
         ],
         toZigbee: [
             tzLocal.ZG9095B.temperature_display,
