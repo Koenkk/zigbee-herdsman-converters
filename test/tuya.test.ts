@@ -648,7 +648,6 @@ describe("Tuya ME201WZ", () => {
         expect(convert(reading(500, 100, 2), state)).toStrictEqual({});
         expect(convert(reading(24, 12, 1), state)).toStrictEqual({});
         expect(convert([tuya.dpValueFromNumberValue(22, 12)], state)).toStrictEqual({});
-        expect(convert([tuya.dpValueFromNumberValue(19, 1929445372)], state)).toStrictEqual({});
 
         // The real level changing gradually still goes through.
         expect(convert(reading(144, 72, 0), state)).toStrictEqual({liquid_depth: 1.44, liquid_level_percent: 72, liquid_state: "normal"});

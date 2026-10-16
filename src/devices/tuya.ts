@@ -2333,10 +2333,6 @@ const ME201WZ_CONFIRM_MS = 12 * 60 * 60 * 1000;
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device): KeyValue => {
     const filtered = {...result};
     const num = (value: unknown) => (typeof value === "number" ? value : undefined);
-    for (const key of ["installation_height", "liquid_depth_max"]) {
-        const value = num(filtered[key]);
-        if (value !== undefined && (value < 0 || value > 10)) delete filtered[key];
-    }
     const height = num(filtered.installation_height) ?? num(state.installation_height);
     const depthMax = num(filtered.liquid_depth_max) ?? num(state.liquid_depth_max);
     const lastDepth = num(state.liquid_depth);
