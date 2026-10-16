@@ -129,6 +129,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [
             {modelID: "CSW_ADUROLIGHT", manufacturerName: "Trust International B.V.\u0000"},
             {modelID: "CSW_ADUROLIGHT", manufacturerName: "Trust International B.V."},
+            {modelID: "CSW_ADUROLIGHT", manufacturerName: "ADUROLIGHT"},
         ],
         model: "ZCTS-808",
         vendor: "Trust",

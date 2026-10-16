@@ -58,7 +58,7 @@ describe("GenerateDefinition", () => {
             read: {1: [["msPressureMeasurement", ["measuredValue"]]]},
             write: {},
             configureReporting: {
-                1: [["msPressureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 50)]]],
+                1: [["msPressureMeasurement", [reportingItem("measuredValue", 10, repInterval.HOUR, 5)]]],
             },
         });
     });

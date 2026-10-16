@@ -706,6 +706,41 @@ const ws90Scaled = (name: string, raw: unknown, invalid: number): {[key: string]
     typeof raw === "number" && raw !== invalid ? {[name]: raw / 10} : undefined;
 
 /**
+ * Now and then the station sends an all-zero frame: pressure, humidity, temperature, illuminance and the
+ * cumulative precipitation read 0 for a few seconds up to an hour before the real values come back. A
+ * precipitation counter going 208.9 -> 0 -> 208.9 is seen as a counter reset downstream and the whole
+ * total gets counted again. Drop readings that cannot be real, compared with the last published state;
+ * a genuine 0 °C after a near-zero reading or a real counter reset (0.1, 0.2...) still goes through.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: custom clusters not in type registry
+const ws90IsZeroFrame = (msg: Fz.Message<any, any, any>, state: KeyValue): boolean => {
+    const data = msg.data as KeyValue;
+    switch (msg.cluster) {
+        case "msPressureMeasurement":
+            return data.measuredValue === 0;
+        case "msRelativeHumidity":
+            return data.measuredValue === 0 && typeof state.humidity === "number" && state.humidity > 5;
+        case "msTemperatureMeasurement":
+            return data.measuredValue === 0 && typeof state.temperature === "number" && Math.abs(state.temperature) > 2;
+        case "msIlluminanceMeasurement":
+            return data.measuredValue === 0 && typeof state.illuminance === "number" && state.illuminance > 50;
+        case "shellyWS90Rain":
+            return data.precipitation === 0 && typeof state.precipitation === "number" && state.precipitation > 0;
+        default:
+            return false;
+    }
+};
+
+const ws90IgnoreZeroFrames = (extend: ModernExtend): ModernExtend => ({
+    ...extend,
+    fromZigbee: extend.fromZigbee?.map((converter) => ({
+        ...converter,
+        convert: (model, msg, publish, options, meta) =>
+            ws90IsZeroFrame(msg, meta.state) ? undefined : converter.convert(model, msg, publish, options, meta),
+    })),
+});
+
+/**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
 function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
@@ -900,6 +935,7 @@ const shellyModernExtend = {
               ? {sw1: 3, sw2: 4}
               : undefined;
         const featureOnePMInputMode = features.includes("1PMInputMode");
+        const featureOneLInputMode = features.includes("1LInputMode");
         const featureCoverTiltAuto = features.includes("CoverTiltAuto");
         const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
         const featurePresenceZoneConfig = features.includes("PresenceZoneConfig");
@@ -1290,6 +1326,29 @@ const shellyModernExtend = {
                         .withCategory("config")
                         .withEndpoint(endpoint),
                 );
+            });
+            toZigbee.push({
+                key: ["switch_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = getRPCEndpoint(entity);
+                    await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
+                    return {state: {switch_mode: value}};
+                },
+            });
+        }
+        if (featureOneLInputMode) {
+            // SW2 is a permanently detached input. Only SW1 is associated with the relay and can
+            // change its input mode; the remaining modes are unsupported on the 1L.
+            const inModeValues = ["momentary", "follow", "flip", "detached"];
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID) || !device.getEndpoint(2)) return [];
+                return [
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint("sw1"),
+                ];
             });
             toZigbee.push({
                 key: ["switch_mode"],
@@ -1924,18 +1983,30 @@ const handlePosition = e
     .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
     .withDescription("Handle position: closed, tilted (partly open), or open");
 
-// Resolves which switch input (1 or 2) sent a message, from the definition's own endpoint map:
-// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4 and the
-// single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from any
-// other endpoint return undefined and must be ignored, not mislabeled as input 1.
+// Resolves which switch input (swN -> N) sent a message, from the definition's own endpoint map:
+// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4, the i4 on 1-4
+// and the single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from
+// any other endpoint return undefined and must be ignored, not mislabeled as input 1.
 const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint: Zh.Endpoint}): number | undefined => {
     const endpoints = model.endpoint?.(msg.device) ?? {};
-    if (endpoints.sw1 === msg.endpoint.ID) return 1;
-    if (endpoints.sw2 === msg.endpoint.ID) return 2;
+    for (const [name, endpoint] of Object.entries(endpoints)) {
+        const match = /^sw(\d+)$/.exec(name);
+        if (match && endpoint === msg.endpoint.ID) return Number(match[1]);
+    }
     return undefined;
 };
 
 const fzLocal = {
+    momentary_toggle_binding: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (!Object.hasOwn(msg.data, "switchActions")) return;
+            const property = utils.postfixWithEndpointName("momentary_toggle_binding", msg, model, meta);
+            return {[property]: msg.data.switchActions === 2 ? "ON" : "OFF"};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+
     one_button_events: {
         cluster: "genOnOff",
         type: ["commandToggle"],
@@ -2028,7 +2099,7 @@ const fzLocal = {
     // The input numbering comes from the definition's endpoint map (see shellyInputNumber): a
     // fixed endpoint lookup broke the cover-mode 2PM, whose inputs live on endpoints 2/3 while
     // the switch-mode device has them on 3/4 - input 1 threw and input 2 was reported as input 1.
-    two_switch_inputs_events: {
+    switch_inputs_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
@@ -2040,7 +2111,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
-    two_switch_inputs_scene_events: {
+    switch_inputs_scene_events: {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
@@ -2128,6 +2199,24 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    momentary_toggle_binding: {
+        key: ["momentary_toggle_binding"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.validateValue(value as string, ["ON", "OFF"]);
+            utils.assertEndpoint(entity);
+            const result = await entity.read("genOnOffSwitchCfg", ["switchType"]);
+            if (result.switchType !== 1) {
+                throw new Error("Momentary toggle binding requires the input to use the momentary switch type");
+            }
+            await entity.write("genOnOffSwitchCfg", {switchActions: value === "ON" ? 2 : 0});
+            return {state: {momentary_toggle_binding: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            await entity.read("genOnOffSwitchCfg", ["switchActions"]);
+        },
+    } satisfies Tz.Converter,
+
     switch_input_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
@@ -2598,6 +2687,61 @@ const shellyTRVExternalInputsOnEvent: OnEvent.Handler = (event) => {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["1L"],
+        model: "S4SW-0A1X1EUL",
+        vendor: "Shelly",
+        description: "1L Gen4",
+        ota: true,
+        version: "0.0.1",
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.momentary_toggle_binding, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
+        exposes: (device) => [
+            e.action([
+                "input_1_on",
+                "input_1_off",
+                "input_1_toggle",
+                "input_1_single",
+                "input_1_double",
+                "input_1_triple",
+                "input_1_hold",
+                "input_2_on",
+                "input_2_off",
+                "input_2_toggle",
+                "input_2_single",
+                "input_2_double",
+                "input_2_triple",
+                "input_2_hold",
+            ]),
+            ...shellySwitchInputExposes(device, {sw1: 2, sw2: 3}),
+            e
+                .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                .withEndpoint("sw1")
+                .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input"),
+            e
+                .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                .withEndpoint("sw2")
+                .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input"),
+        ],
+        extend: [
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
+            m.onOff({powerOnBehavior: false}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1LInputMode"]),
+            shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [2, 3]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchActions"]);
+                }
+            }
+        },
+    },
+    {
         zigbeeModel: ["Mini1", "1 Mini"],
         fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
         model: "S4SW-001X8EU",
@@ -2763,7 +2907,7 @@ export const definitions: DefinitionWithExtend[] = [
         // this device was first released; bump the patch version so already paired devices get
         // re-configured and their input events start arriving (same rule as the BLU remotes).
         version: "0.0.1",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2839,7 +2983,7 @@ export const definitions: DefinitionWithExtend[] = [
         // this device was first released; bump the patch version so already paired devices get
         // re-configured and their input events start arriving (same rule as the BLU remotes).
         version: "0.0.1",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2876,6 +3020,51 @@ export const definitions: DefinitionWithExtend[] = [
                     await ep.bind("genOnOff", coordinatorEndpoint);
                     await ep.bind("genScenes", coordinatorEndpoint);
                     await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ["I4"],
+        model: "S4SN-0A24X",
+        vendor: "Shelly",
+        description: "i4 Gen4",
+        ota: true,
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.momentary_toggle_binding, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
+        // All four inputs are detached - the device has no relay - so they only report actions and,
+        // with momentary_toggle_binding, can drive a directly bound group. Endpoints 5 and 6 only
+        // declare outgoing on/off, level control and window covering clusters, like the extra
+        // endpoint of the 2PM. No input mode is known that makes them send anything, so they are
+        // left out here as on the 2PM.
+        exposes: (device) => [
+            e.action(
+                [1, 2, 3, 4].flatMap((input) =>
+                    ["on", "off", "toggle", "single", "double", "triple", "hold"].map((event) => `input_${input}_${event}`),
+                ),
+            ),
+            ...shellySwitchInputExposes(device, {sw1: 1, sw2: 2, sw3: 3, sw4: 4}),
+            ...Object.keys(shellySwitchInputEndpoints(device, {sw1: 1, sw2: 2, sw3: 3, sw4: 4})).map((endpoint) =>
+                e
+                    .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                    .withEndpoint(endpoint)
+                    .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input")
+                    .withCategory("config"),
+            ),
+        ],
+        extend: [
+            shellyDeviceEndpoints({sw1: 1, sw2: 2, sw3: 3, sw4: 4}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [1, 2, 3, 4]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
                 }
             }
         },
@@ -2944,6 +3133,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
         model: "WS90",
+        version: "0.0.1",
         vendor: "Shelly",
         description: "Weather station",
         extend: [
@@ -2959,10 +3149,10 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 entityCategory: "diagnostic",
             }),
-            m.illuminance(),
-            m.temperature(),
-            m.pressure(),
-            m.humidity(),
+            m.illuminance({valueMin: 0, valueMax: 200000}),
+            m.temperature({valueMin: -40, valueMax: 60}),
+            m.pressure({valueMin: 300, valueMax: 1100}),
+            m.humidity({valueMin: 1, valueMax: 99}),
             m.deviceAddCustomCluster("shellyWS90Wind", {
                 name: "shellyWS90Wind",
                 ID: 0xfc01,
@@ -2981,7 +3171,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "windSpeed",
                 fzConvert: (model, msg) => ws90Scaled("wind_speed", msg.data.windSpeed, 0xffff),
                 valueMin: 0,
-                valueMax: 140,
+                valueMax: 40,
+                valueStep: 0.1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Wind speed in m/s",
                 scale: 10,
@@ -3007,7 +3198,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "gustSpeed",
                 fzConvert: (model, msg) => ws90Scaled("gust_speed", msg.data.gustSpeed, 0xffff),
                 valueMin: 0,
-                valueMax: 140,
+                valueMax: 40,
+                valueStep: 0.1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Gust speed in m/s",
                 scale: 10,
@@ -3031,7 +3223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "uvIndex",
                 fzConvert: (model, msg) => ws90Scaled("uv_index", msg.data.uvIndex, 0xff),
                 valueMin: 0,
-                valueMax: 11,
+                valueMax: 15,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "UV index",
                 scale: 10,
@@ -3064,7 +3256,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "precipitation",
                 fzConvert: (model, msg) => ws90Scaled("precipitation", msg.data.precipitation, 0xffffff),
                 valueMin: 0,
-                valueMax: 100000,
+                valueMax: 9999,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Precipitation",
                 unit: "mm",
@@ -3074,7 +3266,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Calculated values (added by PR #11437)
             shellyModernExtend.ws90CalculatedValues(),
             m.identify({isSleepy: true}),
-        ],
+        ].map(ws90IgnoreZeroFrames),
     },
     {
         fingerprint: [
@@ -3098,7 +3290,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Dimmer 0/1-10V PM Gen4",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
             m.light(),
             m.electricityMeter(),
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),

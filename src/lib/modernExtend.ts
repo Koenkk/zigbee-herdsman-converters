@@ -989,10 +989,10 @@ export function pressure(args: Partial<NumericArgs<"msPressureMeasurement">> = {
         name: "pressure",
         cluster: "msPressureMeasurement",
         attribute: "measuredValue",
-        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 50}, // 5 kPa
+        reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5}, // 5 hPa
         description: "The measured atmospheric pressure",
-        unit: "kPa",
-        scale: 10,
+        unit: "hPa",
+        scale: 1,
         access: "STATE_GET",
         ...args,
     });
@@ -2021,19 +2021,24 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
         {
             key: ["warning"],
             convertSet: async (entity, key, value, meta) => {
+                // @ts-expect-error ignore
+                const mode = value.mode || "emergency";
+                // When stopping the warning, don't let the "emergency" defaults (strobe on, duration 10s, etc.)
+                // cause the device to (re)start sounding/flashing instead of actually stopping.
+                const isStop = mode === "stop";
+
                 const values = {
+                    mode,
                     // @ts-expect-error ignore
-                    mode: value.mode || "emergency",
+                    level: value.level || (isStop ? "low" : "medium"),
                     // @ts-expect-error ignore
-                    level: value.level || "medium",
+                    strobe: value.strobe != null ? value.strobe : !isStop,
                     // @ts-expect-error ignore
-                    strobe: value.strobe != null ? value.strobe : true,
-                    // @ts-expect-error ignore
-                    duration: value.duration != null ? value.duration : 10,
+                    duration: value.duration != null ? value.duration : isStop ? 0 : 10,
                     // @ts-expect-error ignore
                     strobeDutyCycle: value.strobe_duty_cycle != null ? value.strobe_duty_cycle * 10 : 0,
                     // @ts-expect-error ignore
-                    strobeLevel: value.strobe_level != null ? utils.getFromLookup(value.strobe_level, level) : 1,
+                    strobeLevel: value.strobe_level != null ? getFromLookup(value.strobe_level, level) : 1,
                 };
 
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
@@ -2871,18 +2876,18 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     description: string | string[];
     zigbeeCommandOptions?: {manufacturerCode?: number; disableDefaultResponse?: boolean};
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
-    unit?: string | string[];
+    unit?: string | (string | undefined)[];
     endpointNames?: string[];
     reporting?: false | ReportingConfigWithoutAttribute;
-    valueMin?: number | number[];
-    valueMax?: number | number[];
-    valueStep?: number | number[];
+    valueMin?: number | (number | undefined)[];
+    valueMax?: number | (number | undefined)[];
+    valueStep?: number | (number | undefined)[];
     scale?: number | ScaleFunction;
-    label?: string | string[];
+    label?: string | (string | undefined)[];
     entityCategory?: "config" | "diagnostic";
-    precision?: number | number[];
+    precision?: number | (number | undefined)[];
     fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
-    homeassistant?: exposes.HomeAssistant | exposes.HomeAssistant[];
+    homeassistant?: exposes.HomeAssistant | (exposes.HomeAssistant | undefined)[];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: NumericArgs<Cl, Custom>,
@@ -3019,15 +3024,15 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         for (const [i, endpoint] of endpoints.entries()) {
             exposes.push(
                 createExpose(
-                    nameArray[i] ?? nameArray[0],
-                    descriptionArray[i] ?? descriptionArray[0],
+                    nameArray.length === 1 ? nameArray[0] : nameArray[i],
+                    descriptionArray.length === 1 ? descriptionArray[0] : descriptionArray[i],
                     endpoint,
-                    unitArray[i] ?? unitArray[0],
-                    valueMinArray[i] ?? valueMinArray[0],
-                    valueMaxArray[i] ?? valueMaxArray[0],
-                    valueStepArray[i] ?? valueStepArray[0],
-                    labelArray[i] ?? labelArray[0],
-                    homeassistantArray[i] ?? homeassistantArray[0],
+                    unitArray.length === 1 ? unitArray[0] : unitArray[i],
+                    valueMinArray.length === 1 ? valueMinArray[0] : valueMinArray[i],
+                    valueMaxArray.length === 1 ? valueMaxArray[0] : valueMaxArray[i],
+                    valueStepArray.length === 1 ? valueStepArray[0] : valueStepArray[i],
+                    labelArray.length === 1 ? labelArray[0] : labelArray[i],
+                    homeassistantArray.length === 1 ? homeassistantArray[0] : homeassistantArray[i],
                 ),
             );
         }
@@ -3056,7 +3061,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                             value = typeof scale === "number" ? value / scale : scale(value, "from");
                         }
                         assertNumber(value);
-                        const precision = precisionArray[endpointIndex] ?? precisionArray[0];
+                        const precision = precisionArray.length === 1 ? precisionArray[0] : precisionArray[endpointIndex];
                         if (precision != null) value = precisionRound(value, precision);
 
                         const expose = exposes.length === 1 ? exposes[0] : exposes.find((e) => e.endpoint === endpoint);
@@ -3093,7 +3098,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                           assertNumber(payloadValue);
 
                           const endpointIndex = groupEndpointNames?.indexOf(meta.endpoint_name ?? groupEndpointNames[0]) ?? 0;
-                          const precision = groupPrecition[endpointIndex] ?? groupPrecition[0];
+                          const precision = groupPrecition.length === 1 ? groupPrecition[0] : groupPrecition[endpointIndex];
                           if (precision != null) payloadValue = precisionRound(payloadValue, precision);
                           const payload = isString(attribute)
                               ? {[attribute]: payloadValue}
@@ -3137,9 +3142,9 @@ export interface BinaryArgs<Cl extends string | number, Custom extends TCustomCl
     endpointName?: string | string[];
     reporting?: false | ReportingConfigWithoutAttribute;
     access?: "STATE" | "STATE_GET" | "STATE_SET" | "SET" | "ALL";
-    label?: string | string[];
+    label?: string | (string | undefined)[];
     entityCategory?: "config" | "diagnostic";
-    homeassistant?: exposes.HomeAssistant | exposes.HomeAssistant[];
+    homeassistant?: exposes.HomeAssistant | (exposes.HomeAssistant | undefined)[];
 }
 export function binary<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
     args: BinaryArgs<Cl, Custom>,
@@ -3207,10 +3212,10 @@ export function binary<Cl extends string | number, Custom extends TCustomCluster
         for (const [i, endpoint] of endpoints.entries()) {
             exposes.push(
                 createExpose(
-                    descriptionArray[i] ?? descriptionArray[0],
+                    descriptionArray.length === 1 ? descriptionArray[0] : descriptionArray[i],
                     endpoint,
-                    labelArray[i] ?? labelArray[0],
-                    homeassistantArray[i] ?? homeassistantArray[0],
+                    labelArray.length === 1 ? labelArray[0] : labelArray[i],
+                    homeassistantArray.length === 1 ? homeassistantArray[0] : homeassistantArray[i],
                 ),
             );
         }
@@ -3459,6 +3464,43 @@ export function quirkCheckinInterval(timeout: number | keyof typeof TIME_LOOKUP)
     ];
 
     return {configure, isModernExtend: true};
+}
+
+export interface PollControlArgs {
+    /** Quarter-seconds. */
+    longPollInterval: number;
+    /** Quarter-seconds. */
+    checkinInterval?: number;
+    endpointId?: number;
+}
+
+// longPollInterval is read-only, so it takes the setLongPollInterval command. Some sleepy devices reset it
+// to a very short factory value on power-up (battery swap), so it is reapplied on every announce.
+export function pollControl(args: PollControlArgs): ModernExtend {
+    const {longPollInterval, checkinInterval, endpointId = 1} = args;
+    const apply = async (device: Zh.Device) => {
+        const endpoint = device.getEndpoint(endpointId);
+        if (!endpoint) return;
+        try {
+            await endpoint.command("genPollCtrl", "setLongPollInterval", {newLongPollInterval: longPollInterval});
+            if (checkinInterval !== undefined) {
+                await endpoint.write("genPollCtrl", {checkinInterval});
+            }
+        } catch (error) {
+            // Sleepy device may go back to sleep before acking; retried on the next announce.
+            logger.debug(`Failed to set poll control intervals of '${device.ieeeAddr}': ${error}`, NS);
+        }
+    };
+    const configure: Configure[] = [async (device) => await apply(device)];
+    const onEvent: OnEvent.Handler[] = [
+        async (event) => {
+            if (event.type === "deviceAnnounce") {
+                await apply(event.data.device);
+            }
+        },
+    ];
+
+    return {configure, onEvent, isModernExtend: true};
 }
 
 export function reconfigureReportingsOnDeviceAnnounce(): ModernExtend {

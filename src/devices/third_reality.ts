@@ -316,6 +316,8 @@ export const fzLocal = {
         cluster: "genMultistateInput",
         type: ["readResponse", "attributeReport"],
         convert: (model, msg, publish, options, meta) => {
+            // No presentValue means no button press; otherwise the lookup below would fall through to "many"
+            if (msg.data.presentValue === undefined) return;
             const lookup: KeyValueAny = {0: "hold", 1: "single", 2: "double", 3: "triple", 4: "quadruple", 255: "release"};
             const clicks = msg.data.presentValue;
             const action = lookup[clicks] ? lookup[clicks] : "many";
@@ -1006,6 +1008,14 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
         ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["3ROR0194Z"],
+        model: "3ROR0194Z",
+        vendor: "Third Reality, Inc",
+        description: "Smart Outdoor Repeater",
+        extend: [m.temperature(), m.battery()],
         ota: true,
     },
     {
@@ -1770,6 +1780,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
+        version: "0.0.1",
         vendor: "Third Reality",
         description: "Smart Filter Sensor",
         extend: [

@@ -732,6 +732,7 @@ export const definitions: DefinitionWithExtend[] = [
             boschThermostatExtend.valveAdaptation(),
             boschThermostatExtend.errorState({enableReporting: true}),
             boschGeneralExtend.batteryWithPercentageAndLowStatus(),
+            boschThermostatExtend.raWeeklySchedule(),
         ],
         ota: true,
     },

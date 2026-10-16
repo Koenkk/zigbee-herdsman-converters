@@ -342,6 +342,38 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_brx4eku5"]),
+        model: "QADZ1LR",
+        vendor: "QA",
+        description: "1 channel long range dimmer module",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.countdown(),
+            e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]),
+            e.enum("switch_type", ea.STATE_SET, ["toggle", "momentary"]).withDescription("Type of the external switch").withCategory("config"),
+            e
+                .numeric("dimming_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withDescription("Dimming transition time")
+                .withCategory("config"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [3, "min_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [5, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [6, "countdown", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [101, "switch_type", tuya.valueConverterBasic.lookup({toggle: tuya.enum(0), momentary: tuya.enum(1)})],
+                [102, "dimming_time", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_nzns7udm"]),
         model: "QAT42Z1B",
         vendor: "QA",
