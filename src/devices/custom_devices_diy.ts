@@ -623,7 +623,7 @@ interface MiCasaGasMetering {
 
 const AIRWICK_CLUSTER = "airwickCtrl";
 const AIRWICK_ENDPOINT = 10;
-const AIRWICK_SCHEDULE_INFO = "Monâ€“Fri 07:00â€“22:00; Satâ€“Sun 09:00â€“22:00; every 30 min; duration is configured separately";
+const AIRWICK_SCHEDULE_INFO = "Mon–Fri 07:00–22:00; Sat–Sun 09:00–22:00; every 30 min; duration is configured separately";
 const AIRWICK_DAYS = [
     {key: "mon", label: "Monday"},
     {key: "tue", label: "Tuesday"},
@@ -756,7 +756,7 @@ function airwickBatteryPercent(value: unknown): number | undefined {
 
 function airwickMinutesToTime(value: unknown): string {
     const minutes = Number(value);
-    if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1439) return "â€”";
+    if (!Number.isFinite(minutes) || minutes < 0 || minutes > 1439) return "—";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
@@ -769,7 +769,7 @@ function airwickTimeToMinutes(value: unknown): number {
 
     const hours = Number(match[1]);
     const minutes = Number(match[2]);
-    if (hours > 23 || minutes > 59) throw new Error("Invalid time; allowed range is 00:00â€“23:59");
+    if (hours > 23 || minutes > 59) throw new Error("Invalid time; allowed range is 00:00–23:59");
     return hours * 60 + minutes;
 }
 
@@ -780,7 +780,7 @@ function airwickTimezoneMinutes(meta: Fz.Meta): number {
 
 function airwickFormatZigbeeTime(value: unknown, timezoneMinutes: number): string {
     const seconds = Number(value);
-    if (!Number.isFinite(seconds) || seconds <= 0 || seconds >= 0xffffffff) return "â€”";
+    if (!Number.isFinite(seconds) || seconds <= 0 || seconds >= 0xffffffff) return "—";
 
     const date = new Date(constants.OneJanuary2000 + (seconds + timezoneMinutes * 60) * 1000);
     const day = String(date.getUTCDate()).padStart(2, "0");
@@ -1053,17 +1053,17 @@ function airwickProgramDay(day: (typeof AIRWICK_DAYS)[number], slot: number): Mo
             valueOn: ["ON", true],
             valueOff: ["OFF", false],
             description: "Enable this weekday program",
-            label: `PROGRAM â€” ${day.label}: enabled`,
+            label: `PROGRAM — ${day.label}: enabled`,
             entityCategory: "config",
         }),
-        airwickProgramTime(`${prefix}_start`, startAttribute, `PROGRAM â€” ${day.label}: start`),
-        airwickProgramTime(`${prefix}_end`, endAttribute, `PROGRAM â€” ${day.label}: end`),
+        airwickProgramTime(`${prefix}_start`, startAttribute, `PROGRAM — ${day.label}: start`),
+        airwickProgramTime(`${prefix}_end`, endAttribute, `PROGRAM — ${day.label}: end`),
         m.numeric<"airwickCtrl", AirwickCtrl>({
             name: `${prefix}_interval_min`,
             cluster: AIRWICK_CLUSTER,
             attribute: intervalAttribute,
             description: "Spray interval for this weekday program",
-            label: `PROGRAM â€” ${day.label}: interval`,
+            label: `PROGRAM — ${day.label}: interval`,
             unit: "min",
             valueMin: 1,
             valueMax: 1440,
@@ -2105,14 +2105,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "temperature_calibration",
-                unit: "Â°C",
+                unit: "°C",
                 cluster: "msTemperatureMeasurement",
                 attribute: {ID: 0x0010, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 valueStep: 0.01,
                 scale: 100,
-                description: "The temperature calibration offset is set in 0.01Â° steps.",
+                description: "The temperature calibration offset is set in 0.01° steps.",
             }),
             m.numeric({
                 name: "humidity_calibration",
@@ -2127,23 +2127,23 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "comfort_temperature_min",
-                unit: "Â°C",
+                unit: "°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
-                description: "Comfort parameters/Temperature minimum, in 0.01Â°C steps.",
+                description: "Comfort parameters/Temperature minimum, in 0.01°C steps.",
             }),
             m.numeric({
                 name: "comfort_temperature_max",
-                unit: "Â°C",
+                unit: "°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
                 valueMin: -100.0,
                 valueMax: 100.0,
                 scale: 100,
-                description: "Comfort parameters/Temperature maximum, in 0.01Â°C steps.",
+                description: "Comfort parameters/Temperature maximum, in 0.01°C steps.",
             }),
             m.numeric({
                 name: "comfort_humidity_min",
@@ -2225,7 +2225,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 12.7,
                 valueStep: 0.1,
                 scale: 10,
-                description: "The temperature calibration, in 0.1Â° steps. Requires v0.1.1.6 or newer.",
+                description: "The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.",
             }),
             m.numeric({
                 name: "humidity_calibration",
@@ -2247,7 +2247,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0102, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: "Comfort parameters/Temperature minimum, in 1Â° steps. Requires v0.1.1.7 or newer.",
+                description: "Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.",
             }),
             m.numeric({
                 name: "comfort_temperature_max",
@@ -2256,7 +2256,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0103, type: 40},
                 valueMin: -127,
                 valueMax: 127,
-                description: "Comfort parameters/Temperature maximum, in 1Â° steps. Requires v0.1.1.7 or newer.",
+                description: "Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.",
             }),
             m.numeric({
                 name: "comfort_humidity_min",
