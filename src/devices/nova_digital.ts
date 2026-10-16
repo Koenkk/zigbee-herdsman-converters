@@ -6,6 +6,135 @@ import type {DefinitionWithExtend} from "../lib/types";
 const e = exposes.presets;
 const ea = exposes.access;
 
+const convLocal = {
+    novaDigitalToDmBrightness: {
+        from: (value: unknown) => {
+            const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
+            return Math.round(((clamped - 10) * 254) / 990);
+        },
+
+        to: (value: unknown) => {
+            const clamped = Math.max(0, Math.min(254, Number(value) || 0));
+            return Math.round(10 + (clamped * 990) / 254);
+        },
+    },
+    novaDigitalToDmBrightnessPercent: {
+        from: (value: unknown) => {
+            const clamped = Math.max(10, Math.min(1000, Number(value) || 10));
+            return Math.round(clamped / 10);
+        },
+
+        to: (value: unknown) => {
+            const clamped = Math.max(1, Math.min(100, Number(value) || 1));
+            return Math.round(clamped * 10);
+        },
+    },
+    novaDigitalToWkInching: {
+        from: (value: unknown) => {
+            const buffer = Buffer.isBuffer(value)
+                ? value
+                : typeof value === "string"
+                  ? Buffer.from(value, "base64")
+                  : Array.isArray(value)
+                    ? Buffer.from(value)
+                    : Buffer.alloc(0);
+
+            if (buffer.length < 3) {
+                return 0;
+            }
+
+            const enabled = buffer.readUInt8(0) === 1;
+            const totalSeconds = buffer.readUInt16BE(1);
+
+            return enabled ? totalSeconds : 0;
+        },
+
+        to: (value: unknown) => {
+            const totalSeconds = Math.max(0, Math.min(3600, Number(value) || 0));
+
+            const buffer = Buffer.alloc(3);
+            buffer.writeUInt8(totalSeconds > 0 ? 1 : 0, 0);
+            buffer.writeUInt16BE(totalSeconds > 0 ? totalSeconds : 1, 1);
+
+            return buffer.toString("base64");
+        },
+    },
+    novaDigitalToWk2InchingFrom: {
+        from: (value: unknown) => {
+            if (value === undefined || value === null) {
+                return {};
+            }
+
+            let rawValue = "";
+
+            if (Buffer.isBuffer(value)) {
+                rawValue = value.toString("utf8");
+            } else if (Array.isArray(value)) {
+                rawValue = Buffer.from(value).toString("utf8");
+            } else {
+                rawValue = String(value);
+            }
+
+            const result: Record<string, number> = {};
+
+            for (let i = 0; i < rawValue.length; i += 4) {
+                const block = rawValue.substring(i, i + 4);
+
+                if (block.length < 4) {
+                    continue;
+                }
+
+                const buffer = Buffer.from(block, "base64");
+
+                if (buffer.length < 3) {
+                    continue;
+                }
+
+                const controlByte = buffer.readUInt8(0);
+                const seconds = buffer.readUInt16BE(1);
+
+                let channel = 1;
+                let enabled = false;
+
+                if (controlByte === 0 || controlByte === 1) {
+                    channel = 1;
+                    enabled = controlByte === 1;
+                } else {
+                    channel = Math.trunc(Math.log2(controlByte)) + 1;
+                    enabled = controlByte % 2 === 1;
+                }
+
+                if (channel === 1) {
+                    result.inching_l1 = enabled ? seconds : 0;
+                }
+
+                if (channel === 2) {
+                    result.inching_l2 = enabled ? seconds : 0;
+                }
+            }
+
+            return result;
+        },
+    },
+    novaDigitalToWk2InchingTo: (channel: number) => ({
+        to: (value: unknown) => {
+            const totalSeconds = Math.max(0, Math.min(3600, Number(value) || 0));
+
+            let controlByte = totalSeconds > 0 ? 1 : 0;
+
+            if (channel !== 1) {
+                controlByte += 2 ** (channel - 1);
+            }
+
+            const buffer = Buffer.alloc(3);
+            buffer.writeUInt8(controlByte, 0);
+            buffer.writeUInt16BE(totalSeconds > 0 ? totalSeconds : 1, 1);
+
+            return buffer.toString("base64");
+        },
+    }),
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0002", ["_TZ3210_5ksufhqi"]),
@@ -106,75 +235,6 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [19, "position_best", tuya.valueConverter.raw],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5yah8qx4"]),
-        model: "TO-DM-W/B",
-        vendor: "Nova Digital",
-        description: "Topazio 1 gang Zigbee dimmer switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
-        exposes: [
-            e.light_brightness(),
-            e
-                .numeric("brightness_min", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Minimum brightness limit"),
-            e
-                .numeric("brightness_max", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(100)
-                .withValueStep(1)
-                .withUnit("%")
-                .withDescription("Maximum brightness limit"),
-            e.enum("light_type", ea.STATE_SET, ["led", "incandescent", "halogen"]).withDescription("Type of connected light load"),
-            e
-                .power_on_behavior(["off", "on", "previous"])
-                .withAccess(ea.STATE_SET)
-                .withDescription("Controls the behavior when the device is powered on after power loss"),
-
-            e.enum("indicator_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Controls the indicator LED mode"),
-
-            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Turns the button backlight on or off"),
-            e
-                .numeric("countdown", ea.STATE_SET)
-                .withValueMin(0)
-                .withValueMax(86400)
-                .withValueStep(1)
-                .withUnit("s")
-                .withDescription("Countdown timer"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
-                [2, "brightness", convLocal.novaDigitalToDmBrightness],
-                [3, "brightness_min", convLocal.novaDigitalToDmBrightnessPercent],
-                [
-                    4,
-                    "light_type",
-                    tuya.valueConverterBasic.lookup({
-                        led: tuya.enum(0),
-                        incandescent: tuya.enum(1),
-                        halogen: tuya.enum(2),
-                    }),
-                ],
-                [5, "brightness_max", convLocal.novaDigitalToDmBrightnessPercent],
-                [6, "countdown", tuya.valueConverter.raw],
-                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-                [
-                    21,
-                    "indicator_mode",
-                    tuya.valueConverterBasic.lookup({
-                        none: tuya.enum(0),
-                        relay: tuya.enum(1),
-                        pos: tuya.enum(2),
-                    }),
-                ],
-                [26, "backlight_switch", tuya.valueConverter.onOff],
             ],
         },
     },
