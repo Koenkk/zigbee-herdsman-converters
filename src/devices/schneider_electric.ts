@@ -4002,7 +4002,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 runningState: {
                     values: ["idle", "heat", "cool"],
-                    configure: {reporting: false},
+                    toZigbee: {skip: true},
+                    configure: {skip: true},
                 },
                 piHeatingDemand: {
                     values: ea.ALL,
