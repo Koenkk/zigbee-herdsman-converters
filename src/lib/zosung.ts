@@ -258,7 +258,46 @@ function calcStringCrc(str: string) {
     );
 }
 
-function encodeTuyaTimings(timings: number[]): string {
+// Greedy Tuya FastLZ (level 1) compressor, matching decodeTuyaTimings below.
+export function compressTuyaFastLz(data: Uint8Array): number[] {
+    const out: number[] = [];
+    const pushLiterals = (start: number, end: number) => {
+        for (let i = start; i < end; i += 32) {
+            const chunk = data.subarray(i, Math.min(i + 32, end));
+            out.push(chunk.length - 1, ...chunk);
+        }
+    };
+
+    let literalStart = 0;
+    let pos = 0;
+    while (pos < data.length) {
+        // Find the longest earlier match within the 8 KiB window. Extended length byte is capped
+        // at 0xfe: level 2 decoders read 0xff as "add 255 and read another byte".
+        const maxLength = Math.min(9 + 0xfe, data.length - pos);
+        let length = 0;
+        let offset = 0;
+        for (let candidate = pos - 1; candidate >= Math.max(0, pos - 0x2000) && length < maxLength; candidate--) {
+            let l = 0;
+            while (l < maxLength && data[candidate + l] === data[pos + l]) l++;
+            if (l > length) [length, offset] = [l, pos - candidate - 1];
+        }
+
+        if (length < 3) {
+            pos++;
+            continue;
+        }
+
+        pushLiterals(literalStart, pos);
+        if (length >= 9) out.push(0xe0 | (offset >> 8), length - 9, offset & 0xff);
+        else out.push(((length - 2) << 5) | (offset >> 8), offset & 0xff);
+        pos += length;
+        literalStart = pos;
+    }
+    pushLiterals(literalStart, data.length);
+    return out;
+}
+
+export function encodeTuyaTimings(timings: number[]): string {
     const rawBytes = new Uint8Array(timings.length * 2);
 
     for (let i = 0; i < timings.length; i++) {
@@ -272,21 +311,7 @@ function encodeTuyaTimings(timings: number[]): string {
         rawBytes[i * 2 + 1] = (v >> 8) & 0xff;
     }
 
-    const compressed = [];
-    let pos = 0;
-
-    while (pos < rawBytes.length) {
-        const chunkLen = Math.min(32, rawBytes.length - pos);
-        compressed.push((chunkLen - 1) & 0x1f);
-
-        for (let i = 0; i < chunkLen; i++) {
-            compressed.push(rawBytes[pos + i]);
-        }
-
-        pos += chunkLen;
-    }
-
-    return Buffer.from(Uint8Array.from(compressed)).toString("base64");
+    return Buffer.from(Uint8Array.from(compressTuyaFastLz(rawBytes))).toString("base64");
 }
 
 function buildIrMsgFromTimings(obj: InfraredSignal) {
@@ -407,7 +432,7 @@ function normalizeIrMsg(value: InfraredSignal | ZosungIRMessage | string) {
     });
 }
 
-function decodeTuyaTimings(compressed: number[]): number[] {
+export function decodeTuyaTimings(compressed: number[]): number[] {
     const decompressed: number[] = [];
     let pos = 0;
 
