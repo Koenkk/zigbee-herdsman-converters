@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tuya, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -2318,94 +2318,57 @@ const sp107eLedChips = {
     SK6812: tuya.enum(9),
 };
 
-/**
- * The ME201WZ ultrasonic sensor regularly picks up false echoes: for minutes up to hours the depth bounces
- * between the real level and values like -1.1 m, 5 m, 1.3 m or 0.24 m, sometimes steady for hours, and the
- * level percent and liquid state follow. A real level changes by a centimetre or two between readings, so a
- * reading is only published when it is within the tank and close to the last published depth. A sudden
- * jump is published once the new level has been read steadily for 12 hours, so a real sudden change (e.g.
- * while the sensor was offline) still comes through.
- */
-const ME201WZ_MAX_STEP = 0.05;
-const ME201WZ_TOLERANCE = 0.03;
-const ME201WZ_CONFIRM_MS = 12 * 60 * 60 * 1000;
-
-const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device): KeyValue => {
-    const filtered = {...result};
-    const num = (value: unknown) => (typeof value === "number" ? value : undefined);
-    const height = num(filtered.installation_height) ?? num(state.installation_height);
-    const depthMax = num(filtered.liquid_depth_max) ?? num(state.liquid_depth_max);
-    const lastDepth = num(state.liquid_depth);
-    const depth = num(filtered.liquid_depth);
-
+// The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
+// gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
+const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device) => {
+    const depth = result.liquid_depth as number | undefined;
+    const percent = result.liquid_level_percent as number | undefined;
+    const lastDepth = state.liquid_depth as number | undefined;
+    const height = (result.installation_height ?? state.installation_height) as number | undefined;
+    const depthMax = (result.liquid_depth_max ?? state.liquid_depth_max) as number | undefined;
     let glitch = false;
     if (depth !== undefined) {
         if (depth < 0 || (height !== undefined && depth > height)) {
             glitch = true;
-        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > ME201WZ_MAX_STEP) {
-            const now = Date.now();
-            const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number; count: number} | undefined;
-            if (candidate && Math.abs(depth - candidate.depth) <= ME201WZ_TOLERANCE) {
-                candidate.count += 1;
-                globalStore.putValue(device, "me201wzCandidate", candidate);
-                glitch = now - candidate.since < ME201WZ_CONFIRM_MS || candidate.count < 3;
+        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
+            const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number} | undefined;
+            if (candidate && Math.abs(depth - candidate.depth) <= 0.03) {
+                glitch = Date.now() - candidate.since < 12 * 60 * 60 * 1000;
             } else {
-                globalStore.putValue(device, "me201wzCandidate", {depth, since: now, count: 1});
+                globalStore.putValue(device, "me201wzCandidate", {depth, since: Date.now()});
                 glitch = true;
             }
         }
         if (!glitch) globalStore.clearValue(device, "me201wzCandidate");
-    } else {
-        // The percent is the depth relative to liquid_depth_max: check it against the last published depth.
-        const percent = num(filtered.liquid_level_percent);
-        if (percent !== undefined && lastDepth !== undefined && depthMax) {
-            const expected = Math.min(100, Math.max(0, (lastDepth / depthMax) * 100));
-            glitch = Math.abs(percent - expected) > (ME201WZ_MAX_STEP / depthMax) * 100;
-        }
+    } else if (percent !== undefined && lastDepth !== undefined && depthMax) {
+        glitch = Math.abs(percent - Math.min(100, (lastDepth / depthMax) * 100)) > 5 / depthMax;
     }
-
     if (glitch) {
-        delete filtered.liquid_depth;
-        delete filtered.liquid_level_percent;
-        delete filtered.liquid_state;
-        return filtered;
+        delete result.liquid_depth;
+        delete result.liquid_level_percent;
+        delete result.liquid_state;
+        return result;
     }
 
-    // The liquid state follows the percent against min_set / max_set and is often sent on its own: hold back a
-    // state that doesn't match the published percent, and publish it once an accepted percent matches it.
-    const minSet = num(filtered.min_set) ?? num(state.min_set);
-    const maxSet = num(filtered.max_set) ?? num(state.max_set);
-    const percent = num(filtered.liquid_level_percent) ?? num(state.liquid_level_percent);
-    if (minSet !== undefined && maxSet !== undefined && percent !== undefined) {
-        // Allow 1 % around the thresholds for rounding
-        const matches = (liquidState: unknown) =>
-            (liquidState === "low" && percent <= minSet + 1) ||
-            (liquidState === "high" && percent >= maxSet - 1) ||
-            (liquidState === "normal" && percent >= minSet - 1 && percent <= maxSet + 1);
-        if (filtered.liquid_state !== undefined && !matches(filtered.liquid_state)) {
-            globalStore.putValue(device, "me201wzPendingState", filtered.liquid_state);
-            delete filtered.liquid_state;
-        } else if (filtered.liquid_state === undefined && num(filtered.liquid_level_percent) !== undefined) {
-            const pending = globalStore.getValue(device, "me201wzPendingState");
-            if (pending !== undefined && pending !== state.liquid_state && matches(pending)) filtered.liquid_state = pending;
-        }
-        if (filtered.liquid_state !== undefined) globalStore.clearValue(device, "me201wzPendingState");
+    // Hold back a liquid state that doesn't match the level, publish it once an accepted level matches it.
+    const minSet = (result.min_set ?? state.min_set) as number | undefined;
+    const maxSet = (result.max_set ?? state.max_set) as number | undefined;
+    const level = (percent ?? state.liquid_level_percent) as number | undefined;
+    if (minSet === undefined || maxSet === undefined || level === undefined) return result;
+    const matches = (s: unknown) =>
+        (s === "low" && level <= minSet + 1) ||
+        (s === "high" && level >= maxSet - 1) ||
+        (s === "normal" && level >= minSet - 1 && level <= maxSet + 1);
+    if (result.liquid_state !== undefined && !matches(result.liquid_state)) {
+        globalStore.putValue(device, "me201wzPendingState", result.liquid_state);
+        delete result.liquid_state;
+    } else if (result.liquid_state === undefined && percent !== undefined) {
+        const pending = globalStore.getValue(device, "me201wzPendingState");
+        if (pending !== undefined && pending !== state.liquid_state && matches(pending)) result.liquid_state = pending;
     }
-    return filtered;
+    if (result.liquid_state !== undefined) globalStore.clearValue(device, "me201wzPendingState");
+    return result;
 };
-
-const me201wzIgnoreGlitches = (extend: ModernExtend): ModernExtend => ({
-    ...extend,
-    fromZigbee: extend.fromZigbee?.map((converter) => ({
-        ...converter,
-        convert: (model, msg, publish, options, meta) => {
-            const result = converter.convert(model, msg, publish, options, meta);
-            return result && typeof result === "object" && !(result instanceof Promise)
-                ? me201wzFilterGlitches(result as KeyValue, meta.state, msg.device)
-                : result;
-        },
-    })),
-});
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -23626,7 +23589,20 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
         extend: [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
-            me201wzIgnoreGlitches(tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true})),
+            tuya.modernExtend.tuyaBase({forceTimeUpdates: true, queryOnConfigure: true}),
+            {
+                fromZigbee: [
+                    {
+                        ...tuya.fz.datapoints,
+                        convert: (model, msg, publish, options, meta) => {
+                            const result = tuya.fz.datapoints.convert(model, msg, publish, options, meta);
+                            return result && me201wzFilterGlitches(result, meta.state, msg.device);
+                        },
+                    },
+                ],
+                toZigbee: [tuya.tz.datapoints],
+                isModernExtend: true,
+            },
         ],
         version: "0.0.1",
         exposes: (device, options) => [
