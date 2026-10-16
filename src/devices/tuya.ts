@@ -2318,6 +2318,74 @@ const sp107eLedChips = {
     SK6812: tuya.enum(9),
 };
 
+// The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
+// gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
+const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device) => {
+    const depth = result.liquid_depth as number | undefined;
+    const percent = result.liquid_level_percent as number | undefined;
+    const lastDepth = state.liquid_depth as number | undefined;
+    const height = (result.installation_height ?? state.installation_height) as number | undefined;
+    const depthMax = (result.liquid_depth_max ?? state.liquid_depth_max) as number | undefined;
+    let glitch = false;
+    if (depth !== undefined) {
+        if (depth < 0 || (height !== undefined && depth > height)) {
+            glitch = true;
+        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
+            const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number} | undefined;
+            if (candidate && Math.abs(depth - candidate.depth) <= 0.03) {
+                glitch = Date.now() - candidate.since < 12 * 60 * 60 * 1000;
+            } else {
+                globalStore.putValue(device, "me201wzCandidate", {depth, since: Date.now()});
+                glitch = true;
+            }
+        }
+        if (!glitch) globalStore.clearValue(device, "me201wzCandidate");
+    } else if (percent !== undefined && lastDepth !== undefined && depthMax) {
+        glitch = Math.abs(percent - Math.min(100, (lastDepth / depthMax) * 100)) > 5 / depthMax;
+    }
+    if (glitch) {
+        delete result.liquid_depth;
+        delete result.liquid_level_percent;
+        delete result.liquid_state;
+        return result;
+    }
+
+    // Hold back a liquid state that doesn't match the level, publish it once an accepted level matches it.
+    const minSet = (result.min_set ?? state.min_set) as number | undefined;
+    const maxSet = (result.max_set ?? state.max_set) as number | undefined;
+    const level = (percent ?? state.liquid_level_percent) as number | undefined;
+    if (minSet === undefined || maxSet === undefined || level === undefined) return result;
+    const matches = (s: unknown) =>
+        (s === "low" && level <= minSet + 1) ||
+        (s === "high" && level >= maxSet - 1) ||
+        (s === "normal" && level >= minSet - 1 && level <= maxSet + 1);
+    if (result.liquid_state !== undefined && !matches(result.liquid_state)) {
+        globalStore.putValue(device, "me201wzPendingState", result.liquid_state);
+        delete result.liquid_state;
+    } else if (result.liquid_state === undefined && percent !== undefined) {
+        const pending = globalStore.getValue(device, "me201wzPendingState");
+        if (pending !== undefined && pending !== state.liquid_state && matches(pending)) result.liquid_state = pending;
+    }
+    if (result.liquid_state !== undefined) globalStore.clearValue(device, "me201wzPendingState");
+    return result;
+};
+
+// Shared by the liquid state, depth and percent datapoints, which are filtered together once per message.
+const me201wzFiltered = new WeakMap<object, KeyValue>();
+const me201wzLevel: Tuya.ValueConverterSingle = {
+    from: (v, meta, options, publish, msg) => {
+        if (!me201wzFiltered.has(msg)) {
+            const dp = Object.fromEntries((msg.data.dpValues as Tuya.DpValue[]).map((d) => [d.dp, tuya.getDataValue(d)]));
+            const result: KeyValue = {};
+            if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
+            if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
+            if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
+            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device));
+        }
+        return me201wzFiltered.get(msg);
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
@@ -23560,14 +23628,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "liquid_state", tvc.level],
-                [2, "liquid_depth", tvc.divideBy100],
+                [1, null, me201wzLevel],
+                [2, null, me201wzLevel],
                 [5, "voltage", tvc.divideBy10], // power_level
                 [7, "max_set", tvc.raw],
                 [8, "min_set", tvc.raw],
                 [19, "installation_height", tvc.divideBy100],
                 [21, "liquid_depth_max", tvc.divideBy100],
-                [22, "liquid_level_percent", tvc.raw],
+                [22, null, me201wzLevel],
                 [24, "relay_switch", tvc.onOff],
                 [101, "pump_mode", tvc.pumpMode],
                 [102, "pump_control", tvc.pumpControl], // auto_pump_control
