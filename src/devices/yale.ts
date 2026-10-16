@@ -807,7 +807,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lockExtend()],
     },
     {
-        zigbeeModel: ["YRD410 TS", "YRD410 PB"],
+        zigbeeModel: ["YRD410 TS", "YRD410 PB", "YRD410-PB"],
         model: "YRD410-BLE",
         vendor: "Yale",
         description: "Assure lock 2",
