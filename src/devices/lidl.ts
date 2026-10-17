@@ -2,6 +2,7 @@ import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as legacy from "../lib/legacy";
+import * as lidl from "../lib/lidl";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
@@ -387,9 +388,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06467",
         vendor: "Lidl",
         description: "Melinera smart LED string lights",
-        toZigbee: [tz.on_off, legacy.tz.silvercrest_smart_led_string],
-        fromZigbee: [fz.on_off, legacy.fz.silvercrest_smart_led_string],
-        exposes: [e.light_brightness_colorhs().setAccess("brightness", ea.STATE_SET).setAccess("color_hs", ea.STATE_SET)],
+        extend: [lidl.hg06467()],
     },
     {
         fingerprint: tuya.fingerprint("TS0504B", ["_TZ3210_sroezl0s"]),
@@ -534,12 +533,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06620",
         vendor: "Lidl",
         description: "Silvercrest garden spike with 2 sockets",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({onOffCountdown: true, powerOnBehavior: false})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
         },
+        ota: true,
     },
     {
         fingerprint: tuya.fingerprint("TS0101", ["_TZ3000_pnzfdr9y"]),

@@ -267,18 +267,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Door and window sensor P1",
         fromZigbee: [lumi.fromZigbee.lumi_contact, fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.lumi_detection_distance],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        exposes: [
-            e.contact(),
-            e.battery(),
-            e.battery_voltage(),
-            e.tamper(),
-            e
-                .enum("detection_distance", ea.ALL, ["10mm", "20mm", "30mm"])
-                .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
+        exposes: [e.contact(), e.tamper()],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumi.modernExtend.lumiP1Battery(),
+            lumi.modernExtend.lumiP1DetectionDistance(),
+            lumi.modernExtend.lumiP1Action(),
         ],
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR")],
     },
     {
         zigbeeModel: ["lumi.dimmer.rcbac1"],
@@ -2945,7 +2941,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller shade driver E1",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
-        fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
+        fromZigbee: [
+            lumi.fromZigbee.lumi_curtain_position,
+            lumi.fromZigbee.lumi_curtain_status,
+            lumi.fromZigbee.lumi_curtain_options,
+            lumi.fromZigbee.lumi_specific,
+        ],
         ota: true,
         toZigbee: [
             lumi.toZigbee.lumi_curtain_position_state,
@@ -3799,7 +3800,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}, multiEndpoint: true},
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -5428,10 +5429,20 @@ export const definitions: DefinitionWithExtend[] = [
                     features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
                 },
             }),
-            lumiKnobRotation({withButtonState: false}),
+            lumiKnobRotation({withButtonState: true, pressedEndpoint: 72}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiMultiClick(),
+            lumiSwitchMode(),
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
+                name: "event_mode",
+                lookup: {command: 0, event: 1},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0009, type: 0x20},
+                description: "Aqara command/event mode",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "sensitivity",
                 lookup: {low: 720, medium: 360, high: 180},

@@ -1011,6 +1011,14 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["3ROR0194Z"],
+        model: "3ROR0194Z",
+        vendor: "Third Reality, Inc",
+        description: "Smart Outdoor Repeater",
+        extend: [m.temperature(), m.battery()],
+        ota: true,
+    },
+    {
         zigbeeModel: ["3RTHS0324Z"],
         model: "3RTHS0324Z",
         vendor: "Third Reality",

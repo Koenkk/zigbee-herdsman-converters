@@ -14,6 +14,7 @@ import {definitions as alecto} from "./alecto";
 import {definitions as allesin} from "./allesin";
 import {definitions as amina} from "./amina";
 import {definitions as anchor} from "./anchor";
+import {definitions as ariston} from "./ariston";
 import {definitions as atlantic} from "./atlantic";
 import {definitions as atsmart} from "./atsmart";
 import {definitions as auroraLighting} from "./aurora_lighting";
@@ -26,6 +27,7 @@ import {definitions as bankamp} from "./bankamp";
 import {definitions as beca} from "./beca";
 import {definitions as bega} from "./bega";
 import {definitions as belkin} from "./belkin";
+import {definitions as besisglas} from "./besisglas";
 import {definitions as bitron} from "./bitron";
 import {definitions as bituoTechnik} from "./bituo_technik";
 import {definitions as blaupunkt} from "./blaupunkt";
@@ -413,6 +415,7 @@ const definitions: DefinitionWithExtend[] = [
     ...allesin,
     ...amina,
     ...anchor,
+    ...ariston,
     ...atlantic,
     ...atsmart,
     ...auroraLighting,
@@ -425,6 +428,7 @@ const definitions: DefinitionWithExtend[] = [
     ...beca,
     ...bega,
     ...belkin,
+    ...besisglas,
     ...bitron,
     ...bituoTechnik,
     ...blaupunkt,
