@@ -1407,3 +1407,84 @@ describe("SJCGQ12LM IAS enrollment", () => {
         await expect(definition.configure?.(device, coordinatorEndpoint, definition)).rejects.toThrow("IAS enrollment failed");
     });
 });
+
+describe("FP400", () => {
+    const fp400 = () => mockDevice({modelID: "lumi.models.4447_8295", endpoints: [{ID: 1}, {ID: 2}, {ID: 3}]});
+
+    it("exposes room presence, illuminance and the sensor's settings under their usual names", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        const properties = exposes.map((e) => e.property);
+        expect(properties).toEqual(
+            expect.arrayContaining([
+                "occupancy_1",
+                "illuminance_2",
+                "presence_sensitivity",
+                "absence_timeout",
+                "installation_mode",
+                "side_installation",
+                "installation_height",
+                "ai_high_precision",
+                "ai_interference_recognition",
+                "detection_direction",
+                "proximity_distance",
+                "human_count",
+                "activity_state",
+                "spatial_learning",
+            ]),
+        );
+    });
+
+    it("takes room presence only from endpoint 1; endpoints 3-10 belong to the sensor's own zones", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const report = (Id: number) => {
+            const msg = {device, endpoint: device.getEndpoint(Id), data: {occupancy: 1}, type: "attributeReport"};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === "msOccupancySensing")
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean));
+        };
+        expect(report(1)).toMatchObject({occupancy_1: true});
+        expect(report(3)).toStrictEqual({});
+    });
+
+    it("reads room settings and counts only from endpoint 1; endpoints 3-10 repeat those clusters for the sensor's own zones", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const report = (Id: number, cluster: string, data: KeyValueAny) => {
+            const msg = {device, endpoint: device.getEndpoint(Id), data, type: "attributeReport", cluster};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === cluster)
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean));
+        };
+        const cases: [string, KeyValueAny, KeyValueAny][] = [
+            ["aqaraFp400Radar", {humanCount: 7}, {human_count: 7}],
+            ["aqaraFp400Location", {activityState: 2}, {activity_state: "still"}],
+            ["aqaraFp400Sensitivity", {presenceSensitivity: 0}, {presence_sensitivity: "low"}],
+            ["msOccupancySensing", {3: 0}, {absence_timeout: 0}],
+        ];
+        for (const [cluster, data, expected] of cases) {
+            expect(report(1, cluster, data)).toMatchObject(expected);
+            expect(report(3, cluster, data)).toStrictEqual({});
+        }
+    });
+
+    it("is versioned so that sensors set up by community converters get configured once", async () => {
+        const definition = await findByDevice(fp400());
+        expect(definition.version).toBe("0.0.1");
+    });
+
+    it("starts spatial learning with command 3 on 0xFC0A", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key?.includes("spatial_learning"));
+        // @ts-expect-error mock
+        await converter?.convertSet?.(device.getEndpoint(1), "spatial_learning", "start", {device});
+        expect(device.getEndpoint(1).command).toHaveBeenCalledWith("aqaraFp400Config", "startLearning", {}, {manufacturerCode: 0x115f});
+    });
+});
