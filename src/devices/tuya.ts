@@ -788,6 +788,34 @@ const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
 // TS0601_cover_1 variants with a slat angle (0-180°) on DP21, https://github.com/Koenkk/zigbee2mqtt/issues/27188
 const ts0601Cover1TiltManufacturers = ["_TZE204_wzre8hu2"];
 
+async function querySpm01v25(device: Zh.Device | undefined, fallbackEntity?: Zh.Endpoint | Zh.Group) {
+    const endpoint = device?.getEndpoint(1) ?? fallbackEntity;
+    if (!endpoint) return;
+    if (device?.manufacturerName === "_TZE200_iwn0gpzz") {
+        await tuya.sendDataPointEnum(endpoint, 35, 1);
+    } else {
+        await endpoint.command("manuSpecificTuya", "dataQuery", {}, {disableDefaultResponse: true});
+    }
+}
+
+function setupSpm01v25Polling(device: Zh.Device, intervalSeconds: unknown) {
+    const existingTimer = globalStore.getValue(device, "polling_timer");
+    if (existingTimer) {
+        clearInterval(existingTimer);
+        globalStore.clearValue(device, "polling_timer");
+    }
+
+    const sec = Number(intervalSeconds) >= 5 ? Number(intervalSeconds) : 5;
+
+    const timer = setInterval(() => {
+        querySpm01v25(device).catch(() => {
+            // Ignore transient communication errors
+        });
+    }, sec * 1000).unref();
+
+    globalStore.putValue(device, "polling_timer", timer);
+}
+
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
@@ -1494,6 +1522,61 @@ const tzLocal = {
             const angle = Math.min(180, Math.max(0, Math.round(key === "tilt" ? (value * 180) / 100 : value)));
             await tuya.sendDataPointValue(entity, 21, angle);
             return {state: {tilt: Math.round((angle * 100) / 180), flip_angle: angle}};
+        },
+    } satisfies Tz.Converter,
+    spm01v25: {
+        key: ["refresh", "data_report_duration"],
+        convertSet: async (entity, key, value, meta) => {
+            if (key === "refresh") {
+                if (meta.device && !globalStore.hasValue(meta.device, "polling_timer")) {
+                    const savedSec = meta.state?.data_report_duration ? meta.state.data_report_duration : 5;
+                    setupSpm01v25Polling(meta.device, savedSec);
+                }
+                await querySpm01v25(meta.device, entity);
+                return {state: {refresh: "now"}};
+            }
+
+            if (key === "data_report_duration") {
+                const sec = Math.max(5, Math.min(3600, Math.round(Number(value) || 5)));
+
+                // 1. Dynamically update the Z2M polling timer (fixes v3.2.7+ firmware)
+                if (meta.device) {
+                    setupSpm01v25Polling(meta.device, sec);
+                }
+
+                // 2. Also send the standard DP 18 payload for older firmwares (v3.2.2 - v3.2.3)
+                const byte1 = (sec >> 8) & 0xff;
+                const byte2 = sec & 0xff;
+                const payload = [
+                    0x01,
+                    0x01,
+                    0x00,
+                    0x3c,
+                    0x03,
+                    0x01,
+                    0x00,
+                    0xfd,
+                    0x04,
+                    0x00,
+                    0x00,
+                    0xb4,
+                    0x07,
+                    0x01,
+                    0x00,
+                    0x00,
+                    0x08,
+                    0x01,
+                    byte1,
+                    byte2,
+                    0x09,
+                    0x00,
+                    0x00,
+                    0x00,
+                ];
+                await tuya.sendDataPointRaw(entity, 18, Buffer.from(payload));
+
+                return {state: {data_report_duration: sec}};
+            }
         },
     } satisfies Tz.Converter,
 };
@@ -18170,6 +18253,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        toZigbee: [tzLocal.spm01v25],
         exposes: [
             e.voltage(),
             e.power(),
@@ -18179,56 +18263,32 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%"),
             e.ac_frequency(),
             e
-                .numeric("data_report_duration", ea.SET)
+                .numeric("data_report_duration", ea.ALL)
+                .withUnit("s")
                 .withValueMin(5)
                 .withValueMax(3600)
-                .withDescription(
-                    "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 30~3600 seconds)",
-                ),
+                .withDescription("Data report and polling interval (5 to 3600 seconds)"),
+            exposes.enum("refresh", ea.ALL, ["now"]).withDescription("Request an immediate measurement update"),
         ],
+        onEvent: (event) => {
+            if (event.type === "stop") {
+                const existingTimer = globalStore.getValue(event.data.ieeeAddr, "polling_timer");
+                if (existingTimer) {
+                    clearInterval(existingTimer);
+                    globalStore.clearValue(event.data.ieeeAddr, "polling_timer");
+                }
+                return;
+            }
+
+            const device = event.data.device;
+            if (!globalStore.hasValue(device, "polling_timer")) {
+                const savedInterval = event.data.state?.data_report_duration ? event.data.state.data_report_duration : 5;
+                setupSpm01v25Polling(device, savedInterval);
+            }
+        },
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
-                [
-                    18,
-                    "data_report_duration",
-                    {
-                        to: (v: number) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
-                            const byte1 = (value >> 8) & 0xff;
-                            const byte2 = value & 0xff;
-                            return [
-                                // Other settings of the device
-                                0x01,
-                                0x01,
-                                0x00,
-                                0x3c,
-                                0x03,
-                                0x01,
-                                0x00,
-                                0xfd,
-                                0x04,
-                                0x00,
-                                0x00,
-                                0xb4,
-                                0x07,
-                                0x01,
-                                0x00,
-                                0x00,
-                                0x08,
-                                0x01,
-                                // Report duration
-                                byte1,
-                                byte2,
-                                // Only modify the report duration
-                                0x09,
-                                0x00,
-                                0x00,
-                                0x00,
-                            ];
-                        },
-                    },
-                ],
                 [23, "produced_energy", tuya.valueConverter.divideBy100],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
                 [50, "power_factor", tuya.valueConverter.raw],
