@@ -1259,6 +1259,7 @@ export const light_onoff_brightness: Tz.Converter = {
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
         const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
         const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
+        const stopBeforeOff = utils.getMetaValue(entity, meta.mapped, "stopBeforeOff", {atLeastOnce: true}, false);
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
         let brightness: number;
 
@@ -1301,6 +1302,11 @@ export const light_onoff_brightness: Tz.Converter = {
 
         let publishBrightness = brightness !== undefined;
         const targetState = state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state;
+
+        if (stopBeforeOff && (targetState === "off" || state === "toggle")) {
+            // Device ignores OFF while a level transition is active
+            await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+        }
 
         if (targetState === "off") {
             // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.

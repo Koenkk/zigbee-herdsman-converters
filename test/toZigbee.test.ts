@@ -575,6 +575,31 @@ describe("toZigbee converters", () => {
             expect(device.endpoints[0].command).toHaveBeenCalledTimes(4);
             expect(device.endpoints[0].command).toHaveBeenNthCalledWith(4, "genOnOff", "off", {}, {});
         });
+
+        test.each([
+            [{state: "OFF"}, true, ["genOnOff", "off"]],
+            [{state: "TOGGLE"}, true, ["genOnOff", "toggle"]],
+            [{brightness: 0}, true, ["genLevelCtrl", "moveToLevelWithOnOff"]],
+            [{state: "ON"}, true, ["genOnOff", "on"]],
+            [{state: "OFF"}, false, ["genOnOff", "off"]],
+        ])("stopBeforeOff %j (enabled: %s)", async (message, stopBeforeOff, lastCommand) => {
+            const device = mockDevice({modelID: "test_light", endpoints: [{ID: 1, meta: {onLevelSupported: false}}]});
+            const key = Object.keys(message)[0];
+            // @ts-expect-error mock
+            const meta: Tz.Meta = {
+                state: {state: "ON"},
+                device,
+                message,
+                mapped: {meta: {stopBeforeOff}},
+                options: {},
+                endpoint_name: null,
+                publish: null,
+            };
+            await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], key, message[key as keyof typeof message], meta);
+            const commands = device.endpoints[0].command.mock.calls.map((c) => [c[0], c[1]]);
+            const stop = stopBeforeOff && message.state !== "ON";
+            expect(commands).toStrictEqual(stop ? [["genLevelCtrl", "stop"], lastCommand] : [lastCommand]);
+        });
     });
 
     describe("light_color", () => {
