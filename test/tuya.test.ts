@@ -458,10 +458,14 @@ describe("lib/tuya", () => {
             return {device, definition, properties: exposes.map((expose) => expose.property)};
         };
 
-        it("exposes distance_report only for the MTG275-ZB-RL (_TZE204_dtzziy1e)", async () => {
+        it("exposes distance_report only for the MTG275-ZB-RL (_TZE204_dtzziy1e) and MTG235-ZB-RL (_TZE204_clrdrnya)", async () => {
             const mtg275 = await resolve("_TZE204_dtzziy1e");
             expect(mtg275.definition.model).toStrictEqual("MTG275-ZB-RL");
             expect(mtg275.properties).toContain("distance_report");
+
+            const mtg235 = await resolve("_TZE204_clrdrnya");
+            expect(mtg235.definition.model).toStrictEqual("MTG235-ZB-RL");
+            expect(mtg235.properties).toContain("distance_report");
 
             // Same definition, DP 116 not verified on this one.
             const other = await resolve("_TZE204_sbyx0lm6");

@@ -20294,13 +20294,16 @@ export const definitions: DefinitionWithExtend[] = [
                             "state will be maintained permanently.",
                     ),
             ];
-            if (!device || device.manufacturerName === "_TZE204_dtzziy1e") {
-                // MTG275-ZB-RL: DP 116 switches the continuous target_distance reports (about 1/s) on/off.
-                // Requires MCU firmware 1.0.5 or newer.
+            if (!device || ["_TZE204_dtzziy1e", "_TZE204_clrdrnya"].includes(device.manufacturerName)) {
+                // MTG275-ZB-RL / MTG235-ZB-RL: DP 116 switches the continuous target_distance reports (about 1/s) on/off.
+                // Requires MCU firmware 1.0.5 (MTG275-ZB-RL) or 1.0.4 (MTG235-ZB-RL) or newer.
                 exps.push(
                     e
                         .binary("distance_report", ea.STATE_SET, "ON", "OFF")
-                        .withDescription("Report target distance continuously (about once per second), requires MCU firmware 1.0.5 or newer"),
+                        .withDescription(
+                            "Report target distance continuously (about once per second), requires MCU firmware 1.0.5 (MTG275-ZB-RL) " +
+                                "or 1.0.4 (MTG235-ZB-RL) or newer",
+                        ),
                 );
             }
             return exps;
