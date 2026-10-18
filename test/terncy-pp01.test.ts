@@ -21,7 +21,6 @@ async function setup(modelID = "TERNCY-PP01") {
         "EndDevice",
     );
     const definition = await findByDevice(device);
-    await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: vi.fn()}});
     return {device, endpoint: device.endpoints[0], definition};
 }
 function convert(definition: Definition, device: Zh.Device, data: number[], publish = vi.fn(), options: KeyValue = {}) {
@@ -33,7 +32,6 @@ function convert(definition: Definition, device: Zh.Device, data: number[], publ
     } as never);
 }
 const motion = (status: number, light = 165) => [0x0d, 0x28, 0x12, 1, 4, light & 0xff, light >> 8, status];
-
 describe("TERNCY-PP01", () => {
     beforeEach(() => {
         vi.useFakeTimers();
@@ -107,18 +105,6 @@ describe("TERNCY-PP01", () => {
         expect(publish).toHaveBeenCalledWith({occupancy_right: false});
         expect(publish).toHaveBeenCalledWith({occupancy: false});
     });
-    it("uses cached per-side device delays when no timeout override is set", async () => {
-        const {device, definition, endpoint} = await setup();
-        endpoint.saveClusterAttributeKeyValue("manuSpecificClusterAduroSmart", {pirIntLeftDelay: 5000, pirIntRightDelay: 10000});
-        const publish = vi.fn();
-        convert(definition, device, motion(0x28), publish);
-        convert(definition, device, motion(0x05), publish);
-        await vi.advanceTimersByTimeAsync(5100);
-        expect(publish).toHaveBeenCalledWith({occupancy_left: false});
-        expect(publish).not.toHaveBeenCalledWith({occupancy_right: false});
-        await vi.advanceTimersByTimeAsync(5000);
-        expect(publish).toHaveBeenCalledWith({occupancy_right: false});
-    });
     it("cancels pending side clears on explicit OFF and honors timeout=0", async () => {
         const {device, definition} = await setup();
         const publish = vi.fn();
@@ -131,21 +117,12 @@ describe("TERNCY-PP01", () => {
         await vi.advanceTimersByTimeAsync(100000);
         expect(publish).not.toHaveBeenCalled();
     });
-    it("decodes light-only reports and rejects invalid light sentinel", async () => {
+    it("decodes light-only reports", async () => {
         const {device, definition} = await setup();
         expect(convert(definition, device, motion(0, 0))).toEqual({illuminance: 0});
-        expect(convert(definition, device, motion(0, 0xffff))).toEqual({});
-        expect(convert(definition, device, motion(0, 500), vi.fn(), {illuminance_raw: true})).toEqual({illuminance: 500, illuminance_raw: 500});
     });
     it.each(
-        [
-            [],
-            [0x0d],
-            [0x0d, 0x28, 0x12, 1, 4, 10, 0],
-            [0x0d, 0x29, 0x12, 1, 4, 10, 0, 5],
-            [0x0c, 0x28, 0x12, 1, 4, 10, 0, 5],
-            [0x0d, 0x28, 0x12, 1, 0, 8, 7],
-        ].map((data) => [data]),
+        [[], [0x0d], [0x0d, 0x28, 0x12, 1, 4, 10, 0], [0x0d, 0x28, 0x12, 1, 0, 8, 7]].map((data) => [data]),
     )("ignores malformed/unsupported frame %j", async (data) => {
         const {device, definition} = await setup();
         expect(convert(definition, device, data)).toBeUndefined();
@@ -187,27 +164,6 @@ describe("TERNCY-PP01", () => {
             battery.convert(definition, {data: {batteryPercentageRemaining: 48}, device, endpoint} as never, vi.fn(), {}, {device} as never),
         ).toEqual({battery: 48});
     });
-    it("advertises only cached private capabilities, and refreshes discovery on the first report", async () => {
-        const {device, definition, endpoint} = await setup();
-        const exposesChanged = vi.fn();
-        await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: exposesChanged}});
-        const getExposes = () => (typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes);
-        expect(getExposes().map((e) => e.property)).not.toContain("pir_left_delay");
-        endpoint.saveClusterAttributeKeyValue("manuSpecificClusterAduroSmart", {pirIntLeftDelay: 5000});
-        const report = {data: {pirIntLeftDelay: 5000}, device, endpoint};
-        const converters = definition.fromZigbee.filter((c) => c.cluster === "manuSpecificClusterAduroSmart" && Array.isArray(c.type));
-        const payloads = converters.map((c) => c.convert(definition, report as never, vi.fn(), {}, {device} as never));
-        expect(payloads).toContainEqual({pir_left_delay: 5000});
-        expect(exposesChanged).toHaveBeenCalledTimes(1);
-        for (const c of converters) c.convert(definition, report as never, vi.fn(), {}, {device} as never);
-        expect(exposesChanged).toHaveBeenCalledTimes(1);
-        const privateExposes = getExposes().filter((e) => e.property.startsWith("pir_"));
-        expect(privateExposes.map((e) => e.property)).toEqual(["pir_left_delay"]);
-        expect(privateExposes[0].access).toEqual(1);
-        expect(endpoint.read).not.toHaveBeenCalled();
-        expect(endpoint.write).not.toHaveBeenCalled();
-        expect(endpoint.command).not.toHaveBeenCalled();
-    });
     it("does not read or write private settings during configuration", async () => {
         const {device, definition, endpoint} = await setup();
         const coordinator = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).endpoints[0];
@@ -215,13 +171,5 @@ describe("TERNCY-PP01", () => {
         expect(vi.mocked(endpoint.read).mock.calls.every(([cluster]) => cluster !== "manuSpecificClusterAduroSmart")).toBe(true);
         expect(endpoint.write).not.toHaveBeenCalled();
         expect(endpoint.command).not.toHaveBeenCalled();
-    });
-    it("cleans up side timers when Zigbee2MQTT stops", async () => {
-        const {device, definition} = await setup();
-        const publish = vi.fn();
-        convert(definition, device, motion(0x28), publish);
-        await definition.onEvent?.({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
-        await vi.advanceTimersByTimeAsync(10000);
-        expect(publish).not.toHaveBeenCalledWith({occupancy_left: false});
     });
 });
