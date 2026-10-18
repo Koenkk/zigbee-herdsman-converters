@@ -2321,10 +2321,6 @@ export const valueConverter = {
     },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     thermostatScheduleDayMultiDP_TRV602Z: {
-        // 6 transitions made up of:
-        // Byte 1 - time word - 0xC000 + minutes since midnight
-        // Byte 2 - temperature * 10 (appears ignored)
-        // Byte 3 - trv preset (2 = eco, 3 = comfort)
         from: (v: string) => {
             const schedule = [];
             for (let index = 1; index < 24; index = index + 4) {
@@ -2352,7 +2348,7 @@ export const valueConverter = {
             for (const transition of transitions) {
                 const timeTempPreset = transition.split("/");
                 if (timeTempPreset.length !== 3) {
-                    throw new Error(`Invalid schedule: wrong transition format (expected HH:MM/TEMP/PRESET): ${transition}`);
+                    throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
                 const hourMin = timeTempPreset[0].split(":");
                 const hour = Number.parseInt(hourMin[0], 10);
