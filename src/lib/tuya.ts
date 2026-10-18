@@ -1539,6 +1539,27 @@ export const valueConverterBasic = {
             from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
         };
     },
+    twosComplementWithBitsizeScaled: (bits: number, scale: number = 1) =>
+    {
+        const overflow: number = 2 ** bits;
+        const limit: number = 2 ** (bits - 1);
+        return {
+            to: (v: number) => {
+                // Apply scale to logical value.
+                const scaled = v * scale;
+
+                // Convert to 2's complement [raw] representation.
+                return scaled < 0 ? scaled + overflow : scaled;
+            },
+            from: (v: number) => {
+                // Convert from 2's complement [raw] representation.
+                const signed = v >= limit ? v - overflow : v;
+
+                // Apply scale to compute logical value.
+                return signed / scale;
+            }
+        }
+    },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
@@ -1585,6 +1606,8 @@ export const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     multiplyBy10: valueConverterBasic.multiplyBy(10),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
+    twosComplement8Bit: valueConverterBasic.twosComplementWithBitsizeScaled(8),
+    twosComplement8BitScaled10x: valueConverterBasic.twosComplementWithBitsizeScaled(8, 10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
