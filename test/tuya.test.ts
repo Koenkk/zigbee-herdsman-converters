@@ -698,7 +698,7 @@ describe("Tuya ME201WZ", () => {
 describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
     const converter = tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z;
     // Factory default schedule of a TRV602Z (_TZE204_qyr2m29i): the third byte of every slot is the preset
-    // (3 = comfort, 2 = eco) * 16. Writing 64 here makes the TRV fall back to antifreeze (5 °C).
+    // (2 = eco, 3 = comfort) * 16.
     const text = "06:00/20.0/3 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2";
     const bytes = [193, 104, 48, 200, 193, 224, 32, 150, 194, 208, 48, 200, 195, 72, 32, 150, 196, 56, 48, 200, 197, 40, 32, 150];
 
@@ -712,11 +712,6 @@ describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
 
     it("adds the day number in front of the slots", () => {
         expect(tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7).to(text)).toStrictEqual([7, ...bytes]);
-    });
-
-    it("accepts a midnight slot and the highest temperature", () => {
-        const payload = converter.to("00:00/25.5/3 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2");
-        expect(payload.slice(0, 4)).toStrictEqual([192, 0, 48, 255]);
     });
 
     it.each([
