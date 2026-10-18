@@ -12042,7 +12042,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withPreset(["off", "antifrost", "eco", "comfort", "auto", "on"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withSystemMode(["auto", "heat", "off"], ea.STATE),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C/P HH:MM/C/P HH:MM/C/P HH:MM/C/P HH:MM/C/P HH:MM/C/P"),
             e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription("Comfort mode temperature"),
             e.eco_temperature().withValueMin(5).withValueMax(30).withDescription("Eco mode temperature"),
             e.holiday_temperature().withValueMin(5).withValueMax(30).withDescription("Antifreeze mode temperature"),
