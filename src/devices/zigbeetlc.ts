@@ -616,7 +616,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        // Tuya ZG-204ZV / ZG-204ZS / ZG-204ZU with ZigbeeTLc firmware
+        // Tuya ZG-204ZV series with ZigbeeTLc firmware
         zigbeeModel: ["ZG-204ZV-z", "ZG-204ZV1-z", "ZG-204ZV2-z"],
         model: "ZG-204ZV-z",
         vendor: "Tuya",
