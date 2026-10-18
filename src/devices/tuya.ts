@@ -26390,9 +26390,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance", tuya.valueConverter.multiplyBy10],
                 [103, "soil_sampling", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.raw],
-                [105, "humidity_calibration", tuya.valueConverter.raw],
+                [105, "humidity_calibration", tuya.valueConverter.twosComplement8Bit],
                 [106, "illuminance_calibration", tuya.valueConverter.raw],
-                [107, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [107, "temperature_calibration", tuya.valueConverter.twosComplement8BitScaled10x],
                 // DP 110 is asymmetric: device reports the warning state, but setting it configures the threshold.
                 // First entry is used for incoming reports, the second one for setting.
                 [110, "soil_moisture_warning", {from: tuya.valueConverter.raw.from}],
