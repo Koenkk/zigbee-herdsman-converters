@@ -1539,8 +1539,7 @@ export const valueConverterBasic = {
             from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
         };
     },
-    twosComplementWithBitsizeScaled: (bits: number, scale: number = 1) =>
-    {
+    twosComplementWithBitsizeScaled: (bits: number, scale = 1) => {
         const overflow: number = 2 ** bits;
         const limit: number = 2 ** (bits - 1);
         return {
@@ -1557,8 +1556,8 @@ export const valueConverterBasic = {
 
                 // Apply scale to compute logical value.
                 return signed / scale;
-            }
-        }
+            },
+        };
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
