@@ -1431,7 +1431,10 @@ const wiserVactDefaults: Record<string, number> = {
 const wiserVactStored = (endpoint: Zh.Endpoint, attribute: string): number =>
     (endpoint.getClusterAttributeValue("hvacThermostat", attribute) as number | undefined) ?? wiserVactDefaults[attribute];
 
-// Herdsman answers UNSUPPORTED_ATTRIBUTE to the valve's reads, which leaves it stuck waiting for its setpoint
+// Unlike most thermostats, the VACT does not keep its own settings: when a button is pressed or after a calibration it reads
+// its setpoint, limits and zone mode from the controller, one attribute per request, and waits for the answers.
+// Herdsman only answers reads for genTime/genBasic and replies UNSUPPORTED_ATTRIBUTE for any other cluster, which leaves the
+// valve stuck waiting, so the values z2m stored for this valve are served here instead.
 function wiserVactReadResponse(): ModernExtend {
     return {
         isModernExtend: true,
