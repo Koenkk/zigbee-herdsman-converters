@@ -26349,6 +26349,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.soil_moisture(),
+            tuya.exposes.soilCalibration(),
             e
                 .binary("soil_moisture_warning", ea.STATE, true, false)
                 .withDescription("True when soil moisture is below the configured warning threshold")
@@ -26361,18 +26362,17 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withDescription("Soil moisture percentage below which the soil moisture warning activates")
                 .withCategory("config"),
+            tuya.exposes.soilSampling(),
             e.temperature(),
             tuya.exposes.temperatureCalibration(),
             e.humidity(),
             tuya.exposes.humidityCalibration(),
-            tuya.exposes.soilSampling(),
-            tuya.exposes.soilCalibration(),
             e.illuminance(),
             e
                 .numeric("illuminance_calibration", ea.STATE_SET)
-                .withValueMin(-1000)
-                .withValueMax(1000)
-                .withValueStep(1)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(10)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning").withCategory("diagnostic"),
@@ -26389,9 +26389,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.multiplyBy10],
                 [103, "soil_sampling", tuya.valueConverter.raw],
-                [104, "soil_calibration", tuya.valueConverter.raw],
+                [104, "soil_calibration", tuya.valueConverter.twosComplement8Bit],
                 [105, "humidity_calibration", tuya.valueConverter.twosComplement8Bit],
-                [106, "illuminance_calibration", tuya.valueConverter.raw],
+                [106, "illuminance_calibration", tuya.valueConverter.multiplyBy10],
                 [107, "temperature_calibration", tuya.valueConverter.twosComplement8BitScaled10x],
                 // DP 110 is asymmetric: device reports the warning state, but setting it configures the threshold.
                 // First entry is used for incoming reports, the second one for setting.
