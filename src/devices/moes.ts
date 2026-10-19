@@ -2957,7 +2957,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .numeric("over_current_threshold", ea.STATE_SET)
                 .withUnit("A")
                 .withValueMin(1)
-                .withValueMax(100)
+                .withValueMax(120)
                 .withValueStep(1)
                 .withDescription("Overcurrent alarm threshold")
                 .withCategory("config"),
@@ -2974,7 +2974,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, null, tuya.valueConverter.phaseVariant5],
                 [10, "fault", tuya.valueConverter.raw],
                 [17, null, {from: moesMeterAlarmSettings}],
-                moesMeterThresholdEntry("over_current_threshold", {min: 1, max: 100}),
+                moesMeterThresholdEntry("over_current_threshold", {min: 1, max: 120}),
                 [20, "clear_event", tuya.valueConverter.onOff],
                 [
                     44,
