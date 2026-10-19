@@ -788,6 +788,21 @@ const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
 // TS0601_cover_1 variants with a slat angle (0-180°) on DP21, https://github.com/Koenkk/zigbee2mqtt/issues/27188
 const ts0601Cover1TiltManufacturers = ["_TZE204_wzre8hu2"];
 
+function setupSpm01v25Polling(device: Zh.Device, intervalSeconds = 10) {
+    const endpoint = device.endpoints[0];
+    clearInterval(globalStore.getValue(device.ieeeAddr, "query_interval"));
+    const sec = Math.max(5, Math.min(3600, Math.round(Number(intervalSeconds) || 10)));
+    const timer = setInterval(() => {
+        // _TZE200_iwn0gpzz ignores dataQuery, it requires DP 35 instead
+        const query =
+            device.manufacturerName === "_TZE200_iwn0gpzz"
+                ? tuya.sendDataPointEnum(endpoint, 35, 1)
+                : endpoint.command("manuSpecificTuya", "dataQuery", {});
+        query.catch(() => {});
+    }, sec * 1000).unref();
+    globalStore.putValue(device.ieeeAddr, "query_interval", timer);
+}
+
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
@@ -18237,7 +18252,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01V2.5",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            {
+                // Device stops reporting unless polled, https://github.com/Koenkk/zigbee2mqtt/issues/30506
+                onEvent: [
+                    (event) => {
+                        if (event.type === "stop") {
+                            clearInterval(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
+                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
+                        } else if (event.type === "start") {
+                            setupSpm01v25Polling(event.data.device, Number(event.data.state.data_report_duration) || 10);
+                        }
+                    },
+                ],
+                isModernExtend: true,
+            },
+        ],
         exposes: [
             e.voltage(),
             e.power(),
@@ -18247,7 +18278,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%"),
             e.ac_frequency(),
             e
-                .numeric("data_report_duration", ea.SET)
+                .numeric("data_report_duration", ea.STATE_SET)
+                .withUnit("s")
                 .withValueMin(5)
                 .withValueMax(3600)
                 .withDescription(
@@ -18261,8 +18293,11 @@ export const definitions: DefinitionWithExtend[] = [
                     18,
                     "data_report_duration",
                     {
-                        to: (v: number) => {
+                        to: (v: number, meta: Tz.Meta) => {
                             const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            if (meta.device) {
+                                setupSpm01v25Polling(meta.device, value);
+                            }
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
