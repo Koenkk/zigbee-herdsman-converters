@@ -1954,7 +1954,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [71, "week_program_7", tuya.valueConverter.raw],
                 [101, "vacation_duration", tuya.valueConverter.raw],
                 [102, "boost_duration", tuya.valueConverter.raw],
-                [103, "electricity_statistics", tuya.valueConverter.raw],
+                [103, "electricity_statistics", tuya.valueConverter.divideBy10],
                 [104, "elec_statistics_day", tuya.valueConverter.raw],
                 [105, "elec_statistics_month", tuya.valueConverter.raw],
                 [106, "elec_statistics_year", tuya.valueConverter.raw],
