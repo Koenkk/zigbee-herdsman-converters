@@ -167,7 +167,7 @@ export const definitions: DefinitionWithExtend[] = [
         // LYWSD03MMC or similar with ZigbeeTLc firmware (alternative is devbis firmware)
         model: "LYWSD03MMC-z",
         vendor: "Xiaomi",
-        description: "Temperature and Humidity Monitor (pvxx/ZigbeeTLc)",
+        description: "Temperature and Humidity Monitor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -192,7 +192,7 @@ export const definitions: DefinitionWithExtend[] = [
         // MJWSD06MMC with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "MJWSD06MMC",
         vendor: "Xiaomi",
-        description: "Temperature and Humidity Monitor 3 Mini (pvxx/ZigbeeTLc)",
+        description: "Temperature and Humidity Monitor 3 Mini (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -217,7 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
         // MHO-C122 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "MHO-C122",
         vendor: "MiaoMiaoCe",
-        description: "Temperature and Humidity Monitor (pvxx/ZigbeeTLc)",
+        description: "Temperature and Humidity Monitor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -242,7 +242,7 @@ export const definitions: DefinitionWithExtend[] = [
         // MHO-C401 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "MHO-C401",
         vendor: "MiaoMiaoCe",
-        description: "Temperature and Humidity Monitor (pvxx/ZigbeeTLc)",
+        description: "Temperature and Humidity Monitor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -267,7 +267,7 @@ export const definitions: DefinitionWithExtend[] = [
         // CGG1 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "CGG1",
         vendor: "Qingping",
-        description: "Temp & RH Monitor (pvxx/ZigbeeTLc)",
+        description: "Temp & RH Monitor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -298,7 +298,7 @@ export const definitions: DefinitionWithExtend[] = [
         // CGDK2 with ZigbeeTLc firmware, normal device is Bluetooth only
         model: "CGDK2",
         vendor: "Qingping",
-        description: "Temp & RH Monitor Lite (pvxx/ZigbeeTLc)",
+        description: "Temp & RH Monitor Lite (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -318,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
         // LKTMZL02 with ZigbeeTLc firmware
         model: "LKTMZL02-z",
         vendor: "Tuya",
-        description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
+        description: "Temperature & Humidity Sensor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -369,7 +369,7 @@ export const definitions: DefinitionWithExtend[] = [
         // TS0201 with ZigbeeTLc firmware
         model: "TS0201-z",
         vendor: "Tuya",
-        description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
+        description: "Temperature & Humidity Sensor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity(),
@@ -386,7 +386,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["ZG-227Z-z"],
         model: "ZG-227Z-z",
         vendor: "Tuya",
-        description: "Temperature & humidity sensor (pvxx/ZigbeeTLc)",
+        description: "Temperature & humidity sensor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature(),
             m.humidity(),
@@ -403,7 +403,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["MC-z", "TH01-z", "TH01-2-z"],
         model: "MC-z",
         vendor: "Zbeacon",
-        description: "Temperature & Humidity Sensor (pvxx/ZigbeeTLc)",
+        description: "Temperature & Humidity Sensor (pvvx/ZigbeeTLc)",
         extend: [
             m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}),
             m.humidity({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 50}}),
