@@ -5308,6 +5308,7 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("MiBoxer", "FUT036Z", "Single color LED controller", ["_TZ3210_dxroobu3", "_TZ3210_dbilpfqk"]),
             tuya.whitelabel("Mercator Ikuü", "SMFL20W-ZB", "Ridley Floodlight", ["_TZ3000_juq7i1fr"]),
+            tuya.whitelabel("ECODO", "ECD-ZB-REPEATER", "Zigbee repeater", ["_TZ3210_cmnwaylf"]),
         ],
         meta: {
             moveToLevelWithOnOffDisable: (e) => e.getDevice().manufacturerName === "_TZ3218_ofguu6mz",
