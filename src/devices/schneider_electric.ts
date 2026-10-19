@@ -1479,6 +1479,44 @@ async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
     );
 }
 
+async function wiserVactCalibrate(endpoint: Zh.Endpoint) {
+    await endpoint.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
+        "hvacThermostat",
+        "wiserSmartCalibrateValve",
+        {},
+        wiserVactCommandOptions,
+    );
+    endpoint.getDevice().meta.wiserLastCalibration = Date.now();
+    endpoint.getDevice().save();
+}
+
+// Last Monday 13:00 (Wiser controller default) or first Monday of the month 13:00 not later than now
+function wiserVactLastLimescaleSlot(now: Date, monthly: boolean): Date {
+    const slot = new Date(now.getFullYear(), now.getMonth(), monthly ? 1 : now.getDate(), 13);
+    slot.setDate(monthly ? 1 + ((8 - slot.getDay()) % 7) : slot.getDate() - ((slot.getDay() + 6) % 7));
+    if (slot <= now) return slot;
+    if (monthly) return wiserVactLastLimescaleSlot(new Date(now.getFullYear(), now.getMonth(), 0, 23), true);
+    slot.setDate(slot.getDate() - 7);
+    return slot;
+}
+
+// The valve never calibrates on its own, the Wiser controller runs it periodically to keep the pin from seizing.
+// It is sent when the valve reports, as it is awake then.
+function wiserVactLimescaleProtection(endpoint: Zh.Endpoint, options: KeyValue) {
+    const device = endpoint.getDevice();
+    const last = device.meta.wiserLastCalibration;
+    const slot = wiserVactLastLimescaleSlot(new Date(), options.limescale_protection_frequency === "monthly");
+    if (options.limescale_protection === false || last >= slot.getTime()) return;
+    device.meta.wiserLastCalibration = Date.now();
+    device.save();
+    if (last === undefined) return;
+    wiserVactCalibrate(endpoint).catch((error) => {
+        device.meta.wiserLastCalibration = last;
+        device.save();
+        logger.debug(`Limescale protection calibration of '${device.ieeeAddr}' failed (${error})`, NS);
+    });
+}
+
 // #endregion
 
 const tzLocal = {
@@ -1572,14 +1610,8 @@ const tzLocal = {
     wiser_vact_calibrate_valve: {
         key: ["calibrate_valve"],
         convertSet: async (entity, key, value, meta) => {
-            if (value === "calibrate") {
-                await entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
-                    "hvacThermostat",
-                    "wiserSmartCalibrateValve",
-                    {},
-                    wiserVactCommandOptions,
-                );
-            }
+            utils.assertEndpoint(entity);
+            if (value === "calibrate") await wiserVactCalibrate(entity);
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
@@ -2102,6 +2134,7 @@ const fzLocal = {
                     result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
                 }
                 if (meta.device.modelID === "EH-ZB-VACT") {
+                    wiserVactLimescaleProtection(msg.endpoint, options);
                     if (msg.data.wiserSmartOpenWindowDetectionStatus !== undefined) {
                         result.window_open = msg.data.wiserSmartOpenWindowDetectionStatus === 1;
                     }
@@ -3397,6 +3430,16 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withLocalTemperatureCalibration(-5, 5, 0.1, ea.ALL)
                 .withPiHeatingDemand(),
+        ],
+        options: [
+            e
+                .binary("limescale_protection", ea.SET, true, false)
+                .withDescription("Periodically calibrate the valve to keep the pin from seizing, like the Wiser controller does (default true)"),
+            e
+                .enum("limescale_protection_frequency", ea.SET, ["weekly", "monthly"])
+                .withDescription(
+                    "Weekly: every Monday at 13:00. Monthly: first Monday of the month at 13:00. Runs at the next valve report (default weekly)",
+                ),
         ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
