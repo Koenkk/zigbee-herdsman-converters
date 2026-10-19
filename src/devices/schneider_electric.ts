@@ -2097,6 +2097,14 @@ const fzLocal = {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
+            if (meta.device.modelID === "EH-ZB-VACT") {
+                // The valve reports its manufacturer-specific attributes without the manufacturer code
+                const cluster = Zcl.Utils.getCluster("hvacThermostat", Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC, meta.device.customClusters);
+                for (const [key, value] of Object.entries(msg.data)) {
+                    const name = Zcl.Utils.getClusterAttribute(cluster, Number(key), Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC)?.name;
+                    if (name) (msg.data as KeyValueAny)[name] = value;
+                }
+            }
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) {
                 if (msg.data.wiserSmartZoneMode !== undefined) {
