@@ -557,7 +557,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-C-007-2ID", // 2 ID controls white and color separate
         vendor: "Gledopto",
         description: "Zigbee LED Controller RGBW (2 ID)",
-        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
+        extend: [gledoptoLight({combinedOnOff: true, colorTemp: {range: undefined}, color: true})],
         exposes: [e.light_brightness_colortemp_colorxy().withEndpoint("rgb"), e.light_brightness().withEndpoint("white")],
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
