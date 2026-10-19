@@ -15842,7 +15842,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hkdl5fmv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_hkdl5fmv", "_TZE284_hkdl5fmv"]),
         model: "TS0601_rcbo",
         vendor: "Tuya",
         whiteLabel: [
