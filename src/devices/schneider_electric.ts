@@ -3462,7 +3462,7 @@ export const definitions: DefinitionWithExtend[] = [
         options: [
             e
                 .binary("limescale_protection", ea.SET, true, false)
-                .withDescription("Periodically calibrate the valve to keep the pin from seizing, like the Wiser controller does (default true)"),
+                .withDescription("Periodically calibrate the valve to keep the pin from seizing (default true)"),
             e
                 .enum("limescale_protection_frequency", ea.SET, ["weekly", "monthly"])
                 .withDescription(
@@ -3470,7 +3470,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ),
             e
                 .binary("open_window_detection", ea.SET, true, false)
-                .withDescription("Let the valve close when it detects a fast temperature drop, like the Wiser controller does (default true)"),
+                .withDescription("Let the valve close when it detects a fast temperature drop (default true)"),
         ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
