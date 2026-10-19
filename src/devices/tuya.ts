@@ -5296,6 +5296,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuyaLight({minBrightness: "command", effect: false})],
     },
     {
+        fingerprint: tuya.fingerprint("TS0501B", ["_TZ3210_cmnwaylf"]),
+        model: "ECD-ZB-REPEATER",
+        description: "Zigbee repeater",
+        vendor: "ECODO",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                homeassistant: {entityCategory: "config", icon: "mdi:led-on", name: "Indicator LED"},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["TS0501B"],
         model: "TS0501B",
         description: "Zigbee light",
@@ -5308,7 +5319,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("MiBoxer", "FUT036Z", "Single color LED controller", ["_TZ3210_dxroobu3", "_TZ3210_dbilpfqk"]),
             tuya.whitelabel("Mercator Ikuü", "SMFL20W-ZB", "Ridley Floodlight", ["_TZ3000_juq7i1fr"]),
-            tuya.whitelabel("ECODO", "ECD-ZB-REPEATER", "Zigbee repeater", ["_TZ3210_cmnwaylf"]),
         ],
         meta: {
             moveToLevelWithOnOffDisable: (e) => e.getDevice().manufacturerName === "_TZ3218_ofguu6mz",
