@@ -1465,7 +1465,6 @@ function wiserVactReadResponse(): ModernExtend {
 
 // The valve never pulls its setpoint on its own, the Wiser controller pushes it with this command
 async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
-    globalStore.putValue(endpoint, "setpointPending", true);
     await endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
         "hvacThermostat",
         "wiserSmartSetSetpoint",
@@ -2169,19 +2168,16 @@ const fzLocal = {
                     if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
                         result.calibrate_valve = msg.data.wiserSmartValveCalibrationStatus === 0 ? "calibrate" : "idle";
                     }
-                    if (msg.data.occupiedHeatingSetpoint !== undefined) {
-                        if (!globalStore.getValue(msg.endpoint, "setpointPending")) {
-                            // Knob changes win: serve what the valve reports when it pulls its setpoint
-                            msg.endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: msg.data.occupiedHeatingSetpoint});
-                        } else if (msg.data.occupiedHeatingSetpoint === wiserVactStored(msg.endpoint, "occupiedHeatingSetpoint")) {
-                            globalStore.clearValue(msg.endpoint, "setpointPending");
-                        } else if (!(result.window_open ?? meta.state.window_open)) {
-                            // Like the Wiser controller: push again a setpoint the valve did not take over, unless a window is open
-                            delete result.occupied_heating_setpoint;
-                            wiserVactPushSetpoint(msg.endpoint).catch((error) =>
-                                logger.debug(`Failed to push setpoint to '${msg.device.ieeeAddr}' (${error})`, NS),
-                            );
-                        }
+                    // Like the Wiser controller: push again a setpoint the valve did not take over, unless a window is open
+                    if (
+                        msg.data.occupiedHeatingSetpoint !== undefined &&
+                        msg.data.occupiedHeatingSetpoint !== wiserVactStored(msg.endpoint, "occupiedHeatingSetpoint") &&
+                        !(result.window_open ?? meta.state.window_open)
+                    ) {
+                        delete result.occupied_heating_setpoint;
+                        wiserVactPushSetpoint(msg.endpoint).catch((error) =>
+                            logger.debug(`Failed to push setpoint to '${msg.device.ieeeAddr}' (${error})`, NS),
+                        );
                     }
                 }
                 publish(result);
