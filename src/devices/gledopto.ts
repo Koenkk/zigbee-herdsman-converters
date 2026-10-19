@@ -154,7 +154,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_onoff_brightness.convertGet(entity, key, meta);
         },
-    }),
+    } satisfies Tz.Converter),
     gledopto_light_colortemp: light.withCombinedOnOff({
         key: ["color_temp", "color_temp_percent"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
@@ -176,7 +176,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_colortemp.convertGet(entity, key, meta);
         },
-    }),
+    } satisfies Tz.Converter),
     gledopto_light_color: light.withCombinedOnOff({
         key: ["color"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
@@ -203,7 +203,7 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color.convertGet(entity, key, meta);
         },
-    }),
+    } satisfies Tz.Converter),
 };
 
 const tzLocal = {
@@ -237,7 +237,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color_colortemp.convertGet(entity, key, meta);
         },
-    }),
+    } satisfies Tz.Converter),
     glspi206p_scene: {
         key: ["scene"],
         convertSet: async (entity, key, value, meta) => {

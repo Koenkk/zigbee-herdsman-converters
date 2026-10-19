@@ -42,10 +42,20 @@ export function withCombinedOnOffReport<Cl extends string | number>(
     };
 }
 
+// Preserve metadata types and method presence while reflecting the wrapper's asynchronous results.
+type CombinedOnOffMethod<Method, Key extends "convertSet" | "convertGet"> = Method extends undefined
+    ? Method
+    : (...args: Parameters<NonNullable<Tz.Converter[Key]>>) => Promise<Tz.ConvertSetResult>;
+
+type CombinedOnOffConverter<Converter extends Tz.Converter> = {
+    [Key in keyof Converter]: Key extends "convertSet" | "convertGet" ? CombinedOnOffMethod<Converter[Key], Key> : Converter[Key];
+};
+
 /**
  * Add opt-in whole-device power controls while preserving per-channel commands and cached state.
  * Vendor converters that modify messages or returned state must wrap their outermost converter.
  */
+export function withCombinedOnOff<Converter extends Tz.Converter>(converter: Converter): CombinedOnOffConverter<Converter>;
 export function withCombinedOnOff(converter: Tz.Converter): Tz.Converter {
     return {
         ...converter,
