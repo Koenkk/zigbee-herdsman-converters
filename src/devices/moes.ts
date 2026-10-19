@@ -57,11 +57,11 @@ const fzLocal = {
     } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
 };
 
-type MoesAlarmThreshold = { id: number; min: number; max: number };
+type MoesAlarmThreshold = {id: number; min: number; max: number};
 const moesAlarmThresholds: Record<string, MoesAlarmThreshold> = {
-    over_current_threshold: { id: 1, min: 1, max: 63 },
-    over_voltage_threshold: { id: 3, min: 230, max: 300 },
-    under_voltage_threshold: { id: 4, min: 90, max: 190 },
+    over_current_threshold: {id: 1, min: 1, max: 63},
+    over_voltage_threshold: {id: 3, min: 230, max: 300},
+    under_voltage_threshold: {id: 4, min: 90, max: 190},
 };
 
 function moesMeterBytes(value: unknown): Buffer {
@@ -81,7 +81,7 @@ function moesThreePhaseData(value: unknown, index: number): Record<string, numbe
     const flags = bytes[17];
     return {
         [`voltage_l${index}`]: bytes.readUInt16BE(2) / 10,
-        [`current_l${index}`]: (flags & 0x01 ? -1 : 1) * moesMeterUInt24(bytes, 4) / 1000,
+        [`current_l${index}`]: ((flags & 0x01 ? -1 : 1) * moesMeterUInt24(bytes, 4)) / 1000,
         [`power_l${index}`]: (flags & 0x02 ? -1 : 1) * moesMeterUInt24(bytes, 7),
         [`power_reactive_l${index}`]: (flags & 0x04 ? -1 : 1) * moesMeterUInt24(bytes, 10),
         [`power_apparent_l${index}`]: moesMeterUInt24(bytes, 13),
@@ -105,7 +105,7 @@ function moesMeterAlarmStatus(value: unknown): string {
 
 function moesMeterAlarmSettings(value: unknown): Record<string, string | number> {
     const bytes = moesMeterBytes(value);
-    const result: Record<string, string | number> = { alarm_settings_raw: bytes.toString("hex").toUpperCase() };
+    const result: Record<string, string | number> = {alarm_settings_raw: bytes.toString("hex").toUpperCase()};
     if (bytes.length === 0 || bytes.length % 4 !== 0) return result;
     for (let offset = 0; offset < bytes.length; offset += 4) {
         for (const [name, spec] of Object.entries(moesAlarmThresholds)) {
@@ -115,12 +115,10 @@ function moesMeterAlarmSettings(value: unknown): Record<string, string | number>
     return result;
 }
 
-function moesMeterEncodeThreshold(
-    value: unknown, meta: Tz.Meta | undefined, name: string, currentRange?: { min: number; max: number },
-): number[] {
+function moesMeterEncodeThreshold(value: unknown, meta: Tz.Meta | undefined, name: string, currentRange?: {min: number; max: number}): number[] {
     const spec = moesAlarmThresholds[name];
     if (!spec) throw new Error(`Unknown alarm threshold: ${name}`);
-    const { min, max } = currentRange ?? spec;
+    const {min, max} = currentRange ?? spec;
     const threshold = Number(value);
     if (!Number.isInteger(threshold) || threshold < min || threshold > max) {
         throw new Error(`${name} must be an integer between ${min} and ${max}`);
@@ -141,8 +139,8 @@ function moesMeterEncodeThreshold(
     return Array.from(bytes);
 }
 
-function moesMeterThresholdEntry(name: string, range?: { min: number; max: number }): Tuya.MetaTuyaDataPointsSingle {
-    return [17, name, { to: (value, meta) => moesMeterEncodeThreshold(value, meta, name, range) }, { optimistic: false }];
+function moesMeterThresholdEntry(name: string, range?: {min: number; max: number}): Tuya.MetaTuyaDataPointsSingle {
+    return [17, name, {to: (value, meta) => moesMeterEncodeThreshold(value, meta, name, range)}, {optimistic: false}];
 }
 
 function moesMeterThreePhaseExposes(index: number) {
@@ -167,18 +165,18 @@ function moesMeterPress(value: unknown, name: string): void {
 interface MoesMeterSegmentedCluster {
     attributes: never;
     commands: {
-        zosungSendIRCode00: { seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number };
-        zosungSendIRCode01: { zero: number; seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number };
-        zosungSendIRCode02: { seq: number; position: number; maxlen: number };
-        zosungSendIRCode04: { zero0: number; seq: number; zero1: number };
+        zosungSendIRCode00: {seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number};
+        zosungSendIRCode01: {zero: number; seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number};
+        zosungSendIRCode02: {seq: number; position: number; maxlen: number};
+        zosungSendIRCode04: {zero0: number; seq: number; zero1: number};
     };
     commandResponses: {
-        zosungSendIRCode03Resp: { zero: number; seq: number; position: number; msgpart: Buffer; msgpartcrc: number };
-        zosungSendIRCode05Resp: { seq: number; zero: number };
+        zosungSendIRCode03Resp: {zero: number; seq: number; position: number; msgpart: Buffer; msgpartcrc: number};
+        zosungSendIRCode05Resp: {seq: number; zero: number};
     };
 }
 
-type MoesMeterTransfer = { buffer: Buffer; position: number; started: number };
+type MoesMeterTransfer = {buffer: Buffer; position: number; started: number};
 const moesMeterTransfers = new Map<string, MoesMeterTransfer>();
 const moesMeterChunkLength = 0x38;
 const moesMeterMaxLength = 4096;
@@ -198,7 +196,7 @@ function moesMeterDecodePackedDps(payload: Buffer): Tuya.DpValue[] {
         const length = payload.readUInt16BE(offset + 2);
         offset += 4;
         if (offset + length > payload.length) throw new Error(`Incomplete Tuya DP${dp} at ${offset}`);
-        datapoints.push({ dp, datatype, data: payload.subarray(offset, offset + length) });
+        datapoints.push({dp, datatype, data: payload.subarray(offset, offset + length)});
         offset += length;
     }
     if (!datapoints.length) throw new Error("No Tuya datapoints in segmented payload");
@@ -209,20 +207,28 @@ const moesMeterFzStart = {
     cluster: "zosungIRTransmit",
     type: ["commandZosungSendIRCode00"],
     convert: async (model, msg) => {
-        const { seq, length, unk1, unk2, unk3, cmd, unk4 } = msg.data;
+        const {seq, length, unk1, unk2, unk3, cmd, unk4} = msg.data;
         if (unk2 !== 0xef00 || cmd !== 2 || length < 2 || length > moesMeterMaxLength) return;
         const now = Date.now();
         for (const [key, transfer] of moesMeterTransfers) {
             if (now - transfer.started > 60000) moesMeterTransfers.delete(key);
         }
         moesMeterTransfers.set(moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, seq), {
-            buffer: Buffer.alloc(length), position: 0, started: now,
+            buffer: Buffer.alloc(length),
+            position: 0,
+            started: now,
         });
         await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode01", MoesMeterSegmentedCluster>(
-            "zosungIRTransmit", "zosungSendIRCode01", { zero: 0, seq, length, unk1, unk2, unk3, cmd, unk4 }, { disableDefaultResponse: true },
+            "zosungIRTransmit",
+            "zosungSendIRCode01",
+            {zero: 0, seq, length, unk1, unk2, unk3, cmd, unk4},
+            {disableDefaultResponse: true},
         );
         await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", MoesMeterSegmentedCluster>(
-            "zosungIRTransmit", "zosungSendIRCode02", { seq, position: 0, maxlen: moesMeterChunkLength }, { disableDefaultResponse: true },
+            "zosungIRTransmit",
+            "zosungSendIRCode02",
+            {seq, position: 0, maxlen: moesMeterChunkLength},
+            {disableDefaultResponse: true},
         );
     },
 } satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode00"]>;
@@ -231,14 +237,13 @@ const moesMeterFzFragment = {
     cluster: "zosungIRTransmit",
     type: ["commandZosungSendIRCode03Resp"],
     convert: async (model, msg, publish, options, meta) => {
-        const { seq, position, msgpart, msgpartcrc } = msg.data;
+        const {seq, position, msgpart, msgpartcrc} = msg.data;
         const key = moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, seq);
         const transfer = moesMeterTransfers.get(key);
         if (!transfer) return;
         const part = Buffer.from(msgpart);
         const crc = part.reduce((sum, byte) => (sum + byte) & 0xff, 0);
-        if (position !== transfer.position || !part.length ||
-            transfer.position + part.length > transfer.buffer.length || crc !== msgpartcrc) {
+        if (position !== transfer.position || !part.length || transfer.position + part.length > transfer.buffer.length || crc !== msgpartcrc) {
             moesMeterTransfers.delete(key);
             return;
         }
@@ -246,14 +251,19 @@ const moesMeterFzFragment = {
         transfer.position += part.length;
         if (transfer.position < transfer.buffer.length) {
             await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", MoesMeterSegmentedCluster>(
-                "zosungIRTransmit", "zosungSendIRCode02", { seq, position: transfer.position, maxlen: moesMeterChunkLength },
-                { disableDefaultResponse: true },
+                "zosungIRTransmit",
+                "zosungSendIRCode02",
+                {seq, position: transfer.position, maxlen: moesMeterChunkLength},
+                {disableDefaultResponse: true},
             );
             return;
         }
         moesMeterTransfers.delete(key);
         await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode04", MoesMeterSegmentedCluster>(
-            "zosungIRTransmit", "zosungSendIRCode04", { zero0: 0, seq, zero1: 0 }, { disableDefaultResponse: true },
+            "zosungIRTransmit",
+            "zosungSendIRCode04",
+            {zero0: 0, seq, zero1: 0},
+            {disableDefaultResponse: true},
         );
         try {
             const dpValues = moesMeterDecodePackedDps(transfer.buffer);
@@ -296,7 +306,7 @@ const zc301PositionReport = {
     from: (value: unknown, _meta?: Fz.Meta, options?: Record<string, unknown>) => {
         const raw = Number(value);
         if (!Number.isFinite(raw) || raw < 0 || raw > 100) return {};
-        return { position: options?.invert_cover ? raw : 100 - raw };
+        return {position: options?.invert_cover ? raw : 100 - raw};
     },
 };
 
@@ -311,13 +321,13 @@ const zc301WorkStateReport = {
     },
 };
 
-const zc301IgnoreDP = { from: (_value: unknown) => ({}) };
+const zc301IgnoreDP = {from: (_value: unknown) => ({})};
 
 const zc301Position: Tz.Converter = {
     key: ["position"],
     options: tz.cover_position_tilt.options,
     convertSet: async (entity, key, value, meta) => {
-        await tz.cover_position_tilt.convertSet!(entity, key, value, meta);
+        await tz.cover_position_tilt.convertSet?.(entity, key, value, meta);
     },
 };
 
@@ -329,7 +339,7 @@ const nextZc301Seq = () => {
 };
 
 const zc301Stop = (entity: Parameters<NonNullable<Tz.Converter["convertSet"]>>[0]) =>
-    entity.command("closuresWindowCovering", "stop", {}, { disableResponse: true, disableDefaultResponse: false });
+    entity.command("closuresWindowCovering", "stop", {}, {disableResponse: true, disableDefaultResponse: false});
 
 const zc301State: Tz.Converter = {
     key: ["state"],
@@ -338,10 +348,9 @@ const zc301State: Tz.Converter = {
         if (value.toUpperCase() === "STOP") {
             if (Array.isArray(meta.mapped)) throw new Error("ZC301 STOP does not support groups");
             await zc301Stop(entity);
-            return { state: { state: "STOP" } };
-        } else {
-            await tz.cover_state.convertSet!(entity, key, value, meta);
+            return {state: {state: "STOP"}};
         }
+        await tz.cover_state.convertSet?.(entity, key, value, meta);
     },
 };
 
@@ -353,28 +362,21 @@ const zc301Calibration: Tz.Converter = {
             await zc301Stop(entity);
             return;
         }
-        const actions: Record<string, number> = { enter_mode: 0, up_start: 1, down_start: 2 };
+        const actions: Record<string, number> = {enter_mode: 0, up_start: 1, down_start: 2};
         if (typeof value !== "string" || !Object.hasOwn(actions, value)) {
             throw new Error(`Invalid ZC301 calibration action: ${String(value)}`);
         }
-        await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>(
-            "closuresWindowCovering",
-            { tuyaMotorReversal: actions[value] },
-        );
+        await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: actions[value]});
     },
 };
 
-const zc301CalibrationReport: Fz.Converter<
-    "closuresWindowCovering",
-    tuya.TuyaClosuresWindowCovering,
-    ["attributeReport", "readResponse"]
-> = {
+const zc301CalibrationReport: Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]> = {
     cluster: "closuresWindowCovering",
     type: ["attributeReport", "readResponse"],
     convert: (_model, msg) => {
         const value = msg.data.tuyaMotorReversal;
         if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 3) return;
-        return { calibration_state: ["none", "up_start", "down_start", "completed"][value] };
+        return {calibration_state: ["none", "up_start", "down_start", "completed"][value]};
     },
 };
 
@@ -419,7 +421,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withCategory("config")
                 .withDescription(
                     "Enter mode (F002=0) and wait for automatic movement to stop; start up (1), STOP to save, " +
-                    "start down (2), STOP to save. The motor reports completion (3).",
+                        "start down (2), STOP to save. The motor reports completion (3).",
                 ),
             e.enum("calibration_state", ea.STATE, ["none", "up_start", "down_start", "completed"]).withCategory("diagnostic"),
             e.enum("work_state", ea.STATE, ["standby", "opening", "closing"]).withCategory("diagnostic"),
@@ -437,16 +439,12 @@ export const definitions: DefinitionWithExtend[] = [
                 [3, null, zc301PositionReport],
                 [5, "calibration_state", zc301CalibrationStatus],
                 [7, null, zc301WorkStateReport],
-                [10, "time_total", { from: (value) => Number((Number(value) * ZC301_TIME_MULTIPLIER).toFixed(3)) }],
-                [11, "situation_set", tuya.valueConverterBasic.lookup({ fully_open: tuya.enum(0), fully_close: tuya.enum(1) })],
+                [10, "time_total", {from: (value) => Number((Number(value) * ZC301_TIME_MULTIPLIER).toFixed(3))}],
+                [11, "situation_set", tuya.valueConverterBasic.lookup({fully_open: tuya.enum(0), fully_close: tuya.enum(1)})],
                 [12, null, zc301IgnoreDP],
                 [13, "battery", tuya.valueConverter.raw],
-                [
-                    101,
-                    "charge_state",
-                    tuya.valueConverterBasic.lookup({ uncharged: tuya.enum(0), charging: tuya.enum(1), charged: tuya.enum(2) }),
-                ],
-                [107, "curtain_close_direction", tuya.valueConverterBasic.lookup({ UP: false, DOWN: true })],
+                [101, "charge_state", tuya.valueConverterBasic.lookup({uncharged: tuya.enum(0), charging: tuya.enum(1), charged: tuya.enum(2)})],
+                [107, "curtain_close_direction", tuya.valueConverterBasic.lookup({UP: false, DOWN: true})],
                 [108, "total_meters", tuya.valueConverter.raw],
                 [155, "charge_led_switch", tuya.valueConverter.onOff],
             ],
@@ -2955,9 +2953,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
             e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Total active energy"),
             e.numeric("fault", ea.STATE).withDescription("Fault status"),
-            e.numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A").withValueMin(1).withValueMax(100).withValueStep(1)
-                .withDescription("Overcurrent alarm threshold").withCategory("config"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Overcurrent alarm threshold")
+                .withCategory("config"),
             e.binary("clear_event", ea.STATE_SET, "ON", "OFF").withDescription("Clear event"),
             e.enum("online_state", ea.STATE, ["offline", "online"]).withDescription("Online state"),
             e.numeric("countdown_1", ea.STATE_SET).withUnit("s").withDescription("Countdown timer").withValueMin(0).withValueMax(2000),
@@ -2970,8 +2973,8 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "reverse_energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant5],
                 [10, "fault", tuya.valueConverter.raw],
-                [17, null, { from: moesMeterAlarmSettings }],
-                moesMeterThresholdEntry("over_current_threshold", { min: 1, max: 100 }),
+                [17, null, {from: moesMeterAlarmSettings}],
+                moesMeterThresholdEntry("over_current_threshold", {min: 1, max: 100}),
                 [20, "clear_event", tuya.valueConverter.onOff],
                 [
                     44,
@@ -2993,7 +2996,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM7LT1",
         vendor: "Moes",
         description: "Single-phase energy meter with CT clamp",
-        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({ dp: true, queryOnConfigure: true })],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         fromZigbee: moesMeterSegments,
         exposes: [
             e.energy(),
@@ -3004,9 +3007,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
             e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Combined active energy"),
             e.numeric("fault", ea.STATE).withDescription("Fault status"),
-            e.numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A").withValueMin(1).withValueMax(63).withValueStep(1)
-                .withDescription("Overcurrent alarm threshold").withCategory("config"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(63)
+                .withValueStep(1)
+                .withDescription("Overcurrent alarm threshold")
+                .withCategory("config"),
             e.binary("clear_event", ea.STATE_SET, "ON", "OFF").withDescription("Clear accumulated energy").withCategory("config"),
             e.enum("online_state", ea.STATE, ["offline", "online"]).withDescription("Reporting state"),
             e.binary("device_restart", ea.SET, "ON", "OFF").withDescription("Clear alarm").withCategory("config"),
@@ -3017,10 +3025,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "reverse_energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant5],
                 [10, "fault", tuya.valueConverter.raw],
-                [17, null, { from: moesMeterAlarmSettings }],
+                [17, null, {from: moesMeterAlarmSettings}],
                 moesMeterThresholdEntry("over_current_threshold"),
                 [20, "clear_event", tuya.valueConverter.onOff],
-                [44, "online_state", tuya.valueConverterBasic.lookup({ offline: tuya.enum(0), online: tuya.enum(1) })],
+                [44, "online_state", tuya.valueConverterBasic.lookup({offline: tuya.enum(0), online: tuya.enum(1)})],
                 [49, "ac_frequency", tuya.valueConverter.divideBy100],
                 [51, "active_energy", tuya.valueConverter.divideBy100],
                 [104, "device_restart", tuya.valueConverter.onOff],
@@ -3032,7 +3040,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZM7LT3",
         vendor: "Moes",
         description: "Three-phase energy meter with CT clamps",
-        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({ dp: true, queryOnConfigure: true })],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         fromZigbee: moesMeterSegments,
         exposes: [
             e.energy().withDescription("Total forward active energy"),
@@ -3047,15 +3055,30 @@ export const definitions: DefinitionWithExtend[] = [
             ...moesMeterThreePhaseExposes(2),
             ...moesMeterThreePhaseExposes(3),
             e.text("alarm_status", ea.STATE).withDescription("Active alarm conditions"),
-            e.numeric("over_current_threshold", ea.STATE_SET)
-                .withUnit("A").withValueMin(1).withValueMax(63).withValueStep(1)
-                .withDescription("Overcurrent alarm threshold").withCategory("config"),
-            e.numeric("over_voltage_threshold", ea.STATE_SET)
-                .withUnit("V").withValueMin(230).withValueMax(300).withValueStep(1)
-                .withDescription("Overvoltage alarm threshold").withCategory("config"),
-            e.numeric("under_voltage_threshold", ea.STATE_SET)
-                .withUnit("V").withValueMin(90).withValueMax(190).withValueStep(1)
-                .withDescription("Undervoltage alarm threshold").withCategory("config"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(63)
+                .withValueStep(1)
+                .withDescription("Overcurrent alarm threshold")
+                .withCategory("config"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(230)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withDescription("Overvoltage alarm threshold")
+                .withCategory("config"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(90)
+                .withValueMax(190)
+                .withValueStep(1)
+                .withDescription("Undervoltage alarm threshold")
+                .withCategory("config"),
             moesMeterButton("clear_energy", "Clear accumulated energy"),
             moesMeterButton("refresh_measurements", "Trigger fast measurement updates"),
             moesMeterButton("clear_alarm", "Clear alarm"),
@@ -3070,11 +3093,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [49, "ac_frequency", tuya.valueConverter.divideBy100],
                 [51, "combined_energy", tuya.valueConverter.divideBy100],
                 [53, "power_factor", tuya.valueConverter.divideBy100],
-                [6, null, { from: (value) => moesThreePhaseData(value, 1) }],
-                [7, null, { from: (value) => moesThreePhaseData(value, 2) }],
-                [8, null, { from: (value) => moesThreePhaseData(value, 3) }],
-                [10, "alarm_status", { from: moesMeterAlarmStatus }],
-                [17, null, { from: moesMeterAlarmSettings }],
+                [6, null, {from: (value) => moesThreePhaseData(value, 1)}],
+                [7, null, {from: (value) => moesThreePhaseData(value, 2)}],
+                [8, null, {from: (value) => moesThreePhaseData(value, 3)}],
+                [10, "alarm_status", {from: moesMeterAlarmStatus}],
+                [17, null, {from: moesMeterAlarmSettings}],
                 moesMeterThresholdEntry("over_current_threshold"),
                 moesMeterThresholdEntry("over_voltage_threshold"),
                 moesMeterThresholdEntry("under_voltage_threshold"),
@@ -3088,7 +3111,7 @@ export const definitions: DefinitionWithExtend[] = [
                             return true;
                         },
                     },
-                    { optimistic: false },
+                    {optimistic: false},
                 ],
                 [
                     44,
@@ -3100,7 +3123,7 @@ export const definitions: DefinitionWithExtend[] = [
                             return tuya.enum(1);
                         },
                     },
-                    { optimistic: false },
+                    {optimistic: false},
                 ],
                 [
                     104,
@@ -3112,7 +3135,7 @@ export const definitions: DefinitionWithExtend[] = [
                             return true;
                         },
                     },
-                    { optimistic: false },
+                    {optimistic: false},
                 ],
             ],
         },
