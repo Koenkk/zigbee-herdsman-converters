@@ -1,5 +1,6 @@
-import type {TClusterAttributeKeys} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
+import type {TClusterAttributeKeys, TClusterCommandKeys, TClusterCommandPayload} from "zigbee-herdsman/dist/zspec/zcl/definition/clusters-types";
 import {logger} from "./logger";
+import * as store from "./store";
 import type {Fz, KeyValue, Tz, Zh} from "./types";
 import * as utils from "./utils";
 
@@ -247,4 +248,48 @@ export async function configure(device: Zh.Device, coordinatorEndpoint: Zh.Endpo
             /* Fails for some, e.g. https://github.com/Koenkk/zigbee2mqtt/issues/5717 */
         }
     }
+}
+
+interface LevelTransition {
+    end?: number;
+}
+
+/** Forget timers when a command can start a transition with an unknown duration. */
+export function invalidateLevelTransition(entity: Zh.Endpoint | Zh.Group): void {
+    for (const endpoint of utils.isGroup(entity) ? entity.members : [entity]) {
+        store.putValue(endpoint, "levelTransition", {});
+    }
+}
+
+/** Track the duration sent on the wire, in ZCL tenths of a second. */
+export async function levelControlCommand<Command extends TClusterCommandKeys<"genLevelCtrl">[number]>(
+    entity: Zh.Endpoint | Zh.Group,
+    command: Command,
+    payload: TClusterCommandPayload<"genLevelCtrl", Command>,
+    options: Parameters<Zh.Endpoint["command"]>[3],
+) {
+    const endpoints = utils.isGroup(entity) ? entity.members : [entity];
+    const transition: LevelTransition = {};
+    for (const endpoint of endpoints) store.putValue(endpoint, "levelTransition", transition);
+    const response = await entity.command<"genLevelCtrl", TClusterCommandKeys<"genLevelCtrl">[number]>("genLevelCtrl", command, payload, options);
+    // Broadcast delivery is unacknowledged. A missed replacement command must not mark a member idle.
+    if (!utils.isGroup(entity)) {
+        if (command === "stop" || command === "stopWithOnOff") {
+            transition.end = performance.now();
+        } else if ("transtime" in payload && typeof payload.transtime === "number" && payload.transtime >= 0 && payload.transtime < 0xffff) {
+            transition.end = performance.now() + payload.transtime * 100;
+        }
+    }
+    return response;
+}
+
+/** Stop active or unknown level transitions; known idle endpoints and on/off-only devices need no STOP. */
+export async function stopLevelTransitionBeforeOff(entity: Zh.Endpoint | Zh.Group, meta: Tz.Meta): Promise<void> {
+    const endpoints = utils.isGroup(entity) ? entity.members : [entity];
+    const needsStop = endpoints.some((endpoint) => {
+        if (!endpoint.supportsInputCluster("genLevelCtrl")) return false;
+        const transition: LevelTransition = store.getValue(endpoint, "levelTransition", {});
+        return transition.end === undefined || performance.now() < transition.end;
+    });
+    if (needsStop) await levelControlCommand(entity, "stop", {}, utils.getOptions(meta.mapped, entity));
 }
