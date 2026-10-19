@@ -1433,8 +1433,9 @@ const wiserVactStored = (endpoint: Zh.Endpoint, attribute: string): number =>
 
 // Unlike most thermostats, the VACT does not keep its own settings: when a button is pressed or after a calibration it reads
 // its setpoint, limits and zone mode from the controller, one attribute per request, and waits for the answers.
-// Herdsman only answers reads for genTime/genBasic and replies UNSUPPORTED_ATTRIBUTE for any other cluster, which leaves the
-// valve stuck waiting, so the values z2m stored for this valve are served here instead.
+// Since zigbee-herdsman 10.0.3 device reads are no longer answered from the coordinator attribute cache: only genTime/genBasic
+// get an answer, any other cluster gets UNSUPPORTED_ATTRIBUTE, which leaves the valve stuck waiting, so the values z2m stored
+// for this valve are served here instead.
 function wiserVactReadResponse(): ModernExtend {
     return {
         isModernExtend: true,
@@ -2114,6 +2115,13 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandWiserSmartSetSetpoint"]>,
+    wiser_vact_ignore_thermostat_read: {
+        // The valve reads answered by wiserVactReadResponse() also pass through the fromZigbee pipeline;
+        // absorb them silently to avoid "No converter available" log spam on every button press.
+        cluster: "hvacThermostat",
+        type: ["read"],
+        convert: () => {},
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["read"]>,
     wiser_smart_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -3437,7 +3445,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
         extend: [schneiderElectricExtend.customThermostatCluster(), wiserVactReadResponse()],
-        fromZigbee: [fz.battery, fz.hvac_user_interface, fzLocal.wiser_smart_thermostat, fzLocal.wiser_smart_setpoint_command_client],
+        fromZigbee: [
+            fz.battery,
+            fz.hvac_user_interface,
+            fzLocal.wiser_smart_thermostat,
+            fzLocal.wiser_smart_setpoint_command_client,
+            fzLocal.wiser_vact_ignore_thermostat_read,
+        ],
         toZigbee: [
             tzLocal.wiser_sed_thermostat_local_temperature_calibration,
             tzLocal.wiser_vact_setpoint,
