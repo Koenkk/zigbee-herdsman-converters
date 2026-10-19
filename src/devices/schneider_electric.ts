@@ -1517,6 +1517,25 @@ function wiserVactLimescaleProtection(endpoint: Zh.Endpoint, options: KeyValue) 
     });
 }
 
+// Like the Wiser controller: threshold 4 (0.4 °C, below 4 disables detection) and interval 600 s, rewritten when they differ
+function wiserVactOpenWindowDetection(endpoint: Zh.Endpoint, options: KeyValue, data: KeyValueAny) {
+    const device = endpoint.getDevice();
+    const threshold = options.open_window_detection === false ? 0 : 4;
+    if ((data[0xe013] ?? device.meta.wiserOpenWindowThreshold) === threshold && (data[0xe014] ?? 600) === 600) return;
+    device.meta.wiserOpenWindowThreshold = threshold;
+    endpoint
+        .write(
+            "hvacThermostat",
+            {57363: {value: threshold, type: Zcl.DataType.UINT8}, 57364: {value: 600, type: Zcl.DataType.UINT16}},
+            {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        )
+        .then(() => device.save())
+        .catch((error) => {
+            device.meta.wiserOpenWindowThreshold = undefined;
+            logger.debug(`Open window detection setup of '${device.ieeeAddr}' failed (${error})`, NS);
+        });
+}
+
 // #endregion
 
 const tzLocal = {
@@ -2143,6 +2162,7 @@ const fzLocal = {
                 }
                 if (meta.device.modelID === "EH-ZB-VACT") {
                     wiserVactLimescaleProtection(msg.endpoint, options);
+                    wiserVactOpenWindowDetection(msg.endpoint, options, msg.data);
                     if (msg.data.wiserSmartOpenWindowDetectionStatus !== undefined) {
                         result.window_open = msg.data.wiserSmartOpenWindowDetectionStatus === 1;
                     }
@@ -3448,6 +3468,9 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "Weekly: every Monday at 13:00. Monthly: first Monday of the month at 13:00. Runs at the next valve report (default weekly)",
                 ),
+            e
+                .binary("open_window_detection", ea.SET, true, false)
+                .withDescription("Let the valve close when it detects a fast temperature drop, like the Wiser controller does (default true)"),
         ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
