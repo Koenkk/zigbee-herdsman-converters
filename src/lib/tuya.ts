@@ -1766,15 +1766,23 @@ export const valueConverter = {
         // Captured on _TZE200_nslr42tt: [9,38,0,0,146,153,153,134] -> 0x999986 -> -20 W
         // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2267514694
         // https://github.com/Koenkk/zigbee2mqtt/issues/32995
+        //
+        // Other _TZE200_nslr42tt units send negative power as plain 24 bit two's
+        // complement instead: [9,38,0,0,29,255,255,247] -> 0xfffff7 -> -9 W.
+        // The two negative ranges do not overlap, so both can be decoded:
+        //   0x000000..0x7fffff  positive
+        //   0x800000..0x99999a  offset encoding, -1.67 MW..0 W
+        //   0x99999b..0xffffff  two's complement, about -6.7 MW..-1 W
         const NEGATIVE_POWER_OFFSET = 0x99999a;
-        // Negative readings span 0x800000..0x99999a (down to about -1.67 MW), so any
-        // value with the top bit set is negative; anything below is a real positive reading.
         const NEGATIVE_POWER_THRESHOLD = 0x800000;
+        const TWOS_COMPLEMENT_MODULUS = 0x1000000;
         return {
             from: (v: string) => {
                 const buf = Buffer.from(v, "base64");
                 let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
-                if (power >= NEGATIVE_POWER_THRESHOLD) {
+                if (power > NEGATIVE_POWER_OFFSET) {
+                    power -= TWOS_COMPLEMENT_MODULUS;
+                } else if (power >= NEGATIVE_POWER_THRESHOLD) {
                     power -= NEGATIVE_POWER_OFFSET;
                 }
 
