@@ -2331,9 +2331,10 @@ export const valueConverter = {
 
                 const hour = Math.floor(minutesSinceMidnight / 60);
                 const minutes = minutesSinceMidnight % 60;
+                const preset = Number.parseInt(v[index + 2], 10) >> 4;
 
                 schedule.push(
-                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}`,
+                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}/${preset}`,
                 );
             }
             return schedule.join(" ");
@@ -2345,16 +2346,20 @@ export const valueConverter = {
                 throw new Error("Invalid schedule: there should be 6 transitions");
             }
             for (const transition of transitions) {
-                const timeTemp = transition.split("/");
-                if (timeTemp.length !== 2) {
+                const timeTempPreset = transition.split("/");
+                if (timeTempPreset.length !== 3) {
                     throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
-                const hourMin = timeTemp[0].split(":");
+                const hourMin = timeTempPreset[0].split(":");
                 const hour = Number.parseInt(hourMin[0], 10);
                 const min = Number.parseInt(hourMin[1], 10);
-                const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
+                const temperature = Math.floor(Number.parseFloat(timeTempPreset[1]) * 10);
+                const preset = Number.parseInt(timeTempPreset[2], 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
                     throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
+                }
+                if (preset !== 2 && preset !== 3) {
+                    throw new Error(`Invalid preset (2 = eco, 3 = comfort) of: ${transition}`);
                 }
 
                 const minutesSinceMidnight = hour * 60 + min;
@@ -2362,7 +2367,7 @@ export const valueConverter = {
                 const firstByte = ((minutesSinceMidnight & 3840) >> 8) + 192;
                 const secondByte = minutesSinceMidnight & 255;
 
-                payload.push(firstByte, secondByte, 64, temperature);
+                payload.push(firstByte, secondByte, preset * 16, temperature);
             }
             return payload;
         },

@@ -694,3 +694,31 @@ describe("Tuya ME201WZ", () => {
         }
     });
 });
+
+describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
+    const converter = tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z;
+    // Factory default schedule of a TRV602Z (_TZE204_qyr2m29i): the third byte of every slot is the preset
+    // (2 = eco, 3 = comfort) * 16.
+    const text = "06:00/20.0/3 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2";
+    const bytes = [193, 104, 48, 200, 193, 224, 32, 150, 194, 208, 48, 200, 195, 72, 32, 150, 196, 56, 48, 200, 197, 40, 32, 150];
+
+    it("writes the preset of each slot as the third byte", () => {
+        expect(converter.to(text)).toStrictEqual(bytes);
+    });
+
+    it("reads the preset of each slot", () => {
+        expect(converter.from([5, ...bytes] as unknown as string)).toStrictEqual(text);
+    });
+
+    it("adds the day number in front of the slots", () => {
+        expect(tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7).to(text)).toStrictEqual([7, ...bytes]);
+    });
+
+    it.each([
+        ["a preset that puts the TRV in antifreeze", "06:00/20.0/4 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2"],
+        ["no preset", "06:00/20.0 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2"],
+        ["fewer than 6 slots", "06:00/20.0/3 08:00/15.0/2"],
+    ])("rejects %s", (_name, value) => {
+        expect(() => converter.to(value)).toThrow();
+    });
+});
