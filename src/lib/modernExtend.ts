@@ -595,6 +595,8 @@ export function identify(args: IdentifyArgs = {}): ModernExtend {
 }
 
 export interface OnOffArgs {
+    /** Combine power across all named endpoints while preserving legacy and endpoint properties. */
+    combinedOnOff?: boolean;
     powerOnBehavior?: boolean;
     ota?: ModernExtend["ota"];
     skipDuplicateTransaction?: boolean;
@@ -628,6 +630,7 @@ export function onOff(args: OnOffArgs = {}): ModernExtend {
     }
 
     const result: ModernExtend = {exposes, fromZigbee, toZigbee, isModernExtend: true};
+    if (args.combinedOnOff) result.meta = {combinedOnOff: true};
     if (ota) result.ota = ota;
     if (configureReporting) {
         result.configure = [
@@ -1284,6 +1287,8 @@ export function pm25(args: Partial<NumericArgs<"pm25Measurement">> = {}): Modern
 // #region Lighting
 
 export interface LightArgs {
+    /** Combine power across all named endpoints while preserving legacy and endpoint properties. */
+    combinedOnOff?: boolean;
     effect?: boolean;
     powerOnBehavior?: boolean;
     colorTemp?: {startup?: boolean; range: Range};
@@ -1335,6 +1340,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         tz.light_brightness_step,
     ];
     const meta: DefinitionMeta = {};
+    if (args.combinedOnOff) meta.combinedOnOff = true;
 
     if (colorTemp || argsColor) {
         fromZigbee.push(fz.color_colortemp);

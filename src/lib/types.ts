@@ -104,6 +104,8 @@ export interface DefinitionMeta {
      * @defaultValue false
      */
     multiEndpoint?: boolean;
+    /** Combine named endpoint power: ON if any is ON, OFF only when all are known OFF. */
+    combinedOnOff?: boolean;
     /**
      * enforce a certain endpoint for an attribute, e.g. `{"power": 4}` see `utils.enforceEndpoint()`
      */
