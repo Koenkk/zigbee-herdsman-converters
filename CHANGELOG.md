@@ -1,5 +1,24 @@
 # Changelog
 
+## [26.122.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.121.0...v26.122.0) (2026-10-19)
+
+
+### Features
+
+* **add:** teelicht ([#13533](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13533)) ([b658a0b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b658a0bc76481e3737cc2d6cd8d9d57026fadff1))
+* **add:** ZG-204ZV-z, ZG-204ZV2-TH-z, ZG-204ZV2-z ([#13531](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13531)) ([aca945c](https://github.com/Koenkk/zigbee-herdsman-converters/commit/aca945cbe76666ac53ad0c4e0c16f438cd7b86ce))
+
+
+### Bug Fixes
+
+* Moes TRV801Z: fix incorrect time on the thermostat ([#13532](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13532)) ([9409cc6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9409cc65975a2d0029ca5942da6b2721eb052de3))
+* Moes ZHT-PT01-M-MS: fix `electricity_statistics` being 10x too high https://github.com/Koenkk/zigbee-herdsman-converters/issues/13529 ([6329d3b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6329d3b29bb5154b38dd451146f059e90f32f483))
+* Tuya devices: fix data point conversion results being overwritten ([#13446](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13446)) ([c241fa4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c241fa40e3fbe1dd944076524a035f34e9d576a6))
+* Tuya SPM01V2.5: restore measurement updates and configurable reporting interval ([#13522](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13522)) ([897b276](https://github.com/Koenkk/zigbee-herdsman-converters/commit/897b27619dc3ad58c94736e4b632eb0e18c26622))
+* Tuya TRV801Z: fix scheduled comfort and eco modes ([#13530](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13530)) ([7f8560a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7f8560afbaa4bb8073b56f0962cde82236def2bf))
+* Tuya ZG-103Z: adopted native converter for accelerometer values ([#13526](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13526)) ([ece5120](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ece5120ba5f20009790eca631e816200a85e69b7))
+* Tuya ZS-304Z: correct soil and illuminance calibration controls ([#13534](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13534)) ([89fc02b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/89fc02b8600ac44d0ffc51cfc0289a615b37198c))
+
 ## [26.121.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.120.0...v26.121.0) (2026-10-18)
 
 
