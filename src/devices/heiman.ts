@@ -4694,6 +4694,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             );
             await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+            await endpoint2.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
         },
         exposes: [],
         extend: [
@@ -4701,7 +4702,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.identify(),
             m.temperature({reporting: {min: 10, max: 3600, change: 200}}),
             m.humidity({reporting: {min: 10, max: 3600, change: 500}}),
-            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "alarm_2", "battery_low"]}),
+            m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"], endpointId: 1}),
+            m.iasZoneAlarm({zoneType: "vibration", zoneAttributes: ["alarm_2"], endpointId: 2}),
             heimanExtend.heimanClusterSpecial(),
             heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
@@ -4714,10 +4716,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             heimanExtend.temperatureOffset(),
             heimanExtend.humidityOffset(),
-            heimanExtend.dewPoint(),
-            heimanExtend.vpd(),
-            heimanExtend.thi(),
-            heimanExtend.heatIndex(),
             heimanExtend.reportedPackages(),
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
