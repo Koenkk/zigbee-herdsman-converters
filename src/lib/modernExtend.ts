@@ -1952,12 +1952,9 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
         const zoneStatusReportingConfig = isObject(args.zoneStatusReporting) ? args.zoneStatusReporting : {};
         configure = [
             async (device, coordinatorEndpoint) => {
-                await setupAttributes(
-                    args.endpointId !== undefined ? device.getEndpoint(args.endpointId) : device,
-                    coordinatorEndpoint,
-                    "ssIasZone",
-                    [{attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0, ...zoneStatusReportingConfig}],
-                );
+                await setupAttributes(device, coordinatorEndpoint, "ssIasZone", [
+                    {attribute: "zoneStatus", min: "MIN", max: "MAX", change: 0, ...zoneStatusReportingConfig},
+                ]);
             },
         ];
     }
