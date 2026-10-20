@@ -174,7 +174,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power On Behavior Status"),
             e.enum("backlight_mode", ea.STATE_SET, ["off", "relay", "position"]).withDescription("Indicator Status)"),
         ],
-        endpoint: (device) => ({l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1}),
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1};
         },
         meta: {
             multiEndpoint: true,
