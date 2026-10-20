@@ -149,7 +149,7 @@ export const definitions: DefinitionWithExtend[] = [
                     tuya.valueConverterBasic.lookup({
                         off: tuya.enum(0),
                         on: tuya.enum(1),
-                        memory: tuya.enum(2),
+                        previous: tuya.enum(2),
                     }),
                 ],
                 [16, "backlight_switch", tuya.valueConverter.onOff],
