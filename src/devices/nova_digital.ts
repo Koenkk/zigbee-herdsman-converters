@@ -163,19 +163,18 @@ export const definitions: DefinitionWithExtend[] = [
         description: "8 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
-            tuya.exposes.switch().withEndpoint("l1"),
-            tuya.exposes.switch().withEndpoint("l2"),
-            tuya.exposes.switch().withEndpoint("l3"),
-            tuya.exposes.switch().withEndpoint("l4"),
-            tuya.exposes.switch().withEndpoint("l5"),
-            tuya.exposes.switch().withEndpoint("l6"),
-            tuya.exposes.switch().withEndpoint("l7"),
-            tuya.exposes.switch().withEndpoint("l8"),
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e.switch().withEndpoint("l5"),
+            e.switch().withEndpoint("l6"),
+            e.switch().withEndpoint("l7"),
+            e.switch().withEndpoint("l8"),
             e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power On Behavior Status"),
             e.enum("backlight_mode", ea.STATE_SET, ["off", "relay", "position"]).withDescription("Indicator Status)"),
         ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1};
+        endpoint: (device) => ({l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1}),
         },
         meta: {
             multiEndpoint: true,
