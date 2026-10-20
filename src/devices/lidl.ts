@@ -533,12 +533,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HG06620",
         vendor: "Lidl",
         description: "Silvercrest garden spike with 2 sockets",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff()],
+        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({onOffCountdown: true, powerOnBehavior: false})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
             await reporting.onOff(endpoint);
         },
+        ota: true,
     },
     {
         fingerprint: tuya.fingerprint("TS0101", ["_TZ3000_pnzfdr9y"]),

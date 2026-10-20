@@ -6,6 +6,7 @@ import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -77,12 +78,24 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
+            // The binding table holds two entries: genPollCtrl and this one.
+            await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement"]);
             await reporting.temperature(endpoint);
-            await reporting.batteryVoltage(endpoint);
         },
-        // Ships at 4 qs (1 s); ZHA sets 24 qs (6 s).
-        extend: [m.pollControl({longPollInterval: 24, checkinInterval: 13200})],
+        extend: [
+            // Ships at 4 qs (1 s); ZHA sets 24 qs (6 s).
+            m.pollControl({longPollInterval: 24, checkinInterval: 13200}),
+            // Never sends batteryVoltage reports, even when bound with reporting configured.
+            m.poll({
+                key: "battery",
+                option: e
+                    .numeric("battery_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription("Interval in seconds between battery reads, -1 to disable (default 43200)"),
+                defaultIntervalSeconds: 12 * 60 * 60,
+                poll: async (device) => await device.getEndpoint(1).read("genPowerCfg", ["batteryVoltage"]),
+            }),
+        ],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {

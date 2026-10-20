@@ -235,7 +235,8 @@ export const numericAttributes2Payload = async (
                 payload.voltage = value;
                 if (model.meta?.battery?.voltageToPercentage) {
                     assertNumber(value);
-                    payload.battery = batteryVoltageToPercentage(value, model.meta.battery.voltageToPercentage);
+                    const r = options?.battery_voltage_range;
+                    payload.battery = batteryVoltageToPercentage(value, isValidBatteryVoltageRange(r) ? r : model.meta.battery.voltageToPercentage);
                 }
                 break;
             case "2":
@@ -245,7 +246,9 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "3":
-                if (["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "MCCGQ14LM", "GZCGQ01LM", "JY-GZ-01AQ", "CTP-R01"].includes(model.model)) {
+                if (
+                    ["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "MCCGQ13LM", "MCCGQ14LM", "GZCGQ01LM", "JY-GZ-01AQ", "CTP-R01"].includes(model.model)
+                ) {
                     // The temperature value is constant 25 °C and does not change, so we ignore it
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11126
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3585
@@ -596,7 +599,7 @@ export const numericAttributes2Payload = async (
                 if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
                 } else if (["MCCGQ13LM"].includes(model.model)) {
-                    payload.detection_distance = getFromLookup(value, {1: "10mm", 2: "20mm", 3: "30mm"});
+                    payload.detection_distance = getKey(p1DetectionDistanceLookup, value);
                 }
                 break;
             case "160":
@@ -2064,6 +2067,9 @@ export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
 };
+const p1DetectionDistanceLookup = {"10mm": 1, "20mm": 2, "30mm": 3} as const;
+const isValidBatteryVoltageRange = (r: unknown): r is BatteryLinearVoltage =>
+    isObject(r) && typeof r.min === "number" && typeof r.max === "number" && r.min < r.max;
 
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
@@ -2670,6 +2676,116 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiP1Battery: (): ModernExtend => ({
+        isModernExtend: true,
+        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
+        options: [
+            e
+                .composite("battery_voltage_range", "battery_voltage_range", ea.SET)
+                .withDescription(
+                    "Custom battery voltage range in mV (0% to 100%). " +
+                        "Both min and max are required (min < max). " +
+                        "Default: 2850-3000 (standard CR123A). " +
+                        "Takes effect on next report.",
+                )
+                .withFeature(e.numeric("min", ea.SET).withUnit("mV").withDescription("0% voltage threshold in mV. Default: 2850"))
+                .withFeature(
+                    e.numeric("max", ea.SET).withUnit("mV").withDescription("100% voltage threshold in mV (sensor max ~3700 mV). Default: 3000"),
+                ),
+        ],
+        fromZigbee: [
+            {
+                cluster: "genPowerCfg",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
+                        payload.voltage = msg.data.batteryVoltage * 100;
+                        if (model.meta?.battery?.voltageToPercentage) {
+                            const r = options?.battery_voltage_range;
+                            payload.battery = batteryVoltageToPercentage(
+                                payload.voltage,
+                                isValidBatteryVoltageRange(r) ? r : model.meta.battery.voltageToPercentage,
+                            );
+                        }
+                    }
+                    return payload;
+                },
+            } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        onEvent: [
+            (event) => {
+                if (event.type !== "deviceOptionsChanged") return;
+                const r = event.data.options?.battery_voltage_range as Partial<BatteryLinearVoltage> | undefined;
+                if (r != null && !isValidBatteryVoltageRange(r)) {
+                    logger.warning(
+                        `MCCGQ13LM: invalid battery_voltage_range [${r?.min}, ${r?.max}] (both min and max are required, min must be < max). Using default.`,
+                        NS,
+                    );
+                }
+            },
+        ],
+        exposes: [e.battery(), e.battery_voltage()],
+    }),
+    lumiP1DetectionDistance: (): ModernExtend => ({
+        isModernExtend: true,
+        exposes: [
+            e
+                .enum("detection_distance", ea.STATE_SET, Object.keys(p1DetectionDistanceLookup))
+                .withDescription(
+                    'The sensor will be considered "off" within the set distance. ' +
+                        'Press the device button right before changing this value (this press triggers an "action: single" event).',
+                ),
+        ],
+        fromZigbee: [
+            {
+                cluster: "manuSpecificLumi",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data[268] !== undefined) {
+                        const value = msg.data[268];
+                        if (value === 1 || value === 2 || value === 3) {
+                            return {detection_distance: getKey(p1DetectionDistanceLookup, value)};
+                        }
+                    }
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["detection_distance"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertString(value, "detection_distance");
+                    value = value.toLowerCase();
+                    await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+                        "manuSpecificLumi",
+                        {268: {value: getFromLookup(value, p1DetectionDistanceLookup), type: 0x20}},
+                        {manufacturerCode},
+                    );
+                    await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
+                },
+            } satisfies Tz.Converter,
+        ],
+    }),
+    lumiP1Action: (): ModernExtend => ({
+        isModernExtend: true,
+        exposes: [e.action(["single"])],
+        fromZigbee: [
+            {
+                cluster: "genBasic",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (hasAlreadyProcessedMessage(msg, model)) return;
+                    if (msg.data.modelId === "lumi.magnet.ac01") {
+                        return {action: "single"};
+                    }
+                },
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport"]>,
+        ],
+    }),
     lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
         const buttonMap: {[key: number]: string} = {3: "top_wireless_button", 4: "bottom_wireless_button"};
         const actionMap: {[key: number]: string} = {0: "hold", 1: "single", 2: "double", 255: "release"};
@@ -8628,23 +8744,6 @@ export const toZigbee = {
                     logger.warning(`Unhandled key ${key}`, "zhc:lumi:feeder");
             }
             return {state: {[key]: value}};
-        },
-    } satisfies Tz.Converter,
-    lumi_detection_distance: {
-        key: ["detection_distance"],
-        convertSet: async (entity, key, value, meta) => {
-            assertString(value, "detection_distance");
-            value = value.toLowerCase();
-            const lookup = {"10mm": 1, "20mm": 2, "30mm": 3};
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
-                "manuSpecificLumi",
-                {268: {value: getFromLookup(value, lookup), type: 0x20}},
-                {manufacturerCode},
-            );
-            return {state: {detection_distance: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_trv: {

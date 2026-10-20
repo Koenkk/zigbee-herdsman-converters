@@ -788,6 +788,21 @@ const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
 // TS0601_cover_1 variants with a slat angle (0-180°) on DP21, https://github.com/Koenkk/zigbee2mqtt/issues/27188
 const ts0601Cover1TiltManufacturers = ["_TZE204_wzre8hu2"];
 
+function setupSpm01v25Polling(device: Zh.Device, intervalSeconds = 10) {
+    const endpoint = device.endpoints[0];
+    clearInterval(globalStore.getValue(device.ieeeAddr, "query_interval"));
+    const sec = Math.max(5, Math.min(3600, Math.round(Number(intervalSeconds) || 10)));
+    const timer = setInterval(() => {
+        // _TZE200_iwn0gpzz ignores dataQuery, it requires DP 35 instead
+        const query =
+            device.manufacturerName === "_TZE200_iwn0gpzz"
+                ? tuya.sendDataPointEnum(endpoint, 35, 1)
+                : endpoint.command("manuSpecificTuya", "dataQuery", {});
+        query.catch(() => {});
+    }, sec * 1000).unref();
+    globalStore.putValue(device.ieeeAddr, "query_interval", timer);
+}
+
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
@@ -2316,6 +2331,74 @@ const sp107eLedChips = {
     TM1812: tuya.enum(7),
     TM1814: tuya.enum(8),
     SK6812: tuya.enum(9),
+};
+
+// The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
+// gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
+const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device) => {
+    const depth = result.liquid_depth as number | undefined;
+    const percent = result.liquid_level_percent as number | undefined;
+    const lastDepth = state.liquid_depth as number | undefined;
+    const height = (result.installation_height ?? state.installation_height) as number | undefined;
+    const depthMax = (result.liquid_depth_max ?? state.liquid_depth_max) as number | undefined;
+    let glitch = false;
+    if (depth !== undefined) {
+        if (depth < 0 || (height !== undefined && depth > height)) {
+            glitch = true;
+        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
+            const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number} | undefined;
+            if (candidate && Math.abs(depth - candidate.depth) <= 0.03) {
+                glitch = Date.now() - candidate.since < 12 * 60 * 60 * 1000;
+            } else {
+                globalStore.putValue(device, "me201wzCandidate", {depth, since: Date.now()});
+                glitch = true;
+            }
+        }
+        if (!glitch) globalStore.clearValue(device, "me201wzCandidate");
+    } else if (percent !== undefined && lastDepth !== undefined && depthMax) {
+        glitch = Math.abs(percent - Math.min(100, (lastDepth / depthMax) * 100)) > 5 / depthMax;
+    }
+    if (glitch) {
+        delete result.liquid_depth;
+        delete result.liquid_level_percent;
+        delete result.liquid_state;
+        return result;
+    }
+
+    // Hold back a liquid state that doesn't match the level, publish it once an accepted level matches it.
+    const minSet = (result.min_set ?? state.min_set) as number | undefined;
+    const maxSet = (result.max_set ?? state.max_set) as number | undefined;
+    const level = (percent ?? state.liquid_level_percent) as number | undefined;
+    if (minSet === undefined || maxSet === undefined || level === undefined) return result;
+    const matches = (s: unknown) =>
+        (s === "low" && level <= minSet + 1) ||
+        (s === "high" && level >= maxSet - 1) ||
+        (s === "normal" && level >= minSet - 1 && level <= maxSet + 1);
+    if (result.liquid_state !== undefined && !matches(result.liquid_state)) {
+        globalStore.putValue(device, "me201wzPendingState", result.liquid_state);
+        delete result.liquid_state;
+    } else if (result.liquid_state === undefined && percent !== undefined) {
+        const pending = globalStore.getValue(device, "me201wzPendingState");
+        if (pending !== undefined && pending !== state.liquid_state && matches(pending)) result.liquid_state = pending;
+    }
+    if (result.liquid_state !== undefined) globalStore.clearValue(device, "me201wzPendingState");
+    return result;
+};
+
+// Shared by the liquid state, depth and percent datapoints, which are filtered together once per message.
+const me201wzFiltered = new WeakMap<object, KeyValue>();
+const me201wzLevel: Tuya.ValueConverterSingle = {
+    from: (v, meta, options, publish, msg) => {
+        if (!me201wzFiltered.has(msg)) {
+            const dp = Object.fromEntries((msg.data.dpValues as Tuya.DpValue[]).map((d) => [d.dp, tuya.getDataValue(d)]));
+            const result: KeyValue = {};
+            if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
+            if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
+            if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
+            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device));
+        }
+        return me201wzFiltered.get(msg);
+    },
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -6069,11 +6152,13 @@ export const definitions: DefinitionWithExtend[] = [
         version: "0.0.2",
         fromZigbee: [fz.on_off, fz.brightness],
         configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
-            await reporting.onOff(endpoint, {max: 0});
-            await reporting.brightness(endpoint, {max: 0});
+            if (["_TZE200_ykgar0ow", "_TZE200_4mh6tyyo"].includes(device.manufacturerName)) {
+                await tuya.configureMagicPacket(device, coordinatorEndpoint);
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff", "genLevelCtrl"]);
+                await reporting.onOff(endpoint, {max: 0});
+                await reporting.brightness(endpoint, {max: 0});
+            }
         },
         exposes: (device, options) => {
             const exps: Expose[] = [
@@ -6694,7 +6779,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(0.1)
                 .withDescription("Calibration time measured by motor")
                 .withCategory("diagnostic"),
-            e.binary("motor_reversal", ea.STATE_SET, "ON", "OFF").withDescription("Reverse motor direction").withCategory("config"),
+            te.motorDirection(),
             e.binary("calibration", ea.STATE_SET, "ON", "OFF").withDescription("Calibration mode").withCategory("config"),
             e.enum("switch_type", ea.STATE_SET, ["momentary", "toggle"]).withDescription("Type of the installed switch").withCategory("config"),
             e.binary("backlight_mode", ea.STATE_SET, "ON", "OFF").withDescription("Switch backlight").withCategory("config"),
@@ -6704,7 +6789,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "calibration", tuya.valueConverter.onOffEnumOn0],
-                [8, "motor_reversal", tuya.valueConverter.onOffEnumOn1],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [10, "calibration_time", {from: (v: number) => v / 10}],
                 [12, "switch_type", tuya.valueConverterBasic.lookup({momentary: tuya.enum(0), toggle: tuya.enum(1)})], // needs confirmation
                 [14, "backlight_mode", tuya.valueConverter.onOffEnumOn0],
@@ -9572,9 +9657,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_llm0epxg",
                 "_TZE200_n1aauwb4",
                 "_TZE200_xu4a5rhj",
-                "_TZE200_bjzrowv2",
-                "_TZE284_bjzrowv2",
-                "_TZE204_bjzrowv2",
                 "_TZE200_axgvo9jh",
                 "_TZE200_gaj531w3",
                 "_TZE284_gaj531w3",
@@ -11945,9 +12027,9 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Thermostatic radiator valve.",
         whiteLabel: [tuya.whitelabel("Moes", "TRV801Z", "Thermostatic radiator valve", ["_TZE204_qyr2m29i", "_TZE284_ltwbm23f"])],
-        // _TZE204_qyr2m29i requires 2000
+        // _TZE204_qyr2m29i sometimes? requires 2000
         // https://github.com/Koenkk/zigbee2mqtt/issues/30054
-        extend: [tuyaBase({dp: true, timeStart: "2000"})],
+        extend: [tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.battery(),
             e.child_lock(),
@@ -11975,7 +12057,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withPreset(["off", "antifrost", "eco", "comfort", "auto", "on"])
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withSystemMode(["auto", "heat", "off"], ea.STATE),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C/P HH:MM/C/P HH:MM/C/P HH:MM/C/P HH:MM/C/P HH:MM/C/P"),
             e.comfort_temperature().withValueMin(5).withValueMax(30).withDescription("Comfort mode temperature"),
             e.eco_temperature().withValueMin(5).withValueMax(30).withDescription("Eco mode temperature"),
             e.holiday_temperature().withValueMin(5).withValueMax(30).withDescription("Antifreeze mode temperature"),
@@ -18170,7 +18252,23 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SPM01V2.5",
         vendor: "Tuya",
         description: "Smart energy monitor for 1P+N system",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true}),
+            {
+                // Device stops reporting unless polled, https://github.com/Koenkk/zigbee2mqtt/issues/30506
+                onEvent: [
+                    (event) => {
+                        if (event.type === "stop") {
+                            clearInterval(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
+                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
+                        } else if (event.type === "start") {
+                            setupSpm01v25Polling(event.data.device, Number(event.data.state.data_report_duration) || 10);
+                        }
+                    },
+                ],
+                isModernExtend: true,
+            },
+        ],
         exposes: [
             e.voltage(),
             e.power(),
@@ -18180,7 +18278,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.power_factor().withUnit("%"),
             e.ac_frequency(),
             e
-                .numeric("data_report_duration", ea.SET)
+                .numeric("data_report_duration", ea.STATE_SET)
+                .withUnit("s")
                 .withValueMin(5)
                 .withValueMax(3600)
                 .withDescription(
@@ -18194,8 +18293,11 @@ export const definitions: DefinitionWithExtend[] = [
                     18,
                     "data_report_duration",
                     {
-                        to: (v: number) => {
+                        to: (v: number, meta: Tz.Meta) => {
                             const value = Math.max(5, Math.min(3600, Math.round(v)));
+                            if (meta.device) {
+                                setupSpm01v25Polling(meta.device, value);
+                            }
                             const byte1 = (value >> 8) & 0xff;
                             const byte2 = value & 0xff;
                             return [
@@ -20295,13 +20397,16 @@ export const definitions: DefinitionWithExtend[] = [
                             "state will be maintained permanently.",
                     ),
             ];
-            if (!device || device.manufacturerName === "_TZE204_dtzziy1e") {
-                // MTG275-ZB-RL: DP 116 switches the continuous target_distance reports (about 1/s) on/off.
-                // Requires MCU firmware 1.0.5 or newer.
+            if (!device || ["_TZE204_dtzziy1e", "_TZE204_clrdrnya"].includes(device.manufacturerName)) {
+                // MTG275-ZB-RL / MTG235-ZB-RL: DP 116 switches the continuous target_distance reports (about 1/s) on/off.
+                // Requires MCU firmware 1.0.5 (MTG275-ZB-RL) or 1.0.4 (MTG235-ZB-RL) or newer.
                 exps.push(
                     e
                         .binary("distance_report", ea.STATE_SET, "ON", "OFF")
-                        .withDescription("Report target distance continuously (about once per second), requires MCU firmware 1.0.5 or newer"),
+                        .withDescription(
+                            "Report target distance continuously (about once per second), requires MCU firmware 1.0.5 (MTG275-ZB-RL) " +
+                                "or 1.0.4 (MTG235-ZB-RL) or newer",
+                        ),
                 );
             }
             return exps;
@@ -23561,14 +23666,14 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "liquid_state", tvc.level],
-                [2, "liquid_depth", tvc.divideBy100],
+                [1, null, me201wzLevel],
+                [2, null, me201wzLevel],
                 [5, "voltage", tvc.divideBy10], // power_level
                 [7, "max_set", tvc.raw],
                 [8, "min_set", tvc.raw],
                 [19, "installation_height", tvc.divideBy100],
                 [21, "liquid_depth_max", tvc.divideBy100],
-                [22, "liquid_level_percent", tvc.raw],
+                [22, null, me201wzLevel],
                 [24, "relay_switch", tvc.onOff],
                 [101, "pump_mode", tvc.pumpMode],
                 [102, "pump_control", tvc.pumpControl], // auto_pump_control
@@ -26234,6 +26339,33 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_bjzrowv2", "_TZE204_bjzrowv2", "_TZE284_bjzrowv2"]),
+        model: "TS0601_cover_15",
+        vendor: "Tuya",
+        description: "Curtain motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            te.coverPosition(),
+            te.motorDirection(),
+            te.motorState(),
+            e.numeric("total_time", ea.STATE).withUnit("ms").withDescription("Total running time in milliseconds"),
+            e.text("fault", ea.STATE).withDescription("Fault details"),
+            e.binary("auto_power", ea.STATE_SET, true, false),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.coverAction],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.coverPosition],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [6, "auto_power", tuya.valueConverter.raw],
+                [7, "motor_state", tuya.valueConverter.motorState],
+                [10, "total_time", tuya.valueConverter.raw],
+                [12, "fault", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["ZS-304Z"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE284_k7p2q5d9",
@@ -26252,6 +26384,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.soil_moisture(),
+            tuya.exposes.soilCalibration(),
             e
                 .binary("soil_moisture_warning", ea.STATE, true, false)
                 .withDescription("True when soil moisture is below the configured warning threshold")
@@ -26264,18 +26397,17 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("%")
                 .withDescription("Soil moisture percentage below which the soil moisture warning activates")
                 .withCategory("config"),
+            tuya.exposes.soilSampling(),
             e.temperature(),
             tuya.exposes.temperatureCalibration(),
             e.humidity(),
             tuya.exposes.humidityCalibration(),
-            tuya.exposes.soilSampling(),
-            tuya.exposes.soilCalibration(),
             e.illuminance(),
             e
                 .numeric("illuminance_calibration", ea.STATE_SET)
-                .withValueMin(-1000)
-                .withValueMax(1000)
-                .withValueStep(1)
+                .withValueMin(0)
+                .withValueMax(10000)
+                .withValueStep(10)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning").withCategory("diagnostic"),
@@ -26292,10 +26424,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "humidity", tuya.valueConverter.raw],
                 [102, "illuminance", tuya.valueConverter.multiplyBy10],
                 [103, "soil_sampling", tuya.valueConverter.raw],
-                [104, "soil_calibration", tuya.valueConverter.raw],
-                [105, "humidity_calibration", tuya.valueConverter.raw],
-                [106, "illuminance_calibration", tuya.valueConverter.raw],
-                [107, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [104, "soil_calibration", tuya.valueConverter.twosComplement8Bit],
+                [105, "humidity_calibration", tuya.valueConverter.twosComplement8Bit],
+                [106, "illuminance_calibration", tuya.valueConverter.multiplyBy10],
+                [107, "temperature_calibration", tuya.valueConverter.twosComplement8BitScaled10x],
                 // DP 110 is asymmetric: device reports the warning state, but setting it configures the threshold.
                 // First entry is used for incoming reports, the second one for setting.
                 [110, "soil_moisture_warning", {from: tuya.valueConverter.raw.from}],

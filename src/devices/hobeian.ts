@@ -1283,9 +1283,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "vibration", tuya.valueConverter.trueFalseEnum1],
                 [7, "tilt", tuya.valueConverter.trueFalseEnum1],
-                [101, "x", {from: (v: number) => (v > 127 ? v - 256 : v)}],
-                [102, "y", {from: (v: number) => (v > 127 ? v - 256 : v)}],
-                [103, "z", {from: (v: number) => (v > 127 ? v - 256 : v)}],
+                [101, "x", tuya.valueConverter.twosComplement8Bit],
+                [102, "y", tuya.valueConverter.twosComplement8Bit],
+                [103, "z", tuya.valueConverter.twosComplement8Bit],
                 [
                     104,
                     "sensitivity",

@@ -29,10 +29,19 @@ export const on_off: Tz.Converter = {
             if (typeof offWaitTime !== "number") {
                 throw new Error("The off_wait_time value must be a number!");
             }
+            // Both are sent in tenths of a second as uint16, where the ZCL spec reserves 0xffff
+            const ontime = Math.round(onTime * 10);
+            const offwaittime = Math.round(offWaitTime * 10);
+            if (!(ontime >= 0 && ontime <= 0xfffe)) {
+                throw new Error(`The on_time value must be between 0 and 6553.4, got '${onTime}'`);
+            }
+            if (!(offwaittime >= 0 && offwaittime <= 0xfffe)) {
+                throw new Error(`The off_wait_time value must be between 0 and 6553.4, got '${offWaitTime}'`);
+            }
             const payload = meta.converterOptions
                 ? // TODO: better typing? currently used in a single place??
                   (meta.converterOptions as TClusterCommandPayload<"genOnOff", "onWithTimedOff">)
-                : {ctrlbits: 0, ontime: Math.round(onTime * 10), offwaittime: Math.round(offWaitTime * 10)};
+                : {ctrlbits: 0, ontime, offwaittime};
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
             await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
@@ -2022,7 +2031,9 @@ export const thermostat_max_cool_setpoint_limit: Tz.Converter = {
 export const thermostat_ac_louver_position: Tz.Converter = {
     key: ["ac_louver_position"],
     convertSet: async (entity, key, value, meta) => {
-        let acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, undefined, Number);
+        // thermostatAcLouverPositions maps both 0 and 1 to fully_closed so that a reported 0 is still parsed,
+        // but ZCL defines Fully Closed as 0x01 and 0 is not a valid value to write.
+        let acLouverPosition = value === "fully_closed" ? 1 : utils.getKey(constants.thermostatAcLouverPositions, value, undefined, Number);
         if (acLouverPosition === undefined) {
             acLouverPosition = utils.getKey(constants.thermostatAcLouverPositions, value, value as number, Number);
         }

@@ -102,6 +102,58 @@ const extend = {
     }),
 };
 
+// HOBEIAN ZG-204ZV with pvvx/ZigbeeTLc (motion + illuminance + remote On/Off).
+// https://pvvx.github.io/ZG-204ZV/
+// Boards 51 and 56 include WHT20 T/H. Boards 55 and 57 do not.
+// ZCL manufacturer name is "Sonoff"; catalog vendor remains HOBEIAN.
+// Do not use m.thermostatUi(): USE_DISPLAY=0, no keypadLockout.
+const zg204zvMotion = [
+    m.battery({voltage: true}),
+    m.illuminance(),
+    m.occupancy(),
+    m.onOff({
+        powerOnBehavior: false,
+        description: 'Enable remote On/Off binding. ON: occupancy occupied sends action "on", clear sends action "off". OFF: no occupancy actions.',
+    }),
+    m.enumLookup({
+        name: "power_on_behavior",
+        cluster: "genOnOff",
+        attribute: "startUpOnOff",
+        lookup: {
+            off: 0,
+            on: 1,
+            toggle: 2,
+            previous: 255,
+        },
+        description: "Power-on behavior for state (remote On/Off enable)",
+    }),
+    m.numeric({
+        name: "fading_time",
+        label: "Fading time",
+        cluster: "msOccupancySensing",
+        attribute: "pirOToUDelay",
+        unit: "s",
+        valueMin: 0,
+        valueMax: 524,
+        access: "ALL",
+        entityCategory: "config",
+        description:
+            "Occupancy hold time in seconds. Firmware default 35 s. 0 is valid and selects a hardware hold of about 2 s. Values above 524 s are clipped to 524 by the firmware.",
+    }),
+    m.numeric({
+        name: "motion_detection_sensitivity",
+        label: "Motion detection sensitivity",
+        cluster: "msOccupancySensing",
+        attribute: "pirUToOThreshold",
+        valueMin: 1,
+        valueMax: 254,
+        access: "ALL",
+        entityCategory: "config",
+        description: "Motion sensitivity. A lower value is more sensitive. A higher value needs a stronger or closer signal. Firmware default 125.",
+    }),
+    m.commandsOnOff(),
+];
+
 /*
     ZigbeeTLc devices with the full supported option set:
     - Temperature (+calibration)
@@ -456,5 +508,41 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.commandsOnOff(),
         ],
+    },
+    {
+        // Board 51 / image type 0x0233 - with WHT20
+        zigbeeModel: ["ZG-204ZV-z"],
+        model: "ZG-204ZV-z",
+        vendor: "HOBEIAN",
+        description: "Millimeter wave motion sensor with temperature and humidity (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [...zg204zvMotion, m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}), m.humidity()],
+    },
+    {
+        // Board 55 / image type 0x0237 - without WHT20
+        zigbeeModel: ["ZG-204ZV1-z"],
+        model: "ZG-204ZV1-z",
+        vendor: "HOBEIAN",
+        description: "Millimeter wave motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [...zg204zvMotion],
+    },
+    {
+        // Board 56 / image type 0x0238 - with WHT20
+        zigbeeModel: ["ZG-204ZV2-TH-z"],
+        model: "ZG-204ZV2-TH-z",
+        vendor: "HOBEIAN",
+        description: "Millimeter wave motion sensor v2 with temperature and humidity (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [...zg204zvMotion, m.temperature({reporting: {min: "10_SECONDS", max: "1_HOUR", change: 10}}), m.humidity()],
+    },
+    {
+        // Board 57 / image type 0x0239 - without WHT20
+        zigbeeModel: ["ZG-204ZV2-z"],
+        model: "ZG-204ZV2-z",
+        vendor: "HOBEIAN",
+        description: "Millimeter wave motion sensor v2 (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [...zg204zvMotion],
     },
 ];

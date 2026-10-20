@@ -3029,10 +3029,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4566700",
         vendor: "Namron",
         description: "Namron Edge Dimmer",
-        whiteLabel: [
-            {vendor: "Namron", model: "4566701", description: "Namron Edge Dimmer (black)", fingerprint: [{modelID: "4566701"}]},
-            {vendor: "HZC Electric", model: "D692-ZG", description: "Rotary dimmer with screen"},
-        ],
+        whiteLabel: [{vendor: "Namron", model: "4566701", description: "Namron Edge Dimmer (black)", fingerprint: [{modelID: "4566701"}]}],
         ota: true,
         extend: [
             m.light({effect: false, configureReporting: true, powerOnBehavior: false}),

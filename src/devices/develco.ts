@@ -767,12 +767,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
-        version: "0.0.1",
+        version: "0.0.2",
         ota: true,
         extend: [
             develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.quirkAddEndpointCluster({
+                endpointID: 2,
+                inputClusters: ["haElectricalMeasurement"],
+            }),
             m.numeric<"haElectricalMeasurement", undefined>({
                 name: "power",
                 cluster: "haElectricalMeasurement",
