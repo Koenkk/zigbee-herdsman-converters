@@ -1128,7 +1128,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1"]),
+        // 19jwhi8c has more datapoints
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1", "_TZE28C1000000_19jwhi8c"]),
         model: "ZN-USC1U-HT",
         vendor: "Zemismart",
         description: "Smart curtain wall switch",

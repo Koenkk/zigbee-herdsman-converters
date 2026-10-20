@@ -3,12 +3,57 @@ import * as fz from "../src/converters/fromZigbee";
 import * as tz from "../src/converters/toZigbee";
 import {findByDevice} from "../src/index";
 import {repInterval} from "../src/lib/constants";
+import type {Numeric} from "../src/lib/exposes";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
-import {electricityMeter, light, setupAttributes} from "../src/lib/modernExtend";
+import {binary, electricityMeter, light, numeric, setupAttributes} from "../src/lib/modernExtend";
 import * as philips from "../src/lib/philips";
 import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
 describe("ModernExtend", () => {
+    test("numeric preserves explicit per-endpoint optional values", () => {
+        const extend = numeric({
+            name: "measurement",
+            cluster: "genBasic",
+            attribute: "zclVersion",
+            description: "Measurement",
+            endpointNames: ["first", "second"],
+            valueMin: [10, undefined],
+        });
+
+        expect(extend.exposes?.map((expose) => (expose as Numeric).value_min)).toStrictEqual([10, undefined]);
+    });
+
+    test("numeric broadcasts single optional values to each endpoint", () => {
+        const extend = numeric({
+            name: "measurement",
+            cluster: "genBasic",
+            attribute: "zclVersion",
+            description: "Measurement",
+            endpointNames: ["first", "second"],
+            valueMin: [10],
+        });
+
+        expect(extend.exposes?.map((expose) => (expose as Numeric).value_min)).toStrictEqual([10, 10]);
+    });
+
+    test("binary preserves explicit per-endpoint optional values", () => {
+        const extend = binary({
+            name: "state",
+            cluster: "genBasic",
+            attribute: "zclVersion",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            description: ["First endpoint", "Second endpoint"],
+            endpointName: ["first", "second"],
+            label: ["First", undefined],
+            homeassistant: [{name: "First"}, undefined],
+        });
+
+        expect(extend.exposes?.map((expose) => expose.description)).toStrictEqual(["First endpoint", "Second endpoint"]);
+        expect(extend.exposes?.map((expose) => expose.label)).toStrictEqual(["First", "State"]);
+        expect(extend.exposes?.map((expose) => expose.homeassistant)).toStrictEqual([{name: "First"}, undefined]);
+    });
+
     test("light({turnsOffAtBrightness1: true})", async () => {
         await assertDefinition({
             device: mockDevice({modelID: "FWG125Bulb50AU", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl"]}]}),
