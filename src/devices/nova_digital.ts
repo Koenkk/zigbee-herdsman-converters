@@ -171,9 +171,10 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switch().withEndpoint("l7"),
             tuya.exposes.switch().withEndpoint("l8"),
-            tuya.exposes.powerOnBehavior(),
-            e.enum("backlight_mode", ea.STATE_SET, ["off", "normal", "inverted"]).withDescription("Backlight mode"),
-        ],
+            e.enum('power_on_behavior', ea.STATE_SET, ['off', 'on', 'previous'])
+                .withDescription('Power On Behavior Status'),
+            e.enum('backlight_mode', ea.STATE_SET, ['off', 'relay', 'position'])
+                .withDescription('Status indicator)'),],
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1, l7: 1, l8: 1};
         },
