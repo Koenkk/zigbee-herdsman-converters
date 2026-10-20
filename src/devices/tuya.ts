@@ -11359,7 +11359,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery_low(),
             e
                 .climate()
-                .withSetpoint("current_heating_setpoint", 5, 35, 1, ea.STATE_SET)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withSystemMode(["auto", "heat", "off"], ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
