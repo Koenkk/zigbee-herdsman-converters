@@ -5296,6 +5296,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuyaLight({minBrightness: "command", effect: false})],
     },
     {
+        fingerprint: tuya.fingerprint("TS0501B", ["_TZ3210_cmnwaylf"]),
+        model: "ECD-ZB-REPEATER",
+        description: "Zigbee repeater",
+        vendor: "ECODO",
+        extend: [
+            tuya.modernExtend.tuyaLight({
+                homeassistant: {entityCategory: "config", icon: "mdi:led-on", name: "Indicator LED"},
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["TS0501B"],
         model: "TS0501B",
         description: "Zigbee light",
