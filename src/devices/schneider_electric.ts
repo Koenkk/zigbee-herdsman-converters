@@ -3462,7 +3462,11 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.binary("calibrate_valve", ea.STATE_SET, "calibrate", "idle").withDescription("Calibrates valve on next wakeup"),
-            e.enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"]),
+            e
+                .enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"])
+                .withDescription(
+                    "Result of the last valve calibration. E1: adaptation not possible, E2: valve stroke too short, E3: motor movement not possible",
+                ),
             e.enum("zone_mode", ea.STATE_SET, ["manual", "schedule", "energy_saver", "holiday"]).withDescription("Icon shown on device displays"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Open window detected by the valve"),
             e
