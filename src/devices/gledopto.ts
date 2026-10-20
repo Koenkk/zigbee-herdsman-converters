@@ -1,7 +1,6 @@
 import * as tz from "../converters/toZigbee";
 import * as libColor from "../lib/color";
 import * as exposes from "../lib/exposes";
-import * as light from "../lib/light";
 import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as tuya from "../lib/tuya";
@@ -132,7 +131,7 @@ const localValueConverter = {
 };
 
 const tzLocal1 = {
-    gledopto_light_onoff_brightness: light.withCombinedOnOff({
+    gledopto_light_onoff_brightness: {
         key: ["state", "brightness", "brightness_percent"],
         options: [exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
@@ -149,13 +148,21 @@ const tzLocal1 = {
                 }
             }
 
+            if (!Array.isArray(meta.mapped) && (meta.mapped.model === "GL-C-007-2ID" || meta.mapped.model === "GL-C-008-2ID")) {
+                // https://github.com/Koenkk/zigbee-herdsman-converters/pull/13375
+                // Device acknowledges OFF but stays ON during a level transition, stop the transition first
+                if (typeof meta.message.state === "string" && ["off", "toggle"].includes(meta.message.state.toLowerCase())) {
+                    await entity.command("genLevelCtrl", "stop", {}, utils.getOptions(meta.mapped, entity));
+                }
+            }
+
             return await tz.light_onoff_brightness.convertSet(entity, key, value, meta);
         },
         convertGet: async (entity, key, meta) => {
             return await tz.light_onoff_brightness.convertGet(entity, key, meta);
         },
-    } satisfies Tz.Converter),
-    gledopto_light_colortemp: light.withCombinedOnOff({
+    } satisfies Tz.Converter,
+    gledopto_light_colortemp: {
         key: ["color_temp", "color_temp_percent"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
@@ -176,8 +183,8 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_colortemp.convertGet(entity, key, meta);
         },
-    } satisfies Tz.Converter),
-    gledopto_light_color: light.withCombinedOnOff({
+    } satisfies Tz.Converter,
+    gledopto_light_color: {
         key: ["color"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
@@ -203,12 +210,12 @@ const tzLocal1 = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color.convertGet(entity, key, meta);
         },
-    } satisfies Tz.Converter),
+    } satisfies Tz.Converter,
 };
 
 const tzLocal = {
     ...tzLocal1,
-    gledopto_light_color_colortemp: light.withCombinedOnOff({
+    gledopto_light_color_colortemp: {
         key: ["color", "color_temp", "color_temp_percent"],
         options: [exposes.options.color_sync(), exposes.options.transition()],
         convertSet: async (entity, key, value, meta) => {
@@ -237,7 +244,7 @@ const tzLocal = {
         convertGet: async (entity, key, meta) => {
             return await tz.light_color_colortemp.convertGet(entity, key, meta);
         },
-    } satisfies Tz.Converter),
+    } satisfies Tz.Converter,
     glspi206p_scene: {
         key: ["scene"],
         convertSet: async (entity, key, value, meta) => {
@@ -557,8 +564,9 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-C-007-2ID", // 2 ID controls white and color separate
         vendor: "Gledopto",
         description: "Zigbee LED Controller RGBW (2 ID)",
-        extend: [gledoptoLight({combinedOnOff: true, colorTemp: {range: undefined}, color: true})],
+        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
         exposes: [e.light_brightness_colortemp_colorxy().withEndpoint("rgb"), e.light_brightness().withEndpoint("white")],
+        meta: {multiEndpoint: true},
         endpoint: (device) => {
             if (device.getEndpoint(10) && device.getEndpoint(11) && device.getEndpoint(13)) {
                 return {rgb: 11, white: 10};
@@ -618,11 +626,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "GL-C-008-2ID", // 2 ID controls color temperature and color separate
         vendor: "Gledopto",
         description: "Zigbee LED Controller RGB+CCT (2 ID)",
-        extend: [gledoptoLight({combinedOnOff: true, colorTemp: {range: undefined}, color: true})],
+        extend: [gledoptoLight({colorTemp: {range: undefined}, color: true})],
         exposes: [e.light_brightness_colorxy().withEndpoint("rgb"), e.light_brightness_colortemp([158, 495]).withEndpoint("cct")],
         // Only enable disableDefaultResponse for the second fingerprint:
         // https://github.com/Koenkk/zigbee-herdsman-converters/issues/1315#issuecomment-645331185
-        meta: {disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
+        meta: {multiEndpoint: true, disableDefaultResponse: (entity) => !!entity.getDevice().getEndpoint(12)},
         endpoint: (device) => {
             return {rgb: 11, cct: 15};
         },

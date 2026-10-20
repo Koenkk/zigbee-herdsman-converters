@@ -13,7 +13,7 @@ import {determineEndpoint} from "../lib/utils";
 
 const NS = "zhc:tz";
 
-export const on_off: Tz.Converter = light.withCombinedOnOff({
+export const on_off: Tz.Converter = {
     key: ["state", "on_time", "off_wait_time"],
     convertSet: async (entity, key, value, meta) => {
         const state = utils.isString(meta.message.state) ? meta.message.state.toLowerCase() : null;
@@ -42,10 +42,8 @@ export const on_off: Tz.Converter = light.withCombinedOnOff({
                 ? // TODO: better typing? currently used in a single place??
                   (meta.converterOptions as TClusterCommandPayload<"genOnOff", "onWithTimedOff">)
                 : {ctrlbits: 0, ontime, offwaittime};
-            light.invalidateLevelTransition(entity);
             await entity.command("genOnOff", "onWithTimedOff", payload, utils.getOptions(meta.mapped, entity));
         } else {
-            light.invalidateLevelTransition(entity);
             await entity.command("genOnOff", state as "toggle" | "off" | "on", {}, utils.getOptions(meta.mapped, entity));
             if (state === "toggle") {
                 const currentState = meta.state[`state${meta.endpoint_name ? `_${meta.endpoint_name}` : ""}`];
@@ -57,8 +55,8 @@ export const on_off: Tz.Converter = light.withCombinedOnOff({
     convertGet: async (entity, key, meta) => {
         await entity.read("genOnOff", ["onOff"]);
     },
-});
-export const light_color: Tz.Converter = light.withCombinedOnOff({
+};
+export const light_color: Tz.Converter = {
     key: ["color"],
     options: [exposes.options.color_sync(), exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
@@ -77,8 +75,8 @@ export const light_color: Tz.Converter = light.withCombinedOnOff({
             newState.color = hsv.toObject(false);
 
             if (hsv.value !== null && utils.isObject(value)) {
-                await light.levelControlCommand(
-                    entity,
+                await entity.command(
+                    "genLevelCtrl",
                     "moveToLevelWithOnOff",
                     {level: utils.mapNumberRange(hsvCorrected.value, 0, 100, 0, 254), transtime, ...optionalParams},
                     utils.getOptions(meta.mapped, entity),
@@ -173,8 +171,8 @@ export const light_color: Tz.Converter = light.withCombinedOnOff({
     convertGet: async (entity, key, meta) => {
         await entity.read("lightingColorCtrl", light.readColorAttributes(entity, meta));
     },
-});
-export const light_colortemp: Tz.Converter = light.withCombinedOnOff({
+};
+export const light_colortemp: Tz.Converter = {
     key: ["color_temp", "color_temp_percent"],
     options: [exposes.options.color_sync(), exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
@@ -213,7 +211,7 @@ export const light_colortemp: Tz.Converter = light.withCombinedOnOff({
     convertGet: async (entity, key, meta) => {
         await entity.read("lightingColorCtrl", ["colorMode", "colorTemperature"]);
     },
-});
+};
 
 // #region Generic converters
 export const read: Tz.Converter = {
@@ -235,7 +233,6 @@ export const write: Tz.Converter = {
         if (value.options != null) {
             Object.assign(options, value.options);
         }
-        light.invalidateLevelTransition(entity);
         await entity.write(value.cluster, value.payload, options);
         logger.info(`Wrote '${JSON.stringify(value.payload)}' to '${value.cluster}'`, NS);
     },
@@ -245,7 +242,6 @@ export const command: Tz.Converter = {
     convertSet: async (entity, key, value, meta) => {
         utils.assertObject(value, key);
         const options = utils.getOptions(meta.mapped, entity);
-        light.invalidateLevelTransition(entity);
         await entity.command(value.cluster, value.command, value.payload != null ? value.payload : {}, options);
         logger.info(`Invoked '${value.cluster}.${value.command}' with payload '${JSON.stringify(value.payload)}'`, NS);
     },
@@ -253,7 +249,6 @@ export const command: Tz.Converter = {
 export const factory_reset: Tz.Converter = {
     key: ["reset"],
     convertSet: async (entity, key, value, meta) => {
-        light.invalidateLevelTransition(entity);
         await entity.command("genBasic", "resetFactDefault", {}, utils.getOptions(meta.mapped, entity));
     },
 };
@@ -272,7 +267,6 @@ export const zcl_command: Tz.Converter = {
         utils.assertObject(value, key);
         const payload = value.payload != null ? value.payload : {};
         utils.assertEndpoint(entity);
-        light.invalidateLevelTransition(entity);
         await entity.zclCommand(
             value.cluster,
             value.command,
@@ -551,7 +545,7 @@ export const cover_via_brightness: Tz.Converter = {
             utils.assertString(value, key);
             value = value.toLowerCase();
             if (value === "stop") {
-                await light.levelControlCommand(entity, "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
+                await entity.command("genLevelCtrl", "stop", {optionsMask: 0, optionsOverride: 0}, utils.getOptions(meta.mapped, entity));
                 return;
             }
             const lookup = {open: 100, close: 0};
@@ -563,8 +557,8 @@ export const cover_via_brightness: Tz.Converter = {
             : meta.options.invert_cover;
         utils.assertNumber(value);
         const position = invert ? 100 - value : value;
-        await light.levelControlCommand(
-            entity,
+        await entity.command(
+            "genLevelCtrl",
             "moveToLevelWithOnOff",
             {level: utils.mapNumberRange(Number(position), 0, 100, 0, 255), transtime: 0, optionsMask: 0, optionsOverride: 0},
             utils.getOptions(meta.mapped, entity),
@@ -943,7 +937,7 @@ export const ballast_config: Tz.Converter = {
         }
     },
 };
-export const light_brightness_step: Tz.Converter = light.withCombinedOnOff({
+export const light_brightness_step: Tz.Converter = {
     key: ["brightness_step", "brightness_step_onoff"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
@@ -957,8 +951,8 @@ export const light_brightness_step: Tz.Converter = light.withCombinedOnOff({
 
         const mode = value > 0 ? 0 : 1;
         const transition = utils.getTransition(entity, key, meta).time;
-        await light.levelControlCommand(
-            entity,
+        await entity.command(
+            "genLevelCtrl",
             command,
             {stepmode: mode, stepsize: Math.abs(value), transtime: transition, ...optionalParams},
             utils.getOptions(meta.mapped, entity),
@@ -988,15 +982,15 @@ export const light_brightness_step: Tz.Converter = light.withCombinedOnOff({
             return {state: {brightness, state: brightness === 0 ? "OFF" : "ON"}};
         }
     },
-});
-export const light_brightness_move: Tz.Converter = light.withCombinedOnOff({
+};
+export const light_brightness_move: Tz.Converter = {
     key: ["brightness_move", "brightness_move_onoff"],
     convertSet: async (entity, key, value, meta) => {
         const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
         const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
 
         if (value === "stop" || value === 0) {
-            await light.levelControlCommand(entity, "stop", {...optionalParams}, utils.getOptions(meta.mapped, entity));
+            await entity.command("genLevelCtrl", "stop", {...optionalParams}, utils.getOptions(meta.mapped, entity));
 
             // As we cannot determine the new brightness state, we read it from the device
             await utils.sleep(500);
@@ -1008,14 +1002,14 @@ export const light_brightness_move: Tz.Converter = light.withCombinedOnOff({
         value = Number(value);
         utils.assertNumber(value, key);
         const command = key.endsWith("onoff") ? "moveWithOnOff" : "move";
-        await light.levelControlCommand(
-            entity,
+        await entity.command(
+            "genLevelCtrl",
             command,
             {movemode: value > 0 ? 0 : 1, rate: Math.abs(value), ...optionalParams},
             utils.getOptions(meta.mapped, entity),
         );
     },
-});
+};
 export const light_colortemp_step: Tz.Converter = {
     key: ["color_temp_step"],
     options: [exposes.options.transition()],
@@ -1255,7 +1249,7 @@ export const light_hue_saturation_move: Tz.Converter = {
     },
 };
 
-export const light_onoff_brightness: Tz.Converter = light.withCombinedOnOff({
+export const light_onoff_brightness: Tz.Converter = {
     key: ["state", "brightness", "brightness_percent", "on_time", "off_wait_time"],
     options: [exposes.options.transition()],
     convertSet: async (entity, key, value, meta) => {
@@ -1307,8 +1301,6 @@ export const light_onoff_brightness: Tz.Converter = light.withCombinedOnOff({
 
         let publishBrightness = brightness !== undefined;
         const targetState = state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state;
-
-        if (targetState === "off" || state === "toggle") await light.stopLevelTransitionBeforeOff(entity, meta);
 
         if (targetState === "off") {
             // Simulate 'Off' with transition via 'MoveToLevelWithOnOff', otherwise just use 'Off'.
@@ -1400,17 +1392,17 @@ export const light_onoff_brightness: Tz.Converter = light.withCombinedOnOff({
             if (typeof meta.state.state === "string" && meta.state.state.toLowerCase() !== targetState) {
                 if (targetState === "on") {
                     const payload = {level: Number(brightness), transtime: transition.time, ...optionalParams};
-                    await light.levelControlCommand(entity, "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
+                    await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
                 }
                 await on_off.convertSet(entity, "state", state, meta);
             } else {
                 const payload = {level: Number(brightness), transtime: transition.time, ...optionalParams};
-                await light.levelControlCommand(entity, "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
+                await entity.command("genLevelCtrl", "moveToLevel", payload, utils.getOptions(meta.mapped, entity));
             }
         } else {
             const payload = {level: Number(brightness), transtime: transition.time, ...optionalParams};
-            await light.levelControlCommand(
-                entity,
+            await entity.command(
+                "genLevelCtrl",
                 state === null ? "moveToLevel" : "moveToLevelWithOnOff",
                 payload,
                 utils.getOptions(meta.mapped, entity),
@@ -1433,7 +1425,7 @@ export const light_onoff_brightness: Tz.Converter = light.withCombinedOnOff({
             await on_off.convertGet(entity, key, meta);
         }
     },
-});
+};
 export const light_colortemp_startup: Tz.Converter = {
     key: ["color_temp_startup"],
     convertSet: async (entity, key, value, meta) => {
@@ -1464,7 +1456,7 @@ export const light_colortemp_startup: Tz.Converter = {
         await entity.read("lightingColorCtrl", ["startUpColorTemperature"]);
     },
 };
-export const light_color_colortemp: Tz.Converter = light.withCombinedOnOff({
+export const light_color_colortemp: Tz.Converter = {
     /**
      * This converter is a combination of light_color and light_colortemp and
      * can be used instead of the two individual converters . When used to set,
@@ -1492,7 +1484,7 @@ export const light_color_colortemp: Tz.Converter = light.withCombinedOnOff({
     convertGet: async (entity, key, meta) => {
         await entity.read("lightingColorCtrl", light.readColorAttributes(entity, meta, ["colorTemperature"]));
     },
-});
+};
 export const effect: Tz.Converter = {
     key: ["effect", "alert", "flash"], // alert and flash are deprecated.
     convertSet: async (entity, key, value, meta) => {
@@ -1802,8 +1794,8 @@ export const fan_speed: Tz.Converter = {
     key: ["speed"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertNumber(value);
-        await light.levelControlCommand(
-            entity,
+        await entity.command(
+            "genLevelCtrl",
             "moveToLevel",
             {level: value, transtime: 0, optionsMask: 0, optionsOverride: 0},
             utils.getOptions(meta.mapped, entity),
@@ -2341,7 +2333,6 @@ export const scene_recall: Tz.Converter = {
         const groupid = utils.isGroup(entity) ? entity.groupID : 0;
         utils.assertNumber(value);
         const sceneid = value;
-        light.invalidateLevelTransition(entity);
         await entity.command("genScenes", "recall", {groupid, sceneid, transitionTime: 0xffff}, utils.getOptions(meta.mapped, entity));
 
         const addColorMode = (newState: KeyValueAny) => {

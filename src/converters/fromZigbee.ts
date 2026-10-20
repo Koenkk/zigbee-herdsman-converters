@@ -1,7 +1,6 @@
 import * as libColor from "../lib/color";
 import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
-import * as light from "../lib/light";
 import {logger} from "../lib/logger";
 import * as globalStore from "../lib/store";
 import type {Fz, KeyValue, KeyValueAny} from "../lib/types";
@@ -616,7 +615,7 @@ export const occupancy_timeout: Fz.Converter<"msOccupancySensing", undefined, ["
         }
     },
 };
-export const brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = light.withCombinedOnOffReport({
+export const brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -625,8 +624,8 @@ export const brightness: Fz.Converter<"genLevelCtrl", undefined, ["attributeRepo
             return {[property]: msg.data.currentLevel};
         }
     },
-});
-export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = light.withCombinedOnOffReport({
+};
+export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genLevelCtrl",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -690,8 +689,8 @@ export const level_config: Fz.Converter<"genLevelCtrl", undefined, ["attributeRe
             return result;
         }
     },
-});
-export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = light.withCombinedOnOffReport({
+};
+export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "lightingColorCtrl",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.color_sync()],
@@ -761,7 +760,7 @@ export const color_colortemp: Fz.Converter<"lightingColorCtrl", undefined, ["att
         //       we use assign here so we do not lose other attributes.
         return Object.assign(result, libColor.syncColorState(result, meta.state, msg.endpoint, options, epPostfix));
     },
-});
+};
 export const meter_identification: Fz.Converter<"seMeterIdentification", undefined, ["readResponse"]> = {
     cluster: "seMeterIdentification",
     type: ["readResponse"],
@@ -947,7 +946,7 @@ export const gas_metering: Fz.Converter<"seMetering", undefined, ["attributeRepo
         return payload;
     },
 };
-export const on_off: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = light.withCombinedOnOffReport({
+export const on_off: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     options: [exposes.options.state_action()],
@@ -963,7 +962,7 @@ export const on_off: Fz.Converter<"genOnOff", undefined, ["attributeReport", "re
             return payload;
         }
     },
-});
+};
 export const on_off_force_multiendpoint: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
@@ -993,11 +992,18 @@ export const on_off_skip_duplicate_transaction: Fz.Converter<"genOnOff", undefin
         // prevent that multiple messages get send.
         // https://github.com/Koenkk/zigbee2mqtt/issues/3687
         if (msg.data.onOff !== undefined && !hasAlreadyProcessedMessage(msg, model)) {
-            return on_off.convert(model, msg, publish, options, meta);
+            const payload: KeyValueAny = {};
+            const property = postfixWithEndpointName("state", msg, model, meta);
+            const state = msg.data.onOff === 1 ? "ON" : "OFF";
+            payload[property] = state;
+            if (options?.state_action) {
+                payload.action = postfixWithEndpointName(state.toLowerCase(), msg, model, meta);
+            }
+            return payload;
         }
     },
 };
-export const power_on_behavior: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = light.withCombinedOnOffReport({
+export const power_on_behavior: Fz.Converter<"genOnOff", undefined, ["attributeReport", "readResponse"]> = {
     cluster: "genOnOff",
     type: ["attributeReport", "readResponse"],
     convert: (model, msg, publish, options, meta) => {
@@ -1007,7 +1013,7 @@ export const power_on_behavior: Fz.Converter<"genOnOff", undefined, ["attributeR
             return {[property]: lookup[msg.data.startUpOnOff]};
         }
     },
-});
+};
 export const ias_no_alarm: Fz.Converter<"ssIasZone", undefined, ["attributeReport", "commandStatusChangeNotification"]> = {
     cluster: "ssIasZone",
     type: ["attributeReport", "commandStatusChangeNotification"],
