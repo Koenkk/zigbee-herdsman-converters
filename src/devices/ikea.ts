@@ -908,11 +908,11 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.onOff(), m.identify()],
     },
     {
-        zigbeeModel: ['TOFSMYGGA plug outdoor'],
-        model: 'TOFSMYGGA plug outdoor',
-        vendor: 'IKEA',
-        description: 'TOFSMYGGA plug outdoor (matter)',
-        extend: [m.deviceEndpoints({"endpoints":{"1":1,"2":2}}), m.light({"endpointNames":["1","2"]}), m.light({"endpointNames":["1","2"]})],
+        zigbeeModel: ["TOFSMYGGA plug outdoor"],
+        model: "TOFSMYGGA plug outdoor",
+        vendor: "IKEA",
+        description: "TOFSMYGGA plug outdoor (matter)",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.light({endpointNames: ["1", "2"]}), m.light({endpointNames: ["1", "2"]})],
     },
     // #endregion on/off controls
     // #region blinds
