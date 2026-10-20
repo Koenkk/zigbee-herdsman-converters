@@ -890,6 +890,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "YRD430-BLE",
         vendor: "Yale",
         description: "Assure lock 2",
+        fromZigbee: [fz.lock_set_pin_code_response],
         extend: [lockExtend()],
     },
     {
