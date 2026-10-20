@@ -248,10 +248,11 @@ export const definitions: DefinitionWithExtend[] = [
             "TRADFRI bulb E14 CWS opal 600lm",
             "TRADFRI bulb E12 CWS opal 600lm",
             "TRADFRI bulb E27 C/WS opal 600",
+            "TRADFRI bulb E17 CWS opal 600lm",
         ],
         model: "LED1624G9",
         vendor: "IKEA",
-        description: "TRADFRI bulb E12/E14/E26/E27, color/white spectrum, globe, opal, 600 lm",
+        description: "TRADFRI bulb E12/E14/E17/E26/E27, color/white spectrum, globe, opal, 600 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
@@ -897,7 +898,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
+        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug", "TOFSMYGGA plug outdoor"],
         whiteLabel: [
             {model: "E2435", description: "TOFSMYGGA smart plug (Matter)"},
             {model: "E2491", description: "GRILLPLATS smart plug (Matter)"},
