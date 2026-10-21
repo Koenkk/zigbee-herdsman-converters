@@ -463,4 +463,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "LED Filament Bulb tuneable white",
         extend: [m.light({colorTemp: {range: [153, 454]}})],
     },
+    {
+        fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH"}],
+        model: "29146",
+        vendor: "Paulmann",
+        description: "Smart Home Zigbee LED bulb 5W Matt E14 RGBWW",
+        extend: [m.identify(), m.light({colorTemp: {range: [153, 454]}, color: {modes: ["xy", "hs"]}})],
+    },
 ];
