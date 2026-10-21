@@ -1,10 +1,13 @@
 import {describe, expect, it, vi} from "vitest";
-import {definitions} from "../src/devices/elecram";
+import {definitions} from "../src/devices/custom_devices_diy";
+
+const definition = definitions.find((device) => device.model === "Ramses_esp32c6");
+if (!definition) throw new Error("ELECRAM RAMSES bridge definition is missing");
 
 describe("ELECRAM OTA", () => {
     it("registers named clusters and commands for current herdsman decoders", async () => {
         const addCustomCluster = vi.fn();
-        for (const extension of definitions[0].extend ?? []) {
+        for (const extension of definition.extend ?? []) {
             for (const configure of extension.configure ?? []) {
                 await (configure as (device: unknown) => Promise<void>)({addCustomCluster});
             }
@@ -21,7 +24,6 @@ describe("ELECRAM OTA", () => {
     });
 
     it("enables native reception only for OTA-capable firmware", async () => {
-        const definition = definitions[0];
         expect(definition.ota).toBe(true);
         const command = vi.fn().mockResolvedValue(undefined);
         const endpoint = {command, supportsOutputCluster: vi.fn().mockReturnValue(false)};
