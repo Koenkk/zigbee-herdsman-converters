@@ -222,7 +222,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.switch().withEndpoint("l6"),
             tuya.exposes.switch().withEndpoint("l7"),
             tuya.exposes.switch().withEndpoint("l8"),
-            e.power_on_behavior(['off', 'on', 'previous']).withDescription("PowerOnBehavior Status"),
+            e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power On Behavior Status"),
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Backlight switch"),
         ],
         endpoint: (device) => {
