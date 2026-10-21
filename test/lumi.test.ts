@@ -1303,6 +1303,7 @@ describe("FP400", () => {
                 "human_count",
                 "activity_state",
                 "spatial_learning",
+                "detection_depth",
             ]),
         );
     });
@@ -1348,6 +1349,73 @@ describe("FP400", () => {
     it("is versioned so that sensors set up by community converters get configured once", async () => {
         const definition = await findByDevice(fp400());
         expect(definition.version).toBe("0.0.1");
+    });
+
+    describe("detection depth", () => {
+        const depthMask = (rows: number) => Buffer.alloc(40, 0xff).fill(0, 0, rows * 2);
+        const customShape = () => {
+            const mask = depthMask(10);
+            mask[4] = 0xff; // one cell excluded inside the monitored rows
+            return mask;
+        };
+        const decode = async (monitoringRegion: Buffer) => {
+            const device = fp400();
+            const definition = await findByDevice(device);
+            const msg = {device, endpoint: device.getEndpoint(1), data: {monitoringRegion}, type: "readResponse", cluster: "aqaraFp400Config"};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === "aqaraFp400Config")
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean)).detection_depth;
+        };
+        const set = async (value: number, current: Buffer, readBack?: Buffer) => {
+            const read = vi.fn().mockResolvedValueOnce({monitoringRegion: current});
+            read.mockResolvedValueOnce({monitoringRegion: readBack ?? depthMask(Math.min(20, value * 2))});
+            const device = mockDevice({modelID: "lumi.models.4447_8295", endpoints: [{ID: 1, read}, {ID: 2}, {ID: 3}]});
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key?.includes("detection_depth"));
+            // @ts-expect-error mock
+            const result = converter?.convertSet?.(device.getEndpoint(1), "detection_depth", value, {device});
+            return {result, endpoint: device.getEndpoint(1)};
+        };
+
+        it("reads the monitoring area as a depth in 0.5 m rows", async () => {
+            expect(await decode(Buffer.alloc(0))).toBe(10);
+            expect(await decode(depthMask(20))).toBe(10);
+            expect(await decode(depthMask(9))).toBe(4.5);
+            expect(await decode(depthMask(1))).toBe(0.5);
+        });
+
+        it("reads a custom-shaped area as no depth", async () => {
+            expect(await decode(customShape())).toBeNull();
+            expect(await decode(Buffer.alloc(39))).toBeNull();
+        });
+
+        it("writes the depth as a full-width cut with the manufacturer code and checks the read-back", async () => {
+            const {result, endpoint} = await set(3.5, Buffer.alloc(0));
+            await expect(result).resolves.toStrictEqual({state: {detection_depth: 3.5}});
+            expect(endpoint.write).toHaveBeenCalledWith("aqaraFp400Config", {monitoringRegion: depthMask(7)}, {manufacturerCode: 0x115f});
+            expect(endpoint.read).toHaveBeenCalledWith("aqaraFp400Config", ["monitoringRegion"], {manufacturerCode: 0x115f});
+        });
+
+        it("fails when the sensor reads back something else", async () => {
+            const {result} = await set(3.5, depthMask(20), depthMask(20));
+            await expect(result).rejects.toThrow("did not confirm");
+        });
+
+        it("does not replace a custom-shaped area", async () => {
+            const {result, endpoint} = await set(5, customShape());
+            await expect(result).rejects.toThrow("custom shape");
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("only accepts 0.5 m steps from 0.5 to 10 m", async () => {
+            for (const value of [0, 0.25, 10.5]) {
+                const {result, endpoint} = await set(value, depthMask(20));
+                await expect(result).rejects.toThrow("0.5 to 10 m");
+                expect(endpoint.write).not.toHaveBeenCalled();
+            }
+        });
     });
 
     it("starts spatial learning with command 3 on 0xFC0A", async () => {

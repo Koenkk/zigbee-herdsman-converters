@@ -93,6 +93,7 @@ interface AqaraFp400Config {
         coordinateReverse: number;
         detectionDirection: number;
         proximityDistance: number;
+        monitoringRegion: Buffer;
     };
     commands: {startLearning: Record<string, never>};
     commandResponses: never;
@@ -122,6 +123,22 @@ function fp400RoomOnly(extend: ModernExtend): ModernExtend {
                 msg.endpoint.ID === 1 ? converter.convert(model, msg, publish, options, meta) : undefined,
         })),
     };
+}
+// The FP400's monitoring area (0xFC0A attribute 0x0014) is 20 rows of 0.5 m going away from the sensor, 2 bytes per row:
+// 0x0000 monitored, 0xFFFF excluded. A depth is a clean cut across the full width; any other shape comes from the Aqara app.
+function fp400DecodeDepth(mask: unknown): number | null {
+    if (!Buffer.isBuffer(mask)) return null;
+    if (mask.length === 0) return 10;
+    if (mask.length !== 40) return null;
+    let rows = 0;
+    let excluded = false;
+    for (let row = 0; row < 20; row++) {
+        const value = mask.readUInt16BE(row * 2);
+        if (value === 0 && !excluded) rows++;
+        else if (value === 0xffff) excluded = true;
+        else return null;
+    }
+    return rows / 2;
 }
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
@@ -6725,6 +6742,7 @@ export const definitions: DefinitionWithExtend[] = [
                     coordinateReverse: {name: "coordinateReverse", ID: 0x002d, type: Zcl.DataType.ENUM8, write: true, max: 2},
                     detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
                     proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
+                    monitoringRegion: {name: "monitoringRegion", ID: 0x0014, type: Zcl.DataType.OCTET_STR, write: true},
                 },
                 commands: {startLearning: {name: "startLearning", ID: 0x03, parameters: []}},
                 commandsResponse: {},
@@ -6934,6 +6952,65 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
             } satisfies ModernExtend,
+            fp400RoomOnly({
+                isModernExtend: true,
+                exposes: [
+                    e
+                        .numeric("detection_depth", ea.ALL)
+                        .withUnit("m")
+                        .withValueMin(0.5)
+                        .withValueMax(10)
+                        .withValueStep(0.5)
+                        .withCategory("config")
+                        .withDescription("How far ahead the sensor looks, across its full width. 10 m is no limit."),
+                ],
+                fromZigbee: [
+                    {
+                        cluster: "aqaraFp400Config",
+                        type: ["attributeReport", "readResponse"],
+                        convert: (model, msg, publish, options, meta) => {
+                            if (msg.data.monitoringRegion !== undefined) return {detection_depth: fp400DecodeDepth(msg.data.monitoringRegion)};
+                        },
+                    },
+                ],
+                toZigbee: [
+                    {
+                        key: ["detection_depth"],
+                        convertSet: async (entity, key, value, meta) => {
+                            assertNumber(value, key);
+                            if (value < 0.5 || value > 10 || !Number.isInteger(value * 2)) {
+                                throw new Error("detection_depth must be 0.5 to 10 m in 0.5 m steps");
+                            }
+                            const endpoint = meta.device.getEndpoint(1);
+                            const read = async () =>
+                                (
+                                    await endpoint.read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", ["monitoringRegion"], {
+                                        manufacturerCode,
+                                    })
+                                ).monitoringRegion;
+                            if (fp400DecodeDepth(await read()) === null) {
+                                throw new Error("The monitoring area has a custom shape (from the Aqara app); not replacing it with a depth");
+                            }
+                            const mask = Buffer.alloc(40, 0xff).fill(0, 0, value * 4);
+                            await endpoint.write<"aqaraFp400Config", AqaraFp400Config>(
+                                "aqaraFp400Config",
+                                {monitoringRegion: mask},
+                                {manufacturerCode},
+                            );
+                            const written = await read();
+                            if (!Buffer.isBuffer(written) || !written.equals(mask)) {
+                                throw new Error("The sensor did not confirm the new detection depth");
+                            }
+                            return {state: {detection_depth: value}};
+                        },
+                        convertGet: async (entity, key, meta) => {
+                            await meta.device
+                                .getEndpoint(1)
+                                .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", ["monitoringRegion"], {manufacturerCode});
+                        },
+                    },
+                ],
+            }),
             // Only room presence is reported (the reporting table is small); poll the rest.
             m.poll({
                 key: "fp400",
