@@ -113,7 +113,9 @@ export const definitions: DefinitionWithExtend[] = [
                 option: e
                     .numeric("power_apparent_poll_interval", ea.SET)
                     .withValueMin(-1)
-                    .withDescription("The device does not report power_apparent by itself, so it is polled. Default is 60 seconds, set to -1 to disable."),
+                    .withDescription(
+                        "The device does not report power_apparent by itself, so it is polled. Default is 60 seconds, set to -1 to disable.",
+                    ),
                 defaultIntervalSeconds: 60,
                 poll: async (device) => {
                     await device.getEndpoint(1).read("haElectricalMeasurement", ["apparentPower"]);
