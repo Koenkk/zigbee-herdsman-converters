@@ -22039,26 +22039,14 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withDescription("Temperature of the active control sensor")
                 .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
-            e
-                .numeric("internal_temperature", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Temperature reported by the internal sensor"),
-            e
-                .numeric("external_temperature_input", ea.STATE)
-                .withUnit("°C")
-                .withDescription("Temperature reported by the external floor sensor"),
+            e.numeric("internal_temperature", ea.STATE).withUnit("°C").withDescription("Temperature reported by the internal sensor"),
+            e.numeric("external_temperature_input", ea.STATE).withUnit("°C").withDescription("Temperature reported by the external floor sensor"),
             e
                 .temperature_sensor_select(["IN", "OU", "AL"])
                 .withLabel("Sensor")
                 .withDescription("IN: internal sensor; OU: external sensor; AL: internal control with external floor limit"),
             e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withLabel("ECO mode"),
-            e
-                .deadzone_temperature()
-                .withValueMin(0.5)
-                .withValueMax(5)
-                .withValueStep(0.5)
-                .withUnit("°C")
-                .withDescription("Heating hysteresis"),
+            e.deadzone_temperature().withValueMin(0.5).withValueMax(5).withValueStep(0.5).withUnit("°C").withDescription("Heating hysteresis"),
             e.child_lock(),
             ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
         ],
@@ -22102,15 +22090,13 @@ export const definitions: DefinitionWithExtend[] = [
                             if (!sensor) return null;
 
                             meta.state.sensor = sensor;
-                            const activeTemperature =
-                                sensor === "OU" ? meta.state.external_temperature_input : meta.state.internal_temperature;
+                            const activeTemperature = sensor === "OU" ? meta.state.external_temperature_input : meta.state.internal_temperature;
                             if (typeof activeTemperature === "number") {
                                 publish?.({local_temperature: activeTemperature});
                             }
                             return sensor;
                         },
-                        to: (value: string) =>
-                            tuya.enum(utils.getFromLookup(String(value).toUpperCase(), {IN: 0, AL: 1, OU: 2})),
+                        to: (value: string) => tuya.enum(utils.getFromLookup(String(value).toUpperCase(), {IN: 0, AL: 1, OU: 2})),
                     },
                 ],
                 [
