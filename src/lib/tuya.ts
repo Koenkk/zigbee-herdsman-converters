@@ -548,7 +548,7 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-function getDataValue(dpValue: Tuya.DpValue) {
+export function getDataValue(dpValue: Tuya.DpValue) {
     let dataString = "";
     switch (dpValue.datatype) {
         case dataTypes.raw:
@@ -791,11 +791,12 @@ const tuyaExposes = {
     soilCalibration: () =>
         e
             .numeric("soil_calibration", ea.STATE_SET)
+            .withLabel("Soil moisture calibration")
             .withValueMin(-30)
             .withValueMax(30)
             .withValueStep(1)
             .withUnit("%")
-            .withDescription("Soil Humidity calibration"),
+            .withDescription("Offset for measured soil moisture"),
     temperatureSampling: () =>
         e
             .numeric("temperature_sampling", ea.STATE_SET)
@@ -807,11 +808,12 @@ const tuyaExposes = {
     soilSampling: () =>
         e
             .numeric("soil_sampling", ea.STATE_SET)
+            .withLabel("Soil sampling interval")
             .withValueMin(5)
             .withValueMax(3600)
             .withValueStep(1)
             .withUnit("s")
-            .withDescription("Soil humidity sampling"),
+            .withDescription("Time interval between soil samplings"),
     soilWarning: () =>
         e
             .numeric("soil_warning", ea.STATE_SET)
@@ -1539,6 +1541,26 @@ export const valueConverterBasic = {
             from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
         };
     },
+    twosComplementWithBitsizeScaled: (bits: number, scale = 1) => {
+        const overflow: number = 2 ** bits;
+        const limit: number = 2 ** (bits - 1);
+        return {
+            to: (v: number) => {
+                // Apply scale to logical value.
+                const scaled = v * scale;
+
+                // Convert to 2's complement [raw] representation.
+                return scaled < 0 ? scaled + overflow : scaled;
+            },
+            from: (v: number) => {
+                // Convert from 2's complement [raw] representation.
+                const signed = v >= limit ? v - overflow : v;
+
+                // Apply scale to compute logical value.
+                return signed / scale;
+            },
+        };
+    },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
@@ -1585,6 +1607,8 @@ export const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     multiplyBy10: valueConverterBasic.multiplyBy(10),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
+    twosComplement8Bit: valueConverterBasic.twosComplementWithBitsizeScaled(8),
+    twosComplement8BitScaled10x: valueConverterBasic.twosComplementWithBitsizeScaled(8, 10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
@@ -1742,15 +1766,23 @@ export const valueConverter = {
         // Captured on _TZE200_nslr42tt: [9,38,0,0,146,153,153,134] -> 0x999986 -> -20 W
         // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2267514694
         // https://github.com/Koenkk/zigbee2mqtt/issues/32995
+        //
+        // Other _TZE200_nslr42tt units send negative power as plain 24 bit two's
+        // complement instead: [9,38,0,0,29,255,255,247] -> 0xfffff7 -> -9 W.
+        // The two negative ranges do not overlap, so both can be decoded:
+        //   0x000000..0x7fffff  positive
+        //   0x800000..0x99999a  offset encoding, -1.67 MW..0 W
+        //   0x99999b..0xffffff  two's complement, about -6.7 MW..-1 W
         const NEGATIVE_POWER_OFFSET = 0x99999a;
-        // Negative readings span 0x800000..0x99999a (down to about -1.67 MW), so any
-        // value with the top bit set is negative; anything below is a real positive reading.
         const NEGATIVE_POWER_THRESHOLD = 0x800000;
+        const TWOS_COMPLEMENT_MODULUS = 0x1000000;
         return {
             from: (v: string) => {
                 const buf = Buffer.from(v, "base64");
                 let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
-                if (power >= NEGATIVE_POWER_THRESHOLD) {
+                if (power > NEGATIVE_POWER_OFFSET) {
+                    power -= TWOS_COMPLEMENT_MODULUS;
+                } else if (power >= NEGATIVE_POWER_THRESHOLD) {
                     power -= NEGATIVE_POWER_OFFSET;
                 }
 
@@ -2309,9 +2341,10 @@ export const valueConverter = {
 
                 const hour = Math.floor(minutesSinceMidnight / 60);
                 const minutes = minutesSinceMidnight % 60;
+                const preset = Number.parseInt(v[index + 2], 10) >> 4;
 
                 schedule.push(
-                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}`,
+                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}/${preset}`,
                 );
             }
             return schedule.join(" ");
@@ -2323,16 +2356,20 @@ export const valueConverter = {
                 throw new Error("Invalid schedule: there should be 6 transitions");
             }
             for (const transition of transitions) {
-                const timeTemp = transition.split("/");
-                if (timeTemp.length !== 2) {
+                const timeTempPreset = transition.split("/");
+                if (timeTempPreset.length !== 3) {
                     throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
-                const hourMin = timeTemp[0].split(":");
+                const hourMin = timeTempPreset[0].split(":");
                 const hour = Number.parseInt(hourMin[0], 10);
                 const min = Number.parseInt(hourMin[1], 10);
-                const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
+                const temperature = Math.floor(Number.parseFloat(timeTempPreset[1]) * 10);
+                const preset = Number.parseInt(timeTempPreset[2], 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
                     throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
+                }
+                if (preset !== 2 && preset !== 3) {
+                    throw new Error(`Invalid preset (2 = eco, 3 = comfort) of: ${transition}`);
                 }
 
                 const minutesSinceMidnight = hour * 60 + min;
@@ -2340,7 +2377,7 @@ export const valueConverter = {
                 const firstByte = ((minutesSinceMidnight & 3840) >> 8) + 192;
                 const secondByte = minutesSinceMidnight & 255;
 
-                payload.push(firstByte, secondByte, 64, temperature);
+                payload.push(firstByte, secondByte, preset * 16, temperature);
             }
             return payload;
         },
@@ -3923,7 +3960,7 @@ const tuyaFz = {
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish, msg);
                     } else {
-                        Object.assign(result, dpEntry[2].from(value, meta, options, publish, msg));
+                        Object.assign(result, {...(dpEntry[2].from(value, meta, options, publish, msg) as KeyValue), ...result});
                     }
                 } else {
                     logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);
@@ -4998,6 +5035,7 @@ const tuyaModernExtend = {
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior3?: boolean;
+            powerOnBehavior?: boolean | ((manufacturerName: string) => boolean);
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             switchTypeButton?: boolean | ((manufacturerName: string) => boolean);
@@ -5024,6 +5062,7 @@ const tuyaModernExtend = {
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
             powerOnBehavior3 = false,
+            powerOnBehavior = true,
             switchType = false,
             switchTypeButton = false,
         } = args;
@@ -5035,6 +5074,19 @@ const tuyaModernExtend = {
         const toZigbee: Tz.Converter[] = [];
         if (onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
+            // Some devices (e.g. Lidl HG06620) report offWaitTime for ON+countdown instead of onTime
+            fromZigbee.push({
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"] as const,
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.offWaitTime !== undefined) {
+                        const payload: KeyValue = {};
+                        const property = utils.postfixWithEndpointName("countdown", msg, model, meta);
+                        payload[property] = msg.data.offWaitTime;
+                        return payload;
+                    }
+                },
+            });
             toZigbee.push(tuyaTz.on_off_countdown);
             if (typeof onOffCountdown === "function") {
                 exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.countdown()] : []));
@@ -5104,7 +5156,7 @@ const tuyaModernExtend = {
                 toZigbee.push(...result.toZigbee);
                 exposes.push(...result.exposes);
             }
-        } else {
+        } else if (powerOnBehavior) {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
             toZigbee.push(tuyaTz.power_on_behavior_1);
             exposes.push(e.power_on_behavior());

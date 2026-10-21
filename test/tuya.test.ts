@@ -307,6 +307,13 @@ describe("lib/tuya", () => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/32995#issuecomment-5516351597
             {dp: 6, phase: "a", data: [9, 37, 0, 0, 143, 0, 0, 19], expected: {voltage_a: 234.1, current_a: 0.143, power_a: 19}},
             {dp: 8, phase: "c", data: [9, 38, 0, 0, 146, 153, 153, 134], expected: {voltage_c: 234.2, current_c: 0.146, power_c: -20}},
+            // _TZE200_nslr42tt with firmware that encodes negative power as plain 24-bit two's
+            // complement (0xfffff7 = -9 W); reversed clamp on an idle circuit. Was reported as
+            // 26205 W by the 16 bit decoder and as 6710877 W with the 0x99999a offset.
+            {dp: 6, phase: "a", data: [9, 38, 0, 0, 29, 255, 255, 247], expected: {voltage_a: 234.2, current_a: 0.029, power_a: -9}},
+            {dp: 6, phase: "a", data: [9, 36, 0, 0, 23, 255, 255, 248], expected: {voltage_a: 234, current_a: 0.023, power_a: -8}},
+            // same device, idle phases
+            {dp: 7, phase: "b", data: [9, 47, 0, 0, 0, 0, 0, 0], expected: {voltage_b: 235.1, current_b: 0, power_b: 0}},
         ])("decodes captured payload of dp $dp ($data)", ({phase, data, expected}) => {
             const raw = Buffer.from(data).toString("base64");
             expect(tuya.valueConverter.phaseVariant2WithPhase(phase).from(raw)).toStrictEqual(expected);
@@ -336,6 +343,21 @@ describe("lib/tuya", () => {
                 const {power_l1} = decode("l1", 1200, 0, 0x99999a - absolute) as Record<string, number>;
                 expect(power_l1).toBe(-absolute);
             }
+        });
+
+        it("decodes negative power sent as plain 24-bit two's complement", () => {
+            // Some _TZE200_nslr42tt units do not use the 0x99999a offset. Their negative
+            // range (0x99999b..0xffffff) does not overlap the offset encoding, whose
+            // negative range ends at 0x99999a.
+            for (let absolute = 1; absolute <= 50000; absolute++) {
+                const {power_l1} = decode("l1", 1200, 0, 0x1000000 - absolute) as Record<string, number>;
+                expect(power_l1).toBe(-absolute);
+            }
+        });
+
+        it("keeps the two negative encodings apart at the boundary", () => {
+            expect(decode("l1", 1200, 0, 0x99999a)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: 0});
+            expect(decode("l1", 1200, 0, 0x99999b)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: 0x99999b - 0x1000000});
         });
 
         it("keeps large positive readings positive", () => {
@@ -458,10 +480,14 @@ describe("lib/tuya", () => {
             return {device, definition, properties: exposes.map((expose) => expose.property)};
         };
 
-        it("exposes distance_report only for the MTG275-ZB-RL (_TZE204_dtzziy1e)", async () => {
+        it("exposes distance_report only for the MTG275-ZB-RL (_TZE204_dtzziy1e) and MTG235-ZB-RL (_TZE204_clrdrnya)", async () => {
             const mtg275 = await resolve("_TZE204_dtzziy1e");
             expect(mtg275.definition.model).toStrictEqual("MTG275-ZB-RL");
             expect(mtg275.properties).toContain("distance_report");
+
+            const mtg235 = await resolve("_TZE204_clrdrnya");
+            expect(mtg235.definition.model).toStrictEqual("MTG235-ZB-RL");
+            expect(mtg235.properties).toContain("distance_report");
 
             // Same definition, DP 116 not verified on this one.
             const other = await resolve("_TZE204_sbyx0lm6");
@@ -607,5 +633,114 @@ describe("legacy.fz.moes_thermostat", () => {
     it("ignores a data point with an unknown datatype instead of publishing undefined", () => {
         // Captured from a BHT-002: an undefined setpoint is dropped by JSON serialisation and erases the cached state
         expect(convert({dp: 16, datatype: 85, data: Buffer.from([17, 217, 6, 0])})).toBeUndefined();
+    });
+});
+
+describe("Tuya ME201WZ", () => {
+    const setup = async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_kyyu8rbj", endpoints: [{ID: 1}]});
+        const definition = await findByDevice(device);
+        const convert = (dpValues: unknown[], state: Record<string, unknown>) =>
+            Object.assign(
+                {},
+                ...definition.fromZigbee
+                    .filter((c) => c.cluster === "manuSpecificTuya")
+                    .map(
+                        (c) =>
+                            (c as Fz.Converter).convert(
+                                definition,
+                                {data: {dpValues}, endpoint: device.getEndpoint(1), device, type: "commandDataReport", meta: {}} as never,
+                                vi.fn(),
+                                {},
+                                {device, state, deviceExposesChanged: () => {}} as never,
+                            ) ?? {},
+                    ),
+            ) as Record<string, unknown>;
+        return {convert};
+    };
+    const state = {liquid_depth: 1.46, liquid_level_percent: 73, liquid_state: "normal", installation_height: 2.17, liquid_depth_max: 2};
+    // Depth (cm), percent and liquid state as the sensor sends them together
+    const reading = (depth: number, percent: number, liquidState: number) => [
+        tuya.dpValueFromNumberValue(2, depth),
+        tuya.dpValueFromNumberValue(22, percent),
+        tuya.dpValueFromEnum(1, liquidState),
+    ];
+
+    it("ignores false echoes", async () => {
+        const {convert} = await setup();
+        // Captured: -1.1 m, 5 m, 1.32 m and a steady 0.24 m while the tank holds 1.46 m
+        expect(convert(reading(-110, 0, 1), state)).toStrictEqual({});
+        expect(convert(reading(132, 66, 0), state)).toStrictEqual({});
+        expect(convert(reading(500, 100, 2), state)).toStrictEqual({});
+        expect(convert(reading(24, 12, 1), state)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromNumberValue(22, 12)], state)).toStrictEqual({});
+
+        // The real level changing gradually still goes through.
+        expect(convert(reading(144, 72, 0), state)).toStrictEqual({liquid_depth: 1.44, liquid_level_percent: 72, liquid_state: "normal"});
+        expect(convert([tuya.dpValueFromNumberValue(22, 72)], state)).toStrictEqual({liquid_level_percent: 72});
+    });
+
+    it("holds back a liquid state that doesn't match the level", async () => {
+        const {convert} = await setup();
+        const withSets = {...state, liquid_depth: 1.4, liquid_level_percent: 70, min_set: 64, max_set: 100};
+        expect(convert([tuya.dpValueFromEnum(1, 2)], withSets)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromEnum(1, 1)], withSets)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromEnum(1, 0)], withSets)).toStrictEqual({liquid_state: "normal"});
+
+        // A real crossing: the state comes before the level, and is published with it.
+        const nearMin = {...withSets, liquid_depth: 1.3, liquid_level_percent: 66};
+        expect(convert([tuya.dpValueFromEnum(1, 1)], nearMin)).toStrictEqual({});
+        expect(convert([tuya.dpValueFromNumberValue(2, 126), tuya.dpValueFromNumberValue(22, 63)], nearMin)).toStrictEqual({
+            liquid_depth: 1.26,
+            liquid_level_percent: 63,
+            liquid_state: "low",
+        });
+    });
+
+    it("accepts a sudden change once it has been read steadily for 12 hours", async () => {
+        const {convert} = await setup();
+        vi.useFakeTimers();
+        try {
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
+            vi.advanceTimersByTime(60 * 60 * 1000);
+            expect(convert(reading(21, 10, 1), state)).toStrictEqual({});
+            // A reading of the old level in between restarts the wait.
+            expect(convert(reading(146, 73, 0), state)).toStrictEqual({liquid_depth: 1.46, liquid_level_percent: 73, liquid_state: "normal"});
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
+            vi.advanceTimersByTime(11 * 60 * 60 * 1000);
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({});
+            vi.advanceTimersByTime(60 * 60 * 1000);
+            expect(convert(reading(20, 10, 1), state)).toStrictEqual({liquid_depth: 0.2, liquid_level_percent: 10, liquid_state: "low"});
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});
+
+describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
+    const converter = tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z;
+    // Factory default schedule of a TRV602Z (_TZE204_qyr2m29i): the third byte of every slot is the preset
+    // (2 = eco, 3 = comfort) * 16.
+    const text = "06:00/20.0/3 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2";
+    const bytes = [193, 104, 48, 200, 193, 224, 32, 150, 194, 208, 48, 200, 195, 72, 32, 150, 196, 56, 48, 200, 197, 40, 32, 150];
+
+    it("writes the preset of each slot as the third byte", () => {
+        expect(converter.to(text)).toStrictEqual(bytes);
+    });
+
+    it("reads the preset of each slot", () => {
+        expect(converter.from([5, ...bytes] as unknown as string)).toStrictEqual(text);
+    });
+
+    it("adds the day number in front of the slots", () => {
+        expect(tuya.valueConverter.thermostatScheduleDayMultiDP_TRV602Z_WithDayNumber(7).to(text)).toStrictEqual([7, ...bytes]);
+    });
+
+    it.each([
+        ["a preset that puts the TRV in antifreeze", "06:00/20.0/4 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2"],
+        ["no preset", "06:00/20.0 08:00/15.0/2 12:00/20.0/3 14:00/15.0/2 18:00/20.0/3 22:00/15.0/2"],
+        ["fewer than 6 slots", "06:00/20.0/3 08:00/15.0/2"],
+    ])("rejects %s", (_name, value) => {
+        expect(() => converter.to(value)).toThrow();
     });
 });

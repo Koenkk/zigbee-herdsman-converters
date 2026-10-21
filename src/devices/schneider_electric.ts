@@ -112,6 +112,7 @@ interface SchneiderThermostatCluster {
         heatingEmitter: number;
         wiserSmartZoneMode: number;
         wiserSmartHactConfig: number;
+        wiserSmartOpenWindowDetectionStatus: number;
         wiserSmartCurrentFilPiloteMode: number;
         wiserSmartValvePosition: number;
         wiserSmartValveCalibrationStatus: number;
@@ -1086,6 +1087,18 @@ const schneiderElectricExtend = {
             description: "This is used to specify the heat emitter.",
             entityCategory: "config",
             lookup: {None: 0, Radiator: 1, "Fan Assisted Radiator": 2, "Radiant Panel": 3, Floor: 4, "Not specified": 0xff},
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
+    openWindowDetectionStatus: () =>
+        m.binary<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "window_open",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: "hvacThermostat",
+            attribute: "wiserSmartOpenWindowDetectionStatus",
+            description: "Indicates if the built-in open window detection is active (heating is suspended)",
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
     addWiserDeviceInfoCluster: () =>
@@ -3989,7 +4002,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 runningState: {
                     values: ["idle", "heat", "cool"],
-                    configure: {reporting: false},
+                    toZigbee: {skip: true},
+                    configure: {skip: true},
                 },
                 piHeatingDemand: {
                     values: ea.ALL,
@@ -4018,6 +4032,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.heatingFuel(),
             schneiderElectricExtend.heatTransferMedium(),
             schneiderElectricExtend.heatingEmitter(),
+            schneiderElectricExtend.openWindowDetectionStatus(),
         ],
     },
     {
