@@ -22025,7 +22025,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6a4vxfnv", "_TZE204_0hhou4yj"]),
-        model: "TS0601_floor_thermostat",
+        model: "EST-D100Z",
         vendor: "Tuya",
         description: "Zigbee thermostat for electric floors with selectable internal and external sensors",
         extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
