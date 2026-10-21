@@ -5426,7 +5426,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 powerOnBehavior: false,
                 levelConfig: {
-                    features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
+                    features: ["execute_if_off", "on_transition_time", "off_transition_time"],
                 },
             }),
             lumiKnobRotation({withButtonState: true, pressedEndpoint: 72}),
