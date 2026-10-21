@@ -21974,7 +21974,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k", "_TZE204_6a4vxfnv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k"]),
         model: "TS0601_floor_thermostat",
         vendor: "Tuya",
         description: "Zigbee thermostat for electric floors",
@@ -22022,6 +22022,126 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [{vendor: "ELECTSMART", model: "EST-120Z"}],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6a4vxfnv", "_TZE204_0hhou4yj"]),
+        model: "TS0601_floor_thermostat",
+        vendor: "Tuya",
+        description: "Zigbee thermostat for electric floors with selectable internal and external sensors",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "auto"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withDescription("Temperature of the active control sensor")
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+            e
+                .numeric("internal_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Temperature reported by the internal sensor"),
+            e
+                .numeric("external_temperature_input", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Temperature reported by the external floor sensor"),
+            e
+                .temperature_sensor_select(["IN", "OU", "AL"])
+                .withLabel("Sensor")
+                .withDescription("IN: internal sensor; OU: external sensor; AL: internal control with external floor limit"),
+            e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withLabel("ECO mode"),
+            e
+                .deadzone_temperature()
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription("Heating hysteresis"),
+            e.child_lock(),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, "preset", tuya.valueConverter.tv02Preset()],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [
+                    24,
+                    null,
+                    {
+                        from: (value: number, meta: Fz.Meta) => {
+                            const temperature = Number(value) / 10;
+                            meta.state.internal_temperature = temperature;
+                            const result: KeyValue = {internal_temperature: temperature};
+                            if (meta.state.sensor !== "OU") {
+                                result.local_temperature = temperature;
+                            }
+                            return result;
+                        },
+                    },
+                ],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
+                [
+                    36,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        idle: tuya.enum(1),
+                    }),
+                ],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [40, "eco_mode", tuya.valueConverter.onOff],
+                [
+                    43,
+                    "sensor",
+                    {
+                        from: (value: number, meta: Fz.Meta, _options: KeyValue, publish?: (payload: KeyValue) => void) => {
+                            const sensor = ["IN", "AL", "OU"][Number(value)];
+                            if (!sensor) return null;
+
+                            meta.state.sensor = sensor;
+                            const activeTemperature =
+                                sensor === "OU" ? meta.state.external_temperature_input : meta.state.internal_temperature;
+                            if (typeof activeTemperature === "number") {
+                                publish?.({local_temperature: activeTemperature});
+                            }
+                            return sensor;
+                        },
+                        to: (value: string) =>
+                            tuya.enum(utils.getFromLookup(String(value).toUpperCase(), {IN: 0, AL: 1, OU: 2})),
+                    },
+                ],
+                [
+                    102,
+                    null,
+                    {
+                        from: (value: number, meta: Fz.Meta) => {
+                            const temperature = Number(value) / 10;
+                            meta.state.external_temperature_input = temperature;
+                            const result: KeyValue = {external_temperature_input: temperature};
+                            if (meta.state.sensor === "OU") {
+                                result.local_temperature = temperature;
+                            }
+                            return result;
+                        },
+                    },
+                ],
+                [103, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [110, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [109, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [108, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [107, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [106, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [105, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [101, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel("ELECTSMART", "EST-120Z", "Zigbee thermostat for electric floors", ["_TZE204_6a4vxfnv"]),
+            tuya.whitelabel("ELECTSMART", "EST-D100Z", "Zigbee thermostat for electric floors", ["_TZE204_0hhou4yj"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_khah2lkr"]),
