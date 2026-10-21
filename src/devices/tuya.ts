@@ -7078,7 +7078,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_g4au0afs",
             "_TZE204_w1wwxoja",
             "_TZE204_lmgrbuwf",
-            "_TZE284_tdhnhhiy",
             "_TZE204_wskr3up8",
             "_TZE204_gxbdnfrh",
             "_TZE284_g1enhdsi",
@@ -7140,7 +7139,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
             tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
-            tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
             tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
@@ -19068,7 +19066,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_vmcgja59",
@@ -19076,11 +19073,9 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_dvosyycn",
             "_TZE200_wktrysab",
             "_TZE204_wktrysab",
-            "_TZE204_nvxorhcj",
             "_TZE204_tdhnhhiy",
             "_TZE204_ad2jkxwh",
             "_TZE204_72bewjky",
-            "_TZE284_kow4ok3t",
         ]),
         model: "TS0601_switch_8",
         vendor: "ZYXH",
@@ -19112,7 +19107,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x66, "state_l8", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-8W-B", "8 Gang Switch", ["_TZE204_nvxorhcj"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_adlblwab", "_TZE284_adlblwab"]),
