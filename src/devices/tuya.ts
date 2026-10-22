@@ -804,6 +804,32 @@ function setupSpm01v25Polling(device: Zh.Device, intervalSeconds = 10) {
 }
 
 const tzLocal = {
+    hhst001_temperature: {
+        key: ["local_temperature"],
+        convertGet: async (entity) => {
+            await entity.command("manuSpecificTuya", "dataQuery", {});
+        },
+    } satisfies Tz.Converter,
+    hhst001_datapoints: {
+        ...tuya.tz.datapoints,
+        convertSet: async (entity, key, value, meta) => {
+            const unsupported = Object.keys(meta.message).find((property) => !hhst001SupportsProperty(meta.device, property));
+            if (unsupported) throw new Error(`Property '${unsupported}' is not supported by ${meta.device.manufacturerName}`);
+            const result = await tuya.tz.datapoints.convertSet(entity, key, value, meta);
+            if (Object.hasOwn(meta.message, "local_temperature_calibration")) {
+                clearTimeout(globalStore.getValue(meta.device.ieeeAddr, "hhst001_temperature_refresh"));
+                const timer = setTimeout(() => {
+                    globalStore.clearValue(meta.device.ieeeAddr, "hhst001_temperature_refresh");
+                    entity.command("manuSpecificTuya", "dataQuery", {}).catch((error) => {
+                        logger.warning(`Failed to refresh temperature after calibration: ${error}`, NS);
+                    });
+                }, 10000).unref();
+                globalStore.putValue(meta.device.ieeeAddr, "hhst001_temperature_refresh", timer);
+            }
+            return result;
+        },
+    } satisfies Tz.Converter,
+
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -2400,6 +2426,46 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
         return me201wzFiltered.get(msg);
     },
 };
+
+const hhst001DeadzoneScale = (device?: {manufacturerName?: string}) =>
+    ["_TZE284_6l44ypoc", "_TZE284_qvmmpbye"].includes(device?.manufacturerName) ? 10 : 1;
+const hhst001SupportsProperty = (device: {manufacturerName?: string}, property: string) =>
+    device?.manufacturerName !== "_TZE204_q12rv9gj" || !["humidity_calibration", "lock_mode"].includes(property);
+
+/** The shared schedule decoder matches this device, but its writer only permits temperatures up to 35 °C. */
+function hhst001Schedule(day: number): Tuya.ValueConverterSingle {
+    return {
+        from: (value) => {
+            if (value.length !== 17 || [1, 5, 9, 13].some((offset) => value[offset] > 23 || value[offset + 1] > 59)) {
+                throw new Error("Schedule data contains an invalid time or length");
+            }
+            return tvc.thermostatScheduleDayMultiDP.from(value);
+        },
+        to: (value) => {
+            const periods = typeof value === "string" ? value.trim().split(/\s+/) : [];
+            if (periods.length !== 4) {
+                throw new Error("Schedule must contain four HH:MM/temperature periods");
+            }
+            const data = [day];
+            let previousTime = -1;
+            for (const period of periods) {
+                const match = /^(\d{2}):(\d{2})\/(\d+(?:\.\d)?)$/.exec(period);
+                if (!match) {
+                    throw new Error("Schedule periods must use HH:MM/temperature format");
+                }
+                const [hour, minute, temperature] = match.slice(1).map(Number);
+                const time = hour * 60 + minute;
+                if (hour > 23 || minute > 59 || time <= previousTime || temperature < 5 || temperature > 45 || !Number.isInteger(temperature * 2)) {
+                    throw new Error("Schedule requires increasing times and 5–45 °C temperatures in steps of 0.5 °C");
+                }
+                const rawTemperature = Math.round(temperature * 10);
+                data.push(hour, minute, rawTemperature >> 8, rawTemperature & 0xff);
+                previousTime = time;
+            }
+            return data;
+        },
+    };
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -23778,56 +23844,80 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q12rv9gj"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_q12rv9gj", "_TZE284_zgisddrg", "_TZE284_6l44ypoc", "_TZE284_ksqviprv", "_TZE284_qvmmpbye"]),
         model: "HHST001",
         vendor: "HeatHUB",
         description: "Fan coil thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
-            e
-                .climate()
-                .withLocalTemperature(ea.STATE)
-                .withSystemMode(["cool", "heat", "fan_only"], ea.STATE_SET)
-                .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
-                .withFanMode(["auto", "high", "medium", "low", "off"], ea.STATE_SET)
-                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
-            e
-                .numeric("deadzone_temperature", ea.STATE_SET)
-                .withValueMax(5)
-                .withValueMin(1)
-                .withValueStep(1)
-                .withPreset("default", 1, "Default value")
-                .withDescription("The difference between the local temperature that triggers heating and the set temperature"),
-            e.min_temperature().withValueMin(5).withValueMax(15),
-            e.max_temperature().withValueMin(35).withValueMax(45),
-            e.child_lock(),
-            e.humidity(),
-            e.binary("manual_mode", ea.STATE_SET, "Auto", "Manual").withDescription("Manual = Manual or Schedule = Auto"),
-        ],
+        extend: [tuya.modernExtend.tuyaBase()],
+        fromZigbee: [tuya.fz.datapoints],
+        toZigbee: [tzLocal.hhst001_temperature, tzLocal.hhst001_datapoints],
+        onEvent: (event) => {
+            if (event.type === "stop") {
+                clearTimeout(globalStore.getValue(event.data.ieeeAddr, "hhst001_temperature_refresh"));
+                globalStore.clearValue(event.data.ieeeAddr, "hhst001_temperature_refresh");
+            }
+        },
+        exposes: (device) =>
+            [
+                e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
+                e
+                    .climate()
+                    .withLocalTemperature(ea.STATE_GET)
+                    .withSystemMode(["cool", "heat", "fan_only"], ea.STATE_SET)
+                    .withSetpoint("current_heating_setpoint", 5, 45, 0.5, ea.STATE_SET)
+                    .withFanMode(["auto", "high", "medium", "low", "off"], ea.STATE_SET)
+                    .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+                e
+                    .deadzone_temperature()
+                    .withValueMin(1 / hhst001DeadzoneScale(device))
+                    .withValueStep(1 / hhst001DeadzoneScale(device)),
+                e.min_temperature().withValueMin(5).withValueMax(15).withValueStep(1),
+                e.max_temperature().withValueMin(35).withValueMax(45).withValueStep(1),
+                e.child_lock(),
+                e.humidity(),
+                e.enum("manual_mode", ea.STATE_SET, ["Auto", "Manual", "Temporary"]).withDescription("Schedule, manual or temporary mode"),
+                e
+                    .enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"])
+                    .withLabel("Temperature unit")
+                    .withDescription("Temperature unit shown on the thermostat; temperature controls use Celsius"),
+                ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/20.0 12:00/20.0 18:00/20.0 22:00/20.0"),
+                e.binary("water_drop_switch", ea.STATE_SET, "ON", "OFF").withDescription("Water-drop switch"),
+                e
+                    .numeric("day_standby_brightness", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(1)
+                    .withDescription("Daytime standby brightness"),
+                e
+                    .numeric("night_standby_brightness", ea.STATE_SET)
+                    .withValueMin(0)
+                    .withValueMax(8)
+                    .withValueStep(1)
+                    .withDescription("Nighttime standby brightness"),
+                e
+                    .numeric("humidity_calibration", ea.STATE_SET)
+                    .withValueMin(-9)
+                    .withValueMax(9)
+                    .withValueStep(1)
+                    .withLabel("Humidity calibration level")
+                    .withDescription("Each calibration step changes humidity by 3 percentage points"),
+                e.enum("lock_mode", ea.STATE_SET, ["semi_locked", "full_locked"]).withDescription("Child-lock method"),
+            ].filter((expose) => hhst001SupportsProperty(device, expose.property)),
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.onOff],
+                [1, "state", tvc.onOff],
+                [2, "system_mode", tuya.valueConverterBasic.lookup({cool: tuya.enum(0), heat: tuya.enum(1), fan_only: tuya.enum(2)})],
+                [16, "current_heating_setpoint", tvc.divideBy10],
                 [
-                    2,
-                    "system_mode",
-                    tuya.valueConverterBasic.lookup({
-                        cool: tuya.enum(0),
-                        heat: tuya.enum(1),
-                        fan_only: tuya.enum(2),
-                    }),
+                    19,
+                    "max_temperature",
+                    {
+                        ...tvc.divideBy10,
+                        from: (value) => (value >= 35 && value <= 45 ? value : value / 10),
+                    },
                 ],
-                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
-                [19, "max_temperature", tuya.valueConverter.divideBy10],
-                [18, "max_temperature_f", tuya.valueConverter.raw],
-                [20, "min_temperature_f", tuya.valueConverter.raw],
-                [21, "local_temperature_f", tuya.valueConverter.raw],
-                [24, "local_temperature", tuya.valueConverter.divideBy10],
-                [26, "min_temperature", tuya.valueConverter.divideBy10],
-                [102, "local_temperature_calibration", tuya.valueConverter.divideBy10],
-                [103, "local_temperature_calibration_f", tuya.valueConverter.raw],
-                [104, "deadzone_temperature", tuya.valueConverter.raw],
-                [105, "deadzone_temperature_f", tuya.valueConverter.raw],
+                [24, "local_temperature", {from: tvc.divideBy10.from}],
+                [26, "min_temperature", tvc.divideBy10],
                 [
                     28,
                     "fan_mode",
@@ -23839,19 +23929,40 @@ export const definitions: DefinitionWithExtend[] = [
                         off: tuya.enum(4),
                     }),
                 ],
-                [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [44, "current_heating_setpoint_f", tuya.valueConverter.raw],
-                [46, "temperature_scale", tuya.valueConverter.raw],
+                [40, "child_lock", tvc.lockUnlock],
+                [46, "temperature_scale", tvc.temperatureUnitEnum],
+                [101, "manual_mode", tuya.valueConverterBasic.lookup({Auto: tuya.enum(0), Manual: tuya.enum(1), Temporary: tuya.enum(2)})],
+                [102, "local_temperature_calibration", tvc.divideBy10],
                 [
-                    101,
-                    "manual_mode",
-                    tuya.valueConverterBasic.lookup({
-                        Auto: tuya.enum(0),
-                        Manual: tuya.enum(1),
-                        Tempoary: tuya.enum(2),
-                    }),
+                    104,
+                    "deadzone_temperature",
+                    {
+                        from: (value, meta) => value / hhst001DeadzoneScale(meta.device),
+                        to: (value, meta) => {
+                            const scale = hhst001DeadzoneScale(meta.device);
+                            const raw = Math.round(value * scale);
+                            if (
+                                typeof value !== "number" ||
+                                !Number.isFinite(value) ||
+                                raw < 1 ||
+                                raw > 5 * scale ||
+                                Math.abs(value * scale - raw) > 0.000001
+                            ) {
+                                throw new Error(`Temperature deadband must be between ${1 / scale} and 5 °C in steps of ${1 / scale} °C`);
+                            }
+                            return raw;
+                        },
+                    },
                 ],
-                [113, "humidity", tuya.valueConverter.raw],
+                ...["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map(
+                    (day, index): Tuya.MetaTuyaDataPointsSingle => [112 - index, `schedule_${day}`, hhst001Schedule(index + 1), {optimistic: false}],
+                ),
+                [113, "humidity", {from: tvc.raw.from}],
+                [114, "water_drop_switch", tvc.onOff],
+                [115, "day_standby_brightness", tvc.raw],
+                [116, "night_standby_brightness", tvc.raw],
+                [117, "humidity_calibration", tvc.raw],
+                [119, "lock_mode", tuya.valueConverterBasic.lookup({semi_locked: tuya.enum(0), full_locked: tuya.enum(1)})],
             ],
         },
     },
