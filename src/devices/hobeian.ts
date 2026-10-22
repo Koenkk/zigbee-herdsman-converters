@@ -12,6 +12,7 @@ import {
     ignoreUnsupportedAttribute,
     isDummyDevice,
     postfixWithEndpointName,
+    precisionRound,
 } from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
@@ -24,6 +25,35 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const te = tuya.exposes;
+
+// ZG-204ZX sends DP 111 (temperature) in the unit set with DP 109, not always in Celsius. After a unit change it
+// echoes DP 109 and about a second later sends DP 111 in the new unit; the calibration (DP 105) stays in Celsius.
+// The conversion uses the unit the device last reported, because tz.datapoints puts the requested unit into the
+// state before the device has applied it.
+const temperatureUnitMetaKey = "hobeianTemperatureUnit";
+
+const reportedTemperatureUnit = {
+    to: tuya.valueConverter.temperatureUnit.to,
+    from: (value: number, meta: Fz.Meta, options: KeyValueAny) => {
+        const unit = tuya.valueConverter.temperatureUnit.from(value, meta, options);
+        if (meta.device.meta?.[temperatureUnitMetaKey] !== unit) {
+            meta.device.meta ??= {};
+            meta.device.meta[temperatureUnitMetaKey] = unit;
+            meta.device.save();
+        }
+        return unit;
+    },
+};
+
+const temperatureInReportedUnit = {
+    from: (value: number, meta: Fz.Meta) => {
+        // the state only counts until the device has reported its unit once
+        const unit = meta.device.meta?.[temperatureUnitMetaKey] ?? meta.state.temperature_unit;
+        const temperature = value / 10;
+        return precisionRound(unit === "fahrenheit" ? ((temperature - 32) * 5) / 9 : temperature, 2);
+    },
+};
+
 // Convert HA raw IR timings (microseconds) to a Broadlink IR packet.
 // HOBEIAN ZG-IR01 only accepts Broadlink-encoded strings via ir_code_to_send,
 // but HA's native infrared.* platform sends raw {timings: [...]} through
@@ -486,7 +516,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZX",
         vendor: "HOBEIAN",
         description: "24Ghz millimeter wave and T&H sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        // the data query answer includes the temperature unit (DP 109)
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -543,9 +574,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [108, "indicator", tuya.valueConverter.onOff],
                 [110, "battery", tuya.valueConverter.raw],
-                [111, "temperature", tuya.valueConverter.divideBy10],
+                [111, "temperature", temperatureInReportedUnit],
                 [101, "humidity", tuya.valueConverter.raw],
-                [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
+                [109, "temperature_unit", reportedTemperatureUnit],
                 [105, "temperature_calibration", tuya.valueConverter.divideBy10],
                 [104, "humidity_calibration", tuya.valueConverter.raw],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
