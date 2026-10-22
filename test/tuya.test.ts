@@ -307,6 +307,13 @@ describe("lib/tuya", () => {
             // https://github.com/Koenkk/zigbee2mqtt/issues/32995#issuecomment-5516351597
             {dp: 6, phase: "a", data: [9, 37, 0, 0, 143, 0, 0, 19], expected: {voltage_a: 234.1, current_a: 0.143, power_a: 19}},
             {dp: 8, phase: "c", data: [9, 38, 0, 0, 146, 153, 153, 134], expected: {voltage_c: 234.2, current_c: 0.146, power_c: -20}},
+            // _TZE200_nslr42tt with firmware that encodes negative power as plain 24-bit two's
+            // complement (0xfffff7 = -9 W); reversed clamp on an idle circuit. Was reported as
+            // 26205 W by the 16 bit decoder and as 6710877 W with the 0x99999a offset.
+            {dp: 6, phase: "a", data: [9, 38, 0, 0, 29, 255, 255, 247], expected: {voltage_a: 234.2, current_a: 0.029, power_a: -9}},
+            {dp: 6, phase: "a", data: [9, 36, 0, 0, 23, 255, 255, 248], expected: {voltage_a: 234, current_a: 0.023, power_a: -8}},
+            // same device, idle phases
+            {dp: 7, phase: "b", data: [9, 47, 0, 0, 0, 0, 0, 0], expected: {voltage_b: 235.1, current_b: 0, power_b: 0}},
         ])("decodes captured payload of dp $dp ($data)", ({phase, data, expected}) => {
             const raw = Buffer.from(data).toString("base64");
             expect(tuya.valueConverter.phaseVariant2WithPhase(phase).from(raw)).toStrictEqual(expected);
@@ -336,6 +343,21 @@ describe("lib/tuya", () => {
                 const {power_l1} = decode("l1", 1200, 0, 0x99999a - absolute) as Record<string, number>;
                 expect(power_l1).toBe(-absolute);
             }
+        });
+
+        it("decodes negative power sent as plain 24-bit two's complement", () => {
+            // Some _TZE200_nslr42tt units do not use the 0x99999a offset. Their negative
+            // range (0x99999b..0xffffff) does not overlap the offset encoding, whose
+            // negative range ends at 0x99999a.
+            for (let absolute = 1; absolute <= 50000; absolute++) {
+                const {power_l1} = decode("l1", 1200, 0, 0x1000000 - absolute) as Record<string, number>;
+                expect(power_l1).toBe(-absolute);
+            }
+        });
+
+        it("keeps the two negative encodings apart at the boundary", () => {
+            expect(decode("l1", 1200, 0, 0x99999a)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: 0});
+            expect(decode("l1", 1200, 0, 0x99999b)).toStrictEqual({voltage_l1: 120, current_l1: 0, power_l1: 0x99999b - 0x1000000});
         });
 
         it("keeps large positive readings positive", () => {

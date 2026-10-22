@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.123.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.122.0...v26.123.0) (2026-10-20)
+
+
+### Features
+
+* **add:** ECD-ZB-REPEATER ([#13537](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13537)) ([8b24a6a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8b24a6a0098b709cd95348659045b5276ab01347))
+* **add:** SBDW-203C ([#13538](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13538)) ([44c8fa5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/44c8fa5a989e1508909650bd796227f1144e33e9))
+* **add:** ZG-204ZS-z ([#13528](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13528)) ([fc0699d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fc0699d01294cac8ee341b1a441b082dadfac96d))
+* Yale YRD430-BLE: expose `last_successful_pincode_save` and `last_successful_pincode_clear` ([#13547](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13547)) ([cac0c53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cac0c539eec1d5c0b167fa0b97a02773d22ff7b9))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE204_kobbcyum` as Tongou TOWSMR1-40A-AC ([#13546](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13546)) ([40cc138](https://github.com/Koenkk/zigbee-herdsman-converters/commit/40cc1380e5037db77a1d81ed925476d1f7afb6a8))
+* **detect:** Detect `_TZE284_hkdl5fmv` as WDYK ZJSBL7-100Z ([#13541](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13541)) ([1c90116](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1c901160750064d3aa0e962372b39dbf12304f2e))
+* **detect:** Detect `TOFSMYGGA plug outdoor` as IKEA E2435/E2491 ([#13552](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13552)) ([54aaebc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/54aaebc7600aa11f27aa5b7430f98c19d9780798))
+* **detect:** Detect `TRADFRI bulb E17 CWS opal 600lm` as IKEA LED1624G9 ([#13550](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13550)) ([633851d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/633851d4c47a825fe58da96d0d24f8c55a077cdd))
+* Tuya TS0601_3_phase_clamp_meter: fix incorrect negative phase power ([#13544](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13544)) ([3355406](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3355406fb4f52a172e79fc3e399c3880b58a716d))
+* Tuya TS0601_thermostat_3: allow 0.5 °C setpoint steps ([#13543](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13543)) ([5e0f3e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5e0f3e710a7df3c9c118fcea5b06d76be45b8581))
+
 ## [26.122.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.121.0...v26.122.0) (2026-10-19)
 
 
