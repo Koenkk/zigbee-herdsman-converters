@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import type {Fz, KeyValueAny} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -55,5 +55,67 @@ describe("Schneider Electric S520567", () => {
     it("does not derive state from a tilt report", async () => {
         const {payload} = await convertReport({currentPositionTiltPercentage: 100});
         expect(payload).toStrictEqual({tilt: 100});
+    });
+});
+
+describe("Schneider Electric CCTFR6400", () => {
+    let tsn = 0; // shared: the duplicate-transaction filter remembers numbers across tests
+    const setup = async () => {
+        const device = mockDevice({
+            modelID: "Thermostat",
+            manufacturerName: "Schneider Electric",
+            ieeeAddr: "0x00124b0012345678",
+            endpoints: [{ID: 1, inputClusters: ["genBasic", "genPowerCfg", "hvacThermostat", "hvacUserInterfaceCfg", "msTemperatureMeasurement"]}],
+        });
+        const definition = await findByDevice(device);
+        const endpoint = device.getEndpoint(1);
+        const uiAction = definition.fromZigbee?.find((c) => c.cluster === "wiserDeviceInfo" && c.type.includes("attributeReport"));
+        if (uiAction === undefined) throw new Error("no wiserDeviceInfo converter on the definition");
+        const ui = async (event: string) => {
+            const msg = {
+                data: {deviceInfo: `UI,${event}`},
+                endpoint,
+                device,
+                meta: {zclTransactionSequenceNumber: ++tsn},
+                groupID: null,
+                type: "attributeReport",
+                cluster: "wiserDeviceInfo",
+                linkquality: 255,
+            } as unknown as Fz.Message<"wiserDeviceInfo", undefined, "attributeReport">;
+            const meta = {state: {}, device, deviceExposesChanged: () => {}} as unknown as Fz.Meta;
+            return await uiAction.convert(definition, msg, () => {}, {}, meta);
+        };
+        return {device, definition, endpoint, ui};
+    };
+
+    it("emulates +/- presses when the keypad lockout was never read", async () => {
+        const {endpoint, ui} = await setup();
+        endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: 2000});
+        expect(endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout")).toBeUndefined();
+
+        await ui("ScreenWake");
+        expect(await ui("ButtonPressPlusDown")).toStrictEqual({action: "button_press_plus_down", occupied_heating_setpoint: 20.5});
+        expect(await ui("ButtonPressMinusDown")).toStrictEqual({action: "button_press_minus_down", occupied_heating_setpoint: 20});
+    });
+
+    it("ignores +/- presses while the keypad is locked", async () => {
+        const {endpoint, ui} = await setup();
+        endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: 2000});
+        endpoint.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 1});
+
+        await ui("ScreenWake");
+        expect(await ui("ButtonPressPlusDown")).toStrictEqual({action: "button_press_plus_down"});
+    });
+
+    it("seeds the hub emulation cache even when binding fails", async () => {
+        const {device, definition, endpoint} = await setup();
+        vi.spyOn(endpoint, "bind").mockRejectedValue(new Error("Bind failed (Status 'TABLE_FULL')"));
+
+        await expect(
+            definition.configure?.(device, mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1), definition),
+        ).rejects.toThrow("TABLE_FULL");
+        expect(endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout")).toStrictEqual(0);
+        expect(endpoint.getClusterAttributeValue("hvacThermostat", "systemMode")).toStrictEqual(4);
+        expect(endpoint.getClusterAttributeValue("hvacThermostat", "ctrlSeqeOfOper")).toStrictEqual(2);
     });
 });

@@ -1645,8 +1645,10 @@ const fzLocal = {
 
                 let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
                 screenAwake = screenAwake !== undefined ? screenAwake : false;
-                const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
-                const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+                // An unknown lockout (never read or seeded) counts as unlocked: Number(undefined) is NaN,
+                // which compared as "locked" and silently disabled the +/- emulation.
+                const keypadLockout = msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout");
+                const keypadLocked = keypadLockout != null && Number(keypadLockout) !== 0;
                 // While the boost selection UI is open (center press seen,
                 // clock icon shown), +/- presses adjust the device's local
                 // boost target, not the setpoint. Emulating them against the
@@ -3243,13 +3245,15 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
+            // Seed the hub emulation cache first: a device taken over from a Wiser hub often fails the binds
+            // below (TABLE_FULL), and configure stopping there left the emulation without these values.
+            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
+            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
+            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "msTemperatureMeasurement", "msRelativeHumidity"]);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
-            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
-            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
-            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
         },
     },
     {
