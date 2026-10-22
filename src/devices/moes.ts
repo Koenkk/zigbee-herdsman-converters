@@ -3005,7 +3005,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cf4b5ktf"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cf4b5ktf", "_TZE28C1000000_cf4b5ktf"]),
         model: "ZM7LT3",
         vendor: "Moes",
         description: "Three-phase energy meter with CT clamps",
