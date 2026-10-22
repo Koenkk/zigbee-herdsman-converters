@@ -11282,7 +11282,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hodyryli"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hodyryli", "_TZE2841000000_hodyryli"]),
         model: "ZT08",
         vendor: "Tuya",
         description: "Weather station with clock, internal/external temperature and humidity",
