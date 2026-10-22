@@ -3,7 +3,7 @@ import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as legacy from "../src/lib/legacy";
 import * as tuya from "../src/lib/tuya";
-import type {Definition, Fz, KeyValueAny} from "../src/lib/types";
+import type {Definition, Fz, KeyValueAny, Zh} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
@@ -531,6 +531,66 @@ describe("lib/tuya", () => {
             } as Fz.Message<any, any, any>;
             const result = await tuya.fz.datapoints.convert(definition, msg, null, {}, {state: {}, device, deviceExposesChanged: () => {}});
             expect(result).toStrictEqual({distance_report: "ON"});
+        });
+    });
+
+    describe("HOBEIAN ZG-204ZX temperature unit", () => {
+        let seq = 0;
+
+        const setup = async () => {
+            // own address, the datapoint converter drops repeated transaction numbers per device
+            const device = mockDevice({modelID: "ZG-204ZX", ieeeAddr: "0x204", endpoints: [{ID: 1}]}, "EndDevice");
+            vi.spyOn(device, "save").mockImplementation(() => {});
+            return {device, definition: await findByDevice(device)};
+        };
+
+        // the device sends every datapoint in a frame of its own
+        const report = (device: Zh.Device, definition: Definition, dp: number, datatype: number, value: number, state: KeyValueAny = {}) => {
+            const data = Buffer.alloc(datatype === tuya.dataTypes.enum ? 1 : 4);
+            if (datatype === tuya.dataTypes.enum) data.writeUInt8(value);
+            else data.writeUInt32BE(value);
+            const msg = {
+                data: {dpValues: [{dp, datatype, data}]},
+                device,
+                endpoint: device.getEndpoint(1),
+                meta: {zclTransactionSequenceNumber: ++seq},
+                // biome-ignore lint/suspicious/noExplicitAny: generic
+            } as Fz.Message<any, any, any>;
+            return tuya.fz.datapoints.convert(definition, msg, null, {}, {state, device, deviceExposesChanged: () => {}});
+        };
+
+        it("reports DP 111 in °C while the device is set to celsius", async () => {
+            const {device, definition} = await setup();
+            expect(await report(device, definition, 111, tuya.dataTypes.number, 214)).toStrictEqual({temperature: 21.4});
+        });
+
+        it("converts DP 111 back to °C once the device reported fahrenheit", async () => {
+            const {device, definition} = await setup();
+            expect(await report(device, definition, 109, tuya.dataTypes.enum, 1)).toStrictEqual({temperature_unit: "fahrenheit"});
+            expect(device.meta.hobeianTemperatureUnit).toStrictEqual("fahrenheit");
+            expect(device.save).toHaveBeenCalledTimes(1);
+            expect(await report(device, definition, 111, tuya.dataTypes.number, 705)).toStrictEqual({temperature: 21.39});
+        });
+
+        it("ignores a requested unit the device has not reported", async () => {
+            const {device, definition} = await setup();
+            await report(device, definition, 109, tuya.dataTypes.enum, 0);
+            // tz.datapoints puts the requested unit into the state before the device has applied it
+            const result = await report(device, definition, 111, tuya.dataTypes.number, 214, {temperature_unit: "fahrenheit"});
+            expect(result).toStrictEqual({temperature: 21.4});
+        });
+
+        it("uses the state until the device has reported its unit", async () => {
+            const {device, definition} = await setup();
+            const result = await report(device, definition, 111, tuya.dataTypes.number, 705, {temperature_unit: "fahrenheit"});
+            expect(result).toStrictEqual({temperature: 21.39});
+        });
+
+        it("queries the datapoints on configure", async () => {
+            const {device, definition} = await setup();
+            const coordinator = mockDevice({modelID: "", endpoints: [{}]});
+            await definition.configure?.(device, coordinator.endpoints[0], definition);
+            expect(device.getEndpoint(1).command).toHaveBeenCalledWith("manuSpecificTuya", "dataQuery", {});
         });
     });
 
