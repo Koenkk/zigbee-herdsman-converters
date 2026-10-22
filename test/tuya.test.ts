@@ -582,6 +582,81 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("TS011F_5 power_outage_memory", () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/22085
+        const unsupported = () => new Error("ZCL command genOnOff.write(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')");
+        const setup = async (manufacturerName: string) => {
+            const device = mockDevice({modelID: "TS011F", manufacturerName, endpoints: [{ID: 1}, {ID: 2}, {ID: 3}, {ID: 4}, {ID: 5}]});
+            const definition = await findByDevice(device);
+            const endpoint = device.getEndpoint(1);
+            const converter = definition.toZigbee.find((c) => c.key.includes("power_outage_memory"));
+            if (!converter?.convertSet) throw new Error("power_outage_memory converter not found");
+            const set = () =>
+                converter.convertSet(endpoint, "power_outage_memory", "restore", {
+                    device,
+                    mapped: definition,
+                    message: {power_outage_memory: "restore"},
+                    options: {},
+                    state: {},
+                    endpoint_name: undefined,
+                    publish: () => {},
+                });
+            return {definition, device, endpoint, set};
+        };
+
+        it("publishes the report from endpoint 1 as power_outage_memory", async () => {
+            const {definition, device, endpoint} = await setup("_TZ3000_cfnprab5");
+            expect(definition.fromZigbee).toContain(tuya.fz.power_outage_memory);
+
+            const payload = tuya.fz.power_outage_memory.convert(
+                definition,
+                {
+                    data: {moesStartUpOnOff: 2},
+                    endpoint,
+                    device,
+                    meta: {rawData: Buffer.alloc(0)},
+                    groupID: 0,
+                    type: "attributeReport",
+                    cluster: "genOnOff",
+                    linkquality: 0,
+                },
+                () => {},
+                {},
+                {state: {}, device, deviceExposesChanged: () => {}},
+            );
+
+            expect(payload).toStrictEqual({power_outage_memory: "restore"});
+        });
+
+        it("returns the state when the write succeeds", async () => {
+            const {endpoint, set} = await setup("_TZ3000_cfnprab5");
+
+            await expect(set()).resolves.toStrictEqual({state: {power_outage_memory: "restore"}});
+            expect(endpoint.write).toHaveBeenCalledWith("genOnOff", {moesStartUpOnOff: 2});
+        });
+
+        it("ignores UNSUPPORTED_ATTRIBUTE on the _TZ3000_cfnprab5 write and leaves the state to the report", async () => {
+            const {endpoint, set} = await setup("_TZ3000_cfnprab5");
+            vi.mocked(endpoint.write).mockRejectedValue(unsupported());
+
+            await expect(set()).resolves.toBeUndefined();
+        });
+
+        it("still fails on UNSUPPORTED_ATTRIBUTE for other manufacturers", async () => {
+            const {endpoint, set} = await setup("_TZ3000_o005nuxx");
+            vi.mocked(endpoint.write).mockRejectedValue(unsupported());
+
+            await expect(set()).rejects.toThrow("UNSUPPORTED_ATTRIBUTE");
+        });
+
+        it("still fails on other errors", async () => {
+            const {endpoint, set} = await setup("_TZ3000_cfnprab5");
+            vi.mocked(endpoint.write).mockRejectedValue(new Error("Timeout"));
+
+            await expect(set()).rejects.toThrow("Timeout");
+        });
+    });
+
     describe("number data point encoding", () => {
         it("rounds values to whole numbers before encoding", () => {
             // 1.12 * 100 = 112.00000000000001
