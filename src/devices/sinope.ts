@@ -1922,7 +1922,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1500ZB",
         vendor: "Sinopé",
         description: "Zigbee dual pole line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster(), m.electricityMeter()],
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,
