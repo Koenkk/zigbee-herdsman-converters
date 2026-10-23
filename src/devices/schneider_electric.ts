@@ -1409,6 +1409,89 @@ function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
     };
 }
 
+// WV704R0A0902 (Wiser iTRV) hub emulation.
+//
+// Like the CCTFR6400, the valve is a thermostat *client*: every ~60 seconds
+// it reads occupiedHeatingSetpoint, localTemp, pIHeatingDemand and systemMode
+// from the coordinator and acts on the answers. Since zigbee-herdsman 10.0.3
+// these reads get UNSUPPORTED_ATTRIBUTE, after which the valve falls back to
+// its 20 °C default setpoint. Its motor is driven by the hub's
+// pIHeatingDemand alone. Measured on the wire, any demand above 0 takes over
+// the valve's own loop within one poll and sets its output (ALG[9]) to about
+// 43 + 0.57 * demand, whatever its own setpoint and temperature. With 0 it
+// winds down and stays closed however cold the room is.
+//
+// So answer the reads like a Wiser hub does: the setpoint set through Z2M (or
+// on the device), localTemp "unknown" (the hub never sends one), heat mode,
+// and a heating demand. The demand is the value written to `heating_demand`
+// for 30 minutes after the last write, so a controller that stops cannot leave
+// the valve open. Otherwise it is a proportional demand from the setpoint and
+// the valve's own temperature.
+//
+// The hub setpoint is kept in device.meta rather than in the endpoint
+// attribute cache. The valve reports its own occupiedHeatingSetpoint and
+// pIHeatingDemand into that cache, and a periodic report of the old setpoint
+// arriving before the next poll would otherwise undo a new one.
+const wv704HubSetpointKey = "wiserHubSetpoint"; // centi-degrees
+const wv704HubSetpointPolledKey = "wiserHubSetpointPolled"; // the valve has read the current hub setpoint
+const wv704DemandKey = "wiserHeatingDemand"; // 0-100, written through heating_demand
+const wv704DemandAtKey = "wiserHeatingDemandAt"; // epoch ms of that write
+const WV704_DEMAND_HOLD_MS = 30 * 60 * 1000;
+const WV704_DEMAND_GAIN = 50; // % per °C below the setpoint
+const WV704_DEMAND_DEADBAND = 20; // centi-degrees
+
+function wv704HeatingDemand(device: Zh.Device, setpoint: number): number {
+    const demand = device.meta[wv704DemandKey];
+    const at = device.meta[wv704DemandAtKey];
+    if (typeof demand === "number" && typeof at === "number" && Date.now() - at < WV704_DEMAND_HOLD_MS) {
+        return demand;
+    }
+    const localTemp = device.getEndpoint(1)?.getClusterAttributeValue("hvacThermostat", "localTemp");
+    if (typeof localTemp !== "number" || localTemp === -32768 || setpoint - localTemp < WV704_DEMAND_DEADBAND) {
+        return 0;
+    }
+    return Math.min(100, Math.round(((setpoint - localTemp) / 100) * WV704_DEMAND_GAIN));
+}
+
+function wv704InstallCustomReadResponse(device: Zh.Device): void {
+    if (device.customReadResponse) {
+        return;
+    }
+    device.customReadResponse = (frame, endpoint) => {
+        if (!frame.isCluster("hvacThermostat")) {
+            // genBasic/genTime reads are answered by zigbee-herdsman itself.
+            return false;
+        }
+        const setpoint = device.meta[wv704HubSetpointKey];
+        if (typeof setpoint !== "number") {
+            // No setpoint known yet (it is adopted from the valve's first report).
+            return false;
+        }
+        const attributes: {occupiedHeatingSetpoint?: number; localTemp?: number; pIHeatingDemand?: number; systemMode?: number} = {};
+        for (const item of frame.payload as {attrId: number}[]) {
+            if (item.attrId === 0x0012) {
+                attributes.occupiedHeatingSetpoint = setpoint;
+            } else if (item.attrId === 0x0000) {
+                attributes.localTemp = -32768;
+            } else if (item.attrId === 0x0008) {
+                attributes.pIHeatingDemand = wv704HeatingDemand(device, setpoint);
+            } else if (item.attrId === 0x001c) {
+                attributes.systemMode = 4;
+            } else {
+                return false;
+            }
+        }
+        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, attributes, {srcEndpoint: 1}).catch((error) => {
+            logger.warning(`WV704R0A0902 read response failed for '${device.ieeeAddr}': ${error}`, NS);
+        });
+        if (attributes.occupiedHeatingSetpoint !== undefined && device.meta[wv704HubSetpointPolledKey] !== true) {
+            device.meta[wv704HubSetpointPolledKey] = true;
+            device.save();
+        }
+        return true;
+    };
+}
+
 // #endregion
 
 const tzLocal = {
@@ -1583,6 +1666,31 @@ const tzLocal = {
             const val = utils.getKey(constants.thermostatControlSequenceOfOperations, value, value, Number);
             entity.saveClusterAttributeKeyValue("hvacThermostat", {ctrlSeqeOfOper: val});
             return {state: {control_sequence_of_operation: value}};
+        },
+    } satisfies Tz.Converter,
+    wv704_occupied_heating_setpoint: {
+        key: ["occupied_heating_setpoint"],
+        convertSet: (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            const occupiedHeatingSetpoint = Math.round(value * 2) * 50;
+            // The valve reads the hub setpoint on its next poll (within a minute).
+            meta.device.meta[wv704HubSetpointKey] = occupiedHeatingSetpoint;
+            meta.device.meta[wv704HubSetpointPolledKey] = false;
+            meta.device.save();
+            return {state: {occupied_heating_setpoint: occupiedHeatingSetpoint / 100}};
+        },
+    } satisfies Tz.Converter,
+    wv704_heating_demand: {
+        key: ["heating_demand"],
+        convertSet: (entity, key, value, meta) => {
+            utils.assertNumber(value, key);
+            if (value < 0 || value > 100) {
+                throw new Error(`heating_demand must be between 0 and 100, got ${value}`);
+            }
+            meta.device.meta[wv704DemandKey] = Math.round(value);
+            meta.device.meta[wv704DemandAtKey] = Date.now();
+            meta.device.save();
+            return {state: {heating_demand: Math.round(value)}};
         },
     } satisfies Tz.Converter,
     cctfr6400_thermostat_pi_heating_demand: {
@@ -2064,6 +2172,37 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, "read">,
+    wv704_thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
+            if (!result) {
+                return result;
+            }
+            // pi_heating_demand comes from wiserDeviceInfo ALG[9], the valve's actual output. The ZCL
+            // pIHeatingDemand it reports is about 0.39 times that, and publishing both made the value flap.
+            delete result.pi_heating_demand;
+            // Until it has a setpoint (right after joining) the valve reports -32768 and then 0.
+            if (typeof result.occupied_heating_setpoint === "number" && result.occupied_heating_setpoint < 5) {
+                delete result.occupied_heating_setpoint;
+            }
+            const setpoint = msg.data.occupiedHeatingSetpoint;
+            if (typeof setpoint === "number" && setpoint >= 500) {
+                const device = msg.device;
+                const hubSetpoint = device.meta[wv704HubSetpointKey];
+                // Adopt the valve's setpoint as the hub setpoint the first time, and whenever it differs after the
+                // valve has read the current one: a change on the device itself (cap twist). Before that read, a
+                // differing report is the valve's old setpoint and is ignored.
+                if (hubSetpoint === undefined || (hubSetpoint !== setpoint && device.meta[wv704HubSetpointPolledKey] === true)) {
+                    device.meta[wv704HubSetpointKey] = setpoint;
+                    device.meta[wv704HubSetpointPolledKey] = true;
+                    device.save();
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
     thermostat_running_state_from_piheat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -2425,8 +2564,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Wiser radiator thermostat",
         ota: true,
         extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
-        fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
-        toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
+        fromZigbee: [fz.ignore_haDiagnostic, fzLocal.wv704_thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
+        toZigbee: [tzLocal.wv704_occupied_heating_setpoint, tzLocal.wv704_heating_demand, tz.thermostat_keypad_lockout],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3200}}},
         exposes: [
             e
@@ -2435,11 +2574,26 @@ export const definitions: DefinitionWithExtend[] = [
                 .withLocalTemperature(ea.STATE)
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withPiHeatingDemand(),
+            e
+                .numeric("heating_demand", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(100)
+                .withUnit("%")
+                .withDescription(
+                    "Heating demand handed to the valve on its next poll, which drives the motor. Holds for 30 minutes " +
+                        "after the last write; without one, the demand is computed from the setpoint and the valve's temperature.",
+                ),
             e.battery(),
             e.battery_voltage(),
             e.keypad_lockout().withAccess(ea.ALL),
         ],
+        onEvent: (event) => {
+            if (event.type === "start") {
+                wv704InstallCustomReadResponse(event.data.device);
+            }
+        },
         configure: async (device, coordinatorEndpoint) => {
+            wv704InstallCustomReadResponse(device);
             const endpoint = device.getEndpoint(1);
             const binds = ["genBasic", "genPowerCfg", "hvacThermostat", "haDiagnostic"];
             await reporting.bind(endpoint, coordinatorEndpoint, binds);
