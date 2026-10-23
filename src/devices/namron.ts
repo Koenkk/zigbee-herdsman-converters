@@ -41,6 +41,50 @@ interface NamronPrivate04E0 {
     commandResponses: never;
 }
 
+interface NamronSimplifyRotaryE004 {
+    attributes: {
+        buttonNumber: number;
+        buttonSupportAction: number;
+        levelUpStepSize: number;
+        levelDownStepSize: number;
+        colorTempUpStepSize: number;
+        colorTempDownStepSize: number;
+        levelColorMode: number;
+    };
+    commands: never;
+    commandResponses: {
+        buttonEvent: {button: number; code: number};
+    };
+}
+
+// Namron Simplify wireless rotary dimmer (4512797 / 4512798)
+// Every action is preceded by a buttonEvent (0xE004, cmd 0x00) carrying [button, code]:
+// 1 = short press, 4 = long press (0.8 s, sent on release), 8 = double press, 10 = turn up, 11 = turn down.
+// 1/10/11 are already covered by the standard genOnOff/genLevelCtrl/lightingColorCtrl commands.
+const NAMRON_ROTARY_E004_ACTIONS: Record<number, string> = {4: "hold", 8: "double"};
+
+const fzNamronRotary = {
+    buttonEvent: {
+        cluster: "namronPrivateE004",
+        type: ["commandButtonEvent"],
+        convert: (model, msg, publish, options, meta) => {
+            const action = NAMRON_ROTARY_E004_ACTIONS[msg.data.code];
+            if (action) return {action};
+        },
+    } satisfies Fz.Converter<"namronPrivateE004", NamronSimplifyRotaryE004, ["commandButtonEvent"]>,
+    // The dial toggles between brightness and colour temperature locally; derive the mode from what it sends.
+    dimmingModeLevel: {
+        cluster: "genLevelCtrl",
+        type: ["commandStep", "commandStepWithOnOff", "commandMove", "commandMoveWithOnOff"],
+        convert: (model, msg, publish, options, meta) => ({dimming_mode: "brightness"}),
+    } satisfies Fz.Converter<"genLevelCtrl", undefined, ["commandStep", "commandStepWithOnOff", "commandMove", "commandMoveWithOnOff"]>,
+    dimmingModeColor: {
+        cluster: "lightingColorCtrl",
+        type: ["commandStepColorTemp", "commandMoveColorTemp"],
+        convert: (model, msg, publish, options, meta) => ({dimming_mode: "color_temperature"}),
+    } satisfies Fz.Converter<"lightingColorCtrl", undefined, ["commandStepColorTemp", "commandMoveColorTemp"]>,
+};
+
 const fzLocal = {
     namron_panelheater: {
         cluster: "hvacThermostat",
@@ -3781,6 +3825,122 @@ export const definitions: DefinitionWithExtend[] = [
                         "isExecuteCondition",
                     ]);
                 },
+            }),
+        ],
+    },
+    {
+        zigbeeModel: ["4512797", "4512797_98", "4512798"],
+        model: "4512797",
+        vendor: "Namron",
+        description: "Simplify wireless rotary dimmer",
+        whiteLabel: [{vendor: "Namron", model: "4512798", description: "Simplify wireless rotary dimmer", fingerprint: [{modelID: "4512798"}]}],
+        ota: true,
+        fromZigbee: [fzNamronRotary.buttonEvent, fzNamronRotary.dimmingModeLevel, fzNamronRotary.dimmingModeColor],
+        exposes: [
+            e.action(["hold", "double"]),
+            e
+                .enum("dimming_mode", ea.STATE, ["brightness", "color_temperature"])
+                .withDescription(
+                    "What the dial currently controls, derived from the commands it sends. Hold the dial 0.8 s to switch (LED red = brightness, yellow = colour temperature).",
+                ),
+        ],
+        extend: [
+            // Private Remote Control cluster. Device uses manufacturer code 0x1002 (EMBER stack default),
+            // the attributes are plain (non manufacturer-specific).
+            m.deviceAddCustomCluster("namronPrivateE004", {
+                ID: 0xe004,
+                name: "namronPrivateE004",
+                attributes: {
+                    buttonNumber: {ID: 0x0000, name: "buttonNumber", type: Zcl.DataType.UINT8},
+                    buttonSupportAction: {ID: 0x0001, name: "buttonSupportAction", type: Zcl.DataType.BITMAP8},
+                    levelUpStepSize: {ID: 0x0002, name: "levelUpStepSize", type: Zcl.DataType.UINT8, write: true, min: 1, max: 100},
+                    levelDownStepSize: {ID: 0x0003, name: "levelDownStepSize", type: Zcl.DataType.UINT8, write: true, min: 1, max: 100},
+                    colorTempUpStepSize: {ID: 0x0004, name: "colorTempUpStepSize", type: Zcl.DataType.UINT8, write: true, min: 1, max: 254},
+                    colorTempDownStepSize: {ID: 0x0005, name: "colorTempDownStepSize", type: Zcl.DataType.UINT8, write: true, min: 1, max: 254},
+                    levelColorMode: {ID: 0x0006, name: "levelColorMode", type: Zcl.DataType.ENUM8, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        ID: 0x00,
+                        name: "buttonEvent",
+                        parameters: [
+                            {name: "button", type: Zcl.DataType.UINT8},
+                            {name: "code", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+            }),
+            m.battery({voltage: true}),
+            m.commandsOnOff({commands: ["on", "off", "toggle"]}),
+            m.commandsLevelCtrl({
+                commands: [
+                    "brightness_move_to_level",
+                    "brightness_move_up",
+                    "brightness_move_down",
+                    "brightness_step_up",
+                    "brightness_step_down",
+                    "brightness_stop",
+                ],
+            }),
+            m.commandsColorCtrl({
+                commands: [
+                    "color_temperature_step_up",
+                    "color_temperature_step_down",
+                    "color_temperature_move_up",
+                    "color_temperature_move_down",
+                    "color_temperature_move_stop",
+                    "color_temperature_move",
+                ],
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "level_up_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "levelUpStepSize",
+                description: "Brightness step per detent when turning up. Battery device: turn the dial to wake it before changing.",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "level_down_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "levelDownStepSize",
+                description: "Brightness step per detent when turning down. Battery device: turn the dial to wake it before changing.",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "color_temp_up_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "colorTempUpStepSize",
+                description: "Colour temperature step per detent when turning up. Battery device: turn the dial to wake it before changing.",
+                unit: "mired",
+                valueMin: 1,
+                valueMax: 254,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "color_temp_down_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "colorTempDownStepSize",
+                description: "Colour temperature step per detent when turning down. Battery device: turn the dial to wake it before changing.",
+                unit: "mired",
+                valueMin: 1,
+                valueMax: 254,
+                entityCategory: "config",
+            }),
+            m.enumLookup<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "level_color_mode",
+                cluster: "namronPrivateE004",
+                attribute: "levelColorMode",
+                lookup: {brightness_only: 0, auto_switch: 1},
+                description:
+                    "Automatic switching of dimming mode (manual: dial returns to brightness control after 10 s). Battery device: turn the dial to wake it before changing.",
+                entityCategory: "config",
             }),
         ],
     },
