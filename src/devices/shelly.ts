@@ -3544,7 +3544,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "BLU DoorWindow Mini ZB", manufacturerName: "Shelly"}],
         model: "SBDW-203C",
         vendor: "Shelly",
-        description: "BLU DoorWindow ZB",
+        description: "BLU DoorWindow Mini ZB",
         fromZigbee: [fzLocal.blu_door_window],
         toZigbee: [],
         exposes: [e.contact(), handlePosition, e.battery_low()],
