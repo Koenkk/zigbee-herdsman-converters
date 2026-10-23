@@ -1308,6 +1308,11 @@ describe("FP400", () => {
         );
     });
 
+    it("supports OTA updates", async () => {
+        const definition = await findByDevice(fp400());
+        expect(definition.ota).toBe(true);
+    });
+
     it("takes room presence only from endpoint 1; endpoints 3-10 belong to the sensor's own zones", async () => {
         const device = fp400();
         const definition = await findByDevice(device);

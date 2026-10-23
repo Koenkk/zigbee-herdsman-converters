@@ -7028,6 +7028,7 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
             m.identify(),
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
         ],
     },
 ];
