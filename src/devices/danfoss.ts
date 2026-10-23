@@ -1450,11 +1450,6 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
                 systemMode: {values: ["heat"]},
                 programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
-                // weeklySchedule: {values: ["heat"]},   // gives an error in test:
-                // test/checks.test.ts > Check definitions > respect snake case naming conventions for exposes and options
-                // Error: Definitions not using snake case for expose/option:
-                // Danfoss|014G2461|expose.name=transitionTime
-                // Danfoss|014G2461|expose.name=heatSetpoint
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
                     minHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
@@ -1514,13 +1509,13 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: 'hvacThermostat',
                 type: ['attributeReport', 'readResponse'],
                 convert: (model, msg, publish, options, meta) => {
-                    const result: Record<string, unknown> = {};
+                    const result: {[key: string]: unknown} = {};
                     if (msg.data.hasOwnProperty(0x4059)) {
-                        const heatingSystemModeLookup: Record<number, string> = {0: 'auto_system', 1: 'boiler_heating', 2: 'default_heating'};
+                        const heatingSystemModeLookup: {[key: number]: string} = {0: 'auto_system', 1: 'boiler_heating', 2: 'default_heating'};
                         result.heating_system_mode = heatingSystemModeLookup[msg.data[0x4059] as number];
                     }
                     if (msg.data.hasOwnProperty(0x0003)) {
-                        result.abs_min_heat_setpoint_limit = msg.data[0x0003] / 100;
+                        result.abs_min_heat_setpoint_limit = (msg.data[0x0003] as number) / 100;
                     }
                     return result;
                 },
@@ -1535,7 +1530,7 @@ export const definitions: DefinitionWithExtend[] = [
                 key: ['heating_system_mode', 'abs_min_heat_setpoint_limit'],
                 convertSet: async (entity, key, value, meta) => {
                     if (key === 'heating_system_mode') {
-                        const heatingSystemModeLookup: Record<string, number> = {'auto_system': 0, 'boiler_heating': 1, 'default_heating': 2};
+                        const heatingSystemModeLookup: {[key: string]: number} = {'auto_system': 0, 'boiler_heating': 1, 'default_heating': 2};
                         const numberValue = heatingSystemModeLookup[value as string];
                         await entity.write('hvacThermostat', {0x4059: {value: numberValue, type: 0x20}}, {manufacturerCode: 0x1246});
                         return {state: {heating_system_mode: value}};
