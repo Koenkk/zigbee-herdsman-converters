@@ -1429,7 +1429,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-    {
         zigbeeModel: ["eTRV0100", "eTRV0101", "eTRV0103", "TRV001", "TRV003", "eT093WRO", "eT093WRG"],
         model: "014G2461",
         vendor: "Danfoss",
