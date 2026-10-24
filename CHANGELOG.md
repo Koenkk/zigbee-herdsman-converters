@@ -1,5 +1,12 @@
 # Changelog
 
+## [26.123.1](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.123.0...v26.123.1) (2026-10-24)
+
+
+### Bug Fixes
+
+* **detect:** Detect `ZBM-MG21` as Silabs series 2 router ([#13583](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13583)) ([eb82314](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb823146c7f182702cd733ece1722d32d0206222))
+
 ## [26.123.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.122.0...v26.123.0) (2026-10-20)
 
 
