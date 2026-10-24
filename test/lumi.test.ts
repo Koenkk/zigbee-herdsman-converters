@@ -1407,3 +1407,157 @@ describe("SJCGQ12LM IAS enrollment", () => {
         await expect(definition.configure?.(device, coordinatorEndpoint, definition)).rejects.toThrow("IAS enrollment failed");
     });
 });
+
+describe("FP400", () => {
+    const fp400 = () => mockDevice({modelID: "lumi.models.4447_8295", endpoints: [{ID: 1}, {ID: 2}, {ID: 3}]});
+
+    it("exposes room presence, illuminance and the sensor's settings under their usual names", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        const properties = exposes.map((e) => e.property);
+        expect(properties).toEqual(
+            expect.arrayContaining([
+                "occupancy_1",
+                "illuminance_2",
+                "presence_sensitivity",
+                "absence_timeout",
+                "installation_mode",
+                "side_installation",
+                "installation_height",
+                "ai_high_precision",
+                "ai_interference_recognition",
+                "detection_direction",
+                "proximity_distance",
+                "human_count",
+                "activity_state",
+                "spatial_learning",
+                "detection_depth",
+            ]),
+        );
+    });
+
+    it("supports OTA updates", async () => {
+        const definition = await findByDevice(fp400());
+        expect(definition.ota).toBe(true);
+    });
+
+    it("takes room presence only from endpoint 1; endpoints 3-10 belong to the sensor's own zones", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const report = (Id: number) => {
+            const msg = {device, endpoint: device.getEndpoint(Id), data: {occupancy: 1}, type: "attributeReport"};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === "msOccupancySensing")
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean));
+        };
+        expect(report(1)).toMatchObject({occupancy_1: true});
+        expect(report(3)).toStrictEqual({});
+    });
+
+    it("reads room settings and counts only from endpoint 1; endpoints 3-10 repeat those clusters for the sensor's own zones", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const report = (Id: number, cluster: string, data: KeyValueAny) => {
+            const msg = {device, endpoint: device.getEndpoint(Id), data, type: "attributeReport", cluster};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === cluster)
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean));
+        };
+        const cases: [string, KeyValueAny, KeyValueAny][] = [
+            ["aqaraFp400Radar", {humanCount: 7}, {human_count: 7}],
+            ["aqaraFp400Location", {activityState: 2}, {activity_state: "still"}],
+            ["aqaraFp400Sensitivity", {presenceSensitivity: 0}, {presence_sensitivity: "low"}],
+            ["msOccupancySensing", {3: 0}, {absence_timeout: 0}],
+        ];
+        for (const [cluster, data, expected] of cases) {
+            expect(report(1, cluster, data)).toMatchObject(expected);
+            expect(report(3, cluster, data)).toStrictEqual({});
+        }
+    });
+
+    it("is versioned so that sensors set up by community converters get configured once", async () => {
+        const definition = await findByDevice(fp400());
+        expect(definition.version).toBe("0.0.1");
+    });
+
+    describe("detection depth", () => {
+        const depthMask = (rows: number) => Buffer.alloc(40, 0xff).fill(0, 0, rows * 2);
+        const customShape = () => {
+            const mask = depthMask(10);
+            mask[4] = 0xff; // one cell excluded inside the monitored rows
+            return mask;
+        };
+        const decode = async (monitoringRegion: Buffer) => {
+            const device = fp400();
+            const definition = await findByDevice(device);
+            const msg = {device, endpoint: device.getEndpoint(1), data: {monitoringRegion}, type: "readResponse", cluster: "aqaraFp400Config"};
+            const results = definition.fromZigbee
+                .filter((c) => c.cluster === "aqaraFp400Config")
+                // @ts-expect-error mock
+                .map((c) => c.convert(definition, msg, () => {}, {}, {device}));
+            return Object.assign({}, ...results.filter(Boolean)).detection_depth;
+        };
+        const set = async (value: number, current: Buffer, readBack?: Buffer) => {
+            const read = vi.fn().mockResolvedValueOnce({monitoringRegion: current});
+            read.mockResolvedValueOnce({monitoringRegion: readBack ?? depthMask(Math.min(20, value * 2))});
+            const device = mockDevice({modelID: "lumi.models.4447_8295", endpoints: [{ID: 1, read}, {ID: 2}, {ID: 3}]});
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key?.includes("detection_depth"));
+            // @ts-expect-error mock
+            const result = converter?.convertSet?.(device.getEndpoint(1), "detection_depth", value, {device});
+            return {result, endpoint: device.getEndpoint(1)};
+        };
+
+        it("reads the monitoring area as a depth in 0.5 m rows", async () => {
+            expect(await decode(Buffer.alloc(0))).toBe(10);
+            expect(await decode(depthMask(20))).toBe(10);
+            expect(await decode(depthMask(9))).toBe(4.5);
+            expect(await decode(depthMask(1))).toBe(0.5);
+        });
+
+        it("reads a custom-shaped area as no depth", async () => {
+            expect(await decode(customShape())).toBeNull();
+            expect(await decode(Buffer.alloc(39))).toBeNull();
+        });
+
+        it("writes the depth as a full-width cut with the manufacturer code and checks the read-back", async () => {
+            const {result, endpoint} = await set(3.5, Buffer.alloc(0));
+            await expect(result).resolves.toStrictEqual({state: {detection_depth: 3.5}});
+            expect(endpoint.write).toHaveBeenCalledWith("aqaraFp400Config", {monitoringRegion: depthMask(7)}, {manufacturerCode: 0x115f});
+            expect(endpoint.read).toHaveBeenCalledWith("aqaraFp400Config", ["monitoringRegion"], {manufacturerCode: 0x115f});
+        });
+
+        it("fails when the sensor reads back something else", async () => {
+            const {result} = await set(3.5, depthMask(20), depthMask(20));
+            await expect(result).rejects.toThrow("did not confirm");
+        });
+
+        it("does not replace a custom-shaped area", async () => {
+            const {result, endpoint} = await set(5, customShape());
+            await expect(result).rejects.toThrow("custom shape");
+            expect(endpoint.write).not.toHaveBeenCalled();
+        });
+
+        it("only accepts 0.5 m steps from 0.5 to 10 m", async () => {
+            for (const value of [0, 0.25, 10.5]) {
+                const {result, endpoint} = await set(value, depthMask(20));
+                await expect(result).rejects.toThrow("0.5 to 10 m");
+                expect(endpoint.write).not.toHaveBeenCalled();
+            }
+        });
+    });
+
+    it("starts spatial learning with command 3 on 0xFC0A", async () => {
+        const device = fp400();
+        const definition = await findByDevice(device);
+        const converter = definition.toZigbee.find((c) => c.key?.includes("spatial_learning"));
+        // @ts-expect-error mock
+        await converter?.convertSet?.(device.getEndpoint(1), "spatial_learning", "start", {device});
+        expect(device.getEndpoint(1).command).toHaveBeenCalledWith("aqaraFp400Config", "startLearning", {}, {manufacturerCode: 0x115f});
+    });
+});
