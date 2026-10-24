@@ -6,7 +6,7 @@ import * as legacy from "../lib/legacy";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tuya, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
@@ -57,7 +57,392 @@ const fzLocal = {
     } satisfies Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
 };
 
+type MoesAlarmThreshold = {id: number; min: number; max: number};
+const moesAlarmThresholds: Record<string, MoesAlarmThreshold> = {
+    over_current_threshold: {id: 1, min: 1, max: 63},
+    over_voltage_threshold: {id: 3, min: 230, max: 300},
+    under_voltage_threshold: {id: 4, min: 90, max: 190},
+};
+
+function moesMeterBytes(value: unknown): Buffer {
+    if (Buffer.isBuffer(value)) return value;
+    if (value instanceof Uint8Array || Array.isArray(value)) return Buffer.from(value);
+    if (typeof value === "string") return Buffer.from(value, "base64");
+    return Buffer.alloc(0);
+}
+
+function moesMeterUInt24(buffer: Buffer, offset: number): number {
+    return (buffer[offset] << 16) + (buffer[offset + 1] << 8) + buffer[offset + 2];
+}
+
+function moesThreePhaseData(value: unknown, index: number): Record<string, number> {
+    const bytes = moesMeterBytes(value);
+    if (bytes.length !== 18 || bytes[0] !== 0x02 || bytes[1] !== 0x0f) return {};
+    const flags = bytes[17];
+    return {
+        [`voltage_l${index}`]: bytes.readUInt16BE(2) / 10,
+        [`current_l${index}`]: ((flags & 0x01 ? -1 : 1) * moesMeterUInt24(bytes, 4)) / 1000,
+        [`power_l${index}`]: (flags & 0x02 ? -1 : 1) * moesMeterUInt24(bytes, 7),
+        [`power_reactive_l${index}`]: (flags & 0x04 ? -1 : 1) * moesMeterUInt24(bytes, 10),
+        [`power_apparent_l${index}`]: moesMeterUInt24(bytes, 13),
+        [`power_factor_l${index}`]: bytes[16] / 100,
+    };
+}
+
+function moesMeterAlarmStatus(value: unknown): string {
+    const number = Number(value);
+    if (!Number.isInteger(number) || number < 0) return String(value);
+    const bits = number >>> 0;
+    if (bits === 0) return "normal";
+    const alarms: string[] = [];
+    if (bits & 0x01) alarms.push("over_current_alarm");
+    if (bits & 0x04) alarms.push("over_voltage_alarm");
+    if (bits & 0x08) alarms.push("under_voltage_alarm");
+    const unknown = (bits & ~0x0d) >>> 0;
+    if (unknown) alarms.push(`unknown_fault_bits_0x${unknown.toString(16)}`);
+    return alarms.join(", ");
+}
+
+function moesMeterAlarmSettings(value: unknown, names = Object.keys(moesAlarmThresholds)): Record<string, string | number> {
+    const bytes = moesMeterBytes(value);
+    const result: Record<string, string | number> = {alarm_settings_raw: bytes.toString("hex").toUpperCase()};
+    if (bytes.length === 0 || bytes.length % 4 !== 0) return result;
+    for (let offset = 0; offset < bytes.length; offset += 4) {
+        for (const name of names) {
+            const spec = moesAlarmThresholds[name];
+            if (spec.id === bytes[offset]) result[name] = bytes.readUInt16BE(offset + 2);
+        }
+    }
+    return result;
+}
+
+function moesMeterEncodeThreshold(value: unknown, meta: Tz.Meta | undefined, name: string, currentRange?: {min: number; max: number}): number[] {
+    const spec = moesAlarmThresholds[name];
+    if (!spec) throw new Error(`Unknown alarm threshold: ${name}`);
+    const {min, max} = currentRange ?? spec;
+    const threshold = Number(value);
+    if (!Number.isInteger(threshold) || threshold < min || threshold > max) {
+        throw new Error(`${name} must be an integer between ${min} and ${max}`);
+    }
+    const raw = meta?.state.alarm_settings_raw;
+    if (typeof raw !== "string" || !/^(?:[a-fA-F0-9]{8})+$/.test(raw)) {
+        throw new Error("Wait for a valid DP17 report before changing alarm thresholds");
+    }
+    const bytes = Buffer.from(raw, "hex");
+    let count = 0;
+    for (let offset = 0; offset < bytes.length; offset += 4) {
+        if (bytes[offset] === spec.id) {
+            bytes.writeUInt16BE(threshold, offset + 2);
+            count++;
+        }
+    }
+    if (count !== 1) throw new Error(`Expected exactly one DP17 record for ${name}`);
+    return Array.from(bytes);
+}
+
+function moesMeterThresholdEntry(name: string, range?: {min: number; max: number}): Tuya.MetaTuyaDataPointsSingle {
+    return [17, name, {to: (value, meta) => moesMeterEncodeThreshold(value, meta, name, range)}, {optimistic: false}];
+}
+
+function moesMeterThreePhaseExposes(index: number) {
+    return [
+        e.numeric(`voltage_l${index}`, ea.STATE).withUnit("V").withDescription(`Phase L${index} voltage`),
+        e.numeric(`current_l${index}`, ea.STATE).withUnit("A").withDescription(`Phase L${index} current`),
+        e.numeric(`power_l${index}`, ea.STATE).withUnit("W").withDescription(`Phase L${index} active power`),
+        e.numeric(`power_reactive_l${index}`, ea.STATE).withUnit("var").withDescription(`Phase L${index} reactive power`),
+        e.numeric(`power_apparent_l${index}`, ea.STATE).withUnit("VA").withDescription(`Phase L${index} apparent power`),
+        e.numeric(`power_factor_l${index}`, ea.STATE).withDescription(`Phase L${index} power factor (0 to 1)`),
+    ];
+}
+
+function moesMeterButton(name: string, description: string) {
+    return e.enum(name, ea.SET, ["press"]).withDescription(description).withCategory("config");
+}
+
+function moesMeterPress(value: unknown, name: string): void {
+    if (value !== "press") throw new Error(`${name} expects 'press'`);
+}
+
+interface MoesMeterSegmentedCluster {
+    attributes: never;
+    commands: {
+        zosungSendIRCode00: {seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number};
+        zosungSendIRCode01: {zero: number; seq: number; length: number; unk1: number; unk2: number; unk3: number; cmd: number; unk4: number};
+        zosungSendIRCode02: {seq: number; position: number; maxlen: number};
+        zosungSendIRCode04: {zero0: number; seq: number; zero1: number};
+    };
+    commandResponses: {
+        zosungSendIRCode03Resp: {zero: number; seq: number; position: number; msgpart: Buffer; msgpartcrc: number};
+        zosungSendIRCode05Resp: {seq: number; zero: number};
+    };
+}
+
+type MoesMeterTransfer = {buffer: Buffer; position: number; started: number};
+const moesMeterTransfers = new Map<string, MoesMeterTransfer>();
+const moesMeterChunkLength = 0x38;
+const moesMeterMaxLength = 4096;
+
+function moesMeterTransferKey(ieeeAddr: string, endpoint: number, seq: number): string {
+    return `${ieeeAddr}:${endpoint}:${seq}`;
+}
+
+function moesMeterDecodePackedDps(payload: Buffer): Tuya.DpValue[] {
+    if (payload.length < 2) throw new Error("Segmented payload too short");
+    const datapoints: Tuya.DpValue[] = [];
+    let offset = 2;
+    while (offset < payload.length) {
+        if (offset + 4 > payload.length) throw new Error(`Incomplete Tuya DP header at ${offset}`);
+        const dp = payload[offset];
+        const datatype = payload[offset + 1];
+        const length = payload.readUInt16BE(offset + 2);
+        offset += 4;
+        if (offset + length > payload.length) throw new Error(`Incomplete Tuya DP${dp} at ${offset}`);
+        datapoints.push({dp, datatype, data: payload.subarray(offset, offset + length)});
+        offset += length;
+    }
+    if (!datapoints.length) throw new Error("No Tuya datapoints in segmented payload");
+    return datapoints;
+}
+
+const moesMeterFzStart = {
+    cluster: "zosungIRTransmit",
+    type: ["commandZosungSendIRCode00"],
+    convert: async (model, msg) => {
+        const {seq, length, unk1, unk2, unk3, cmd, unk4} = msg.data;
+        if (unk2 !== 0xef00 || cmd !== 2 || length < 2 || length > moesMeterMaxLength) return;
+        const now = Date.now();
+        for (const [key, transfer] of moesMeterTransfers) {
+            if (now - transfer.started > 60000) moesMeterTransfers.delete(key);
+        }
+        moesMeterTransfers.set(moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, seq), {
+            buffer: Buffer.alloc(length),
+            position: 0,
+            started: now,
+        });
+        await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode01", MoesMeterSegmentedCluster>(
+            "zosungIRTransmit",
+            "zosungSendIRCode01",
+            {zero: 0, seq, length, unk1, unk2, unk3, cmd, unk4},
+            {disableDefaultResponse: true},
+        );
+        await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", MoesMeterSegmentedCluster>(
+            "zosungIRTransmit",
+            "zosungSendIRCode02",
+            {seq, position: 0, maxlen: moesMeterChunkLength},
+            {disableDefaultResponse: true},
+        );
+    },
+} satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode00"]>;
+
+const moesMeterFzFragment = {
+    cluster: "zosungIRTransmit",
+    type: ["commandZosungSendIRCode03Resp"],
+    convert: async (model, msg, publish, options, meta) => {
+        const {seq, position, msgpart, msgpartcrc} = msg.data;
+        const key = moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, seq);
+        const transfer = moesMeterTransfers.get(key);
+        if (!transfer) return;
+        const part = Buffer.from(msgpart);
+        const crc = part.reduce((sum, byte) => (sum + byte) & 0xff, 0);
+        if (position !== transfer.position || !part.length || transfer.position + part.length > transfer.buffer.length || crc !== msgpartcrc) {
+            moesMeterTransfers.delete(key);
+            return;
+        }
+        part.copy(transfer.buffer, transfer.position);
+        transfer.position += part.length;
+        if (transfer.position < transfer.buffer.length) {
+            await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode02", MoesMeterSegmentedCluster>(
+                "zosungIRTransmit",
+                "zosungSendIRCode02",
+                {seq, position: transfer.position, maxlen: moesMeterChunkLength},
+                {disableDefaultResponse: true},
+            );
+            return;
+        }
+        moesMeterTransfers.delete(key);
+        await msg.endpoint.command<"zosungIRTransmit", "zosungSendIRCode04", MoesMeterSegmentedCluster>(
+            "zosungIRTransmit",
+            "zosungSendIRCode04",
+            {zero0: 0, seq, zero1: 0},
+            {disableDefaultResponse: true},
+        );
+        const dpValues = moesMeterDecodePackedDps(transfer.buffer);
+        const result = tuya.fz.datapoints.convert(
+            model,
+            {
+                ...msg,
+                cluster: "manuSpecificTuya",
+                type: "commandDataReport",
+                data: {seq: transfer.buffer.readUInt16LE(0), dpValues},
+                meta: {...msg.meta, zclTransactionSequenceNumber: undefined},
+            },
+            publish,
+            options,
+            meta,
+        );
+        if (result && Object.keys(result).length > 0) publish(result);
+    },
+} satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode03Resp"]>;
+
+const moesMeterFzFinish = {
+    cluster: "zosungIRTransmit",
+    type: ["commandZosungSendIRCode05Resp"],
+    convert: (model, msg) => {
+        moesMeterTransfers.delete(moesMeterTransferKey(msg.device.ieeeAddr, msg.endpoint.ID, msg.data.seq));
+    },
+} satisfies Fz.Converter<"zosungIRTransmit", MoesMeterSegmentedCluster, ["commandZosungSendIRCode05Resp"]>;
+
+const moesMeterSegments = [moesMeterFzStart, moesMeterFzFragment, moesMeterFzFinish];
+
+const ZC301_TIME_MULTIPLIER = 0.001;
+
+const zc301Cover = e.cover_position();
+const zc301PositionFeature = zc301Cover.features.find((feature) => feature.name === "position");
+if (zc301PositionFeature) zc301PositionFeature.access = ea.STATE_SET;
+
+const zc301PositionReport = {
+    from: (value: unknown, _meta?: Fz.Meta, options?: Record<string, unknown>) => {
+        const raw = Number(value);
+        if (!Number.isFinite(raw) || raw < 0 || raw > 100) return {};
+        return {position: options?.invert_cover ? raw : 100 - raw};
+    },
+};
+
+const zc301WorkStateReport = {
+    from: (value: unknown) => {
+        const raw = Number(value);
+        if (!Number.isInteger(raw) || raw < 0 || raw > 2) return {};
+        return {
+            work_state: ["standby", "opening", "closing"][raw],
+            state: ["STOP", "OPEN", "CLOSE"][raw],
+        };
+    },
+};
+
+const zc301Position: Tz.Converter = {
+    key: ["position"],
+    options: tz.cover_position_tilt.options,
+    convertSet: async (entity, key, value, meta) => {
+        await tz.cover_position_tilt.convertSet?.(entity, key, value, meta);
+    },
+};
+
+let zc301Tsn = 0;
+
+const nextZc301Seq = () => {
+    zc301Tsn = (zc301Tsn % 255) + 1;
+    return zc301Tsn << 8;
+};
+
+const zc301Stop = (entity: Parameters<NonNullable<Tz.Converter["convertSet"]>>[0]) =>
+    entity.command("closuresWindowCovering", "stop", {}, {disableResponse: true, disableDefaultResponse: false});
+
+const zc301State: Tz.Converter = {
+    key: ["state"],
+    convertSet: async (entity, key, value, meta) => {
+        if (typeof value !== "string") throw new Error("Invalid cover state");
+        if (value.toUpperCase() === "STOP") {
+            if (Array.isArray(meta.mapped)) throw new Error("ZC301 STOP does not support groups");
+            await zc301Stop(entity);
+            return {state: {state: "STOP"}};
+        }
+        await tz.cover_state.convertSet?.(entity, key, value, meta);
+    },
+};
+
+const zc301Calibration: Tz.Converter = {
+    key: ["calibration"],
+    convertSet: async (entity, _key, value, meta) => {
+        if (Array.isArray(meta.mapped)) throw new Error("ZC301 calibration does not support groups");
+        if (value === "save_limit") {
+            await zc301Stop(entity);
+            return;
+        }
+        const actions: Record<string, number> = {enter_mode: 0, up_start: 1, down_start: 2};
+        if (typeof value !== "string" || !Object.hasOwn(actions, value)) {
+            throw new Error(`Invalid ZC301 calibration action: ${String(value)}`);
+        }
+        await entity.write<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering>("closuresWindowCovering", {tuyaMotorReversal: actions[value]});
+        return {state: {calibration_completed: false}};
+    },
+};
+
+const zc301CalibrationReport: Fz.Converter<"closuresWindowCovering", tuya.TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]> = {
+    cluster: "closuresWindowCovering",
+    type: ["attributeReport", "readResponse"],
+    convert: (_model, msg) => zc301CalibrationStatus.from(msg.data.tuyaMotorReversal),
+};
+
+const zc301CalibrationStatus = {
+    from: (value: unknown) => {
+        if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > 3) return undefined;
+        return {calibration_completed: value === 3};
+    },
+};
+
+const zc301Config: Tz.Converter = {
+    key: ["curtain_close_direction", "charge_led_switch"],
+    convertSet: async (entity, key, value, meta) => {
+        if (Array.isArray(meta.mapped)) throw new Error("ZC301 configuration does not support groups");
+        if (key === "curtain_close_direction") {
+            if (value !== "UP" && value !== "DOWN") throw new Error("Invalid curtain_close_direction");
+            await tuya.sendDataPointBool(entity, 107, value === "DOWN", "sendData", nextZc301Seq());
+        } else if (key === "charge_led_switch") {
+            if (value !== "ON" && value !== "OFF") throw new Error("Invalid charge_led_switch");
+            await tuya.sendDataPointBool(entity, 155, value === "ON", "sendData", nextZc301Seq());
+        }
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_hs01bacp"]),
+        model: "ZC301",
+        vendor: "Moes",
+        description: "Zigbee curtain motor",
+        fromZigbee: [zc301CalibrationReport, tuya.fz.datapoints],
+        toZigbee: [zc301Position, zc301State, zc301Calibration, zc301Config],
+        extend: [tuya.clusters.addTuyaClosuresWindowCoveringCluster()],
+        exposes: [
+            zc301Cover,
+            e.battery(),
+            e
+                .enum("calibration", ea.SET, ["enter_mode", "up_start", "save_limit", "down_start"])
+                .withCategory("config")
+                .withDescription(
+                    "Enter mode (F002=0) and wait for automatic movement to stop; start up (1), STOP to save, " +
+                        "start down (2), STOP to save. The motor reports completion (3).",
+                ),
+            e
+                .binary("calibration_completed", ea.STATE, true, false)
+                .withLabel("Calibration completed")
+                .withDescription("Whether the device has reported calibration completion since the last calibration action"),
+            e.enum("work_state", ea.STATE, ["standby", "opening", "closing"]).withCategory("diagnostic"),
+            e
+                .numeric("time_total", ea.STATE)
+                .withLabel("Total travel time")
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(120)
+                .withDescription("Total travel time reported by the device after calibration"),
+            e.enum("charge_state", ea.STATE, ["uncharged", "charging", "charged"]).withCategory("diagnostic"),
+            e.binary("curtain_close_direction", ea.STATE_SET, "DOWN", "UP").withCategory("config"),
+            e.binary("charge_led_switch", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+        ],
+        configure: tuya.configureMagicPacket,
+        meta: {
+            tuyaDatapoints: [
+                [3, null, zc301PositionReport],
+                [5, null, zc301CalibrationStatus],
+                [7, null, zc301WorkStateReport],
+                [10, "time_total", {from: (value) => Number((Number(value) * ZC301_TIME_MULTIPLIER).toFixed(3))}],
+                [13, "battery", tuya.valueConverter.raw],
+                [101, "charge_state", tuya.valueConverterBasic.lookup({uncharged: tuya.enum(0), charging: tuya.enum(1), charged: tuya.enum(2)})],
+                [107, "curtain_close_direction", tuya.valueConverterBasic.lookup({UP: false, DOWN: true})],
+                [155, "charge_led_switch", tuya.valueConverter.onOff],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS030F", ["_TZ3210_sxtfesc6", "_TZ3210_rundhkxp"]),
         model: "ADCBZI01",
@@ -2539,31 +2924,43 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc", "_TZE284_y7hpvgyp"]),
         model: "ZM6LT1",
         vendor: "Moes",
         description: "Smart 1-phase energy power meter with CT sensor clamp",
-        extend: [
-            tuya.modernExtend.tuyaBase({
-                dp: true,
-                queryOnConfigure: true,
-                queryIntervalSeconds: 60,
-            }),
-        ],
-        exposes: [
-            e.energy(),
-            e.voltage(),
-            e.current(),
-            e.power(),
-            e.ac_frequency(),
-            e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
-            e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Total active energy"),
-            e.numeric("fault", ea.STATE).withDescription("Fault status"),
-            e.binary("clear_event", ea.STATE_SET, "ON", "OFF").withDescription("Clear event"),
-            e.enum("online_state", ea.STATE, ["offline", "online"]).withDescription("Online state"),
-            e.numeric("countdown_1", ea.STATE_SET).withUnit("s").withDescription("Countdown timer").withValueMin(0).withValueMax(2000),
-            e.binary("device_restart", ea.SET, "ON", "OFF").withDescription("Device restart"),
-        ],
+        whiteLabel: [tuya.whitelabel("Moes", "ZM7LT1", "Single-phase energy meter with CT clamp", ["_TZE284_y7hpvgyp"])],
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        fromZigbee: moesMeterSegments,
+        exposes: (device) => {
+            const isZM7LT1 = device?.manufacturerName === "_TZE284_y7hpvgyp";
+            const exposes = [
+                e.energy(),
+                e.voltage(),
+                e.current(),
+                e.power(),
+                e.ac_frequency(),
+                e.numeric("reverse_energy", ea.STATE).withUnit("kWh").withDescription("Total reverse active energy"),
+                e.numeric("fault", ea.STATE).withDescription("Fault status"),
+                e
+                    .numeric("over_current_threshold", ea.STATE_SET)
+                    .withUnit("A")
+                    .withValueMin(1)
+                    .withValueMax(isZM7LT1 ? 63 : 120)
+                    .withValueStep(1)
+                    .withDescription("Overcurrent alarm threshold")
+                    .withCategory("config"),
+                e
+                    .binary("clear_event", ea.STATE_SET, "ON", "OFF")
+                    .withLabel("Clear accumulated energy")
+                    .withDescription("Clear accumulated energy")
+                    .withCategory("config"),
+                moesMeterButton("refresh_measurements", "Trigger fast measurement updates"),
+            ];
+            if (isZM7LT1) {
+                exposes.push(e.numeric("active_energy", ea.STATE).withUnit("kWh").withDescription("Combined active energy"));
+            }
+            return exposes;
+        },
         meta: {
             multiEndpointSkip: ["reverse_energy", "active_energy"],
             tuyaDatapoints: [
@@ -2571,20 +2968,129 @@ export const definitions: DefinitionWithExtend[] = [
                 [2, "reverse_energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant5],
                 [10, "fault", tuya.valueConverter.raw],
-                [17, "alarm_set_2", tuya.valueConverter.raw],
+                [17, null, {from: (value) => moesMeterAlarmSettings(value, ["over_current_threshold"])}],
+                [
+                    17,
+                    "over_current_threshold",
+                    {
+                        to: (value, meta) =>
+                            moesMeterEncodeThreshold(value, meta, "over_current_threshold", {
+                                min: 1,
+                                max: meta?.device.manufacturerName === "_TZE284_2fnssffc" ? 120 : 63,
+                            }),
+                    },
+                    {optimistic: false},
+                ],
                 [20, "clear_event", tuya.valueConverter.onOff],
                 [
                     44,
-                    "online_state",
-                    tuya.valueConverterBasic.lookup({
-                        offline: tuya.enum(0),
-                        online: tuya.enum(1),
-                    }),
+                    "refresh_measurements",
+                    {
+                        to: (value) => {
+                            moesMeterPress(value, "refresh_measurements");
+                            return tuya.enum(1);
+                        },
+                    },
+                    {optimistic: false},
                 ],
                 [49, "ac_frequency", tuya.valueConverter.divideBy100],
-                [51, "active_energy", tuya.valueConverter.divideBy100],
-                [101, "countdown_1", tuya.valueConverter.raw],
-                [104, "device_restart", tuya.valueConverter.onOff],
+                [
+                    51,
+                    null,
+                    {
+                        from: (value, meta) => (meta?.device.manufacturerName === "_TZE284_y7hpvgyp" ? {active_energy: value / 100} : {}),
+                    },
+                ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_cf4b5ktf", "_TZE28C1000000_cf4b5ktf"]),
+        model: "ZM7LT3",
+        vendor: "Moes",
+        description: "Three-phase energy meter with CT clamps",
+        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        fromZigbee: moesMeterSegments,
+        exposes: [
+            e.energy().withDescription("Total forward active energy"),
+            e.produced_energy().withDescription("Total reverse active energy"),
+            e.numeric("combined_energy", ea.STATE).withUnit("kWh").withDescription("Combined active energy"),
+            e.power().withDescription("Total active power"),
+            e.power_reactive().withDescription("Total reactive power"),
+            e.power_apparent().withDescription("Total apparent power"),
+            e.ac_frequency().withDescription("Mains frequency"),
+            e.power_factor().withDescription("Total power factor"),
+            ...moesMeterThreePhaseExposes(1),
+            ...moesMeterThreePhaseExposes(2),
+            ...moesMeterThreePhaseExposes(3),
+            e.text("alarm_status", ea.STATE).withDescription("Active alarm conditions"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(63)
+                .withValueStep(1)
+                .withDescription("Overcurrent alarm threshold")
+                .withCategory("config"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(230)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withDescription("Overvoltage alarm threshold")
+                .withCategory("config"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(90)
+                .withValueMax(190)
+                .withValueStep(1)
+                .withDescription("Undervoltage alarm threshold")
+                .withCategory("config"),
+            moesMeterButton("clear_energy", "Clear accumulated energy"),
+            moesMeterButton("refresh_measurements", "Trigger fast measurement updates"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [2, "produced_energy", tuya.valueConverter.divideBy100],
+                [9, "power", tuya.valueConverter.raw],
+                [47, "power_reactive", tuya.valueConverter.raw],
+                [48, "power_apparent", tuya.valueConverter.raw],
+                [49, "ac_frequency", tuya.valueConverter.divideBy100],
+                [51, "combined_energy", tuya.valueConverter.divideBy100],
+                [53, "power_factor", tuya.valueConverter.divideBy100],
+                [6, null, {from: (value) => moesThreePhaseData(value, 1)}],
+                [7, null, {from: (value) => moesThreePhaseData(value, 2)}],
+                [8, null, {from: (value) => moesThreePhaseData(value, 3)}],
+                [10, "alarm_status", {from: moesMeterAlarmStatus}],
+                [17, null, {from: (value) => moesMeterAlarmSettings(value)}],
+                moesMeterThresholdEntry("over_current_threshold"),
+                moesMeterThresholdEntry("over_voltage_threshold"),
+                moesMeterThresholdEntry("under_voltage_threshold"),
+                [
+                    20,
+                    "clear_energy",
+                    {
+                        to: (value) => {
+                            moesMeterPress(value, "clear_energy");
+                            return true;
+                        },
+                    },
+                    {optimistic: false},
+                ],
+                [
+                    44,
+                    "refresh_measurements",
+                    {
+                        to: (value) => {
+                            moesMeterPress(value, "refresh_measurements");
+                            return tuya.enum(1);
+                        },
+                    },
+                    {optimistic: false},
+                ],
             ],
         },
     },
