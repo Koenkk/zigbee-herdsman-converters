@@ -1760,6 +1760,7 @@ export interface SonoffEwelink {
         monthlyElectricityCost: number;
         dailyRunTime: number;
         totalRunTime: number;
+        voltageFrequency: number;
         totalEnergyConsumption: number;
         totalOutputEnergyConsumption: number;
         currentElectricalPriceList: number[];
@@ -13046,8 +13047,11 @@ export const definitions: DefinitionWithExtend[] = [
                     localFastSceneConfiguration: {name: "localFastSceneConfiguration", ID: 0x7016, type: Zcl.DataType.ARRAY, write: true},
                     outputEnergyToday: {name: "outputEnergyToday", ID: 0x7018, type: Zcl.DataType.UINT32},
                     outputEnergyMonth: {name: "outputEnergyMonth", ID: 0x7019, type: Zcl.DataType.UINT32},
+                    dailyRunTime: {name: "dailyRunTime", ID: 0x701c, type: Zcl.DataType.UINT32},
+                    totalRunTime: {name: "totalRunTime", ID: 0x701d, type: Zcl.DataType.UINT32},
                     totalEnergyConsumption: {name: "totalEnergyConsumption", ID: 0x701e, type: Zcl.DataType.UINT32},
                     totalOutputEnergyConsumption: {name: "totalOutputEnergyConsumption", ID: 0x701f, type: Zcl.DataType.UINT32},
+                    voltageFrequency: {name: "voltageFrequency", ID: 0x7029, type: Zcl.DataType.UINT32},
                 },
                 commands: {
                     protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -13135,6 +13139,38 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Supply voltage measured by the plug.",
                 unit: "V",
                 scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "frequency",
+                label: "Frequency",
+                cluster: "customClusterEwelink",
+                attribute: "voltageFrequency",
+                description: "Power frequency.",
+                unit: "Hz",
+                scale: 100,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "today_runtime",
+                label: "Today runtime",
+                cluster: "customClusterEwelink",
+                attribute: "dailyRunTime",
+                description: "Accumulated runtime today.",
+                unit: "h",
+                scale: 3600,
+                precision: 2,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "lifetime",
+                label: "Lifetime",
+                cluster: "customClusterEwelink",
+                attribute: "totalRunTime",
+                description: "Total accumulated runtime.",
+                unit: "h",
+                scale: 3600,
+                precision: 2,
                 access: "STATE_GET",
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
