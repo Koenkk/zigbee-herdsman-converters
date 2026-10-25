@@ -1,5 +1,45 @@
 # Changelog
 
+## [26.124.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.123.0...v26.124.0) (2026-10-25)
+
+
+### Features
+
+* Acova ALCANTARA3: report apparent power and support accurate system mode selection ([#13562](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13562)) ([52fc57f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/52fc57f52f06fbf517c6f88f82b6db1baad670d8))
+* **add:** APRM-04-005 ([#13572](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13572)) ([7263b84](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7263b84699ef1a00aeadb8e8ccfaea9c75228d70))
+* **add:** Dongle-MP10 ([#13561](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13561)) ([6693da7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6693da7143218f476ffb9752fea5d190e849e67e))
+* **add:** Ramses_esp32c6 ([#13521](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13521)) ([49535f5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/49535f5baf5c9ec83de34c9a1c3d6c6ac073de11))
+* **add:** SP-P06E ([#13589](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13589)) ([0070236](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0070236be57b20602b2890dcde38435379e47f23))
+* **add:** TS0601_floor_thermostat_006 ([#13557](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13557)) ([ea2f232](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ea2f2328f04a6301c9721d577d703ad91a2a2365))
+* **add:** ZM7LT1, ZM7LT3, ZC301 ([#13536](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13536)) ([cc2b620](https://github.com/Koenkk/zigbee-herdsman-converters/commit/cc2b6209b216afd8bea05572a9d6ff4420230ffb))
+* **add:** ZTS-8B, SYZB-6W ([#13481](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13481)) ([7e94670](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7e94670595dea361cb3d879d9f5bb373037498c6))
+* AVATTO TS0601_thermostat_14: expose `system_mode` and `frost_protection_temperature` ([#13555](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13555)) ([d30b463](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d30b463fbb877b9eaf5837684ad6945d387a152a))
+* Danfoss Ally eTRV0103: expose heating system mode and minimum temperature limits ([#13580](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13580)) ([5c17950](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5c17950a05663e39d3ba05f617cf6c758d3247b3))
+* Sinopé TH1500ZB: expose power and energy measurements ([#13573](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13573)) ([e608cac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e608cac4d0df2bcd333090f862a70911d9a22238))
+* SONOFF MINI-ZB1GSP: expose `frequency`, `today_runtime` and `lifetime` ([#13566](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13566)) ([18566f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/18566f896ffa5471302e79cd48aab918df109057))
+* SONOFF SNZB-02UL: allow periodic weather updates and apply selected icons immediately ([#13565](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13565)) ([e4e77dc](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e4e77dcd46f63f84c7ed153c909e42bd587c9cc5))
+* SONOFF SNZT-03P and SNZT-04P: support OTA firmware updates ([#13574](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13574)) ([e5f2865](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5f28653363cc271ec83add01e7934a861aaa14d))
+* SONOFF ZBMINIL2: expose `external_trigger_mode` for rocker and momentary switches ([#13559](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13559)) ([14d2d29](https://github.com/Koenkk/zigbee-herdsman-converters/commit/14d2d29c205def00106a8bddd4bd9750ed3b41b7))
+
+
+### Bug Fixes
+
+* Aqara KD-R01D: remove unsupported `on_level` setting ([#13468](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13468)) ([697ac11](https://github.com/Koenkk/zigbee-herdsman-converters/commit/697ac113b099a3f14578ba8275a5a60780c94a46))
+* Aqara ZNJLBL01LM and ZNCLBL01LM: fix incorrect position while the curtain is moving ([#13558](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13558)) ([7113f2b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7113f2bcee23eaa94cb6fcbb957b2b904e05b124))
+* **detect:** Detect `_TZ3210_ekjc2rzh` as Girier TS0225_GIRIER ([#13556](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13556)) ([1cb25c2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1cb25c2bd653a9aeda7b12e6c9d569e4a5b109b7))
+* **detect:** Detect `_TZE2841000000_8se38w3c` as Tuya TZ-ZT01_GA4 ([#13560](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13560)) ([0997763](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0997763284388195c28510a224f224bebcbc6f41))
+* **detect:** Detect `_TZE2841000000_hodyryli` as Tuya ZT08 ([#13567](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13567)) ([bd74a53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bd74a538ef9fc37c52f42f13349c06259669f36a))
+* **detect:** Detect `_TZE28C1000000_cjbofhxw` as Tuya PJ-1203-W ([#13588](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13588)) ([e92cab5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e92cab5bb7ba4f2f0d90786e3aa7a1dd2e31525a))
+* **detect:** Detect `PIIC5804` as Paulmann 291.46 ([#13549](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13549)) ([59041d8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/59041d88bb80bfacbd8a8b36ef005efdb2971057))
+* **detect:** Detect `ZBM-MG21` as Silabs series 2 router ([#13583](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13583)) ([eb82314](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eb823146c7f182702cd733ece1722d32d0206222))
+* Heiman HS2VTD: report vibration correctly ([#13551](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13551)) ([65046da](https://github.com/Koenkk/zigbee-herdsman-converters/commit/65046da27f5435d962b9c07fe0fb722bd94157b6))
+* Innr OPL 130 C: stop exposing unsupported `power_on_behavior` ([#13563](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13563)) ([f55df22](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f55df22712d53e8cd9a62ad0cd776a8cc51715c3))
+* Moes ZHT-002: report `schedule_mode` correctly ([#13579](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13579)) ([ef6906b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ef6906b5fd091df80a971aca7b340a5ffa9df6a0))
+* Schneider Electric CCTFR6400: restore +/- setpoint control when keypad lockout is unknown or binding fails ([#13577](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13577)) ([eba2e8b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/eba2e8b6e54ed96c77a8ec32d15fd2d6c918dc32))
+* Schneider Electric WV704R0A0902: restore temperature, setpoint and heating demand updates ([#13575](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13575)) ([0157866](https://github.com/Koenkk/zigbee-herdsman-converters/commit/01578662d8caea3f5a1cfa10220465810428de1c))
+* Sinopé TH1400ZB: fix floor and room temperature reporting ([#13586](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13586)) ([792cd34](https://github.com/Koenkk/zigbee-herdsman-converters/commit/792cd348606f99889d99da1b43565218b22bed31))
+* Zosung IR blaster: prevent commands from replacing an in-progress transmission ([#13498](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13498)) ([71d1112](https://github.com/Koenkk/zigbee-herdsman-converters/commit/71d11127a68a108c2268784d622a12a5883f5539))
+
 ## [26.123.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.122.0...v26.123.0) (2026-10-20)
 
 
