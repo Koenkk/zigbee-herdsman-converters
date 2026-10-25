@@ -804,7 +804,7 @@ function setupSpm01v25Polling(device: Zh.Device, intervalSeconds = 10) {
 }
 
 const spm01v25Thresholds: Tuya.ValueConverterSingle = {
-    from: (v: unknown) => {
+    from: (v: unknown, meta?: Fz.Meta) => {
         const buf = Buffer.isBuffer(v) ? v : Buffer.from(v as string, "base64");
         const onOffLookup: KeyValueAny = {0: "OFF", 1: "ON"};
         const result: KeyValueAny = {};
@@ -828,9 +828,15 @@ const spm01v25Thresholds: Tuya.ValueConverterSingle = {
                 case 7:
                     result.reverse_energy_alarm = enabled;
                     break;
-                case 8:
-                    result.data_report_duration = val;
+                case 8: {
+                    const curDur = meta?.state?.data_report_duration != null ? Number(meta.state.data_report_duration) : undefined;
+                    if (curDur !== undefined && (curDur < 30 || (val === 50 && curDur !== 50))) {
+                        // Keep user-configured software polling interval (< 30s) or setting after MCU bootloader 50s reset
+                    } else {
+                        result.data_report_duration = val;
+                    }
                     break;
+                }
                 case 9:
                     result.device_locating = enabled;
                     break;
@@ -882,7 +888,7 @@ const spm01v25Thresholds: Tuya.ValueConverterSingle = {
 
         buf.writeUInt8(8, 16);
         buf.writeUInt8(1, 17);
-        buf.writeUInt16BE(dur, 18);
+        buf.writeUInt16BE(Math.max(30, dur), 18);
 
         buf.writeUInt8(9, 20);
         buf.writeUInt8(onOff(locate), 21);
@@ -18540,8 +18546,16 @@ export const definitions: DefinitionWithExtend[] = [
                         if (event.type === "stop") {
                             clearInterval(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
                             globalStore.clearValue(event.data.ieeeAddr, "query_interval");
-                        } else if (event.type === "start") {
-                            setupSpm01v25Polling(event.data.device, Number(event.data.state.data_report_duration) || 10);
+                        } else if (event.type === "start" || event.type === "deviceAnnounce") {
+                            setupSpm01v25Polling(event.data.device, Number(event.data.state?.data_report_duration) || 10);
+                            if (event.type === "deviceAnnounce") {
+                                const endpoint = event.data.device.endpoints[0];
+                                const query =
+                                    event.data.device.manufacturerName === "_TZE200_iwn0gpzz"
+                                        ? tuya.sendDataPointEnum(endpoint, 35, 1)
+                                        : endpoint.command("manuSpecificTuya", "dataQuery", {});
+                                query.catch(() => {});
+                            }
                         }
                     },
                 ],
