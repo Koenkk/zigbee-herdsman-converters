@@ -14160,6 +14160,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["SNZT-04P"],
@@ -14181,5 +14182,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery({percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
         ],
+        ota: true,
     },
 ];
