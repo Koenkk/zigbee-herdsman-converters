@@ -54,6 +54,7 @@ interface DanfossHvacThermostat {
         danfossPreheatStatus?: number;
         danfossPreheatTime?: number;
         danfossWindowOpenFeatureEnable?: number;
+        danfossHeatingSystemMode?: number;
         danfossRoomStatusCode?: number;
         danfossOutputStatus?: number;
         danfossRoomFloorSensorMode?: number;
@@ -269,6 +270,14 @@ const danfossExtend = {
                     type: Zcl.DataType.BOOLEAN,
                     manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
                     write: true,
+                },
+                danfossHeatingSystemMode: {
+                    name: "danfossHeatingSystemMode",
+                    ID: 0x4059,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
+                    write: true,
+                    max: 0xff,
                 },
                 danfossRoomStatusCode: {
                     name: "danfossRoomStatusCode",
@@ -1449,6 +1458,11 @@ export const definitions: DefinitionWithExtend[] = [
                 piHeatingDemand: {values: true},
                 systemMode: {values: ["heat"]},
                 programmingOperationMode: {values: ["setpoint", "schedule", "schedule_with_preheat", "eco"]},
+                // weeklySchedule: {values: ["heat"]},   // gives an error in test:
+                // test/checks.test.ts > Check definitions > respect snake case naming conventions for exposes and options
+                // Error: Definitions not using snake case for expose/option:
+                // Danfoss|014G2461|expose.name=transitionTime
+                // Danfoss|014G2461|expose.name=heatSetpoint
                 setpointsLimit: {
                     maxHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
                     minHeatSetpointLimit: {min: 5, max: 35, step: 0.5},
@@ -1456,6 +1470,25 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             danfossExtend.absMaxHeatSetpointLimit({
                 description: "Absolute Maximum Heating Setpoint Limit for the device. Adjust the 'Max heat setpoint limit' accordingly.",
+            }),
+            m.numeric<"hvacThermostat", undefined>({
+                name: "abs_min_heat_setpoint_limit",
+                cluster: "hvacThermostat",
+                attribute: "absMinHeatSetpointLimit",
+                description: "Absolute Minimum Heating Setpoint Limit for the device. Adjust the 'Min heat setpoint limit' accordingly.",
+                unit: "°C",
+                scale: 100,
+                entityCategory: "diagnostic",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"hvacThermostat", DanfossHvacThermostat>({
+                name: "heating_system_mode",
+                cluster: "hvacThermostat",
+                attribute: "danfossHeatingSystemMode",
+                description: "Heating system type, use `boiler_heating` to improve regulation in boiler setups",
+                lookup: {auto_system: 0, boiler_heating: 1, default_heating: 2},
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S},
             }),
             m.battery(),
             danfossExtend.keypadLockout(),
@@ -1497,54 +1530,13 @@ export const definitions: DefinitionWithExtend[] = [
                 .text("system_status_code", ea.STATE_GET)
                 .withDescription("Diagnostic error codes (e.g. 'invalid_clock_information,low_battery'). 'ok' when no errors.")
                 .withCategory("diagnostic"),
-            e
-                .enum("heating_system_mode", ea.ALL, ["auto_system", "boiler_heating", "default_heating"])
-                .withDescription("Switch between Auto (0), Boiler Mode (1), and Standard District Heating (2) modes."),
-            e.numeric("abs_min_heat_setpoint_limit", ea.STATE).withUnit("°C").withDescription("Absolute hardware minimum temperature limit"),
         ],
-        fromZigbee: [
-            fz.thermostat_weekly_schedule,
-            fzLocal.danfoss_system_status_code,
-            {
-                cluster: "hvacThermostat",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: {[key: string]: unknown} = {};
-                    if (Object.hasOwn(msg.data, 0x4059)) {
-                        const heatingSystemModeLookup: {[key: number]: string} = {0: "auto_system", 1: "boiler_heating", 2: "default_heating"};
-                        result.heating_system_mode = heatingSystemModeLookup[msg.data[0x4059] as number];
-                    }
-                    if (Object.hasOwn(msg.data, 0x0003)) {
-                        result.abs_min_heat_setpoint_limit = (msg.data[0x0003] as number) / 100;
-                    }
-                    return result;
-                },
-            },
-        ],
+        fromZigbee: [fz.thermostat_weekly_schedule, fzLocal.danfoss_system_status_code],
         toZigbee: [
             tz.thermostat_weekly_schedule,
             tz.thermostat_clear_weekly_schedule,
             tzLocal.danfoss_system_status_code,
             tzLocal.danfoss_preheat_command,
-            {
-                key: ["heating_system_mode", "abs_min_heat_setpoint_limit"],
-                convertSet: async (entity, key, value, meta) => {
-                    if (key === "heating_system_mode") {
-                        const heatingSystemModeLookup: {[key: string]: number} = {auto_system: 0, boiler_heating: 1, default_heating: 2};
-                        const numberValue = heatingSystemModeLookup[value as string];
-                        await entity.write("hvacThermostat", {16473: {value: numberValue, type: 0x20}}, {manufacturerCode: 0x1246});
-                        return {state: {heating_system_mode: value}};
-                    }
-                },
-                convertGet: async (entity, key, meta) => {
-                    if (key === "heating_system_mode") {
-                        await entity.read("hvacThermostat", [0x4059], {manufacturerCode: 0x1246});
-                    }
-                    if (key === "abs_min_heat_setpoint_limit") {
-                        await entity.read("hvacThermostat", [0x0003]);
-                    }
-                },
-            },
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
