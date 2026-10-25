@@ -9060,7 +9060,9 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
             tuya.whitelabel("Tuya", "WL-19DWZ", "Contact sensor", ["_TZ3000_n2egfsli"]),
-            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon"]),
+            // Some batches report the manufacturer name as "Zbeacon" instead of "zbeacon"; fingerprints are
+            // compared case-sensitively, so both spellings are needed for the same whitelabel.
+            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon", "Zbeacon"]),
         ],
         description: "Contact sensor",
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
