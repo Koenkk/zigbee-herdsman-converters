@@ -26,31 +26,13 @@ const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const te = tuya.exposes;
 
-// ZG-204ZX sends DP 111 (temperature) in the unit set with DP 109, not always in Celsius. After a unit change it
-// echoes DP 109 and about a second later sends DP 111 in the new unit; the calibration (DP 105) stays in Celsius.
-// The conversion uses the unit the device last reported, because tz.datapoints puts the requested unit into the
-// state before the device has applied it.
-const temperatureUnitMetaKey = "hobeianTemperatureUnit";
-
-const reportedTemperatureUnit = {
-    to: tuya.valueConverter.temperatureUnit.to,
-    from: (value: number, meta: Fz.Meta, options: KeyValueAny) => {
-        const unit = tuya.valueConverter.temperatureUnit.from(value, meta, options);
-        if (meta.device.meta?.[temperatureUnitMetaKey] !== unit) {
-            meta.device.meta ??= {};
-            meta.device.meta[temperatureUnitMetaKey] = unit;
-            meta.device.save();
-        }
-        return unit;
-    },
-};
-
-const temperatureInReportedUnit = {
+// Device reports the temperature in the selected temperature_unit instead of always in Celsius. Convert it back
+// so `temperature` (exposed with a fixed °C unit) stays consistent.
+// https://github.com/Koenkk/zigbee2mqtt/issues/32984
+const temperatureInSelectedUnit = {
     from: (value: number, meta: Fz.Meta) => {
-        // the state only counts until the device has reported its unit once
-        const unit = meta.device.meta?.[temperatureUnitMetaKey] ?? meta.state.temperature_unit;
-        const temperature = value / 10;
-        return precisionRound(unit === "fahrenheit" ? ((temperature - 32) * 5) / 9 : temperature, 2);
+        const raw = value / 10;
+        return precisionRound(meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw, 2);
     },
 };
 
@@ -245,21 +227,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "switch4", tuya.valueConverter.onOff],
                 [5, "switch5", tuya.valueConverter.onOff],
                 [6, "switch6", tuya.valueConverter.onOff],
-                [
-                    109,
-                    "temperature",
-                    {
-                        // Device reports the raw value already scaled in the currently selected
-                        // display unit (DP 111), instead of always reporting Celsius. Convert
-                        // back to Celsius here so `temperature` (exposed with a fixed °C unit)
-                        // stays consistent regardless of the device's temperature_unit setting.
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/32984
-                        from: (value: number, meta: Fz.Meta) => {
-                            const raw = value / 10;
-                            return meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw;
-                        },
-                    },
-                ],
+                [109, "temperature", temperatureInSelectedUnit],
                 [110, "humidity", tuya.valueConverter.raw],
                 [112, "battery", tuya.valueConverter.raw],
                 [111, "temperature_unit", tuya.valueConverter.temperatureUnit],
@@ -516,8 +484,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG-204ZX",
         vendor: "HOBEIAN",
         description: "24Ghz millimeter wave and T&H sensor",
-        // the data query answer includes the temperature unit (DP 109)
-        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.presence(),
             e.illuminance(),
@@ -574,9 +541,9 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [108, "indicator", tuya.valueConverter.onOff],
                 [110, "battery", tuya.valueConverter.raw],
-                [111, "temperature", temperatureInReportedUnit],
+                [111, "temperature", temperatureInSelectedUnit],
                 [101, "humidity", tuya.valueConverter.raw],
-                [109, "temperature_unit", reportedTemperatureUnit],
+                [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
                 [105, "temperature_calibration", tuya.valueConverter.divideBy10],
                 [104, "humidity_calibration", tuya.valueConverter.raw],
                 [107, "illuminance_interval", tuya.valueConverter.raw],
