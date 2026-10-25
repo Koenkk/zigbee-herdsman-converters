@@ -7078,7 +7078,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_g4au0afs",
             "_TZE204_w1wwxoja",
             "_TZE204_lmgrbuwf",
-            "_TZE284_tdhnhhiy",
             "_TZE204_wskr3up8",
             "_TZE204_gxbdnfrh",
             "_TZE284_g1enhdsi",
@@ -7140,7 +7139,6 @@ export const definitions: DefinitionWithExtend[] = [
         whiteLabel: [
             tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
             tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
-            tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
             tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
@@ -11282,7 +11280,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hodyryli"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_hodyryli", "_TZE2841000000_hodyryli"]),
         model: "ZT08",
         vendor: "Tuya",
         description: "Weather station with clock, internal/external temperature and humidity",
@@ -12283,7 +12281,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
                 [
                     2,
-                    "system_mode",
+                    "schedule_mode",
                     tuya.valueConverterBasic.lookup({
                         auto: tuya.enum(0),
                         manual: tuya.enum(1),
@@ -12411,6 +12409,57 @@ export const definitions: DefinitionWithExtend[] = [
                 [116, "eco_temperature", tuya.valueConverter.divideBy10],
                 [117, "comfort_temperature", tuya.valueConverter.divideBy10],
                 [118, "fault_code", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_fziifcxj"]),
+        model: "APRM-04-005",
+        vendor: "Appartme",
+        description: "Thermostatic radiator valve Zigbee 2.0",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET)
+                .withSystemMode(["heat", "off"], ea.STATE_SET, "heat = manual mode, off = anti-freeze mode")
+                .withPreset(["schedule", "manual", "antifrost"]),
+            e.child_lock(),
+            e.battery(),
+            e.window_detection_bool(ea.STATE_SET),
+            e.window_open(),
+            e.binary("valve_testing", ea.STATE_SET, true, false).withDescription("Valve test, the valve opens and closes while F1 is displayed"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // DP2 combines system_mode and preset. The first entry (key null) handles reads;
+                // the "preset"/"system_mode" entries handle writes (matched by key name).
+                [
+                    2,
+                    null,
+                    {
+                        from: (v: number) => {
+                            const lookup: {[key: number]: KeyValue} = {
+                                0: {system_mode: "heat", preset: "schedule"},
+                                3: {system_mode: "heat", preset: "manual"},
+                                5: {system_mode: "off", preset: "antifrost"},
+                            };
+                            return lookup[v] ?? {system_mode: "heat", preset: "manual"};
+                        },
+                    },
+                ],
+                [2, "preset", tuya.valueConverterBasic.lookup({schedule: tuya.enum(0), manual: tuya.enum(3), antifrost: tuya.enum(5)})],
+                [2, "system_mode", tuya.valueConverterBasic.lookup({heat: tuya.enum(3), off: tuya.enum(5)})],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+                [14, "window_detection", tuya.valueConverter.raw],
+                [15, "window_open", tuya.valueConverter.trueFalseEnum1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [48, "valve_testing", tuya.valueConverter.raw],
             ],
         },
     },
@@ -13074,7 +13123,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase()],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_cjbofhxw", "_TZE284_cjbofhxw"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_cjbofhxw", "_TZE284_cjbofhxw", "_TZE28C1000000_cjbofhxw"]),
         model: "PJ-MGW1203",
         vendor: "Tuya",
         description: "Clamp meter",
@@ -13088,7 +13137,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [101, "energy", tuya.valueConverter.divideBy1000],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Tuya", "PJ-1203-W", "Electricity energy monitor", ["_TZE284_cjbofhxw"])],
+        whiteLabel: [tuya.whitelabel("Tuya", "PJ-1203-W", "Electricity energy monitor", ["_TZE284_cjbofhxw", "_TZE28C1000000_cjbofhxw"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_bkkmqmyo", "_TZE200_eaac7dkw", "_TZE204_bkkmqmyo"]),
@@ -19068,7 +19117,6 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
     {
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_vmcgja59",
@@ -19076,11 +19124,9 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_dvosyycn",
             "_TZE200_wktrysab",
             "_TZE204_wktrysab",
-            "_TZE204_nvxorhcj",
             "_TZE204_tdhnhhiy",
             "_TZE204_ad2jkxwh",
             "_TZE204_72bewjky",
-            "_TZE284_kow4ok3t",
         ]),
         model: "TS0601_switch_8",
         vendor: "ZYXH",
@@ -19112,7 +19158,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [0x66, "state_l8", tuya.valueConverter.onOff],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nova Digital", "ZTS-8W-B", "8 Gang Switch", ["_TZE204_nvxorhcj"])],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_adlblwab", "_TZE284_adlblwab"]),
@@ -21974,7 +22019,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k", "_TZE204_6a4vxfnv"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_edl8pz1k", "_TZE204_edl8pz1k"]),
         model: "TS0601_floor_thermostat",
         vendor: "Tuya",
         description: "Zigbee thermostat for electric floors",
@@ -22022,6 +22067,112 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
         whiteLabel: [{vendor: "ELECTSMART", model: "EST-120Z"}],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_6a4vxfnv", "_TZE204_0hhou4yj"]),
+        model: "TS0601_floor_thermostat_006",
+        vendor: "Tuya",
+        description: "Zigbee thermostat for electric floors with selectable internal and external sensors",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e
+                .climate()
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "auto"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withDescription("Temperature of the active control sensor")
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+            e.numeric("internal_temperature", ea.STATE).withUnit("°C").withDescription("Temperature reported by the internal sensor"),
+            e.numeric("external_temperature_input", ea.STATE).withUnit("°C").withDescription("Temperature reported by the external floor sensor"),
+            e
+                .temperature_sensor_select(["IN", "OU", "AL"])
+                .withLabel("Sensor")
+                .withDescription("IN: internal sensor; OU: external sensor; AL: internal control with external floor limit"),
+            e.binary("eco_mode", ea.STATE_SET, "ON", "OFF").withLabel("ECO mode"),
+            e.deadzone_temperature().withValueMin(0.5).withValueMax(5).withValueStep(0.5).withUnit("°C").withDescription("Heating hysteresis"),
+            e.child_lock(),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [2, "preset", tuya.valueConverter.tv02Preset()],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [
+                    24,
+                    null,
+                    {
+                        from: (value: number, meta: Fz.Meta) => {
+                            const temperature = Number(value) / 10;
+                            meta.state.internal_temperature = temperature;
+                            const result: KeyValue = {internal_temperature: temperature};
+                            if (meta.state.sensor !== "OU") {
+                                result.local_temperature = temperature;
+                            }
+                            return result;
+                        },
+                    },
+                ],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
+                [
+                    36,
+                    "running_state",
+                    tuya.valueConverterBasic.lookup({
+                        heat: tuya.enum(0),
+                        idle: tuya.enum(1),
+                    }),
+                ],
+                [39, "child_lock", tuya.valueConverter.lockUnlock],
+                [40, "eco_mode", tuya.valueConverter.onOff],
+                [
+                    43,
+                    "sensor",
+                    {
+                        from: (value: number, meta: Fz.Meta, _options: KeyValue, publish?: (payload: KeyValue) => void) => {
+                            const sensor = ["IN", "AL", "OU"][Number(value)];
+                            if (!sensor) return null;
+
+                            meta.state.sensor = sensor;
+                            const activeTemperature = sensor === "OU" ? meta.state.external_temperature_input : meta.state.internal_temperature;
+                            if (typeof activeTemperature === "number") {
+                                publish?.({local_temperature: activeTemperature});
+                            }
+                            return sensor;
+                        },
+                        to: (value: string) => tuya.enum(utils.getFromLookup(String(value).toUpperCase(), {IN: 0, AL: 1, OU: 2})),
+                    },
+                ],
+                [
+                    102,
+                    null,
+                    {
+                        from: (value: number, meta: Fz.Meta) => {
+                            const temperature = Number(value) / 10;
+                            meta.state.external_temperature_input = temperature;
+                            const result: KeyValue = {external_temperature_input: temperature};
+                            if (meta.state.sensor === "OU") {
+                                result.local_temperature = temperature;
+                            }
+                            return result;
+                        },
+                    },
+                ],
+                [103, "deadzone_temperature", tuya.valueConverter.divideBy10],
+                [110, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [109, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [108, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [107, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [106, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [105, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+                [101, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDP],
+            ],
+        },
+        whiteLabel: [
+            tuya.whitelabel("ELECTSMART", "EST-120Z", "Zigbee thermostat for electric floors", ["_TZE204_6a4vxfnv"]),
+            tuya.whitelabel("ELECTSMART", "EST-D100Z", "Zigbee thermostat for electric floors", ["_TZE204_0hhou4yj"]),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_khah2lkr"]),
@@ -26808,6 +26959,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withPreset(["manual", "schedule", "eco", "comfort", "frost_protection", "holiday", "off"])
+                .withSystemMode(["off", "heat", "auto"], ea.STATE_SET)
                 .withRunningState(["idle", "heat"], ea.STATE)
                 .withLocalTemperatureCalibration(-9.5, 9.5, 0.5, ea.STATE_SET),
             e.child_lock(),
@@ -26820,6 +26972,13 @@ export const definitions: DefinitionWithExtend[] = [
             e.holiday_temperature().withValueMin(5).withValueMax(35).withValueStep(0.5),
             e.binary("window_open", ea.STATE, "OPEN", "CLOSE"),
             e.binary("frost_protection", ea.STATE_SET, "ON", "OFF"),
+            e
+                .numeric("frost_protection_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5)
+                .withDescription("Frost protection: the valve opens when the room temperature falls below this value"),
             e.binary("scale_protection", ea.STATE_SET, "ON", "OFF"),
             e.numeric("error", ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF").withDescription("Boost Heating: the device will enter the boost heating mode."),
@@ -26828,15 +26987,43 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [
                     2,
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "manual", systemMode: "heat", preset: "manual"},
+                            1: {deviceMode: "schedule", systemMode: "auto", preset: "schedule"},
+                            2: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            3: {deviceMode: "comfort", systemMode: "heat", preset: "comfort"},
+                            4: {deviceMode: "frost_protection", systemMode: "heat", preset: "frost_protection"},
+                            5: {deviceMode: "holiday", systemMode: "heat", preset: "holiday"},
+                            6: {deviceMode: "off", systemMode: "off", preset: "off"},
+                        },
+                    }),
+                ],
+                [
+                    2,
                     "preset",
-                    tuya.valueConverterBasic.lookup({
-                        manual: tuya.enum(0),
-                        schedule: tuya.enum(1),
-                        eco: tuya.enum(2),
-                        comfort: tuya.enum(3),
-                        frost_protection: tuya.enum(4),
-                        holiday: tuya.enum(5),
-                        off: tuya.enum(6),
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            manual: tuya.enum(0),
+                            schedule: tuya.enum(1),
+                            eco: tuya.enum(2),
+                            comfort: tuya.enum(3),
+                            frost_protection: tuya.enum(4),
+                            holiday: tuya.enum(5),
+                            off: tuya.enum(6),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            heat: tuya.enum(0),
+                            auto: tuya.enum(1),
+                            off: tuya.enum(6),
+                        },
                     }),
                 ],
                 [3, "running_state", tuya.valueConverterBasic.lookup({idle: 0, heat: 1})],
@@ -27786,7 +27973,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_8se38w3c"}],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_8se38w3c", "_TZE2841000000_8se38w3c"]),
         model: "TZ-ZT01_GA4",
         vendor: "Tuya",
         description: "Temperature & humidity Sensor with external probe",

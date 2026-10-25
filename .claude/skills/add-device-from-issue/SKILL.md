@@ -1,5 +1,4 @@
 ---
-
 name: add-device-from-issue
 description: Add support for a device reported in a zigbee2mqtt GitHub issue (e.g. "[External Converter]" or "[New device support]" issues), preferring to merge its fingerprint into an existing definition. Use when the user says "add <github issue/comment URL>".
 ---

@@ -9753,7 +9753,7 @@ export const toZigbee = {
                     return;
                 }
 
-                return {state: {position: value}};
+                return {state: {position: targetPosition}};
             }
         },
         convertGet: async (entity, key, meta) => {

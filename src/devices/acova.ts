@@ -9,6 +9,7 @@ import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 const acova = {
     fz: {
@@ -87,10 +88,10 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ALCANTARA3",
         vendor: "Acova",
         description: "Alcantara 3 heater",
-        fromZigbee: [acova.fz.thermostat, fz.hvac_user_interface, fz.electrical_measurement],
+        fromZigbee: [fz.thermostat, fz.hvac_user_interface, fz.electrical_measurement],
         toZigbee: [
             tz.thermostat_local_temperature,
-            acova.tz.acova_thermostat_system_mode,
+            tz.thermostat_system_mode,
             tz.thermostat_occupied_heating_setpoint,
             tz.thermostat_unoccupied_heating_setpoint,
             tz.thermostat_running_state,
@@ -101,9 +102,25 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSetpoint("occupied_heating_setpoint", 7, 28, 0.5)
                 .withSetpoint("unoccupied_heating_setpoint", 7, 28, 0.5)
                 .withLocalTemperature()
-                .withSystemMode(["off", "heat", "auto"])
+                .withSystemMode(["off", "heat"]) // For my personal experience, with ALCANTARA I found only 2 modes.
                 .withRunningState(["idle", "heat"]),
             e.power_apparent(),
+        ],
+        extend: [
+            // The device ignores apparentPower reporting, so it is polled instead.
+            m.poll({
+                key: "power_apparent",
+                option: e
+                    .numeric("power_apparent_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription(
+                        "The device does not report power_apparent by itself, so it is polled. Default is 60 seconds, set to -1 to disable.",
+                    ),
+                defaultIntervalSeconds: 60,
+                poll: async (device) => {
+                    await device.getEndpoint(1).read("haElectricalMeasurement", ["apparentPower"]);
+                },
+            }),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);

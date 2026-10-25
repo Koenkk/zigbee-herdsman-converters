@@ -12,7 +12,7 @@
         "bracketSpacing": false
     },
     "files": {
-        "includes": ["**", "!package.json", "!pnpm-lock.yaml", "!CHANGELOG.md", "!!**/dist", "!!**/coverage"],
+        "includes": ["**", "!package.json", "!pnpm-lock.yaml", "!CHANGELOG.md", "!.claude/skills/**/SKILL.md", "!!**/dist", "!!**/coverage"],
         "maxSize": 10485760
     },
     "linter": {
