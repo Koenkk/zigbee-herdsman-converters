@@ -4533,7 +4533,12 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.presence(),
             e.numeric("sensitivity", ea.STATE_SET).withValueMin(0).withValueMax(10).withDescription("Sensitivity (default 10, unverified)"),
-            e.numeric("detection_distance", ea.STATE_SET).withValueMin(0).withValueMax(1000).withUnit("cm").withDescription("Maximum detection distance (default 600)"),
+            e
+                .numeric("detection_distance", ea.STATE_SET)
+                .withValueMin(0)
+                .withValueMax(1000)
+                .withUnit("cm")
+                .withDescription("Maximum detection distance (default 600)"),
             e.binary("switch_1", ea.STATE_SET, "ON", "OFF").withDescription("Switch 1 (function unknown, default on)"),
             e.binary("switch_2", ea.STATE_SET, "ON", "OFF").withDescription("Switch 2 (function unknown, default on)"),
             e.binary("switch_3", ea.STATE_SET, "ON", "OFF").withDescription("Switch 3 (function unknown, default on)"),
