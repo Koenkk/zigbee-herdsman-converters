@@ -1568,7 +1568,7 @@ const fzLocal = {
             // Device keeps reporting a acCurrentPowerValue after turning OFF.
             // Make sure power = 0 when turned OFF
             // https://github.com/Koenkk/zigbee2mqtt/issues/28470
-            let result = fz.on_off.convert(model, msg, publish, options, meta);
+            let result = fz.on_off.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (msg.data.onOff === 0) {
                 result = {...result, power: 0, current: 0};
             }

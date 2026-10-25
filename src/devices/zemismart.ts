@@ -223,8 +223,8 @@ const fzLocal = {
                             currentPosition = currentPosition === -1 ? 100 : currentPosition;
                             currentPosition = currentPosition - (deltaTimeSec * 100) / Number(options.time_close);
                         }
-                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
-                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                        currentPosition = Math.min(currentPosition, 100);
+                        currentPosition = Math.max(currentPosition, 0);
                     }
                 }
                 entry.CurrentPosition = currentPosition;

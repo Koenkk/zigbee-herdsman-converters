@@ -68,7 +68,7 @@ function createZoneAwareConverter<T extends string>(
             if (zoneSuffix === null) return undefined;
 
             // Call the base converter
-            const baseResult = baseConverter.convert(model, msg, publish, options, meta);
+            const baseResult = baseConverter.convert(model, msg, publish, options, meta) as KeyValue | undefined;
             if (!baseResult || typeof baseResult !== "object" || !("action" in baseResult)) return baseResult;
 
             // Override the action with zone suffix

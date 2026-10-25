@@ -1,5 +1,5 @@
 {
-    "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
+    "$schema": "https://biomejs.dev/schemas/2.6.2/schema.json",
     "vcs": {
         "enabled": true,
         "clientKind": "git",
@@ -10,6 +10,16 @@
         "indentWidth": 4,
         "lineWidth": 150,
         "bracketSpacing": false
+    },
+    "markdown": {
+        "formatter": {
+            "enabled": false
+        }
+    },
+    "yaml": {
+        "formatter": {
+            "enabled": false
+        }
     },
     "files": {
         "includes": ["**", "!package.json", "!!**/dist", "!!**/coverage"],
