@@ -12413,6 +12413,57 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_fziifcxj"]),
+        model: "APRM-04-005",
+        vendor: "Appartme",
+        description: "Thermostatic radiator valve Zigbee 2.0",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-5, 5, 0.5, ea.STATE_SET)
+                .withSystemMode(["heat", "off"], ea.STATE_SET, "heat = manual mode, off = anti-freeze mode")
+                .withPreset(["schedule", "manual", "antifrost"]),
+            e.child_lock(),
+            e.battery(),
+            e.window_detection_bool(ea.STATE_SET),
+            e.window_open(),
+            e.binary("valve_testing", ea.STATE_SET, true, false).withDescription("Valve test, the valve opens and closes while F1 is displayed"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // DP2 combines system_mode and preset. The first entry (key null) handles reads;
+                // the "preset"/"system_mode" entries handle writes (matched by key name).
+                [
+                    2,
+                    null,
+                    {
+                        from: (v: number) => {
+                            const lookup: {[key: number]: KeyValue} = {
+                                0: {system_mode: "heat", preset: "schedule"},
+                                3: {system_mode: "heat", preset: "manual"},
+                                5: {system_mode: "off", preset: "antifrost"},
+                            };
+                            return lookup[v] ?? {system_mode: "heat", preset: "manual"};
+                        },
+                    },
+                ],
+                [2, "preset", tuya.valueConverterBasic.lookup({schedule: tuya.enum(0), manual: tuya.enum(3), antifrost: tuya.enum(5)})],
+                [2, "system_mode", tuya.valueConverterBasic.lookup({heat: tuya.enum(3), off: tuya.enum(5)})],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+                [14, "window_detection", tuya.valueConverter.raw],
+                [15, "window_open", tuya.valueConverter.trueFalseEnum1],
+                [47, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [48, "valve_testing", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
         zigbeeModel: ["TS0121"],
         model: "TS0121_plug",
         description: "10A UK or 16A EU smart plug",
