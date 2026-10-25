@@ -123,29 +123,38 @@ const salusExtend = {
             },
         }),
     // The device leaves the network when its sync request is not answered.
-    it600Sync: (deviceNumber: number): ModernExtend => ({
-        fromZigbee: [
-            {
-                cluster: "manuSpecificSalusIt600",
-                type: "commandSyncRequest",
-                convert: async (model, msg, publish, options, meta) => {
-                    const payload = Buffer.alloc(15);
-                    payload[0] = deviceNumber;
-                    payload.writeUInt32LE(Math.round((Date.now() - constants.OneJanuary2000) / 1000 - new Date().getTimezoneOffset() * 60), 2);
-                    payload[6] = 0x02; // 24-hour clock, no DST
-                    payload[7] = 13; // UTC time zone, the time is local already
-                    payload.fill(0xff, 9, 13);
-                    payload[13] = 0x31;
-                    await msg.endpoint.commandResponse<"manuSpecificSalusIt600", "syncResponse", SalusIt600>(
-                        "manuSpecificSalusIt600",
-                        "syncResponse",
-                        {payload},
-                    );
+    it600Sync: (deviceNumber: number, endpointId: number): ModernExtend => {
+        const sendSyncResponse = async (endpoint: Zh.Endpoint) => {
+            const payload = Buffer.alloc(15);
+            payload[0] = deviceNumber;
+            payload.writeUInt32LE(Math.round((Date.now() - constants.OneJanuary2000) / 1000 - new Date().getTimezoneOffset() * 60), 2);
+            payload[6] = 0x02; // 24-hour clock, no DST
+            payload[7] = 13; // UTC time zone, the time is local already
+            payload.fill(0xff, 9, 13);
+            payload[13] = 0x31;
+            await endpoint.commandResponse<"manuSpecificSalusIt600", "syncResponse", SalusIt600>("manuSpecificSalusIt600", "syncResponse", {payload});
+        };
+        return {
+            fromZigbee: [
+                {
+                    cluster: "manuSpecificSalusIt600",
+                    type: "commandSyncRequest",
+                    convert: async (model, msg, publish, options, meta) => {
+                        await sendSyncResponse(msg.endpoint);
+                    },
+                } satisfies Fz.Converter<"manuSpecificSalusIt600", SalusIt600, "commandSyncRequest">,
+            ],
+            onEvent: [
+                async (event) => {
+                    if (event.type === "deviceAnnounce" || (event.type === "deviceInterview" && event.data.status === "successful")) {
+                        const endpoint = event.data.device.getEndpoint(endpointId);
+                        if (endpoint) await sendSyncResponse(endpoint);
+                    }
                 },
-            } satisfies Fz.Converter<"manuSpecificSalusIt600", SalusIt600, "commandSyncRequest">,
-        ],
-        isModernExtend: true,
-    }),
+            ],
+            isModernExtend: true,
+        };
+    },
 };
 
 async function it600Write(endpoint: Zh.Endpoint, command: string, ...args: number[]) {
@@ -389,7 +398,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SQ610RFNH",
         vendor: "Salus Controls",
         description: "Quantum wireless thermostat",
-        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(0x20)],
+        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(0x20, 9)],
         fromZigbee: [fzLocal.it600_status],
         toZigbee: [tzLocal.it600_system_mode, tzLocal.it600_setpoint, tzLocal.it600_child_lock, tzLocal.it600_wiring_centre_zones],
         exposes: [
@@ -414,7 +423,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KL08RF",
         vendor: "Salus Controls",
         description: "iT600 8-zone wiring centre",
-        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(1)],
+        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(1, 8)],
         onEvent: (event) => {
             // Needed for the zone pairing of the thermostats
             if (event.type === "start") globalStore.putValue("salusIt600", "wiringCentre", event.data.device);
