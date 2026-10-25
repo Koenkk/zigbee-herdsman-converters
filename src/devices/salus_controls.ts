@@ -81,8 +81,9 @@ const fzLocal = {
                 running_state: record[17] === 1 ? "heat" : "idle",
                 child_lock: record[23] === 1 ? "LOCK" : "UNLOCK",
                 humidity: bcd(24, 1),
-                battery: record[49] * 20,
             };
+            const battery = [0, 10, 25, 50, 75, 100][record[49]];
+            if (battery !== undefined) result.battery = battery;
             // 12.34 is a placeholder the thermostat regularly sends instead of a reading
             if (record.readUInt16BE(4) !== 0x1234) result.local_temperature = bcd(4) / 100;
             return result;
@@ -95,6 +96,17 @@ const it600Payload = [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}];
 let it600Handle = 0;
 
 const salusExtend = {
+    addGatewayBasic: () =>
+        m.deviceAddCustomCluster("genBasic", {
+            name: "genBasic",
+            ID: 0x0000,
+            attributes: {
+                manufacturerName: {name: "manufacturerName", ID: 0x0004, type: Zcl.DataType.CHAR_STR, default: "Computime", maxLen: 32},
+                modelId: {name: "modelId", ID: 0x0005, type: Zcl.DataType.CHAR_STR, default: "SAU2AG1", maxLen: 32},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addIt600Cluster: () =>
         m.deviceAddCustomCluster("manuSpecificSalusIt600", {
             name: "manuSpecificSalusIt600",
@@ -377,7 +389,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SQ610RFNH",
         vendor: "Salus Controls",
         description: "Quantum wireless thermostat",
-        extend: [salusExtend.addIt600Cluster(), salusExtend.it600Sync(0x20)],
+        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(0x20)],
         fromZigbee: [fzLocal.it600_status],
         toZigbee: [tzLocal.it600_system_mode, tzLocal.it600_setpoint, tzLocal.it600_child_lock, tzLocal.it600_wiring_centre_zones],
         exposes: [
@@ -402,7 +414,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KL08RF",
         vendor: "Salus Controls",
         description: "iT600 8-zone wiring centre",
-        extend: [salusExtend.addIt600Cluster(), salusExtend.it600Sync(1)],
+        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(1)],
         onEvent: (event) => {
             // Needed for the zone pairing of the thermostats
             if (event.type === "start") globalStore.putValue("salusIt600", "wiringCentre", event.data.device);
