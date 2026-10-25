@@ -398,7 +398,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SQ610RFNH",
         vendor: "Salus Controls",
         description: "Quantum wireless thermostat",
-        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(0x20, 9)],
+        extend: [
+            salusExtend.addGatewayBasic(),
+            salusExtend.addIt600Cluster(),
+            salusExtend.it600Sync(0x20, 9),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
         fromZigbee: [fzLocal.it600_status],
         toZigbee: [tzLocal.it600_system_mode, tzLocal.it600_setpoint, tzLocal.it600_child_lock, tzLocal.it600_wiring_centre_zones],
         exposes: [
@@ -423,7 +428,12 @@ export const definitions: DefinitionWithExtend[] = [
         model: "KL08RF",
         vendor: "Salus Controls",
         description: "iT600 8-zone wiring centre",
-        extend: [salusExtend.addGatewayBasic(), salusExtend.addIt600Cluster(), salusExtend.it600Sync(1, 8)],
+        extend: [
+            salusExtend.addGatewayBasic(),
+            salusExtend.addIt600Cluster(),
+            salusExtend.it600Sync(1, 8),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
         onEvent: (event) => {
             // Needed for the zone pairing of the thermostats
             if (event.type === "start") globalStore.putValue("salusIt600", "wiringCentre", event.data.device);
