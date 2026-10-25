@@ -107,6 +107,44 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("tuyaBase gateway connection status", () => {
+        it("replies to commandMcuGatewayConnectionStatus without waiting for a response", async () => {
+            const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_cjbofhxw", endpoints: [{ID: 1}]});
+            const definition = await findByDevice(device);
+            const converter = definition.fromZigbee.find((item) => {
+                const types = Array.isArray(item.type) ? item.type : [item.type];
+                return types.includes("commandMcuGatewayConnectionStatus");
+            });
+            if (!converter) throw new Error("commandMcuGatewayConnectionStatus converter not found");
+
+            const endpoint = device.getEndpoint(1);
+            await converter.convert(
+                definition,
+                {
+                    data: {},
+                    endpoint,
+                    device,
+                    meta: {rawData: Buffer.alloc(0)},
+                    groupID: 0,
+                    type: "commandMcuGatewayConnectionStatus",
+                    cluster: "manuSpecificTuya",
+                    linkquality: 0,
+                } as never,
+                () => {},
+                {},
+                {device, state: {}, deviceExposesChanged: () => {}},
+            );
+
+            expect(endpoint.command).toHaveBeenCalledTimes(1);
+            expect(endpoint.command).toHaveBeenCalledWith(
+                "manuSpecificTuya",
+                "mcuGatewayConnectionStatus",
+                {payloadSize: 1, payload: 1},
+                expect.objectContaining({disableResponse: true, disableDefaultResponse: true}),
+            );
+        });
+    });
+
     describe("closuresWindowCovering custom cluster (Tuya covers)", () => {
         // Regression: moesCalibrationTime was declared as ENUM8 (a single byte,
         // max 255). The calibration_time converter writes value * 10 and the
