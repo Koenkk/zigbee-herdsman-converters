@@ -744,3 +744,89 @@ describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
         expect(() => converter.to(value)).toThrow();
     });
 });
+
+describe("TS0601_cover_4 (Moes AM43) opening mode", () => {
+    const resolve = async () => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE200_icka1clh", endpoints: [{ID: 1}], ieeeAddr: "0xa43a43a43a43a43a"});
+        vi.spyOn(device, "save").mockImplementation(() => {});
+        const definition = await findByDevice(device);
+        return {device, definition};
+    };
+    const coverProperties = (definition: Definition, device: Parameters<Extract<Definition["exposes"], (...args: never[]) => unknown>>[0]) => {
+        const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        const cover = exposes.find((expose) => expose.type === "cover") as any;
+        return cover.features.map((feature: {property: string}) => feature.property);
+    };
+    let seq = 0;
+    const report = (
+        definition: Definition,
+        device: ReturnType<typeof mockDevice>,
+        dp: number,
+        datatype: number,
+        data: number[],
+        state: KeyValueAny = {},
+    ) => {
+        const deviceExposesChanged = vi.fn();
+        const publish = vi.fn();
+        const msg = {
+            data: {dpValues: [{dp, datatype, data: Buffer.from(data)}]},
+            device,
+            endpoint: device.getEndpoint(1),
+            meta: {zclTransactionSequenceNumber: ++seq},
+            // biome-ignore lint/suspicious/noExplicitAny: generic
+        } as Fz.Message<any, any, any>;
+        const result = tuya.fz.datapoints.convert(definition, msg, publish, {}, {state, device, deviceExposesChanged});
+        return {result, deviceExposesChanged, publish};
+    };
+
+    it("exposes position until the device reports tilt mode", async () => {
+        const {device, definition} = await resolve();
+        expect(definition.model).toStrictEqual("AM43-0.45/40-ES-EB");
+        expect(coverProperties(definition, device)).toStrictEqual(["state", "position"]);
+        expect(coverProperties(definition, {isDummyDevice: true})).toStrictEqual(["state", "position", "tilt"]);
+        expect(report(definition, device, 2, 2, [0, 0, 0, 40]).result).toStrictEqual({position: 40});
+    });
+
+    it("switches to tilt when the device reports tilt mode", async () => {
+        const {device, definition} = await resolve();
+        const tilt = report(definition, device, 101, 4, [0], {position: 25});
+        expect(tilt.result).toStrictEqual({opening_mode: "tilt"});
+        expect(tilt.deviceExposesChanged).toHaveBeenCalledTimes(1);
+        expect(tilt.publish).toHaveBeenCalledWith({tilt: 25});
+        expect(device.meta.openingMode).toStrictEqual("tilt");
+        expect(coverProperties(definition, device)).toStrictEqual(["state", "tilt"]);
+        expect(report(definition, device, 2, 2, [0, 0, 0, 40]).result).toStrictEqual({tilt: 40});
+        expect(report(definition, device, 3, 2, [0, 0, 0, 60]).result).toStrictEqual({tilt: 60});
+
+        expect(report(definition, device, 101, 4, [0]).deviceExposesChanged).not.toHaveBeenCalled();
+
+        const lift = report(definition, device, 101, 4, [1], {tilt: 60});
+        expect(lift.result).toStrictEqual({opening_mode: "lift"});
+        expect(lift.deviceExposesChanged).toHaveBeenCalledTimes(1);
+        expect(lift.publish).toHaveBeenCalledWith({position: 60});
+        expect(coverProperties(definition, device)).toStrictEqual(["state", "position"]);
+    });
+
+    it("writes tilt to the position datapoint", async () => {
+        const {device, definition} = await resolve();
+        const endpoint = device.getEndpoint(1);
+        const meta: Tz.Meta = {
+            state: {},
+            device,
+            deviceExposesChanged: () => {},
+            message: {tilt: 30},
+            mapped: definition,
+            options: {},
+            publish: null,
+            endpoint_name: null,
+        };
+        await tuya.tz.datapoints.convertSet(endpoint, "tilt", 30, meta);
+        expect(endpoint.command).toHaveBeenCalledWith(
+            "manuSpecificTuya",
+            "dataRequest",
+            expect.objectContaining({dpValues: [{dp: 2, datatype: 2, data: Buffer.from([0, 0, 0, 30])}]}),
+            expect.anything(),
+        );
+    });
+});

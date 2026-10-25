@@ -2401,6 +2401,28 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
     },
 };
 
+const am43OpeningMode = tuya.valueConverterBasic.lookup({tilt: tuya.enum(0), lift: tuya.enum(1)});
+const am43IsTilt = (device: Zh.Device | undefined) => device?.meta?.openingMode === "tilt";
+const am43CoverOpeningMode: Tuya.ValueConverterSingle = {
+    ...am43OpeningMode,
+    from: (v, meta, options, publish) => {
+        const mode = am43OpeningMode.from(v, meta, options);
+        if (meta.device.meta.openingMode !== mode) {
+            meta.device.meta.openingMode = mode;
+            meta.device.save();
+            meta.deviceExposesChanged();
+            const [from, to] = mode === "tilt" ? ["position", "tilt"] : ["tilt", "position"];
+            if (meta.state[from] !== undefined) publish({[to]: meta.state[from]});
+        }
+        return mode;
+    },
+};
+const am43CoverPosition = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (v, meta, options, publish, msg) => ({
+        [am43IsTilt(meta.device) ? "tilt" : "position"]: converter.from(v, meta, options, publish, msg),
+    }),
+});
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
@@ -11040,11 +11062,17 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Cover",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            te.coverPosition(),
+        exposes: (device) => [
+            isDummyDevice(device)
+                ? te.coverPosition().withTilt().setAccess("tilt", ea.STATE_SET)
+                : am43IsTilt(device)
+                  ? e.cover_tilt().setAccess("tilt", ea.STATE_SET)
+                  : te.coverPosition(),
             te.motorDirection(),
             e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed").withUnit("rpm"),
-            e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
+            e
+                .enum("opening_mode", ea.STATE_SET, ["tilt", "lift"])
+                .withDescription("Opening mode, in tilt mode the cover exposes tilt instead of position"),
             e.enum("set_upper_limit", ea.SET, ["SET"]).withDescription("Set the upper limit, to reset limits use factory_reset"),
             e.enum("set_bottom_limit", ea.SET, ["SET"]).withDescription("Set the bottom limit, to reset limits use factory_reset"),
             e.binary("factory_reset", ea.SET, true, false).withDescription("Factory reset the device"),
@@ -11057,18 +11085,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
+                [2, null, am43CoverPosition(tuya.valueConverter.coverPosition)],
+                [3, null, am43CoverPosition(tuya.valueConverter.raw)],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [3, "position", tuya.valueConverter.raw],
+                [2, "tilt", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [7, null, null], // work_state, not useful, ignore
-                [
-                    101,
-                    "opening_mode",
-                    tuya.valueConverterBasic.lookup({
-                        tilt: tuya.enum(0),
-                        lift: tuya.enum(1),
-                    }),
-                ],
+                [101, "opening_mode", am43CoverOpeningMode],
                 [102, "factory_reset", tuya.valueConverter.raw],
                 [103, "set_upper_limit", tuya.valueConverter.setLimit],
                 [104, "set_bottom_limit", tuya.valueConverter.setLimit],
