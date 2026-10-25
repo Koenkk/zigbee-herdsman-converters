@@ -1278,7 +1278,7 @@ describe("Shelly WS90 rain rate", () => {
         const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
         const report = (windSpeed: number) => {
             for (const c of wind) {
-                (c as Fz.Converter).convert(
+                void (c as Fz.Converter).convert(
                     definition,
                     {data: {windSpeed}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
                     vi.fn(),

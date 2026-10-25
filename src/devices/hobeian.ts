@@ -123,7 +123,7 @@ const fzLocal = {
             let result: KeyValueAny = {};
             const data = msg.data;
             if (data && data.zoneStatus !== undefined) {
-                const result1 = fz.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+                const result1 = fz.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta) as KeyValueAny;
                 result = {...result1};
             }
             if (data && data.currentZoneSensitivityLevel !== undefined) {

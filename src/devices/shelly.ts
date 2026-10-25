@@ -2676,9 +2676,9 @@ const shellyTRVExternalOccupancyOnEvent: OnEvent.Handler = (event) => {
     );
 };
 
-const shellyTRVExternalInputsOnEvent: OnEvent.Handler = (event) => {
-    shellyTRVExternalTemperatureOnEvent(event);
-    shellyTRVExternalOccupancyOnEvent(event);
+const shellyTRVExternalInputsOnEvent: OnEvent.Handler = async (event) => {
+    await shellyTRVExternalTemperatureOnEvent(event);
+    await shellyTRVExternalOccupancyOnEvent(event);
 };
 
 // =============================================================================

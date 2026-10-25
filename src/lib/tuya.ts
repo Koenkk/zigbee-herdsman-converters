@@ -1538,7 +1538,7 @@ export const valueConverterBasic = {
     divideByWithLimits: (value: number, min: number, max: number) => {
         return {
             to: (v: number) => (v > max ? max * value : v < min ? min * value : v * value),
-            from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
+            from: (v: number) => (v / value > max ? max : Math.max(v / value, min)),
         };
     },
     twosComplementWithBitsizeScaled: (bits: number, scale = 1) => {

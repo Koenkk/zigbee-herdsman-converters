@@ -559,18 +559,16 @@ describe("lib/lumi", () => {
         it.each([
             {invert_cover: false, attr107Position: 99, expectedPosition: 99, expectedState: "OPEN"},
             {invert_cover: true, attr107Position: 1, expectedPosition: 99, expectedState: "CLOSE"},
-        ])("uses attr 107 for movement updates when invert_cover=$invert_cover", async ({
-            invert_cover,
-            attr107Position,
-            expectedPosition,
-            expectedState,
-        }) => {
-            const {msg} = createCurtainMessage();
+        ])(
+            "uses attr 107 for movement updates when invert_cover=$invert_cover",
+            async ({invert_cover, attr107Position, expectedPosition, expectedState}) => {
+                const {msg} = createCurtainMessage();
 
-            const payload = await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {107: attr107Position});
+                const payload = await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {107: attr107Position});
 
-            expect(payload).toStrictEqual({position: expectedPosition, state: expectedState});
-        });
+                expect(payload).toStrictEqual({position: expectedPosition, state: expectedState});
+            },
+        );
 
         it.each([
             {invert_cover: false, staleTerminalPosition: 99},
@@ -624,27 +622,25 @@ describe("lib/lumi", () => {
                 resumedAttr107Position: 20,
                 expectedPayload: {position: 80, state: "CLOSE", motor_state: "opening", running: true},
             },
-        ])("uses attr 107 in the first same-message resume payload when invert_cover=$invert_cover", async ({
-            invert_cover,
-            runningStateValue,
-            resumedAttr107Position,
-            expectedPayload,
-        }) => {
-            const {device, msg} = createCurtainMessage();
+        ])(
+            "uses attr 107 in the first same-message resume payload when invert_cover=$invert_cover",
+            async ({invert_cover, runningStateValue, resumedAttr107Position, expectedPayload}) => {
+                const {device, msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            const resumedPayload = await numericAttributes2Payload(
-                msg,
-                {} as Fz.Meta,
-                znclbl01lmDefinition,
-                {invert_cover},
-                {107: resumedAttr107Position, 1057: runningStateValue},
-            );
+                const resumedPayload = await numericAttributes2Payload(
+                    msg,
+                    {} as Fz.Meta,
+                    znclbl01lmDefinition,
+                    {invert_cover},
+                    {107: resumedAttr107Position, 1057: runningStateValue},
+                );
 
-            expect(resumedPayload).toStrictEqual(expectedPayload);
-            expect(device.endpoints[0].read).toHaveBeenCalledTimes(1);
-        });
+                expect(resumedPayload).toStrictEqual(expectedPayload);
+                expect(device.endpoints[0].read).toHaveBeenCalledTimes(1);
+            },
+        );
 
         it.each([
             {
@@ -659,39 +655,37 @@ describe("lib/lumi", () => {
                 staleTerminalPosition: 1,
                 expectedReadbackPayload: {position: 63, state: "CLOSE"},
             },
-        ])("keeps attr 107 ignored after readback while stopped when invert_cover=$invert_cover", async ({
-            invert_cover,
-            readbackPosition,
-            staleTerminalPosition,
-            expectedReadbackPayload,
-        }) => {
-            const {device, msg} = createCurtainMessage();
+        ])(
+            "keeps attr 107 ignored after readback while stopped when invert_cover=$invert_cover",
+            async ({invert_cover, readbackPosition, staleTerminalPosition, expectedReadbackPayload}) => {
+                const {device, msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            const readbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: readbackPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                const readbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: readbackPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            expect(readbackPayload).toStrictEqual(expectedReadbackPayload);
+                expect(readbackPayload).toStrictEqual(expectedReadbackPayload);
 
-            const lateAttr107Payload = await numericAttributes2Payload(
-                msg,
-                {} as Fz.Meta,
-                znclbl01lmDefinition,
-                {invert_cover},
-                {107: staleTerminalPosition},
-            );
+                const lateAttr107Payload = await numericAttributes2Payload(
+                    msg,
+                    {} as Fz.Meta,
+                    znclbl01lmDefinition,
+                    {invert_cover},
+                    {107: staleTerminalPosition},
+                );
 
-            expect(lateAttr107Payload).toStrictEqual({});
-        });
+                expect(lateAttr107Payload).toStrictEqual({});
+            },
+        );
 
         it.each([
             {invert_cover: false, terminalReadbackPosition: 100, adjacentReadbackPosition: 99, expectedPayload: {position: 100, state: "OPEN"}},
@@ -702,40 +696,38 @@ describe("lib/lumi", () => {
             {invert_cover: true, terminalReadbackPosition: 0, adjacentReadbackPosition: 2, expectedPayload: {position: 100, state: "CLOSE"}},
             {invert_cover: true, terminalReadbackPosition: 100, adjacentReadbackPosition: 99, expectedPayload: {position: 0, state: "OPEN"}},
             {invert_cover: true, terminalReadbackPosition: 100, adjacentReadbackPosition: 98, expectedPayload: {position: 0, state: "OPEN"}},
-        ])("normalizes adjacent terminal readback while stopped when invert_cover=$invert_cover", async ({
-            invert_cover,
-            terminalReadbackPosition,
-            adjacentReadbackPosition,
-            expectedPayload,
-        }) => {
-            const {device, msg} = createCurtainMessage();
+        ])(
+            "normalizes adjacent terminal readback while stopped when invert_cover=$invert_cover",
+            async ({invert_cover, terminalReadbackPosition, adjacentReadbackPosition, expectedPayload}) => {
+                const {device, msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: terminalReadbackPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: terminalReadbackPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            const adjacentReadbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: adjacentReadbackPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                const adjacentReadbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: adjacentReadbackPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            expect(adjacentReadbackPayload).toStrictEqual(expectedPayload);
-        });
+                expect(adjacentReadbackPayload).toStrictEqual(expectedPayload);
+            },
+        );
 
         it.each([
             {invert_cover: false, adjacentReadbackPosition: 99, expectedPayload: {position: 99, state: "OPEN"}},
@@ -746,28 +738,27 @@ describe("lib/lumi", () => {
             {invert_cover: true, adjacentReadbackPosition: 2, expectedPayload: {position: 98, state: "CLOSE"}},
             {invert_cover: true, adjacentReadbackPosition: 99, expectedPayload: {position: 1, state: "CLOSE"}},
             {invert_cover: true, adjacentReadbackPosition: 98, expectedPayload: {position: 2, state: "CLOSE"}},
-        ])("keeps adjacent readback unchanged without a previous terminal endpoint when invert_cover=$invert_cover", async ({
-            invert_cover,
-            adjacentReadbackPosition,
-            expectedPayload,
-        }) => {
-            const {device, msg} = createCurtainMessage();
+        ])(
+            "keeps adjacent readback unchanged without a previous terminal endpoint when invert_cover=$invert_cover",
+            async ({invert_cover, adjacentReadbackPosition, expectedPayload}) => {
+                const {device, msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            const adjacentReadbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: adjacentReadbackPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                const adjacentReadbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: adjacentReadbackPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            expect(adjacentReadbackPayload).toStrictEqual(expectedPayload);
-        });
+                expect(adjacentReadbackPayload).toStrictEqual(expectedPayload);
+            },
+        );
 
         it.each([
             {invert_cover: false, terminalTargetPosition: 100, adjacentTargetPosition: 99, expectedTargetPosition: 100},
@@ -778,28 +769,26 @@ describe("lib/lumi", () => {
             {invert_cover: true, terminalTargetPosition: 0, adjacentTargetPosition: 2, expectedTargetPosition: 100},
             {invert_cover: true, terminalTargetPosition: 100, adjacentTargetPosition: 99, expectedTargetPosition: 0},
             {invert_cover: true, terminalTargetPosition: 100, adjacentTargetPosition: 98, expectedTargetPosition: 0},
-        ])("normalizes adjacent target_position while stopped when invert_cover=$invert_cover", async ({
-            invert_cover,
-            terminalTargetPosition,
-            adjacentTargetPosition,
-            expectedTargetPosition,
-        }) => {
-            const {msg} = createCurtainMessage();
+        ])(
+            "normalizes adjacent target_position while stopped when invert_cover=$invert_cover",
+            async ({invert_cover, terminalTargetPosition, adjacentTargetPosition, expectedTargetPosition}) => {
+                const {msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1055: terminalTargetPosition});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1055: terminalTargetPosition});
 
-            const adjacentTargetPayload = await numericAttributes2Payload(
-                msg,
-                {} as Fz.Meta,
-                znclbl01lmDefinition,
-                {invert_cover},
-                {1055: adjacentTargetPosition},
-            );
+                const adjacentTargetPayload = await numericAttributes2Payload(
+                    msg,
+                    {} as Fz.Meta,
+                    znclbl01lmDefinition,
+                    {invert_cover},
+                    {1055: adjacentTargetPosition},
+                );
 
-            expect(adjacentTargetPayload).toStrictEqual({target_position: expectedTargetPosition});
-        });
+                expect(adjacentTargetPayload).toStrictEqual({target_position: expectedTargetPosition});
+            },
+        );
 
         it.each([
             {
@@ -830,32 +819,29 @@ describe("lib/lumi", () => {
                 adjacentPosition: 98,
                 expectedPayload: {position: 0, state: "OPEN"},
             },
-        ])("keeps terminal target through movement for stopped readback when invert_cover=$invert_cover", async ({
-            invert_cover,
-            terminalTargetPosition,
-            runningStateValue,
-            adjacentPosition,
-            expectedPayload,
-        }) => {
-            const {device, msg} = createCurtainMessage();
+        ])(
+            "keeps terminal target through movement for stopped readback when invert_cover=$invert_cover",
+            async ({invert_cover, terminalTargetPosition, runningStateValue, adjacentPosition, expectedPayload}) => {
+                const {device, msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1055: terminalTargetPosition});
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: runningStateValue});
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1055: terminalTargetPosition});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: runningStateValue});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            const adjacentReadbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: adjacentPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                const adjacentReadbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: adjacentPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            expect(adjacentReadbackPayload).toStrictEqual(expectedPayload);
-        });
+                expect(adjacentReadbackPayload).toStrictEqual(expectedPayload);
+            },
+        );
 
         it.each([
             {invert_cover: false, terminalReadbackPosition: 0, requestedPosition: 1, reportedPosition: 1, expectedState: "OPEN"},
@@ -870,78 +856,78 @@ describe("lib/lumi", () => {
             {invert_cover: true, terminalReadbackPosition: 0, requestedPosition: 99, reportedPosition: 1, expectedState: "CLOSE"},
             {invert_cover: true, terminalReadbackPosition: 0, requestedPosition: 1, reportedPosition: 99, expectedState: "CLOSE"},
             {invert_cover: true, terminalReadbackPosition: 0, requestedPosition: 2, reportedPosition: 98, expectedState: "CLOSE"},
-        ])("keeps explicit non-terminal near-end target $requestedPosition when invert_cover=$invert_cover", async ({
-            invert_cover,
-            terminalReadbackPosition,
-            requestedPosition,
-            reportedPosition,
-            expectedState,
-        }) => {
-            const {device, msg} = createCurtainMessage();
-            const meta = {
-                device,
-                mapped: znclbl01lmDefinition,
-                options: {invert_cover},
-            } as Tz.Meta;
+        ])(
+            "keeps explicit non-terminal near-end target $requestedPosition when invert_cover=$invert_cover",
+            async ({invert_cover, terminalReadbackPosition, requestedPosition, reportedPosition, expectedState}) => {
+                const {device, msg} = createCurtainMessage();
+                const meta = {
+                    device,
+                    mapped: znclbl01lmDefinition,
+                    options: {invert_cover},
+                } as Tz.Meta;
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: terminalReadbackPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: terminalReadbackPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            await toZigbee.lumi_curtain_position_state.convertSet(device.endpoints[0], "position", requestedPosition, meta);
+                await toZigbee.lumi_curtain_position_state.convertSet(device.endpoints[0], "position", requestedPosition, meta);
 
-            const targetPayload = await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1055: reportedPosition});
+                const targetPayload = await numericAttributes2Payload(
+                    msg,
+                    {} as Fz.Meta,
+                    znclbl01lmDefinition,
+                    {invert_cover},
+                    {1055: reportedPosition},
+                );
 
-            const readbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
-                znclbl01lmDefinition,
-                {
-                    data: {currentPositionLiftPercentage: reportedPosition},
-                    endpoint: device.endpoints[0],
-                } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
-                null,
-                {invert_cover},
-                {} as Fz.Meta,
-            );
+                const readbackPayload = fromZigbee.lumi_curtain_position_tilt.convert(
+                    znclbl01lmDefinition,
+                    {
+                        data: {currentPositionLiftPercentage: reportedPosition},
+                        endpoint: device.endpoints[0],
+                    } as Fz.Message<"closuresWindowCovering", undefined, "readResponse">,
+                    null,
+                    {invert_cover},
+                    {} as Fz.Meta,
+                );
 
-            expect(targetPayload).toStrictEqual({target_position: requestedPosition});
-            expect(readbackPayload).toStrictEqual({position: requestedPosition, state: expectedState});
-        });
+                expect(targetPayload).toStrictEqual({target_position: requestedPosition});
+                expect(readbackPayload).toStrictEqual({position: requestedPosition, state: expectedState});
+            },
+        );
 
         it.each([
             {invert_cover: false, runningStateValue: 1, resumedAttr107Position: 99, expectedPosition: 99, expectedState: "OPEN"},
             {invert_cover: true, runningStateValue: 0, resumedAttr107Position: 1, expectedPosition: 99, expectedState: "CLOSE"},
-        ])("uses attr 107 again after a later resume when invert_cover=$invert_cover", async ({
-            invert_cover,
-            runningStateValue,
-            resumedAttr107Position,
-            expectedPosition,
-            expectedState,
-        }) => {
-            const {msg} = createCurtainMessage();
+        ])(
+            "uses attr 107 again after a later resume when invert_cover=$invert_cover",
+            async ({invert_cover, runningStateValue, resumedAttr107Position, expectedPosition, expectedState}) => {
+                const {msg} = createCurtainMessage();
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: 2});
 
-            await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: runningStateValue});
+                await numericAttributes2Payload(msg, {} as Fz.Meta, znclbl01lmDefinition, {invert_cover}, {1057: runningStateValue});
 
-            const resumedPayload = await numericAttributes2Payload(
-                msg,
-                {} as Fz.Meta,
-                znclbl01lmDefinition,
-                {invert_cover},
-                {107: resumedAttr107Position},
-            );
+                const resumedPayload = await numericAttributes2Payload(
+                    msg,
+                    {} as Fz.Meta,
+                    znclbl01lmDefinition,
+                    {invert_cover},
+                    {107: resumedAttr107Position},
+                );
 
-            expect(resumedPayload).toStrictEqual({position: expectedPosition, state: expectedState});
-        });
+                expect(resumedPayload).toStrictEqual({position: expectedPosition, state: expectedState});
+            },
+        );
     });
 
     describe("trv", () => {

@@ -262,7 +262,7 @@ export const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const voltage = msg.data.batteryVoltage * 100;
             const battery = (voltage - 2200) / 8;
-            return {battery: battery > 100 ? 100 : battery, voltage: voltage};
+            return {battery: Math.min(battery, 100), voltage: voltage};
         },
     } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_switch_buttons: {
