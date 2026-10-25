@@ -12281,7 +12281,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [1, "system_mode", tuya.valueConverterBasic.lookup({off: false, heat: true})],
                 [
                     2,
-                    "system_mode",
+                    "schedule_mode",
                     tuya.valueConverterBasic.lookup({
                         auto: tuya.enum(0),
                         manual: tuya.enum(1),
