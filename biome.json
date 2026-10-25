@@ -11,18 +11,8 @@
         "lineWidth": 150,
         "bracketSpacing": false
     },
-    "markdown": {
-        "formatter": {
-            "enabled": false
-        }
-    },
-    "yaml": {
-        "formatter": {
-            "enabled": false
-        }
-    },
     "files": {
-        "includes": ["**", "!package.json", "!!**/dist", "!!**/coverage"],
+        "includes": ["**", "!package.json", "!pnpm-lock.yaml", "!CHANGELOG.md", "!!**/dist", "!!**/coverage"],
         "maxSize": 10485760
     },
     "linter": {

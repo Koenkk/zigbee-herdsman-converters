@@ -3,7 +3,6 @@
 ## Priority Guidelines
 
 When generating code for this repository:
-
 1. **Version Compatibility**: Always respect the exact versions of Node.js, TypeScript, and libraries used in this project
 2. **Codebase Patterns**: Scan the codebase for established patterns before generating code
 3. **Architectural Consistency**: Maintain the layered architecture and established module boundaries

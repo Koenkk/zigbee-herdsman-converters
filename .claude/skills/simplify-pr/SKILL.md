@@ -1,4 +1,5 @@
 ---
+
 name: simplify-pr
 description: Heavily simplify a contributor's zigbee-herdsman-converters PR (typically a new device with lots of custom converters/helpers) down to the bare minimum using modern extends, in line with other zhc code. Use when the user says "simplify <PR URL/number>".
 ---
@@ -6,13 +7,14 @@ description: Heavily simplify a contributor's zigbee-herdsman-converters PR (typ
 # Simplify a PR
 
 Input: a PR URL or number in `Koenkk/zigbee-herdsman-converters`.
-
 1. Inspect: `gh pr view <N> --json title,body,headRefName,headRepositoryOwner,maintainerCanModify,files` and `gh pr diff <N>`.
 2. Check out in an isolated worktree (never touch the main checkout or its branch, so several runs can go in parallel and each can be reviewed in VS Code):
+
    ```bash
    MAIN=$(git rev-parse --show-toplevel); git -C $MAIN fetch origin master pull/<N>/head:pr-<N>
    WT=$(dirname $MAIN)/zhc-pr-<N>; git -C $MAIN worktree add $WT pr-<N> && cd $WT && pnpm install --frozen-lockfile --prefer-offline
    ```
+
    If `$WT` already exists, reuse it instead of recreating it. Do ALL further work (edits, commands) inside `$WT` using absolute paths. Restore the touched files to master (`git checkout origin/master -- <files>`) and re-add only what is needed, so unrelated churn (import reformatting, removed `export`, stray exported constants) disappears.
 3. Rewrite to the bare minimum (see AGENTS.md):
    - Custom cluster: inline `m.deviceAddCustomCluster(...)` with only the attributes actually used, plus a typed `interface XCluster {attributes: {...}; commands: never; commandResponses: never}` next to similar interfaces (pattern: `src/devices/amina.ts`).
