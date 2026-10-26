@@ -1497,6 +1497,7 @@ const featureGates = {
     snzb02dr2_support_remote_source: firmwareSupportFeaturesVersion("1.0.5", "higher"),
     zbminir2_external_switch_actions: firmwareSupportFeaturesVersion("1.1.0", "higher", {modelID: "ZBMINIR2"}),
     zbminil2_external_switch_trigger_mode: firmwareSupportFeaturesVersion("1.0.19", "higher", {modelID: "ZBMINIL2"}),
+    mini_zb2gs_external_switch_actions: firmwareSupportFeaturesVersion("1.1.1", "higher", {modelID: "MINI-ZB2GS"}),
     snzb09p_support_chime: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     snzb09p_support_alarm_status: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     // Single-channel SWV-ZF* supports unified units from 1.1.0; dual-channel SWV-ZF2 supports them from 1.0.9.
@@ -1883,36 +1884,33 @@ const parseSonoffSnzb02dr2RemoteSourceElements = (elements: number[] | undefined
 };
 
 const sonoffExtend = {
-    zbminiR2ExternalSwitchActions: (): ModernExtend => {
+    externalSwitchActions: (args: {endpointNames?: string[]; gate: FirmwareFeatureGate}): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
         const actionLookup: Record<number, string> = {
             2: "double_click",
             3: "long_press",
-        } as const;
-        const supportNewActions = featureGates.zbminir2_external_switch_actions;
+        };
+        const {endpointNames = undefined, gate} = args;
         const getActions = (device: Zh.Device | DummyDevice): string[] => {
             const actions = ["toggle"];
-            if (utils.isDummyDevice(device) || supportNewActions(device)) {
+            if (utils.isDummyDevice(device) || gate(device)) {
                 actions.push(...Object.values(actionLookup));
             }
-            return actions;
+            return endpointNames ? actions.flatMap((action) => endpointNames.map((endpointName) => `${action}_${endpointName}`)) : actions;
         };
         const externalSwitchConverter = {
             cluster: clusterName,
             type: ["attributeReport"],
-            convert: (model, msg) => {
-                if (!supportNewActions(msg.device)) {
+            convert: (model, msg, publish, options, meta) => {
+                if (!gate(msg.device)) {
                     return;
                 }
                 const value = msg.data.detachRelayActionEvent;
-                if (value === undefined) {
+                if (value !== 2 && value !== 3) {
                     return;
                 }
                 const action = actionLookup[value];
-                if (action === undefined) {
-                    return;
-                }
-                return {action};
+                return {action: utils.postfixWithEndpointName(action, msg, model, meta)};
             },
         } satisfies Fz.Converter<typeof clusterName, SonoffEwelink, ["attributeReport"]>;
         return {
@@ -11507,7 +11505,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             sonoffExtend.externalSwitchTriggerMode(),
             sonoffExtend.inchingControlSet(),
-            sonoffExtend.zbminiR2ExternalSwitchActions(),
+            sonoffExtend.externalSwitchActions({gate: featureGates.zbminir2_external_switch_actions}),
         ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
@@ -11748,7 +11746,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
-            m.commandsOnOff({commands: ["toggle"], endpointNames: ["l1", "l2"]}),
+            sonoffExtend.externalSwitchActions({endpointNames: ["l1", "l2"], gate: featureGates.mini_zb2gs_external_switch_actions}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             sonoffExtend.addCustomClusterEwelink(),
             sonoffExtend.externalSwitchTriggerMode({endpointNames: ["l1", "l2"]}),
@@ -11821,7 +11819,7 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(endpoint2, coordinatorEndpoint, ["genOnOff", "customClusterEwelink"]);
             await reporting.onOff(endpoint2, {min: 1, max: 1800, change: 0});
             await endpoint2.read("genOnOff", [0x0000, 0x4003], defaultResponseOptions);
-            await endpoint1.read("customClusterEwelink", [0x0014, 0x0015, 0x0016], defaultResponseOptions);
+            await endpoint2.read("customClusterEwelink", [0x0014, 0x0015, 0x0016], defaultResponseOptions);
             await endpoint2.configureReporting<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", [
                 {attribute: "externalTriggerMode", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1},
             ]);
