@@ -2071,6 +2071,39 @@ const p1DetectionDistanceLookup = {"10mm": 1, "20mm": 2, "30mm": 3} as const;
 const isValidBatteryVoltageRange = (r: unknown): r is BatteryLinearVoltage =>
     isObject(r) && typeof r.min === "number" && typeof r.max === "number" && r.min < r.max;
 
+/**
+ * Moves a CIE xy colour to the closest point inside the gamut of the plug indicator light (measured: sRGB primaries);
+ * the light stays dark for colours outside it.
+ */
+function clampToIndicatorGamut(x: number, y: number): {x: number; y: number} {
+    const gamut = [
+        {x: 0.64, y: 0.33},
+        {x: 0.3, y: 0.6},
+        {x: 0.15, y: 0.06},
+    ];
+    const [r, g, b] = gamut;
+    const side = (p: {x: number; y: number}, q: {x: number; y: number}) => (q.x - p.x) * (y - p.y) - (q.y - p.y) * (x - p.x);
+    if (side(r, g) >= 0 && side(g, b) >= 0 && side(b, r) >= 0) {
+        return {x, y};
+    }
+    let best = {x, y, d: Number.POSITIVE_INFINITY};
+    for (const [p, q] of [
+        [r, g],
+        [g, b],
+        [b, r],
+    ]) {
+        const dx = q.x - p.x;
+        const dy = q.y - p.y;
+        const t = Math.min(1, Math.max(0, ((x - p.x) * dx + (y - p.y) * dy) / (dx * dx + dy * dy)));
+        const c = {x: p.x + t * dx, y: p.y + t * dy};
+        const d = (c.x - x) ** 2 + (c.y - y) ** 2;
+        if (d < best.d) {
+            best = {...c, d};
+        }
+    }
+    return {x: precisionRound(best.x, 4), y: precisionRound(best.y, 4)};
+}
+
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificLumi", {
@@ -3182,6 +3215,99 @@ export const lumiModernExtend = {
             reporting: false,
             ...args,
         }),
+    /**
+     * Indicator light of plugs that share endpoint 1 between the relay and an RGB light, exposed as light `led`.
+     * On/off writes the LED attribute 0x0203; brightness and colour use moveToLevel and moveToColor only,
+     * never genOnOff or level 0, which switch the relay.
+     * Put it before `lumiOnOff`: the first converter matching `state` wins and must be this one for `state_led`.
+     */
+    lumiIndicatorLight: (): ModernExtend => ({
+        isModernExtend: true,
+        // Names endpoint 1 "led" for the _led properties; without meta.multiEndpoint the relay and meter properties keep their names
+        endpoint: (device) => ({led: 1}),
+        exposes: [e.light_brightness_colorxy().withEndpoint("led")],
+        fromZigbee: [
+            {
+                cluster: "manuSpecificLumi",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data[0x0203] !== undefined) {
+                        return {state_led: msg.data[0x0203] === 1 ? "ON" : "OFF"};
+                    }
+                },
+            },
+            {
+                cluster: "genLevelCtrl",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.currentLevel !== undefined) {
+                        return {brightness_led: msg.data.currentLevel};
+                    }
+                },
+            },
+            {
+                cluster: "lightingColorCtrl",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.currentX === undefined && msg.data.currentY === undefined) {
+                        return;
+                    }
+                    const previous = (meta.state.color_led ?? {}) as {x?: number; y?: number};
+                    return {
+                        color_led: {
+                            x: msg.data.currentX !== undefined ? precisionRound(msg.data.currentX / 65535, 4) : previous.x,
+                            y: msg.data.currentY !== undefined ? precisionRound(msg.data.currentY / 65535, 4) : previous.y,
+                        },
+                        color_mode_led: "xy",
+                    };
+                },
+            },
+        ],
+        toZigbee: [
+            {
+                key: ["state", "brightness", "color"],
+                endpoints: ["led"],
+                convertSet: async (entity, key, value, meta) => {
+                    if (key === "state") {
+                        assertString(value, key);
+                        const command = value.toUpperCase();
+                        const on = command === "TOGGLE" ? meta.state.state_led !== "ON" : command === "ON";
+                        await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+                            "manuSpecificLumi",
+                            {[0x0203]: {value: on ? 1 : 0, type: 0x10}},
+                            {manufacturerCode},
+                        );
+                        return {state: {state: on ? "ON" : "OFF"}};
+                    }
+                    if (key === "brightness") {
+                        assertNumber(value, key);
+                        // Level 0 would switch the relay off
+                        const level = Math.min(254, Math.max(1, Math.round(value)));
+                        await entity.command("genLevelCtrl", "moveToLevel", {level, transtime: 0}, getOptions(meta.mapped, entity));
+                        return {state: {brightness: level}};
+                    }
+                    assertObject<{x: number; y: number}>(value, key);
+                    const {x, y} = clampToIndicatorGamut(Number(value.x), Number(value.y));
+                    await entity.command(
+                        "lightingColorCtrl",
+                        "moveToColor",
+                        {colorx: Math.round(x * 65535), colory: Math.round(y * 65535), transtime: 0},
+                        getOptions(meta.mapped, entity),
+                    );
+                    return {state: {color: {x, y}, color_mode: "xy"}};
+                },
+                convertGet: async (entity, key, meta) => {
+                    if (key === "state") {
+                        await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0203], {manufacturerCode});
+                    } else if (key === "brightness") {
+                        await entity.read("genLevelCtrl", ["currentLevel"]);
+                    } else {
+                        await entity.read("lightingColorCtrl", ["currentX", "currentY"]);
+                    }
+                },
+            },
+        ],
+    }),
     lumiPreventReset: (): ModernExtend => {
         const converter: Fz.Converter<"genBasic", undefined, ["attributeReport"]> = {
             cluster: "genBasic",

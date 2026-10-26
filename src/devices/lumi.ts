@@ -47,6 +47,7 @@ const {
     lumiOnOff,
     lumiLedDisabledNight,
     lumiFlipIndicatorLight,
+    lumiIndicatorLight,
     lumiPreventReset,
     lumiAqaraH2EuShutterSwitchAction,
     lumiClickMode,
@@ -5192,13 +5193,13 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Power plug H2 EU (RGB)",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiIndicatorLight(),
             lumiZigbeeOTA(),
             lumiOnOff({deviceTemperature: false}),
             lumiPowerOnBehavior(),
             m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
             lumiElectricityMeter({voltage: false}),
             lumiOverloadProtection(),
-            lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             lumiChildLock(),
             m.binary({
