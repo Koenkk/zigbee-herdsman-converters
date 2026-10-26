@@ -258,7 +258,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_PWS"],
         model: "EFEKTA_PWS",
         vendor: "EFEKTA",
-        description: "[Plant Wattering Sensor, CR2450, CR2477 batteries, temperature ]",
+        description: "[Plant Watering Sensor, CR2450, CR2477 batteries, temperature ]",
         extend: [
             m.soilMoisture({reporting: rareReporting}),
             m.battery({
@@ -302,7 +302,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_ePWS"],
         model: "EFEKTA_ePWS",
         vendor: "EFEKTA",
-        description: "Plant wattering sensor with e-ink display",
+        description: "Plant watering sensor with e-ink display",
         extend: [
             m.battery({
                 voltage: true,
@@ -332,7 +332,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_miniPWS"],
         model: "EFEKTA_miniPWS",
         vendor: "EFEKTA",
-        description: "Mini plant wattering sensor",
+        description: "Mini plant watering sensor",
         extend: [
             m.soilMoisture({reporting: rareReporting}),
             m.battery({
@@ -450,7 +450,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_eFlower_Pro"],
         model: "EFEKTA_eFlower_Pro",
         vendor: "EFEKTA",
-        description: "Plant Wattering Sensor with e-ink display 2.13",
+        description: "Plant Watering Sensor with e-ink display 2.13",
         extend: [
             m.soilMoisture({reporting: rareReporting}),
             m.battery({
@@ -5577,7 +5577,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_eFlora"],
         model: "EFEKTA_eFlora",
         vendor: "EFEKTA",
-        description: "Plant Wattering Sensor with e-ink display 1.02",
+        description: "Plant Watering Sensor with e-ink display 1.02",
         extend: [
             m.soilMoisture({
                 reporting: soilMoistureReporting,
@@ -5676,7 +5676,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_eFlora_Pro"],
         model: "EFEKTA_eFlora_Pro",
         vendor: "EFEKTA",
-        description: "Plant Wattering Sensor with e-ink display 2.13",
+        description: "Plant Watering Sensor with e-ink display 2.13",
         extend: [
             m.soilMoisture({
                 reporting: soilMoistureReporting,
@@ -5783,7 +5783,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["EFEKTA_eFlora_Max_Pro"],
         model: "EFEKTA_eFlora_Max_Pro",
         vendor: "EFEKTA",
-        description: "Plant Wattering Sensor with e-ink display 2.13 with signal amplifier",
+        description: "Plant Watering Sensor with e-ink display 2.13 with signal amplifier",
         extend: [
             m.soilMoisture({
                 reporting: soilMoistureReporting,
