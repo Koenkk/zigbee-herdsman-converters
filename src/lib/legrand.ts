@@ -1,7 +1,8 @@
 import {Zcl} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as m from "../lib/modernExtend";
-import type {DummyDevice, Fz, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
+import type {DummyDevice, Fz, KeyValue, KeyValueAny, KeyValueString, OnEvent, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as exposes from "./exposes";
 import {logger} from "./logger";
@@ -341,6 +342,16 @@ export const tzLegrand = {
             await tz.cover_position_tilt.convertGet?.(entity, key, meta);
         },
     } satisfies Tz.Converter,
+    cover_moving: {
+        key: ["moving"],
+        convertGet: async (entity, key, meta) => {
+            // The movement converter needs the current position and target in the same response.
+            await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", [
+                "currentPositionLiftPercentage",
+                "tuyaMovingState",
+            ]);
+        },
+    } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
         return {
             key: ["calibration_mode"],
@@ -605,6 +616,28 @@ export const fzLegrand = {
             }
 
             return {state: "opening", action: "moving", moving: true};
+        },
+    } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
+    cover_position_tilt_with_moving: {
+        cluster: "closuresWindowCovering",
+        type: ["attributeReport", "readResponse"],
+        options: fz.cover_position_tilt.options,
+        convert: async (model, msg, publish, options, meta): Promise<KeyValue> => {
+            const position = await fz.cover_position_tilt.convert(model, msg, publish, options, meta);
+            const movement = fzLegrand.cover_moving_state.convert(model, msg, publish, options, meta);
+
+            if (movement?.moving === true) {
+                return {...position, ...movement};
+            }
+            if (movement) {
+                // Keep the generic converter's stationary state, including inverted position/tilt.
+                return {...movement, ...position};
+            }
+            if (position && meta.state.moving === true && (meta.state.state === "opening" || meta.state.state === "closing")) {
+                // A position-only report does not confirm that the movement has stopped.
+                delete position.state;
+            }
+            return {...position};
         },
     } satisfies Fz.Converter<"closuresWindowCovering", TuyaClosuresWindowCovering, ["attributeReport", "readResponse"]>,
     identify: {
