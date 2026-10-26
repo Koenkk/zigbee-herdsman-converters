@@ -30960,4 +30960,68 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_48ye65rk"]),
+        model: "HYT001ZB",
+        vendor: "Vareo",
+        description: "Smart thermostat for electric floor heating or boilers",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
+                .withSystemMode(["off", "heat"], ea.STATE_SET)
+                .withPreset(["manual", "program", "holiday", "temporary"])
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e
+                .numeric("hysteresis", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(5)
+                .withValueStep(0.5)
+                .withDescription("Switching hysteresis"),
+            e.enum("sensor_type", ea.STATE_SET, ["internal", "external", "both"]).withDescription("Temperature sensor selection"),
+            e
+                .numeric("holiday_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(1)
+                .withDescription("Setpoint in holiday mode"),
+            e
+                .numeric("holiday_days", ea.STATE_SET)
+                .withUnit("d")
+                .withValueMin(1)
+                .withValueMax(30)
+                .withValueStep(1)
+                .withDescription("Holiday mode duration"),
+            e.numeric("fault", ea.STATE).withDescription("Fault bitmap (4 = external sensor error)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [16, "local_temperature", tuya.valueConverter.divideBy10],
+                [50, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [102, "running_state", tuya.valueConverterBasic.lookup({heat: true, idle: false})],
+                [104, "holiday_days", tuya.valueConverter.raw],
+                [105, "holiday_temperature", tuya.valueConverter.raw],
+                [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [110, "hysteresis", tuya.valueConverter.divideBy10],
+                [116, "sensor_type", tuya.valueConverterBasic.lookup({internal: tuya.enum(0), external: tuya.enum(1), both: tuya.enum(2)})],
+                [125, "system_mode", tuya.valueConverterBasic.lookup({heat: true, off: false})],
+                [
+                    128,
+                    "preset",
+                    tuya.valueConverterBasic.lookup({
+                        manual: tuya.enum(0),
+                        program: tuya.enum(1),
+                        holiday: tuya.enum(2),
+                        temporary: tuya.enum(3),
+                    }),
+                ],
+                [130, "fault", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
