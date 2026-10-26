@@ -280,6 +280,13 @@ interface SonoffSnzb02m {
     commandResponses: never;
 }
 
+interface SonoffSnzb02mPressure {
+    attributes: {
+        pressure: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 // **************************** SWV-ZN/ZF related ↓ ****************************
 interface SonoffSwvzn {
     attributes: {
@@ -12566,16 +12573,25 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.deviceAddCustomCluster("msPressureMeasurement", {
+                name: "msPressureMeasurement",
+                ID: 0x0403,
+                attributes: {
+                    pressure: {name: "pressure", ID: 0x0004, type: Zcl.DataType.INT32},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             // official cluster
             m.battery(),
             m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
             m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             // attributes
-            m.numeric<"msPressureMeasurement">({
+            m.numeric<"msPressureMeasurement", SonoffSnzb02mPressure>({
                 name: "pressure",
                 cluster: "msPressureMeasurement",
-                attribute: {ID: 0x0004, type: Zcl.DataType.INT32},
+                attribute: "pressure",
                 access: "STATE_GET",
                 description: "Atmospheric pressure in hPa reported via manufacturer attribute 0x0004 (manuCode 0x1286).",
                 unit: "hPa",
