@@ -247,10 +247,11 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fzLegrand.cover_moving_state, fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
+        fromZigbee: [fzLegrand.cover_position_tilt_with_moving, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
         toZigbee: [
             tzLegrand.cover_state_with_moving,
             tzLegrand.cover_position_with_moving,
+            tzLegrand.cover_moving,
             tzLegrand.identify,
             tzLegrand.led_mode,
             tzLegrand.calibration_mode(true),
