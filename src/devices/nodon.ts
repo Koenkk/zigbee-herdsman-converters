@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import {nodonPilotWire} from "../lib/nodon";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import {isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
@@ -146,13 +146,67 @@ const nodonModernExtend = {
                     semverValid(device.softwareBuildID) &&
                     semverGt(device.softwareBuildID, "3.4.0")
                 ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                    if (args?.endpointName) expose.withEndpoint(args.endpointName);
+                    return [expose];
                 }
                 return [];
             },
         ];
 
         return result;
+    },
+    // Physically wiring the input back to the relay/cover requires a self-bind (the wired input
+    // sends a client-role command to whatever the endpoint is bound to; without it, the command
+    // only reaches the coordinator and does nothing). Removing that bind from the frontend's
+    // "Unbind" tab used to come back on its own: Z2M's bind extension calls
+    // disableUnnecessaryReportings() on unbind, which can also touch the coordinator reporting
+    // bind and fires a `reconfigure` event that re-runs `configure()` from scratch. `configure()`
+    // has no access to per-device `options`, so this adds a real Settings option instead
+    // (`wired_input_enabled[_<suffix>]`) whose change is caught via `onEvent`'s
+    // `deviceOptionsChanged` — doing the actual bind/unbind directly (bypassing the Unbind-tab
+    // codepath, so no disableUnnecessaryReportings/reconfigure loop) and persisting the choice in
+    // `device.meta` so a later `configure()` (from any cause) respects it.
+    wiredInputBind: (args: {cluster: "genOnOff" | "closuresWindowCovering"; endpointId: number; optionSuffix?: string}): ModernExtend => {
+        const {cluster, endpointId, optionSuffix} = args;
+        const optionName = optionSuffix ? `wired_input_enabled_${optionSuffix}` : "wired_input_enabled";
+        const metaKey = optionSuffix ? `wiredInputEnabled${optionSuffix.toUpperCase()}` : "wiredInputEnabled";
+
+        return {
+            options: [
+                e
+                    .binary(optionName, ea.SET, true, false)
+                    .withDescription(
+                        "Whether the wired input physically drives the device via a Zigbee self-bind (default " +
+                            "true). Set to false to permanently disable this — unlike removing the bind from the " +
+                            "Bind tab, this choice persists across any future reconfigure.",
+                    ),
+            ],
+            onEvent: [
+                async (event) => {
+                    if (event.type !== "deviceOptionsChanged") return;
+                    const {from, to, device} = event.data;
+                    if (from[optionName] === to[optionName]) return;
+                    const enabled = to[optionName] !== false;
+                    const endpoint = device.getEndpoint(endpointId);
+                    if (enabled) {
+                        await endpoint.bind(cluster, endpoint);
+                    } else {
+                        await endpoint.unbind(cluster, endpoint);
+                    }
+                    device.meta[metaKey] = enabled;
+                    device.save();
+                },
+            ],
+            configure: [
+                async (device) => {
+                    if (device.meta[metaKey] === false) return;
+                    const endpoint = device.getEndpoint(endpointId);
+                    await endpoint.bind(cluster, endpoint);
+                },
+            ],
+            isModernExtend: true,
+        };
     },
     switchTypeWindowCovering: (args?: Partial<m.EnumLookupArgs<"closuresWindowCovering">>) => {
         const resultName = "switch_type_window_covering";
@@ -178,7 +232,9 @@ const nodonModernExtend = {
                     semverValid(device.softwareBuildID) &&
                     semverGt(device.softwareBuildID, "3.4.0")
                 ) {
-                    return [e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription)];
+                    const expose = e.enum(resultName, ea.ALL, Object.keys(resultLookup)).withDescription(resultDescription);
+                    if (args?.endpointName) expose.withEndpoint(args.endpointName);
+                    return [expose];
                 }
                 return [];
             },
@@ -218,6 +274,43 @@ const nodonModernExtend = {
         }),
 };
 
+interface NodonIrExtender {
+    attributes: {irbHolderTemperatureCalibration: number};
+    commands: never;
+    commandResponses: never;
+}
+
+const nodonIrbFz = {
+    irb_holder_temperature_calibration: {
+        cluster: "nodonIrExtender",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.irbHolderTemperatureCalibration === undefined) return;
+            return {irb_holder_temperature_calibration: msg.data.irbHolderTemperatureCalibration / 10};
+        },
+    } satisfies Fz.Converter<"nodonIrExtender", NodonIrExtender, ["attributeReport", "readResponse"]>,
+};
+
+const nodonIrbTz = {
+    irb_holder_temperature_calibration: {
+        key: ["irb_holder_temperature_calibration"],
+        convertSet: async (entity, key, value, meta) => {
+            const raw = Math.round(Number(value) * 10);
+            await entity.write<"nodonIrExtender", NodonIrExtender>(
+                "nodonIrExtender",
+                {irbHolderTemperatureCalibration: raw},
+                {manufacturerCode: Zcl.ManufacturerCode.NODON},
+            );
+            return {state: {irb_holder_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"nodonIrExtender", NodonIrExtender>("nodonIrExtender", ["irbHolderTemperatureCalibration"], {
+                manufacturerCode: Zcl.ManufacturerCode.NODON,
+            });
+        },
+    } satisfies Tz.Converter,
+};
+
 export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["FPS-4-1-00"],
@@ -233,42 +326,103 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IRB-4-1-00",
         vendor: "NodOn",
         description: "IR Blaster",
-        fromZigbee: [fz.thermostat, fz.fan],
-        toZigbee: [
-            tz.fan_mode,
-            tz.thermostat_local_temperature,
-            tz.thermostat_occupied_cooling_setpoint,
-            tz.thermostat_occupied_heating_setpoint,
-            tz.thermostat_min_heat_setpoint_limit,
-            tz.thermostat_max_heat_setpoint_limit,
-            tz.thermostat_min_cool_setpoint_limit,
-            tz.thermostat_max_cool_setpoint_limit,
-            tz.thermostat_control_sequence_of_operation,
-            tz.thermostat_system_mode,
-            tz.thermostat_ac_louver_position,
+        fromZigbee: [fz.fan, nodonIrbFz.irb_holder_temperature_calibration],
+        extend: [
+            m.identify(),
+            m.humidity(),
+            m.thermostat({
+                localTemperature: {
+                    values: {description: "Current temperature measured on the device"},
+                },
+                localTemperatureCalibration: {values: true},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 16, max: 30, step: 0.5},
+                        occupiedCoolingSetpoint: {min: 18, max: 30, step: 0.5},
+                    },
+                },
+                systemMode: {
+                    values: ["off", "heat", "cool", "auto", "dry", "fan_only"],
+                },
+                fanMode: ["off", "low", "medium", "high", "auto"],
+                acLouverPosition: {
+                    values: ["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"],
+                },
+            }),
+            m.deviceAddCustomCluster("nodonIrExtender", {
+                name: "nodonIrExtender",
+                ID: 0xfc82,
+                manufacturerCode: Zcl.ManufacturerCode.NODON,
+                attributes: {
+                    irbHolderTemperatureCalibration: {
+                        ID: 0x8001,
+                        name: "irbHolderTemperatureCalibration",
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.NODON,
+                        write: true,
+                    },
+                },
+                // Documented by NodOn in "IRB-4-1_User-Guidelines_V1.2", section 3.2.8.
+                // Declared here so the cluster matches the vendor specification; no expose
+                // uses them yet, and a frame received from the device is parsed under the
+                // right name instead of as an unknown command.
+                commands: {
+                    sendRemoteControlCommand: {
+                        name: "sendRemoteControlCommand",
+                        ID: 0xf0,
+                        parameters: [
+                            // Target device number, range 0-3.
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            // Remote control button number, range 0-32.
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                    learnRemoteControlCode: {
+                        name: "learnRemoteControlCode",
+                        ID: 0xf1,
+                        parameters: [
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                commandsResponse: {
+                    learnRemoteControlCodeResponse: {
+                        name: "learnRemoteControlCodeResponse",
+                        ID: 0xf2,
+                        parameters: [
+                            {name: "deviceNumber", type: Zcl.DataType.UINT8},
+                            {name: "storageLocation", type: Zcl.DataType.UINT8},
+                            // 1 = success, 0 = failure.
+                            {name: "resultStatus", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+                // 0xF3 "Select Learning Data Source" and 0xF4 are deliberately NOT declared.
+                // Per the same document, 0xF3 switches the device between learned IR data and
+                // the code set downloaded by the vendor app ("1 = use learned data, 0 = use
+                // app-downloaded data"), and the latter is what drives normal AC control.
+                // Exposing that switch without a way to read back which source is active would
+                // be a footgun; it can be added later with proper state handling.
+            }),
         ],
-        ota: true,
+        toZigbee: [nodonIrbTz.irb_holder_temperature_calibration],
         exposes: [
             e
-                .climate()
-                .withLocalTemperature()
-                .withSetpoint("occupied_cooling_setpoint", 18, 30, 0.5)
-                .withSetpoint("occupied_heating_setpoint", 16, 30, 0.5)
-                .withSystemMode(["off", "heat", "cool", "auto", "dry", "fan_only"])
-                .withFanMode(["off", "low", "medium", "high", "auto"])
-                .withAcLouverPosition(["fully_open", "fully_closed", "half_open", "quarter_open", "three_quarters_open"]),
+                .numeric("irb_holder_temperature_calibration", ea.ALL)
+                .withLabel("IBH temperature offset")
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withDescription(
+                    "Extra temperature offset applied on top of localTemperatureCalibration when the IBH-1-1-00 holder " +
+                        "accessory is physically connected to this device.",
+                ),
         ],
-        extend: [m.humidity()],
-        configure: async (device, coordinatorEndpoint, logger) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["hvacFanCtrl", "genIdentify", "hvacThermostat"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await reporting.thermostatTemperature(endpoint);
-            await reporting.thermostatOccupiedCoolingSetpoint(endpoint);
-            await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
-            await reporting.thermostatSystemMode(endpoint);
-            await reporting.thermostatAcLouverPosition(endpoint);
-        },
+        endpoint: (device) => ({default: 1}),
+        ota: true,
+        version: "0.0.1",
     },
     {
         zigbeeModel: ["SDC-4-1-00"],
@@ -339,7 +493,7 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
-        zigbeeModel: ["SEM-4-3-20"],
+        zigbeeModel: ["SEM-4-3-20_70A", "SEM-4-3-20_120A"],
         model: "SEM-4-3-20",
         vendor: "NodOn",
         description: "3CT Energy Meter",
@@ -517,12 +671,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-20",
         vendor: "NodOn",
         description: "Multifunction relay switch",
+        version: "0.0.1",
         endpoint: (device) => ({default: 1}),
-        extend: [m.identify(), m.onOff(), nodonModernExtend.impulseMode(), nodonModernExtend.switchTypeOnOff()],
-        configure: async (device) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind("genOnOff", endpoint);
-        },
+        extend: [
+            m.identify(),
+            m.onOff(),
+            nodonModernExtend.impulseMode(),
+            nodonModernExtend.switchTypeOnOff(),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1}),
+        ],
         ota: true,
     },
     {
@@ -538,6 +695,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-1-21",
         vendor: "NodOn",
         description: "Multifunction relay switch with metering",
+        version: "0.0.1",
         endpoint: (device) => ({default: 1}),
         extend: [
             m.identify(),
@@ -545,11 +703,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({cluster: "metering"}),
             nodonModernExtend.impulseMode(),
             nodonModernExtend.switchTypeOnOff(),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1}),
         ],
-        configure: async (device) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind("genOnOff", endpoint);
-        },
         ota: true,
     },
     {
@@ -557,19 +712,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIN-4-2-20",
         vendor: "NodOn",
         description: "Lighting relay switch",
+        version: "0.0.1",
         extend: [
             m.identify(),
-            m.deviceEndpoints({endpoints: {default: 1, l1: 1, l2: 2}}),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, default: 1}}),
             m.onOff({endpointNames: ["l1", "l2"]}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l1"}),
             nodonModernExtend.switchTypeOnOff({endpointName: "l2"}),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 1, optionSuffix: "l1"}),
+            nodonModernExtend.wiredInputBind({cluster: "genOnOff", endpointId: 2, optionSuffix: "l2"}),
         ],
-        configure: async (device) => {
-            const ep1 = device.getEndpoint(1);
-            const ep2 = device.getEndpoint(2);
-            await ep1.bind("genOnOff", ep1);
-            await ep2.bind("genOnOff", ep2);
-        },
         ota: true,
     },
     {

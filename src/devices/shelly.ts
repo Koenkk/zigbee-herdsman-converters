@@ -14,6 +14,7 @@ import type {
     Fz,
     KeyValue,
     ModernExtend,
+    OnEvent,
     Tz,
     Zh,
 } from "../lib/types";
@@ -385,6 +386,36 @@ interface ShellyTRVManualMode {
     commandResponses: never;
 }
 
+/**
+ * Tracks an external temperature until the TRV reports the same value as its local temperature.
+ */
+interface ShellyTRVExternalTemperatureRequest {
+    temperature: number;
+    measuredValue: number;
+    createdAt: number;
+    lastAttemptAt: number;
+    attempts: number;
+}
+
+/**
+ * Tracks an external occupancy value until the TRV reports the same state.
+ */
+interface ShellyTRVExternalOccupancyRequest {
+    occupancy: boolean;
+    createdAt: number;
+    lastAttemptAt: number;
+    attempts: number;
+}
+
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY = "shelly_trv_external_temperature_request";
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS = 1500;
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS = 30;
+const SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS = 60 * 60 * 1000;
+const SHELLY_TRV_EXTERNAL_OCCUPANCY_META_KEY = "shelly_trv_external_occupancy_request";
+const SHELLY_TRV_EXTERNAL_OCCUPANCY_MIN_RETRY_INTERVAL_MS = 1500;
+const SHELLY_TRV_EXTERNAL_OCCUPANCY_MAX_ATTEMPTS = 30;
+const SHELLY_TRV_EXTERNAL_OCCUPANCY_MAX_AGE_MS = 60 * 60 * 1000;
+
 interface ShellyLightLevel {
     attributes: {
         lightLevel: number;
@@ -399,6 +430,10 @@ interface ShellyLightLevel {
 // interleave. Different devices are independent though - a network with many Gen4 devices must
 // not queue every RPC transaction behind one global lock.
 const shellyRpcBusy = new Set<string>();
+
+const preserveNameHA = (name: string): exposes.HomeAssistant => {
+    return {name: name};
+};
 
 const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
     const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
@@ -671,6 +706,41 @@ const ws90Scaled = (name: string, raw: unknown, invalid: number): {[key: string]
     typeof raw === "number" && raw !== invalid ? {[name]: raw / 10} : undefined;
 
 /**
+ * Now and then the station sends an all-zero frame: pressure, humidity, temperature, illuminance and the
+ * cumulative precipitation read 0 for a few seconds up to an hour before the real values come back. A
+ * precipitation counter going 208.9 -> 0 -> 208.9 is seen as a counter reset downstream and the whole
+ * total gets counted again. Drop readings that cannot be real, compared with the last published state;
+ * a genuine 0 °C after a near-zero reading or a real counter reset (0.1, 0.2...) still goes through.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: custom clusters not in type registry
+const ws90IsZeroFrame = (msg: Fz.Message<any, any, any>, state: KeyValue): boolean => {
+    const data = msg.data as KeyValue;
+    switch (msg.cluster) {
+        case "msPressureMeasurement":
+            return data.measuredValue === 0;
+        case "msRelativeHumidity":
+            return data.measuredValue === 0 && typeof state.humidity === "number" && state.humidity > 5;
+        case "msTemperatureMeasurement":
+            return data.measuredValue === 0 && typeof state.temperature === "number" && Math.abs(state.temperature) > 2;
+        case "msIlluminanceMeasurement":
+            return data.measuredValue === 0 && typeof state.illuminance === "number" && state.illuminance > 50;
+        case "shellyWS90Rain":
+            return data.precipitation === 0 && typeof state.precipitation === "number" && state.precipitation > 0;
+        default:
+            return false;
+    }
+};
+
+const ws90IgnoreZeroFrames = (extend: ModernExtend): ModernExtend => ({
+    ...extend,
+    fromZigbee: extend.fromZigbee?.map((converter) => ({
+        ...converter,
+        convert: (model, msg, publish, options, meta) =>
+            ws90IsZeroFrame(msg, meta.state) ? undefined : converter.convert(model, msg, publish, options, meta),
+    })),
+});
+
+/**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
 function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
@@ -865,6 +935,7 @@ const shellyModernExtend = {
               ? {sw1: 3, sw2: 4}
               : undefined;
         const featureOnePMInputMode = features.includes("1PMInputMode");
+        const featureOneLInputMode = features.includes("1LInputMode");
         const featureCoverTiltAuto = features.includes("CoverTiltAuto");
         const featurePresenceZonesAuto = features.includes("PresenceZonesAuto");
         const featurePresenceZoneConfig = features.includes("PresenceZoneConfig");
@@ -1223,7 +1294,7 @@ const shellyModernExtend = {
         // (see SHELLY_RPC_CAN_READ): no convertGet - a device query walks every converter that has
         // one regardless of the access flags - and the exposes say so instead of announcing GET.
         if (twoPMInputEndpoints) {
-            const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
+            const inModeValues = ["momentary", "follow", "flip", "detached", "cycle", "activate"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, twoPMInputEndpoints)).map((endpoint) =>
@@ -1245,7 +1316,7 @@ const shellyModernExtend = {
             });
         }
         if (featureOnePMInputMode) {
-            const inModeValues = ["follow", "flip", "detached", "cycle", "activation"];
+            const inModeValues = ["momentary", "follow", "flip", "detached", "cycle", "activate"];
             exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
                 if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID)) return [];
                 return Object.keys(shellySwitchInputEndpoints(device, {sw1: 2})).map((endpoint) =>
@@ -1255,6 +1326,29 @@ const shellyModernExtend = {
                         .withCategory("config")
                         .withEndpoint(endpoint),
                 );
+            });
+            toZigbee.push({
+                key: ["switch_mode"],
+                convertSet: async (entity, key, value, meta) => {
+                    const ep = getRPCEndpoint(entity);
+                    await rpcSend(ep, "Switch.SetConfig", {id: 0, config: {in_mode: value}});
+                    return {state: {switch_mode: value}};
+                },
+            });
+        }
+        if (featureOneLInputMode) {
+            // SW2 is a permanently detached input. Only SW1 is associated with the relay and can
+            // change its input mode; the remaining modes are unsupported on the 1L.
+            const inModeValues = ["momentary", "follow", "flip", "detached"];
+            exposes.push((device: Zh.Device | DummyDevice, _options: KeyValue) => {
+                if (utils.isDummyDevice(device) || !device.getEndpoint(SHELLY_ENDPOINT_ID) || !device.getEndpoint(2)) return [];
+                return [
+                    e
+                        .enum("switch_mode", ea.STATE_SET, inModeValues)
+                        .withDescription(`Switch input mode. ${WRITE_ONLY}`)
+                        .withCategory("config")
+                        .withEndpoint("sw1"),
+                ];
             });
             toZigbee.push({
                 key: ["switch_mode"],
@@ -1704,10 +1798,26 @@ const shellyModernExtend = {
     ws90CalculatedValues(): ModernExtend {
         const exposes: Expose[] = [
             // Calculated values only
-            e.numeric("dew_point", ea.STATE).withUnit("°C").withDescription("Calculated dew point temperature"),
-            e.numeric("wind_chill", ea.STATE).withUnit("°C").withDescription("Calculated wind chill temperature"),
-            e.numeric("humidex", ea.STATE).withUnit("°C").withDescription("Calculated humidex (feels-like for warm conditions)"),
-            e.numeric("apparent_temperature", ea.STATE).withUnit("°C").withDescription("Calculated apparent temperature"),
+            e
+                .numeric("dew_point", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated dew point temperature")
+                .withHomeAssistant(preserveNameHA("Dew Point")),
+            e
+                .numeric("wind_chill", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated wind chill temperature")
+                .withHomeAssistant(preserveNameHA("Wind Chill")),
+            e
+                .numeric("humidex", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated humidex (feels-like for warm conditions)")
+                .withHomeAssistant(preserveNameHA("Humidex")),
+            e
+                .numeric("apparent_temperature", ea.STATE)
+                .withUnit("°C")
+                .withDescription("Calculated apparent temperature")
+                .withHomeAssistant(preserveNameHA("Apparent Temperature")),
             e.numeric("heat_stress", ea.STATE).withUnit("%").withDescription("Calculated heat stress percentage (0-100%)"),
             e.numeric("rain_rate", ea.STATE).withUnit("mm/h").withDescription("Calculated rainfall rate"),
             e.numeric("pressure_trend", ea.STATE).withUnit("hPa/h").withDescription("Pressure change rate (negative = falling)"),
@@ -1873,18 +1983,30 @@ const handlePosition = e
     .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
     .withDescription("Handle position: closed, tilted (partly open), or open");
 
-// Resolves which switch input (1 or 2) sent a message, from the definition's own endpoint map:
-// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4 and the
-// single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from any
-// other endpoint return undefined and must be ignored, not mislabeled as input 1.
+// Resolves which switch input (swN -> N) sent a message, from the definition's own endpoint map:
+// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4, the i4 on 1-4
+// and the single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from
+// any other endpoint return undefined and must be ignored, not mislabeled as input 1.
 const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint: Zh.Endpoint}): number | undefined => {
     const endpoints = model.endpoint?.(msg.device) ?? {};
-    if (endpoints.sw1 === msg.endpoint.ID) return 1;
-    if (endpoints.sw2 === msg.endpoint.ID) return 2;
+    for (const [name, endpoint] of Object.entries(endpoints)) {
+        const match = /^sw(\d+)$/.exec(name);
+        if (match && endpoint === msg.endpoint.ID) return Number(match[1]);
+    }
     return undefined;
 };
 
 const fzLocal = {
+    momentary_toggle_binding: {
+        cluster: "genOnOffSwitchCfg",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg, publish, options, meta) => {
+            if (!Object.hasOwn(msg.data, "switchActions")) return;
+            const property = utils.postfixWithEndpointName("momentary_toggle_binding", msg, model, meta);
+            return {[property]: msg.data.switchActions === 2 ? "ON" : "OFF"};
+        },
+    } satisfies Fz.Converter<"genOnOffSwitchCfg", undefined, ["attributeReport", "readResponse"]>,
+
     one_button_events: {
         cluster: "genOnOff",
         type: ["commandToggle"],
@@ -1977,7 +2099,7 @@ const fzLocal = {
     // The input numbering comes from the definition's endpoint map (see shellyInputNumber): a
     // fixed endpoint lookup broke the cover-mode 2PM, whose inputs live on endpoints 2/3 while
     // the switch-mode device has them on 3/4 - input 1 threw and input 2 was reported as input 1.
-    two_switch_inputs_events: {
+    switch_inputs_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
@@ -1989,7 +2111,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
-    two_switch_inputs_scene_events: {
+    switch_inputs_scene_events: {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
@@ -2077,12 +2199,37 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    momentary_toggle_binding: {
+        key: ["momentary_toggle_binding"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.validateValue(value as string, ["ON", "OFF"]);
+            utils.assertEndpoint(entity);
+            const result = await entity.read("genOnOffSwitchCfg", ["switchType"]);
+            if (result.switchType !== 1) {
+                throw new Error("Momentary toggle binding requires the input to use the momentary switch type");
+            }
+            await entity.write("genOnOffSwitchCfg", {switchActions: value === "ON" ? 2 : 0});
+            return {state: {momentary_toggle_binding: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            await entity.read("genOnOffSwitchCfg", ["switchActions"]);
+        },
+    } satisfies Tz.Converter,
+
     switch_input_type: {
         key: ["switch_type"],
         convertSet: async (entity, key, value, meta) => {
-            const lookup = {toggle: 0, momentary: 1} as const;
-            const ep = determineEndpoint(entity, meta, "genOnOffSwitchCfg");
-            await ep.write("genOnOffSwitchCfg", {switchType: utils.getFromLookup(value as string, lookup)});
+            // The firmware registers genOnOffSwitchCfg.switchType as READ_ONLY
+            // (shelly_zb_on_off_input.cpp), so a direct ZCL write returns
+            // NOT_AUTHORIZED.  Route the write through Input.SetConfig RPC instead.
+            const typeMap = {toggle: "switch", momentary: "button"} as const;
+            const shellyType = utils.getFromLookup(value as string, typeMap);
+            utils.assertEndpoint(entity);
+            const ep = entity.getDevice().getEndpoint(SHELLY_ENDPOINT_ID);
+            if (!ep) throw new Error(`Shelly RPC endpoint ${SHELLY_ENDPOINT_ID} not found`);
+            const switchId = Number(meta.endpoint_name?.replace("sw", "") ?? "1") - 1;
+            await shellyRpcSend(ep, "Input.SetConfig", {id: switchId, config: {type: shellyType}});
             return {state: {switch_type: value}};
         },
         convertGet: async (entity, key, meta) => {
@@ -2092,11 +2239,508 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+/**
+ * Returns the persisted pending external temperature request for a TRV.
+ */
+function shellyTRVGetExternalTemperatureRequest(device: Zh.Device): ShellyTRVExternalTemperatureRequest | undefined {
+    const request = device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY];
+    if (typeof request !== "object" || request === null) return undefined;
+
+    return request as ShellyTRVExternalTemperatureRequest;
+}
+
+/**
+ * Stores the pending external temperature request in the device metadata.
+ *
+ * The request itself is persisted immediately so delivery can resume after a
+ * Zigbee2MQTT restart. Retry bookkeeping may stay in memory because createdAt
+ * remains persisted and still bounds the request lifetime across restarts.
+ */
+function shellyTRVPutExternalTemperatureRequest(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest, persist = true): void {
+    device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY] = request;
+    if (persist) device.save();
+}
+
+/**
+ * Clears the persisted pending external temperature request for a TRV.
+ */
+function shellyTRVClearExternalTemperatureRequest(device: Zh.Device): void {
+    if (!(SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY in device.meta)) return;
+
+    delete device.meta[SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY];
+    device.save();
+}
+
+/**
+ * Creates a new confirmation-tracked external temperature request.
+ */
+function shellyTRVCreateExternalTemperatureRequest(temperature: number): ShellyTRVExternalTemperatureRequest {
+    return {
+        temperature,
+        measuredValue: Math.round(temperature * 100),
+        createdAt: Date.now(),
+        lastAttemptAt: 0,
+        attempts: 0,
+    };
+}
+
+/**
+ * Reserves one delivery attempt before asynchronous Zigbee traffic starts.
+ *
+ * Updating the store synchronously prevents several reports from the same wake window
+ * from scheduling duplicate retries.
+ */
+function shellyTRVReserveExternalTemperatureAttempt(
+    device: Zh.Device,
+    request: ShellyTRVExternalTemperatureRequest,
+): ShellyTRVExternalTemperatureRequest {
+    const reserved = {
+        ...request,
+        lastAttemptAt: Date.now(),
+        attempts: request.attempts + 1,
+    };
+    shellyTRVPutExternalTemperatureRequest(device, reserved, false);
+    return reserved;
+}
+
+/**
+ * Reconstructs the thermostat RemoteSensing bit mask from the cached state.
+ */
+function shellyTRVRemoteSensingFromState(state: KeyValue): number {
+    if (typeof state.remote_sensing_raw === "number") return state.remote_sensing_raw;
+
+    if (typeof state.remote_sensing !== "object" || state.remote_sensing === null) return 0;
+    const remoteSensing = state.remote_sensing as KeyValue;
+    let value = 0;
+    if (remoteSensing.local_temperature === "remotely") value |= 1;
+    if (remoteSensing.outdoor_temperature === "remotely") value |= 1 << 1;
+    if (remoteSensing.occupancy === "remotely") value |= 1 << 2;
+    return value;
+}
+
+/**
+ * Returns the best available RemoteSensing bit mask without querying the sleeping device.
+ */
+function shellyTRVGetRemoteSensing(endpoint: Zh.Endpoint, state: KeyValue = {}, reportedValue?: number): number {
+    if (reportedValue !== undefined) return reportedValue;
+
+    const cached = endpoint.getClusterAttributeValue("hvacThermostat", "remoteSensing");
+    if (typeof cached === "number") return cached;
+
+    return shellyTRVRemoteSensingFromState(state);
+}
+
+/**
+ * Adds every source bit required by a pending external-input request.
+ * This prevents concurrent temperature and occupancy retries from clearing each other's bit.
+ */
+function shellyTRVRequiredRemoteSensing(device: Zh.Device, remoteSensing: number): number {
+    let required = remoteSensing;
+    if (shellyTRVGetExternalTemperatureRequest(device)) required |= 1;
+    if (shellyTRVGetExternalOccupancyRequest(device)) required |= 1 << 2;
+    return required;
+}
+
+/**
+ * Enables the external local-temperature source while preserving the other RemoteSensing bits.
+ */
+async function shellyTRVEnableRemoteTemperature(endpoint: Zh.Endpoint, remoteSensing: number): Promise<number> {
+    const enabled = remoteSensing | 1;
+    if (enabled !== remoteSensing) {
+        await endpoint.write("hvacThermostat", {remoteSensing: enabled}, {disableResponse: true, disableDefaultResponse: true});
+    }
+    return enabled;
+}
+
+/**
+ * Sends an external temperature as the attribute report of a bound Temperature Measurement server.
+ */
+async function shellyTRVSendExternalTemperature(endpoint: Zh.Endpoint, request: ShellyTRVExternalTemperatureRequest): Promise<void> {
+    await endpoint.report(
+        "msTemperatureMeasurement",
+        {measuredValue: request.measuredValue},
+        {
+            direction: Zcl.Direction.SERVER_TO_CLIENT,
+            srcEndpoint: 1,
+            disableResponse: true,
+            disableDefaultResponse: true,
+        },
+    );
+}
+
+/**
+ * Enables remote sensing and sends the currently reserved external temperature request.
+ */
+async function shellyTRVDeliverExternalTemperature(
+    endpoint: Zh.Endpoint,
+    request: ShellyTRVExternalTemperatureRequest,
+    remoteSensing: number,
+): Promise<void> {
+    await shellyTRVEnableRemoteTemperature(endpoint, remoteSensing);
+    await shellyTRVSendExternalTemperature(endpoint, request);
+}
+
+/**
+ * Checks whether the TRV has confirmed the requested value while using the remote source.
+ */
+function shellyTRVExternalTemperatureIsConfirmed(
+    request: ShellyTRVExternalTemperatureRequest,
+    localTemperature: number | undefined,
+    remoteSensing: number,
+): boolean {
+    return localTemperature === request.measuredValue && (remoteSensing & 1) !== 0;
+}
+
+/**
+ * Checks whether a request reached its bounded retry limit.
+ */
+function shellyTRVExternalTemperatureIsExpired(request: ShellyTRVExternalTemperatureRequest): boolean {
+    return (
+        request.attempts >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS ||
+        Date.now() - request.createdAt >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS
+    );
+}
+
+/**
+ * Confirms an external temperature from incoming thermostat reports and retries an unconfirmed value during a wake window.
+ */
+const fzShellyTRVExternalTemperature = {
+    cluster: "hvacThermostat",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const request = shellyTRVGetExternalTemperatureRequest(msg.device);
+        if (!request) return;
+
+        const remoteSensing = shellyTRVGetRemoteSensing(
+            msg.endpoint,
+            meta.state,
+            typeof msg.data.remoteSensing === "number" ? msg.data.remoteSensing : undefined,
+        );
+
+        if (shellyTRVExternalTemperatureIsConfirmed(request, msg.data.localTemp, remoteSensing)) {
+            shellyTRVClearExternalTemperatureRequest(msg.device);
+            logger.debug(`External temperature ${request.temperature} °C was confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (shellyTRVExternalTemperatureIsExpired(request)) {
+            shellyTRVClearExternalTemperatureRequest(msg.device);
+            logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
+
+        const reserved = shellyTRVReserveExternalTemperatureAttempt(msg.device, request);
+        shellyTRVDeliverExternalTemperature(msg.endpoint, reserved, shellyTRVRequiredRemoteSensing(msg.device, remoteSensing)).catch((error) =>
+            logger.debug(`Failed to retry external temperature for '${msg.device.ieeeAddr}': ${error}`, NS),
+        );
+    },
+} satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+/**
+ * Stores and sends an external temperature while marking the request as pending until the TRV confirms it.
+ */
+const tzShellyTRVExternalTemperature = {
+    key: ["external_temperature"],
+    convertSet: async (entity, key, value, meta) => {
+        utils.assertEndpoint(entity);
+        utils.assertNumber(value, key);
+        if (value < -40 || value > 85) {
+            throw new Error(`External temperature must be between -40 and 85 °C, got ${value}`);
+        }
+
+        const temperature = Math.round(value * 100) / 100;
+        const request = shellyTRVCreateExternalTemperatureRequest(temperature);
+        shellyTRVPutExternalTemperatureRequest(entity.getDevice(), request);
+
+        const remoteSensing = shellyTRVGetRemoteSensing(entity, meta.state);
+        const reserved = shellyTRVReserveExternalTemperatureAttempt(entity.getDevice(), request);
+
+        try {
+            await shellyTRVDeliverExternalTemperature(entity, reserved, shellyTRVRequiredRemoteSensing(entity.getDevice(), remoteSensing));
+        } catch (error) {
+            logger.debug(`Initial external temperature delivery to '${entity.getDevice().ieeeAddr}' failed: ${error}`, NS);
+        }
+
+        return {state: {external_temperature: temperature}};
+    },
+} satisfies Tz.Converter;
+
+/**
+ * Retries a persisted pending external temperature when the TRV announces itself.
+ */
+const shellyTRVExternalTemperatureOnEvent: OnEvent.Handler = (event) => {
+    if (event.type !== "deviceAnnounce") return;
+
+    const endpoint = event.data.device.getEndpoint(1);
+    const request = shellyTRVGetExternalTemperatureRequest(event.data.device);
+    if (!endpoint || !request) return;
+
+    if (shellyTRVExternalTemperatureIsExpired(request)) {
+        shellyTRVClearExternalTemperatureRequest(event.data.device);
+        logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${event.data.device.ieeeAddr}'`, NS);
+        return;
+    }
+
+    if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
+
+    const remoteSensing = shellyTRVGetRemoteSensing(endpoint, event.data.state);
+    const reserved = shellyTRVReserveExternalTemperatureAttempt(event.data.device, request);
+    shellyTRVDeliverExternalTemperature(endpoint, reserved, shellyTRVRequiredRemoteSensing(event.data.device, remoteSensing)).catch((error) =>
+        logger.debug(`Failed to deliver external temperature after announce from '${event.data.device.ieeeAddr}': ${error}`, NS),
+    );
+};
+
+/**
+ * Returns the persisted pending external occupancy request for a TRV.
+ */
+function shellyTRVGetExternalOccupancyRequest(device: Zh.Device): ShellyTRVExternalOccupancyRequest | undefined {
+    const request = device.meta[SHELLY_TRV_EXTERNAL_OCCUPANCY_META_KEY];
+    if (typeof request !== "object" || request === null) return undefined;
+
+    return request as ShellyTRVExternalOccupancyRequest;
+}
+
+/**
+ * Stores the pending external occupancy request in the device metadata.
+ */
+function shellyTRVPutExternalOccupancyRequest(device: Zh.Device, request: ShellyTRVExternalOccupancyRequest, persist = true): void {
+    device.meta[SHELLY_TRV_EXTERNAL_OCCUPANCY_META_KEY] = request;
+    if (persist) device.save();
+}
+
+/**
+ * Clears the persisted pending external occupancy request for a TRV.
+ */
+function shellyTRVClearExternalOccupancyRequest(device: Zh.Device): void {
+    if (!(SHELLY_TRV_EXTERNAL_OCCUPANCY_META_KEY in device.meta)) return;
+
+    delete device.meta[SHELLY_TRV_EXTERNAL_OCCUPANCY_META_KEY];
+    device.save();
+}
+
+function shellyTRVCreateExternalOccupancyRequest(occupancy: boolean): ShellyTRVExternalOccupancyRequest {
+    return {
+        occupancy,
+        createdAt: Date.now(),
+        lastAttemptAt: 0,
+        attempts: 0,
+    };
+}
+
+function shellyTRVReserveExternalOccupancyAttempt(device: Zh.Device, request: ShellyTRVExternalOccupancyRequest): ShellyTRVExternalOccupancyRequest {
+    const reserved = {
+        ...request,
+        lastAttemptAt: Date.now(),
+        attempts: request.attempts + 1,
+    };
+    shellyTRVPutExternalOccupancyRequest(device, reserved, false);
+    return reserved;
+}
+
+/**
+ * Enables the external occupancy source while preserving the other RemoteSensing bits.
+ */
+async function shellyTRVEnableRemoteOccupancy(endpoint: Zh.Endpoint, remoteSensing: number): Promise<number> {
+    const enabled = remoteSensing | (1 << 2);
+    if (enabled !== remoteSensing) {
+        await endpoint.write("hvacThermostat", {remoteSensing: enabled}, {disableResponse: true, disableDefaultResponse: true});
+    }
+    return enabled;
+}
+
+/**
+ * Sends occupancy as the attribute report of an Occupancy Sensing server.
+ */
+async function shellyTRVSendExternalOccupancy(endpoint: Zh.Endpoint, request: ShellyTRVExternalOccupancyRequest): Promise<void> {
+    await endpoint.report(
+        "msOccupancySensing",
+        {occupancy: request.occupancy ? 1 : 0},
+        {
+            direction: Zcl.Direction.SERVER_TO_CLIENT,
+            srcEndpoint: 1,
+            disableResponse: true,
+            disableDefaultResponse: true,
+        },
+    );
+}
+
+async function shellyTRVDeliverExternalOccupancy(
+    endpoint: Zh.Endpoint,
+    request: ShellyTRVExternalOccupancyRequest,
+    remoteSensing: number,
+): Promise<void> {
+    await shellyTRVEnableRemoteOccupancy(endpoint, remoteSensing);
+    await shellyTRVSendExternalOccupancy(endpoint, request);
+}
+
+function shellyTRVExternalOccupancyIsConfirmed(
+    request: ShellyTRVExternalOccupancyRequest,
+    occupancy: number | undefined,
+    remoteSensing: number,
+): boolean {
+    return occupancy !== undefined && ((occupancy & 1) !== 0) === request.occupancy && (remoteSensing & (1 << 2)) !== 0;
+}
+
+function shellyTRVExternalOccupancyIsExpired(request: ShellyTRVExternalOccupancyRequest): boolean {
+    return (
+        request.attempts >= SHELLY_TRV_EXTERNAL_OCCUPANCY_MAX_ATTEMPTS || Date.now() - request.createdAt >= SHELLY_TRV_EXTERNAL_OCCUPANCY_MAX_AGE_MS
+    );
+}
+
+/**
+ * Confirms external occupancy from thermostat reports and retries it during a wake window.
+ */
+const fzShellyTRVExternalOccupancy = {
+    cluster: "hvacThermostat",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const request = shellyTRVGetExternalOccupancyRequest(msg.device);
+        if (!request) return;
+
+        const remoteSensing = shellyTRVGetRemoteSensing(
+            msg.endpoint,
+            meta.state,
+            typeof msg.data.remoteSensing === "number" ? msg.data.remoteSensing : undefined,
+        );
+
+        if (shellyTRVExternalOccupancyIsConfirmed(request, msg.data.occupancy, remoteSensing)) {
+            shellyTRVClearExternalOccupancyRequest(msg.device);
+            logger.debug(`External occupancy ${request.occupancy} was confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (shellyTRVExternalOccupancyIsExpired(request)) {
+            shellyTRVClearExternalOccupancyRequest(msg.device);
+            logger.warning(`External occupancy ${request.occupancy} was not confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_OCCUPANCY_MIN_RETRY_INTERVAL_MS) return;
+
+        const reserved = shellyTRVReserveExternalOccupancyAttempt(msg.device, request);
+        shellyTRVDeliverExternalOccupancy(msg.endpoint, reserved, shellyTRVRequiredRemoteSensing(msg.device, remoteSensing)).catch((error) =>
+            logger.debug(`Failed to retry external occupancy for '${msg.device.ieeeAddr}': ${error}`, NS),
+        );
+    },
+} satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+/**
+ * Stores and sends external occupancy until the TRV confirms the requested state.
+ */
+const tzShellyTRVExternalOccupancy = {
+    key: ["external_occupancy"],
+    convertSet: async (entity, key, value, meta) => {
+        utils.assertEndpoint(entity);
+        if (typeof value !== "boolean") throw new Error(`External occupancy must be true or false, got ${value}`);
+
+        const request = shellyTRVCreateExternalOccupancyRequest(value);
+        shellyTRVPutExternalOccupancyRequest(entity.getDevice(), request);
+
+        const remoteSensing = shellyTRVGetRemoteSensing(entity, meta.state);
+        const reserved = shellyTRVReserveExternalOccupancyAttempt(entity.getDevice(), request);
+
+        try {
+            await shellyTRVDeliverExternalOccupancy(entity, reserved, shellyTRVRequiredRemoteSensing(entity.getDevice(), remoteSensing));
+        } catch (error) {
+            logger.debug(`Initial external occupancy delivery to '${entity.getDevice().ieeeAddr}' failed: ${error}`, NS);
+        }
+
+        return {state: {external_occupancy: value}};
+    },
+} satisfies Tz.Converter;
+
+/**
+ * Retries persisted external occupancy when the TRV announces itself.
+ */
+const shellyTRVExternalOccupancyOnEvent: OnEvent.Handler = (event) => {
+    if (event.type !== "deviceAnnounce") return;
+
+    const endpoint = event.data.device.getEndpoint(1);
+    const request = shellyTRVGetExternalOccupancyRequest(event.data.device);
+    if (!endpoint || !request) return;
+
+    if (shellyTRVExternalOccupancyIsExpired(request)) {
+        shellyTRVClearExternalOccupancyRequest(event.data.device);
+        logger.warning(`External occupancy ${request.occupancy} was not confirmed by '${event.data.device.ieeeAddr}'`, NS);
+        return;
+    }
+
+    if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_OCCUPANCY_MIN_RETRY_INTERVAL_MS) return;
+
+    const remoteSensing = shellyTRVGetRemoteSensing(endpoint, event.data.state);
+    const reserved = shellyTRVReserveExternalOccupancyAttempt(event.data.device, request);
+    shellyTRVDeliverExternalOccupancy(endpoint, reserved, shellyTRVRequiredRemoteSensing(event.data.device, remoteSensing)).catch((error) =>
+        logger.debug(`Failed to deliver external occupancy after announce from '${event.data.device.ieeeAddr}': ${error}`, NS),
+    );
+};
+
+const shellyTRVExternalInputsOnEvent: OnEvent.Handler = async (event) => {
+    await shellyTRVExternalTemperatureOnEvent(event);
+    await shellyTRVExternalOccupancyOnEvent(event);
+};
+
 // =============================================================================
 // Device Definitions
 // =============================================================================
 
 export const definitions: DefinitionWithExtend[] = [
+    {
+        zigbeeModel: ["1L"],
+        model: "S4SW-0A1X1EUL",
+        vendor: "Shelly",
+        description: "1L Gen4",
+        ota: true,
+        version: "0.0.1",
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.momentary_toggle_binding, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
+        exposes: (device) => [
+            e.action([
+                "input_1_on",
+                "input_1_off",
+                "input_1_toggle",
+                "input_1_single",
+                "input_1_double",
+                "input_1_triple",
+                "input_1_hold",
+                "input_2_on",
+                "input_2_off",
+                "input_2_toggle",
+                "input_2_single",
+                "input_2_double",
+                "input_2_triple",
+                "input_2_hold",
+            ]),
+            ...shellySwitchInputExposes(device, {sw1: 2, sw2: 3}),
+            e
+                .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                .withEndpoint("sw1")
+                .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input"),
+            e
+                .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                .withEndpoint("sw2")
+                .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input"),
+        ],
+        extend: [
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
+            m.onOff({powerOnBehavior: false}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyRPCSetup(["1LInputMode"]),
+            shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [2, 3]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchActions"]);
+                }
+            }
+        },
+    },
     {
         zigbeeModel: ["Mini1", "1 Mini"],
         fingerprint: [{modelID: "1", manufacturerName: "Shelly"}],
@@ -2136,6 +2780,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(2);
@@ -2185,6 +2830,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["1PMInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             const ep = device.getEndpoint(2);
@@ -2204,6 +2850,8 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter({producedEnergy: true, acFrequency: true}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            m.identify(),
         ],
     },
     {
@@ -2222,6 +2870,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2258,7 +2907,7 @@ export const definitions: DefinitionWithExtend[] = [
         // this device was first released; bump the patch version so already paired devices get
         // re-configured and their input events start arriving (same rule as the BLU remotes).
         version: "0.0.1",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2285,6 +2934,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMCoverInputMode", "CoverTiltAuto"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             for (const epID of [2, 3]) {
@@ -2333,7 +2983,7 @@ export const definitions: DefinitionWithExtend[] = [
         // this device was first released; bump the patch version so already paired devices get
         // re-configured and their input events start arriving (same rule as the BLU remotes).
         version: "0.0.1",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2361,6 +3011,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["2PMSwitchInputMode"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             for (const epID of [3, 4]) {
@@ -2369,6 +3020,51 @@ export const definitions: DefinitionWithExtend[] = [
                     await ep.bind("genOnOff", coordinatorEndpoint);
                     await ep.bind("genScenes", coordinatorEndpoint);
                     await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ["I4"],
+        model: "S4SN-0A24X",
+        vendor: "Shelly",
+        description: "i4 Gen4",
+        ota: true,
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.momentary_toggle_binding, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
+        // All four inputs are detached - the device has no relay - so they only report actions and,
+        // with momentary_toggle_binding, can drive a directly bound group. Endpoints 5 and 6 only
+        // declare outgoing on/off, level control and window covering clusters, like the extra
+        // endpoint of the 2PM. No input mode is known that makes them send anything, so they are
+        // left out here as on the 2PM.
+        exposes: (device) => [
+            e.action(
+                [1, 2, 3, 4].flatMap((input) =>
+                    ["on", "off", "toggle", "single", "double", "triple", "hold"].map((event) => `input_${input}_${event}`),
+                ),
+            ),
+            ...shellySwitchInputExposes(device, {sw1: 1, sw2: 2, sw3: 3, sw4: 4}),
+            ...Object.keys(shellySwitchInputEndpoints(device, {sw1: 1, sw2: 2, sw3: 3, sw4: 4})).map((endpoint) =>
+                e
+                    .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                    .withEndpoint(endpoint)
+                    .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input")
+                    .withCategory("config"),
+            ),
+        ],
+        extend: [
+            shellyDeviceEndpoints({sw1: 1, sw2: 2, sw3: 3, sw4: 4}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [1, 2, 3, 4]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
                 }
             }
         },
@@ -2383,6 +3079,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2407,6 +3104,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyRPCSetup(["PowerstripUI", "PowerstripPowerOnBehavior"]),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2429,11 +3127,13 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({percentageReportingConfig: false}),
             m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "tamper", "battery_low", "trouble"]}),
             ...shellyModernExtend.shellyCustomClusters(),
+            m.identify({isSleepy: true}),
         ],
     },
     {
         fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
         model: "WS90",
+        version: "0.0.1",
         vendor: "Shelly",
         description: "Weather station",
         extend: [
@@ -2449,10 +3149,10 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 entityCategory: "diagnostic",
             }),
-            m.illuminance(),
-            m.temperature(),
-            m.pressure(),
-            m.humidity(),
+            m.illuminance({valueMin: 0, valueMax: 200000}),
+            m.temperature({valueMin: -40, valueMax: 60}),
+            m.pressure({valueMin: 300, valueMax: 1100}),
+            m.humidity({valueMin: 1, valueMax: 99}),
             m.deviceAddCustomCluster("shellyWS90Wind", {
                 name: "shellyWS90Wind",
                 ID: 0xfc01,
@@ -2471,7 +3171,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "windSpeed",
                 fzConvert: (model, msg) => ws90Scaled("wind_speed", msg.data.windSpeed, 0xffff),
                 valueMin: 0,
-                valueMax: 140,
+                valueMax: 40,
+                valueStep: 0.1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Wind speed in m/s",
                 scale: 10,
@@ -2497,12 +3198,14 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "gustSpeed",
                 fzConvert: (model, msg) => ws90Scaled("gust_speed", msg.data.gustSpeed, 0xffff),
                 valueMin: 0,
-                valueMax: 140,
+                valueMax: 40,
+                valueStep: 0.1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Gust speed in m/s",
                 scale: 10,
                 unit: "m/s",
                 access: "STATE_GET",
+                homeassistant: preserveNameHA("Gust Speed"),
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
                 name: "shellyWS90UV",
@@ -2520,7 +3223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "uvIndex",
                 fzConvert: (model, msg) => ws90Scaled("uv_index", msg.data.uvIndex, 0xff),
                 valueMin: 0,
-                valueMax: 11,
+                valueMax: 15,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "UV index",
                 scale: 10,
@@ -2553,7 +3256,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "precipitation",
                 fzConvert: (model, msg) => ws90Scaled("precipitation", msg.data.precipitation, 0xffffff),
                 valueMin: 0,
-                valueMax: 100000,
+                valueMax: 9999,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Precipitation",
                 unit: "mm",
@@ -2562,7 +3265,8 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             // Calculated values (added by PR #11437)
             shellyModernExtend.ws90CalculatedValues(),
-        ],
+            m.identify({isSleepy: true}),
+        ].map(ws90IgnoreZeroFrames),
     },
     {
         fingerprint: [
@@ -2577,6 +3281,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2585,7 +3290,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Dimmer 0/1-10V PM Gen4",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
             m.light(),
             m.electricityMeter(),
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
@@ -2593,6 +3301,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsLevelCtrl({endpointNames: ["4"]}),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
         ],
     },
     {
@@ -2600,14 +3309,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBHT-203C",
         vendor: "Shelly",
         description: "Humidity & temperature sensor",
-        extend: [m.battery(), m.temperature(), m.humidity()],
+        extend: [m.battery(), m.temperature(), m.humidity(), m.identify({isSleepy: true})],
     },
     {
         fingerprint: [{modelID: "BLU H&T Display ZB", manufacturerName: "Shelly"}],
         model: "SBHT-103C",
         vendor: "Shelly",
         description: "BLU H&T display Zigbee",
-        extend: [m.battery(), m.temperature(), m.humidity(), ...shellyModernExtend.shellyLightLevel()],
+        extend: [m.battery(), m.temperature(), m.humidity(), ...shellyModernExtend.shellyLightLevel(), m.identify({isSleepy: true})],
     },
     {
         fingerprint: [{modelID: "BLU Remote Control ZB", manufacturerName: "Shelly"}],
@@ -2702,6 +3411,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Thermostatic radiator valve",
         fromZigbee: [
             fz.thermostat,
+            fzShellyTRVExternalTemperature,
+            fzShellyTRVExternalOccupancy,
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
@@ -2712,6 +3423,8 @@ export const definitions: DefinitionWithExtend[] = [
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
+            tzShellyTRVExternalTemperature,
+            tzShellyTRVExternalOccupancy,
             {
                 key: ["calibrate"],
                 convertSet: async (entity, key, value, meta) => {
@@ -2727,6 +3440,16 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e.binary("calibration_ok", ea.STATE, true, false).withDescription("Calibration OK").withCategory("diagnostic"),
             e.enum("calibrate", ea.SET, ["trigger"]).withDescription("Trigger valve calibration").withCategory("config"),
+            e
+                .numeric("external_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-40)
+                .withValueMax(85)
+                .withValueStep(0.01)
+                .withDescription("External room temperature used by the thermostat"),
+            e
+                .binary("external_occupancy", ea.STATE_SET, true, false)
+                .withDescription("External occupancy state used to select the occupied or unoccupied heating setpoint"),
         ],
         extend: [
             m.battery(),
@@ -2780,6 +3503,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
+        onEvent: shellyTRVExternalInputsOnEvent,
     },
     {
         fingerprint: [{modelID: "Presence", manufacturerName: "Shelly"}],
@@ -2809,6 +3533,38 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.contact(), handlePosition, e.battery_low()],
         extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow Mini ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-203C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow Outdoor ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-302C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow Outdoor ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), m.identify()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {

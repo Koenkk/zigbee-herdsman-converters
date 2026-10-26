@@ -1,6 +1,8 @@
+import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
+import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
@@ -39,6 +41,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PP-WHT-US",
         vendor: "Securifi",
         description: "Peanut Smart Plug",
+        version: "0.0.1",
         fromZigbee: [fz.on_off, fz.electrical_measurement],
         toZigbee: [tz.on_off],
         ota: true,
@@ -59,6 +62,18 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.activePower(endpoint, {change: 2}); // Power reports in 0.261W
         },
         exposes: [e.switch(), e.power(), e.current(), e.voltage()],
+        extend: [
+            // currentGroup must be writeable for OTA (logic in ZH)
+            m.deviceAddCustomCluster("genScenes", {
+                name: "genScenes",
+                ID: 0x0005,
+                attributes: {
+                    currentGroup: {name: "currentGroup", ID: 0x0002, type: Zcl.DataType.UINT16, required: true, max: 0xfff7, default: 0, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+        ],
     },
     {
         zigbeeModel: ["ZB2-BU01"],

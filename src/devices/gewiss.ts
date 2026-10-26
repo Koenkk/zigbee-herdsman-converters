@@ -1,7 +1,9 @@
 import {Zcl} from "zigbee-herdsman";
+import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "../lib/types";
 
+const e = exposes.presets;
 const MFR = 0x1994; // Gewiss S.p.A.
 
 const gewissShutterConfigure: ModernExtend = {
@@ -62,6 +64,34 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         ota: true,
+    },
+    {
+        zigbeeModel: ["GWA1241_PUSH_BUTTON_2_CH"],
+        model: "GWA1241",
+        vendor: "Gewiss",
+        description: "ChorusSmart 2-channel push button controller",
+        endpoint: (device) => {
+            return {top: 1, bottom: 10};
+        },
+        fromZigbee: [
+            {
+                cluster: "genBinaryInput",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (Object.hasOwn(msg.data, "presentValue")) {
+                        if (msg.data["presentValue"] === 1 || msg.data["presentValue"] === true) {
+                            const button = msg.endpoint.ID === 1 ? "top" : msg.endpoint.ID === 10 ? "bottom" : "unknown";
+                            if (button !== "unknown") {
+                                return {action: `press_${button}`};
+                            }
+                        }
+                    }
+                },
+            },
+        ],
+        toZigbee: [],
+        exposes: [e.action(["press_top", "press_bottom"])],
+        meta: {multiEndpoint: true},
     },
     {
         zigbeeModel: ["GWA1521_Actuator_1_CH_PF"],

@@ -1,11 +1,208 @@
+import {Zcl} from "zigbee-herdsman";
 import * as exposes from "./exposes";
+import * as m from "./modernExtend";
+import * as reporting from "./reporting";
 import type {Configure, Expose, Fz, ModernExtend, Tz} from "./types";
 import * as utils from "./utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface AduroRemote {
+    attributes: Record<string, never>;
+    commands: {reportKey: {key1Value: number; key2Value: number; keyMode: number}};
+    commandResponses: Record<string, never>;
+}
+
+interface AduroAccelerometerPayload extends Record<string, unknown> {
+    attr0Enum: number;
+    attr0ValueType: number;
+    accelerometerXValue: number;
+    attr1Enum: number;
+    attr1ValueType: number;
+    accelerometerYValue: number;
+    attr2Enum: number;
+    attr2ValueType: number;
+    accelerometerZValue: number;
+}
+
+interface AduroAccelerometer {
+    attributes: Record<string, never>;
+    // Fz.Converter currently derives command payload types from `commands`, including server-to-client commands.
+    commands: {reportAccelerometer: AduroAccelerometerPayload};
+    commandResponses: {reportAccelerometer: AduroAccelerometerPayload};
+}
+
+function remote(actionLookup: Record<number, string>): ModernExtend {
+    const customCluster = m.deviceAddCustomCluster("remoteKey", {
+        name: "remoteKey",
+        ID: 0xfccc,
+        attributes: {},
+        commands: {
+            reportKey: {
+                name: "reportKey",
+                ID: 0x00,
+                parameters: [
+                    {name: "key1Value", type: Zcl.DataType.UINT8},
+                    {name: "key2Value", type: Zcl.DataType.UINT8},
+                    {name: "keyMode", type: Zcl.DataType.UINT8},
+                ],
+            },
+        },
+        commandsResponse: {},
+    });
+    const fromZigbee = [
+        {
+            cluster: "remoteKey",
+            type: "commandReportKey",
+            convert: (model, msg) => {
+                const action = actionLookup[msg.data.key2Value];
+                return action ? {action} : undefined;
+            },
+        } satisfies Fz.Converter<"remoteKey", AduroRemote, "commandReportKey">,
+    ];
+    const configure: Configure[] = [
+        ...(customCluster.configure ?? []),
+        async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).bind("remoteKey", coordinatorEndpoint);
+        },
+    ];
+
+    return {...customCluster, fromZigbee, exposes: [e.action(Object.values(actionLookup))], configure};
+}
+
+function accelerometer(): ModernExtend {
+    const customCluster = m.deviceAddCustomCluster("accelerometerMeasurement", {
+        name: "accelerometerMeasurement",
+        ID: 0xfcc1,
+        manufacturerCode: 4653,
+        attributes: {},
+        commands: {},
+        commandsResponse: {
+            reportAccelerometer: {
+                name: "reportAccelerometer",
+                ID: 0x0a,
+                parameters: [
+                    {name: "attr0Enum", type: Zcl.DataType.UINT16},
+                    {name: "attr0ValueType", type: Zcl.DataType.UINT8},
+                    {name: "accelerometerXValue", type: Zcl.DataType.INT16},
+                    {name: "attr1Enum", type: Zcl.DataType.UINT16},
+                    {name: "attr1ValueType", type: Zcl.DataType.UINT8},
+                    {name: "accelerometerYValue", type: Zcl.DataType.INT16},
+                    {name: "attr2Enum", type: Zcl.DataType.UINT16},
+                    {name: "attr2ValueType", type: Zcl.DataType.UINT8},
+                    {name: "accelerometerZValue", type: Zcl.DataType.INT16},
+                ],
+            },
+        },
+    });
+    const convertAcceleration = (value: number): number => Math.round(((value >> 2) * 977) / 1000 + 0.5);
+    const fromZigbee = [
+        {
+            cluster: "accelerometerMeasurement",
+            type: "commandReportAccelerometer",
+            convert: (model, msg) => ({
+                x_axis: convertAcceleration(msg.data.accelerometerXValue),
+                y_axis: convertAcceleration(msg.data.accelerometerYValue),
+                z_axis: convertAcceleration(msg.data.accelerometerZValue),
+            }),
+        } satisfies Fz.Converter<"accelerometerMeasurement", AduroAccelerometer, "commandReportAccelerometer">,
+    ];
+    const configure: Configure[] = [
+        ...(customCluster.configure ?? []),
+        async (device, coordinatorEndpoint) => {
+            await device.getEndpoint(1).bind("accelerometerMeasurement", coordinatorEndpoint);
+        },
+    ];
+
+    return {
+        ...customCluster,
+        fromZigbee,
+        exposes: [
+            e.numeric("x_axis", ea.STATE).withDescription("X-axis acceleration"),
+            e.numeric("y_axis", ea.STATE).withDescription("Y-axis acceleration"),
+            e.numeric("z_axis", ea.STATE).withDescription("Z-axis acceleration"),
+        ],
+        configure,
+    };
+}
+
+function onOffReporting(): ModernExtend {
+    return {
+        configure: [
+            async (device, coordinatorEndpoint) => {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+                await reporting.onOff(endpoint, {min: 0, max: 300, change: 1});
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
+function electricityMeter(): ModernExtend {
+    return m.electricityMeter({
+        cluster: "electrical",
+        energy: false,
+        power: {multiplier: 1, divisor: 10, min: 0, max: 300, change: 0.1},
+        current: {multiplier: 1, divisor: 1000, min: 0, max: 300, change: 0.01},
+        voltage: {multiplier: 1, divisor: 100, min: 0, max: 300, change: 0.01},
+    });
+}
+
+const iasZoneBinding = (): ModernExtend => m.bindCluster({cluster: "ssIasZone", clusterType: "input"});
+
+function contactSensor(): ModernExtend[] {
+    return [
+        m.battery({percentageReportingConfig: {min: 0, max: 60000, change: 1}}),
+        m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+        iasZoneBinding(),
+    ];
+}
+
+function motionSensor(): ModernExtend[] {
+    return [
+        m.battery({percentageReportingConfig: {min: 0, max: 60000, change: 1}}),
+        m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_2"]}),
+        iasZoneBinding(),
+    ];
+}
+
+function multiContactSensor(): ModernExtend[] {
+    return [
+        accelerometer(),
+        m.battery({percentageReportingConfig: {min: 3600, max: 65000, change: 2}}),
+        m.temperature({reporting: {min: 10, max: 3600, change: 100}}),
+        m.humidity({reporting: {min: 10, max: 3600, change: 100}}),
+        m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1"]}),
+        iasZoneBinding(),
+    ];
+}
+
+function multiMotionSensor(): ModernExtend[] {
+    return [
+        m.battery({percentageReportingConfig: {min: 3600, max: 65000, change: 2}}),
+        m.occupancy({reportingConfig: {min: 1, max: 3600, change: 0}}),
+        m.temperature({reporting: {min: 10, max: 3600, change: 100}}),
+        m.humidity({reporting: {min: 10, max: 3600, change: 100}}),
+        m.illuminance({reporting: {min: 5, max: 3600, change: 100}}),
+    ];
+}
+
+function siren(): ModernExtend[] {
+    return [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1"]}), m.iasWarning()];
+}
+
 const extend = {
+    contactSensor,
+    motionSensor,
+    dimmerRemote: (): ModernExtend => remote({0: "on", 1: "up", 2: "down", 3: "off"}),
+    sceneRemote: (): ModernExtend => remote({0: "toggle", 1: "button_1", 2: "button_2", 3: "button_3"}),
+    multiContactSensor,
+    multiMotionSensor,
+    onOffReporting,
+    electricityMeter,
+    siren,
     dimmerLoadControlMode: (): ModernExtend => {
         const attribute = 0x7600;
         const data_type = 0x20;

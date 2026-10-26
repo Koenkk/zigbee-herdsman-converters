@@ -1,12 +1,12 @@
 {
     "image": "mcr.microsoft.com/devcontainers/javascript-node:24",
 
-    "postCreateCommand": "pnpm config set store-dir /home/node/.local/share/pnpm/store && pnpm install --frozen-lockfile",
+    "postCreateCommand": "pnpm config set store-dir /home/node/.local/share/pnpm/store && CI=true pnpm install --frozen-lockfile",
 
     "customizations": {
         "vscode": {
             "settings": {
-                "workbench.colorTheme": "Default Dark Modern",
+                "workbench.colorTheme": "Dark Modern",
                 "window.menuBarVisibility": "classic",
                 "editor.defaultFormatter": "biomejs.biome",
                 "notebook.defaultFormatter": "biomejs.biome",

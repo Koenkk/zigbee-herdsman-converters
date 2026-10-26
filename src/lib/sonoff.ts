@@ -1,5 +1,8 @@
+import type {ClusterOrRawAttributeKeys, TCustomCluster} from "zigbee-herdsman/dist/controller/tstype";
+import * as exposes from "./exposes";
 import {logger} from "./logger";
-import type {Fz, KeyValue} from "./types";
+import type {DefinitionExposesFunction, Fz, KeyValue, ModernExtend, Zh} from "./types";
+import * as utils from "./utils";
 
 const NS = "zhc:sonoff";
 
@@ -249,4 +252,108 @@ export const parseTimeToSecondsSinceMidnight = (time: string, field = "value"): 
         throw new Error(`Invalid ${field}, 24:00 is not supported. Use 00:00 of the next day instead.`);
     }
     return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3] ?? 0);
+};
+/**
+ * Read attributes in batches of four; retry failed batches one attribute at a time.
+ * Log individual failures and continue so unsupported attributes do not stop configuration.
+ * @param cluster Cluster name or ID (e.g. 0xfc11).
+ * @param attributes Attribute names or IDs to read.
+ * @param endpoint Device endpoint to read from.
+ * @param options Optional Zigbee read options, also used for retries.
+ */
+export const readAttributesInBatches = async <Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
+    cluster: Cl,
+    attributes: ClusterOrRawAttributeKeys<Cl, Custom>,
+    endpoint: Zh.Endpoint,
+    options?: Parameters<typeof endpoint.read<Cl, Custom>>[2],
+): Promise<void> => {
+    const readAttributes = async (batch: ClusterOrRawAttributeKeys<Cl, Custom>) => {
+        try {
+            await endpoint.read<Cl, Custom>(cluster, batch, options);
+        } catch (error) {
+            if (batch.length === 1) {
+                const attribute = typeof batch[0] === "number" ? `0x${batch[0].toString(16)}` : batch[0];
+                logger.error(`Failed to read cluster ${cluster} attribute ${attribute}: ${error}`, NS);
+                return;
+            }
+            for (const attribute of batch) {
+                await readAttributes([attribute] as ClusterOrRawAttributeKeys<Cl, Custom>);
+            }
+        }
+    };
+    for (let i = 0; i < attributes.length; i += 4) {
+        await readAttributes(attributes.slice(i, i + 4) as ClusterOrRawAttributeKeys<Cl, Custom>);
+    }
+};
+
+/** Gate real-device exposes by the predicate; retain dummy exposes for definition exports unless explicitly disabled. */
+export const withConditionalExpose = (
+    extend: ModernExtend,
+    predicate: FirmwareFeatureGate,
+    {exposeOnDummy = true}: {exposeOnDummy?: boolean} = {},
+): ModernExtend => {
+    const originalExposes = extend.exposes ?? [];
+
+    const expose: DefinitionExposesFunction = (device, options) => {
+        if (utils.isDummyDevice(device) ? !exposeOnDummy : !predicate(device)) return [];
+
+        return originalExposes.flatMap((item) => (typeof item === "function" ? item(device, options) : [item]));
+    };
+
+    return {...extend, exposes: [expose]};
+};
+
+// Expose an enum's values only while the device supports them: `gatedValues` are exposed only while `isSupported`
+// returns true (e.g. a firmware version floor), every other value is always exposed. The wrapped extend keeps its full
+// lookup, so reported values and writes are unaffected. Dummy devices retain all values for definition exports and device docs.
+export const withConditionalEnumValues = (extend: ModernExtend, gatedValues: (string | number)[], isSupported: FirmwareFeatureGate): ModernExtend => {
+    const expose: DefinitionExposesFunction = (device, options) => {
+        const items = (extend.exposes ?? []).flatMap((item) => (typeof item === "function" ? item(device, options) : [item]));
+        if (utils.isDummyDevice(device) || isSupported(device)) return items;
+
+        return items.map((item) => {
+            if (!(item instanceof exposes.Enum)) return item;
+
+            const reduced = item.clone();
+            reduced.values = item.values.filter((value) => !gatedValues.includes(value));
+            return reduced;
+        });
+    };
+
+    return {...extend, exposes: [expose]};
+};
+
+export type FirmwareFeatureGate = (device: Zh.Device) => boolean;
+
+/**
+ * Checks whether a device firmware version supports a feature.
+ * Missing firmware or a mismatched optional model is treated as unsupported.
+ * @param targetVersion Firmware version threshold.
+ * @param type Whether the current version must be lower than, or equal to/higher than, the threshold.
+ * @returns Whether the feature should be exposed.
+ */
+export const firmwareSupportFeaturesVersion = (
+    targetVersion: string,
+    type: "lower" | "higher",
+    options?: {modelID?: string},
+): FirmwareFeatureGate => {
+    const targetParts = targetVersion.split(".").map(Number);
+
+    return (device): boolean => {
+        if (options?.modelID !== undefined && device.modelID !== options.modelID) return false;
+        if (!device.softwareBuildID) return false;
+
+        const currentParts = device.softwareBuildID.split(".").map(Number);
+        const length = Math.max(currentParts.length, targetParts.length);
+
+        for (let i = 0; i < length; i++) {
+            const currentPart = Number.isFinite(currentParts[i]) ? currentParts[i] : 0;
+            const targetPart = Number.isFinite(targetParts[i]) ? targetParts[i] : 0;
+
+            if (currentPart < targetPart) return type === "lower";
+            if (currentPart > targetPart) return type === "higher";
+        }
+
+        return type === "higher";
+    };
 };

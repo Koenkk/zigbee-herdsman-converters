@@ -10,9 +10,9 @@ import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
-import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, KeyValueAny, ModernExtend, Publish, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
-import {postfixWithEndpointName} from "../lib/utils";
+import {getEndpointsWithCluster, postfixWithEndpointName} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -112,6 +112,7 @@ interface SchneiderThermostatCluster {
         heatingEmitter: number;
         wiserSmartZoneMode: number;
         wiserSmartHactConfig: number;
+        wiserSmartOpenWindowDetectionStatus: number;
         wiserSmartCurrentFilPiloteMode: number;
         wiserSmartValvePosition: number;
         wiserSmartValveCalibrationStatus: number;
@@ -164,6 +165,18 @@ interface SchneiderHeatingCoolingOutputCluster {
         maxOverallDutyCycle: number;
         overallDutyCyclePeriod: number;
         clusterRevision: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+
+interface SchneiderCycleTimeCluster {
+    attributes: {
+        demandPercentage: number;
+        cycleTime: number;
+        minCycleTime: number;
+        maxCycleTime: number;
+        statusFlags: number;
     };
     commands: never;
     commandResponses: never;
@@ -501,6 +514,21 @@ const schneiderElectricExtend = {
         return extend;
     },
 
+    addCycleTimeCluster: () =>
+        m.deviceAddCustomCluster("schneiderCycleTime", {
+            name: "schneiderCycleTime",
+            ID: 0xff16,
+            manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+            attributes: {
+                demandPercentage: {name: "demandPercentage", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 100},
+                cycleTime: {name: "cycleTime", ID: 0x0010, type: Zcl.DataType.UINT16, write: true, min: 300, max: 3200},
+                minCycleTime: {name: "minCycleTime", ID: 0x0011, type: Zcl.DataType.UINT16},
+                maxCycleTime: {name: "maxCycleTime", ID: 0x0012, type: Zcl.DataType.UINT16},
+                statusFlags: {name: "statusFlags", ID: 0x0020, type: Zcl.DataType.BITMAP8},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
     addOccupancyConfigurationCluster: () =>
         m.deviceAddCustomCluster("occupancyConfiguration", {
             name: "occupancyConfiguration",
@@ -571,7 +599,7 @@ const schneiderElectricExtend = {
                     convert: (model, msg, publish, options, meta) => {
                         if ("instantaneousDemand" in msg.data) {
                             const w = Math.max(0, Number(msg.data.instantaneousDemand));
-                            return {running_state: w > 10 ? "heat" : "idle"};
+                            return {running_state: w > 0 ? "heat" : "idle"};
                         }
                     },
                 },
@@ -802,20 +830,38 @@ const schneiderElectricExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    fixedLoadDemand: (args?: Partial<m.NumericArgs<"seMetering", SchneiderMeteringCluster>>) =>
-        m.numeric<"seMetering", SchneiderMeteringCluster>({
+    fixedLoadDemand: (args?: Partial<m.NumericArgs<"seMetering", SchneiderMeteringCluster>>) => {
+        const zigbeeCommandOptions = {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
+        const extend = m.numeric<"seMetering", SchneiderMeteringCluster>({
             name: "fixed_load_demand",
             cluster: "seMetering",
             attribute: "fixedLoadDemand",
             description:
-                "Load in W when heating is on (between 0-3600 W). The thermostat reports this value as power (instantaneousDemand) when heating is on. The load has to be defined if the device should report running state ('heat' or 'idle').",
+                "Load in W when heating is on (between 1-3600 W). The thermostat reports this value as power (instantaneousDemand) when heating is on. The load has to be defined if the device should report running state ('heat' or 'idle').",
             entityCategory: "config",
             unit: "W",
-            valueMin: 1,
+            valueMin: 0,
             valueMax: 3600,
             valueStep: 1,
+            zigbeeCommandOptions,
             ...args,
-        }),
+        });
+
+        extend.configure.push(async (device) => {
+            const endpoint = getEndpointsWithCluster(device, "seMetering", "input")[0];
+            const {fixedLoadDemand} = await endpoint.read<"seMetering", SchneiderMeteringCluster>(
+                "seMetering",
+                ["fixedLoadDemand"],
+                zigbeeCommandOptions,
+            );
+
+            if (fixedLoadDemand === 0) {
+                await endpoint.write<"seMetering", SchneiderMeteringCluster>("seMetering", {fixedLoadDemand: 1}, zigbeeCommandOptions);
+            }
+        });
+
+        return extend;
+    },
     customThermostatCluster: () =>
         m.deviceAddCustomCluster("hvacThermostat", {
             name: "hvacThermostat",
@@ -890,6 +936,12 @@ const schneiderElectricExtend = {
                     ID: 0xe011,
                     type: Zcl.DataType.BITMAP8,
                     write: true,
+                    manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
+                },
+                wiserSmartOpenWindowDetectionStatus: {
+                    name: "wiserSmartOpenWindowDetectionStatus",
+                    ID: 0xe012,
+                    type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC,
                 },
                 wiserSmartCurrentFilPiloteMode: {
@@ -1037,6 +1089,18 @@ const schneiderElectricExtend = {
             lookup: {None: 0, Radiator: 1, "Fan Assisted Radiator": 2, "Radiant Panel": 3, Floor: 4, "Not specified": 0xff},
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
         }),
+    openWindowDetectionStatus: () =>
+        m.binary<"hvacThermostat", SchneiderThermostatCluster>({
+            name: "window_open",
+            valueOn: [true, 1],
+            valueOff: [false, 0],
+            cluster: "hvacThermostat",
+            attribute: "wiserSmartOpenWindowDetectionStatus",
+            description: "Indicates if the built-in open window detection is active (heating is suspended)",
+            access: "STATE_GET",
+            entityCategory: "diagnostic",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        }),
     addWiserDeviceInfoCluster: () =>
         m.deviceAddCustomCluster("wiserDeviceInfo", {
             name: "wiserDeviceInfo",
@@ -1132,6 +1196,220 @@ const schneiderElectricExtend = {
             commandsResponse: {},
         }),
 };
+
+// #region CCTFR6400 hub-less boost handling
+//
+// The CCTFR6400 keeps no boost state of its own: ~8 seconds after the last
+// center-button press it sends a single schneiderWiserThermostatBoost command
+// and forgets about the boost. It even drops an unhonoured boost locally when
+// the setpoint it reads back does not reflect the boost temperature. The full
+// boost lifecycle is therefore the controller's job: save the pre-boost
+// setpoint, apply the boost temperature and restore the saved setpoint when
+// the boost duration ends or when the boost is cancelled on the device
+// (option `boost_auto_honor`, enabled by default).
+//
+// Precedence rules (the last written setpoint always wins):
+// - an external occupied_heating_setpoint write cancels a pending restore,
+// - a +/- press after the boost commit is a normal setpoint change for the
+//   user and also cancels the pending restore,
+// - only an undisturbed expiry or a boost cancel on the device restores the
+//   saved pre-boost setpoint.
+
+const cctfr6400BoostTimerStoreKey = "cctfr6400_boost_timer";
+const cctfr6400PublishStoreKey = "cctfr6400_publish";
+const cctfr6400PendingPublishStoreKey = "cctfr6400_pending_publish";
+const cctfr6400BoostBaseMetaKey = "cctfr6400BoostSavedSetpoint";
+const cctfr6400BoostEndMetaKey = "cctfr6400BoostEndTime";
+
+const cctfr6400Options = {
+    boostAutoHonor: () =>
+        e
+            .binary("boost_auto_honor", ea.SET, true, false)
+            .withLabel("Auto honor boost")
+            .withDescription(
+                "Handle a boost started from the device's center button by temporarily applying the boost temperature as the setpoint and " +
+                    "restoring the previous setpoint when the boost duration ends or the boost is cancelled on the device (default true). " +
+                    "Disable this when an external automation implements its own boost policy based on the boost_set/boost_cancel actions.",
+            ),
+};
+
+function cctfr6400BoostAutoHonorEnabled(options: KeyValue): boolean {
+    return options?.boost_auto_honor !== false;
+}
+
+// Remember the publish callback so that a boost restore that happens outside
+// of a message context (timer expiry after a restart, or an end time that
+// passed while the controller was down) can still update the exposed state.
+// If no callback has been captured yet the restore payload is parked and
+// published with the next incoming message of this device (it wakes and
+// reports roughly every minute).
+function cctfr6400RememberPublish(device: Zh.Device, publish: Publish): void {
+    globalStore.putValue(device.ieeeAddr, cctfr6400PublishStoreKey, publish);
+    const pending = globalStore.getValue(device.ieeeAddr, cctfr6400PendingPublishStoreKey);
+    if (pending !== undefined) {
+        globalStore.clearValue(device.ieeeAddr, cctfr6400PendingPublishStoreKey);
+        publish(pending);
+    }
+}
+
+function cctfr6400PublishOrDefer(device: Zh.Device, payload: KeyValue): void {
+    const publish: Publish | undefined = globalStore.getValue(device.ieeeAddr, cctfr6400PublishStoreKey);
+    if (publish) {
+        publish(payload);
+    } else {
+        globalStore.putValue(device.ieeeAddr, cctfr6400PendingPublishStoreKey, payload);
+    }
+}
+
+// Forget a pending boost without touching the setpoint (external setpoint
+// write, +/- press after the commit, or auto honor disabled).
+function cctfr6400BoostWipe(device: Zh.Device): void {
+    clearTimeout(globalStore.getValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey));
+    globalStore.clearValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey);
+    if (device.meta[cctfr6400BoostBaseMetaKey] !== undefined || device.meta[cctfr6400BoostEndMetaKey] !== undefined) {
+        delete device.meta[cctfr6400BoostBaseMetaKey];
+        delete device.meta[cctfr6400BoostEndMetaKey];
+        device.save();
+    }
+}
+
+// Restore the saved pre-boost setpoint (undisturbed expiry or device cancel).
+// Returns the state payload of the restore, or undefined when no boost was
+// pending.
+function cctfr6400BoostRestore(device: Zh.Device): KeyValue | undefined {
+    const base = device.meta[cctfr6400BoostBaseMetaKey] as number | undefined;
+    cctfr6400BoostWipe(device);
+    if (base === undefined) {
+        return undefined;
+    }
+    device.getEndpoint(1).saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: base});
+    return {occupied_heating_setpoint: base / 100};
+}
+
+function cctfr6400BoostStartTimer(device: Zh.Device, timeoutMs: number): void {
+    clearTimeout(globalStore.getValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey));
+    const timer = setTimeout(
+        () => {
+            globalStore.clearValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey);
+            const payload = cctfr6400BoostRestore(device);
+            if (payload) {
+                cctfr6400PublishOrDefer(device, payload);
+            }
+        },
+        Math.max(timeoutMs, 0),
+    ).unref();
+    globalStore.putValue(device.ieeeAddr, cctfr6400BoostTimerStoreKey, timer);
+}
+
+// Honor a boost commit: save the pre-boost setpoint (a new commit during a
+// running boost keeps the originally saved setpoint and restarts the timer),
+// apply the boost temperature and arm the restore timer. The bookkeeping is
+// persisted in device.meta so a restart resumes the boost (see onEvent).
+function cctfr6400BoostArm(device: Zh.Device, durationMinutes: number, temperature: number): void {
+    const endpoint = device.getEndpoint(1);
+    if (device.meta[cctfr6400BoostBaseMetaKey] === undefined) {
+        const current = Number(endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
+        if (Number.isFinite(current)) {
+            device.meta[cctfr6400BoostBaseMetaKey] = current;
+        }
+    }
+    if (device.meta[cctfr6400BoostBaseMetaKey] !== undefined) {
+        device.meta[cctfr6400BoostEndMetaKey] = Date.now() + durationMinutes * 60000;
+        device.save();
+        cctfr6400BoostStartTimer(device, durationMinutes * 60000);
+    }
+    endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: temperature});
+}
+
+// Resume or finish a persisted boost after a restart.
+function cctfr6400BoostResume(device: Zh.Device, options: KeyValue): void {
+    const endTime = device.meta[cctfr6400BoostEndMetaKey] as number | undefined;
+    if (endTime === undefined) {
+        return;
+    }
+    if (!cctfr6400BoostAutoHonorEnabled(options)) {
+        // Auto honor was disabled while a boost was pending: forget it without
+        // touching the setpoint, an external automation is in charge now.
+        cctfr6400BoostWipe(device);
+        return;
+    }
+    if (endTime <= Date.now()) {
+        const payload = cctfr6400BoostRestore(device);
+        if (payload) {
+            cctfr6400PublishOrDefer(device, payload);
+        }
+    } else {
+        cctfr6400BoostStartTimer(device, endTime - Date.now());
+    }
+}
+
+// Attributes the device reads from the coordinator while its screen is awake
+// (measured on the wire): occupiedHeatingSetpoint/systemMode/ctrlSeqeOfOper/
+// pIHeatingDemand in one frame plus schneiderWiserSpecific in a separate
+// manufacturer-specific frame.
+type Cctfr6400ReadAttribute = "occupiedHeatingSetpoint" | "systemMode" | "ctrlSeqeOfOper" | "pIHeatingDemand" | "schneiderWiserSpecific";
+function cctfr6400HvacReadAttribute(attrId: number): Cctfr6400ReadAttribute | undefined {
+    switch (attrId) {
+        case 0x0012:
+            return "occupiedHeatingSetpoint";
+        case 0x001c:
+            return "systemMode";
+        case 0x001b:
+            return "ctrlSeqeOfOper";
+        case 0x0008:
+            return "pIHeatingDemand";
+        case 0xe110:
+            return "schneiderWiserSpecific";
+        default:
+            return undefined;
+    }
+}
+
+// Since zigbee-herdsman 10.0.3 device reads are no longer answered from the
+// coordinator attribute cache; everything except genTime/genBasic gets
+// UNSUPPORTED_ATTRIBUTE. The CCTFR6400 is a thermostat *client*: it polls the
+// attributes above every ~5 seconds while its screen is awake and needs real
+// answers for its display (and its local setpoint/boost UI) to work. Answer
+// the reads from the endpoint attribute cache, which the cctfr6400_thermostat
+// toZigbee converters and the +/- emulation keep up to date.
+function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
+    if (device.customReadResponse) {
+        return;
+    }
+    device.customReadResponse = (frame, endpoint) => {
+        if (!frame.isCluster("hvacThermostat")) {
+            // genBasic/genTime reads are answered by zigbee-herdsman itself.
+            return false;
+        }
+        const attributes: Partial<Record<Cctfr6400ReadAttribute, number>> = {};
+        for (const item of frame.payload as {attrId: number}[]) {
+            const name = cctfr6400HvacReadAttribute(item.attrId);
+            const value = name === undefined ? undefined : endpoint.getClusterAttributeValue("hvacThermostat", name);
+            if (typeof value !== "number") {
+                // Unknown attribute or no cached value yet: let zigbee-herdsman
+                // answer the whole frame with UNSUPPORTED_ATTRIBUTE instead of
+                // sending a partial response.
+                return false;
+            }
+            attributes[name] = value;
+        }
+        // Measured on the wire: the device targets these reads at coordinator
+        // endpoint 3 and expects the response to come from that endpoint, so
+        // mirror it (like the default zigbee-herdsman read response path does).
+        const options: {srcEndpoint: number; manufacturerCode?: number} = {srcEndpoint: 3};
+        if (frame.header.manufacturerCode !== undefined) {
+            options.manufacturerCode = frame.header.manufacturerCode;
+        }
+        endpoint
+            .readResponse<"hvacThermostat", SchneiderThermostatCluster>("hvacThermostat", frame.header.transactionSequenceNumber, attributes, options)
+            .catch((error) => {
+                logger.warning(`CCTFR6400 read response failed for '${device.ieeeAddr}': ${error}`, NS);
+            });
+        return true;
+    };
+}
+
+// #endregion
 
 const tzLocal = {
     lift_duration: {
@@ -1286,6 +1564,13 @@ const tzLocal = {
         convertSet: (entity, key, value, meta) => {
             utils.assertNumber(value, key);
             utils.assertEndpoint(entity);
+            if (meta.device) {
+                // An external setpoint write overrules a pending boost: the new
+                // value applies and the pre-boost setpoint is no longer
+                // restored, so a schedule can never be overwritten by a stale
+                // boost restore.
+                cctfr6400BoostWipe(meta.device);
+            }
             const occupiedHeatingSetpoint = Number((Math.round(Number((value * 2).toFixed(1))) / 2).toFixed(1)) * 100;
             entity.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: occupiedHeatingSetpoint});
             return {state: {occupied_heating_setpoint: value}};
@@ -1353,27 +1638,52 @@ const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
 
+            cctfr6400RememberPublish(msg.device, publish);
             const data = msg.data.deviceInfo.split(",");
             if (data[0] === "UI" && data[1]) {
                 const result: KeyValueAny = {action: utils.toSnakeCase(data[1])};
 
                 let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
                 screenAwake = screenAwake !== undefined ? screenAwake : false;
-                const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
-                const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+                const keypadLockout = msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout");
+                const keypadLocked = keypadLockout != null && Number(keypadLockout) !== 0;
+                // While the boost selection UI is open (center press seen,
+                // clock icon shown), +/- presses adjust the device's local
+                // boost target, not the setpoint. Emulating them against the
+                // setpoint cache would leak boost adjustments into the
+                // setpoint. The window ends at the boost commit (~8 s after
+                // the last press) or at screen sleep. No time based guard is
+                // needed: the device drops an uncommitted boost by itself.
+                const boostSelecting = globalStore.getValue(msg.endpoint, "boostSelecting") === true;
 
                 // Emulate UI temperature update
                 if (data[1] === "ScreenWake") {
                     globalStore.putValue(msg.endpoint, "screenAwake", true);
                 } else if (data[1] === "ScreenSleep") {
                     globalStore.putValue(msg.endpoint, "screenAwake", false);
-                } else if (screenAwake && !keypadLocked) {
+                    globalStore.putValue(msg.endpoint, "boostSelecting", false);
+                } else if (data[1] === "ButtonPressCenterDown") {
+                    if (screenAwake && !keypadLocked) {
+                        globalStore.putValue(msg.endpoint, "boostSelecting", true);
+                    }
+                } else if (
+                    (data[1] === "ButtonPressMinusDown" || data[1] === "ButtonPressPlusDown") &&
+                    screenAwake &&
+                    !keypadLocked &&
+                    !boostSelecting
+                ) {
+                    // A +/- press after the boost commit is a normal setpoint
+                    // change for the user: like an external setpoint write it
+                    // cancels a pending boost restore (the last written
+                    // setpoint always wins).
+                    cctfr6400BoostWipe(msg.device);
                     let occupiedHeatingSetpoint = Number(msg.endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint"));
-                    occupiedHeatingSetpoint = occupiedHeatingSetpoint != null ? occupiedHeatingSetpoint : 400;
+                    occupiedHeatingSetpoint =
+                        occupiedHeatingSetpoint != null && !Number.isNaN(occupiedHeatingSetpoint) ? occupiedHeatingSetpoint : 400;
 
                     if (data[1] === "ButtonPressMinusDown") {
                         occupiedHeatingSetpoint -= 50;
-                    } else if (data[1] === "ButtonPressPlusDown") {
+                    } else {
                         occupiedHeatingSetpoint += 50;
                     }
 
@@ -1385,6 +1695,57 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"wiserDeviceInfo", WiserDeviceInfo, "attributeReport">,
+    cctfr6400_boost: {
+        cluster: "hvacThermostat",
+        type: ["commandSchneiderWiserThermostatBoost"],
+        options: [cctfr6400Options.boostAutoHonor()],
+        convert: (model, msg, publish, options, meta) => {
+            if (utils.hasAlreadyProcessedMessage(msg, model)) return;
+
+            cctfr6400RememberPublish(msg.device, publish);
+            // The commit closes the boost selection window of the +/- guard.
+            globalStore.putValue(msg.endpoint, "boostSelecting", false);
+            const enable = Number(msg.data.enable) === 1;
+            // Cancel = enable 0, duration 0, temperature 0xFFF.
+            const result: KeyValueAny = {
+                action: enable ? "boost_set" : "boost_cancel",
+                boost_duration: enable ? Number(msg.data.duration) : 0,
+                boost_temperature: enable ? Number(msg.data.temperature) / 100 : null,
+            };
+            if (cctfr6400BoostAutoHonorEnabled(options)) {
+                if (enable) {
+                    const temperature = Number(msg.data.temperature);
+                    cctfr6400BoostArm(msg.device, Number(msg.data.duration), temperature);
+                    result.occupied_heating_setpoint = temperature / 100;
+                } else {
+                    const restored = cctfr6400BoostRestore(msg.device);
+                    if (restored) {
+                        Object.assign(result, restored);
+                    }
+                }
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSchneiderWiserThermostatBoost"]>,
+    cctfr6400_ignore_thermostat_read: {
+        // The display poll reads answered by customReadResponse (see
+        // cctfr6400InstallCustomReadResponse) also pass through the fromZigbee
+        // pipeline; absorb them silently to avoid "No converter available"
+        // log spam every ~5 seconds while the screen is awake.
+        cluster: "hvacThermostat",
+        type: ["read"],
+        convert: () => {},
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["read"]>,
+    cctfr6400_ignore_setpoint_raise_lower: {
+        // Once its reads are answered the device also sends a standard
+        // setpointRaiseLower command (amount in 0.1 °C steps, e.g. -5 for
+        // -0.5 °C) for every +/- press. The schneider_ui_action emulation
+        // above already applies the same step to the setpoint cache, so acting
+        // on this command as well would double count every press.
+        cluster: "hvacThermostat",
+        type: ["commandSetpointRaiseLower"],
+        convert: () => {},
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSetpointRaiseLower"]>,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -1772,6 +2133,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT5015-0001",
         vendor: "Schneider Electric",
         description: "Roller shutter module",
+        ota: true,
         fromZigbee: [fz.cover_position_tilt],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
         exposes: [
@@ -1790,6 +2152,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520567",
         vendor: "Schneider Electric",
         description: "Wiser Odace roller shutter switch (S520567W)",
+        ota: true,
         onEvent: async (event) => {
             if (event.type !== "deviceOptionsChanged") return;
             const oldNoTilt = event.data.from?.no_tilt === true;
@@ -1833,7 +2196,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.identify(),
-            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}}),
+            m.deviceEndpoints({endpoints: {cover: 5, switch: 21}, multiEndpointSkip: ["state", "position", "tilt", "cover_mode"]}),
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             schneiderElectricExtend.addSchneiderClosuresWindowCoveringCluster(),
             m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
@@ -1852,7 +2215,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_up",
-                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveUpTime",
                 unit: "s",
@@ -1865,7 +2227,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                 name: "lift_duration_down",
-                endpointNames: ["cover"],
                 cluster: "closuresWindowCovering",
                 attribute: "liftDriveDownTime",
                 unit: "s",
@@ -1879,7 +2240,6 @@ export const definitions: DefinitionWithExtend[] = [
             (() => {
                 const extend: ModernExtend = m.numeric<"closuresWindowCovering", SchneiderClosuresWindowCovering>({
                     name: "tilt_duration",
-                    endpointNames: ["cover"],
                     cluster: "closuresWindowCovering",
                     attribute: "tiltOpenCloseAndStepTime",
                     unit: "s",
@@ -1900,15 +2260,7 @@ export const definitions: DefinitionWithExtend[] = [
             })(),
         ],
         fromZigbee: [
-            {
-                ...fz.cover_position_tilt,
-                convert: async (model, msg, publish, options, meta) => {
-                    const result = await fz.cover_position_tilt.convert(model, msg, publish, options, meta);
-                    if (!result) return result;
-                    delete result[postfixWithEndpointName("state", msg, model, meta)];
-                    return result;
-                },
-            },
+            fz.cover_position_tilt,
             {
                 cluster: "closuresWindowCovering",
                 type: ["attributeReport", "readResponse"],
@@ -2016,9 +2368,9 @@ export const definitions: DefinitionWithExtend[] = [
             const tilt_enabled = !(options.no_tilt === true);
 
             if (tilt_enabled) {
-                exposesList.push(e.cover_position_tilt().withEndpoint("cover"));
+                exposesList.push(e.cover_position_tilt());
             } else {
-                exposesList.push(e.cover_position().withEndpoint("cover"));
+                exposesList.push(e.cover_position());
             }
 
             exposesList.push(
@@ -2071,6 +2423,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WV704R0A0902",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat",
+        ota: true,
         extend: [schneiderElectricExtend.addWiserDeviceInfoCluster()],
         fromZigbee: [fz.ignore_haDiagnostic, fz.thermostat, fz.battery, fz.hvac_user_interface, fzLocal.wiser_device_info],
         toZigbee: [tz.thermostat_occupied_heating_setpoint, tz.thermostat_keypad_lockout],
@@ -2088,8 +2441,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ["genBasic", "genPowerCfg", "hvacThermostat", "haDiagnostic"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            // The binding table has 5 entries and the valve fills most of them itself on joining (poll control,
+            // hvacThermostat on endpoints 1 and 2). Binding genBasic/haDiagnostic (unused) took the last slot and
+            // the genPowerCfg bind then failed with TABLE_FULL, aborting configure before any reporting was set
+            // up (no pi_heating_demand/setpoint/temperature reports). Bind only what is reported, one at a time.
+            for (const cluster of ["hvacThermostat", "genPowerCfg"]) {
+                try {
+                    await reporting.bind(endpoint, coordinatorEndpoint, [cluster]);
+                } catch (error) {
+                    logger.warning(`WV704R0A0902 bind of ${cluster} failed for '${device.ieeeAddr}': ${error}`, NS);
+                }
+            }
             await reporting.batteryVoltage(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -2190,6 +2552,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6730",
         vendor: "Schneider Electric",
         description: "Wiser power micromodule",
+        ota: true,
         whiteLabel: [{vendor: "ELKO", model: "EKO20004"}],
         extend: [m.onOff({powerOnBehavior: true}), m.electricityMeter({cluster: "metering"}), m.identify()],
     },
@@ -2198,6 +2561,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002334",
         vendor: "Schneider Electric",
         description: "Rotary dimmer",
+        ota: true,
         extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster()],
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
@@ -2229,6 +2593,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NH3516A",
         vendor: "Schneider Electric",
         description: "Rotary dimmer",
+        ota: true,
         extend: [
             m.light({
                 effect: false,
@@ -2238,6 +2603,7 @@ export const definitions: DefinitionWithExtend[] = [
                 levelConfig: {features: ["on_level", "current_level_startup"]},
             }),
             m.lightingBallast(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
@@ -2256,6 +2622,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002960",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
+        ota: true,
         extend: [schneiderElectricExtend.addSchneiderLightingBallastCfgCluster()],
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
@@ -2287,6 +2654,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "550B1024",
         vendor: "Schneider Electric",
         description: "Temperature & humidity sensor",
+        ota: true,
         fromZigbee: [fz.humidity, fz.temperature, fz.battery],
         toZigbee: [],
         exposes: [e.battery(), e.temperature(), e.humidity()],
@@ -2304,6 +2672,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002386",
         vendor: "Schneider Electric",
         description: "Push button dimmer",
+        ota: true,
         extend: [
             schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.light({
@@ -2314,6 +2683,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.lightingBallast(),
             m.identify(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
             indicatorMode(),
         ],
@@ -2478,6 +2848,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520530W",
         vendor: "Schneider Electric",
         description: "Odace connectable relay switch 10A",
+        ota: true,
         extend: [m.onOff({powerOnBehavior: false}), m.commandsOnOff()],
     },
     {
@@ -2492,6 +2863,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5113-0300/MEG5165-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5165 PlusLink Shutter insert with Merten Wiser System M Push Button (1fold)",
+        ota: true,
         fromZigbee: [fz.cover_position_tilt, fz.command_cover_close, fz.command_cover_open, fz.command_cover_stop],
         toZigbee: [tz.cover_position_tilt, tz.cover_state, tzLocal.lift_duration],
         exposes: [
@@ -2510,6 +2882,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5116-0300/MEG5171-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (1fold)",
+        ota: true,
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -2546,6 +2919,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300/MEG5171-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5171 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
+        ota: true,
         fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.light_onoff_brightness, tz.level_config, tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -2588,6 +2962,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300/MEG5172-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5172 PlusLink Dimmer insert with Merten Wiser System M Push Button (2fold)",
+        ota: true,
         fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
@@ -2620,6 +2995,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5161-0000",
         vendor: "Schneider Electric",
         description: "Merten PlusLink relay insert with Merten Wiser system M push button (1fold)",
+        ota: true,
         extend: [m.onOff({powerOnBehavior: false})],
     },
     {
@@ -2737,6 +3113,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "550D6001",
         vendor: "Schneider Electric",
         description: "LK FUGA wiser wireless battery 4 button switch",
+        ota: true,
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
         toZigbee: [],
         endpoint: (device) => {
@@ -2778,6 +3155,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6700",
         vendor: "Schneider Electric",
         description: "Heating thermostat",
+        ota: true,
         whiteLabel: [{model: "CCTFR6710", fingerprint: [{modelID: "CCTFR6710"}]}],
         fromZigbee: [fz.thermostat, fz.metering],
         toZigbee: [
@@ -2815,8 +3193,19 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCTFR6400",
         vendor: "Schneider Electric",
         description: "Temperature/Humidity measurement with thermostat interface",
-        extend: [schneiderElectricExtend.customThermostatCluster()],
-        fromZigbee: [fz.battery, fzLocal.schneider_temperature, fz.humidity, fz.thermostat, fzLocal.schneider_ui_action],
+        ota: true,
+        extend: [schneiderElectricExtend.customThermostatCluster(), schneiderElectricExtend.addWiserDeviceInfoCluster()],
+        fromZigbee: [
+            fz.battery,
+            fzLocal.schneider_temperature,
+            fz.humidity,
+            fz.thermostat,
+            fzLocal.schneider_ui_action,
+            fzLocal.cctfr6400_boost,
+            fzLocal.cctfr6400_ignore_thermostat_read,
+            fzLocal.cctfr6400_ignore_setpoint_raise_lower,
+            fz.ignore_haDiagnostic,
+        ],
         toZigbee: [
             tzLocal.cctfr6400_thermostat_system_mode,
             tzLocal.cctfr6400_thermostat_occupied_heating_setpoint,
@@ -2829,19 +3218,48 @@ export const definitions: DefinitionWithExtend[] = [
             e.humidity(),
             e.battery(),
             e.battery_voltage(),
-            e.action(["screen_sleep", "screen_wake", "button_press_plus_down", "button_press_center_down", "button_press_minus_down"]),
+            e.action([
+                "screen_sleep",
+                "screen_wake",
+                "button_press_plus_down",
+                "button_press_center_down",
+                "button_press_minus_down",
+                "boost_set",
+                "boost_cancel",
+            ]),
+            e
+                .numeric("boost_duration", ea.STATE)
+                .withUnit("min")
+                .withDescription("Duration in minutes of the last boost committed on the device (0 when cancelled)"),
+            e.numeric("boost_temperature", ea.STATE).withUnit("°C").withDescription("Target temperature of the last boost committed on the device"),
             e.climate().withSetpoint("occupied_heating_setpoint", 4, 30, 0.5, ea.SET).withLocalTemperature(ea.STATE).withPiHeatingDemand(ea.SET),
         ],
         meta: {battery: {dontDividePercentage: true}},
+        onEvent: (event) => {
+            if (event.type === "stop") {
+                clearTimeout(globalStore.getValue(event.data.ieeeAddr, cctfr6400BoostTimerStoreKey));
+                globalStore.clearValue(event.data.ieeeAddr, cctfr6400BoostTimerStoreKey);
+                globalStore.clearValue(event.data.ieeeAddr, cctfr6400PublishStoreKey);
+                globalStore.clearValue(event.data.ieeeAddr, cctfr6400PendingPublishStoreKey);
+            } else if (event.type === "start") {
+                cctfr6400InstallCustomReadResponse(event.data.device);
+                cctfr6400BoostResume(event.data.device, event.data.options);
+            } else if (event.type === "deviceOptionsChanged" && event.data.to.boost_auto_honor === false) {
+                // Auto honor was turned off: forget a pending boost without
+                // touching the setpoint, an external automation is in charge.
+                cctfr6400BoostWipe(event.data.device);
+            }
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
+            // Seed before binding: binds often fail (TABLE_FULL) on devices taken over from a Wiser hub
+            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
+            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
+            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "msTemperatureMeasurement", "msRelativeHumidity"]);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
-            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
-            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
-            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
         },
     },
     {
@@ -2883,6 +3301,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300",
         vendor: "Schneider Electric",
         description: "Merten MEG5165 PlusLink relais insert with Merten Wiser System M push button (2fold)",
+        ota: true,
         extend: [m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}), m.onOff({endpointNames: ["l1", "l2"], powerOnBehavior: false})],
     },
     {
@@ -3037,6 +3456,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002906/MEG5001-0300",
         vendor: "Schneider Electric",
         description: "Wiser wireless switch 1-gang or 2-gang",
+        ota: true,
         extend: [
             m.battery(),
             m.deviceEndpoints({endpoints: {right: 21, left: 22}}),
@@ -3052,6 +3472,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO09738",
         vendor: "Schneider Electric",
         description: "Zigbee smart socket with power meter",
+        ota: true,
         fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
@@ -3077,6 +3498,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO09716",
         vendor: "Schneider Electric",
         description: "Zigbee smart socket with power meter",
+        ota: true,
         fromZigbee: [fz.on_off, fz.electrical_measurement, fzLocal.EKO09738_metering, fz.power_on_behavior],
         toZigbee: [tz.on_off, tz.power_on_behavior],
         exposes: [
@@ -3128,6 +3550,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MUR36014",
         vendor: "Schneider Electric",
         description: "Mureva EVlink Smart socket outlet",
+        ota: true,
         extend: [
             schneiderElectricExtend.addSchneiderFanSwitchConfigurationCluster(),
             m.onOff(),
@@ -3145,6 +3568,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NH3526",
         vendor: "Schneider Electric",
         description: "Motion sensor with switch",
+        ota: true,
         extend: [
             m.onOff({
                 powerOnBehavior: false,
@@ -3170,6 +3594,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT595011",
         vendor: "Schneider Electric",
         description: "Wiser motion sensor",
+        ota: true,
         version: "0.0.1",
         extend: [
             m.battery(),
@@ -3198,6 +3623,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT592011",
         vendor: "Schneider Electric",
         description: "Wiser water leakage sensor",
+        ota: true,
         fromZigbee: [fz.ias_water_leak_alarm_1],
         toZigbee: [],
         exposes: [e.battery_low(), e.water_leak(), e.tamper()],
@@ -3237,6 +3663,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W599001",
         vendor: "Schneider Electric",
         description: "Wiser smoke alarm",
+        ota: true,
         extend: [
             m.battery({voltage: true, voltageReporting: true}),
             m.temperature(),
@@ -3273,6 +3700,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "CCT591011_AS",
         vendor: "Schneider Electric",
         description: "Wiser window/door sensor",
+        ota: true,
         fromZigbee: [fz.ias_contact_alarm_1, fz.ias_contact_alarm_1_report],
         toZigbee: [],
         exposes: [e.battery_low(), e.contact(), e.tamper()],
@@ -3282,6 +3710,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EKO07259",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        ota: true,
         extend: [
             m.thermostat({
                 localTemperature: {
@@ -3320,6 +3749,19 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.customThermostatCluster(),
             schneiderElectricExtend.localTemperatureSourceSelect(),
             schneiderElectricExtend.controlType(),
+            schneiderElectricExtend.addCycleTimeCluster(),
+            m.numeric<"schneiderCycleTime", SchneiderCycleTimeCluster>({
+                name: "regulator_level",
+                cluster: "schneiderCycleTime",
+                attribute: "demandPercentage",
+                access: "ALL",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 10,
+                description: "Heating output percentage when the thermostat is configured in regulator mode (P9 / NoControl).",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
             schneiderElectricExtend.controlStatus(),
             schneiderElectricExtend.thermostatApplication(),
             schneiderElectricExtend.heatingEmitter(),
@@ -3365,6 +3807,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE002497",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        ota: true,
         extend: [
             m.thermostat({
                 localTemperature: {
@@ -3448,6 +3891,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "WDE011680",
         vendor: "Schneider Electric",
         description: "Smart thermostat",
+        ota: true,
         fromZigbee: [fzLocal.thermostat_running_state_from_piheat, fz.metering, fzLocal.wiser_device_info, fz.hvac_user_interface, fz.temperature],
         toZigbee: [
             tz.thermostat_occupied_heating_setpoint,
@@ -3493,6 +3937,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5126-0300_MEG5152-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5152 switch insert (2fold) with Merten System M push button (2fold)",
+        ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2, left_sw: 21, right_sw: 22}}),
             m.identify(),
@@ -3505,6 +3950,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5116-0300_MEG5162-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5162 switch insert (2fold) with Merten System M push button (1fold)",
+        ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {left: 1, right: 2, left_sw: 21}}),
             m.identify(),
@@ -3517,6 +3963,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5116-0300_MEG5151-0000",
         vendor: "Schneider Electric",
         description: "Merten MEG5151 switch insert with Merten System M push button (1fold)",
+        ota: true,
         extend: [
             m.deviceEndpoints({endpoints: {switch: 1, switch_sw: 21}}),
             m.identify(),
@@ -3529,6 +3976,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "MEG5779",
         vendor: "Schneider Electric",
         description: "Merten Connected Room Temperature Controller",
+        ota: true,
         fromZigbee: [
             {
                 cluster: "hvacThermostat",
@@ -3564,7 +4012,8 @@ export const definitions: DefinitionWithExtend[] = [
                 },
                 runningState: {
                     values: ["idle", "heat", "cool"],
-                    configure: {reporting: false},
+                    toZigbee: {skip: true},
+                    configure: {skip: true},
                 },
                 piHeatingDemand: {
                     values: ea.ALL,
@@ -3593,6 +4042,7 @@ export const definitions: DefinitionWithExtend[] = [
             schneiderElectricExtend.heatingFuel(),
             schneiderElectricExtend.heatTransferMedium(),
             schneiderElectricExtend.heatingEmitter(),
+            schneiderElectricExtend.openWindowDetectionStatus(),
         ],
     },
     {
@@ -3745,6 +4195,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NH3527A",
         vendor: "Schneider Electric",
         description: "Motion sensor with dimmer",
+        ota: true,
         extend: [
             m.light({
                 effect: false,
@@ -3760,6 +4211,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),
             schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
@@ -3777,6 +4229,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NHMOTION/UNIDIM/1",
         vendor: "Schneider Electric",
         description: "Motion sensor with dimmer",
+        ota: true,
         extend: [
             m.light({
                 effect: false,
@@ -3794,6 +4247,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.addOccupancyConfigurationCluster(),
             schneiderElectricExtend.occupancyConfiguration(),
+            schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
         ],
         whiteLabel: [
@@ -3807,6 +4261,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S520619",
         vendor: "Schneider Electric",
         description: "Wiser Odace Smart thermostat",
+        ota: true,
         fromZigbee: [
             fzLocal.thermostat_running_state_from_piheat,
             fz.metering,
@@ -3927,10 +4382,45 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["UFH"],
         model: "CCTFR6000",
         vendor: "Schneider Electric",
-        description: "6 Channel Boiler Actuator",
+        description: "Wiser underfloor heating controller",
+        ota: true,
+        whiteLabel: [
+            {vendor: "Schneider Electric", model: "CCTFR6600"},
+            {vendor: "Schneider Electric", model: "CCTFR6610"},
+        ],
         extend: [
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8}}),
+            schneiderElectricExtend.addCycleTimeCluster(),
             m.onOff({powerOnBehavior: false, endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"]}),
+            m.numeric<"schneiderCycleTime", SchneiderCycleTimeCluster>({
+                name: "demand_percentage",
+                cluster: "schneiderCycleTime",
+                attribute: "demandPercentage",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                unit: "%",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
+                description:
+                    "Heating demand as share of the cycle time. The relay only closes while the channel state is ON and the demand is above 0; 100 keeps the relay closed permanently.",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
+            m.numeric<"schneiderCycleTime", SchneiderCycleTimeCluster>({
+                name: "cycle_time",
+                cluster: "schneiderCycleTime",
+                attribute: "cycleTime",
+                endpointNames: ["1", "2", "3", "4", "5", "6", "7", "8"],
+                access: "ALL",
+                unit: "s",
+                valueMin: 300,
+                valueMax: 3200,
+                valueStep: 1,
+                entityCategory: "config",
+                description:
+                    "Length of the time-proportional switching cycle (factory default 1800 s for heating channels, 600 s for pump and boiler).",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+            }),
         ],
     },
 ];

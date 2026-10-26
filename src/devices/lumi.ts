@@ -8,7 +8,8 @@ import * as lumi from "../lib/lumi";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "../lib/types";
-import {assertNumber} from "../lib/utils";
+import * as utils from "../lib/utils";
+import {assertNumber, sleep} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -29,6 +30,7 @@ const {
     lumiOverloadProtection,
     lumiLedIndicator,
     lumiButtonLock,
+    lumiChildLock,
     lumiMotorSpeed,
     lumiCurtainSpeed,
     lumiCurtainManualOpenClose,
@@ -93,6 +95,25 @@ async function configureAqaraH2EuShutterSwitch(device: Zh.Device, coordinatorEnd
         await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [aqaraH2EuShutterSwitchMultiClickAttribute], {
             manufacturerCode,
         });
+    }
+}
+
+async function ensureLumiIasEnrollment(endpoint: Zh.Endpoint, coordinatorEndpoint: Zh.Endpoint) {
+    const coordinatorIeeeAddress = coordinatorEndpoint.deviceIeeeAddress;
+    const isEnrolled = (state: {zoneState?: number; iasCieAddr?: string}) =>
+        state.zoneState === 1 && state.iasCieAddr?.toLowerCase() === coordinatorIeeeAddress.toLowerCase();
+
+    if (isEnrolled(await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr"], {sendPolicy: "immediate"}))) {
+        return;
+    }
+
+    await endpoint.write("ssIasZone", {iasCieAddr: coordinatorIeeeAddress}, {sendPolicy: "immediate"});
+    await endpoint.command("ssIasZone", "enrollRsp", {enrollrspcode: 0, zoneid: 23}, {disableDefaultResponse: true, sendPolicy: "immediate"});
+    await sleep(500);
+
+    const state = await endpoint.read("ssIasZone", ["zoneState", "iasCieAddr"], {sendPolicy: "immediate"});
+    if (!isEnrolled(state)) {
+        throw new Error(`IAS enrollment failed; expected zoneState=1 and iasCieAddr=${coordinatorIeeeAddress}, got ${JSON.stringify(state)}`);
     }
 }
 
@@ -177,6 +198,24 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.curtain.acn011"],
+        model: "ZNMHLDJ01LM",
+        vendor: "Aqara",
+        description: "Smart vertical blinds motor H1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.identify(),
+            m.windowCovering({controls: ["lift", "tilt"], coverInverted: true}),
+            lumiCurtainManualOpenClose({valueOn: ["ON", 0], valueOff: ["OFF", 1]}),
+            lumiCurtainStatus({access: "STATE_GET"}),
+            lumiCurtainLastManualOperation({access: "STATE_GET"}),
+            lumiCurtainTraverseTime({access: "STATE_GET"}),
+            lumiCurtainCalibrationStatus({access: "STATE_GET"}),
+            lumiCurtainCalibrated({access: "STATE_GET"}),
+            lumiCurtainIdentifyBeep({lookup: {off: 0, short: 1, long: 2}}),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.flood.acn001"],
         model: "SJCGQ13LM",
         vendor: "Aqara",
@@ -228,18 +267,14 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Door and window sensor P1",
         fromZigbee: [lumi.fromZigbee.lumi_contact, fz.ias_contact_alarm_1, lumi.fromZigbee.lumi_specific],
-        toZigbee: [lumi.toZigbee.lumi_detection_distance],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        exposes: [
-            e.contact(),
-            e.battery(),
-            e.battery_voltage(),
-            e.tamper(),
-            e
-                .enum("detection_distance", ea.ALL, ["10mm", "20mm", "30mm"])
-                .withDescription('The sensor will be considered "off" within the set distance. Please press the device button before setting'),
+        exposes: [e.contact(), e.tamper()],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumi.modernExtend.lumiP1Battery(),
+            lumi.modernExtend.lumiP1DetectionDistance(),
+            lumi.modernExtend.lumiP1Action(),
         ],
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR")],
     },
     {
         zigbeeModel: ["lumi.dimmer.rcbac1"],
@@ -281,6 +316,18 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             lumiLight({colorTemp: true, powerOutageMemory: "switch", levelConfig: {features: ["on_level"]}}),
+            lumiZigbeeOTA(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.light.acn033"],
+        model: "HCXDD13LM",
+        vendor: "Aqara",
+        description: "Nebula ceiling lamp H1",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.light({colorTemp: {range: [153, 370], startup: false}, effect: false, powerOnBehavior: false}),
+            lumiPowerOnBehavior(),
             lumiZigbeeOTA(),
         ],
     },
@@ -377,7 +424,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         fromZigbee: [lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_action, lumi.fromZigbee.lumi_basic],
         toZigbee: [],
-        extend: [m.quirkCheckinInterval("1_HOUR")],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.sensor_switch.aq3", "lumi.sensor_swit"],
@@ -1192,8 +1239,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.energy(),
             e.action(["single", "double", "release", "hold"]),
             e.enum("operation_mode", ea.ALL, ["control_relay", "decoupled"]).withDescription("Decoupled mode"),
+            e.power_outage_memory().withAccess(ea.STATE_SET),
         ],
-        toZigbee: [tz.on_off, lumi.toZigbee.lumi_switch_operation_mode_basic, lumi.toZigbee.lumi_power],
+        toZigbee: [
+            tz.on_off,
+            lumi.toZigbee.lumi_switch_operation_mode_basic,
+            lumi.toZigbee.lumi_power,
+            lumi.toZigbee.lumi_switch_power_outage_memory,
+        ],
         endpoint: (device) => {
             return {system: 1};
         },
@@ -1706,22 +1759,31 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["lumi.sensor_ht.agl02"],
         model: "WSDCGQ12LM",
         vendor: "Aqara",
+        version: "0.0.1",
         description: "Temperature and humidity sensor T1",
         whiteLabel: [
             {vendor: "Aqara", model: "TH-S02D"},
             {vendor: "Yandex", model: "YNDX-00523"},
         ],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.temperature, fz.humidity, lumi.fromZigbee.lumi_pressure, fz.battery],
-        toZigbee: [],
-        exposes: [e.temperature(), e.humidity(), e.pressure(), e.device_temperature(), e.battery(), e.battery_voltage(), e.power_outage_count(false)],
-        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            const binds = ["msTemperatureMeasurement", "msRelativeHumidity", "msPressureMeasurement"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
-            await endpoint.read("genPowerCfg", ["batteryVoltage"]);
-        },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        fromZigbee: [lumi.fromZigbee.lumi_specific],
+        exposes: [e.device_temperature(), e.power_outage_count(false)],
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.temperature(),
+            m.humidity(),
+            m.pressure({
+                reporting: {min: "10_SECONDS", max: "1_HOUR", change: 5},
+                // Use the more precise scaledValue when the device reports it
+                fzConvert: lumi.fromZigbee.lumi_pressure.convert,
+            }),
+            m.battery({
+                voltage: true,
+                voltageReporting: true,
+                voltageToPercentage: {min: 2850, max: 3000},
+            }),
+            m.quirkCheckinInterval("1_HOUR"),
+            lumiZigbeeOTA(),
+        ],
     },
     {
         zigbeeModel: ["lumi.sensor_motion"],
@@ -2039,7 +2101,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, lumi.fromZigbee.lumi_contact],
         toZigbee: [],
         exposes: [e.battery(), e.contact(), e.device_temperature(), e.battery_voltage(), e.power_outage_count(false), e.trigger_count()],
-        extend: [m.quirkCheckinInterval("1_HOUR"), m.forcePowerSource({powerSource: "Battery"})],
+        extend: [m.quirkCheckinInterval("1_HOUR"), m.forcePowerSource({powerSource: "Battery"}), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.sensor_wleak.aq1"],
@@ -2051,6 +2113,13 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.battery(), e.battery_voltage(), e.device_temperature(), e.power_outage_count(false), e.trigger_count()],
         extend: [m.quirkCheckinInterval("1_HOUR"), m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
+    },
+    {
+        zigbeeModel: ["lumi.flood.agl02\tF\x01"],
+        model: "SJCGQ12LM-ES",
+        vendor: "Aqara",
+        description: "Water leak sensor T1 engineering test version (no specific battery percentage support, not compatible with Aqara Home app)",
+        extend: [m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]})],
     },
     {
         zigbeeModel: ["lumi.flood.agl02"],
@@ -2065,6 +2134,10 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [lumi.fromZigbee.lumi_basic, fz.ias_water_leak_alarm_1, lumi.fromZigbee.lumi_specific],
         toZigbee: [],
         exposes: [e.battery(), e.water_leak(), e.battery_low(), e.tamper(), e.battery_voltage()],
+        version: "0.0.1",
+        configure: async (device, coordinatorEndpoint) => {
+            await ensureLumiIasEnrollment(device.getEndpoint(1), coordinatorEndpoint);
+        },
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
     },
     {
@@ -2181,6 +2254,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiSetEventMode(),
             m.forceDeviceType({type: "Router"}),
             lumiZigbeeOTA(),
             m.poll({
@@ -2444,7 +2518,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Smart smoke detector",
         whiteLabel: [{vendor: "Aqara", model: "JY-GZ-03AQ"}],
-        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery],
+        fromZigbee: [lumi.fromZigbee.lumi_specific, fz.battery, fz.ias_smoke_alarm_1],
         toZigbee: [
             lumi.toZigbee.lumi_alarm,
             lumi.toZigbee.lumi_density,
@@ -2707,6 +2781,7 @@ export const definitions: DefinitionWithExtend[] = [
                 entityCategory: "diagnostic",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
+            m.identify({isSleepy: true}),
         ],
     },
     {
@@ -2866,7 +2941,12 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Roller shade driver E1",
         vendor: "Aqara",
         whiteLabel: [{vendor: "Aqara", model: "RSD-M01"}],
-        fromZigbee: [lumi.fromZigbee.lumi_curtain_position, lumi.fromZigbee.lumi_curtain_status, lumi.fromZigbee.lumi_specific],
+        fromZigbee: [
+            lumi.fromZigbee.lumi_curtain_position,
+            lumi.fromZigbee.lumi_curtain_status,
+            lumi.fromZigbee.lumi_curtain_options,
+            lumi.fromZigbee.lumi_specific,
+        ],
         ota: true,
         toZigbee: [
             lumi.toZigbee.lumi_curtain_position_state,
@@ -2949,7 +3029,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read("genBasic", ["powerSource"]);
             await endpoint.read("closuresWindowCovering", ["currentPositionLiftPercentage"]);
         },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA()],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.identify({isSleepy: true})],
     },
     {
         zigbeeModel: ["lumi.relay.c2acn01"],
@@ -3439,6 +3519,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), lumiLight({colorTemp: true, powerOutageMemory: "switch"})],
     },
     {
+        zigbeeModel: ["lumi.light.acn037"],
+        model: "GDSD12LM",
+        vendor: "Aqara",
+        description: "Track light V1",
+        whiteLabel: [{vendor: "Aqara", model: "GDGSD13LM", description: "Track grille light V1 (12-head)"}],
+        extend: [m.light({colorTemp: {range: [166, 370]}}), m.electricityMeter(), m.identify()],
+    },
+    {
         zigbeeModel: ["lumi.light.acn036"],
         model: "SSWQDYH02",
         vendor: "Aqara",
@@ -3712,7 +3800,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [fz.battery, lumi.fromZigbee.lumi_action_multistate, lumi.fromZigbee.lumi_specific, fz.command_toggle],
         toZigbee: [lumi.toZigbee.lumi_switch_click_mode, lumi.toZigbee.lumi_operation_mode_opple],
         meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}, multiEndpoint: true},
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR")],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), lumiZigbeeOTA(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true})],
         exposes: [
             e.battery(),
             e.battery_voltage(),
@@ -4023,6 +4111,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.quirkCheckinInterval("1_HOUR"),
             lumiZigbeeOTA(),
             m.illuminance({reporting: false}),
+            m.identify({isSleepy: true}),
         ],
     },
     {
@@ -4108,6 +4197,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZNXNKG02LM",
         vendor: "Aqara",
         description: "Smart rotary knob H1 (wireless)",
+        version: "0.0.1",
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),
             m.quirkCheckinInterval("1_HOUR"),
@@ -4125,6 +4215,11 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode},
             }),
         ],
+        configure: (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            utils.attachInputCluster(device, endpoint1, "manuSpecificLumi");
+            device.save();
+        },
     },
     {
         zigbeeModel: ["lumi.remote.acn003"],
@@ -4266,7 +4361,7 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x040a], {manufacturerCode: manufacturerCode});
             await endpoint.read("genPowerCfg", ["batteryVoltage"]);
         },
-        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), lumiZigbeeOTA()],
+        extend: [lumi.modernExtend.addManuSpecificLumiCluster(), m.quirkCheckinInterval("1_HOUR"), m.identify({isSleepy: true}), lumiZigbeeOTA()],
     },
     {
         zigbeeModel: ["aqara.feeder.acn001"],
@@ -5004,6 +5099,93 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.plug.aeu002"],
+        model: "WP-P09D",
+        vendor: "Aqara",
+        description: "Wall outlet H2 UK",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, usb: 3}}),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+            lumiZigbeeOTA(),
+            // This model has no device temperature sensor.
+            lumiOnOff({endpointNames: ["1", "2", "usb"], powerOutageMemory: "enum", deviceTemperature: false}),
+            // The three haElectricalMeasurement endpoints do not line up with the on/off endpoints:
+            // endpoint 1 measures the whole outlet, endpoint 2 socket 1 + USB combined and endpoint 3 socket 2.
+            m.numeric({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "activePower",
+                endpointNames: ["1"],
+                label: "Power",
+                description: "Total power consumption of the outlet",
+                unit: "W",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "activePower",
+                endpointNames: ["2"],
+                label: "Power socket 1 + USB",
+                description: "Combined power consumption of socket 1 and the USB ports",
+                unit: "W",
+                access: "STATE",
+            }),
+            m.numeric({
+                name: "power",
+                cluster: "haElectricalMeasurement",
+                attribute: "activePower",
+                endpointNames: ["usb"],
+                label: "Power socket 2",
+                description: "Power consumption of socket 2",
+                unit: "W",
+                access: "STATE",
+            }),
+            // Voltage is not reported by this model.
+            lumiElectricityMeter({voltage: false}),
+            lumiMultiClick({description: "Multi-click mode for the socket 1 button", endpointName: "1"}),
+            lumiMultiClick({description: "Multi-click mode for the socket 2 button", endpointName: "2"}),
+            lumiAction({endpointNames: ["1", "2"], actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
+            lumiChildLock({description: "Disables the socket 1 button", endpointName: "1"}),
+            lumiChildLock({description: "Disables the socket 2 button", endpointName: "2"}),
+            // access is STATE_SET rather than the default ALL: reading this attribute back was reported to
+            // fail on this device, see https://github.com/Koenkk/zigbee-herdsman-converters/pull/11123
+            lumiOverloadProtection({valueMax: 3250, access: "STATE_SET"}),
+            lumiLedIndicator(),
+            lumiFlipIndicatorLight(),
+            m.identify(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.plug.aeu006"],
+        model: "SP-P06E",
+        vendor: "Aqara",
+        description: "Outdoor plug H2 EU",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            lumiOnOff({powerOutageMemory: "enum", deviceTemperature: false}),
+            m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
+            lumiElectricityMeter({voltage: false}),
+            lumiOverloadProtection(),
+            lumiLedIndicator(),
+            lumiFlipIndicatorLight(),
+            lumiChildLock(),
+            m.binary({
+                name: "charging_protection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Turn off the plug if the power is below 3W for half an hour",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
@@ -5221,6 +5403,7 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLockRelay({description: "Lock right switch", endpointName: "right"}),
             lumiMultiClick({description: "Multi-click mode for left down button", endpointName: "left_down"}),
             lumiMultiClick({description: "Multi-click mode for right down button", endpointName: "right_down"}),
+            m.identify(),
         ],
     },
     {
@@ -5268,11 +5451,26 @@ export const definitions: DefinitionWithExtend[] = [
             lumiLedIndicator(),
             lumiFlipIndicatorLight(),
             lumiPowerOnBehavior(),
-            m.light({powerOnBehavior: false}),
-            lumiKnobRotation({withButtonState: false}),
+            m.light({
+                powerOnBehavior: false,
+                levelConfig: {
+                    features: ["execute_if_off", "on_transition_time", "off_transition_time"],
+                },
+            }),
+            lumiKnobRotation({withButtonState: true, pressedEndpoint: 72}),
             lumiOperationMode({description: "Decoupled mode for knob"}),
             lumiAction({actionLookup: {hold: 0, single: 1, double: 2, release: 255}}),
             lumiMultiClick(),
+            lumiSwitchMode(),
+            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
+                name: "event_mode",
+                lookup: {command: 0, event: 1},
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0009, type: 0x20},
+                description: "Aqara command/event mode",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
             m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "sensitivity",
                 lookup: {low: 720, medium: 360, high: 180},
@@ -5940,15 +6138,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
                 zigbeeCommandOptions: {manufacturerCode},
             }),
-            m.enumLookup<"manuSpecificLumi", ManuSpecificLumi>({
-                name: "ntc_sensor_type",
-                lookup: {ntc_10k: 10, ntc_50k: 50, ntc_100k: 100, unknown: 10000},
-                cluster: "manuSpecificLumi",
-                attribute: {ID: 0x0315, type: Zcl.DataType.UINT32},
-                description: "NTC sensor type (k - KOhm)",
-                access: "ALL",
-                zigbeeCommandOptions: {manufacturerCode},
-            }),
+            lumi.lumiModernExtend.w500NtcSensor(),
             m.binary<"manuSpecificLumi", ManuSpecificLumi>({
                 name: "window_detection",
                 valueOn: ["ON", 1],
@@ -6289,6 +6479,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Aqara",
         description: "Presence sensor FP310",
         fromZigbee: [lumi.fromZigbee.lumi_specific],
+        version: "0.0.1",
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x00ee], {manufacturerCode: manufacturerCode}); // Read OTA data; makes the device expose more attributes related to OTA
@@ -6296,6 +6487,15 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0142], {manufacturerCode: manufacturerCode}); // Read current presence
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x0197], {manufacturerCode: manufacturerCode}); // Read current absence delay timer value
             await endpoint.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x019a], {manufacturerCode: manufacturerCode}); // Read detection range
+
+            // Configure reporting so presence (0x0142) updates autonomously. Without this the CN firmware can stop
+            // sending 0x0142 after idle while temp/humidity keep reporting (same class of bug as PS-S04D / #12383).
+            await reporting.bind(endpoint, coordinatorEndpoint, ["manuSpecificLumi"]);
+            await endpoint.configureReporting<"manuSpecificLumi", ManuSpecificLumi>(
+                "manuSpecificLumi",
+                [{attribute: {ID: 0x0142, type: Zcl.DataType.UINT8}, minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 1}],
+                {manufacturerCode: manufacturerCode},
+            );
         },
         extend: [
             lumi.modernExtend.addManuSpecificLumiCluster(),

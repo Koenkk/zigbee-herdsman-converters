@@ -32,13 +32,15 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Magnetic door & window contact sensor",
         fromZigbee: [fz.ias_contact_alarm_1, fz.temperature, fz.battery],
         toZigbee: [],
-        meta: {battery: {voltageToPercentage: {min: 2500, max: 2800}}},
+        meta: {battery: {voltageToPercentage: "3V_2100"}},
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["msTemperatureMeasurement", "genPowerCfg"]);
             await reporting.temperature(endpoint);
             await reporting.batteryVoltage(endpoint);
         },
+        // Ships at 8 qs (2 s); ZHA sets 24 qs (6 s).
+        extend: [m.pollControl({longPollInterval: 24, checkinInterval: 13200})],
         exposes: [e.contact(), e.battery_low(), e.tamper(), e.temperature(), e.battery()],
     },
     {
