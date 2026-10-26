@@ -26577,8 +26577,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("illuminance_calibration", ea.STATE_SET)
                 .withValueMin(0)
-                .withValueMax(10000)
-                .withValueStep(10)
+                .withValueMax(100)
+                .withValueStep(1)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning").withCategory("diagnostic"),
