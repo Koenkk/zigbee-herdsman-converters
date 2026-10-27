@@ -698,43 +698,36 @@ const ar331ProHolidayTimeConverter = {
 
 const sixGangIndicatorEndpoints = ["button_1", "button_2", "button_3", "button_4", "button_5", "button_6"] as const;
 
-const sixGangIndicatorColorExpose = (endpoint: (typeof sixGangIndicatorEndpoints)[number]) =>
-    new exposes.Composite("color_hs", "color", ea.STATE_SET)
-        .withLabel("Color")
+const sixGangIndicatorColorExpose = (endpoint: (typeof sixGangIndicatorEndpoints)[number], property: "color" | "color_off", label: string) =>
+    new exposes.Composite("color_hs", property, ea.STATE_SET)
+        .withLabel(label)
         .withFeature(e.numeric("hue", ea.STATE_SET).withValueMin(0).withValueMax(360))
         .withFeature(e.numeric("saturation", ea.STATE_SET).withValueMin(0).withValueMax(100))
         .withEndpoint(endpoint)
         .withCategory("config");
 
-const sixGangIndicatorPayload = (state: KeyValue, endpoint: string, key: string, value: unknown) => {
+// DP107: byte 0 is the colour mode (0 = single, 1 = multi), followed by 10 bytes per button:
+// ON brightness, hue (u16), saturation (u16, x10), then the same for OFF.
+const sixGangIndicatorPayload = (state: KeyValue, endpoint: string | undefined, key: string, value: unknown) => {
     const payload = Buffer.alloc(61);
+    payload[0] = (key === "indicator_color_mode" ? value : state.indicator_color_mode) === "multi" ? 1 : 0;
 
     for (const [index, indicatorEndpoint] of sixGangIndicatorEndpoints.entries()) {
-        const colorKey = `color_${indicatorEndpoint}`;
-        const onBrightnessKey = `brightness_on_${indicatorEndpoint}`;
-        const offBrightnessKey = `brightness_off_${indicatorEndpoint}`;
-        const colorValue = key === "color" && endpoint === indicatorEndpoint ? value : state[colorKey];
-        const onBrightnessValue = key === "brightness_on" && endpoint === indicatorEndpoint ? value : state[onBrightnessKey];
-        const offBrightnessValue = key === "brightness_off" && endpoint === indicatorEndpoint ? value : state[offBrightnessKey];
-        const parsedColor =
-            colorValue === undefined ? libColor.Color.fromConverterArg({hue: 0, saturation: 100}) : libColor.Color.fromConverterArg(colorValue);
-        if (parsedColor.isRGB()) parsedColor.hsv = parsedColor.rgb.gammaCorrected().toXY().toHSV();
-        const color = parsedColor.hsv;
-        const onBrightness = onBrightnessValue === undefined ? 100 : utils.toNumber(onBrightnessValue, onBrightnessKey);
-        const offBrightness = offBrightnessValue === undefined ? 10 : utils.toNumber(offBrightnessValue, offBrightnessKey);
+        const pick = (property: string) => (key === property && endpoint === indicatorEndpoint ? value : state[`${property}_${indicatorEndpoint}`]);
         const offset = 1 + index * 10;
-        const hue = Math.round(color.hue);
-        const saturation = Math.round(color.saturation * 10);
 
-        // DP107 contains two HSB slots with independent ON/OFF brightness. The ring/color
-        // semantics are not fully mapped, so write one predictable shared color to both.
-        for (const [halfOffset, brightness] of [
-            [0, onBrightness],
-            [5, offBrightness],
+        // Without an OFF colour, the OFF half mirrors the ON colour.
+        for (const [halfOffset, brightnessKey, defaultBrightness, colorValue] of [
+            [0, "brightness_on", 100, pick("color")],
+            [5, "brightness_off", 10, pick("color_off") ?? pick("color")],
         ] as const) {
+            const brightnessValue = pick(brightnessKey);
+            const brightness = brightnessValue === undefined ? defaultBrightness : utils.toNumber(brightnessValue, brightnessKey);
+            const parsedColor = libColor.Color.fromConverterArg(colorValue ?? {hue: 0, saturation: 100});
+            if (parsedColor.isRGB()) parsedColor.hsv = parsedColor.rgb.gammaCorrected().toXY().toHSV();
             payload[offset + halfOffset] = utils.numberWithinRange(brightness, 0, 100);
-            payload.writeUInt16BE(hue, offset + halfOffset + 1);
-            payload.writeUInt16BE(saturation, offset + halfOffset + 3);
+            payload.writeUInt16BE(Math.round(parsedColor.hsv.hue), offset + halfOffset + 1);
+            payload.writeUInt16BE(Math.round(parsedColor.hsv.saturation * 10), offset + halfOffset + 3);
         }
     }
 
@@ -747,11 +740,16 @@ const sixGangIndicatorValueConverter = {
         const data = Buffer.from(value);
         if (data.length !== 61) return result;
 
+        result.indicator_color_mode = data[0] === 1 ? "multi" : "single";
         for (const [index, endpoint] of sixGangIndicatorEndpoints.entries()) {
             const offset = 1 + index * 10;
             result[`brightness_on_${endpoint}`] = data[offset];
             result[`brightness_off_${endpoint}`] = data[offset + 5];
             result[`color_${endpoint}`] = {
+                hue: data.readUInt16BE(offset + 1),
+                saturation: data.readUInt16BE(offset + 3) / 10,
+            };
+            result[`color_off_${endpoint}`] = {
                 hue: data.readUInt16BE(offset + 6),
                 saturation: data.readUInt16BE(offset + 8) / 10,
             };
@@ -761,13 +759,13 @@ const sixGangIndicatorValueConverter = {
     },
 };
 
-const sixGangIndicatorToValueConverter = (key: "brightness_off" | "brightness_on" | "color") => ({
+const sixGangIndicatorToValueConverter = (key: "brightness_off" | "brightness_on" | "color" | "color_off" | "indicator_color_mode") => ({
     to: (value: unknown, meta: Tz.Meta) => {
         const endpoint = meta.endpoint_name;
-        if (!sixGangIndicatorEndpoints.includes(endpoint as (typeof sixGangIndicatorEndpoints)[number])) {
+        if (key !== "indicator_color_mode" && !sixGangIndicatorEndpoints.includes(endpoint as (typeof sixGangIndicatorEndpoints)[number])) {
             throw new Error(`Unknown indicator endpoint '${endpoint}'`);
         }
-        if (key !== "color") utils.assertNumber(value, key);
+        if (key.startsWith("brightness")) utils.assertNumber(value, key);
 
         return [...sixGangIndicatorPayload(meta.state ?? {}, endpoint, key, value)];
     },
@@ -775,10 +773,12 @@ const sixGangIndicatorToValueConverter = (key: "brightness_off" | "brightness_on
 
 const sixGangIndicatorDatapoints: Tuya.MetaTuyaDataPoints = [
     [107, null, sixGangIndicatorValueConverter],
+    [107, "indicator_color_mode", sixGangIndicatorToValueConverter("indicator_color_mode")],
     ...sixGangIndicatorEndpoints.flatMap(
         (endpoint) =>
             [
                 [107, `color_${endpoint}`, sixGangIndicatorToValueConverter("color")],
+                [107, `color_off_${endpoint}`, sixGangIndicatorToValueConverter("color_off")],
                 [107, `brightness_on_${endpoint}`, sixGangIndicatorToValueConverter("brightness_on")],
                 [107, `brightness_off_${endpoint}`, sixGangIndicatorToValueConverter("brightness_off")],
             ] satisfies Tuya.MetaTuyaDataPoints,
@@ -29378,6 +29378,10 @@ export const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Indicator backlight"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator"),
+            e
+                .enum("indicator_color_mode", ea.STATE_SET, ["single", "multi"])
+                .withDescription("Use separate ON and OFF colours per button (multi)")
+                .withCategory("config"),
             tuya.exposes.powerOnBehavior(),
             e.enum("power_on_behavior_1", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 1 power-on behavior"),
             e.enum("power_on_behavior_2", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 2 power-on behavior"),
@@ -29386,7 +29390,8 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("power_on_behavior_5", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 5 power-on behavior"),
             e.enum("power_on_behavior_6", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Button 6 power-on behavior"),
             ...sixGangIndicatorEndpoints.flatMap((endpoint) => [
-                sixGangIndicatorColorExpose(endpoint),
+                sixGangIndicatorColorExpose(endpoint, "color", "On color"),
+                sixGangIndicatorColorExpose(endpoint, "color_off", "Off color"),
                 e
                     .numeric("brightness_on", ea.STATE_SET)
                     .withLabel("On brightness")
@@ -29416,6 +29421,7 @@ export const definitions: DefinitionWithExtend[] = [
         }),
         meta: {
             multiEndpoint: true,
+            multiEndpointSkip: ["indicator_color_mode"],
             tuyaDatapoints: [
                 [1, "state_button_1", tuya.valueConverter.onOff],
                 [2, "state_button_2", tuya.valueConverter.onOff],
