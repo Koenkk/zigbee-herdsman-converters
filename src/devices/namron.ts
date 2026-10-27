@@ -41,6 +41,18 @@ interface NamronPrivate04E0 {
     commandResponses: never;
 }
 
+interface NamronSimplifyRotaryE004 {
+    attributes: {
+        levelUpStepSize: number;
+        levelDownStepSize: number;
+        colorTempUpStepSize: number;
+        colorTempDownStepSize: number;
+        levelColorMode: number;
+    };
+    commands: never;
+    commandResponses: {buttonEvent: {button: number; code: number}};
+}
+
 const fzLocal = {
     namron_panelheater: {
         cluster: "hvacThermostat",
@@ -166,6 +178,15 @@ const fzLocal = {
             publish({action: `${base}press`});
         },
     } satisfies Fz.Converter<"namronPrivateE004", NamronPrivateE004, ["raw"]>,
+    namronSimplifyRotary: {
+        cluster: "namronPrivateE004",
+        type: ["commandButtonEvent"],
+        convert: (model, msg, publish, options, meta) => {
+            // Other codes (press/turn) are already covered by the genOnOff/genLevelCtrl/lightingColorCtrl commands
+            const action = ({4: "hold", 8: "double"} as Record<number, string>)[msg.data.code];
+            if (action) return {action};
+        },
+    } satisfies Fz.Converter<"namronPrivateE004", NamronSimplifyRotaryE004, ["commandButtonEvent"]>,
 };
 // Namron Simplify 3-button remote (4512793 / 4512794)
 // -----------------------------------------------------------
@@ -3783,5 +3804,100 @@ export const definitions: DefinitionWithExtend[] = [
                 },
             }),
         ],
+    },
+    {
+        zigbeeModel: ["4512797", "4512797_98", "4512798"],
+        model: "4512797",
+        vendor: "Namron",
+        description: "Simplify wireless rotary dimmer",
+        whiteLabel: [{vendor: "Namron", model: "4512798", description: "Simplify wireless rotary dimmer", fingerprint: [{modelID: "4512798"}]}],
+        fromZigbee: [fzLocal.namronSimplifyRotary],
+        exposes: [e.action(["hold", "double"])],
+        extend: [
+            m.deviceAddCustomCluster("namronPrivateE004", {
+                ID: 0xe004,
+                name: "namronPrivateE004",
+                attributes: {
+                    levelUpStepSize: {ID: 0x0002, name: "levelUpStepSize", type: Zcl.DataType.UINT8, write: true},
+                    levelDownStepSize: {ID: 0x0003, name: "levelDownStepSize", type: Zcl.DataType.UINT8, write: true},
+                    colorTempUpStepSize: {ID: 0x0004, name: "colorTempUpStepSize", type: Zcl.DataType.UINT8, write: true},
+                    colorTempDownStepSize: {ID: 0x0005, name: "colorTempDownStepSize", type: Zcl.DataType.UINT8, write: true},
+                    levelColorMode: {ID: 0x0006, name: "levelColorMode", type: Zcl.DataType.ENUM8, write: true},
+                },
+                commands: {},
+                commandsResponse: {
+                    buttonEvent: {
+                        ID: 0x00,
+                        name: "buttonEvent",
+                        parameters: [
+                            {name: "button", type: Zcl.DataType.UINT8},
+                            {name: "code", type: Zcl.DataType.UINT8},
+                        ],
+                    },
+                },
+            }),
+            m.battery({voltage: true}),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl(),
+            m.commandsColorCtrl({
+                commands: [
+                    "color_temperature_step_up",
+                    "color_temperature_step_down",
+                    "color_temperature_move_up",
+                    "color_temperature_move_down",
+                    "color_temperature_move_stop",
+                    "color_temperature_move",
+                ],
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "level_up_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "levelUpStepSize",
+                description: "Brightness step when turning up",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "level_down_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "levelDownStepSize",
+                description: "Brightness step when turning down",
+                unit: "%",
+                valueMin: 1,
+                valueMax: 100,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "color_temp_up_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "colorTempUpStepSize",
+                description: "Color temperature step when turning up",
+                unit: "mired",
+                valueMin: 1,
+                valueMax: 254,
+                entityCategory: "config",
+            }),
+            m.numeric<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "color_temp_down_step_size",
+                cluster: "namronPrivateE004",
+                attribute: "colorTempDownStepSize",
+                description: "Color temperature step when turning down",
+                unit: "mired",
+                valueMin: 1,
+                valueMax: 254,
+                entityCategory: "config",
+            }),
+            m.enumLookup<"namronPrivateE004", NamronSimplifyRotaryE004>({
+                name: "level_color_mode",
+                cluster: "namronPrivateE004",
+                attribute: "levelColorMode",
+                lookup: {brightness_only: 0, auto_switch: 1},
+                description: "Automatically return to brightness control after 10 seconds",
+                entityCategory: "config",
+            }),
+        ],
+        ota: true,
     },
 ];
