@@ -26579,8 +26579,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("illuminance_calibration", ea.STATE_SET)
                 .withValueMin(0)
-                .withValueMax(10000)
-                .withValueStep(10)
+                .withValueMax(100)
+                .withValueStep(1)
                 .withUnit("lx")
                 .withDescription("Illuminance calibration"),
             e.enum("water_warning", ea.STATE, ["none", "alarm"]).withDescription("Water shortage warning").withCategory("diagnostic"),
@@ -26595,7 +26595,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "temperature", tuya.valueConverter.divideBy10],
                 [14, "battery_state", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
                 [101, "humidity", tuya.valueConverter.raw],
-                [102, "illuminance", tuya.valueConverter.multiplyBy10],
+                [102, "illuminance", tuya.valueConverter.raw],
                 [103, "soil_sampling", tuya.valueConverter.raw],
                 [104, "soil_calibration", tuya.valueConverter.twosComplement8Bit],
                 [105, "humidity_calibration", tuya.valueConverter.twosComplement8Bit],
