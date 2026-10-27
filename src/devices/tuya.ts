@@ -2403,9 +2403,10 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
 
 const am43OpeningMode = tuya.valueConverterBasic.lookup({tilt: tuya.enum(0), lift: tuya.enum(1)});
 const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
-    from: (v, meta, options, publish, msg) => ({
-        [meta.device.meta.openingMode === "tilt" ? "tilt" : "position"]: converter.from(v, meta, options, publish, msg),
-    }),
+    from: (v, meta, options, publish, msg) => {
+        const value = converter.from(v, meta, options, publish, msg);
+        return {[meta.device.meta.openingMode === "tilt" ? "tilt" : "position"]: value, state: value === 0 ? "CLOSE" : "OPEN"};
+    },
 });
 
 export const definitions: DefinitionWithExtend[] = [
@@ -11063,6 +11064,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {
             tuyaDatapoints: [
+                [1, null, null], // last control command, not the actual state, which is derived from the position instead
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, null, am43Position(tuya.valueConverter.coverPosition)],
                 [3, null, am43Position(tuya.valueConverter.raw)],
