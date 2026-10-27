@@ -700,8 +700,9 @@ const sixGangIndicatorEndpoints = ["button_1", "button_2", "button_3", "button_4
 
 const sixGangIndicatorColorModes = ["single", "multi"];
 
+// Both colours are named "color_hs" so frontends render a colour picker; the property tells ON and OFF apart.
 const sixGangIndicatorColorExpose = (endpoint: (typeof sixGangIndicatorEndpoints)[number], property: "color" | "color_off", label: string) =>
-    new exposes.Composite(`${property}_hs`, property, ea.STATE_SET)
+    new exposes.Composite("color_hs", property, ea.STATE_SET)
         .withLabel(label)
         .withFeature(e.numeric("hue", ea.STATE_SET).withValueMin(0).withValueMax(360))
         .withFeature(e.numeric("saturation", ea.STATE_SET).withValueMin(0).withValueMax(100))

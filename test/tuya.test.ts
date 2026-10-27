@@ -566,6 +566,16 @@ describe("lib/tuya", () => {
         // Button n (1-based) occupies bytes 1 + (n - 1) * 10 .. +9.
         const button = (data: number[], n: number) => data.slice(1 + (n - 1) * 10, 11 + (n - 1) * 10);
 
+        it("exposes ON and OFF colours as color_hs so frontends show a colour picker", async () => {
+            const {device, definition} = await resolve();
+            const exposed = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            const colours = exposed.filter((expose) => /^color(_off)?_button_1$/.test(expose.property));
+            expect(colours.map((expose) => [expose.name, expose.property])).toStrictEqual([
+                ["color_hs", "color_button_1"],
+                ["color_hs", "color_off_button_1"],
+            ]);
+        });
+
         it("writes a separate OFF colour and the multi mode byte", async () => {
             const {device, definition, endpoint} = await resolve();
             const state = {indicator_color_mode: "multi", color_button_6: {hue: 120, saturation: 60}, brightness_off_button_6: 10};
