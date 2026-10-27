@@ -1100,29 +1100,17 @@ const tzLocal = {
         key: ["power_outage_memory"],
         convertSet: async (entity, key, value, meta) => {
             const moesStartUpOnOff = utils.getFromLookup(value, {off: 0, on: 1, restore: 2});
-            try {
+            // _TZ3000_cfnprab5 responds with UNSUPPORTED_ATTRIBUTE but does apply the write
+            // https://github.com/Koenkk/zigbee2mqtt/issues/33471
+            await utils.ignoreUnsupportedAttribute(async () => {
                 await entity.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {moesStartUpOnOff});
-            } catch (error) {
-                // _TZ3000_cfnprab5 answers UNSUPPORTED_ATTRIBUTE but applies the write and reports the new value
-                // https://github.com/Koenkk/zigbee2mqtt/issues/22085
-                if (meta.device?.manufacturerName === "_TZ3000_cfnprab5" && (error as Error).message.includes("UNSUPPORTED_ATTRIBUTE")) {
-                    logger.debug(`Ignoring UNSUPPORTED_ATTRIBUTE on '${key}' write, state follows from the attribute report`, NS);
-                    return;
-                }
-                throw error;
-            }
+            }, "power_outage_memory write");
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            const read = async () => {
+            await utils.ignoreUnsupportedAttribute(async () => {
                 await entity.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["moesStartUpOnOff"]);
-            };
-            if (meta.device?.manufacturerName === "_TZ3000_cfnprab5") {
-                // Answers UNSUPPORTED_ATTRIBUTE to reads too, the value only arrives as a report
-                await utils.ignoreUnsupportedAttribute(read, "moesStartUpOnOff read");
-            } else {
-                await read();
-            }
+            }, "power_outage_memory read");
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
