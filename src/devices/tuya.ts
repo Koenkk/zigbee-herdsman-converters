@@ -1098,19 +1098,16 @@ const tzLocal = {
     } satisfies Tz.Converter,
     ts011f_5_power_outage_memory: {
         key: ["power_outage_memory"],
+        // Responds with UNSUPPORTED_ATTRIBUTE but does apply the write
+        // https://github.com/Koenkk/zigbee2mqtt/issues/33471
         convertSet: async (entity, key, value, meta) => {
-            const moesStartUpOnOff = utils.getFromLookup(value, {off: 0, on: 1, restore: 2});
-            // _TZ3000_cfnprab5 responds with UNSUPPORTED_ATTRIBUTE but does apply the write
-            // https://github.com/Koenkk/zigbee2mqtt/issues/33471
             await utils.ignoreUnsupportedAttribute(async () => {
-                await entity.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {moesStartUpOnOff});
-            }, "power_outage_memory write");
+                await tuya.tz.power_on_behavior_1.convertSet(entity, key, value, meta);
+            }, "power_outage_memory");
             return {state: {[key]: value}};
         },
         convertGet: async (entity, key, meta) => {
-            await utils.ignoreUnsupportedAttribute(async () => {
-                await entity.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["moesStartUpOnOff"]);
-            }, "power_outage_memory read");
+            await utils.ignoreUnsupportedAttribute(() => tuya.tz.power_on_behavior_1.convertGet(entity, key, meta), "power_outage_memory");
         },
     } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
