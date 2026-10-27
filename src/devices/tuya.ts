@@ -11075,12 +11075,14 @@ export const definitions: DefinitionWithExtend[] = [
                     "opening_mode",
                     {
                         ...am43OpeningMode,
-                        from: (v, meta, options) => {
+                        from: (v, meta, options, publish) => {
                             const mode = am43OpeningMode.from(v, meta, options);
                             if (meta.device.meta.openingMode !== mode) {
                                 meta.device.meta.openingMode = mode;
                                 meta.device.save();
                                 meta.deviceExposesChanged();
+                                const [from, to] = mode === "tilt" ? ["position", "tilt"] : ["tilt", "position"];
+                                if (meta.state[from] !== undefined) publish({[to]: meta.state[from]});
                             }
                             return mode;
                         },
