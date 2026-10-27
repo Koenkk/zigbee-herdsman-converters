@@ -803,6 +803,195 @@ function setupSpm01v25Polling(device: Zh.Device, intervalSeconds = 10) {
     globalStore.putValue(device.ieeeAddr, "query_interval", timer);
 }
 
+const spm01v25Thresholds: Tuya.ValueConverterSingle = {
+    from: (v: unknown, meta?: Fz.Meta) => {
+        const buf = Buffer.isBuffer(v) ? v : Buffer.from(v as string, "base64");
+        const onOffLookup: KeyValueAny = {0: "OFF", 1: "ON"};
+        const result: KeyValueAny = {};
+        for (let i = 0; i < buf.length; i += 4) {
+            const id = buf[i];
+            const enabled = onOffLookup[buf[i + 1]] ?? "OFF";
+            const val = buf.readUInt16BE(i + 2);
+            switch (id) {
+                case 1:
+                    result.over_current_alarm = enabled;
+                    result.over_current_threshold = val;
+                    break;
+                case 3:
+                    result.over_voltage_alarm = enabled;
+                    result.over_voltage_threshold = val;
+                    break;
+                case 4:
+                    result.under_voltage_alarm = enabled;
+                    result.under_voltage_threshold = val;
+                    break;
+                case 7:
+                    result.reverse_energy_alarm = enabled;
+                    break;
+                case 8: {
+                    const curDur = meta?.state?.data_report_duration != null ? Number(meta.state.data_report_duration) : undefined;
+                    if (curDur !== undefined && (curDur < 30 || (val === 50 && curDur !== 50))) {
+                        // Keep user-configured software polling interval (< 30s) or setting after MCU bootloader 50s reset
+                    } else {
+                        result.data_report_duration = val;
+                    }
+                    break;
+                }
+                case 9:
+                    result.device_locating = enabled;
+                    break;
+            }
+        }
+        return result;
+    },
+    to: (v: unknown, meta: Tz.Meta) => {
+        const msg = meta.message ?? {};
+        const state = meta.state ?? {};
+
+        const curAlarm = msg.over_current_alarm ?? state.over_current_alarm ?? "ON";
+        const curThresh = msg.over_current_threshold ?? state.over_current_threshold ?? 60;
+
+        const ovAlarm = msg.over_voltage_alarm ?? state.over_voltage_alarm ?? "ON";
+        const ovThresh = msg.over_voltage_threshold ?? state.over_voltage_threshold ?? 253;
+
+        const uvAlarm = msg.under_voltage_alarm ?? state.under_voltage_alarm ?? "OFF";
+        const uvThresh = msg.under_voltage_threshold ?? state.under_voltage_threshold ?? 180;
+
+        const revAlarm = msg.reverse_energy_alarm ?? state.reverse_energy_alarm ?? "ON";
+
+        const durVal = msg.data_report_duration ?? state.data_report_duration ?? 10;
+        const dur = Math.max(5, Math.min(3600, Math.round(Number(durVal) || 10)));
+        if (meta.device && ("data_report_duration" in msg || !globalStore.hasValue(meta.device.ieeeAddr, "query_interval"))) {
+            setupSpm01v25Polling(meta.device, dur);
+        }
+
+        const locate = msg.device_locating ?? state.device_locating ?? "OFF";
+
+        const onOff = (val: unknown) => (val === "ON" || val === true || val === 1 ? 1 : 0);
+
+        const buf = Buffer.alloc(24);
+        buf.writeUInt8(1, 0);
+        buf.writeUInt8(onOff(curAlarm), 1);
+        buf.writeUInt16BE(Number(curThresh), 2);
+
+        buf.writeUInt8(3, 4);
+        buf.writeUInt8(onOff(ovAlarm), 5);
+        buf.writeUInt16BE(Number(ovThresh), 6);
+
+        buf.writeUInt8(4, 8);
+        buf.writeUInt8(onOff(uvAlarm), 9);
+        buf.writeUInt16BE(Number(uvThresh), 10);
+
+        buf.writeUInt8(7, 12);
+        buf.writeUInt8(onOff(revAlarm), 13);
+        buf.writeUInt16BE(0, 14);
+
+        buf.writeUInt8(8, 16);
+        buf.writeUInt8(1, 17);
+        buf.writeUInt16BE(Math.max(30, dur), 18);
+
+        buf.writeUInt8(9, 20);
+        buf.writeUInt8(onOff(locate), 21);
+        buf.writeUInt16BE(0, 22);
+
+        return Array.from(buf);
+    },
+};
+
+const spm02Thresholds: Tuya.ValueConverterSingle = {
+    from: (v: unknown) => {
+        const buf = Buffer.isBuffer(v) ? v : Buffer.from(v as string, "base64");
+        const onOffLookup: KeyValueAny = {0: "OFF", 1: "ON"};
+        const result: KeyValueAny = {};
+        for (let i = 0; i < buf.length; i += 4) {
+            const id = buf[i];
+            const enabled = onOffLookup[buf[i + 1]] ?? "OFF";
+            const val = buf.readUInt16BE(i + 2);
+            switch (id) {
+                case 1:
+                    result.over_current_alarm = enabled;
+                    result.over_current_threshold = val;
+                    break;
+                case 2:
+                    result.unbalanced_load_alarm = enabled;
+                    result.unbalanced_load_threshold = val;
+                    break;
+                case 3:
+                    result.over_voltage_alarm = enabled;
+                    result.over_voltage_threshold = val;
+                    break;
+                case 4:
+                    result.under_voltage_alarm = enabled;
+                    result.under_voltage_threshold = val;
+                    break;
+                case 5:
+                    result.phase_loss_alarm = enabled;
+                    break;
+                case 7:
+                    result.reverse_energy_alarm = enabled;
+                    break;
+                case 9:
+                    result.device_locating = enabled;
+                    break;
+            }
+        }
+        return result;
+    },
+    to: (v: unknown, meta: Tz.Meta) => {
+        const msg = meta.message ?? {};
+        const state = meta.state ?? {};
+
+        const curAlarm = msg.over_current_alarm ?? state.over_current_alarm ?? "ON";
+        const curThresh = msg.over_current_threshold ?? state.over_current_threshold ?? 60;
+
+        const unbAlarm = msg.unbalanced_load_alarm ?? state.unbalanced_load_alarm ?? "OFF";
+        const unbThresh = msg.unbalanced_load_threshold ?? state.unbalanced_load_threshold ?? 10;
+
+        const ovAlarm = msg.over_voltage_alarm ?? state.over_voltage_alarm ?? "ON";
+        const ovThresh = msg.over_voltage_threshold ?? state.over_voltage_threshold ?? 253;
+
+        const uvAlarm = msg.under_voltage_alarm ?? state.under_voltage_alarm ?? "OFF";
+        const uvThresh = msg.under_voltage_threshold ?? state.under_voltage_threshold ?? 180;
+
+        const lossAlarm = msg.phase_loss_alarm ?? state.phase_loss_alarm ?? "ON";
+        const revAlarm = msg.reverse_energy_alarm ?? state.reverse_energy_alarm ?? "ON";
+        const locate = msg.device_locating ?? state.device_locating ?? "OFF";
+
+        const onOff = (val: unknown) => (val === "ON" || val === true || val === 1 ? 1 : 0);
+
+        const buf = Buffer.alloc(28);
+        buf.writeUInt8(1, 0);
+        buf.writeUInt8(onOff(curAlarm), 1);
+        buf.writeUInt16BE(Number(curThresh), 2);
+
+        buf.writeUInt8(2, 4);
+        buf.writeUInt8(onOff(unbAlarm), 5);
+        buf.writeUInt16BE(Number(unbThresh), 6);
+
+        buf.writeUInt8(3, 8);
+        buf.writeUInt8(onOff(ovAlarm), 9);
+        buf.writeUInt16BE(Number(ovThresh), 10);
+
+        buf.writeUInt8(4, 12);
+        buf.writeUInt8(onOff(uvAlarm), 13);
+        buf.writeUInt16BE(Number(uvThresh), 14);
+
+        buf.writeUInt8(5, 16);
+        buf.writeUInt8(onOff(lossAlarm), 17);
+        buf.writeUInt16BE(0, 18);
+
+        buf.writeUInt8(7, 20);
+        buf.writeUInt8(onOff(revAlarm), 21);
+        buf.writeUInt16BE(0, 22);
+
+        buf.writeUInt8(9, 24);
+        buf.writeUInt8(onOff(locate), 25);
+        buf.writeUInt16BE(0, 26);
+
+        return Array.from(buf);
+    },
+};
+
 const tzLocal = {
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
@@ -18054,13 +18243,14 @@ export const definitions: DefinitionWithExtend[] = [
             // Change the description according to the specifications of the device
             e.energy().withDescription("Total forward active energy"),
             e.produced_energy().withDescription("Total reverse active energy"),
+            tuya.exposes.circuitBreakerFaults(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
                 [2, "produced_energy", tuya.valueConverter.divideBy100],
                 [6, null, tuya.valueConverter.phaseVariant4],
-                // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults1],
             ],
         },
     },
@@ -18083,6 +18273,19 @@ export const definitions: DefinitionWithExtend[] = [
             // Change the description according to the specifications of the device
             e.energy().withDescription("Total forward active energy"),
             e.produced_energy().withDescription("Total reverse active energy"),
+            tuya.exposes.energyReset(),
+            e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63).withCategory("config"),
+            e.binary("over_current_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.numeric("unbalanced_load_threshold", ea.STATE_SET).withUnit("%").withValueMin(1).withValueMax(100).withCategory("config"),
+            e.binary("unbalanced_load_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.numeric("over_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(220).withValueMax(280).withCategory("config"),
+            e.binary("over_voltage_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.numeric("under_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(100).withValueMax(220).withCategory("config"),
+            e.binary("under_voltage_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.binary("phase_loss_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.binary("reverse_energy_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.binary("device_locating", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            tuya.exposes.circuitBreakerFaults(),
         ],
         meta: {
             tuyaDatapoints: [
@@ -18091,7 +18294,20 @@ export const definitions: DefinitionWithExtend[] = [
                 [6, null, tuya.valueConverter.phaseVariant2WithPhase("X")],
                 [7, null, tuya.valueConverter.phaseVariant2WithPhase("Y")],
                 [8, null, tuya.valueConverter.phaseVariant2WithPhase("Z")],
-                // [9,'',tuya.valueConverter.raw] // Unknown / datatype=5 (bitmap)
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults1],
+                [12, "energy_reset", tuya.valueConverter.reset],
+                [18, null, spm02Thresholds],
+                [18, "over_current_threshold", spm02Thresholds],
+                [18, "over_current_alarm", spm02Thresholds],
+                [18, "unbalanced_load_threshold", spm02Thresholds],
+                [18, "unbalanced_load_alarm", spm02Thresholds],
+                [18, "over_voltage_threshold", spm02Thresholds],
+                [18, "over_voltage_alarm", spm02Thresholds],
+                [18, "under_voltage_threshold", spm02Thresholds],
+                [18, "under_voltage_alarm", spm02Thresholds],
+                [18, "phase_loss_alarm", spm02Thresholds],
+                [18, "reverse_energy_alarm", spm02Thresholds],
+                [18, "device_locating", spm02Thresholds],
             ],
         },
     },
@@ -18323,8 +18539,16 @@ export const definitions: DefinitionWithExtend[] = [
                         if (event.type === "stop") {
                             clearInterval(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
                             globalStore.clearValue(event.data.ieeeAddr, "query_interval");
-                        } else if (event.type === "start") {
-                            setupSpm01v25Polling(event.data.device, Number(event.data.state.data_report_duration) || 10);
+                        } else if (event.type === "start" || event.type === "deviceAnnounce") {
+                            setupSpm01v25Polling(event.data.device, Number(event.data.state?.data_report_duration) || 10);
+                            if (event.type === "deviceAnnounce") {
+                                const endpoint = event.data.device.endpoints[0];
+                                const query =
+                                    event.data.device.manufacturerName === "_TZE200_iwn0gpzz"
+                                        ? tuya.sendDataPointEnum(endpoint, 35, 1)
+                                        : endpoint.command("manuSpecificTuya", "dataQuery", {});
+                                query.catch(() => {});
+                            }
                         }
                     },
                 ],
@@ -18347,54 +18571,38 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription(
                     "WARNING: You must update device firmware to V3.2.2 before changing this setting! Use Tuya gateway/app to update firmware. Data report duration set (Threshold value range 30~3600 seconds)",
                 ),
+            e.numeric("over_current_threshold", ea.STATE_SET).withUnit("A").withValueMin(1).withValueMax(63).withCategory("config"),
+            e.binary("over_current_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.numeric("over_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(220).withValueMax(280).withCategory("config"),
+            e.binary("over_voltage_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.numeric("under_voltage_threshold", ea.STATE_SET).withUnit("V").withValueMin(100).withValueMax(220).withCategory("config"),
+            e.binary("under_voltage_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.binary("reverse_energy_alarm", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.binary("device_locating", ea.STATE_SET, "ON", "OFF").withCategory("config"),
+            e.numeric("high_power_threshold", ea.STATE).withUnit("kW").withCategory("diagnostic"),
+            e.binary("high_power_alarm", ea.STATE, "ON", "OFF").withCategory("diagnostic"),
+            tuya.exposes.circuitBreakerFaults(),
+            tuya.exposes.energyReset(),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "energy", tuya.valueConverter.divideBy100],
-                [
-                    18,
-                    "data_report_duration",
-                    {
-                        to: (v: number, meta: Tz.Meta) => {
-                            const value = Math.max(5, Math.min(3600, Math.round(v)));
-                            if (meta.device) {
-                                setupSpm01v25Polling(meta.device, value);
-                            }
-                            const byte1 = (value >> 8) & 0xff;
-                            const byte2 = value & 0xff;
-                            return [
-                                // Other settings of the device
-                                0x01,
-                                0x01,
-                                0x00,
-                                0x3c,
-                                0x03,
-                                0x01,
-                                0x00,
-                                0xfd,
-                                0x04,
-                                0x00,
-                                0x00,
-                                0xb4,
-                                0x07,
-                                0x01,
-                                0x00,
-                                0x00,
-                                0x08,
-                                0x01,
-                                // Report duration
-                                byte1,
-                                byte2,
-                                // Only modify the report duration
-                                0x09,
-                                0x00,
-                                0x00,
-                                0x00,
-                            ];
-                        },
-                    },
-                ],
+                [6, null, tuya.valueConverter.phaseVariant4],
+                [9, "faults", tuya.valueConverter.circuitBreakerFaults1],
+                [16, "energy_reset", tuya.valueConverter.reset],
+                [17, null, tuya.valueConverter.threshold_7],
+                [18, null, spm01v25Thresholds],
+                [18, "data_report_duration", spm01v25Thresholds],
+                [18, "over_current_threshold", spm01v25Thresholds],
+                [18, "over_current_alarm", spm01v25Thresholds],
+                [18, "over_voltage_threshold", spm01v25Thresholds],
+                [18, "over_voltage_alarm", spm01v25Thresholds],
+                [18, "under_voltage_threshold", spm01v25Thresholds],
+                [18, "under_voltage_alarm", spm01v25Thresholds],
+                [18, "reverse_energy_alarm", spm01v25Thresholds],
+                [18, "device_locating", spm01v25Thresholds],
                 [23, "produced_energy", tuya.valueConverter.divideBy100],
+                [29, "power", tuya.valueConverter.raw],
                 [32, "ac_frequency", tuya.valueConverter.divideBy100],
                 [50, "power_factor", tuya.valueConverter.raw],
                 [102, "voltage", tuya.valueConverter.divideBy10],
