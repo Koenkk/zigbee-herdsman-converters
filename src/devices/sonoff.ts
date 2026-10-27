@@ -6952,7 +6952,10 @@ const sonoffExtend = {
                 "Last irrigation plan report received from the device.",
             );
             const irrigationPlanSlotReports = Array.from({length: 6}, (_, planIndex) =>
-                createIrrigationPlanReportExpose(`irrigation_plan_report_${planIndex}`, `Cached irrigation plan report for plan_index ${planIndex}.`),
+                createIrrigationPlanReportExpose(
+                    `irrigation_plan_report_${planIndex}`,
+                    `Last report for irrigation plan slot ${planIndex} (read-only). The device sends all slots only when it joins the network, afterwards only the edited slot.`,
+                ),
             );
 
             // The device reports all six slots when joining, then only the changed slot; the protocol has no per-slot query command.
