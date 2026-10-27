@@ -5524,7 +5524,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [],
     },
     {
-        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "AY222Z"],
+        zigbeeModel: ["TS0207", "FNB54-WTS08ML1.0", "AY222Z", "HS222Z"],
         model: "TS0207_water_leak_detector",
         vendor: "Tuya",
         description: "Water leak detector",
@@ -5538,6 +5538,15 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [
                     {modelID: "AY222Z", manufacturerName: "AOYAN"},
                     {modelID: "AY222Z", manufacturerName: "AOYAN  "},
+                ],
+            },
+            {
+                vendor: "HYSYIOT",
+                model: "HS222Z",
+                description: "Water leak detector",
+                fingerprint: [
+                    {modelID: "HS222Z", manufacturerName: "HYSYIOT"},
+                    {modelID: "TS0207", manufacturerName: "HYSYIOT"},
                 ],
             },
             tuya.whitelabel("Meian", "SW02", "Water leak sensor", ["_TZ3000_kyb656no"]),
@@ -25843,6 +25852,162 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "running_state", {from: (v: boolean) => (v === true ? "heat" : "idle")}],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0202", ["_TZD200_rdbronta"]),
+        zigbeeModel: ["HS206Z"],
+        model: "HS206Z",
+        vendor: "HYSYIOT",
+        description: "PIR motion and human presence sensor",
+        extend: [tuyaBase({dp: true})],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [
+                    3,
+                    "battery_state",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [4, "battery", tuya.valueConverter.raw],
+                [
+                    9,
+                    "pir_sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [12, "pir_delay", tuya.valueConverter.raw],
+            ],
+        },
+        exposes: [
+            e.occupancy().withDescription("Indicates whether the device detected occupancy"),
+            e.battery().withDescription("Remaining battery in %"),
+            e.battery_low().withDescription("Indicates if the battery is low"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery level state: low, middle, or high"),
+            e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR detection sensitivity"),
+            e
+                .numeric("pir_delay", ea.STATE_SET)
+                .withValueMin(30)
+                .withValueMax(120)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("PIR occupancy detection delay / keep time"),
+        ],
+    },
+    {
+        fingerprint: [
+            ...tuya.fingerprint("TS0601", ["_TZD200_8sql5jcj", "_TZE200_8sql5jcj", "_TZE204_8sql5jcj"]),
+            ...tuya.fingerprint("TS0202", ["_TZD200_8sql5jcj", "_TZE200_8sql5jcj", "_TZE204_8sql5jcj"]),
+        ],
+        zigbeeModel: ["HS207Z"],
+        model: "HS207Z",
+        vendor: "HYSYIOT",
+        description: "5-in-1 PIR motion, illuminance, vibration, temperature and humidity sensor",
+        extend: [tuyaBase({dp: true})],
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
+        meta: {
+            tuyaDatapoints: [
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
+                [
+                    3,
+                    "battery_state",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [4, "battery", tuya.valueConverter.raw],
+                [
+                    9,
+                    "pir_sensitivity",
+                    tuya.valueConverterBasic.lookup({
+                        low: tuya.enum(0),
+                        middle: tuya.enum(1),
+                        high: tuya.enum(2),
+                    }),
+                ],
+                [11, "illuminance", tuya.valueConverter.raw],
+                [12, "pir_delay", tuya.valueConverter.raw],
+                [101, "light_sensor_time", tuya.valueConverter.raw],
+                [102, "vibration", tuya.valueConverter.raw],
+                [106, "temperature_calibration", tuya.valueConverter.divideBy10],
+                [107, "indicator", tuya.valueConverter.raw],
+                [108, "humidity_calibration", tuya.valueConverter.raw],
+                [
+                    109,
+                    "temperature_unit",
+                    tuya.valueConverterBasic.lookup({
+                        celsius: tuya.enum(0),
+                        fahrenheit: tuya.enum(1),
+                    }),
+                ],
+                [110, "temperature", tuya.valueConverter.divideBy10],
+                [111, "humidity", tuya.valueConverter.raw],
+                [112, "vibration_sensitivity", tuya.valueConverter.raw],
+                [113, "vibration_delay", tuya.valueConverter.raw],
+            ],
+        },
+        exposes: [
+            e.occupancy().withDescription("Indicates whether the device detected occupancy"),
+            e.vibration().withDescription("Indicates whether the device detected vibration"),
+            e.illuminance().withDescription("Measured illuminance in lux"),
+            e.temperature().withDescription("Measured temperature"),
+            e.humidity().withDescription("Measured relative humidity"),
+            e.battery().withDescription("Remaining battery in %"),
+            e.battery_low().withDescription("Indicates if the battery is low"),
+            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery level state: low, middle, or high"),
+            e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR detection sensitivity"),
+            e
+                .numeric("pir_delay", ea.STATE_SET)
+                .withValueMin(30)
+                .withValueMax(120)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("PIR occupancy detection delay / keep time"),
+            e
+                .numeric("light_sensor_time", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(60)
+                .withValueStep(1)
+                .withDescription("Light sensor sampling interval"),
+            e
+                .numeric("temperature_calibration", ea.STATE_SET)
+                .withValueMin(-4.0)
+                .withValueMax(4.0)
+                .withValueStep(0.5)
+                .withUnit("°C")
+                .withDescription("Temperature calibration offset"),
+            e.binary("indicator", ea.STATE_SET, true, false).withDescription("LED indicator light switch"),
+            e
+                .numeric("humidity_calibration", ea.STATE_SET)
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(1)
+                .withUnit("%")
+                .withDescription("Humidity calibration offset"),
+            e.enum("temperature_unit", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature display unit"),
+            e
+                .numeric("vibration_sensitivity", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(50)
+                .withValueStep(1)
+                .withDescription("Vibration detection sensitivity"),
+            e
+                .numeric("vibration_delay", ea.STATE_SET)
+                .withValueMin(1)
+                .withValueMax(1440)
+                .withValueStep(1)
+                .withUnit("s")
+                .withDescription("Vibration delay recovery time"),
+        ],
     },
     {
         fingerprint: tuya.fingerprint("TS0202", ["_TZD200_sjjp9bti"]),
