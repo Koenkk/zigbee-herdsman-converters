@@ -12535,7 +12535,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "temperatureCalibration",
                 entityCategory: "config",
                 description:
-                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the top before changing this value.",
                 valueMin: -50,
                 valueMax: 50,
                 scale: 100,
@@ -12548,7 +12548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "humidityCalibration",
                 entityCategory: "config",
                 description:
-                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the top before changing this value.",
                 valueMin: -50,
                 valueMax: 50,
                 scale: 100,
