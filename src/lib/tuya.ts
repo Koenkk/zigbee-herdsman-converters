@@ -2113,6 +2113,10 @@ export const valueConverter = {
             return encodeThresholds(vEncoded, meta.state.alarm_set_2 || {}, alarmSet2ThresholdDefinitions);
         },
     },
+    threshold_9: {
+        from: (v: Buffer) => parseThresholds(v, alarmSet2ThresholdDefinitions),
+        to: (v: AlarmSet2Input, meta: AlarmSet2MetaState) => encodeThresholds(v, meta.state.alarm_set_2 || {}, alarmSet2ThresholdDefinitions),
+    },
     selfTestResult: valueConverterBasic.lookup({checking: 0, success: 1, failure: 2, others: 3}),
     lockUnlock: valueConverterBasic.lookup({LOCK: true, UNLOCK: false}),
     thermostatHolidayStartStop: {
