@@ -5473,13 +5473,13 @@ const sonoffExtend = {
     swvznGenTimeCompatResponse: (): ModernExtend => {
         const onEvent: OnEvent.Handler[] = [
             (event) => {
-                if (event.type === "start" && !event.data.device.customReadResponse) {
+                if ((event.type === "start" || event.type === "deviceJoined") && !event.data.device.customReadResponse) {
                     event.data.device.customReadResponse = (frame, endpoint) => {
                         if (!frame.isCluster("genTime")) {
                             return false;
                         }
 
-                        const {time, timeZone, localTime, dstShift} = getTimeClusterAttributes();
+                        const {time, timeZone, localTime, dstStart, dstEnd, dstShift} = getTimeClusterAttributes();
 
                         // XXX: we're replying to specific attributes, which could be incorrect (not based on the request attrIds)
                         endpoint
@@ -5487,8 +5487,8 @@ const sonoffExtend = {
                                 time,
                                 timeZone,
                                 localTime,
-                                dstStart: 0, // The device's Zigbee behavior is a bit non-standard.
-                                dstEnd: 0,
+                                dstStart,
+                                dstEnd,
                                 dstShift,
                             })
                             .catch((e) => {
@@ -12401,6 +12401,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attributes: {
                     childLock: {name: "childLock", ID: 0x0000, type: Zcl.DataType.BOOLEAN, write: true},
                     realTimeIrrigationDuration: {name: "realTimeIrrigationDuration", ID: 0x5006, type: Zcl.DataType.UINT32},
+                    realTimeIrrigationVolume: {name: "realTimeIrrigationVolume", ID: 0x5007, type: Zcl.DataType.UINT32},
                     rainDelayEndDatetime: {name: "rainDelayEndDatetime", ID: 0x5014, type: Zcl.DataType.UINT32},
                     hourIrrigationDuration: {name: "hourIrrigationDuration", ID: 0x501c, type: Zcl.DataType.UINT32},
                     manualDefaultSettings: {name: "manualDefaultSettings", ID: 0x501d, type: Zcl.DataType.ARRAY, write: true},
