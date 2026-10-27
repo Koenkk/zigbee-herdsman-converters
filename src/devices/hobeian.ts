@@ -12,6 +12,7 @@ import {
     ignoreUnsupportedAttribute,
     isDummyDevice,
     postfixWithEndpointName,
+    precisionRound,
 } from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
@@ -24,6 +25,17 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const te = tuya.exposes;
+
+// Device reports the temperature in the selected temperature_unit instead of always in Celsius. Convert it back
+// so `temperature` (exposed with a fixed °C unit) stays consistent.
+// https://github.com/Koenkk/zigbee2mqtt/issues/32984
+const temperatureInSelectedUnit = {
+    from: (value: number, meta: Fz.Meta) => {
+        const raw = value / 10;
+        return precisionRound(meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw, 2);
+    },
+};
+
 // Convert HA raw IR timings (microseconds) to a Broadlink IR packet.
 // HOBEIAN ZG-IR01 only accepts Broadlink-encoded strings via ir_code_to_send,
 // but HA's native infrared.* platform sends raw {timings: [...]} through
@@ -215,21 +227,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "switch4", tuya.valueConverter.onOff],
                 [5, "switch5", tuya.valueConverter.onOff],
                 [6, "switch6", tuya.valueConverter.onOff],
-                [
-                    109,
-                    "temperature",
-                    {
-                        // Device reports the raw value already scaled in the currently selected
-                        // display unit (DP 111), instead of always reporting Celsius. Convert
-                        // back to Celsius here so `temperature` (exposed with a fixed °C unit)
-                        // stays consistent regardless of the device's temperature_unit setting.
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/32984
-                        from: (value: number, meta: Fz.Meta) => {
-                            const raw = value / 10;
-                            return meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw;
-                        },
-                    },
-                ],
+                [109, "temperature", temperatureInSelectedUnit],
                 [110, "humidity", tuya.valueConverter.raw],
                 [112, "battery", tuya.valueConverter.raw],
                 [111, "temperature_unit", tuya.valueConverter.temperatureUnit],
@@ -543,7 +541,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [108, "indicator", tuya.valueConverter.onOff],
                 [110, "battery", tuya.valueConverter.raw],
-                [111, "temperature", tuya.valueConverter.divideBy10],
+                [111, "temperature", temperatureInSelectedUnit],
                 [101, "humidity", tuya.valueConverter.raw],
                 [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
                 [105, "temperature_calibration", tuya.valueConverter.divideBy10],
