@@ -1,12 +1,16 @@
 import {Zcl} from "zigbee-herdsman";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
+import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueAny} from "../lib/types";
+import * as globalStore from "../lib/store";
+import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
+const ea = exposes.access;
 
 interface Salus {
     attributes: {
@@ -31,6 +35,12 @@ interface Salus {
         resetDevice: Record<string, never>;
     };
     commandResponses: never;
+}
+
+interface SalusIt600 {
+    attributes: never;
+    commands: {syncRequest: {payload: Buffer}};
+    commandResponses: {syncRequest: {payload: Buffer}; record: {payload: Buffer}; write: {payload: Buffer}; syncResponse: {payload: Buffer}};
 }
 
 const fzLocal = {
@@ -58,6 +68,150 @@ const fzLocal = {
             return fz.metering.convert(model, msg, publish, options, meta);
         },
     } satisfies Fz.Converter<"seMetering", undefined, ["attributeReport", "readResponse"]>,
+    it600_status: {
+        cluster: "manuSpecificSalusIt600",
+        type: "commandRecord",
+        convert: (model, msg, publish, options, meta) => {
+            const record = msg.data.payload;
+            if (record[0] !== 0x71) return;
+            const bcd = (offset: number, length = 2) => Number(record.subarray(offset, offset + length).toString("hex"));
+            const result: KeyValueAny = {
+                current_heating_setpoint: bcd(9) / 100,
+                system_mode: record[3] === 7 ? "off" : record[15] === 3 ? "cool" : "heat",
+                running_state: record[17] === 1 ? "heat" : "idle",
+                child_lock: record[23] === 1 ? "LOCK" : "UNLOCK",
+                humidity: bcd(24, 1),
+            };
+            const battery = [0, 10, 25, 50, 75, 100][record[49]];
+            if (battery !== undefined) result.battery = battery;
+            // 12.34 is a placeholder the thermostat regularly sends instead of a reading
+            if (record.readUInt16BE(4) !== 0x1234) result.local_temperature = bcd(4) / 100;
+            return result;
+        },
+    } satisfies Fz.Converter<"manuSpecificSalusIt600", SalusIt600, "commandRecord">,
+};
+
+// iT600 protocol: https://github.com/mikkelke/salus-zigbee/blob/main/PROTOCOL.md
+const it600Payload = [{name: "payload", type: Zcl.BuffaloZclDataType.BUFFER}];
+let it600Handle = 0;
+
+const salusExtend = {
+    addGatewayBasic: () =>
+        m.deviceAddCustomCluster("genBasic", {
+            name: "genBasic",
+            ID: 0x0000,
+            attributes: {
+                manufacturerName: {name: "manufacturerName", ID: 0x0004, type: Zcl.DataType.CHAR_STR, default: "Computime", maxLen: 32},
+                modelId: {name: "modelId", ID: 0x0005, type: Zcl.DataType.CHAR_STR, default: "SAU2AG1", maxLen: 32},
+            },
+            commands: {},
+            commandsResponse: {},
+        }),
+    addIt600Cluster: () =>
+        m.deviceAddCustomCluster("manuSpecificSalusIt600", {
+            name: "manuSpecificSalusIt600",
+            ID: 0xfc00,
+            manufacturerCode: Zcl.ManufacturerCode.COMPUTIME,
+            attributes: {},
+            // The wiring centre sends client to server, the thermostat server to client.
+            commands: {syncRequest: {name: "syncRequest", ID: 0x10, parameters: it600Payload}},
+            commandsResponse: {
+                syncRequest: {name: "syncRequest", ID: 0x10, parameters: it600Payload},
+                record: {name: "record", ID: 0x31, parameters: it600Payload},
+                write: {name: "write", ID: 0x32, parameters: it600Payload},
+                syncResponse: {name: "syncResponse", ID: 0x81, parameters: it600Payload},
+            },
+        }),
+    // The device leaves the network when its sync request is not answered.
+    it600Sync: (deviceNumber: number, endpointId: number): ModernExtend => {
+        const sendSyncResponse = async (endpoint: Zh.Endpoint) => {
+            const payload = Buffer.alloc(15);
+            payload[0] = deviceNumber;
+            payload.writeUInt32LE(Math.round((Date.now() - constants.OneJanuary2000) / 1000 - new Date().getTimezoneOffset() * 60), 2);
+            payload[6] = 0x02; // 24-hour clock, no DST
+            payload[7] = 13; // UTC time zone, the time is local already
+            payload.fill(0xff, 9, 13);
+            payload[13] = 0x31;
+            await endpoint.commandResponse<"manuSpecificSalusIt600", "syncResponse", SalusIt600>("manuSpecificSalusIt600", "syncResponse", {payload});
+        };
+        return {
+            fromZigbee: [
+                {
+                    cluster: "manuSpecificSalusIt600",
+                    type: "commandSyncRequest",
+                    convert: async (model, msg, publish, options, meta) => {
+                        await sendSyncResponse(msg.endpoint);
+                    },
+                } satisfies Fz.Converter<"manuSpecificSalusIt600", SalusIt600, "commandSyncRequest">,
+            ],
+            onEvent: [
+                async (event) => {
+                    if (event.type === "deviceAnnounce" || (event.type === "deviceInterview" && event.data.status === "successful")) {
+                        const endpoint = event.data.device.getEndpoint(endpointId);
+                        if (endpoint) await sendSyncResponse(endpoint);
+                    }
+                },
+            ],
+            isModernExtend: true,
+        };
+    },
+};
+
+async function it600Write(endpoint: Zh.Endpoint, command: string, ...args: number[]) {
+    // Handles 1-127, the device uses the others for its own reports
+    it600Handle = (it600Handle % 0x7f) + 1;
+    const payload = Buffer.from([it600Handle, ...Buffer.from(command), ...args]);
+    await endpoint.commandResponse<"manuSpecificSalusIt600", "write", SalusIt600>("manuSpecificSalusIt600", "write", {payload});
+}
+
+const tzLocal = {
+    it600_system_mode: {
+        key: ["system_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            if (value === "off") {
+                await it600Write(entity, "B20", 7); // Standby
+            } else {
+                await it600Write(entity, "B20", 2); // Permanent hold
+                await it600Write(entity, "B48", value === "cool" ? 3 : 4);
+            }
+            return {state: {system_mode: value}};
+        },
+    } satisfies Tz.Converter,
+    it600_setpoint: {
+        key: ["current_heating_setpoint"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            utils.assertNumber(value, key);
+            const cool = (meta.message.system_mode ?? meta.state.system_mode) === "cool";
+            await it600Write(entity, cool ? "B33" : "B34", Math.round(value * 2) + 0x20);
+            return {state: {current_heating_setpoint: Math.round(value * 2) / 2}};
+        },
+    } satisfies Tz.Converter,
+    it600_child_lock: {
+        key: ["child_lock"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            await it600Write(entity, "B03", 0, 0, value === "LOCK" ? 0x41 : 0x42, ...Array(10).fill(0));
+            return {state: {child_lock: value}};
+        },
+    } satisfies Tz.Converter,
+    it600_wiring_centre_zones: {
+        key: ["wiring_centre_zones"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            utils.assertArray(value, key);
+            const wiringCentre: Zh.Device | undefined = globalStore.getValue("salusIt600", "wiringCentre");
+            if (!wiringCentre) throw new Error("Wiring centre (KL08RF) has to join first");
+            const args = Buffer.alloc(33);
+            args.set([0x00, 0x11, 0x01, 0x00]); // Wiring centre number 1
+            args.writeUInt16LE(wiringCentre.networkAddress, 4);
+            args[6] = 0xfe; // Pair request
+            args[7] = 0x01; // Take over zones held by another thermostat
+            for (const zone of value) args[7 + Number(zone)] = 0x01;
+            await it600Write(entity, "B47", ...args);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -236,6 +390,53 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.fanMode(endpoint);
             await reporting.thermostatRunningMode(endpoint);
             await reporting.thermostatRunningState(endpoint);
+        },
+        ota: {manufacturerName: "SalusControls"},
+    },
+    {
+        zigbeeModel: ["SQ610RFNH"],
+        model: "SQ610RFNH",
+        vendor: "Salus Controls",
+        description: "Quantum wireless thermostat",
+        extend: [
+            salusExtend.addGatewayBasic(),
+            salusExtend.addIt600Cluster(),
+            salusExtend.it600Sync(0x20, 9),
+            m.forcePowerSource({powerSource: "Battery"}),
+        ],
+        fromZigbee: [fzLocal.it600_status],
+        toZigbee: [tzLocal.it600_system_mode, tzLocal.it600_setpoint, tzLocal.it600_child_lock, tzLocal.it600_wiring_centre_zones],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 40, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.humidity(),
+            e.battery(),
+            e.child_lock(),
+            e
+                .list("wiring_centre_zones", ea.SET, e.numeric("zone", ea.SET).withValueMin(1).withValueMax(8))
+                .withDescription("Pairs the thermostat with these wiring centre zones, taking them over from any other thermostat"),
+        ],
+        ota: {manufacturerName: "SalusControls"},
+    },
+    {
+        // Reports no modelId
+        fingerprint: [{manufacturerName: "Computime", type: "Router", endpoints: [{ID: 8, profileID: 260}]}],
+        model: "KL08RF",
+        vendor: "Salus Controls",
+        description: "iT600 8-zone wiring centre",
+        extend: [
+            salusExtend.addGatewayBasic(),
+            salusExtend.addIt600Cluster(),
+            salusExtend.it600Sync(1, 8),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+        onEvent: (event) => {
+            // Needed for the zone pairing of the thermostats
+            if (event.type === "start") globalStore.putValue("salusIt600", "wiringCentre", event.data.device);
         },
         ota: {manufacturerName: "SalusControls"},
     },
