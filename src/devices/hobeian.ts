@@ -1494,12 +1494,12 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY204T",
                 vendor: "AOYAN",
                 description: "Millimeter wave motion detection",
-                fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN  "}],
+                fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN"}],
             },
         ],
     },
     {
-        zigbeeModel: ["ZG-223Z", "HS118Z"],
+        zigbeeModel: ["ZG-223Z", "HS118Z", "AY-223Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf", "_TZE200_u6x1zyv2", "_TZE200_2pddnnrk", "_TZE200_gt1gge3x"]),
         model: "ZG-223Z",
         vendor: "HOBEIAN",
@@ -1529,6 +1529,12 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "HYSYIOT",
                 description: "Rainwater detection sensor",
                 fingerprint: [{modelID: "HS118Z", manufacturerName: "HYSYIOT"}],
+            },
+            {
+                model: "AY-223Z",
+                vendor: "AOYAN",
+                description: "Rainwater detection sensor",
+                fingerprint: [{modelID: "AY-223Z", manufacturerName: "AOYAN"}],
             },
         ],
         meta: {
