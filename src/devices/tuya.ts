@@ -11072,22 +11072,24 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, null, null], // work_state, not useful, ignore
                 [
                     101,
-                    "opening_mode",
+                    null,
                     {
-                        ...am43OpeningMode,
-                        from: (v, meta, options, publish) => {
+                        from: (v, meta, options) => {
                             const mode = am43OpeningMode.from(v, meta, options);
+                            const result: KeyValue = {opening_mode: mode};
                             if (meta.device.meta.openingMode !== mode) {
                                 meta.device.meta.openingMode = mode;
                                 meta.device.save();
                                 meta.deviceExposesChanged();
+                                // Keep the current position when switching between position and tilt
                                 const [from, to] = mode === "tilt" ? ["position", "tilt"] : ["tilt", "position"];
-                                if (meta.state[from] !== undefined) publish({[to]: meta.state[from]});
+                                if (meta.state[from] !== undefined) result[to] = meta.state[from];
                             }
-                            return mode;
+                            return result;
                         },
                     },
                 ],
+                [101, "opening_mode", am43OpeningMode],
                 [102, "factory_reset", tuya.valueConverter.raw],
                 [103, "set_upper_limit", tuya.valueConverter.setLimit],
                 [104, "set_bottom_limit", tuya.valueConverter.setLimit],
