@@ -884,50 +884,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Star feather Zigbee curtain switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        fromZigbee: [
-            {
-                // Physical button presses. DP 1 = 0/2 is the up/down button; 1 (stop) is skipped because
-                // at an end stop it always arrives paired with OPEN/CLOSE and would double every press.
-                // A command sent to the device echoes back as two identical DP 1 reports ~50 ms apart, while
-                // a physical press sends one, so the action is delayed 250 ms and dropped if the twin arrives.
-                // Pause on a stationary blind re-reports DP 2 with the same raw value, while a moving blind
-                // always reports a different one; comparing raw bytes keeps this independent of invert_cover.
-                cluster: "manuSpecificTuya",
-                type: ["commandDataReport", "commandDataResponse"],
-                convert: (_model, msg, publish, _options, _meta) => {
-                    const dpValues = msg.data.dpValues as Array<{dp: number; datatype: number; data: Buffer}>;
-                    if (!dpValues) return;
-                    for (const dpValue of dpValues) {
-                        if (dpValue.dp === 1) {
-                            const value = dpValue.data[0];
-                            if (value !== 0 && value !== 2) continue;
-                            const key = `pendingButtonPress_${value}`;
-                            const pending = globalStore.getValue(msg.device, key);
-                            if (pending) {
-                                clearTimeout(pending);
-                                globalStore.clearValue(msg.device, key);
-                                continue;
-                            }
-                            const timer = setTimeout(() => {
-                                globalStore.clearValue(msg.device, key);
-                                publish({action: value === 0 ? "up" : "down"});
-                            }, 250).unref();
-                            globalStore.putValue(msg.device, key, timer);
-                            continue;
-                        }
-                        if (dpValue.dp !== 2) continue;
-                        const raw = dpValue.data.toString("hex");
-                        const repeated = globalStore.getValue(msg.device, "lastRawPositionReport") === raw;
-                        globalStore.putValue(msg.device, "lastRawPositionReport", raw);
-                        if (repeated) return {action: "pause"};
-                    }
-                },
-            } satisfies Fz.Converter<"manuSpecificTuya", undefined, ["commandDataReport", "commandDataResponse"]>,
-        ],
         options: [exposes.options.invert_cover()],
         exposes: [
             te.coverPosition(),
-            e.action(["up", "down", "pause"]),
+            e.action(["up", "down"]),
             e.enum("calibration", ea.STATE_SET, ["start", "end"]).withDescription("Calibration mode"),
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable button backlight"),
             te.motorDirection(),
@@ -940,7 +900,31 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.coverAction],
+                [
+                    1,
+                    "state",
+                    {
+                        ...tuya.valueConverter.coverAction,
+                        from: (v, meta, options, publish) => {
+                            // A physical up/down press reports DP 1 once, a command echoes it back twice ~50 ms apart.
+                            if (v === 0 || v === 2) {
+                                const key = `action_${v}`;
+                                const pending = globalStore.getValue(meta.device, key);
+                                globalStore.clearValue(meta.device, key);
+                                if (pending) {
+                                    clearTimeout(pending);
+                                } else {
+                                    const timer = setTimeout(() => {
+                                        globalStore.clearValue(meta.device, key);
+                                        publish({action: v === 0 ? "up" : "down"});
+                                    }, 250).unref();
+                                    globalStore.putValue(meta.device, key, timer);
+                                }
+                            }
+                            return tuya.valueConverter.coverAction.from(v, meta, options);
+                        },
+                    },
+                ],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "calibration", tuya.valueConverterBasic.lookup({start: tuya.enum(0), end: tuya.enum(1)})],
                 [7, "backlight_switch", tuya.valueConverter.onOff],
