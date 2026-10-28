@@ -2122,6 +2122,7 @@ export const lumiModernExtend = {
             result.exposes.push(e.power_outage_memory().withAccess(ea.STATE_SET));
         } else if (args.powerOutageMemory === "enum") {
             const extend = lumiModernExtend.lumiPowerOnBehavior({lookup: {on: 0, previous: 1, off: 2}});
+            result.fromZigbee.push(...extend.fromZigbee);
             result.toZigbee.push(...extend.toZigbee);
             result.exposes.push(...extend.exposes);
         }
@@ -2489,6 +2490,7 @@ export const lumiModernExtend = {
             result.exposes.push(...extend.exposes);
         } else if (args.powerOutageMemory === "enum") {
             const extend = lumiModernExtend.lumiPowerOnBehavior();
+            result.fromZigbee.push(...extend.fromZigbee);
             result.toZigbee.push(...extend.toZigbee);
             result.exposes.push(...extend.exposes);
         }
