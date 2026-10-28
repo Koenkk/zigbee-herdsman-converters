@@ -341,6 +341,15 @@ export const tzLegrand = {
             await tz.cover_position_tilt.convertGet?.(entity, key, meta);
         },
     } satisfies Tz.Converter,
+    cover_moving: {
+        key: ["moving"],
+        convertGet: async (entity, key, meta) => {
+            await entity.read<"closuresWindowCovering", TuyaClosuresWindowCovering>("closuresWindowCovering", [
+                "currentPositionLiftPercentage",
+                "tuyaMovingState",
+            ]);
+        },
+    } satisfies Tz.Converter,
     calibration_mode: (isNLLVSwitch: boolean) => {
         return {
             key: ["calibration_mode"],
@@ -577,7 +586,10 @@ export const fzLegrand = {
         cluster: "closuresWindowCovering",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data.tuyaMovingState === undefined) return;
+            if (msg.data.tuyaMovingState === undefined) {
+                // A position-only report doesn't mean the cover stopped, keep the direction
+                return meta.state.moving === true ? {state: meta.state.state} : undefined;
+            }
 
             const targetPos = 100 - msg.data.tuyaMovingState;
             const reportedLift = (msg.data as KeyValueAny).currentPositionLiftPercentage;
@@ -587,8 +599,8 @@ export const fzLegrand = {
             if (reportedLift !== undefined) {
                 const currentPos = 100 - reportedLift;
                 if (Math.abs(targetPos - currentPos) <= 1) {
-                    const state = currentPos > 0 ? "OPEN" : "CLOSE";
-                    return {state, action: "stopped", moving: false};
+                    // State is set by fz.cover_position_tilt
+                    return {action: "stopped", moving: false};
                 }
                 const direction = targetPos > currentPos ? "opening" : "closing";
                 return {state: direction, action: direction, moving: true};
