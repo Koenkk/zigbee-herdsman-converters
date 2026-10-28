@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, ModernExtend, Tuya, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -803,7 +803,28 @@ function setupSpm01v25Polling(device: Zh.Device, intervalSeconds = 10) {
     globalStore.putValue(device.ieeeAddr, "query_interval", timer);
 }
 
+const tuyaModernExtendLocal = {
+    // Overrides a wrong self-reported power source *after* tuyaBase's genBasic read: extends' configure runs after the
+    // definition's own configure, in order, so a trailing extend is the only place the value is not written back.
+    forceMainsPowerSource: (): ModernExtend => ({
+        isModernExtend: true,
+        configure: [
+            (device) => {
+                device.powerSource = "Mains (single phase)";
+                device.save();
+            },
+        ],
+    }),
+};
+
 const tzLocal = {
+    tuyaDataQueryOnGet: {
+        key: ["state", "brightness"],
+        convertSet: async (entity, key, value, meta) => await tuya.tz.datapoints.convertSet(entity, key, value, meta),
+        convertGet: async (entity, key, meta) => {
+            await entity.command("manuSpecificTuya", "dataQuery", {});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -6162,6 +6183,9 @@ export const definitions: DefinitionWithExtend[] = [
         // periodic path is sufficient and lossless.
         version: "0.0.2",
         fromZigbee: [fz.on_off, fz.brightness],
+        // `/get` on state/brightness: Tuya datapoint devices have no attribute to read, but the MCU answers a
+        // dataQuery with a fresh DP 1 report (verified on _TZE200_9cxuhakf), which is what a freshness poll needs.
+        toZigbee: [tzLocal.tuyaDataQueryOnGet],
         configure: async (device, coordinatorEndpoint) => {
             if (["_TZE200_ykgar0ow", "_TZE200_4mh6tyyo"].includes(device.manufacturerName)) {
                 await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -9632,7 +9656,6 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_zpzndjez",
                 "_TZE200_wmcdj3aq",
                 "_TZE200_cowvfni3",
-                "_TZE200_rddyvrci",
                 "_TZE200_nueqqe6k",
                 "_TZE200_bqcqqjpb",
                 "_TZE200_xaabybja",
@@ -11059,6 +11082,51 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
+                [2, "position", tuya.valueConverter.coverPosition],
+                [3, "position", tuya.valueConverter.raw],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [7, null, null], // work_state, not useful, ignore
+                [
+                    101,
+                    "opening_mode",
+                    tuya.valueConverterBasic.lookup({
+                        tilt: tuya.enum(0),
+                        lift: tuya.enum(1),
+                    }),
+                ],
+                [102, "factory_reset", tuya.valueConverter.raw],
+                [103, "set_upper_limit", tuya.valueConverter.setLimit],
+                [104, "set_bottom_limit", tuya.valueConverter.setLimit],
+                [105, "motor_speed", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_rddyvrci"]),
+        model: "TS0601_cover_16",
+        vendor: "Tuya",
+        description: "Cover (AM43 drive, _TZE200_rddyvrci variant)",
+        // Same AM43 drive and datapoints as TS0601_cover_4 (DP 105 verified to round-trip); previously matched by the
+        // legacy TS0601_cover_1, which dropped DP 5/101-105. The only difference is the DP 1 enum, which the legacy
+        // converter carried as a per-manufacturer override ({close: 1, open: 2, stop: 0}, zigbee2mqtt#5596).
+        // No fingerprint on the white label: TS0601_cover_4 already claims this model string (model names must be unique).
+        whiteLabel: [{vendor: "Moes", model: "AM43-0.45/40-ES-EB", description: "Roller blind/shades drive motor"}],
+        // Power-source correction as a trailing extend: a definition's own configure runs before its extends'
+        // configure, and tuyaBase's magic-packet genBasic read would otherwise write "Battery" straight back.
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), tuyaModernExtendLocal.forceMainsPowerSource()],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            te.coverPosition(),
+            te.motorDirection(),
+            e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed").withUnit("rpm"),
+            e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
+            e.enum("set_upper_limit", ea.SET, ["SET"]).withDescription("Set the upper limit, to reset limits use factory_reset"),
+            e.enum("set_bottom_limit", ea.SET, ["SET"]).withDescription("Set the bottom limit, to reset limits use factory_reset"),
+            e.binary("factory_reset", ea.SET, true, false).withDescription("Factory reset the device"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(2), STOP: tuya.enum(0), CLOSE: tuya.enum(1)})],
                 [2, "position", tuya.valueConverter.coverPosition],
                 [3, "position", tuya.valueConverter.raw],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
@@ -13784,7 +13852,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0011",
         vendor: "Tuya",
         description: "Smart light switch - 1 gang",
-        extend: [tuya.modernExtend.tuyaBase(), tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true})],
+        // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
+        // The correction has to run after tuyaBase's configure (its genBasic read writes "Battery" back),
+        // i.e. as a trailing extend, not inside this definition's configure.
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({backlightModeOffNormalInverted: true}),
+            tuyaModernExtendLocal.forceMainsPowerSource(),
+        ],
         whiteLabel: [
             {vendor: "Vrey", model: "VR-X712U-0013"},
             {vendor: "TUYATEC", model: "GDKES-01TZXD"},
@@ -13799,9 +13874,6 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            // Reports itself as battery which is not correct: https://github.com/Koenkk/zigbee2mqtt/issues/6190
-            device.powerSource = "Mains (single phase)";
-            device.save();
         },
     },
     {
