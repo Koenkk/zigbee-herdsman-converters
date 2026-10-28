@@ -2917,6 +2917,16 @@ export const valueConverter = {
             },
         };
     },
+    utf8String: {
+        // Plain UTF-8 string datapoint. Both ends of the pipe work one byte per character:
+        // `convertStringToHexArray()` takes `charCodeAt(0)` of every character when sending
+        // and `getDataValue()` rebuilds the string with `String.fromCharCode()` when
+        // receiving. So the UTF-8 bytes are carried as latin1 characters, otherwise
+        // anything outside ASCII is truncated to a single byte.
+        to: (v: string) => Buffer.from(String(v), "utf8").toString("latin1"),
+        from: (v?: string) => (v ? Buffer.from(v, "latin1").toString("utf8") : ""),
+    },
+
     utf16BEHexString: {
         // String -> hex (UTF-16BE)
         to: (v: string) => {
@@ -3946,7 +3956,7 @@ const tuyaFz = {
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     datapoints: {
         cluster: "manuSpecificTuya",
-        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
+        type: ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
@@ -3971,7 +3981,7 @@ const tuyaFz = {
     } satisfies Fz.Converter<
         "manuSpecificTuya",
         undefined,
-        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     on_off_action: {
         cluster: "genOnOff",
@@ -4585,6 +4595,7 @@ const tuyaModernExtend = {
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
+                "commandDataReportAlt",
                 "commandActiveStatusReport",
                 "commandActiveStatusReportAlt",
             ]
@@ -4594,6 +4605,7 @@ const tuyaModernExtend = {
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
+                "commandDataReportAlt",
                 "commandActiveStatusReport",
                 "commandActiveStatusReportAlt",
             ],
@@ -5362,6 +5374,16 @@ const tuyaModernExtend = {
             numberOfForecastDays?: number;
             correctForNegativeValues?: boolean;
             weatherConditionMap?: TuyaWeatherCondition;
+            /**
+             * Layout of the `tuyaWeatherSync` reply.
+             * - `default`: starts with the protocol version and location type (`0x11 0x00`)
+             *   and ends with a `0x00`. Works for the M8/M9 Pro panels.
+             * - `requestSequence`: starts with the two bytes echoed back from the request
+             *   and has no trailing byte. Some firmwares (e.g. `_TZE284_0or4eirj`) accept
+             *   the default reply with status `SUCCESS` but keep showing `--°C` and keep
+             *   polling every minute until they get this layout.
+             */
+            replyFormat?: "default" | "requestSequence";
         } = {},
     ): ModernExtend {
         const {
@@ -5369,6 +5391,7 @@ const tuyaModernExtend = {
             numberOfForecastDays = 3,
             correctForNegativeValues = false,
             weatherConditionMap = M8ProTuyaWeatherCondition,
+            replyFormat = "default",
         } = args;
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
@@ -5386,12 +5409,27 @@ const tuyaModernExtend = {
             return val;
         }
 
-        function _prepareTuyaWeatherSyncPayload(meta: Fz.Meta | Tz.Meta, numberOfForecastDays: number, includeCurrentWeather: boolean): Buffer {
+        function _prepareTuyaWeatherSyncPayload(
+            meta: Fz.Meta | Tz.Meta,
+            numberOfForecastDays: number,
+            includeCurrentWeather: boolean,
+            sequencePrefix?: Buffer,
+        ): Buffer {
+            const useSequence = replyFormat === "requestSequence" && sequencePrefix !== undefined;
             let bOffset = 0;
-            const buffer = Buffer.alloc(6 + (includeCurrentWeather ? 6 : 1) + numberOfForecastDays * 6);
+            // 2 bytes of header, 4 bytes of controls, then for every requested ID one byte
+            // for the ID itself plus its values (temperature and humidity are 2 bytes each,
+            // the weather condition is 1), and for the default layout a trailing 0x00.
+            const valueCount = (includeCurrentWeather ? 1 : 0) + numberOfForecastDays;
+            const buffer = Buffer.alloc(2 + 4 + (1 + valueCount * 2) + (1 + valueCount * 2) + (1 + valueCount) + (useSequence ? 0 : 1));
 
-            buffer.writeUInt8(0x11, bOffset++);
-            buffer.writeUInt8(0, bOffset++);
+            if (useSequence) {
+                sequencePrefix.copy(buffer, bOffset);
+                bOffset += 2;
+            } else {
+                buffer.writeUInt8(0x11, bOffset++);
+                buffer.writeUInt8(0, bOffset++);
+            }
             buffer.writeUInt8(0x12, bOffset++);
             buffer.writeUInt8(numberOfForecastDays, bOffset++);
             buffer.writeUInt8(0x13, bOffset++);
@@ -5435,7 +5473,9 @@ const tuyaModernExtend = {
                     }
                 }
             }
-            buffer.writeUInt8(0, bOffset++);
+            if (!useSequence) {
+                buffer.writeUInt8(0, bOffset++);
+            }
             return buffer;
         }
 
@@ -5466,7 +5506,15 @@ const tuyaModernExtend = {
                     const _current_weather_flag = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
                     const include_current_weather = buffer.readUInt8(bOffset++) !== 0;
 
-                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
+                    // Devices using the `requestSequence` layout expect the first two bytes
+                    // of their own request back; remember them for unsolicited updates too.
+                    let sequencePrefix: Buffer | undefined;
+                    if (replyFormat === "requestSequence" && buffer.length >= 4 && buffer[2] === 0x11 && (buffer[3] === 0x00 || buffer[3] === 0x01)) {
+                        sequencePrefix = Buffer.from(buffer.subarray(0, 2));
+                        globalStore.putValue(msg.device, "weatherSequencePrefix", sequencePrefix);
+                    }
+
+                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather, sequencePrefix);
 
                     msg.endpoint
                         .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
@@ -5482,7 +5530,14 @@ const tuyaModernExtend = {
             convertSet: (entity, key, value, meta) => {
                 meta.state[key] = value;
 
-                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
+                const sequencePrefix = replyFormat === "requestSequence" ? globalStore.getValue(meta.device, "weatherSequencePrefix") : undefined;
+                if (replyFormat === "requestSequence" && sequencePrefix === undefined) {
+                    // Nothing to echo back yet: the device polls for the weather on its own,
+                    // the new value is picked up with the next request.
+                    return {state: {[key]: value}};
+                }
+
+                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather, sequencePrefix);
 
                 entity
                     .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})

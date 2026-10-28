@@ -1800,7 +1800,7 @@ const fzLocal = {
     } satisfies Fz.Converter<
         "manuSpecificTuya",
         undefined,
-        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     ts020cIlluminance: {
         cluster: "manuSpecificTuya2",
@@ -26642,6 +26642,190 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("minute")
                 .withDescription("Watering countdown to turn device off after a certain time"),
         ],
+    },
+    {
+        // Same hardware family as the F3-Pro, but a different firmware:
+        // - the datapoint numbering is shifted (relays on 24-27 instead of 121-124),
+        // - datapoint reports arrive with EF00 command 0x0A (`commandDataReportAlt`),
+        // - the weather reply has to echo the sequence of the request (`requestSequence`),
+        // - on-screen labels are plain UTF-8, not hex encoded UTF-16BE.
+        // This layout shows four relays, two scenes, four lights and four covers.
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_0or4eirj"]),
+        model: "07P4",
+        vendor: "Tuya",
+        description: "Smart panel, 4-gang switch with scene, dimmer and curtain control",
+        extend: [
+            tuya.modernExtend.tuyaWeatherForecast({
+                includeCurrentWeather: true,
+                numberOfForecastDays: 3,
+                correctForNegativeValues: false,
+                weatherConditionMap: tuya.F3ProTuyaWeatherCondition,
+                replyFormat: "requestSequence",
+            }),
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                forceTimeUpdates: true, // the clock resets to 00:00 after a power cut
+                queryOnConfigure: true,
+                timeStart: "1970",
+            }),
+        ],
+
+        endpoint: (device) => {
+            return {l1: 1, l2: 1, l3: 1, l4: 1};
+        },
+
+        exposes: [
+            tuya.exposes.switch().withEndpoint("l1"),
+            tuya.exposes.switch().withEndpoint("l2"),
+            tuya.exposes.switch().withEndpoint("l3"),
+            tuya.exposes.switch().withEndpoint("l4"),
+
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l1"),
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l2"),
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l3"),
+            e.power_on_behavior(["off", "on", "previous"]).withEndpoint("l4"),
+
+            e.text("switch_name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Switch 1"),
+            e.text("switch_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Switch 2"),
+            e.text("switch_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Switch 3"),
+            e.text("switch_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Switch 4"),
+
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Scene 1"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Scene 2"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Scene 3"),
+            e.text("scene_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Scene 4"),
+
+            e.text("led_switch_name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for LED Switch 1"),
+            e.text("led_switch_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for LED Switch 2"),
+            e.text("led_switch_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for LED Switch 3"),
+            e.text("led_switch_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for LED Switch 4"),
+
+            e.text("cover_name", ea.STATE_SET).withEndpoint("l1").withDescription("Name for Cover 1"),
+            e.text("cover_name", ea.STATE_SET).withEndpoint("l2").withDescription("Name for Cover 2"),
+            e.text("cover_name", ea.STATE_SET).withEndpoint("l3").withDescription("Name for Cover 3"),
+            e.text("cover_name", ea.STATE_SET).withEndpoint("l4").withDescription("Name for Cover 4"),
+
+            e.action(["scene_1", "scene_2", "scene_3", "scene_4", "scene_5", "scene_6", "scene_7", "scene_8"]),
+
+            e.binary("led_switch", ea.ALL, "ON", "OFF").withEndpoint("l1").withDescription("Switch of LED 1"),
+            e.numeric("led_warm", ea.STATE_SET).withEndpoint("l1").withDescription("Color temperature of LED 1").withValueMin(1).withValueMax(100),
+            e.numeric("led_bright", ea.STATE_SET).withEndpoint("l1").withDescription("Brightness of LED 1").withValueMin(1).withValueMax(100),
+            e.binary("led_switch", ea.ALL, "ON", "OFF").withEndpoint("l2").withDescription("Switch of LED 2"),
+            e.numeric("led_warm", ea.STATE_SET).withEndpoint("l2").withDescription("Color temperature of LED 2").withValueMin(1).withValueMax(100),
+            e.numeric("led_bright", ea.STATE_SET).withEndpoint("l2").withDescription("Brightness of LED 2").withValueMin(1).withValueMax(100),
+            e.binary("led_switch", ea.ALL, "ON", "OFF").withEndpoint("l3").withDescription("Switch of LED 3"),
+            e.numeric("led_warm", ea.STATE_SET).withEndpoint("l3").withDescription("Color temperature of LED 3").withValueMin(1).withValueMax(100),
+            e.numeric("led_bright", ea.STATE_SET).withEndpoint("l3").withDescription("Brightness of LED 3").withValueMin(1).withValueMax(100),
+            e.binary("led_switch", ea.ALL, "ON", "OFF").withEndpoint("l4").withDescription("Switch of LED 4"),
+            e.numeric("led_warm", ea.STATE_SET).withEndpoint("l4").withDescription("Color temperature of LED 4").withValueMin(1).withValueMax(100),
+            e.numeric("led_bright", ea.STATE_SET).withEndpoint("l4").withDescription("Brightness of LED 4").withValueMin(1).withValueMax(100),
+
+            e.enum("cover_state", ea.STATE_SET, ["open", "stop", "close"]).withEndpoint("l1").withDescription("State of Cover 1"),
+            e
+                .numeric("cover_position", ea.STATE_SET)
+                .withEndpoint("l1")
+                .withDescription("Position of Cover 1")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100),
+            e.enum("cover_state", ea.STATE_SET, ["open", "stop", "close"]).withEndpoint("l2").withDescription("State of Cover 2"),
+            e
+                .numeric("cover_position", ea.STATE_SET)
+                .withEndpoint("l2")
+                .withDescription("Position of Cover 2")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100),
+            e.enum("cover_state", ea.STATE_SET, ["open", "stop", "close"]).withEndpoint("l3").withDescription("State of Cover 3"),
+            e
+                .numeric("cover_position", ea.STATE_SET)
+                .withEndpoint("l3")
+                .withDescription("Position of Cover 3")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100),
+            e.enum("cover_state", ea.STATE_SET, ["open", "stop", "close"]).withEndpoint("l4").withDescription("State of Cover 4"),
+            e
+                .numeric("cover_position", ea.STATE_SET)
+                .withEndpoint("l4")
+                .withDescription("Position of Cover 4")
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100),
+
+            e.numeric("temperature_0", ea.STATE_SET).withValueMin(-65).withValueMax(99).withUnit("°C").withDescription("Current temperature"),
+            e.numeric("humidity_0", ea.STATE_SET).withValueMin(0).withValueMax(100).withUnit("%").withDescription("Current humidity"),
+            e.enum("condition_0", ea.STATE_SET, Object.keys(tuya.F3ProTuyaWeatherCondition)).withDescription("Current weather condition"),
+        ],
+
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "action", tuya.valueConverter.static("scene_1")],
+                [2, "action", tuya.valueConverter.static("scene_2")],
+                [3, "action", tuya.valueConverter.static("scene_3")],
+                [4, "action", tuya.valueConverter.static("scene_4")],
+                [5, "action", tuya.valueConverter.static("scene_5")],
+                [6, "action", tuya.valueConverter.static("scene_6")],
+                [7, "action", tuya.valueConverter.static("scene_7")],
+                [8, "action", tuya.valueConverter.static("scene_8")],
+
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                [27, "state_l4", tuya.valueConverter.onOff],
+
+                [39, "power_on_behavior_l1", tuya.valueConverter.powerOnBehaviorEnum],
+                [40, "power_on_behavior_l2", tuya.valueConverter.powerOnBehaviorEnum],
+                [41, "power_on_behavior_l3", tuya.valueConverter.powerOnBehaviorEnum],
+                [42, "power_on_behavior_l4", tuya.valueConverter.powerOnBehaviorEnum],
+
+                [103, "switch_name_l1", tuya.valueConverter.utf8String],
+                [104, "switch_name_l2", tuya.valueConverter.utf8String],
+                [105, "switch_name_l3", tuya.valueConverter.utf8String],
+                [106, "switch_name_l4", tuya.valueConverter.utf8String],
+
+                [107, "scene_name_l1", tuya.valueConverter.utf8String],
+                [108, "scene_name_l2", tuya.valueConverter.utf8String],
+                [109, "scene_name_l3", tuya.valueConverter.utf8String],
+                [110, "scene_name_l4", tuya.valueConverter.utf8String],
+
+                [111, "led_switch_name_l1", tuya.valueConverter.utf8String],
+                [112, "led_switch_name_l2", tuya.valueConverter.utf8String],
+                [113, "led_switch_name_l3", tuya.valueConverter.utf8String],
+                [114, "led_switch_name_l4", tuya.valueConverter.utf8String],
+
+                [115, "cover_name_l1", tuya.valueConverter.utf8String],
+                [116, "cover_name_l2", tuya.valueConverter.utf8String],
+                [117, "cover_name_l3", tuya.valueConverter.utf8String],
+                [118, "cover_name_l4", tuya.valueConverter.utf8String],
+
+                [119, "cover_state_l1", tuya.valueConverterBasic.lookup({open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2)})],
+                [120, "cover_state_l2", tuya.valueConverterBasic.lookup({open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2)})],
+                [121, "cover_state_l3", tuya.valueConverterBasic.lookup({open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2)})],
+                [122, "cover_state_l4", tuya.valueConverterBasic.lookup({open: tuya.enum(0), stop: tuya.enum(1), close: tuya.enum(2)})],
+
+                [123, "led_switch_l1", tuya.valueConverter.onOff],
+                [124, "led_switch_l2", tuya.valueConverter.onOff],
+                [125, "led_switch_l3", tuya.valueConverter.onOff],
+                [126, "led_switch_l4", tuya.valueConverter.onOff],
+
+                [127, "led_bright_l1", tuya.valueConverter.raw],
+                [128, "led_bright_l2", tuya.valueConverter.raw],
+                [129, "led_bright_l3", tuya.valueConverter.raw],
+                [130, "led_bright_l4", tuya.valueConverter.raw],
+
+                [131, "led_warm_l1", tuya.valueConverter.raw],
+                [132, "led_warm_l2", tuya.valueConverter.raw],
+                [133, "led_warm_l3", tuya.valueConverter.raw],
+                [134, "led_warm_l4", tuya.valueConverter.raw],
+
+                [135, "cover_position_l1", tuya.valueConverter.raw],
+                [136, "cover_position_l2", tuya.valueConverter.raw],
+                [137, "cover_position_l3", tuya.valueConverter.raw],
+                [138, "cover_position_l4", tuya.valueConverter.raw],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_7zazvlyn", "_TZE284_idn2htgu"]),
