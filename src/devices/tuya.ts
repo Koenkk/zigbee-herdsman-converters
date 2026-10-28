@@ -8951,7 +8951,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "XSH01A", "1 gang switch", ["_TZ3000_x3ewpzyr"]),
             tuya.whitelabel("Moes", "ZM-104-M-16AM", "1 gang switch with power monitoring", ["_TZ3000_x8mbwtsz"]),
             tuya.whitelabel("Nous", "B5Z", "1 gang switch with power monitoring", ["_TZ3000_iktiy8ue"]),
-            tuya.whitelabel("MoveSmart", "MS-M2Z", "1 Gang Switch with Power Monitoring", ["_TZ3000_g5pzotdr"]
+            tuya.whitelabel("MoveSmart", "MS-M2Z", "1 Gang Switch with Power Monitoring", ["_TZ3000_g5pzotdr"]),
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
