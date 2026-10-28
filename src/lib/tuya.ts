@@ -32,6 +32,12 @@ const NS = "zhc:tuya";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface ThermostatScheduleTemperatureOptions {
+    scale?: number;
+    minTemperature?: number;
+    maxTemperature?: number;
+}
+
 interface KeyValueStringEnum {
     [s: string]: Enum;
 }
@@ -2283,14 +2289,17 @@ export const valueConverter = {
         from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().from(v),
         to: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().to(v),
     },
-    thermostatScheduleDayMultiDPWithTransitionCount: (transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithTransitionCount: (
+        transitionCount = 4,
+        {scale = 10, minTemperature = 5, maxTemperature = 35}: ThermostatScheduleTemperatureOptions = {},
+    ) => {
         return {
             from: (v: string) => {
                 const schedule = [];
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
                         // @ts-expect-error
-                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
+                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / scale).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -2309,8 +2318,15 @@ export const valueConverter = {
                     const hourMin = timeTemp[0].split(":");
                     const hour = Number.parseInt(hourMin[0], 10);
                     const min = Number.parseInt(hourMin[1], 10);
-                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
+                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * scale);
+                    if (
+                        hour < 0 ||
+                        hour > 24 ||
+                        min < 0 ||
+                        min > 60 ||
+                        temperature < minTemperature * scale ||
+                        temperature > maxTemperature * scale
+                    ) {
                         throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
@@ -2319,11 +2335,11 @@ export const valueConverter = {
             },
         };
     },
-    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4, options: ThermostatScheduleTemperatureOptions = {}) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).to(v);
                 data[0] = dayNum;
                 return data;
             },

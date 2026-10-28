@@ -2401,6 +2401,30 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
     },
 };
 
+const hhst001DeadzoneScale = (device?: {manufacturerName?: string}) =>
+    ["_TZE284_6l44ypoc", "_TZE284_qvmmpbye"].includes(device?.manufacturerName) ? 10 : 1;
+
+function hhst001Schedule(day: number): Tuya.ValueConverterSingle {
+    const converters = {
+        celsius: tvc.thermostatScheduleDayMultiDPWithDayNumber(day, 4, {maxTemperature: 45}),
+        fahrenheit: tvc.thermostatScheduleDayMultiDPWithDayNumber(day, 4, {scale: 1, minTemperature: 32, maxTemperature: 104}),
+    };
+    return {
+        from: (value, meta, _options, _publish, msg) => {
+            const reportedUnit = msg?.data.dpValues.find((dpValue: Tuya.DpValue) => dpValue.dp === 46);
+            const unit = reportedUnit ? (tuya.getDataValue(reportedUnit) === 1 ? "fahrenheit" : "celsius") : meta?.state?.temperature_scale;
+            return converters[unit === "fahrenheit" ? "fahrenheit" : "celsius"].from(value);
+        },
+        to: (value, meta) => {
+            const unit = meta.message.temperature_scale ?? meta.state.temperature_scale;
+            if (unit !== "celsius" && unit !== "fahrenheit") {
+                throw new Error("Select a temperature unit and wait for its report before editing a schedule");
+            }
+            return converters[unit].to(value);
+        },
+    };
+}
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
@@ -23782,8 +23806,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HHST001",
         vendor: "HeatHUB",
         description: "Fan coil thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: (device) => [
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("Turn the thermostat ON/OFF"),
             e
                 .climate()
@@ -23795,8 +23819,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("deadzone_temperature", ea.STATE_SET)
                 .withValueMax(5)
-                .withValueMin(1)
-                .withValueStep(1)
+                .withValueMin(1 / hhst001DeadzoneScale(device))
+                .withValueStep(1 / hhst001DeadzoneScale(device))
                 .withPreset("default", 1, "Default value")
                 .withDescription("The difference between the local temperature that triggers heating and the set temperature"),
             e.min_temperature().withValueMin(5).withValueMax(15),
@@ -23804,8 +23828,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e.humidity(),
             e.enum("manual_mode", ea.STATE_SET, ["Auto", "Manual", "Temporary"]).withDescription("Schedule, manual or temporary mode"),
-            e.enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Temperature unit shown on the display"),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/20.0 12:00/20.0 18:00/20.0 22:00/20.0"),
+            e.enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Display unit and active weekly schedule"),
+            ...tuya.exposes
+                .scheduleAllDays(ea.STATE_SET, "06:00/20.0 12:00/20.0 18:00/20.0 22:00/20.0")
+                .map((expose) =>
+                    expose.withDescription(
+                        "Four HH:MM/temperature periods in the selected temperature_scale: Celsius 5–45 °C or Fahrenheit 32–104 °F. Each unit has a separate schedule.",
+                    ),
+                ),
             e.binary("water_drop_switch", ea.STATE_SET, "ON", "OFF").withDescription("Water-drop switch"),
             e.numeric("day_standby_brightness", ea.STATE_SET).withValueMin(0).withValueMax(8).withDescription("Daytime standby brightness"),
             e.numeric("night_standby_brightness", ea.STATE_SET).withValueMin(0).withValueMax(8).withDescription("Nighttime standby brightness"),
@@ -23825,15 +23855,22 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [16, "current_heating_setpoint", tuya.valueConverter.divideBy10],
-                [19, "max_temperature", tuya.valueConverter.divideBy10],
+                [19, "max_temperature", {...tvc.divideBy10, from: (value) => (value >= 35 && value <= 45 ? value : value / 10)}],
                 [18, "max_temperature_f", tuya.valueConverter.raw],
                 [20, "min_temperature_f", tuya.valueConverter.raw],
                 [21, "local_temperature_f", tuya.valueConverter.raw],
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
-                [26, "min_temperature", tuya.valueConverter.divideBy10],
+                [26, "min_temperature", {...tvc.divideBy10, from: (value) => (value >= 5 && value <= 15 ? value : value / 10)}],
                 [102, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [103, "local_temperature_calibration_f", tuya.valueConverter.raw],
-                [104, "deadzone_temperature", tuya.valueConverter.raw],
+                [
+                    104,
+                    "deadzone_temperature",
+                    {
+                        from: (value, meta) => value / hhst001DeadzoneScale(meta.device),
+                        to: (value, meta) => Math.round(value * hhst001DeadzoneScale(meta.device)),
+                    },
+                ],
                 [105, "deadzone_temperature_f", tuya.valueConverter.raw],
                 [
                     28,
@@ -23858,13 +23895,13 @@ export const definitions: DefinitionWithExtend[] = [
                         Temporary: tuya.enum(2),
                     }),
                 ],
-                [106, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7)],
-                [107, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6)],
-                [108, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5)],
-                [109, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [110, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3)],
-                [111, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2)],
-                [112, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1)],
+                [106, "schedule_sunday", hhst001Schedule(7), {optimistic: false}],
+                [107, "schedule_saturday", hhst001Schedule(6), {optimistic: false}],
+                [108, "schedule_friday", hhst001Schedule(5), {optimistic: false}],
+                [109, "schedule_thursday", hhst001Schedule(4), {optimistic: false}],
+                [110, "schedule_wednesday", hhst001Schedule(3), {optimistic: false}],
+                [111, "schedule_tuesday", hhst001Schedule(2), {optimistic: false}],
+                [112, "schedule_monday", hhst001Schedule(1), {optimistic: false}],
                 [113, "humidity", tuya.valueConverter.raw],
                 [114, "water_drop_switch", tuya.valueConverter.onOff],
                 [115, "day_standby_brightness", tuya.valueConverter.raw],

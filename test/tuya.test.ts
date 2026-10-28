@@ -744,3 +744,102 @@ describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
         expect(() => converter.to(value)).toThrow();
     });
 });
+
+describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
+    const fourPeriods = "06:00/5.0 10:30/10.0 13:30/30.0 17:30/35.0";
+    const fourBytes = [0, 6, 0, 0, 50, 10, 30, 0, 100, 13, 30, 1, 44, 17, 30, 1, 94];
+    const sixPeriods = "00:00/5.0 06:15/10.5 10:30/15.0 13:45/20.0 18:00/25.5 23:59/35.0";
+    const sixBytes = [0, 0, 0, 0, 50, 6, 15, 0, 105, 10, 30, 0, 150, 13, 45, 0, 200, 18, 0, 0, 255, 23, 59, 1, 94];
+
+    it("preserves the default four-period bytes and decoded text", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount();
+        expect(converter.to(fourPeriods)).toStrictEqual(fourBytes);
+        expect(converter.from(fourBytes as unknown as string)).toStrictEqual(fourPeriods);
+    });
+
+    it("preserves the original converter alias", () => {
+        expect(tuya.valueConverter.thermostatScheduleDayMultiDP.to(fourPeriods)).toStrictEqual(fourBytes);
+        expect(tuya.valueConverter.thermostatScheduleDayMultiDP.from(fourBytes as unknown as string)).toStrictEqual(fourPeriods);
+    });
+
+    it("preserves the six-period argument and packet format", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(6);
+        expect(converter.to(sixPeriods)).toStrictEqual(sixBytes);
+        expect(converter.from(sixBytes as unknown as string)).toStrictEqual(sixPeriods);
+    });
+
+    it.each([1, 2, 3, 4, 5, 6, 7])("preserves day header %s without temperature options", (day) => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(day);
+        const bytes = [day, ...fourBytes.slice(1)];
+        expect(converter.to(fourPeriods)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(fourPeriods);
+    });
+
+    it.each([4.9, 35.5, 36])("preserves rejection of default out-of-range temperature %s", (temperature) => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount();
+        expect(() => converter.to(`06:00/${temperature} 10:30/10 13:30/30 17:30/35`)).toThrow("Invalid hour, minute or temperature");
+    });
+
+    it("supports a custom maximum while retaining tenths and big-endian byte order", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(4, {maxTemperature: 45});
+        const text = "06:00/5.0 10:30/20.0 13:30/35.5 17:30/45.0";
+        const bytes = [0, 6, 0, 0, 50, 10, 30, 0, 200, 13, 30, 1, 99, 17, 30, 1, 194];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+    });
+
+    it.each([4.9, 45.5])("rejects temperature %s outside a custom Celsius range", (temperature) => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(4, {maxTemperature: 45});
+        expect(() => converter.to(`06:00/${temperature} 10:30/20 13:30/35.5 17:30/45`)).toThrow("Invalid hour, minute or temperature");
+    });
+
+    it("supports unit-scale values and custom minimum and maximum", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(4, {
+            scale: 1,
+            minTemperature: 32,
+            maxTemperature: 104,
+        });
+        const text = "06:00/32.0 10:30/68.0 13:30/100.0 17:30/104.0";
+        const bytes = [0, 6, 0, 0, 32, 10, 30, 0, 68, 13, 30, 0, 100, 17, 30, 0, 104];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+        expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
+        expect(() => converter.to("06:00/32 10:30/68 13:30/100 17:30/105")).toThrow("Invalid hour, minute or temperature");
+    });
+
+    it("forwards options through the day-number wrapper with six periods", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6, {maxTemperature: 45});
+        const text = "00:00/5.0 06:15/10.5 10:30/15.0 13:45/20.0 18:00/35.5 23:59/45.0";
+        const bytes = [7, 0, 0, 0, 50, 6, 15, 0, 105, 10, 30, 0, 150, 13, 45, 0, 200, 18, 0, 1, 99, 23, 59, 1, 194];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+    });
+
+    it("keeps custom settings isolated from existing and newly created default converters", () => {
+        const existingDefault = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2);
+        const custom = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 4, {
+            scale: 1,
+            minTemperature: 32,
+            maxTemperature: 104,
+        });
+        expect(custom.to("06:00/68 10:30/68 13:30/68 17:30/68")).toStrictEqual([3, 6, 0, 0, 68, 10, 30, 0, 68, 13, 30, 0, 68, 17, 30, 0, 68]);
+        const laterDefault = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2);
+        for (const converter of [existingDefault, laterDefault]) {
+            expect(converter.to(fourPeriods)).toStrictEqual([2, ...fourBytes.slice(1)]);
+            expect(converter.from([2, ...fourBytes.slice(1)] as unknown as string)).toStrictEqual(fourPeriods);
+            expect(() => converter.to("06:00/36 10:30/10 13:30/30 17:30/35")).toThrow("Invalid hour, minute or temperature");
+        }
+    });
+});
+it("preserves the default eight-period packet and day-number wrapper", () => {
+    const text = "00:00/5.0 03:15/10.0 06:30/15.0 09:45/20.0 12:00/25.0 15:15/30.0 18:30/35.0 23:59/21.5";
+    const bytes = [0, 0, 0, 0, 50, 3, 15, 0, 100, 6, 30, 0, 150, 9, 45, 0, 200, 12, 0, 0, 250, 15, 15, 1, 44, 18, 30, 1, 94, 23, 59, 0, 215];
+    const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(8);
+    expect(converter.to(text)).toStrictEqual(bytes);
+    expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+
+    const withDay = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 8);
+    const dayBytes = [7, ...bytes.slice(1)];
+    expect(withDay.to(text)).toStrictEqual(dayBytes);
+    expect(withDay.from(dayBytes as unknown as string)).toStrictEqual(text);
+});
