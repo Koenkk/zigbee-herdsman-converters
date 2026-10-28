@@ -5530,8 +5530,7 @@ const tuyaModernExtend = {
             convertSet: (entity, key, value, meta) => {
                 meta.state[key] = value;
 
-                const sequencePrefix =
-                    replyFormat === "requestSequence" ? globalStore.getValue(meta.device, "weatherSequencePrefix") : undefined;
+                const sequencePrefix = replyFormat === "requestSequence" ? globalStore.getValue(meta.device, "weatherSequencePrefix") : undefined;
                 if (replyFormat === "requestSequence" && sequencePrefix === undefined) {
                     // Nothing to echo back yet: the device polls for the weather on its own,
                     // the new value is picked up with the next request.
