@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {PartialClusterOrRawAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {PartialClusterOrRawAttributes, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import {COORDINATOR_ADDRESS} from "zigbee-herdsman/dist/zspec";
 import type {GpdManufAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
@@ -1411,6 +1411,136 @@ function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
 
 // #endregion
 
+// #region Wiser radiator thermostat (VACT)
+
+const wiserVactCommandOptions = {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
+const wiserZoneModes = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
+// Answers of the Wiser controller (EER21000) to thermostat clients reading their settings, for a manual setpoint zone
+// (min/max keep the previous z2m 7-30 °C range). Used until z2m has stored a value.
+// The controller serves them to every thermostat client: untested, EER51000 (RTS) could reuse wiserVactReadResponse().
+const wiserVactDefaults: Record<string, number> = {
+    occupiedHeatingSetpoint: 2000,
+    minHeatSetpointLimit: 700,
+    maxHeatSetpointLimit: 3000,
+    systemMode: 4,
+    wiserSmartZoneMode: 1,
+    wiserSmartHactConfig: 0x80,
+    wiserSmartCurrentFilPiloteMode: 0,
+};
+
+const wiserVactStored = (endpoint: Zh.Endpoint, attribute: string): number =>
+    (endpoint.getClusterAttributeValue("hvacThermostat", attribute) as number | undefined) ?? wiserVactDefaults[attribute];
+
+// Unlike most thermostats, the VACT does not keep its own settings: when a button is pressed or after a calibration it reads
+// its setpoint, limits and zone mode from the controller, one attribute per request, and waits for the answers.
+// Since zigbee-herdsman 10.0.3 device reads are no longer answered from the coordinator attribute cache: only genTime/genBasic
+// get an answer, any other cluster gets UNSUPPORTED_ATTRIBUTE, which leaves the valve stuck waiting, so the values z2m stored
+// for this valve are served here instead.
+function wiserVactReadResponse(): ModernExtend {
+    return {
+        isModernExtend: true,
+        onEvent: [
+            (event) => {
+                if (event.type === "stop") return;
+                event.data.device.customReadResponse = (frame, endpoint) => {
+                    if (!frame.isCluster("hvacThermostat")) return false;
+                    const response: KeyValueAny = {};
+                    for (const {attrId} of frame.payload as {attrId: number}[]) {
+                        const attribute = Zcl.Utils.getClusterAttribute(frame.cluster, attrId, Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC);
+                        response[attrId] = {
+                            value: attribute && wiserVactStored(endpoint, attribute.name),
+                            type: attribute?.type ?? Zcl.DataType.NO_DATA,
+                        };
+                    }
+                    endpoint
+                        .readResponse(
+                            "hvacThermostat",
+                            frame.header.transactionSequenceNumber,
+                            response as PartialClusterOrRawWriteAttributes<"hvacThermostat">,
+                            {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode},
+                        )
+                        .catch((error) => logger.warning(`Read response to '${endpoint.deviceIeeeAddress}' failed (${error})`, NS));
+                    return true;
+                };
+            },
+        ],
+    };
+}
+
+// The valve never pulls its setpoint on its own, the Wiser controller pushes it with this command
+async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
+    await endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
+        "hvacThermostat",
+        "wiserSmartSetSetpoint",
+        {
+            operatingmode: 0,
+            zonemode: wiserVactStored(endpoint, "wiserSmartZoneMode"),
+            setpoint: wiserVactStored(endpoint, "occupiedHeatingSetpoint"),
+            reserved: 0xff,
+        },
+        wiserVactCommandOptions,
+    );
+}
+
+async function wiserVactCalibrate(endpoint: Zh.Endpoint) {
+    await endpoint.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
+        "hvacThermostat",
+        "wiserSmartCalibrateValve",
+        {},
+        wiserVactCommandOptions,
+    );
+    endpoint.getDevice().meta.wiserLastCalibration = Date.now();
+    endpoint.getDevice().save();
+}
+
+// Last Monday 13:00 (Wiser controller default) or first Monday of the month 13:00 not later than now
+function wiserVactLastLimescaleSlot(now: Date, monthly: boolean): Date {
+    const slot = new Date(now.getFullYear(), now.getMonth(), monthly ? 1 : now.getDate(), 13);
+    slot.setDate(monthly ? 1 + ((8 - slot.getDay()) % 7) : slot.getDate() - ((slot.getDay() + 6) % 7));
+    if (slot <= now) return slot;
+    if (monthly) return wiserVactLastLimescaleSlot(new Date(now.getFullYear(), now.getMonth(), 0, 23), true);
+    slot.setDate(slot.getDate() - 7);
+    return slot;
+}
+
+// The valve never calibrates on its own, the Wiser controller runs it periodically to keep the pin from seizing.
+// It is sent when the valve reports, as it is awake then.
+function wiserVactLimescaleProtection(endpoint: Zh.Endpoint, options: KeyValue) {
+    const device = endpoint.getDevice();
+    const last = device.meta.wiserLastCalibration;
+    const slot = wiserVactLastLimescaleSlot(new Date(), options.limescale_protection_frequency === "monthly");
+    if (options.limescale_protection === false || last >= slot.getTime()) return;
+    device.meta.wiserLastCalibration = Date.now();
+    device.save();
+    if (last === undefined) return;
+    wiserVactCalibrate(endpoint).catch((error) => {
+        device.meta.wiserLastCalibration = last;
+        device.save();
+        logger.debug(`Limescale protection calibration of '${device.ieeeAddr}' failed (${error})`, NS);
+    });
+}
+
+// Like the Wiser controller: threshold 4 (0.4 °C, below 4 disables detection) and interval 600 s, rewritten when they differ
+function wiserVactOpenWindowDetection(endpoint: Zh.Endpoint, options: KeyValue, data: KeyValueAny) {
+    const device = endpoint.getDevice();
+    const threshold = options.open_window_detection === false ? 0 : 4;
+    if ((data[0xe013] ?? device.meta.wiserOpenWindowThreshold) === threshold && (data[0xe014] ?? 600) === 600) return;
+    device.meta.wiserOpenWindowThreshold = threshold;
+    endpoint
+        .write(
+            "hvacThermostat",
+            {57363: {value: threshold, type: Zcl.DataType.UINT8}, 57364: {value: 600, type: Zcl.DataType.UINT16}},
+            {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+        )
+        .then(() => device.save())
+        .catch((error) => {
+            device.meta.wiserOpenWindowThreshold = undefined;
+            logger.debug(`Open window detection setup of '${device.ieeeAddr}' failed (${error})`, NS);
+        });
+}
+
+// #endregion
+
 const tzLocal = {
     lift_duration: {
         key: ["lift_duration"],
@@ -1502,13 +1632,23 @@ const tzLocal = {
     wiser_vact_calibrate_valve: {
         key: ["calibrate_valve"],
         convertSet: async (entity, key, value, meta) => {
-            await entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
-                "hvacThermostat",
-                "wiserSmartCalibrateValve",
-                {},
-                {srcEndpoint: 11, disableDefaultResponse: true},
-            );
+            utils.assertEndpoint(entity);
+            if (value === "calibrate") await wiserVactCalibrate(entity);
             return {state: {calibrate_valve: value}};
+        },
+    } satisfies Tz.Converter,
+    wiser_vact_setpoint: {
+        key: ["occupied_heating_setpoint", "zone_mode"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            if (key === "zone_mode") {
+                entity.saveClusterAttributeKeyValue("hvacThermostat", {wiserSmartZoneMode: utils.getFromLookup(value, wiserZoneModes)});
+            } else {
+                utils.assertNumber(value, key);
+                entity.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: Math.round(value * 2) * 50});
+            }
+            await wiserVactPushSetpoint(entity);
+            return {state: {[key]: value}};
         },
     } satisfies Tz.Converter,
     wiser_sed_zone_mode: {
@@ -1537,6 +1677,9 @@ const tzLocal = {
                 {srcEndpoint: 11, disableDefaultResponse: true},
             );
             return {state: {local_temperature_calibration: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await entity.read("hvacThermostat", ["localTemperatureCalibration"]);
         },
     } satisfies Tz.Converter,
     wiser_sed_thermostat_keypad_lockout: {
@@ -1972,10 +2115,25 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandWiserSmartSetSetpoint"]>,
+    wiser_vact_ignore_thermostat_read: {
+        // The valve reads answered by wiserVactReadResponse() also pass through the fromZigbee pipeline;
+        // absorb them silently to avoid "No converter available" log spam on every button press.
+        cluster: "hvacThermostat",
+        type: ["read"],
+        convert: () => {},
+    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["read"]>,
     wiser_smart_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
-        convert: async (model, msg, publish, options, meta) => {
+        convert: (model, msg, publish, options, meta) => {
+            if (meta.device.modelID === "EH-ZB-VACT") {
+                // The valve reports its manufacturer-specific attributes without the manufacturer code
+                const cluster = Zcl.Utils.getCluster("hvacThermostat", Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC, meta.device.customClusters);
+                for (const [key, value] of Object.entries(msg.data)) {
+                    const name = Zcl.Utils.getClusterAttribute(cluster, Number(key), Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC)?.name;
+                    if (name) (msg.data as KeyValueAny)[name] = value;
+                }
+            }
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) {
                 if (msg.data.wiserSmartZoneMode !== undefined) {
@@ -1997,7 +2155,8 @@ const fzLocal = {
                     };
                     result.fip_setting = lookup[msg.data.wiserSmartCurrentFilPiloteMode as number];
                 }
-                if (msg.data.wiserSmartValvePosition !== undefined) {
+                // Values above 100 are raw calibration codes from the valve unit
+                if (msg.data.wiserSmartValvePosition !== undefined && msg.data.wiserSmartValvePosition <= 100) {
                     result.pi_heating_demand = msg.data.wiserSmartValvePosition;
                 }
                 if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
@@ -2011,42 +2170,28 @@ const fzLocal = {
                     };
                     result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
                 }
-                // Radiator thermostats command changes from UI, but report value periodically for sync,
-                // force an update of the value if it doesn't match the current existing value
-                if (
-                    meta.device.modelID === "EH-ZB-VACT" &&
-                    msg.data.occupiedHeatingSetpoint !== undefined &&
-                    meta.state.occupied_heating_setpoint !== undefined
-                ) {
-                    if (result.occupied_heating_setpoint !== meta.state.occupied_heating_setpoint) {
-                        const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-                        const zonemodeNum = lookup[Number(meta.state.zone_mode)];
-                        const setpoint =
-                            Number((Math.round(Number((Number(meta.state.occupied_heating_setpoint) * 2).toFixed(1))) / 2).toFixed(1)) * 100;
-                        const payload = {
-                            operatingmode: 0,
-                            zonemode: zonemodeNum,
-                            setpoint: setpoint,
-                            reserved: 0xff,
-                        };
-                        await msg.endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
-                            "hvacThermostat",
-                            "wiserSmartSetSetpoint",
-                            payload,
-                            {
-                                srcEndpoint: 11,
-                                disableDefaultResponse: true,
-                            },
-                        );
-
-                        logger.debug(
-                            `syncing vact setpoint was: '${result.occupied_heating_setpoint}' now: '${meta.state.occupied_heating_setpoint}'`,
-                            NS,
+                if (meta.device.modelID === "EH-ZB-VACT") {
+                    wiserVactLimescaleProtection(msg.endpoint, options);
+                    wiserVactOpenWindowDetection(msg.endpoint, options, msg.data);
+                    if (msg.data.wiserSmartOpenWindowDetectionStatus !== undefined) {
+                        result.window_open = msg.data.wiserSmartOpenWindowDetectionStatus === 1;
+                    }
+                    if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
+                        result.calibrate_valve = msg.data.wiserSmartValveCalibrationStatus === 0 ? "calibrate" : "idle";
+                    }
+                    // Like the Wiser controller: push again a setpoint the valve did not take over, unless a window is open
+                    if (
+                        msg.data.occupiedHeatingSetpoint !== undefined &&
+                        msg.data.occupiedHeatingSetpoint !== wiserVactStored(msg.endpoint, "occupiedHeatingSetpoint") &&
+                        !(result.window_open ?? meta.state.window_open)
+                    ) {
+                        delete result.occupied_heating_setpoint;
+                        wiserVactPushSetpoint(msg.endpoint).catch((error) =>
+                            logger.debug(`Failed to push setpoint to '${msg.device.ieeeAddr}' (${error})`, NS),
                         );
                     }
-                } else {
-                    publish(result);
                 }
+                publish(result);
             }
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["attributeReport", "readResponse"]>,
@@ -3309,33 +3454,50 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER53000",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
-        extend: [schneiderElectricExtend.customThermostatCluster()],
+        extend: [schneiderElectricExtend.customThermostatCluster(), wiserVactReadResponse()],
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
             fzLocal.wiser_smart_thermostat,
-            fzLocal.wiser_smart_thermostat_client,
             fzLocal.wiser_smart_setpoint_command_client,
+            fzLocal.wiser_vact_ignore_thermostat_read,
         ],
         toZigbee: [
             tzLocal.wiser_sed_thermostat_local_temperature_calibration,
-            tzLocal.wiser_sed_occupied_heating_setpoint,
+            tzLocal.wiser_vact_setpoint,
             tzLocal.wiser_sed_thermostat_keypad_lockout,
             tzLocal.wiser_vact_calibrate_valve,
-            tzLocal.wiser_sed_zone_mode,
         ],
         exposes: [
             e.battery(),
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.binary("calibrate_valve", ea.STATE_SET, "calibrate", "idle").withDescription("Calibrates valve on next wakeup"),
-            e.enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"]),
+            e
+                .enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"])
+                .withDescription(
+                    "Result of the last valve calibration. E1: adaptation not possible, E2: valve stroke too short, E3: motor movement not possible",
+                ),
             e.enum("zone_mode", ea.STATE_SET, ["manual", "schedule", "energy_saver", "holiday"]).withDescription("Icon shown on device displays"),
+            e.binary("window_open", ea.STATE, true, false).withDescription("Open window detected by the valve"),
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-12.8, 12.7, 0.1, ea.STATE_SET)
+                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.ALL)
                 .withPiHeatingDemand(),
+        ],
+        options: [
+            e
+                .binary("limescale_protection", ea.SET, true, false)
+                .withDescription("Periodically calibrate the valve to keep the pin from seizing (default true)"),
+            e
+                .enum("limescale_protection_frequency", ea.SET, ["weekly", "monthly"])
+                .withDescription(
+                    "Weekly: every Monday at 13:00. Monthly: first Monday of the month at 13:00. Runs at the next valve report (default weekly)",
+                ),
+            e
+                .binary("open_window_detection", ea.SET, true, false)
+                .withDescription("Let the valve close when it detects a fast temperature drop (default true)"),
         ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         configure: async (device, coordinatorEndpoint) => {
