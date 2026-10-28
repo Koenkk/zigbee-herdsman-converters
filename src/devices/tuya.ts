@@ -23828,14 +23828,12 @@ export const definitions: DefinitionWithExtend[] = [
             e.child_lock(),
             e.humidity(),
             e.enum("manual_mode", ea.STATE_SET, ["Auto", "Manual", "Temporary"]).withDescription("Schedule, manual or temporary mode"),
-            e.enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"]).withDescription("Display unit and active weekly schedule"),
-            ...tuya.exposes
-                .scheduleAllDays(ea.STATE_SET, "06:00/20.0 12:00/20.0 18:00/20.0 22:00/20.0")
-                .map((expose) =>
-                    expose.withDescription(
-                        "Four HH:MM/temperature periods in the selected temperature_scale: Celsius 5–45 °C or Fahrenheit 32–104 °F. Each unit has a separate schedule.",
-                    ),
+            e
+                .enum("temperature_scale", ea.STATE_SET, ["celsius", "fahrenheit"])
+                .withDescription(
+                    "Display and schedule unit: Celsius 5–45 °C or Fahrenheit 32–104 °F. Schedules are stored separately. Examples use Celsius.",
                 ),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "06:00/20.0 12:00/20.0 18:00/20.0 22:00/20.0"),
             e.binary("water_drop_switch", ea.STATE_SET, "ON", "OFF").withDescription("Water-drop switch"),
             e.numeric("day_standby_brightness", ea.STATE_SET).withValueMin(0).withValueMax(8).withDescription("Daytime standby brightness"),
             e.numeric("night_standby_brightness", ea.STATE_SET).withValueMin(0).withValueMax(8).withDescription("Nighttime standby brightness"),
