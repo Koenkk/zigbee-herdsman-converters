@@ -2924,7 +2924,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc", "_TZE284_y7hpvgyp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_2fnssffc", "_TZE284_2fnssffc", "_TZE284_y7hpvgyp"]),
         model: "ZM6LT1",
         vendor: "Moes",
         description: "Smart 1-phase energy power meter with CT sensor clamp",
@@ -2976,7 +2976,7 @@ export const definitions: DefinitionWithExtend[] = [
                         to: (value, meta) =>
                             moesMeterEncodeThreshold(value, meta, "over_current_threshold", {
                                 min: 1,
-                                max: meta?.device.manufacturerName === "_TZE284_2fnssffc" ? 120 : 63,
+                                max: ["_TZE28C1000000_2fnssffc", "_TZE284_2fnssffc"].includes(meta?.device.manufacturerName) ? 120 : 63,
                             }),
                     },
                     {optimistic: false},
