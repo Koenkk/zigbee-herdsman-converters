@@ -1,3 +1,87 @@
+Tuya Gas Alarm TZE204_mqij5jas
+{
+    "description": "JKD-839Z gas detector",
+    "exposes": [
+        {
+            "access": 1,
+            "description": "Indicates whether the device detected gas",
+            "label": "Gas",
+            "name": "gas",
+            "property": "gas",
+            "type": "binary",
+            "value_off": false,
+            "value_on": true
+        },
+        {
+            "access": 1,
+            "category": "diagnostic",
+            "description": "Raw DP13 gas measurement; unit and scaling not verified",
+            "label": "Dp13 raw",
+            "name": "dp13_raw",
+            "property": "dp13_raw",
+            "type": "numeric"
+        },
+        {
+            "access": 1,
+            "description": "DP9 physical self-test status (0/1)",
+            "label": "Test status",
+            "name": "test_status",
+            "property": "test_status",
+            "type": "numeric"
+        },
+        {
+            "access": 3,
+            "description": "Silence the alarm",
+            "label": "Silence",
+            "name": "silence",
+            "property": "silence",
+            "type": "binary",
+            "value_off": false,
+            "value_on": true
+        },
+        {
+            "access": 1,
+            "category": "diagnostic",
+            "description": "Last Tuya query attempt; not a device response",
+            "label": "Last tuya query",
+            "name": "last_tuya_query",
+            "property": "last_tuya_query",
+            "type": "text"
+        },
+        {
+            "access": 1,
+            "category": "diagnostic",
+            "description": "Link quality (signal strength)",
+            "label": "Linkquality",
+            "name": "linkquality",
+            "property": "linkquality",
+            "type": "numeric",
+            "unit": "lqi",
+            "value_max": 255,
+            "value_min": 0
+        }
+    ],
+    "model": "JKD-839Z",
+    "options": [
+        {
+            "access": 2,
+            "description": "Reply to Tuya-specific time synchronization requests: \"1970\" - Reply with seconds since 1970/01/01 (recommended, should stop the device from asking), \"2000\" - Reply with seconds since 2000/01/01 (use if the weekday is wrong with 1970), \"off\" - Don't reply (use if replying causes too much traffic). Default for this device: \"off\"",
+            "label": "Time start",
+            "name": "time_start",
+            "property": "time_start",
+            "type": "enum",
+            "values": [
+                "1970",
+                "2000",
+                "off"
+            ]
+        }
+    ],
+    "source": "external",
+    "supports_ota": false,
+    "vendor": "Jikaida",
+    "version": "0.0.0"
+}
 import {TextDecoder, TextEncoder} from "node:util";
 import {Zcl} from "zigbee-herdsman";
 import {DataType} from "zigbee-herdsman/dist/zspec/zcl";
