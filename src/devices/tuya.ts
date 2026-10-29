@@ -7098,31 +7098,63 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_gxbdnfrh"]),
-        model: "SA-6",
-        vendor: "Nova Digital",
-        description: "Safira smart switch - 6 gang",
+        fingerprint: tuya.fingerprint("TS0601", [
+            "_TZE200_mwvfvw8g",
+            "_TZE200_wnp4d4va",
+            "_TZE200_cduqh1l0",
+            "_TZE204_cduqh1l0",
+            "_TZE200_emxxanvi",
+            "_TZE204_g4au0afs",
+            "_TZE204_w1wwxoja",
+            "_TZE204_lmgrbuwf",
+            "_TZE284_tdhnhhiy",
+            "_TZE204_wskr3up8",
+            "_TZE204_gxbdnfrh",
+            "_TZE284_g1enhdsi",
+            "_TZE284_r731zlxk",
+            "_TZE284_znkkcauq",
+        ]),
+        model: "TS0601_switch_6_gang",
+        vendor: "Tuya",
+        description: "6 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            // No genOnOff bind: the device is DP only and the bind fails with INVALID_EP on some units
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            if (device.manufacturerName === "_TZE204_gxbdnfrh") {
+                // DP only device, the genOnOff bind fails with INVALID_EP on some units
+                await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            } else {
+                const endpoint = device.getEndpoint(1);
+                await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            }
             device.powerSource = "Mains (single phase)";
             device.save();
         },
-        exposes: [
-            ...["l1", "l2", "l3", "l4", "l5", "l6"].map((ep) => tuya.exposes.switch().withEndpoint(ep)),
-            ...["l1", "l2", "l3", "l4", "l5", "l6"].map((ep) =>
-                e
-                    .numeric(`countdown_${ep}`, ea.STATE_SET)
-                    .withValueMin(0)
-                    .withValueMax(43200)
-                    .withValueStep(1)
-                    .withUnit("s")
-                    .withDescription(`Toggle ${ep} after a set duration (one time action)`),
-            ),
-            tuya.exposes.powerOnBehavior(),
-            tuya.exposes.indicatorModeNoneRelayPos(),
-        ],
+        exposes: (device) => {
+            const exps: Expose[] = [
+                tuya.exposes.switch().withEndpoint("l1"),
+                tuya.exposes.switch().withEndpoint("l2"),
+                tuya.exposes.switch().withEndpoint("l3"),
+                tuya.exposes.switch().withEndpoint("l4"),
+                tuya.exposes.switch().withEndpoint("l5"),
+                tuya.exposes.switch().withEndpoint("l6"),
+                tuya.exposes.powerOnBehavior(),
+                tuya.exposes.indicatorModeNoneRelayPos(),
+            ];
+            if (isDummyDevice(device) || device.manufacturerName === "_TZE204_gxbdnfrh") {
+                exps.push(
+                    ...["l1", "l2", "l3", "l4", "l5", "l6"].map((ep) =>
+                        e
+                            .numeric(`countdown_${ep}`, ea.STATE_SET)
+                            .withValueMin(0)
+                            .withValueMax(43200)
+                            .withValueStep(1)
+                            .withUnit("s")
+                            .withDescription(`Toggle ${ep} after a set duration (one time action)`),
+                    ),
+                );
+            }
+            return exps;
+        },
         endpoint: (device) => {
             return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
         },
@@ -7142,67 +7174,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [11, "countdown_l5", tuya.valueConverter.raw],
                 [12, "countdown_l6", tuya.valueConverter.raw],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
-                [15, "indicator_mode", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
-            ],
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", [
-            "_TZE200_mwvfvw8g",
-            "_TZE200_wnp4d4va",
-            "_TZE200_cduqh1l0",
-            "_TZE204_cduqh1l0",
-            "_TZE200_emxxanvi",
-            "_TZE204_g4au0afs",
-            "_TZE204_w1wwxoja",
-            "_TZE204_lmgrbuwf",
-            "_TZE284_tdhnhhiy",
-            "_TZE204_wskr3up8",
-            "_TZE284_g1enhdsi",
-            "_TZE284_r731zlxk",
-            "_TZE284_znkkcauq",
-        ]),
-        model: "TS0601_switch_6_gang",
-        vendor: "Tuya",
-        description: "6 gang switch",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
-            device.powerSource = "Mains (single phase)";
-            device.save();
-        },
-        exposes: [
-            tuya.exposes.switch().withEndpoint("l1"),
-            tuya.exposes.switch().withEndpoint("l2"),
-            tuya.exposes.switch().withEndpoint("l3"),
-            tuya.exposes.switch().withEndpoint("l4"),
-            tuya.exposes.switch().withEndpoint("l5"),
-            tuya.exposes.switch().withEndpoint("l6"),
-            tuya.exposes.powerOnBehavior(),
-            tuya.exposes.indicatorModeNoneRelayPos(),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 1, l3: 1, l4: 1, l5: 1, l6: 1};
-        },
-        meta: {
-            multiEndpoint: true,
-            tuyaDatapoints: [
-                [1, "state_l1", tuya.valueConverter.onOff],
-                [2, "state_l2", tuya.valueConverter.onOff],
-                [3, "state_l3", tuya.valueConverter.onOff],
-                [4, "state_l4", tuya.valueConverter.onOff],
-                [5, "state_l5", tuya.valueConverter.onOff],
-                [6, "state_l6", tuya.valueConverter.onOff],
-                [
-                    14,
-                    "power_on_behavior",
-                    tuya.valueConverterBasic.lookup({
-                        off: tuya.enum(0),
-                        on: tuya.enum(1),
-                        memory: tuya.enum(2),
-                    }),
-                ],
                 [
                     15,
                     "indicator_mode",
@@ -7219,6 +7190,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
             tuya.whitelabel("Nova Digital", "SYZB-6W", "6 gang switch 4x4", ["_TZE284_tdhnhhiy"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
+            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
             tuya.whitelabel("Ekaza", "EKGD-T4085P-4Z", "4 gang switch with 2 gang socket 4x4", ["_TZE284_znkkcauq"]),
         ],
@@ -9126,10 +9098,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
-                switchType: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
-                backlightModeOffOn: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3"].includes(m),
-                indicatorMode: (m) => m === "_TZ3000_p26flek3",
+                switchType: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3", "_TZ3000_udl7uyd2"].includes(m),
+                backlightModeOffOn: (m) => ["_TZ3000_bzzgvet0", "_TZ3000_p26flek3", "_TZ3000_udl7uyd2"].includes(m),
+                indicatorMode: (m) => ["_TZ3000_p26flek3", "_TZ3000_udl7uyd2"].includes(m),
+                onOffCountdown: (m) => m === "_TZ3000_udl7uyd2",
+                inchingSwitch: (m) => m === "_TZ3000_udl7uyd2",
             }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         whiteLabel: [
             {
@@ -9142,30 +9117,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Nous", "B1Z", "1 gang switch", ["_TZ3000_ctftgjwb"]),
             tuya.whitelabel("Tuya", "XMSJ", "Zigbee USB power switch", ["_TZ3000_8n7lqbm0"]),
             tuya.whitelabel("Tuya", "ZG-001", "Smart home relay module", ["_TZ3000_g8n1n7lg"]),
+            tuya.whitelabel("Nova Digital", "SA-1", "Safira smart light switch - 1 gang", ["_TZ3000_udl7uyd2"]),
             tuya.whitelabel("Moes", "ZS-US1-LN", "Smart light switch - 1 gang", ["_TZ3000_bzzgvet0"]),
             tuya.whitelabel("Mowe", "MW786Z", "Water heater switch", ["_TZ3000_cb3aangp"]),
-        ],
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_udl7uyd2"]),
-        model: "SA-1",
-        vendor: "Nova Digital",
-        description: "Safira smart light switch - 1 gang",
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior: true,
-                switchType: true,
-                backlightModeOffOn: true,
-                indicatorMode: true,
-                onOffCountdown: true,
-                inchingSwitch: true,
-            }),
-            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
@@ -9235,6 +9189,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_zbfya6h0",
             "_TZ3000_hznzbl0x",
             "_TZ3210_6smingw0",
+            "_TZ3210_jqg2a5yn",
         ]),
         model: "TS0002_basic",
         vendor: "Tuya",
@@ -9250,17 +9205,20 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("RSH", "TS0002_basic_2", "2 gang switch", ["_TZ3000_zbfya6h0"]),
             tuya.whitelabel("EKAZA", "EKAC-T3092Z", "2 gang switch", ["_TZ3000_hznzbl0x"]),
             tuya.whitelabel("Nova Digital", "NTZB-01", "1 switch and 1 socket with backlight", ["_TZ3210_6smingw0"]),
+            tuya.whitelabel("Nova Digital", "SA-2", "Safira smart light switch - 2 gang", ["_TZ3210_jqg2a5yn"]),
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
-                switchType: true,
+                switchType: (m) => m !== "_TZ3210_jqg2a5yn",
                 endpoints: ["l1", "l2"],
-                powerOutageMemory: (m) => m !== "_TZ3210_6smingw0",
-                onOffCountdown: (m) => m === "_TZ3000_hznzbl0x" || m === "_TZ3210_6smingw0",
-                indicatorMode: (m) => m === "_TZ3210_6smingw0",
-                backlightModeOffOn: (m) => m === "_TZ3210_6smingw0",
+                powerOutageMemory: (m) => !["_TZ3210_6smingw0", "_TZ3210_jqg2a5yn"].includes(m),
+                onOffCountdown: (m) => ["_TZ3000_hznzbl0x", "_TZ3210_6smingw0", "_TZ3210_jqg2a5yn"].includes(m),
+                indicatorMode: (m) => ["_TZ3210_6smingw0", "_TZ3210_jqg2a5yn"].includes(m),
+                backlightModeOffOn: (m) => ["_TZ3210_6smingw0", "_TZ3210_jqg2a5yn"].includes(m),
+                inchingSwitch: (m) => m === "_TZ3210_jqg2a5yn",
             }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         endpoint: (device) => {
             return {l1: 1, l2: 2};
@@ -9322,33 +9280,6 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
 
-    {
-        fingerprint: tuya.fingerprint("TS0002", ["_TZ3210_jqg2a5yn"]),
-        model: "SA-2",
-        vendor: "Nova Digital",
-        description: "Safira smart light switch - 2 gang",
-        extend: [
-            tuya.modernExtend.tuyaBase(),
-            tuya.modernExtend.tuyaOnOff({
-                powerOnBehavior: true,
-                backlightModeOffOn: true,
-                indicatorMode: true,
-                onOffCountdown: true,
-                inchingSwitch: true,
-                endpoints: ["l1", "l2"],
-            }),
-            tuya.clusters.addTuyaCommonPrivateCluster(),
-        ],
-        endpoint: (device) => {
-            return {l1: 1, l2: 2};
-        },
-        meta: {multiEndpoint: true},
-        configure: async (device, coordinatorEndpoint) => {
-            await tuya.configureMagicPacket(device, coordinatorEndpoint);
-            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
-            await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
-        },
-    },
     {
         // TS0002 2 gang switch module with all available features. This is the default for TS0002 devices.
         model: "TS0002",
