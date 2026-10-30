@@ -3,8 +3,8 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import * as utils from "../lib/utils";
 import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -120,12 +120,7 @@ const hiveScheduleToZigbee: Tz.Converter = {
         const bit = scheduleDays.indexOf(day as (typeof scheduleDays)[number]);
         if (bit < 0) throw new Error(`Unknown schedule day: ${day}`);
 
-        await entity.command(
-            "hvacThermostat",
-            "getWeeklySchedule",
-            {daystoreturn: 1 << bit, modetoreturn: 1},
-            utils.getOptions(meta.mapped, entity),
-        );
+        await entity.command("hvacThermostat", "getWeeklySchedule", {daystoreturn: 1 << bit, modetoreturn: 1}, utils.getOptions(meta.mapped, entity));
     },
 };
 
@@ -411,7 +406,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             ...scheduleDays.map((day) =>
-                e.text(`schedule_${day}`, ea.ALL).withCategory("config").withDescription("Native Hive heating schedule, HH:mm/°C (up to six transitions)"),
+                e
+                    .text(`schedule_${day}`, ea.ALL)
+                    .withCategory("config")
+                    .withDescription("Native Hive heating schedule, HH:mm/°C (up to six transitions)"),
             ),
             e
                 .climate()

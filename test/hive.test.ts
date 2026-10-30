@@ -89,31 +89,38 @@ describe("Hive SLR1c daily heating schedules", () => {
     });
 
     it("supports responses containing multiple day flags", () => {
-        const result = scheduleFromZigbee.convert(receiver, response(0x06, [{transitionTime: 30, heatSetpoint: 2125}]), vi.fn(), {}, {
-            state: {},
-            device: null,
-            deviceExposesChanged: vi.fn(),
-        });
+        const result = scheduleFromZigbee.convert(
+            receiver,
+            response(0x06, [{transitionTime: 30, heatSetpoint: 2125}]),
+            vi.fn(),
+            {},
+            {
+                state: {},
+                device: null,
+                deviceExposesChanged: vi.fn(),
+            },
+        );
         expect(result).toEqual({schedule_monday: "00:30/21.25", schedule_tuesday: "00:30/21.25"});
     });
 
     it("does not publish malformed receiver transition data", () => {
-        const result = scheduleFromZigbee.convert(receiver, response(0x02, [{transitionTime: 1440, heatSetpoint: 2050}]), vi.fn(), {}, {
-            state: {},
-            device: null,
-            deviceExposesChanged: vi.fn(),
-        });
+        const result = scheduleFromZigbee.convert(
+            receiver,
+            response(0x02, [{transitionTime: 1440, heatSetpoint: 2050}]),
+            vi.fn(),
+            {},
+            {
+                state: {},
+                device: null,
+                deviceExposesChanged: vi.fn(),
+            },
+        );
         expect(result).toBeUndefined();
     });
 
     it("writes a schedule starting after midnight using centidegrees and the correct day bit", async () => {
         // Act: write the same type of schedule verified on the physical receiver.
-        const result = await convertSet(
-            endpoint,
-            "schedule_monday",
-            "06:00/20.5 19:30/1 19:30/1 19:30/1 19:30/1 19:30/1",
-            meta,
-        );
+        const result = await convertSet(endpoint, "schedule_monday", "06:00/20.5 19:30/1 19:30/1 19:30/1 19:30/1 19:30/1", meta);
         // Assert: no optimistic state, correct native Zigbee payload.
         expect(result).toBeUndefined();
         expect(command).toHaveBeenCalledOnce();
