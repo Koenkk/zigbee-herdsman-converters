@@ -162,7 +162,7 @@ const extendLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
-        {
+    {
         zigbeeModel: ["NGC001"],
         model: "929004440102",
         vendor: "Philips",
