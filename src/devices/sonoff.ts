@@ -1504,6 +1504,7 @@ const featureGates = {
     snzb02dr2_support_remote_source: firmwareSupportFeaturesVersion("1.0.5", "higher"),
     zbminir2_external_switch_actions: firmwareSupportFeaturesVersion("1.1.0", "higher", {modelID: "ZBMINIR2"}),
     zbminil2_external_switch_trigger_mode: firmwareSupportFeaturesVersion("1.0.19", "higher", {modelID: "ZBMINIL2"}),
+    zbrbs_single_switch_mode: firmwareSupportFeaturesVersion("1.2.0", "higher", {modelID: "MINI-ZBRBS"}),
     snzb09p_support_chime: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     snzb09p_support_alarm_status: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     // Single-channel SWV-ZF* supports unified units from 1.1.0; dual-channel SWV-ZF2 supports them from 1.0.9.
@@ -1735,6 +1736,7 @@ export interface SonoffEwelink {
         lackWaterCloseValveTimeout: number;
         motorTravelCalibrationStatus: number;
         motorRunStatus: number;
+        singleSwitchMode: number;
         acCurrentCurrentValue: number;
         acCurrentVoltageValue: number;
         acCurrentPowerValue: number;
@@ -2253,6 +2255,7 @@ const sonoffExtend = {
                 lackWaterCloseValveTimeout: {name: "lackWaterCloseValveTimeout", ID: 0x5011, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
                 motorTravelCalibrationStatus: {name: "motorTravelCalibrationStatus", ID: 0x5012, type: Zcl.DataType.UINT8, write: true, max: 0xff},
                 motorRunStatus: {name: "motorRunStatus", ID: 0x5013, type: Zcl.DataType.UINT8, write: true, max: 0xff},
+                singleSwitchMode: {name: "singleSwitchMode", ID: 0x6038, type: Zcl.DataType.BOOLEAN, write: true},
                 acCurrentCurrentValue: {name: "acCurrentCurrentValue", ID: 0x7004, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 acCurrentVoltageValue: {name: "acCurrentVoltageValue", ID: 0x7005, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
                 acCurrentPowerValue: {name: "acCurrentPowerValue", ID: 0x7006, type: Zcl.DataType.UINT32, write: true, max: 0xffffffff},
@@ -11726,7 +11729,21 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             sonoffExtend.externalSwitchTriggerMode(),
+            withConditionalExpose(
+                m.binary<"customClusterEwelink", SonoffEwelink>({
+                    name: "single_switch_mode",
+                    cluster: "customClusterEwelink",
+                    attribute: "singleSwitchMode",
+                    description:
+                        "Single-button pulse mode: both external switch inputs toggle open/close on a short press, and move the curtain until the switch is released on a long press. Only effective while the external trigger mode is pulse.",
+                    valueOn: [true, 1],
+                    valueOff: [false, 0],
+                    entityCategory: "config",
+                }),
+                featureGates.zbrbs_single_switch_mode,
+            ),
         ],
+        version: "0.0.1",
         ota: {
             // imageType is duplicated with SWV-ZFE/ZNE, so modelId is added to prevent OTA firmware error detection
             modelId: "MINI-ZBRBS",
