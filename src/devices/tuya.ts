@@ -2403,6 +2403,38 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        fingerprint: tuya.fingerprint('TS0003', ['_TZ3000_puya2qxj']),
+        model: 'GT-LN-03Z-B',
+        vendor: 'Gisfeel',
+        description: 'Tecla de pared 3 canales linea Glass Touch',
+        extend: [
+            modernExtend.deviceAddCustomCluster('genOnOff', {
+                name: 'genOnOff',
+                ID: 6,
+                attributes: {
+                    moesStartUpOnOff: {name: 'moesStartUpOnOff', ID: 0x8002, type: 0x30, write: true},
+                    tuyaBacklightSwitch: {name: 'tuyaBacklightSwitch', ID: 0x5000, type: 0x30, write: true},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            tuya.modernExtend.tuyaMagicPacket(),
+            modernExtend.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3}}),
+            tuya.modernExtend.tuyaOnOff({
+                endpoints: ['l1', 'l2', 'l3'],
+                powerOutageMemory: true,
+            }),
+            modernExtend.enumLookup({
+                name: 'backlight_mode',
+                endpointName: 'l1',
+                lookup: {off: 0, on: 1},
+                cluster: 'genOnOff',
+                attribute: 'tuyaBacklightSwitch',
+                description: 'Luz de fondo de las teclas',
+            }),
+        ],
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
         model: "CTL-Mini-DTP-TYZ/AC",
         vendor: "CTL",
@@ -2555,11 +2587,11 @@ export const definitions: DefinitionWithExtend[] = [
                     "pause_upload_30min",
                     "pause_upload_1hour",
                 ])
+                .enum("system_setting", ea.STATE_SET, [
                 .withLabel("Sensor power control")
                 .withCategory("config")
                 .withDescription("Power-cycle the sensor or pause its reports"),
             e
-                .enum("system_setting", ea.STATE_SET, [
                     "none",
                     "identify_start",
                     "identify_stop",
