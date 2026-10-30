@@ -1165,5 +1165,4 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
 ];
