@@ -10,6 +10,8 @@ describe("Hive SLR1c daily heating schedules", () => {
     let receiver: Definition;
     let scheduleFromZigbee: Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>;
     let scheduleToZigbee: Tz.Converter;
+    let convertSet: NonNullable<Tz.Converter["convertSet"]>;
+    let convertGet: NonNullable<Tz.Converter["convertGet"]>;
     let endpoint: ZHModels.Endpoint;
     let meta: Tz.Meta;
     let command: ReturnType<typeof vi.fn>;
@@ -21,6 +23,11 @@ describe("Hive SLR1c daily heating schedules", () => {
             .filter((converter) => converter.cluster === "hvacThermostat" && converter.type.includes("commandGetWeeklyScheduleRsp"))
             .at(-1) as Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>;
         scheduleToZigbee = receiver.toZigbee.find((converter) => converter.key?.includes("schedule_monday"));
+        if (!scheduleToZigbee?.convertSet || !scheduleToZigbee.convertGet) {
+            throw new Error("SLR1c daily schedule converter must support reading and writing");
+        }
+        convertSet = scheduleToZigbee.convertSet;
+        convertGet = scheduleToZigbee.convertGet;
         command = vi.fn();
         endpoint = {command} as unknown as ZHModels.Endpoint;
         meta = {
@@ -101,7 +108,7 @@ describe("Hive SLR1c daily heating schedules", () => {
 
     it("writes a schedule starting after midnight using centidegrees and the correct day bit", async () => {
         // Act: write the same type of schedule verified on the physical receiver.
-        const result = await scheduleToZigbee.convertSet!(
+        const result = await convertSet(
             endpoint,
             "schedule_monday",
             "06:00/20.5 19:30/1 19:30/1 19:30/1 19:30/1 19:30/1",
@@ -127,7 +134,7 @@ describe("Hive SLR1c daily heating schedules", () => {
     });
 
     it("normalizes whitespace between entries without changing temperatures", async () => {
-        await scheduleToZigbee.convertSet!(endpoint, "schedule_friday", " 06:00/21.25  \n 19:30/1 \t", meta);
+        await convertSet(endpoint, "schedule_friday", " 06:00/21.25  \n 19:30/1 \t", meta);
         expect(command).toHaveBeenCalledWith(
             "hvacThermostat",
             "setWeeklySchedule",
@@ -145,7 +152,7 @@ describe("Hive SLR1c daily heating schedules", () => {
     });
 
     it.each(days)("requests just the %s schedule from the receiver", async (day) => {
-        await scheduleToZigbee.convertGet!(endpoint, `schedule_${day}`, meta);
+        await convertGet(endpoint, `schedule_${day}`, meta);
         expect(command).toHaveBeenCalledWith(
             "hvacThermostat",
             "getWeeklySchedule",
@@ -168,7 +175,7 @@ describe("Hive SLR1c daily heating schedules", () => {
         ["06:00/21 19:30", "expected HH:mm/temperature"],
     ])("rejects invalid schedule '%s' without sending any Zigbee command", async (value, message) => {
         // Act and assert: invalid input must never reach the receiver.
-        await expect(scheduleToZigbee.convertSet!(endpoint, "schedule_monday", value, meta)).rejects.toThrow(message);
+        await expect(convertSet(endpoint, "schedule_monday", value, meta)).rejects.toThrow(message);
         expect(command).not.toHaveBeenCalled();
     });
 });
