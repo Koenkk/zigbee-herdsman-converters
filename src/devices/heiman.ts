@@ -2360,7 +2360,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["JM720ES-EF-3.0"],
-        model: "HS-720ES",
+        model: "HS-720ES-ZB",
         vendor: "Heiman",
         description: "Smart carbon monoxide alarm",
         extend: [
