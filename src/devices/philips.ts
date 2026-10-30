@@ -162,6 +162,20 @@ const extendLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+        {
+        zigbeeModel: ["NGC001"],
+        model: "929004440102",
+        vendor: "Philips",
+        description: "Hue wall light module for Nanoleaf Shapes",
+        extend: [
+            philips.m.light({
+                colorTemp: {range: [50, 1000]},
+                color: {modes: ["xy", "hs"], enhancedHue: true},
+                gradient: true,
+            }),
+            m.identify(),
+        ],
+    },
     {
         zigbeeModel: ["LWA036"],
         model: "929003856401",
