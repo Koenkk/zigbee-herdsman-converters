@@ -151,6 +151,107 @@ const extend = {
     }),
 };
 
+// HOBEIAN ZG-204ZL with pvvx/ZigbeeTLc (PIR motion + illuminance + illuminance level sensing + remote On/Off).
+// https://pvvx.github.io/ZG-204ZL-3.0/
+// Board 50 / image type 0x0232.
+// ZCL manufacturer name is "Sonoff"; catalog vendor remains HOBEIAN.
+// Illuminance Level Sensing cluster (0x0401): on motion, "on" is only sent to bound devices
+// if light_level is not above_target. The firmware converts illuminance_threshold (0x5003, lux)
+// to the standard IlluminanceTargetLevel (0x0010, 10000 * log10(lux) + 1) and vice versa,
+// so 0x0010 is intentionally not exposed separately.
+const zg204zlMotion = [
+    m.battery({voltage: true}),
+    m.illuminance(),
+    m.occupancy(),
+    m.onOff({
+        powerOnBehavior: false,
+        description: 'Enable remote On/Off binding. ON: occupancy occupied sends action "on", clear sends action "off". OFF: no occupancy actions.',
+    }),
+    m.enumLookup({
+        name: "power_on_behavior",
+        cluster: "genOnOff",
+        attribute: "startUpOnOff",
+        lookup: {
+            off: 0,
+            on: 1,
+            toggle: 2,
+            previous: 255,
+        },
+        description: "Power-on behavior for state (remote On/Off enable)",
+    }),
+    m.numeric({
+        // Name kept for backward compatibility with the former definition in custom_devices_diy.ts
+        name: "pir_timeout",
+        label: "PIR timeout",
+        cluster: "msOccupancySensing",
+        attribute: "pirOToUDelay",
+        unit: "s",
+        valueMin: 0,
+        valueMax: 65535,
+        access: "ALL",
+        entityCategory: "config",
+        description: "Occupancy hold time in seconds. Firmware default 35 s. 0 disables motion detection.",
+    }),
+    m.enumLookup({
+        name: "light_level",
+        label: "Light level",
+        cluster: "msIlluminanceLevelSensing",
+        attribute: "levelStatus",
+        lookup: {on_target: 0, below_target: 1, above_target: 2, unknown: 255},
+        access: "STATE_GET",
+        reporting: {min: 0, max: 3600, change: 1},
+        description: "Illuminance relative to the configured illuminance threshold",
+    }),
+    m.numeric({
+        name: "illuminance_threshold",
+        label: "Illuminance threshold",
+        cluster: "msIlluminanceLevelSensing",
+        attribute: {ID: 0x5003, type: Zcl.DataType.UINT24},
+        unit: "lx",
+        valueMin: 0,
+        valueMax: 3576000,
+        access: "ALL",
+        entityCategory: "config",
+        description: 'Low light level threshold in lux. On motion, "on" is only sent if the illuminance is not above it. Firmware default ~20 lx.',
+    }),
+    m.numeric({
+        name: "illuminance_measurement_interval",
+        label: "Illuminance measurement interval",
+        cluster: "msIlluminanceLevelSensing",
+        attribute: {ID: 0x5000, type: Zcl.DataType.UINT8},
+        unit: "s",
+        valueMin: 3,
+        valueMax: 60,
+        access: "ALL",
+        entityCategory: "config",
+        description: "Illuminance measurement interval in seconds. Out-of-range values reset to 20 s. Firmware default 20 s.",
+    }),
+    m.numeric({
+        name: "illuminance_offset",
+        label: "Illuminance offset",
+        cluster: "msIlluminanceLevelSensing",
+        attribute: {ID: 0x5001, type: Zcl.DataType.UINT16},
+        valueMin: 0,
+        valueMax: 65535,
+        access: "ALL",
+        entityCategory: "config",
+        description: "Illuminance sensor zero calibration offset in raw ADC units. Firmware default 29400.",
+    }),
+    m.numeric({
+        name: "illuminance_maximum",
+        label: "Illuminance maximum",
+        cluster: "msIlluminanceLevelSensing",
+        attribute: {ID: 0x5002, type: Zcl.DataType.UINT16},
+        unit: "lx",
+        valueMin: 0,
+        valueMax: 65535,
+        access: "ALL",
+        entityCategory: "config",
+        description: "Illuminance sensor maximum coefficient (reported lux at full scale). Firmware default 3000.",
+    }),
+    m.commandsOnOff(),
+];
+
 // HOBEIAN ZG-204ZV with pvvx/ZigbeeTLc (motion + illuminance + remote On/Off).
 // https://pvvx.github.io/ZG-204ZV/
 // Boards 51 and 56 include WHT20 T/H. Boards 55 and 57 do not.
@@ -672,6 +773,15 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.commandsOnOff(),
         ],
+    },
+    {
+        // Board 50 / image type 0x0232
+        zigbeeModel: ["ZG-204ZL-z"],
+        model: "ZG-204ZL-z",
+        vendor: "HOBEIAN",
+        description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
+        ota: true,
+        extend: [...zg204zlMotion],
     },
     {
         // Board 51 / image type 0x0233 - with WHT20
