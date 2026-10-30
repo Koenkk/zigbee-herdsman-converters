@@ -29866,7 +29866,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("mode", ea.STATE_SET, ["freshwater", "seawater"]).withDescription("Freshwater or Seawater"),
             e.numeric("battery", ea.STATE).withValueMin(1).withValueMax(100).withValueStep(1).withUnit("%").withDescription("Battery percentage"),
             e
-                .numeric("probe_temperature", ea.STATE)
+                .numeric("temperature_probe", ea.STATE)
                 .withValueMin(-40)
                 .withValueMax(120)
                 .withValueStep(0.1)
@@ -29996,7 +29996,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "probe_temperature", tuya.valueConverter.divideBy10],
+                [1, "temperature_probe", tuya.valueConverter.divideBy10],
                 [4, "battery", tuya.valueConverter.raw],
                 [5, "temperature", tuya.valueConverter.divideBy100],
 
