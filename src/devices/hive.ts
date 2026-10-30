@@ -3,10 +3,126 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
+
+const scheduleDays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const;
+const scheduleKeys = scheduleDays.map((day) => `schedule_${day}`);
+
+const hiveScheduleFromZigbee: Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]> = {
+    cluster: "hvacThermostat",
+    type: ["commandGetWeeklyScheduleRsp"],
+    convert: (_model, msg) => {
+        const {dayofweek, transitions} = msg.data;
+        if (!Number.isInteger(dayofweek) || !Array.isArray(transitions) || transitions.length === 0) return;
+
+        const formatted: string[] = [];
+        for (const transition of transitions) {
+            const {transitionTime, heatSetpoint} = transition;
+            if (
+                !Number.isInteger(transitionTime) ||
+                transitionTime < 0 ||
+                transitionTime >= 1440 ||
+                typeof heatSetpoint !== "number" ||
+                !Number.isFinite(heatSetpoint)
+            ) {
+                return;
+            }
+
+            const hour = String(Math.floor(transitionTime / 60)).padStart(2, "0");
+            const minute = String(transitionTime % 60).padStart(2, "0");
+            const temperature = Number((heatSetpoint / 100).toFixed(2));
+            formatted.push(`${hour}:${minute}/${temperature}`);
+        }
+
+        const result: Record<string, string> = {};
+        for (const [bit, day] of scheduleDays.entries()) {
+            if (dayofweek & (1 << bit)) {
+                result[`schedule_${day}`] = formatted.join(" ");
+            }
+        }
+        return Object.keys(result).length ? result : undefined;
+    },
+};
+
+function parseHiveSchedule(value: unknown): {transitionTime: number; heatSetpoint: number}[] {
+    if (typeof value !== "string" || !value.trim()) {
+        throw new Error('Schedule cannot be empty. Enter up to six transitions, e.g. "06:00/20.5 19:30/1"');
+    }
+
+    const parts = value.trim().split(/\s+/);
+    if (parts.length > 6) {
+        throw new Error(`Hive supports at most six transitions per day; received ${parts.length}`);
+    }
+
+    let lastTime = -1;
+    let lastTemperature: number | undefined;
+    return parts.map((part, index) => {
+        const number = index + 1;
+        const fields = part.split("/");
+        if (fields.length !== 2) {
+            throw new Error(`Transition ${number} ("${part}"): expected HH:mm/temperature, e.g. 06:00/20.5`);
+        }
+
+        const [clock, rawTemperature] = fields;
+        if (!/^\d{2}:\d{2}$/.test(clock)) {
+            throw new Error(`Transition ${number} ("${part}"): time must use HH:mm, e.g. 06:00`);
+        }
+
+        const [hours, minutes] = clock.split(":").map(Number);
+        if (hours > 23 || minutes > 59) {
+            throw new Error(`Transition ${number} ("${part}"): invalid time ${clock}; hours must be 00–23 and minutes 00–59`);
+        }
+
+        if (!/^\d+(?:\.\d{1,2})?$/.test(rawTemperature)) {
+            throw new Error(`Transition ${number} ("${part}"): temperature must be numeric with up to two decimal places, e.g. 20.5`);
+        }
+
+        const temperature = Number(rawTemperature);
+        if (temperature !== 1 && (temperature < 5 || temperature > 32)) {
+            throw new Error(`Transition ${number} ("${part}"): ${temperature}°C is outside the supported values (1°C or 5–32°C)`);
+        }
+
+        const time = hours * 60 + minutes;
+        if (time < lastTime) {
+            throw new Error(`Transition ${number} ("${part}"): ${clock} is earlier than the previous transition; enter times in chronological order`);
+        }
+        if (time === lastTime && temperature !== lastTemperature) {
+            throw new Error(`Transition ${number} ("${part}"): conflicting temperatures at ${clock}; duplicate times must use the same temperature`);
+        }
+
+        lastTime = time;
+        lastTemperature = temperature;
+        return {transitionTime: time, heatSetpoint: Math.round(temperature * 100)};
+    });
+}
+
+const hiveScheduleToZigbee: Tz.Converter = {
+    key: scheduleKeys,
+    convertSet: async (entity, key, value, meta) => {
+        const day = key.slice("schedule_".length);
+        const bit = scheduleDays.indexOf(day as (typeof scheduleDays)[number]);
+        if (bit < 0) throw new Error(`Unknown schedule day: ${day}`);
+
+        const transitions = parseHiveSchedule(value);
+        await entity.command(
+            "hvacThermostat",
+            "setWeeklySchedule",
+            {dayofweek: 1 << bit, numoftrans: transitions.length, mode: 1, transitions},
+            utils.getOptions(meta.mapped, entity),
+        );
+    },
+    convertGet: async (entity, key, meta) => {
+        const day = key.slice("schedule_".length);
+        const bit = scheduleDays.indexOf(day as (typeof scheduleDays)[number]);
+        if (bit < 0) throw new Error(`Unknown schedule day: ${day}`);
+
+        await entity.command("hvacThermostat", "getWeeklySchedule", {daystoreturn: 1 << bit, modetoreturn: 1}, utils.getOptions(meta.mapped, entity));
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -275,7 +391,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SLR1c",
         vendor: "Hive",
         description: "Heating thermostat",
-        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule],
+        fromZigbee: [fz.thermostat, fz.thermostat_weekly_schedule, hiveScheduleFromZigbee],
         toZigbee: [
             tz.thermostat_local_temperature,
             tz.thermostat_system_mode,
@@ -286,8 +402,15 @@ export const definitions: DefinitionWithExtend[] = [
             tz.thermostat_clear_weekly_schedule,
             tz.thermostat_temperature_setpoint_hold,
             tz.thermostat_temperature_setpoint_hold_duration,
+            hiveScheduleToZigbee,
         ],
         exposes: [
+            ...scheduleDays.map((day) =>
+                e
+                    .text(`schedule_${day}`, ea.ALL)
+                    .withCategory("config")
+                    .withDescription("Native Hive heating schedule, HH:mm/°C (up to six transitions)"),
+            ),
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 5, 32, 0.5)
