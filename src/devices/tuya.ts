@@ -7083,6 +7083,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_g1enhdsi",
             "_TZE284_r731zlxk",
             "_TZE284_znkkcauq",
+            "_TZE284_1iii6x0y",
         ]),
         model: "TS0601_switch_6_gang",
         vendor: "Tuya",
