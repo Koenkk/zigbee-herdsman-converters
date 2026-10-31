@@ -577,6 +577,10 @@ export async function getClusterAttributeValue<
     try {
         const value = endpoint.getClusterAttributeValue(cluster, attribute);
         if (value == null) {
+            if (endpoint.hasClusterAttribute(cluster, attribute) === false) {
+                return fallback;
+            }
+
             const result = await endpoint.read<Cl, Custom>(cluster, [attribute] as ClusterOrRawAttributeKeys<Cl, Custom>, {
                 sendPolicy: "immediate",
                 disableRecovery: true,
@@ -586,6 +590,22 @@ export async function getClusterAttributeValue<
         return value as ClusterOrRawAttributes<Cl, Custom>[Attr];
     } catch {
         return fallback;
+    }
+}
+
+export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoint, cluster: Cl, extended?: boolean) {
+    if (endpoint.hasClusterAttributes(cluster, extended)) {
+        return;
+    }
+    try {
+        await endpoint.discoverAttributes(cluster, extended, {
+            sendPolicy: "immediate",
+            disableRecovery: true,
+            disableDefaultResponse: true,
+        });
+    } catch (error) {
+        const message = (error as Error).message;
+        logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
     }
 }
 
