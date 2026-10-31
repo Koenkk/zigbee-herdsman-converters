@@ -589,6 +589,22 @@ export async function getClusterAttributeValue<
     }
 }
 
+export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoint, cluster: Cl, extended?: boolean) {
+    if (endpoint.hasClusterAttributes(cluster, extended)) {
+        return;
+    }
+    try {
+        await endpoint.discoverAttributes(cluster, extended, {
+            sendPolicy: "immediate",
+            disableRecovery: true,
+            disableDefaultResponse: true,
+        });
+    } catch (error) {
+        const message = (error as Error).message;
+        logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
+    }
+}
+
 export function normalizeCelsiusVersionOfFahrenheit(value: number) {
     const fahrenheit = value * 1.8 + 32;
     const roundedFahrenheit = Number((Math.round(Number((fahrenheit * 2).toFixed(1))) / 2).toFixed(1));
