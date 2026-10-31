@@ -212,7 +212,8 @@ const zg204zlMotion = [
         valueMax: 3576000,
         access: "ALL",
         entityCategory: "config",
-        description: 'Low light level threshold in lux. On motion, "on" is only sent if the illuminance is not above it. Firmware default ~20 lx.',
+        description:
+            'Low light level threshold in lux. On motion, "on" is only sent if the illuminance is not above it. Firmware default ~20 lx. 0 disables the check, always sending the action.',
     }),
     m.numeric({
         name: "illuminance_measurement_interval",
