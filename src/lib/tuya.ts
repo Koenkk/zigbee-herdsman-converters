@@ -3535,6 +3535,7 @@ const tuyaTz = {
         key: ["brightness", "color", "color_temp"],
         options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
+            const colorTempInMireds = utils.getMetaValue(entity, meta.mapped, "tuyaColorTempInMireds", "allEqual", false);
             if (
                 key === "brightness" &&
                 meta.state.color_mode === constants.colorModeLookup[2] &&
@@ -3563,7 +3564,7 @@ const tuyaTz = {
                     "lightingColorCtrl",
                     "moveToColorTemp",
                     {
-                        colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
+                        colortemp: colorTempInMireds ? meta.message.color_temp : utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
                         transtime: 0,
                         optionsMask: 0,
                         optionsOverride: 0,
@@ -3596,7 +3597,12 @@ const tuyaTz = {
                 await entity.command(
                     "lightingColorCtrl",
                     "moveToColorTemp",
-                    {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    {
+                        colortemp: colorTempInMireds ? value : utils.mapNumberRange(value, 500, 154, 0, 254),
+                        transtime: 0,
+                        optionsMask: 0,
+                        optionsOverride: 0,
+                    },
                     utils.getOptions(meta.mapped, entity),
                 );
                 await entity.command(
