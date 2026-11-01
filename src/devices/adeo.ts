@@ -183,7 +183,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "IM-CDZDGAAG005KA-MZN",
         vendor: "ADEO",
         description: "ENKI LEXMAN GU-10 LED white",
-        extend: [m.light({colorTemp: {range: [153, 454]}, turnsOffAtBrightness1: true})],
+        extend: [m.light({colorTemp: {range: [153, 370]}, turnsOffAtBrightness1: true})],
     },
     {
         zigbeeModel: ["ZBEK-12"],
