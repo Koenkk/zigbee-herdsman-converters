@@ -1797,6 +1797,8 @@ export type ManufacturerZoneAttribute = {
 export interface IasArgs {
     zoneType: IasZoneType;
     zoneAttributes: IasZoneAttribute[];
+    /** Only process IAS messages from this endpoint. */
+    endpointId?: number;
     alarmTimeout?: boolean;
     keepAliveTimeout?: (device: Device) => number;
     zoneStatusReporting?: boolean | Partial<ReportingConfigWithoutAttribute>;
@@ -1867,6 +1869,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                   ]
                 : [],
             convert: (model, msg, publish, options, meta) => {
+                if (args.endpointId !== undefined && msg.endpoint.ID !== args.endpointId) return;
                 if (args.alarmTimeout) {
                     const timeout = options?.[timeoutProperty] != null ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));

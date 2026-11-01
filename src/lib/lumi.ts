@@ -8438,7 +8438,7 @@ export const fromZigbee = {
             // W100 needs a custom converter to:
             // 1. Expose both 'temperature' and 'local_temperature' (needed for climate)
             // 2. Initialize device defaults (w100EnsureDefaults) needed for other converters
-            const result = fz.temperature.convert(model, msg, publish, options, meta);
+            const result = fz.temperature.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) {
                 const temperature = Object.values(result)[0];
                 const defaults = w100EnsureDefaults(meta);
@@ -9753,7 +9753,7 @@ export const toZigbee = {
                     return;
                 }
 
-                return {state: {position: value}};
+                return {state: {position: targetPosition}};
             }
         },
         convertGet: async (entity, key, meta) => {

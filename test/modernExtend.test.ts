@@ -134,11 +134,11 @@ describe("ModernExtend", () => {
         });
     });
 
-    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true}', async () => {
+    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true, powerOnBehavior: false}', async () => {
         await assertDefinition({
             device: mockDevice({modelID: "OPL 130 C", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {applyRedFix: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp],
             toZigbee: [
                 "state",
                 "brightness",
@@ -167,9 +167,8 @@ describe("ModernExtend", () => {
                 "effect",
                 "alert",
                 "flash",
-                "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)", "power_on_behavior"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)"],
             bind: {},
             read: {
                 1: [

@@ -1645,8 +1645,8 @@ const fzLocal = {
 
                 let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
                 screenAwake = screenAwake !== undefined ? screenAwake : false;
-                const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
-                const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+                const keypadLockout = msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout");
+                const keypadLocked = keypadLockout != null && Number(keypadLockout) !== 0;
                 // While the boost selection UI is open (center press seen,
                 // clock icon shown), +/- presses adjust the device's local
                 // boost target, not the setpoint. Emulating them against the
@@ -2441,8 +2441,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ["genBasic", "genPowerCfg", "hvacThermostat", "haDiagnostic"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            // The binding table has 5 entries and the valve fills most of them itself on joining (poll control,
+            // hvacThermostat on endpoints 1 and 2). Binding genBasic/haDiagnostic (unused) took the last slot and
+            // the genPowerCfg bind then failed with TABLE_FULL, aborting configure before any reporting was set
+            // up (no pi_heating_demand/setpoint/temperature reports). Bind only what is reported, one at a time.
+            for (const cluster of ["hvacThermostat", "genPowerCfg"]) {
+                try {
+                    await reporting.bind(endpoint, coordinatorEndpoint, [cluster]);
+                } catch (error) {
+                    logger.warning(`WV704R0A0902 bind of ${cluster} failed for '${device.ieeeAddr}': ${error}`, NS);
+                }
+            }
             await reporting.batteryVoltage(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -3243,13 +3252,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
+            // Seed before binding: binds often fail (TABLE_FULL) on devices taken over from a Wiser hub
+            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
+            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
+            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "msTemperatureMeasurement", "msRelativeHumidity"]);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
-            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
-            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
-            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
         },
     },
     {

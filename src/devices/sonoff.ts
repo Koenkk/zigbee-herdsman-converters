@@ -280,6 +280,13 @@ interface SonoffSnzb02m {
     commandResponses: never;
 }
 
+interface SonoffSnzb02mPressure {
+    attributes: {
+        pressure: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 // **************************** SWV-ZN/ZF related ↓ ****************************
 interface SonoffSwvzn {
     attributes: {
@@ -1496,6 +1503,7 @@ const featureGates = {
     snzb02dr2_legacy_remote_source: (device: Zh.Device): boolean => !featureGates.snzb02dr2_support_remote_source(device),
     snzb02dr2_support_remote_source: firmwareSupportFeaturesVersion("1.0.5", "higher"),
     zbminir2_external_switch_actions: firmwareSupportFeaturesVersion("1.1.0", "higher", {modelID: "ZBMINIR2"}),
+    zbminil2_external_switch_trigger_mode: firmwareSupportFeaturesVersion("1.0.19", "higher", {modelID: "ZBMINIL2"}),
     snzb09p_support_chime: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     snzb09p_support_alarm_status: firmwareSupportFeaturesVersion("1.1.9", "higher", {modelID: "SNZB-09P"}),
     // Single-channel SWV-ZF* supports unified units from 1.1.0; dual-channel SWV-ZF2 supports them from 1.0.9.
@@ -1568,7 +1576,7 @@ const fzLocal = {
             // Device keeps reporting a acCurrentPowerValue after turning OFF.
             // Make sure power = 0 when turned OFF
             // https://github.com/Koenkk/zigbee2mqtt/issues/28470
-            let result = fz.on_off.convert(model, msg, publish, options, meta);
+            let result = fz.on_off.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (msg.data.onOff === 0) {
                 result = {...result, power: 0, current: 0};
             }
@@ -1703,6 +1711,7 @@ const tzLocal = {
 
 type ExternalSwitchTypeCfgAgs = {
     endpointNames?: string[];
+    values?: ("edge" | "pulse" | "following(off)" | "following(on)")[];
 };
 type ExternalInchingAgs = {
     endpointNames?: string[];
@@ -1758,6 +1767,7 @@ export interface SonoffEwelink {
         monthlyElectricityCost: number;
         dailyRunTime: number;
         totalRunTime: number;
+        voltageFrequency: number;
         totalEnergyConsumption: number;
         totalOutputEnergyConsumption: number;
         currentElectricalPriceList: number[];
@@ -4308,6 +4318,7 @@ const sonoffExtend = {
         const commandId = 0x14;
         const replyCommandName = "getCurrentWeatherInfoReply";
         const weatherKey = "weather";
+        const setCoordinatesKey = "periodic_weather_updates";
         const DEFAULT_LONGITUDE_MICRO = 114057900;
         const DEFAULT_LATITUDE_MICRO = 22543100;
         const WEATHER_TO_VALUE: Record<string, number> = {
@@ -4319,22 +4330,50 @@ const sonoffExtend = {
             windy: 0x05,
         };
 
-        const expose = e
+        const setCoordinatesExpose = e
+            .enum(setCoordinatesKey, ea.SET, ["enable"])
+            .withCategory("config")
+            .withDescription(
+                "Enable weather updates every 4 hours. Note: This feature does not fetch weather data. A Blueprint or custom external converter is required to provide weather information. After enabling, press the device button to save the setting.",
+            );
+
+        const weatherExpose = e
             .enum(weatherKey, ea.STATE_SET, Object.keys(WEATHER_TO_VALUE))
             .withCategory("config")
             .withDescription(
-                "Weather shown on the E-ink screen. Selecting a value sends the default coordinates to the device and is applied on its next weather request. Note: wake up the device by pressing the button on the back before changing this value.",
+                "Manually select a weather icon to display on the E-Ink screen. The display updates immediately if the device is awake. Otherwise, the selected weather will be saved and applied at the next weather update (if Weather Updates is enabled).",
             );
 
         const toZigbee: Tz.Converter[] = [
             {
-                key: [weatherKey],
+                key: [setCoordinatesKey],
                 convertSet: async (entity, key, value, meta) => {
                     await entity.write<"customClusterEwelink", SonoffSnzb02ul>(
                         clusterName,
                         {longitude: DEFAULT_LONGITUDE_MICRO, latitude: DEFAULT_LATITUDE_MICRO},
                         utils.getOptions(meta.mapped, entity),
                     );
+                },
+            },
+            {
+                key: [weatherKey],
+                convertSet: (entity, key, value) => {
+                    utils.assertString(value, key);
+
+                    if ("commandResponse" in entity) {
+                        entity
+                            .commandResponse<typeof clusterName, typeof replyCommandName, SonoffSnzb02ul>(
+                                clusterName,
+                                replyCommandName,
+                                {data: [0x00, 0x01, WEATHER_TO_VALUE[value]]},
+                                {
+                                    direction: Zcl.Direction.CLIENT_TO_SERVER,
+                                    disableDefaultResponse: true,
+                                    manufacturerCode: Zcl.ManufacturerCode.SHENZHEN_COOLKIT_TECHNOLOGY_CO_LTD,
+                                },
+                            )
+                            .catch((): void => undefined);
+                    }
                     return {state: {[weatherKey]: value}};
                 },
             },
@@ -4395,7 +4434,7 @@ const sonoffExtend = {
             },
         ];
 
-        return {exposes: [expose], fromZigbee, toZigbee, isModernExtend: true};
+        return {exposes: [setCoordinatesExpose, weatherExpose], fromZigbee, toZigbee, isModernExtend: true};
     },
     tpWgzbaTemperatureHysteresis: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
@@ -4978,17 +5017,14 @@ const sonoffExtend = {
     externalSwitchTriggerMode: (args: ExternalSwitchTypeCfgAgs = {}): ModernExtend => {
         const clusterName = "customClusterEwelink" as const;
         const attributeName = "externalTriggerMode" as const;
-        const {endpointNames = undefined} = args;
+        const {endpointNames = undefined, values = ["edge", "pulse", "following(off)", "following(on)"]} = args;
         const description: string =
-            "External trigger mode, which can be one of edge, pulse, " +
-            "following(off), following(on). The appropriate triggering mode can be selected according to the type of " +
+            `External trigger mode, which can be one of ${values.join(", ")}. ` +
+            "The appropriate triggering mode can be selected according to the type of " +
             "external switch to achieve a better use experience.";
 
         const exposes: Expose[] = utils.exposeEndpoints(
-            e
-                .enum("external_trigger_mode", ea.ALL, ["edge", "pulse", "following(off)", "following(on)"])
-                .withDescription(description)
-                .withCategory("config"),
+            e.enum("external_trigger_mode", ea.ALL, values).withDescription(description).withCategory("config"),
             endpointNames,
         );
 
@@ -8956,7 +8992,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBMINIL2",
         vendor: "SONOFF",
         description: "Zigbee smart switch (no neutral)",
-        extend: [m.onOff()],
+        extend: [
+            m.onOff(),
+            sonoffExtend.addCustomClusterEwelink(),
+            withConditionalExpose(
+                sonoffExtend.externalSwitchTriggerMode({values: ["edge", "pulse"]}),
+                featureGates.zbminil2_external_switch_trigger_mode,
+            ),
+        ],
         ota: true,
         configure: async (device, coordinatorEndpoint) => {
             // Unbind genPollCtrl to prevent device from sending checkin message.
@@ -8966,6 +9009,12 @@ export const definitions: DefinitionWithExtend[] = [
             const endpoint = device.getEndpoint(1);
             if (endpoint.binds.some((b) => b.cluster.name === "genPollCtrl")) {
                 await device.getEndpoint(1).unbind("genPollCtrl", coordinatorEndpoint);
+            }
+            // Bind and read the external switch trigger type when supported by the firmware (0xFC11/0x0016,
+            // factory default 0x00 = edge trigger, i.e. rocker switch; 0x01 = pulse trigger, i.e. momentary switch).
+            if (featureGates.zbminil2_external_switch_trigger_mode(device)) {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["customClusterEwelink"]);
+                await endpoint.read<"customClusterEwelink", SonoffEwelink>("customClusterEwelink", ["externalTriggerMode"], defaultResponseOptions);
             }
             device.powerSource = "Mains (single phase)";
             device.save();
@@ -9018,7 +9067,9 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
             tuya.whitelabel("Tuya", "WL-19DWZ", "Contact sensor", ["_TZ3000_n2egfsli"]),
-            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon"]),
+            // Some batches report the manufacturer name as "Zbeacon" instead of "zbeacon"; fingerprints are
+            // compared case-sensitively, so both spellings are needed for the same whitelabel.
+            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon", "Zbeacon"]),
         ],
         description: "Contact sensor",
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
@@ -9635,6 +9686,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "Dongle-PP10",
         vendor: "SONOFF",
         description: "Dongle Plus CC2674P10 (CC2674P10) with router firmware",
+        fromZigbee: [fz.linkquality_from_basic],
+        toZigbee: [],
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
+    },
+    {
+        zigbeeModel: ["Dongle-MP10_ZBRouter"],
+        model: "Dongle-MP10",
+        vendor: "SONOFF",
+        description: "Dongle Max CC2674P10 (CC2674P10) with router firmware",
         fromZigbee: [fz.linkquality_from_basic],
         toZigbee: [],
         extend: [m.forcePowerSource({powerSource: "Mains (single phase)"})],
@@ -12475,7 +12535,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "temperatureCalibration",
                 entityCategory: "config",
                 description:
-                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the top before changing this value.",
                 valueMin: -50,
                 valueMax: 50,
                 scale: 100,
@@ -12488,7 +12548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "humidityCalibration",
                 entityCategory: "config",
                 description:
-                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the top before changing this value.",
                 valueMin: -50,
                 valueMax: 50,
                 scale: 100,
@@ -12515,16 +12575,25 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.deviceAddCustomCluster("msPressureMeasurement", {
+                name: "msPressureMeasurement",
+                ID: 0x0403,
+                attributes: {
+                    pressure: {name: "pressure", ID: 0x0004, type: Zcl.DataType.INT32},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             // official cluster
             m.battery(),
             m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
             m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             // attributes
-            m.numeric<"msPressureMeasurement">({
+            m.numeric<"msPressureMeasurement", SonoffSnzb02mPressure>({
                 name: "pressure",
                 cluster: "msPressureMeasurement",
-                attribute: {ID: 0x0004, type: Zcl.DataType.INT32},
+                attribute: "pressure",
                 access: "STATE_GET",
                 description: "Atmospheric pressure in hPa reported via manufacturer attribute 0x0004 (manuCode 0x1286).",
                 unit: "hPa",
@@ -12996,8 +13065,11 @@ export const definitions: DefinitionWithExtend[] = [
                     localFastSceneConfiguration: {name: "localFastSceneConfiguration", ID: 0x7016, type: Zcl.DataType.ARRAY, write: true},
                     outputEnergyToday: {name: "outputEnergyToday", ID: 0x7018, type: Zcl.DataType.UINT32},
                     outputEnergyMonth: {name: "outputEnergyMonth", ID: 0x7019, type: Zcl.DataType.UINT32},
+                    dailyRunTime: {name: "dailyRunTime", ID: 0x701c, type: Zcl.DataType.UINT32},
+                    totalRunTime: {name: "totalRunTime", ID: 0x701d, type: Zcl.DataType.UINT32},
                     totalEnergyConsumption: {name: "totalEnergyConsumption", ID: 0x701e, type: Zcl.DataType.UINT32},
                     totalOutputEnergyConsumption: {name: "totalOutputEnergyConsumption", ID: 0x701f, type: Zcl.DataType.UINT32},
+                    voltageFrequency: {name: "voltageFrequency", ID: 0x7029, type: Zcl.DataType.UINT32},
                 },
                 commands: {
                     protocolData: {name: "protocolData", ID: 0x01, parameters: [{name: "data", type: Zcl.BuffaloZclDataType.LIST_UINT8}]},
@@ -13085,6 +13157,38 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Supply voltage measured by the plug.",
                 unit: "V",
                 scale: 1000,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "frequency",
+                label: "Frequency",
+                cluster: "customClusterEwelink",
+                attribute: "voltageFrequency",
+                description: "Power frequency.",
+                unit: "Hz",
+                scale: 100,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "today_runtime",
+                label: "Today runtime",
+                cluster: "customClusterEwelink",
+                attribute: "dailyRunTime",
+                description: "Accumulated runtime today.",
+                unit: "h",
+                scale: 3600,
+                precision: 2,
+                access: "STATE_GET",
+            }),
+            m.numeric<"customClusterEwelink", SonoffEwelink>({
+                name: "lifetime",
+                label: "Lifetime",
+                cluster: "customClusterEwelink",
+                attribute: "totalRunTime",
+                description: "Total accumulated runtime.",
+                unit: "h",
+                scale: 3600,
+                precision: 2,
                 access: "STATE_GET",
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
@@ -14074,6 +14178,7 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "ALL",
             }),
         ],
+        ota: true,
     },
     {
         zigbeeModel: ["SNZT-04P"],
@@ -14095,5 +14200,6 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.battery({percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
         ],
+        ota: true,
     },
 ];

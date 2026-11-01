@@ -5158,6 +5158,34 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
+        zigbeeModel: ["lumi.plug.aeu006"],
+        model: "SP-P06E",
+        vendor: "Aqara",
+        description: "Outdoor plug H2 EU",
+        extend: [
+            lumi.modernExtend.addManuSpecificLumiCluster(),
+            lumiZigbeeOTA(),
+            lumiOnOff({powerOutageMemory: "enum", deviceTemperature: false}),
+            m.electricityMeter({cluster: "electrical", power: {divisor: 1, multiplier: 1}, voltage: false, current: false}),
+            lumiElectricityMeter({voltage: false}),
+            lumiOverloadProtection(),
+            lumiLedIndicator(),
+            lumiFlipIndicatorLight(),
+            lumiChildLock(),
+            m.binary({
+                name: "charging_protection",
+                cluster: "manuSpecificLumi",
+                attribute: {ID: 0x0202, type: 0x10},
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                description: "Turn off the plug if the power is below 3W for half an hour",
+                access: "ALL",
+                zigbeeCommandOptions: {manufacturerCode},
+            }),
+            m.identify(),
+        ],
+    },
+    {
         zigbeeModel: ["lumi.light.acn032", "lumi.light.acn031"],
         model: "CL-L02D",
         vendor: "Aqara",
@@ -5426,7 +5454,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.light({
                 powerOnBehavior: false,
                 levelConfig: {
-                    features: ["execute_if_off", "on_transition_time", "off_transition_time", "on_level"],
+                    features: ["execute_if_off", "on_transition_time", "off_transition_time"],
                 },
             }),
             lumiKnobRotation({withButtonState: true, pressedEndpoint: 72}),
