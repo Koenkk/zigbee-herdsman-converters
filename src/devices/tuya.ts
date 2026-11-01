@@ -14106,15 +14106,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0004",
         vendor: "Tuya",
         description: "Smart light switch - 4 gang with neutral wire",
+        meta: {disableDefaultResponse: (endpoint) => endpoint.getDevice().manufacturerName === "_TZ3000_uz6ibhib"},
         extend: [
             tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: true,
-                backlightModeOffOn: true,
+                backlightModeOffOn: (m) => m !== "_TZ3000_uz6ibhib",
                 endpoints: ["l1", "l2", "l3", "l4"],
                 switchType: (m) => m === "_TZ3000_r9e2w7dn" || m === "_TZ3000_excgg5kb",
+                onOffCountdown: (m) => m === "_TZ3000_uz6ibhib",
+                inchingSwitch: (m) => m === "_TZ3000_uz6ibhib",
+                inchingSwitchRequiresFullState: (m) => m === "_TZ3000_uz6ibhib",
             }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         whiteLabel: [
             tuya.whitelabel("Tuya", "DS-111", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_mdj7kra9"]),
