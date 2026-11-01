@@ -30,6 +30,13 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
+// EARU EAYCBM-Z DP 18: overcurrent (1), overvoltage (3) and undervoltage (4) alarms
+const eaycbmThresholds = tuya.valueConverterBasic.thresholdBlocks([
+    [1, "over_current"],
+    [3, "over_voltage"],
+    [4, "under_voltage"],
+]);
+
 interface Ts0049Countdown {
     attributes: never;
     commands: {setCountdown: {data: Buffer}};
@@ -2935,6 +2942,66 @@ export const definitions: DefinitionWithExtend[] = [
                 [134, "relay_power_on_state", tuya.valueConverterBasic.lookup({Off: 0, On: 1, Restore: 2})],
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_davzgqq0"]),
+        model: "EAYCBM-Z-1P",
+        vendor: "EARU",
+        description: "Smart circuit breaker with energy metering",
+        // The 2P variant only reports DP 17/18 when queried
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryOnDeviceAnnounce: true})],
+        exposes: [
+            tuya.exposes.switch(),
+            e.energy(),
+            e.power(),
+            e.voltage(),
+            e.current(),
+            e.binary("over_current_breaker", ea.STATE_SET, "ON", "OFF").withDescription("Switch off when current exceeds the threshold"),
+            e
+                .numeric("over_current_threshold", ea.STATE_SET)
+                .withUnit("A")
+                .withValueMin(1)
+                .withValueMax(63)
+                .withValueStep(1)
+                .withDescription("Overcurrent threshold"),
+            e.binary("over_voltage_breaker", ea.STATE_SET, "ON", "OFF").withDescription("Switch off when voltage exceeds the threshold"),
+            e
+                .numeric("over_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(230)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withDescription("Overvoltage threshold"),
+            e.binary("under_voltage_breaker", ea.STATE_SET, "ON", "OFF").withDescription("Switch off when voltage drops below the threshold"),
+            e
+                .numeric("under_voltage_threshold", ea.STATE_SET)
+                .withUnit("V")
+                .withValueMin(80)
+                .withValueMax(220)
+                .withValueStep(1)
+                .withDescription("Undervoltage threshold"),
+            // Reported by both variants but not writable (the device ignores DP 17 writes)
+            e.binary("leakage_breaker", ea.STATE, "ON", "OFF").withDescription("Residual current protection enabled (EAYCBM-Z-2P with RCD only)"),
+            e.numeric("leakage_threshold", ea.STATE).withUnit("mA").withDescription("Residual current trip threshold (EAYCBM-Z-2P with RCD only)"),
+            e.text("breaker_id", ea.STATE).withDescription("Breaker identifier"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [6, null, tuya.valueConverter.phaseVariant2],
+                [16, "state", tuya.valueConverter.onOff],
+                [17, null, tuya.valueConverterBasic.thresholdBlocks([[4, "leakage"]])],
+                [18, null, eaycbmThresholds],
+                [18, "over_current_breaker", eaycbmThresholds],
+                [18, "over_current_threshold", eaycbmThresholds],
+                [18, "over_voltage_breaker", eaycbmThresholds],
+                [18, "over_voltage_threshold", eaycbmThresholds],
+                [18, "under_voltage_breaker", eaycbmThresholds],
+                [18, "under_voltage_threshold", eaycbmThresholds],
+                [19, "breaker_id", tuya.valueConverter.raw],
+            ],
+        },
+        whiteLabel: [{vendor: "EARU", model: "EAYCBM-Z-2P", description: "Smart circuit breaker with energy metering and RCD"}],
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_zofmmt9s"]),
