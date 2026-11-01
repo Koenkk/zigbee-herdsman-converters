@@ -280,6 +280,13 @@ interface SonoffSnzb02m {
     commandResponses: never;
 }
 
+interface SonoffSnzb02mPressure {
+    attributes: {
+        pressure: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 // **************************** SWV-ZN/ZF related ↓ ****************************
 interface SonoffSwvzn {
     attributes: {
@@ -9060,7 +9067,9 @@ export const definitions: DefinitionWithExtend[] = [
                 fingerprint: [{modelID: "CK-TLSR8656-SS5-01(7003)", manufacturerName: "eWeLink"}],
             },
             tuya.whitelabel("Tuya", "WL-19DWZ", "Contact sensor", ["_TZ3000_n2egfsli"]),
-            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon"]),
+            // Some batches report the manufacturer name as "Zbeacon" instead of "zbeacon"; fingerprints are
+            // compared case-sensitively, so both spellings are needed for the same whitelabel.
+            tuya.whitelabel("zbeacon", "DS01", "Contact sensor", ["zbeacon", "Zbeacon"]),
         ],
         description: "Contact sensor",
         extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "contact", zoneAttributes: ["alarm_1", "battery_low"]})],
@@ -12526,7 +12535,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "temperatureCalibration",
                 entityCategory: "config",
                 description:
-                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Offset to add/subtract to the reported temperature. Note: wake up the device by pressing the button on the top before changing this value.",
                 valueMin: -50,
                 valueMax: 50,
                 scale: 100,
@@ -12539,7 +12548,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "humidityCalibration",
                 entityCategory: "config",
                 description:
-                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the back before changing this value.",
+                    "Offset to add/subtract to the reported relative humidity. Note: wake up the device by pressing the button on the top before changing this value.",
                 valueMin: -50,
                 valueMax: 50,
                 scale: 100,
@@ -12566,16 +12575,25 @@ export const definitions: DefinitionWithExtend[] = [
                 commands: {},
                 commandsResponse: {},
             }),
+            m.deviceAddCustomCluster("msPressureMeasurement", {
+                name: "msPressureMeasurement",
+                ID: 0x0403,
+                attributes: {
+                    pressure: {name: "pressure", ID: 0x0004, type: Zcl.DataType.INT32},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
             // official cluster
             m.battery(),
             m.temperature({reporting: {min: 5, max: 3600, change: 20}}),
             m.humidity({valueMin: 0, valueMax: 100, reporting: {min: 5, max: 3600, change: 100}}),
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             // attributes
-            m.numeric<"msPressureMeasurement">({
+            m.numeric<"msPressureMeasurement", SonoffSnzb02mPressure>({
                 name: "pressure",
                 cluster: "msPressureMeasurement",
-                attribute: {ID: 0x0004, type: Zcl.DataType.INT32},
+                attribute: "pressure",
                 access: "STATE_GET",
                 description: "Atmospheric pressure in hPa reported via manufacturer attribute 0x0004 (manuCode 0x1286).",
                 unit: "hPa",

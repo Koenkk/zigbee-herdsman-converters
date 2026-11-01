@@ -4634,7 +4634,12 @@ const tuyaModernExtend = {
                     // 0x01: The gateway is connected to the internet.
                     // 0x02: The request timed out after three seconds.
                     msg.endpoint
-                        .command("manuSpecificTuya", "mcuGatewayConnectionStatus", {payloadSize: 1, payload: 1}, {})
+                        .command(
+                            "manuSpecificTuya",
+                            "mcuGatewayConnectionStatus",
+                            {payloadSize: 1, payload: 1},
+                            {disableResponse: true, disableDefaultResponse: true},
+                        )
                         .catch((error) => logger.error(`Failed respond to gateway connection status '${msg.device.ieeeAddr}' (${error})`, NS));
                 }
             },
