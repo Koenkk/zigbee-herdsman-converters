@@ -70,6 +70,41 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("XBee");
     });
 
+    it("finds EGLO 901471 variant by endpoint 3 profile", async () => {
+        const awoxEp3 = mockDevice(
+            {
+                modelID: "EBF-RGB-ZMB-CLB",
+                manufacturerName: "AwoX",
+                endpoints: [
+                    {
+                        ID: 1,
+                        profileID: 260,
+                        deviceID: 269,
+                        inputClusterIDs: [4096, 0, 3, 4, 5, 6, 8, 768, 10],
+                        outputClusterIDs: [4, 5, 6, 8, 768, 10],
+                    },
+                    {ID: 3, profileID: 4751, deviceID: 269, inputClusterIDs: [4, 65360, 65361], outputClusterIDs: [65360, 65361]},
+                    {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+                ],
+            },
+            "Router",
+        );
+        expect((await findByDevice(awoxEp3)).model).toStrictEqual("901471_1");
+
+        const lightEp3 = mockDevice(
+            {
+                modelID: "EBF-RGB-ZMB-CLB",
+                manufacturerName: "AwoX",
+                endpoints: [
+                    {ID: 1, profileID: 260, deviceID: 269, inputClusterIDs: [0, 3, 4, 5, 6, 8, 768]},
+                    {ID: 3, profileID: 260, deviceID: 269, inputClusterIDs: [0, 3, 4, 5, 6, 8, 768]},
+                ],
+            },
+            "Router",
+        );
+        expect((await findByDevice(lightEp3)).model).toStrictEqual("901471");
+    });
+
     it("finds definition with white label by fingerprint", async () => {
         const device1 = mockDevice(
             {
