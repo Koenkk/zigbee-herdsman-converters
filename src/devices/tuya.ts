@@ -4712,6 +4712,26 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_0corc0ph"]),
+        model: "X7633",
+        vendor: "Xenon Smart",
+        description: "Natural gas detector",
+        whiteLabel: [tuya.whitelabel("Zorro Alert", "JT-ZL2010Z", "Combustible gas detector", ["_TZE204_0corc0ph"])],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.gas(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
+            tuya.exposes.faultAlarm(),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalseEnum0],
+                [10, "preheat", tuya.valueConverter.raw],
+                [11, "fault_alarm", tuya.valueConverter.trueFalse1],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_ioxkjvuz"]),
         model: "GA01",
         vendor: "Meian",
