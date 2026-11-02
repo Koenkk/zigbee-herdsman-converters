@@ -4722,12 +4722,16 @@ export const definitions: DefinitionWithExtend[] = [
             e.gas(),
             e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
             tuya.exposes.faultAlarm(),
+            e
+                .binary("end_of_life", ea.STATE, true, false)
+                .withDescription("Indicates whether the sensor has reached its end of life and should be replaced"),
         ],
         meta: {
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalseEnum0],
                 [10, "preheat", tuya.valueConverter.raw],
                 [11, "fault_alarm", tuya.valueConverter.trueFalse1],
+                [12, "end_of_life", tuya.valueConverter.trueFalseInvert], // lifecycle
             ],
         },
     },
