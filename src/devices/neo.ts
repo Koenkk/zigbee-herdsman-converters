@@ -128,7 +128,6 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
         ],
         meta: {
-        meta: {
             overrideHaDiscoveryPayload: (payload) => {
                 if (
                     typeof payload.command_topic === "string" &&
@@ -144,7 +143,7 @@ export const definitions: DefinitionWithExtend[] = [
                     payload.support_volume_set = false;
                 }
             },
-            tuyaDatapoints: [            
+            tuyaDatapoints: [
                 [
                     1,
                     "alarm_state",
