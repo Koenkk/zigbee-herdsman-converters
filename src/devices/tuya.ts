@@ -4722,11 +4722,11 @@ export const definitions: DefinitionWithExtend[] = [
             e.gas(),
             e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
             tuya.exposes.faultAlarm(),
-            e.binary("fault", ea.STATE, true, false).withDescription("General fault"),
-            e.binary("serious_fault", ea.STATE, true, false).withDescription("Serious fault"),
-            e.binary("sensor_fault", ea.STATE, true, false).withDescription("Sensor fault"),
-            e.binary("probe_fault", ea.STATE, true, false).withDescription("Probe fault"),
-            e.binary("power_fault", ea.STATE, true, false).withDescription("Power fault"),
+            e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether a general fault was detected"),
+            e.binary("serious_fault", ea.STATE, true, false).withDescription("Indicates whether a serious fault was detected"),
+            e.binary("sensor_fault", ea.STATE, true, false).withDescription("Indicates whether a sensor fault was detected"),
+            e.binary("probe_fault", ea.STATE, true, false).withDescription("Indicates whether a probe fault was detected"),
+            e.binary("power_fault", ea.STATE, true, false).withDescription("Indicates whether a power fault was detected"),
             e
                 .binary("end_of_life", ea.STATE, true, false)
                 .withDescription("Indicates whether the sensor has reached its end of life and should be replaced"),
