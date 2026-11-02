@@ -223,7 +223,7 @@ describe("Hive SLR1c daily heating schedules", () => {
         const schedule = "06:30/20 23:59/1";
         // Act: expand to six slots without moving the real setback.
         await convertSet(endpoint, "schedule_monday", schedule, meta);
-        // Assert: the additional slots repeat 20°C before 23:59; none changes the heating window.
+        // Assert: the latest four available hourly slots repeat 20°C before 23:59 without changing the heating window.
         expect(command).toHaveBeenCalledWith(
             "hvacThermostat",
             "setWeeklySchedule",
@@ -233,10 +233,10 @@ describe("Hive SLR1c daily heating schedules", () => {
                 mode: 1,
                 transitions: [
                     {transitionTime: 390, heatSetpoint: 2000},
-                    {transitionTime: 1170, heatSetpoint: 2000},
                     {transitionTime: 1230, heatSetpoint: 2000},
                     {transitionTime: 1290, heatSetpoint: 2000},
                     {transitionTime: 1350, heatSetpoint: 2000},
+                    {transitionTime: 1410, heatSetpoint: 2000},
                     {transitionTime: 1439, heatSetpoint: 100},
                 ],
             },
