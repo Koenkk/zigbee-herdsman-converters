@@ -598,11 +598,19 @@ export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoin
         return;
     }
     try {
-        await endpoint.discoverAttributes(cluster, extended, {
+        const result = await endpoint.discoverAttributes(cluster, extended, {
             sendPolicy: "immediate",
             disableRecovery: true,
             disableDefaultResponse: true,
         });
+        if (!result && extended) {
+            // fallback if extended command is unsupported
+            await endpoint.discoverAttributes(cluster, false, {
+                sendPolicy: "immediate",
+                disableRecovery: true,
+                disableDefaultResponse: true,
+            });
+        }
     } catch (error) {
         const message = (error as Error).message;
         logger.debug(`discovery error in cluster ${cluster}: ${message}`, NS);
