@@ -992,7 +992,9 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.lightType(),
             tuya.exposes.countdown(),
             e.power_on_behavior().withAccess(ea.STATE_SET),
-            e.enum("indicator_status", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("Indicator status (none = off, relay = follows switch, pos = night location)"),
+            e
+                .enum("indicator_status", ea.STATE_SET, ["none", "relay", "pos"])
+                .withDescription("Indicator status (none = off, relay = follows switch, pos = night location)"),
             e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable switch backlight"),
             e.enum("indicator_light_brightness", ea.STATE_SET, ["0", "1", "2"]).withDescription("Indicator light brightness level"),
             e.enum("vibration_gear", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("Haptic feedback / vibration level"),
@@ -1006,10 +1008,14 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
                 [6, "countdown", tuya.valueConverter.countdown],
                 [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
-                [21, "indicator_status", tuya.valueConverterBasic.lookup({"none": tuya.enum(0), "relay": tuya.enum(1), "pos": tuya.enum(2)})],
+                [21, "indicator_status", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
                 [26, "backlight_switch", tuya.valueConverter.onOff],
                 [101, "indicator_light_brightness", tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2)})],
-                [102, "vibration_gear", tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2), "3": tuya.enum(3)})],
+                [
+                    102,
+                    "vibration_gear",
+                    tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2), "3": tuya.enum(3)}),
+                ],
             ],
         },
     },
