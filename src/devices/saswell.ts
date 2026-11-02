@@ -34,6 +34,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "_TZE200_7p8ugv8d",
                 "_TZE284_3yp57tby",
                 "_TZE2841000000_3yp57tby",
+                "_TZE200_3ymoslep",
+                "_TZE204_3ymoslep",
+                "_TZE284_3ymoslep",
+                "_TZE2841000000_3ymoslep",
             ]),
             ...tuya.fingerprint("aj4jz0i\u0000", ["_TYST11_caj4jz0i"]),
         ],
@@ -47,7 +51,13 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "RTX", model: "ZB-RT1"},
             {vendor: "SETTI+", model: "TRV001"},
             {vendor: "Royal Thermo", model: "RTE 77.001B"},
-            {vendor: "Nous", model: "H1Z"}, // 3yp57tby
+            tuya.whitelabel("Nous", "H1Z", "Thermostatic radiator valve", [
+                "_TZE2841000000_3yp57tby",
+                "_TZE200_3ymoslep",
+                "_TZE204_3ymoslep",
+                "_TZE284_3ymoslep",
+                "_TZE2841000000_3ymoslep",
+            ]),
         ],
         fromZigbee: [legacy.fz.saswell_thermostat, fz.ignore_tuya_set_time, legacy.fz.tuya_thermostat_weekly_schedule_2],
         toZigbee: [

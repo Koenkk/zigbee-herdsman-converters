@@ -15,6 +15,15 @@ const te = tuya.exposes;
 
 const NS = "zhc:zemismart";
 
+interface Zms206ProprietaryCluster {
+    attributes: never;
+    commands: never;
+    commandResponses: {
+        unknownD0: Record<string, never>;
+        unknownD2: Record<string, never>;
+    };
+}
+
 const valueConverterLocal = {
     indiciatorStatus: tuya.valueConverterBasic.lookup({
         off: tuya.enum(0),
@@ -214,8 +223,8 @@ const fzLocal = {
                             currentPosition = currentPosition === -1 ? 100 : currentPosition;
                             currentPosition = currentPosition - (deltaTimeSec * 100) / Number(options.time_close);
                         }
-                        currentPosition = currentPosition > 100 ? 100 : currentPosition;
-                        currentPosition = currentPosition < 0 ? 0 : currentPosition;
+                        currentPosition = Math.min(currentPosition, 100);
+                        currentPosition = Math.max(currentPosition, 0);
                     }
                 }
                 entry.CurrentPosition = currentPosition;
@@ -435,7 +444,9 @@ export const definitions: DefinitionWithExtend[] = [
                     7,
                     "motor_state",
                     tuya.valueConverterBasic.lookup((options) =>
-                        options.invert_cover ? {opening: tuya.enum(1), closing: tuya.enum(0)} : {opening: tuya.enum(0), closing: tuya.enum(1)},
+                        options.invert_cover
+                            ? {opening: tuya.enum(1), closing: tuya.enum(0), stopped: tuya.enum(2)}
+                            : {opening: tuya.enum(0), closing: tuya.enum(1), stopped: tuya.enum(2)},
                     ),
                 ],
                 [13, "battery", tuya.valueConverter.raw],
@@ -490,31 +501,6 @@ export const definitions: DefinitionWithExtend[] = [
             // e.numeric('time_total', ea.STATE).withUnit('ms'),
             // exposes.enum('situation_set', ea.STATE, Object.values(tuya.ZMAM02.AM02Situation)),
         ],
-    },
-    {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fzo2pocs"]),
-        model: "ZM25TQ",
-        vendor: "Zemismart",
-        description: "Tubular motor",
-        fromZigbee: [legacy.fz.tuya_cover],
-        toZigbee: [legacy.tz.tuya_cover_control, legacy.tz.tuya_cover_options, legacy.tz.tuya_data_point_test],
-        exposes: [
-            te.coverPosition(),
-            e.enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the upper stroke limit").withCategory("config"),
-            e
-                .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
-                .withDescription("Set / Reset the middle stroke limit")
-                .withCategory("config"),
-            e.enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"]).withDescription("Set / Reset the lower stroke limit").withCategory("config"),
-        ],
-        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true})],
-        meta: {
-            tuyaDatapoints: [
-                [103, "upper_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
-                [104, "middle_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
-                [105, "lower_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
-            ],
-        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_1n2kyphz", "_TZE200_shkxsgis", "_TZE204_shkxsgis"]),
@@ -867,7 +853,29 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZMS-206US-4",
         vendor: "Zemismart",
         description: "Smart screen switch 4 gang US",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        extend: [
+            tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"}),
+            // Declare these empty reports so herdsman can send the requested default response.
+            {
+                ...m.deviceAddCustomCluster("manuSpecificZemismartScreen", {
+                    name: "manuSpecificZemismartScreen",
+                    ID: 0xe000,
+                    attributes: {},
+                    commands: {},
+                    commandsResponse: {
+                        unknownD0: {name: "unknownD0", ID: 0xd0, parameters: []},
+                        unknownD2: {name: "unknownD2", ID: 0xd2, parameters: []},
+                    },
+                }),
+                fromZigbee: [
+                    {
+                        cluster: "manuSpecificZemismartScreen",
+                        type: ["commandUnknownD0", "commandUnknownD2"],
+                        convert: () => undefined,
+                    } satisfies Fz.Converter<"manuSpecificZemismartScreen", Zms206ProprietaryCluster, ["commandUnknownD0", "commandUnknownD2"]>,
+                ],
+            },
+        ],
         exposes: [
             tuya.exposes.backlightModeOffOn().withAccess(ea.STATE_SET),
             e.switch(),
@@ -1095,7 +1103,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1"]),
+        // 19jwhi8c has more datapoints
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mpg22jc1", "_TZE28C1000000_19jwhi8c"]),
         model: "ZN-USC1U-HT",
         vendor: "Zemismart",
         description: "Smart curtain wall switch",
@@ -1103,7 +1112,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             te.coverPosition(),
-            e.enum("motor_steering", ea.STATE_SET, ["FORWARD", "BACKWARD"]).withDescription("Motor steering"),
+            te.motorDirection(),
             e
                 .numeric("calibration_time", ea.STATE_SET)
                 .withValueMin(0)
@@ -1115,16 +1124,23 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "state", tuya.valueConverter.coverAction],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [
-                    8,
-                    "motor_steering",
-                    tuya.valueConverterBasic.lookup({
-                        FORWARD: tuya.enum(0),
-                        BACKWARD: tuya.enum(1),
-                    }),
-                ],
+                [8, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [10, "calibration_time", tuya.valueConverter.raw],
             ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0001", ["_TZ3000_w5s3mbyn"]),
+        model: "KES-606US-L1",
+        vendor: "Zemismart",
+        description: "Smart light switch - 1 gang (US)",
+        extend: [tuya.modernExtend.tuyaBase(), m.onOff()],
+        fromZigbee: [tuya.fz.power_on_behavior_2, tuya.fz.indicator_mode],
+        toZigbee: [tuya.tz.power_on_behavior_2, {...tuya.tz.backlight_indicator_mode_1, key: ["indicator_mode"]}],
+        exposes: [tuya.exposes.indicatorMode()],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            await reporting.bind(device.getEndpoint(1), coordinatorEndpoint, ["genOnOff"]);
         },
     },
     {

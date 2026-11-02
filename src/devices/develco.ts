@@ -767,12 +767,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EMIZB-132",
         vendor: "Develco",
         description: "Wattle AMS HAN power-meter sensor",
-        version: "0.0.1",
+        version: "0.0.2",
         ota: true,
         extend: [
             develcoModernExtend.addCustomDevelcoSeMeteringCluster(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
+            m.quirkAddEndpointCluster({
+                endpointID: 2,
+                inputClusters: ["haElectricalMeasurement"],
+            }),
             m.numeric<"haElectricalMeasurement", undefined>({
                 name: "power",
                 cluster: "haElectricalMeasurement",
@@ -822,6 +826,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["SMSZB-120", "GWA1512_SmokeSensor"],
         model: "SMSZB-120",
         vendor: "Develco",
+        version: "0.0.1",
         description: "Smoke detector with siren",
         whiteLabel: [
             {vendor: "Frient", model: "94430", description: "Smart Intelligent Smoke Alarm"},
@@ -832,7 +837,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.faultStatus(),
-            develcoModernExtend.temperature({endpointNames: ["38"]}),
+            develcoModernExtend.temperature(),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
@@ -844,7 +849,6 @@ export const definitions: DefinitionWithExtend[] = [
             m.iasZoneAlarm({
                 zoneType: "smoke",
                 zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
-                zoneStatusReporting: true,
             }),
             m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 600}}),
         ],
@@ -899,7 +903,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
             develcoModernExtend.faultStatus(),
-            m.temperature({endpointNames: ["38"]}),
+            develcoModernExtend.temperature(),
             m.battery({
                 voltageToPercentage: {min: 2500, max: 3000},
                 percentage: true,
@@ -1319,7 +1323,7 @@ export const definitions: DefinitionWithExtend[] = [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.addCustomClusterManuSpecificDevelcoAirQuality(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
-            develcoModernExtend.voc(),
+            develcoModernExtend.voc({maxPpb: 60000}),
             develcoModernExtend.airQuality(),
             develcoModernExtend.temperature(),
             m.humidity(),

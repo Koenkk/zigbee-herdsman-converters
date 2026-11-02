@@ -1,6 +1,15 @@
-import {describe, expect, test} from "vitest";
+import {describe, expect, test, vi} from "vitest";
 import {ColorXY} from "../src/lib/color";
-import {DecodeManuSpecificPhilips2, EncodeManuSpecificPhilips2, HueEffectType, HueGradientStyle, type Philips2Data} from "../src/lib/philips";
+import {
+    DecodeManuSpecificPhilips2,
+    EncodeManuSpecificPhilips2,
+    HueEffectType,
+    HueGradientStyle,
+    type Philips2Data,
+    tz as philipsTz,
+} from "../src/lib/philips";
+import type {KeyValueAny, Tz} from "../src/lib/types";
+import {mockDevice} from "./utils";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -656,5 +665,31 @@ describe("empty encoding", () => {
         const buf = EncodeManuSpecificPhilips2({});
         expect(buf.byteLength).toBe(2);
         expect(Buffer.from(buf).readUInt16LE(0)).toBe(0);
+    });
+});
+
+describe("gradient transition", () => {
+    test("the gradient converter maps transition onto fadeSpeed", async () => {
+        const device = mockDevice({
+            modelID: "LCX004",
+            manufacturerName: "Signify Netherlands B.V.",
+            endpoints: [{ID: 11, inputClusters: ["genBasic", "genOnOff", "genLevelCtrl", "lightingColorCtrl"], outputClusters: []}],
+        });
+        const endpoint = device.getEndpoint(11);
+        const converter = philipsTz.gradient({reverse: true});
+
+        const sent = async (message: KeyValueAny, options: KeyValueAny = {}) => {
+            vi.mocked(endpoint.command).mockClear();
+            await converter.convertSet(endpoint, "gradient", message.gradient, {device, message, options, state: {}} as unknown as Tz.Meta);
+            const payload = vi.mocked(endpoint.command).mock.calls[0][2] as {data: Buffer};
+            return DecodeManuSpecificPhilips2(payload.data).fadeSpeed;
+        };
+
+        // 5s in the message → 50 deciseconds
+        expect(await sent({gradient: ["#ff0000", "#00ff00"], transition: 5})).toBe(50);
+        // no transition anywhere → the unchanged 0.4s default
+        expect(await sent({gradient: ["#ff0000", "#00ff00"]})).toBe(4);
+        // device-level option applies when the message is silent
+        expect(await sent({gradient: ["#ff0000", "#00ff00"]}, {transition: 3})).toBe(30);
     });
 });

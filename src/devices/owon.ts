@@ -4,7 +4,8 @@ import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import * as utils from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -95,6 +96,25 @@ interface OwonSeMetering {
     commandResponses: {
         owonGetHistoryRecordRsp: Record<string, never>;
     };
+}
+
+// m.numeric publishes its bounds to the UI but does not enforce them before writing,
+// and the meters accept a minimum cycle above the maximum by silently ceasing to
+// report until they are power cycled.
+function withReportCycleGuard(result: ModernExtend): ModernExtend {
+    const converter = result.toZigbee[0];
+    const convertSet = converter?.convertSet;
+    if (!converter || !convertSet) throw new Error("Report cycle extend must be writable");
+    converter.convertSet = async (entity, key, value, meta) => {
+        utils.assertNumber(value, key);
+        const min = key === "min_report_cycle" ? value : Number(meta.state.min_report_cycle);
+        const max = key === "max_report_cycle" ? value : Number(meta.state.max_report_cycle);
+        if (Number.isFinite(min) && Number.isFinite(max) && min > max) {
+            throw new Error(`min_report_cycle (${min}) must not exceed max_report_cycle (${max})`);
+        }
+        return await convertSet(entity, key, value, meta);
+    };
+    return result;
 }
 
 const owonExtend = {
@@ -478,6 +498,51 @@ const owonExtend = {
                 owonGetHistoryRecordRsp: {name: "owonGetHistoryRecordRsp", ID: 0x20, parameters: []},
             },
         }),
+
+    // Requires addOwonSeMeteringCluster(). These meters answer Configure Reporting with
+    // UNSUP_GENERAL_COMMAND, so these attributes are the only way to reach the schedule.
+    reportSchedule: (): ModernExtend[] => [
+        withReportCycleGuard(
+            m.numeric({
+                name: "min_report_cycle",
+                cluster: "seMetering",
+                attribute: {ID: 0x5002, type: Zcl.DataType.UINT32},
+                description: "Shortest gap the meter leaves between two reports, which bounds how soon a load change can surface.",
+                unit: "s",
+                valueMin: 1,
+                valueMax: 3600,
+                entityCategory: "config",
+                reporting: false,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC},
+            }),
+        ),
+        withReportCycleGuard(
+            m.numeric({
+                name: "max_report_cycle",
+                cluster: "seMetering",
+                attribute: {ID: 0x5003, type: Zcl.DataType.UINT32},
+                description: "Longest the meter waits before reporting an unchanged measurement.",
+                unit: "s",
+                valueMin: 1,
+                valueMax: 3600,
+                entityCategory: "config",
+                reporting: false,
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC},
+            }),
+        ),
+        m.numeric({
+            name: "percent_change_in_power",
+            cluster: "seMetering",
+            attribute: {ID: 0x5008, type: Zcl.DataType.UINT8},
+            description: "Power change that makes the meter report before the maximum cycle elapses. Raising it delays load changes.",
+            unit: "%",
+            valueMin: 1,
+            valueMax: 100,
+            entityCategory: "config",
+            reporting: false,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.OWON_TECHNOLOGY_INC},
+        }),
+    ],
 };
 
 const owonExtendChecks = {
@@ -1082,7 +1147,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "PC321",
         vendor: "OWON",
         description: "3-Phase clamp power meter",
-        extend: [owonExtend.addOwonClearMeteringCluster(), owonExtend.addOwonSeMeteringCluster()],
+        extend: [owonExtend.addOwonClearMeteringCluster(), owonExtend.addOwonSeMeteringCluster(), ...owonExtend.reportSchedule()],
         fromZigbee: [fz.metering, fzLocal.PC321_metering],
         toZigbee: [tzLocal.PC321_clearMetering],
         configure: async (device, coordinatorEndpoint) => {

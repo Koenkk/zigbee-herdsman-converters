@@ -235,7 +235,8 @@ export const numericAttributes2Payload = async (
                 payload.voltage = value;
                 if (model.meta?.battery?.voltageToPercentage) {
                     assertNumber(value);
-                    payload.battery = batteryVoltageToPercentage(value, model.meta.battery.voltageToPercentage);
+                    const r = options?.battery_voltage_range;
+                    payload.battery = batteryVoltageToPercentage(value, isValidBatteryVoltageRange(r) ? r : model.meta.battery.voltageToPercentage);
                 }
                 break;
             case "2":
@@ -245,7 +246,9 @@ export const numericAttributes2Payload = async (
                 }
                 break;
             case "3":
-                if (["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "MCCGQ14LM", "GZCGQ01LM", "JY-GZ-01AQ", "CTP-R01"].includes(model.model)) {
+                if (
+                    ["WXCJKG11LM", "WXCJKG12LM", "WXCJKG13LM", "MCCGQ13LM", "MCCGQ14LM", "GZCGQ01LM", "JY-GZ-01AQ", "CTP-R01"].includes(model.model)
+                ) {
                     // The temperature value is constant 25 °C and does not change, so we ignore it
                     // https://github.com/Koenkk/zigbee2mqtt/issues/11126
                     // https://github.com/Koenkk/zigbee-herdsman-converters/pull/3585
@@ -387,7 +390,8 @@ export const numericAttributes2Payload = async (
                 } else if (["RTCGQ15LM"].includes(model.model)) {
                     payload.occupancy = value;
                 } else if (["PS-S04D"].includes(model.model)) {
-                    payload.presence = value === 1;
+                    // Not the live presence: it stays 0 while the device reports presence via 0x0142, which would
+                    // overwrite it whenever the 0x00F7 struct is read (fp300BatteryPoll). Presence comes from 0x0142.
                 } else if (["WSDCGQ01LM", "WSDCGQ11LM", "WSDCGQ12LM", "VOCKQJK11LM"].includes(model.model)) {
                     // https://github.com/Koenkk/zigbee2mqtt/issues/798
                     // Sometimes the sensor publishes non-realistic vales, filter these
@@ -514,7 +518,7 @@ export const numericAttributes2Payload = async (
                     // const color_temp_min = (value & 0xffff); // 2700
                     // const color_temp_max = (value >> 16) & 0xffff; // 6500
                 } else if (["PS-S04D"].includes(model.model)) {
-                    payload.pir_detection = value === 1;
+                    // Not the live PIR state (same as tag 100 above). PIR detection comes from 0x014D.
                 }
                 break;
             case "105":
@@ -595,7 +599,7 @@ export const numericAttributes2Payload = async (
                 if (["JT-BZ-01AQ/A"].includes(model.model)) {
                     payload.gas_sensitivity = getFromLookup(value, {1: "15%LEL", 2: "10%LEL"});
                 } else if (["MCCGQ13LM"].includes(model.model)) {
-                    payload.detection_distance = getFromLookup(value, {1: "10mm", 2: "20mm", 3: "30mm"});
+                    payload.detection_distance = getKey(p1DetectionDistanceLookup, value);
                 }
                 break;
             case "160":
@@ -990,7 +994,11 @@ export const numericAttributes2Payload = async (
                 break;
             case "mode":
                 assertNumber(value);
-                payload.operation_mode = ["command", "event"][value];
+                if (model.model === "KD-R01D") {
+                    payload.event_mode = ["command", "event"][value];
+                } else {
+                    payload.operation_mode = ["command", "event"][value];
+                }
                 break;
             case "modelId":
                 // We ignore it, but we add it here to not shown an unknown key in the log
@@ -2059,6 +2067,9 @@ export const manufacturerCode = 0x115f; // TODO: from Zcl
 const manufacturerOptions = {
     lumi: {manufacturerCode: manufacturerCode, disableDefaultResponse: true},
 };
+const p1DetectionDistanceLookup = {"10mm": 1, "20mm": 2, "30mm": 3} as const;
+const isValidBatteryVoltageRange = (r: unknown): r is BatteryLinearVoltage =>
+    isObject(r) && typeof r.min === "number" && typeof r.max === "number" && r.min < r.max;
 
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
@@ -2665,10 +2676,122 @@ export const lumiModernExtend = {
             entityCategory: "diagnostic",
             ...args,
         }),
+    lumiP1Battery: (): ModernExtend => ({
+        isModernExtend: true,
+        meta: {battery: {voltageToPercentage: {min: 2850, max: 3000}}},
+        options: [
+            e
+                .composite("battery_voltage_range", "battery_voltage_range", ea.SET)
+                .withDescription(
+                    "Custom battery voltage range in mV (0% to 100%). " +
+                        "Both min and max are required (min < max). " +
+                        "Default: 2850-3000 (standard CR123A). " +
+                        "Takes effect on next report.",
+                )
+                .withFeature(e.numeric("min", ea.SET).withUnit("mV").withDescription("0% voltage threshold in mV. Default: 2850"))
+                .withFeature(
+                    e.numeric("max", ea.SET).withUnit("mV").withDescription("100% voltage threshold in mV (sensor max ~3700 mV). Default: 3000"),
+                ),
+        ],
+        fromZigbee: [
+            {
+                cluster: "genPowerCfg",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options) => {
+                    const payload: KeyValueAny = {};
+                    if (msg.data.batteryVoltage !== undefined && msg.data.batteryVoltage < 255) {
+                        payload.voltage = msg.data.batteryVoltage * 100;
+                        if (model.meta?.battery?.voltageToPercentage) {
+                            const r = options?.battery_voltage_range;
+                            payload.battery = batteryVoltageToPercentage(
+                                payload.voltage,
+                                isValidBatteryVoltageRange(r) ? r : model.meta.battery.voltageToPercentage,
+                            );
+                        }
+                    }
+                    return payload;
+                },
+            } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
+        ],
+        onEvent: [
+            (event) => {
+                if (event.type !== "deviceOptionsChanged") return;
+                const r = event.data.options?.battery_voltage_range as Partial<BatteryLinearVoltage> | undefined;
+                if (r != null && !isValidBatteryVoltageRange(r)) {
+                    logger.warning(
+                        `MCCGQ13LM: invalid battery_voltage_range [${r?.min}, ${r?.max}] (both min and max are required, min must be < max). Using default.`,
+                        NS,
+                    );
+                }
+            },
+        ],
+        exposes: [e.battery(), e.battery_voltage()],
+    }),
+    lumiP1DetectionDistance: (): ModernExtend => ({
+        isModernExtend: true,
+        exposes: [
+            e
+                .enum("detection_distance", ea.STATE_SET, Object.keys(p1DetectionDistanceLookup))
+                .withDescription(
+                    'The sensor will be considered "off" within the set distance. ' +
+                        'Press the device button right before changing this value (this press triggers an "action: single" event).',
+                ),
+        ],
+        fromZigbee: [
+            {
+                cluster: "manuSpecificLumi",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg) => {
+                    if (msg.data[268] !== undefined) {
+                        const value = msg.data[268];
+                        if (value === 1 || value === 2 || value === 3) {
+                            return {detection_distance: getKey(p1DetectionDistanceLookup, value)};
+                        }
+                    }
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["detection_distance"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertString(value, "detection_distance");
+                    value = value.toLowerCase();
+                    await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
+                        "manuSpecificLumi",
+                        {268: {value: getFromLookup(value, p1DetectionDistanceLookup), type: 0x20}},
+                        {manufacturerCode},
+                    );
+                    await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
+                },
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
+                },
+            } satisfies Tz.Converter,
+        ],
+    }),
+    lumiP1Action: (): ModernExtend => ({
+        isModernExtend: true,
+        exposes: [e.action(["single"])],
+        fromZigbee: [
+            {
+                cluster: "genBasic",
+                type: ["attributeReport"],
+                convert: (model, msg) => {
+                    if (hasAlreadyProcessedMessage(msg, model)) return;
+                    if (msg.data.modelId === "lumi.magnet.ac01") {
+                        return {action: "single"};
+                    }
+                },
+            } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport"]>,
+        ],
+    }),
     lumiAqaraH2EuShutterSwitchAction: (): ModernExtend => {
+        const buttonMap: {[key: number]: string} = {3: "top_wireless_button", 4: "bottom_wireless_button"};
+        const actionMap: {[key: number]: string} = {0: "hold", 1: "single", 2: "double", 255: "release"};
         return {
             isModernExtend: true,
-            exposes: [e.action(["button_3_single", "button_4_single"])],
+            exposes: [e.action(Object.values(actionMap).flatMap((action) => Object.values(buttonMap).map((button) => `${action}_${button}`)))],
             fromZigbee: [
                 {
                     cluster: "genMultistateInput",
@@ -2676,11 +2799,10 @@ export const lumiModernExtend = {
                     convert: (model, msg, publish, options, meta) => {
                         const endpoint = msg.endpoint.ID;
                         const value = msg.data.presentValue;
-                        // Don't map any other actions/endpoint, create ghost events
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/32059
-                        const buttonMap: {[key: number]: string} = {3: "button_3", 4: "button_4"};
-                        if (endpoint in buttonMap && value === 1) {
-                            return {action: `${buttonMap[endpoint]}_single`};
+                        // Only the wireless buttons emit actions. Periodic stale reports are disabled in configure.
+                        // https://github.com/Koenkk/zigbee2mqtt/issues/33045
+                        if (endpoint in buttonMap && typeof value === "number" && value in actionMap) {
+                            return {action: `${actionMap[value]}_${buttonMap[endpoint]}`};
                         }
                         return null;
                     },
@@ -3268,8 +3390,8 @@ export const lumiModernExtend = {
 
         return {exposes, fromZigbee, isModernExtend: true};
     },
-    lumiKnobRotation: (args?: {withButtonState: boolean}): ModernExtend => {
-        const withButtonState = args?.withButtonState || true;
+    lumiKnobRotation: (args?: {withButtonState?: boolean; pressedEndpoint?: number}): ModernExtend => {
+        const withButtonState = args?.withButtonState ?? true;
         const exposes: Expose[] = [
             e.action(["start_rotating", "rotation", "stop_rotating"]),
             e.numeric("action_rotation_angle", ea.STATE).withUnit("*").withDescription("Rotation angle").withCategory("diagnostic"),
@@ -3294,10 +3416,17 @@ export const lumiModernExtend = {
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data[570] !== undefined) {
                         const act: KeyValueNumberString = {1: "start_rotating", 2: "rotation", 3: "stop_rotating"};
-                        const state: KeyValueNumberString = {0: "released", 128: "pressed"};
                         return {
                             action: act[(msg.data[570] as number) & ~128],
-                            action_rotation_button_state: state[(msg.data[570] as number) & 128],
+                            ...(withButtonState
+                                ? {
+                                      action_rotation_button_state:
+                                          (args?.pressedEndpoint !== undefined && msg.endpoint.ID === args.pressedEndpoint) ||
+                                          ((msg.data[570] as number) & 128) !== 0
+                                              ? "pressed"
+                                              : "released",
+                                  }
+                                : {}),
                             action_rotation_angle: msg.data[558],
                             action_rotation_angle_speed: msg.data[560],
                             action_rotation_percent: msg.data[563],
@@ -3963,6 +4092,7 @@ export const lumiModernExtend = {
             ],
         } satisfies ModernExtend;
     },
+    w500NtcSensor: (): ModernExtend => createW500NtcSensor(),
     w600ExternalTempSensor: (): ModernExtend => createW600ExternalTempSensor(),
     w600Heartbeat: (): ModernExtend => createW600Heartbeat(),
     w600Thermostat: (): ModernExtend => createW600Thermostat(),
@@ -4423,6 +4553,7 @@ const W600_ATTR_SYSTEM_MODE = 0x0271;
 const W600_ATTR_SCHEDULE = 0x027d;
 const W600_ATTR_PRESET = 0x0311;
 const W600_ATTR_PRESET_TEMPERATURE_TABLE = 0x0317;
+const W600_ATTR_EXTERNAL_SENSOR_STATUS = 0x027e;
 const W600_ATTR_SENSOR_SOURCE = 0x0280;
 const W600_ATTR_SENSOR_BINDING = 0xfff2;
 const W600_ATTR_HEARTBEAT = 0x00f7;
@@ -4648,6 +4779,9 @@ function getW600SensorSelectionFromState(value: unknown) {
 }
 
 function parseW600ExternalTemperatureInput(value: unknown, key: string) {
+    if (typeof value !== "number" && (typeof value !== "string" || value.trim() === "")) {
+        throw new Error(`${key} must be a number`);
+    }
     const numeric = Number(value);
 
     if (!Number.isFinite(numeric)) {
@@ -4929,6 +5063,7 @@ function createW600Heartbeat(): ModernExtend {
     return {
         exposes: [
             e.battery().withDescription("Battery percentage"),
+            e.battery_voltage().withHomeAssistant({icon: "mdi:current-dc"}),
             e.valve_alarm().withDescription("Indicates whether temperature control abnormal notification has reported an active alert"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Indicates whether open window detection has reported an open window"),
         ],
@@ -4953,6 +5088,10 @@ function createW600Heartbeat(): ModernExtend {
 
                     if (typeof heartbeat[0x18] === "number" && Number.isFinite(heartbeat[0x18])) {
                         result.battery = Math.max(0, Math.min(100, heartbeat[0x18] as number));
+                    }
+
+                    if (typeof heartbeat[0x17] === "number" && heartbeat[0x17] > 0) {
+                        result.voltage = heartbeat[0x17];
                     }
 
                     if (Buffer.isBuffer(heartbeat[0x9c])) {
@@ -5550,9 +5689,161 @@ function matchesW600WeeklyScheduleOtaRequest(data: KeyValue | undefined, require
     return !requireFileVersion || getNumericW600OtaRequestField(data, "fileVersion") === W600_WEEKLY_SCHEDULE_FILE_VERSION;
 }
 
+const W500_ATTR_NTC_R25 = 0x0315;
+const W500_ATTR_NTC_BETA = 0x0316;
+const W500_NTC_PRESET_BETA = 3950;
+const W500_NTC_PRESETS: Record<string, number> = {ntc_10k: 10, ntc_50k: 50, ntc_100k: 100};
+const W500_NTC_R25_MIN = 1;
+const W500_NTC_R25_MAX = 999;
+const W500_NTC_BETA_MIN = 1000;
+const W500_NTC_BETA_MAX = 9999;
+
+/**
+ * NTC floor sensor parameters of the Aqara W500 (firmware 0.0.0_1030).
+ *
+ * - 0x0315 (uint32) is the sensor resistance at 25 °C. It is written in kOhm, but after a power cycle
+ *   the device reports the stored value in Ohm (e.g. 10 is read back as 10000).
+ * - 0x0316 only accepts float32, but the firmware uses the 2 least significant bytes of the written value
+ *   as an uint16 beta (writing 3950.0 = 0x4576E000 results in a beta of 0xE000 = 57344). After a power cycle
+ *   the device reports the beta it actually uses as a whole number.
+ *
+ * The temperature is calculated as 1 / (1 / 298.15 + ln(R / R25) / beta) - 273.15.
+ */
+export const w500Ntc = {
+    encodeBeta: (beta: number): number => {
+        // Of all float32 values ending with the requested 16 bits, take the one closest to the requested beta,
+        // that way the value is still reasonable in case a future firmware parses the float properly.
+        // Whole numbers are skipped since those are indistinguishable from the value reported after a power cycle.
+        const buffer = Buffer.alloc(4);
+        let result: number | undefined;
+        for (let high = 0x3f80; high <= 0x47ff; high++) {
+            buffer.writeUInt16BE(high, 0);
+            buffer.writeUInt16BE(beta, 2);
+            const candidate = buffer.readFloatBE(0);
+            if (Number.isInteger(candidate)) continue;
+            if (result === undefined || Math.abs(candidate - beta) < Math.abs(result - beta)) result = candidate;
+        }
+        return result;
+    },
+    decodeBeta: (value: number): number => {
+        if (Number.isInteger(value)) return value;
+        const buffer = Buffer.alloc(4);
+        buffer.writeFloatBE(value, 0);
+        return buffer.readUInt16BE(2);
+    },
+    decodeR25: (value: number): number => (value >= 1000 ? value / 1000 : value),
+    sensorType: (r25: unknown, beta: unknown): string => {
+        const preset = Object.keys(W500_NTC_PRESETS).find((key) => W500_NTC_PRESETS[key] === r25);
+        return preset && (beta == null || beta === W500_NTC_PRESET_BETA) ? preset : "custom";
+    },
+};
+
+function createW500NtcSensor(): ModernExtend {
+    const sensorTypes = [...Object.keys(W500_NTC_PRESETS), "custom"];
+    const parse = (value: unknown, property: string, min: number, max: number) => {
+        const number = toNumber(value, property);
+        if (!Number.isInteger(number) || number < min || number > max) {
+            throw new Error(`${property} must be a whole number between ${min} and ${max}, got '${value}'`);
+        }
+        return number;
+    };
+    const parseR25 = (value: unknown) => parse(value, "ntc_r25", W500_NTC_R25_MIN, W500_NTC_R25_MAX);
+    const parseBeta = (value: unknown) => parse(value, "ntc_beta", W500_NTC_BETA_MIN, W500_NTC_BETA_MAX);
+    const writeR25 = (entity: Zh.Endpoint | Zh.Group, r25: number) =>
+        entity.write(W600_LUMI_CLUSTER, {[W500_ATTR_NTC_R25]: {value: r25, type: Zcl.DataType.UINT32}}, {manufacturerCode});
+    const writeBeta = (entity: Zh.Endpoint | Zh.Group, beta: number) =>
+        entity.write(
+            W600_LUMI_CLUSTER,
+            {[W500_ATTR_NTC_BETA]: {value: w500Ntc.encodeBeta(beta), type: Zcl.DataType.SINGLE_PREC}},
+            {manufacturerCode},
+        );
+    const convertGet: Tz.Converter["convertGet"] = async (entity) => {
+        await entity.read(W600_LUMI_CLUSTER, [W500_ATTR_NTC_R25, W500_ATTR_NTC_BETA] as never, {manufacturerCode});
+    };
+
+    return {
+        exposes: [
+            e
+                .enum("ntc_sensor_type", ea.ALL, sensorTypes)
+                .withDescription(
+                    `NTC sensor type (k - kOhm), the presets use a beta of ${W500_NTC_PRESET_BETA}. ` +
+                        "For other sensors set 'ntc_r25' and 'ntc_beta', the type then becomes custom",
+                ),
+            e
+                .numeric("ntc_r25", ea.ALL)
+                .withUnit("kΩ")
+                .withValueMin(W500_NTC_R25_MIN)
+                .withValueMax(W500_NTC_R25_MAX)
+                .withValueStep(1)
+                .withDescription("Resistance of the NTC sensor at 25 °C (R25) as a whole number of kOhm, e.g. 2 for a 2 kOhm sensor")
+                .withCategory("config"),
+            e
+                .numeric("ntc_beta", ea.ALL)
+                .withUnit("K")
+                .withValueMin(W500_NTC_BETA_MIN)
+                .withValueMax(W500_NTC_BETA_MAX)
+                .withValueStep(1)
+                .withDescription("Beta (B) value of the NTC sensor as stated in its datasheet, e.g. 3950")
+                .withCategory("config"),
+        ],
+        fromZigbee: [
+            {
+                cluster: W600_LUMI_CLUSTER,
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    const result: KeyValue = {};
+                    const r25 = msg.data[W500_ATTR_NTC_R25];
+                    const beta = msg.data[W500_ATTR_NTC_BETA];
+                    if (typeof r25 === "number") result.ntc_r25 = w500Ntc.decodeR25(r25);
+                    if (typeof beta === "number") result.ntc_beta = w500Ntc.decodeBeta(beta);
+                    if (Object.keys(result).length === 0) return;
+                    result.ntc_sensor_type = w500Ntc.sensorType(result.ntc_r25 ?? meta?.state?.ntc_r25, result.ntc_beta ?? meta?.state?.ntc_beta);
+                    return result;
+                },
+            } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["ntc_sensor_type"],
+                convertSet: async (entity, key, value, meta) => {
+                    assertString(value, key);
+                    if (!sensorTypes.includes(value)) throw new Error(`ntc_sensor_type must be one of: ${sensorTypes.join(", ")}, got '${value}'`);
+                    const custom = value === "custom";
+                    const r25 = custom ? (meta.message.ntc_r25 ?? meta.state.ntc_r25) : W500_NTC_PRESETS[value];
+                    const beta = custom ? (meta.message.ntc_beta ?? meta.state.ntc_beta) : W500_NTC_PRESET_BETA;
+                    if (r25 == null || beta == null) throw new Error("Set 'ntc_r25' and 'ntc_beta' to use a custom NTC sensor");
+                    const state = {ntc_r25: parseR25(r25), ntc_beta: parseBeta(beta)};
+                    await writeR25(entity, state.ntc_r25);
+                    await writeBeta(entity, state.ntc_beta);
+                    return {state: {ntc_sensor_type: w500Ntc.sensorType(state.ntc_r25, state.ntc_beta), ...state}};
+                },
+                convertGet,
+            },
+            {
+                key: ["ntc_r25"],
+                convertSet: async (entity, key, value, meta) => {
+                    const r25 = parseR25(value);
+                    await writeR25(entity, r25);
+                    return {state: {ntc_r25: r25, ntc_sensor_type: w500Ntc.sensorType(r25, meta.message.ntc_beta ?? meta.state.ntc_beta)}};
+                },
+                convertGet,
+            },
+            {
+                key: ["ntc_beta"],
+                convertSet: async (entity, key, value, meta) => {
+                    const beta = parseBeta(value);
+                    await writeBeta(entity, beta);
+                    return {state: {ntc_beta: beta, ntc_sensor_type: w500Ntc.sensorType(meta.message.ntc_r25 ?? meta.state.ntc_r25, beta)}};
+                },
+                convertGet,
+            },
+        ],
+        isModernExtend: true,
+    };
+}
+
 function createW600ExternalTempSensor(): ModernExtend {
     const contexts = new Map<string, W600ExternalSensorContext>();
-    const combinedCommands = new WeakMap<object, Promise<Tz.ConvertSetResult>>();
     const context = (entity: Zh.Endpoint) => {
         const key = entity.deviceIeeeAddress;
         let value = contexts.get(key);
@@ -5574,22 +5865,12 @@ function createW600ExternalTempSensor(): ModernExtend {
     const convertSet: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
         assertEndpoint(entity);
         if (entity.ID !== 1) throw new Error("W600 external temperature is only supported on endpoint 1");
-        const message = meta.message;
-        const combined = message?.sensor != null && message?.external_temperature_input != null;
-        if (combined && combinedCommands.has(message)) return await combinedCommands.get(message);
-        const requested =
-            key === "sensor"
-                ? parseW600SensorSelection(value, key)
-                : message?.sensor != null
-                  ? parseW600SensorSelection(message.sensor, "sensor")
-                  : undefined;
-        const hasInput = key === "external_temperature_input" || combined;
-        // Validate the complete command before changing the device, including either ordering of combined keys.
+        // Single converter for both keys, so a combined command is executed once.
+        const message = {...meta.message, [key]: value};
+        const requested = message.sensor != null ? parseW600SensorSelection(message.sensor, "sensor") : undefined;
+        const hasInput = message.external_temperature_input != null;
         const centiDegrees = hasInput
-            ? parseW600ExternalTemperatureInput(
-                  key === "external_temperature_input" ? value : message.external_temperature_input,
-                  "external_temperature_input",
-              )
+            ? parseW600ExternalTemperatureInput(message.external_temperature_input, "external_temperature_input")
             : undefined;
         const current = getW600SensorSelectionFromState(meta.state?.sensor);
         if (hasInput && (requested ?? current) !== "external") {
@@ -5599,7 +5880,7 @@ function createW600ExternalTempSensor(): ModernExtend {
         const ctx = context(entity);
         if (requested != null) clear(ctx);
         const generation = ctx.generation;
-        const operation = enqueue(ctx, async () => {
+        return await enqueue(ctx, async () => {
             if (ctx.generation !== generation) return;
             const requireFreshInput = () => {
                 if (hasInput && (Date.now() - receivedAt > W600_EXTERNAL_TEMP_SENSOR_FRESHNESS_MS || Date.now() < receivedAt)) {
@@ -5639,8 +5920,6 @@ function createW600ExternalTempSensor(): ModernExtend {
             }
             return {state: {...(refresh ? {sensor: "external"} : {}), ...(hasInput ? {external_temperature_input: centiDegrees / 100} : {})}};
         });
-        if (combined) combinedCommands.set(message, operation);
-        return await operation;
     };
     const convertGet: Tz.Converter["convertGet"] = async (entity) => {
         assertEndpoint(entity);
@@ -5662,6 +5941,11 @@ function createW600ExternalTempSensor(): ModernExtend {
                 .withValueStep(0.01)
                 .withDescription("Manual external temperature forwarded to the W600 when temperature source is external")
                 .withCategory("config"),
+            e
+                .binary("external_temperature_problem", ea.STATE_GET, true, false)
+                .withDescription("Thermostat fell back to its internal sensor after 75 minutes without a fresh external temperature")
+                .withCategory("diagnostic")
+                .withHomeAssistant({deviceClass: "problem", name: "External temperature status"}),
         ],
         fromZigbee: [
             {
@@ -5676,6 +5960,8 @@ function createW600ExternalTempSensor(): ModernExtend {
                         result.sensor = source === 1 ? "external" : "internal";
                         if (source === 0) clear(ctx);
                     }
+                    const status = msg.data[W600_ATTR_EXTERNAL_SENSOR_STATUS];
+                    if (typeof status === "number") result.external_temperature_problem = status === 2;
                     const value = msg.data[W600_ATTR_SENSOR_BINDING];
                     const channel = getW600ExternalSensorRequestChannel(value);
                     const activation = ctx.activation;
@@ -5714,13 +6000,19 @@ function createW600ExternalTempSensor(): ModernExtend {
             } satisfies Fz.Converter<"manuSpecificLumi", ManuSpecificLumi, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
-            {key: ["sensor"], convertSet, convertGet},
-            {key: ["external_temperature_input"], convertSet, convertGet},
+            {key: ["sensor", "external_temperature_input"], convertSet, convertGet},
+            {
+                key: ["external_temperature_problem"],
+                convertGet: async (entity) => {
+                    assertEndpoint(entity);
+                    await readW600LumiAttribute(entity, W600_ATTR_EXTERNAL_SENSOR_STATUS);
+                },
+            },
         ],
         configure: [
             async (device) => {
                 const endpoint = device.getEndpoint(1);
-                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE], {manufacturerCode});
+                await safeW600Read(endpoint, W600_LUMI_CLUSTER, [W600_ATTR_SENSOR_SOURCE, W600_ATTR_EXTERNAL_SENSOR_STATUS], {manufacturerCode});
             },
         ],
         onEvent: [
@@ -5773,7 +6065,8 @@ function createW600Thermostat(): ModernExtend {
             .withUnit("°C")
             .withLabel("Internal sensor temperature")
             .withDescription("Temperature measured by the thermostat's internal sensor")
-            .withCategory("diagnostic"),
+            .withCategory("diagnostic")
+            .withHomeAssistant({deviceClass: "temperature", name: "Internal sensor temperature"}),
     );
 
     const thermostatConverter = {
@@ -5801,9 +6094,13 @@ function createW600Thermostat(): ModernExtend {
         options: tz.thermostat_occupied_heating_setpoint.options,
         convertSet: async (entity: Zh.Endpoint | Zh.Group, key: string, value: unknown, meta: Tz.Meta) => {
             assertEndpoint(entity);
+            // Writing a target while off starts the valve, so skip it on explicit off and otherwise enable heating first.
+            if (meta.message.system_mode === "off") return;
+            const wake = meta.state?.system_mode === "off";
+            const heatResult = wake ? await systemModeConverter.convertSet(entity, "system_mode", "heat", meta) : undefined;
             const result = await tz.thermostat_occupied_heating_setpoint.convertSet(entity, key, value, meta);
             const resultState = result && "state" in result ? result.state : undefined;
-            const shouldUseHold = getRequestedW600ScheduleEnabled(meta) !== false;
+            const shouldUseHold = !wake && getRequestedW600ScheduleEnabled(meta) !== false;
 
             if (shouldUseHold) {
                 await entity.write(W600_THERMOSTAT_CLUSTER, {tempSetpointHold: 1});
@@ -5813,6 +6110,7 @@ function createW600Thermostat(): ModernExtend {
 
             return {
                 state: {
+                    ...heatResult?.state,
                     ...(resultState ?? {}),
                     ...(shouldUseHold ? {system_mode: "auto", schedule: "ON", override_active: true} : {}),
                     preset: "none",
@@ -8140,7 +8438,7 @@ export const fromZigbee = {
             // W100 needs a custom converter to:
             // 1. Expose both 'temperature' and 'local_temperature' (needed for climate)
             // 2. Initialize device defaults (w100EnsureDefaults) needed for other converters
-            const result = fz.temperature.convert(model, msg, publish, options, meta);
+            const result = fz.temperature.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) {
                 const temperature = Object.values(result)[0];
                 const defaults = w100EnsureDefaults(meta);
@@ -8446,23 +8744,6 @@ export const toZigbee = {
                     logger.warning(`Unhandled key ${key}`, "zhc:lumi:feeder");
             }
             return {state: {[key]: value}};
-        },
-    } satisfies Tz.Converter,
-    lumi_detection_distance: {
-        key: ["detection_distance"],
-        convertSet: async (entity, key, value, meta) => {
-            assertString(value, "detection_distance");
-            value = value.toLowerCase();
-            const lookup = {"10mm": 1, "20mm": 2, "30mm": 3};
-            await entity.write<"manuSpecificLumi", ManuSpecificLumi>(
-                "manuSpecificLumi",
-                {268: {value: getFromLookup(value, lookup), type: 0x20}},
-                {manufacturerCode},
-            );
-            return {state: {detection_distance: value}};
-        },
-        convertGet: async (entity, key, meta) => {
-            await entity.read<"manuSpecificLumi", ManuSpecificLumi>("manuSpecificLumi", [0x010c], {manufacturerCode});
         },
     } satisfies Tz.Converter,
     lumi_trv: {
@@ -9464,7 +9745,15 @@ export const toZigbee = {
                     await entity.write("genAnalogOutput", payload);
                 }
 
-                return {state: {position: value}};
+                if (["ZNJLBL01LM"].includes(meta.mapped.model)) {
+                    // ZNJLBL01LM reports motor_state while moving and the actual position is read
+                    // back once the motor stops (lumiReadPositionOnReport), so publishing the target
+                    // position optimistically makes Home Assistant treat the target as the current
+                    // position and skip the opening/closing state (Koenkk/zigbee2mqtt#33254).
+                    return;
+                }
+
+                return {state: {position: targetPosition}};
             }
         },
         convertGet: async (entity, key, meta) => {

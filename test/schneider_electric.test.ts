@@ -1,4 +1,4 @@
-import {describe, expect, it} from "vitest";
+import {describe, expect, it, vi} from "vitest";
 import {findByDevice} from "../src/index";
 import type {Fz, KeyValueAny} from "../src/lib/types";
 import {mockDevice} from "./utils";
@@ -55,5 +55,38 @@ describe("Schneider Electric S520567", () => {
     it("does not derive state from a tilt report", async () => {
         const {payload} = await convertReport({currentPositionTiltPercentage: 100});
         expect(payload).toStrictEqual({tilt: 100});
+    });
+});
+
+describe("Schneider Electric WV704R0A0902", () => {
+    it("still configures reporting when a bind fails with TABLE_FULL", async () => {
+        const device = mockDevice({
+            modelID: "iTRV",
+            manufacturerName: "Schneider Electric",
+            endpoints: [{ID: 1, inputClusters: ["genBasic", "genPowerCfg", "hvacThermostat", "hvacUserInterfaceCfg", "haDiagnostic"]}],
+        });
+        const definition = await findByDevice(device);
+        const endpoint = device.getEndpoint(1);
+        const coordinatorEndpoint = mockDevice({modelID: "coordinator", endpoints: [{ID: 1}]}).getEndpoint(1);
+        const bind = vi
+            .spyOn(endpoint, "bind")
+            .mockImplementation((cluster) =>
+                cluster === "genPowerCfg" ? Promise.reject(new Error("Bind failed (Status 'TABLE_FULL')")) : Promise.resolve(),
+            );
+
+        await definition.configure?.(device, coordinatorEndpoint, definition);
+
+        expect(bind.mock.calls.map((c) => c[0])).toStrictEqual(["hvacThermostat", "genPowerCfg"]);
+        const reported = vi
+            .mocked(endpoint.configureReporting)
+            .mock.calls.flatMap(([cluster, items]) => items.map((i) => `${cluster}.${i.attribute}`));
+        expect(reported).toStrictEqual(
+            expect.arrayContaining([
+                "hvacThermostat.localTemp",
+                "hvacThermostat.occupiedHeatingSetpoint",
+                "hvacThermostat.pIHeatingDemand",
+                "hvacUserInterfaceCfg.keypadLockout",
+            ]),
+        );
     });
 });

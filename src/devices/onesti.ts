@@ -4,6 +4,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
 import * as reporting from "../lib/reporting";
+import * as globalStore from "../lib/store";
 import type {DefinitionWithExtend, Fz, KeyValue, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
@@ -70,6 +71,15 @@ export const tzLocal = {
             return {state: {auto_relock: value}};
         },
     } satisfies Tz.Converter,
+
+    nimly_pincode_lock: {
+        key: ["pin_code"],
+        convertSet: async (entity, key, value, meta) => {
+            const userId = (value as {user: number}).user;
+            globalStore.putValue(entity, "nimly_last_pin_user", userId);
+            return await tz.pincode_lock.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
 };
 
 export const fzLocal = {
@@ -120,15 +130,21 @@ export const fzLocal = {
                     "0a": "self",
                 };
                 const source = lookup[sourceOctet] || "unknown";
-                // User ID as string for consistency with Home Assistant expectations
-                const userIdStr = Number.parseInt(hex.substring(4, 8), 16).toString();
+                const actionUser = Number.parseInt(hex.substring(4, 8), 16);
+                const userIdStr = actionUser.toString();
 
                 if (actionOctet === "01") {
                     attributes.last_lock_user = userIdStr;
                     attributes.last_lock_source = source;
+                    attributes.action = "lock";
+                    attributes.action_user = actionUser;
+                    attributes.action_source_name = source;
                 } else if (actionOctet === "02") {
                     attributes.last_unlock_user = userIdStr;
                     attributes.last_unlock_source = source;
+                    attributes.action = "unlock";
+                    attributes.action_user = actionUser;
+                    attributes.action_source_name = source;
                 }
             }
 
@@ -157,6 +173,55 @@ export const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"closuresDoorLock", undefined, ["attributeReport", "readResponse"]>,
+
+    nimly_set_pin_code_response: {
+        cluster: "closuresDoorLock",
+        type: ["commandSetPinCodeRsp"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.status !== 0) {
+                globalStore.clearValue(msg.endpoint, "nimly_last_pin_user");
+                return;
+            }
+
+            const userId = globalStore.getValue(msg.endpoint, "nimly_last_pin_user", undefined);
+
+            const result: KeyValue = {
+                action: "pin_code_added",
+            };
+
+            if (userId !== undefined) {
+                result.action_user = userId;
+                globalStore.clearValue(msg.endpoint, "nimly_last_pin_user");
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["commandSetPinCodeRsp"]>,
+
+    nimly_clear_pin_code_response: {
+        cluster: "closuresDoorLock",
+        type: ["commandClearPinCodeRsp"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.status !== 0) {
+                globalStore.clearValue(msg.endpoint, "nimly_last_pin_user");
+                return;
+            }
+
+            const userId = globalStore.getValue(msg.endpoint, "nimly_last_pin_user", undefined);
+
+            const result: KeyValue = {
+                action: "pin_code_deleted",
+            };
+
+            if (userId !== undefined) {
+                result.action_user = userId;
+                globalStore.clearValue(msg.endpoint, "nimly_last_pin_user");
+            }
+
+            return result;
+        },
+    } satisfies Fz.Converter<"closuresDoorLock", undefined, ["commandClearPinCodeRsp"]>,
+
     easycodetouch_action: {
         cluster: "closuresDoorLock",
         type: "raw",
@@ -230,7 +295,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn", "NimlyPRO24", "NimlyShared", "NimlyCodePRO"],
+        zigbeeModel: ["NimlyPRO", "NimlyCode", "NimlyTouch", "NimlyIn", "NimlyPRO24", "NimlyShared"],
         model: "Nimly",
         vendor: "Onesti Products AS",
         description: "Zigbee module for Nimly Doorlock series",
@@ -282,6 +347,80 @@ export const definitions: DefinitionWithExtend[] = [
             e.numeric("min_pin_length", ea.STATE).withDescription("Minimum PIN code length"),
             e.numeric("max_pin_length", ea.STATE).withDescription("Maximum PIN code length"),
             e.pincode(),
+        ],
+    },
+    {
+        zigbeeModel: ["NimlyCodePRO"],
+        model: "NimlyCodePRO",
+        vendor: "Onesti Products AS",
+        description: "Zigbee module for Nimly Code PRO",
+        fromZigbee: [
+            fzLocal.nimly_pro_lock_actions,
+            fzLocal.nimly_set_pin_code_response,
+            fzLocal.nimly_clear_pin_code_response,
+            fz.lock,
+            fz.lock_operation_event,
+            fz.battery,
+            fz.lock_programming_event,
+        ],
+        toZigbee: [tz.lock, tzLocal.easycode_auto_relock, tz.lock_auto_relock_time, tz.lock_sound_volume, tzLocal.nimly_pincode_lock],
+        meta: {
+            pinCodeCount: 50,
+            battery: {
+                dontDividePercentage: true,
+            },
+        },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(11);
+
+            await reporting.bind(endpoint, coordinatorEndpoint, ["closuresDoorLock", "genPowerCfg"]);
+            await reporting.lockState(endpoint);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await reporting.batteryVoltage(endpoint);
+
+            await endpoint.read("closuresDoorLock", ["lockState", "soundVolume", "autoRelockTime"]);
+
+            try {
+                await endpoint.read("closuresDoorLock", ["numOfPinUsersSupported", "minPinLen", "maxPinLen"]);
+            } catch (_error) {
+                // Lock capability attributes may not be supported.
+            }
+
+            device.powerSource = "Battery";
+            device.save();
+        },
+        exposes: [
+            e.lock(),
+            e.battery(),
+            e.sound_volume(),
+            e.numeric("voltage", ea.STATE).withUnit("mV").withDescription("Battery voltage"),
+            e
+                .enum("last_unlock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
+                .withDescription("Last unlock source"),
+            e.text("last_unlock_user", ea.STATE).withDescription("Last unlock user (slot number)"),
+            e
+                .enum("last_lock_source", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
+                .withDescription("Last lock source"),
+            e.text("last_lock_user", ea.STATE).withDescription("Last lock user (slot number)"),
+            e.text("last_used_pin_code", ea.STATE).withDescription("Last used pin code (actual digits)"),
+            e.text("action", ea.STATE).withDescription("Last action"),
+            e.numeric("action_user", ea.STATE).withDescription("User slot that triggered the last action"),
+            e
+                .enum("action_source_name", ea.STATE, ["zigbee", "keypad", "fingerprintsensor", "rfid", "unattributed", "self", "unknown"])
+                .withDescription("Source of the last action"),
+            e.binary("auto_relock", ea.STATE_SET, true, false).withDescription("Auto relock after 7 seconds."),
+            e
+                .numeric("auto_relock_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(0)
+                .withValueMax(255)
+                .withDescription("Auto relock delay in seconds"),
+            e.numeric("num_pin_users", ea.STATE).withDescription("Number of PIN code users supported"),
+            e.numeric("min_pin_length", ea.STATE).withDescription("Minimum PIN code length"),
+            e.numeric("max_pin_length", ea.STATE).withDescription("Maximum PIN code length"),
+            e.pincode(),
+            e.text("last_successful_pincode_clear", ea.STATE).withDescription("Last deleted Pincode"),
+            e.text("last_successful_pincode_save", ea.STATE).withDescription("Last saved Pincode"),
         ],
     },
     {
