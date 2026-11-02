@@ -4722,6 +4722,11 @@ export const definitions: DefinitionWithExtend[] = [
             e.gas(),
             e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
             tuya.exposes.faultAlarm(),
+            e.binary("fault", ea.STATE, true, false).withDescription("General fault"),
+            e.binary("serious_fault", ea.STATE, true, false).withDescription("Serious fault"),
+            e.binary("sensor_fault", ea.STATE, true, false).withDescription("Sensor fault"),
+            e.binary("probe_fault", ea.STATE, true, false).withDescription("Probe fault"),
+            e.binary("power_fault", ea.STATE, true, false).withDescription("Power fault"),
             e
                 .binary("end_of_life", ea.STATE, true, false)
                 .withDescription("Indicates whether the sensor has reached its end of life and should be replaced"),
@@ -4730,8 +4735,21 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalseEnum0],
                 [10, "preheat", tuya.valueConverter.raw],
-                // fault bitmap: fault, serious_fault, sensor_fault, probe_fault, power_fault
-                [11, "fault_alarm", {from: (v: number) => v !== 0}],
+                [
+                    11,
+                    null,
+                    {
+                        // Fault bitmap; fault_alarm is true when any bit is set
+                        from: (v: number) => ({
+                            fault_alarm: v !== 0,
+                            fault: (v & 1) !== 0,
+                            serious_fault: (v & 2) !== 0,
+                            sensor_fault: (v & 4) !== 0,
+                            probe_fault: (v & 8) !== 0,
+                            power_fault: (v & 16) !== 0,
+                        }),
+                    },
+                ],
                 [12, "end_of_life", tuya.valueConverter.trueFalseInvert], // lifecycle
             ],
         },
