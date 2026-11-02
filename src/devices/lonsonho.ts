@@ -20,9 +20,10 @@ const ea = exposes.access;
 const qsZigbeeC03PositionKey = "qs_zigbee_c03_position";
 
 const qsZigbeeC03ClearPosition = (entity: Zh.Endpoint | Zh.Group) => {
-    if (utils.isGroup(entity)) return;
-    clearTimeout(globalStore.getValue(entity, qsZigbeeC03PositionKey)?.timer);
-    globalStore.clearValue(entity, qsZigbeeC03PositionKey);
+    for (const endpoint of utils.isGroup(entity) ? entity.members : [entity]) {
+        clearTimeout(globalStore.getValue(endpoint, qsZigbeeC03PositionKey)?.timer);
+        globalStore.clearValue(endpoint, qsZigbeeC03PositionKey);
+    }
 };
 
 const qsZigbeeC03Tz = {
@@ -56,7 +57,12 @@ const qsZigbeeC03Tz = {
                 await entity.write("closuresWindowCovering", {currentPositionLiftPercentage: raw(start)}, utils.getOptions(meta.mapped, entity));
                 globalStore.putValue(entity, qsZigbeeC03PositionKey, {target: raw(value), moved: false});
             }
-            return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            try {
+                return await tz.cover_position_tilt.convertSet(entity, key, value, meta);
+            } catch (error) {
+                qsZigbeeC03ClearPosition(entity);
+                throw error;
+            }
         },
     } satisfies Tz.Converter,
 };
