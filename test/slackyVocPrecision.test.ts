@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {findByDevice} from "../src/index";
+import {findByDevice, postProcessConvertedFromZigbeeMessage} from "../src/index";
 import {mockDevice} from "./utils";
 
 describe("Slacky R02 corrected firmware VOC contract", () => {
@@ -27,5 +27,14 @@ describe("Slacky R02 corrected firmware VOC contract", () => {
             {device, deviceExposesChanged: () => {}, state: {}},
         );
         expect(result).toStrictEqual({voc: raw / 1000});
+        if (!result) throw new Error("Missing VOC payload");
+        postProcessConvertedFromZigbeeMessage(definition, result, {}, device);
+        expect(result).toStrictEqual({voc: raw / 1000});
+        const overridden = {voc: raw / 1000};
+        postProcessConvertedFromZigbeeMessage(definition, overridden, {voc_precision: 0}, device);
+        expect(overridden.voc).toBe(0);
+        const integerPpb = {voc: raw};
+        postProcessConvertedFromZigbeeMessage(definition, integerPpb, {}, device);
+        expect(integerPpb.voc).toBe(raw);
     });
 });
