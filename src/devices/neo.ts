@@ -107,12 +107,10 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         exposes: [
             e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "no_alarm"]).withDescription("Alarm status"),
-            e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF")
-                .withDescription("Enable alarm")
-                .withHomeAssistant({
-                    type: "siren",
-                    name: "Siren",
-                }),
+            e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm").withHomeAssistant({
+                type: "siren",
+                name: "Siren",
+            }),
             e.binary("tamper_alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable tamper alarm"),
             e.binary("tamper_alarm", ea.STATE, "ON", "OFF").withDescription("Indicates whether the device is tampered"),
             e.enum("alarm_melody", ea.STATE_SET, ["melody_1", "melody_2", "melody_3"]).withDescription("Alarm sound effect"),
@@ -129,13 +127,9 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             overrideHaDiscoveryPayload: (payload) => {
-                if (
-                    typeof payload.command_topic === "string" &&
-                    payload.command_topic.endsWith("/set/alarm_switch")
-                ) {
+                if (typeof payload.command_topic === "string" && payload.command_topic.endsWith("/set/alarm_switch")) {
                     payload.command_template = "{{ value }}";
-                    payload.state_value_template =
-                        "{{ value_json.alarm_switch | default('') }}";
+                    payload.state_value_template = "{{ value_json.alarm_switch | default('') }}";
                     delete payload.value_template;
                     payload.payload_on = "ON";
                     payload.payload_off = "OFF";
