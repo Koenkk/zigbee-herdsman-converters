@@ -4730,7 +4730,8 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [1, "gas", tuya.valueConverter.trueFalseEnum0],
                 [10, "preheat", tuya.valueConverter.raw],
-                [11, "fault_alarm", tuya.valueConverter.trueFalse1],
+                // fault bitmap: fault, serious_fault, sensor_fault, probe_fault, power_fault
+                [11, "fault_alarm", {from: (v: number) => v !== 0}],
                 [12, "end_of_life", tuya.valueConverter.trueFalseInvert], // lifecycle
             ],
         },
