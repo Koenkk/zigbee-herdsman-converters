@@ -93,7 +93,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nlrfgpny", "_TZE284_nlrfgpny", "_TZE204_nlrfgpny", "_TZE2841000000_nlrfgpny"]),
         model: "NAS-AB06B2",
         vendor: "NEO",
         description: "Outdoor solar alarm",
