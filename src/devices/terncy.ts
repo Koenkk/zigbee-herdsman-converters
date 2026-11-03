@@ -338,7 +338,7 @@ const fzLocal = {
             let value = null;
             if (msg.data[4] === 0) {
                 value = msg.data[6];
-                if (1 <= value && value <= 3) {
+                if (1 <= value && value <= 4) {
                     const actionLookup: KeyValueAny = {1: "single", 2: "double", 3: "triple", 4: "quadruple"};
                     return {action: actionLookup[value]};
                 }
@@ -358,37 +358,24 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"manuSpecificClusterAduroSmart", AduroSmart, "raw">,
-    terncy_pp01_raw: {
+    terncy_pp01_motion: {
         cluster: ADURO_SMART_CLUSTER,
         type: "raw",
         convert: (model, msg, publish, options, meta) => {
-            if (msg.data[4] === 0) {
-                const action = ({1: "single", 2: "double", 3: "triple", 4: "quadruple"} as KeyValueAny)[msg.data[6]];
-                return action ? {action} : undefined;
-            }
             if (msg.data[4] !== 4 || msg.data.length < 8) return;
             // uint16 LE illuminance (lux) followed by PIR bitmap: interrupt/detection 0x04/0x01 (right), 0x20/0x08 (left)
             const payload: KeyValueAny = {illuminance: msg.data.readUInt16LE(5)};
             const timeout = options.occupancy_timeout != null ? Number(options.occupancy_timeout) : 90;
-            for (const [side, interrupt, detection] of [
-                ["right", 0x04, 0x01],
-                ["left", 0x20, 0x08],
+            for (const [property, interrupt, detection] of [
+                ["occupancy_right", 0x04, 0x01],
+                ["occupancy_left", 0x20, 0x08],
             ] as const) {
                 if (!(msg.data[7] & interrupt)) continue;
-                const property = `occupancy_${side}`;
                 payload[property] = !!(msg.data[7] & detection);
                 clearTimeout(globalStore.getValue(msg.endpoint, property));
-                if (payload[property]) {
-                    payload.action_side = side;
-                    payload.side = side; /* legacy: remove this line (replaced by action_side) */
-                    if (timeout !== 0) {
-                        globalStore.putValue(msg.endpoint, property, setTimeout(() => publish({[property]: false}), timeout * 1000).unref());
-                    }
+                if (payload[property] && timeout !== 0) {
+                    globalStore.putValue(msg.endpoint, property, setTimeout(() => publish({[property]: false}), timeout * 1000).unref());
                 }
-            }
-            if (payload.action_side) {
-                const newMsg = {...msg, type: "attributeReport" as const, data: {occupancy: 1}};
-                Object.assign(payload, fz.occupancy_with_timeout.convert(model, newMsg, publish, options, meta));
             }
             return payload;
         },
@@ -822,18 +809,16 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TERNCY-PP01",
         vendor: "TERNCY",
         description: "Awareness switch",
-        fromZigbee: [fz.occupancy_with_timeout, fzLocal.terncy_pp01_raw, fz.battery],
+        fromZigbee: [fz.occupancy_with_timeout, fzLocal.terncy_raw, fzLocal.terncy_pp01_motion],
         exposes: [
             e.occupancy(),
             e.binary("occupancy_left", ea.STATE, true, false).withDescription("Motion detected by the left sensor"),
             e.binary("occupancy_right", ea.STATE, true, false).withDescription("Motion detected by the right sensor"),
             e.enum("action_side", ea.STATE, ["left", "right"]).withDescription("Side of the most recent motion detection"),
-            e.battery(),
             e.action(["single", "double", "triple", "quadruple"]),
         ],
         toZigbee: [],
-        meta: {battery: {dontDividePercentage: true}},
-        extend: [terncyExtend.addClusterAduroSmart(), m.temperature({scale: 10}), m.illuminance({scale: 1})],
+        extend: [terncyExtend.addClusterAduroSmart(), m.battery({dontDividePercentage: true}), m.temperature({scale: 10}), m.illuminance({scale: 1})],
     },
     {
         zigbeeModel: ["TERNCY-SD01"],
