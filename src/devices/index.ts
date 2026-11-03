@@ -398,7 +398,6 @@ import {definitions as zbeacon} from "./zbeacon";
 import {definitions as zemismart} from "./zemismart";
 import {definitions as zen} from "./zen";
 import {definitions as zigbeetlc} from "./zigbeetlc";
-import {definitions as zigee} from "./zigee";
 import {definitions as zipato} from "./zipato";
 import {definitions as zunzunbee} from "./zunzunbee";
 
@@ -797,7 +796,6 @@ const definitions: DefinitionWithExtend[] = [
     ...zbeacon,
     ...zemismart,
     ...zen,
-    ...zigee,
     ...zigbeetlc,
     ...zipato,
     ...zunzunbee,
