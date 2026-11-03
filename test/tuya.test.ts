@@ -782,3 +782,23 @@ describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
         expect(() => converter.to(value)).toThrow();
     });
 });
+
+describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
+    it("supports a custom maximum temperature", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 4, {maxTemperature: 45});
+        const text = "06:00/5.0 10:30/20.0 13:30/35.5 17:30/45.0";
+        const bytes = [7, 6, 0, 0, 50, 10, 30, 0, 200, 13, 30, 1, 99, 17, 30, 1, 194];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+        expect(() => converter.to("06:00/5 10:30/20 13:30/35.5 17:30/45.5")).toThrow("Invalid hour, minute or temperature");
+    });
+
+    it("supports a custom scale and minimum temperature", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 4, {scale: 1, minTemperature: 32, maxTemperature: 104});
+        const text = "06:00/32.0 10:30/68.0 13:30/100.0 17:30/104.0";
+        const bytes = [1, 6, 0, 0, 32, 10, 30, 0, 68, 13, 30, 0, 100, 17, 30, 0, 104];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+        expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
+    });
+});
