@@ -25,7 +25,7 @@ const scheduleDay: Tuya.ValueConverterSingle = {
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("fmeg60f\u0000", ["_TYST11_yfmeg60f"]),
-        model: "TRV",
+        model: "_TYST11_yfmeg60f",
         vendor: "Fontastic",
         description: "Thermostat radiator valve",
         extend: [tuya.modernExtend.tuyaBase({bindBasicOnConfigure: true, dp: true, timeStart: "2000"})],
