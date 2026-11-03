@@ -975,4 +975,194 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Outdoor Smart Plug",
         extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({powerOnBehavior: false, endpointNames: ["1", "2"]})],
     },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_euszleja", "_TZE200_euszleja", "_TZE28C1000000_euszleja"]),
+        model: "G08A-Z20T",
+        vendor: "Lincukoo",
+        description: "Smart sound and light siren with night light",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .enum("alarm_mode", ea.STATE_SET, ["sound_alarm", "light_alarm", "sound_light_alarm", "disable_alarm"])
+                .withDescription("Alarm output mode: sound only / light only / sound + light / disabled"),
+            e.enum("alarm_state", ea.STATE_SET, ["alarm", "normal"]).withDescription("alarm status"),
+            e.enum("alarm_volume", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Alarm volume"),
+            e.enum("alarm_ringtone", ea.STATE_SET, ["ringtone_1", "ringtone_2", "ringtone_3"]).withDescription("alarm ringtone"),
+            e
+                .numeric("alarm_time", ea.STATE_SET)
+                .withUnit("times")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withValueStep(1)
+                .withDescription("Alarm repeat count"),
+            e.binary("mute", ea.STATE_SET, "ON", "OFF").withDescription("Mute the siren"),
+            e
+                .enum("play_ringtone", ea.STATE_SET, [
+                    "warning_smoke_detected",
+                    "warning_gas_leak_detected",
+                    "warning_carbon_monoxide_detected",
+                    "warning_methane_detected",
+                    "fall_detected",
+                    "abnormal_heart_rate",
+                    "door_opened",
+                    "water_leak_detected",
+                    "motion_detected",
+                    "vibration_detected",
+                    "high_temperature",
+                    "low_temperature",
+                    "high_humidity",
+                    "low_humidity",
+                    "soil_dry",
+                    "high_liquid_level",
+                    "low_liquid_level",
+                    "poor_water_quality",
+                    "high_noise",
+                    "high_pressure",
+                    "high_pm25_level",
+                    "high_carbon_dioxide",
+                    "high_formaldehyde",
+                    "high_voc_level",
+                    "power_on",
+                    "power_off",
+                    "light_on",
+                    "light_off",
+                    "water_valve_open",
+                    "water_valve_closed",
+                    "curtain_open",
+                    "curtain_closed",
+                ])
+                .withLabel("Voice prompt")
+                .withDescription("Play a voice prompt"),
+            e.binary("night_light_mode", ea.STATE_SET, "auto", "off").withDescription("AUTO = on when any motion is detected, OFF = aways off"),
+            e.enum("night_light_brightness", ea.STATE_SET, ["low", "middle", "high"]).withDescription("Night light brightness"),
+            e
+                .numeric("presence_hold_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(5)
+                .withValueMax(60)
+                .withValueStep(5)
+                .withDescription("Time the night light stays on after presence is gone"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "alarm_state", tuya.valueConverterBasic.lookup({alarm: tuya.enum(0), normal: tuya.enum(1)})],
+                [5, "alarm_volume", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [7, "alarm_time", tuya.valueConverter.raw],
+                [16, "mute", tuya.valueConverter.onOff],
+                [
+                    19,
+                    "alarm_mode",
+                    tuya.valueConverterBasic.lookup({
+                        sound_alarm: tuya.enum(0),
+                        light_alarm: tuya.enum(1),
+                        sound_light_alarm: tuya.enum(2),
+                        disable_alarm: tuya.enum(3),
+                    }),
+                ],
+                [
+                    21,
+                    "alarm_ringtone",
+                    tuya.valueConverterBasic.lookup({
+                        ringtone_1: tuya.enum(0),
+                        ringtone_2: tuya.enum(1),
+                        ringtone_3: tuya.enum(2),
+                    }),
+                ],
+                [23, "night_light_mode", tuya.valueConverterBasic.lookup({off: tuya.enum(0), auto: tuya.enum(1)})],
+                [101, "night_light_brightness", tuya.valueConverterBasic.lookup({low: tuya.enum(0), middle: tuya.enum(1), high: tuya.enum(2)})],
+                [103, "presence_hold_time", tuya.valueConverter.raw],
+                [
+                    104,
+                    "play_ringtone",
+                    tuya.valueConverterBasic.lookup({
+                        warning_smoke_detected: tuya.enum(0),
+                        warning_gas_leak_detected: tuya.enum(1),
+                        warning_carbon_monoxide_detected: tuya.enum(2),
+                        warning_methane_detected: tuya.enum(3),
+                        fall_detected: tuya.enum(4),
+                        abnormal_heart_rate: tuya.enum(5),
+                        door_opened: tuya.enum(6),
+                        water_leak_detected: tuya.enum(7),
+                        motion_detected: tuya.enum(8),
+                        vibration_detected: tuya.enum(9),
+                        high_temperature: tuya.enum(10),
+                        low_temperature: tuya.enum(11),
+                        high_humidity: tuya.enum(12),
+                        low_humidity: tuya.enum(13),
+                        soil_dry: tuya.enum(14),
+                        high_liquid_level: tuya.enum(15),
+                        low_liquid_level: tuya.enum(16),
+                        poor_water_quality: tuya.enum(17),
+                        high_noise: tuya.enum(18),
+                        high_pressure: tuya.enum(19),
+                        high_pm25_level: tuya.enum(20),
+                        high_carbon_dioxide: tuya.enum(21),
+                        high_formaldehyde: tuya.enum(22),
+                        high_voc_level: tuya.enum(23),
+                        power_on: tuya.enum(24),
+                        power_off: tuya.enum(25),
+                        light_on: tuya.enum(26),
+                        light_off: tuya.enum(27),
+                        water_valve_open: tuya.enum(28),
+                        water_valve_closed: tuya.enum(29),
+                        curtain_open: tuya.enum(30),
+                        curtain_closed: tuya.enum(31),
+                    }),
+                ],
+            ],
+        },
+    },
+
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE2841000000_yfttaycl", "_TZE284_yfttaycl"]),
+        model: "N02-Z10T",
+        vendor: "Lincukoo",
+        description: "Smart Noise Sensor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e
+                .numeric("sound_value", ea.STATE)
+                .withUnit("dB")
+                .withValueMin(60)
+                .withValueMax(130)
+                .withValueStep(1)
+                .withDescription("Current measured sound level"),
+            e.enum("action", ea.STATE, ["low", "high"]).withDescription("Noise status, high = above report threshold"),
+            e.battery(),
+            e
+                .numeric("noise_report_threshold", ea.STATE_SET)
+                .withUnit("dB")
+                .withValueMin(80)
+                .withValueMax(130)
+                .withValueStep(1)
+                .withDescription("Sound level that triggers a high-noise report"),
+            e
+                .numeric("noise_change_threshold", ea.STATE_SET)
+                .withUnit("dB")
+                .withValueMin(5)
+                .withValueMax(20)
+                .withValueStep(1)
+                .withDescription("Minimum sound level change that triggers an extra report"),
+            e
+                .numeric("noise_hold_time", ea.STATE_SET)
+                .withUnit("s")
+                .withValueMin(10)
+                .withValueMax(300)
+                .withValueStep(1)
+                .withDescription("How long the level must stay above threshold before reporting"),
+            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("Indicator LED"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "sound_value", tuya.valueConverter.raw],
+                [8, "action", tuya.valueConverterBasic.lookup({low: tuya.enum(0), high: tuya.enum(1)})],
+                [12, "battery", tuya.valueConverter.raw],
+                [14, "noise_report_threshold", tuya.valueConverter.raw],
+                [21, "noise_change_threshold", tuya.valueConverter.raw],
+                [22, "noise_hold_time", tuya.valueConverter.raw],
+                [23, "indicator", tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];
