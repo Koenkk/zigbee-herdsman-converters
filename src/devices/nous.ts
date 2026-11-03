@@ -488,6 +488,22 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // The older TS011F D1Z/D2Z variant uses standard Zigbee clusters instead of Tuya datapoints.
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_vfnf7zhq"]),
+        model: "D1Z",
+        vendor: "Nous",
+        description: "DIN rail smart switch with power monitoring",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        exposes: [e.switch(), e.voltage(), e.current(), e.power(), e.energy()],
+        meta: {
+            tuyaDatapoints: [
+                [1, "energy", tvc.divideBy100],
+                [6, null, tvc.phaseVariant4],
+                [16, "state", tvc.onOff],
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3210_6cmeijtd"]),
         model: "A11Z",
         vendor: "Nous",
