@@ -459,6 +459,21 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: [" Wired master SW Home / Away", "Wired master SW Home / Away"],
+        model: "WNRL34",
+        vendor: "Legrand",
+        description: "Wired home & away switch",
+        ota: true,
+        fromZigbee: [fzLegrand.scenes],
+        toZigbee: [],
+        extend: [legrandExtend.addLegrandDevicesCluster()],
+        exposes: [e.action(["enter", "leave", "sleep", "wakeup"])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify"]);
+        },
+    },
+    {
         zigbeeModel: [
             " 3 Phases power consumption module\u0000\u0000",
             " 3P power consumption module\u0000\u0000\u0000",
