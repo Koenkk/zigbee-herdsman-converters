@@ -205,6 +205,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
+        zigbeeModel: ["LCX049"],
+        model: "929004456604",
+        vendor: "Philips",
+        description: "Hue Festavia curtain lights (1.35 x 2 meter with 250 LEDs)",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
+    },
+    {
         zigbeeModel: ["929003736501_01", "929003736501_02"],
         model: "929003736501",
         vendor: "Philips",
