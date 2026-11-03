@@ -2359,6 +2359,18 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.carbon_monoxide(), e.battery_low(), e.battery()],
     },
     {
+        zigbeeModel: ["JM720ES-EF-3.0"],
+        model: "HS-720ES-ZB",
+        vendor: "Heiman",
+        description: "Smart carbon monoxide alarm",
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.iasZoneAlarm({zoneType: "carbon_monoxide", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            m.iasWarning(),
+        ],
+    },
+    {
         zigbeeModel: ["PIRSensor-N", "PIRSensor-N-3.0", "PIRSensor-EM", "PIRSensor-EF-3.0", "PIR_TPV13"],
         model: "HS3MS",
         vendor: "Heiman",
