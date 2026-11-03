@@ -26051,7 +26051,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HY607W-3A",
         vendor: "Tuya",
         description: "Thermostat for gas boiler",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e.climate().withLocalTemperature(ea.STATE).withSetpoint("occupied_heating_setpoint", 5, 35, 0.5, ea.STATE_SET),
             e
