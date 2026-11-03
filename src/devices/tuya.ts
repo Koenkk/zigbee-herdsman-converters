@@ -2401,6 +2401,14 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
     },
 };
 
+const am43OpeningMode = tuya.valueConverterBasic.lookup({tilt: tuya.enum(0), lift: tuya.enum(1)});
+const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (v, meta, options, publish, msg) => {
+        const value = converter.from(v, meta, options, publish, msg);
+        return {[meta.device.meta.openingMode === "tilt" ? "tilt" : "position"]: value, state: value === 0 ? "CLOSE" : "OPEN"};
+    },
+});
+
 export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
@@ -11042,8 +11050,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Cover",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            te.coverPosition(),
+        exposes: (device) => [
+            !isDummyDevice(device) && device.meta?.openingMode === "tilt" ? e.cover_tilt().setAccess("tilt", ea.STATE_SET) : te.coverPosition(),
             te.motorDirection(),
             e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed").withUnit("rpm"),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
@@ -11058,19 +11066,34 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {
             tuyaDatapoints: [
+                [1, null, null], // last control command, not the actual state, which is derived from the position instead
                 [1, "state", tuya.valueConverter.coverAction],
+                [2, null, am43Position(tuya.valueConverter.coverPosition)],
+                [3, null, am43Position(tuya.valueConverter.raw)],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [3, "position", tuya.valueConverter.raw],
+                [2, "tilt", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [7, null, null], // work_state, not useful, ignore
                 [
                     101,
-                    "opening_mode",
-                    tuya.valueConverterBasic.lookup({
-                        tilt: tuya.enum(0),
-                        lift: tuya.enum(1),
-                    }),
+                    null,
+                    {
+                        from: (v, meta, options) => {
+                            const mode = am43OpeningMode.from(v, meta, options);
+                            const result: KeyValue = {opening_mode: mode};
+                            if (meta.device.meta.openingMode !== mode) {
+                                meta.device.meta.openingMode = mode;
+                                meta.device.save();
+                                meta.deviceExposesChanged();
+                                // Keep the current position when switching between position and tilt
+                                const [from, to] = mode === "tilt" ? ["position", "tilt"] : ["tilt", "position"];
+                                if (meta.state[from] !== undefined) result[to] = meta.state[from];
+                            }
+                            return result;
+                        },
+                    },
                 ],
+                [101, "opening_mode", am43OpeningMode],
                 [102, "factory_reset", tuya.valueConverter.raw],
                 [103, "set_upper_limit", tuya.valueConverter.setLimit],
                 [104, "set_bottom_limit", tuya.valueConverter.setLimit],
