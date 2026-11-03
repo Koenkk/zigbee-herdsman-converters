@@ -128,10 +128,11 @@ const channelModeToZigbee = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["H2-ZB-SW-V1"],
+        fingerprint: [{modelID: "H2-ZB-SW-V1", manufacturerName: "JIMMY"}],
         model: "H2-ZB-SW-V1",
         vendor: "JIMMY",
         description: "Four-channel USB-powered Zigbee router switch",
+        ota: true,
         extend: [actionEventCluster],
         fromZigbee: [modeFromZigbee, actionEventFromZigbee],
         toZigbee: [channelModeToZigbee],

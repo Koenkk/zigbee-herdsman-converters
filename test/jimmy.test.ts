@@ -31,6 +31,15 @@ const mockConversionMeta = {
 } as never;
 
 describe("JIMMY H2-ZB-SW-V1", () => {
+    it("matches only the reported manufacturer and model", () => {
+        expect(definition.fingerprint).toEqual([{modelID: "H2-ZB-SW-V1", manufacturerName: "JIMMY"}]);
+        expect(definition.zigbeeModel).toBeUndefined();
+    });
+
+    it("advertises OTA upgrade support", () => {
+        expect(definition.ota).toBe(true);
+    });
+
     it("uses the official model definition and preserves all four mode endpoints", async () => {
         const endpoints = [1, 2, 3, 4];
         await assertDefinition({
