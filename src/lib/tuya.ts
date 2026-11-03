@@ -32,6 +32,12 @@ const NS = "zhc:tuya";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface ThermostatScheduleTemperatureOptions {
+    scale?: number;
+    minTemperature?: number;
+    maxTemperature?: number;
+}
+
 interface KeyValueStringEnum {
     [s: string]: Enum;
 }
@@ -869,7 +875,9 @@ const tuyaExposes = {
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Controls state after power outage: false = on, true = restore previous state")
+            .withDescription(
+                "Controls state after power outage: false = on, true = restore previous state. Power-cycle twice to ignore this setting and force on",
+            )
             .withCategory("config"),
     colorPowerOnBehavior: () =>
         e
@@ -1563,6 +1571,37 @@ export const valueConverterBasic = {
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
+    },
+    // Raw datapoint made of 4-byte blocks: [alarm code, breaker on/off, value high byte, value low byte].
+    // Exposes `<name>_breaker` (ON/OFF) and `<name>_threshold` for each alarm.
+    // Writes always send the full buffer (all alarms, in the given order), merging the current state
+    // with the message; some devices corrupt the other blocks when only the changed block is sent.
+    thresholdBlocks: (alarms: [code: number, name: string][]) => {
+        const onOff: Record<string, number> = {OFF: 0, ON: 1};
+        return {
+            from: (v: string) => {
+                const data = Buffer.from(v, "base64");
+                const result: KeyValue = {};
+                for (let i = 0; i + 3 < data.length; i += 4) {
+                    const alarm = alarms.find(([code]) => code === data[i]);
+                    if (alarm) {
+                        result[`${alarm[1]}_breaker`] = data[i + 1] === 1 ? "ON" : "OFF";
+                        result[`${alarm[1]}_threshold`] = (data[i + 2] << 8) | data[i + 3];
+                    }
+                }
+                return result;
+            },
+            to: (v: unknown, meta: Tz.Meta) => {
+                const values: KeyValue = {...meta.state, ...meta.message};
+                const payload: number[] = [];
+                for (const [code, name] of alarms) {
+                    const breaker = utils.getFromLookup(values[`${name}_breaker`], onOff);
+                    const threshold = utils.toNumber(values[`${name}_threshold`], `${name}_threshold`);
+                    payload.push(code, breaker, (threshold >> 8) & 0xff, threshold & 0xff);
+                }
+                return payload;
+            },
+        };
     },
 };
 
@@ -2283,14 +2322,17 @@ export const valueConverter = {
         from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().from(v),
         to: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().to(v),
     },
-    thermostatScheduleDayMultiDPWithTransitionCount: (transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithTransitionCount: (
+        transitionCount = 4,
+        {scale = 10, minTemperature = 5, maxTemperature = 35}: ThermostatScheduleTemperatureOptions = {},
+    ) => {
         return {
             from: (v: string) => {
                 const schedule = [];
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
                         // @ts-expect-error
-                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
+                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / scale).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -2309,8 +2351,15 @@ export const valueConverter = {
                     const hourMin = timeTemp[0].split(":");
                     const hour = Number.parseInt(hourMin[0], 10);
                     const min = Number.parseInt(hourMin[1], 10);
-                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
+                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * scale);
+                    if (
+                        hour < 0 ||
+                        hour > 24 ||
+                        min < 0 ||
+                        min > 60 ||
+                        temperature < minTemperature * scale ||
+                        temperature > maxTemperature * scale
+                    ) {
                         throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
@@ -2319,11 +2368,11 @@ export const valueConverter = {
             },
         };
     },
-    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4, options: ThermostatScheduleTemperatureOptions = {}) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).to(v);
                 data[0] = dayNum;
                 return data;
             },
