@@ -10196,7 +10196,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_r0jdjrvi",
             "_TZE200_g5xqosu7",
             "_TZE204_g5xqosu7",
-            "_TZE200_fzo2pocs",
             "_TZE284_fzo2pocs",
             "_TZE200_9vpe3fl1",
             "_TZE28C1000000_alh14edn",
@@ -10259,8 +10258,56 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Zemismart", "ZM90E-DT250N/A400", "Window opener", ["_TZE204_r0jdjrvi"]),
             tuya.whitelabel("Nova Digital", "CMR-1", "Roller Blind Motor", ["_TZE200_9vpe3fl1"]),
             tuya.whitelabel("Tuya", "TS0601_alh14edn", "Smart Blinds Controller", ["_TZE28C1000000_alh14edn"]),
-            tuya.whitelabel("Zemismart", "ZM25TQ", "Tubular motor", ["_TZE200_fzo2pocs"]),
         ],
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fzo2pocs"]),
+        model: "ZM25TQ",
+        vendor: "Zemismart",
+        description: "Tubular motor",
+        extend: [m.forcePowerSource({powerSource: "Mains (single phase)"}), tuya.modernExtend.tuyaBase({dp: true})],
+        options: [exposes.options.invert_cover()],
+        exposes: [
+            te.coverPosition(),
+            e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Direction of the last movement"),
+            e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor fault, reported while a limit is not set"),
+            e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction").withCategory("config"),
+            e
+                .enum("motor_working_mode", ea.STATE_SET, ["continuous", "intermittently"])
+                .withDescription("Motor operating mode")
+                .withCategory("config"),
+            e
+                .enum("upper_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                .withDescription("Set or Reset the upper stroke limit")
+                .withCategory("config"),
+            e
+                .enum("middle_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                .withDescription("Set or Reset the middle stroke limit")
+                .withCategory("config"),
+            e
+                .enum("lower_stroke_limit", ea.STATE_SET, ["SET", "RESET"])
+                .withDescription("Set or Reset the lower stroke limit")
+                .withCategory("config"),
+            e
+                .enum("remote_pairing", ea.SET, ["PAIR"])
+                .withDescription("Put the motor in remote pairing mode, then press up on the remote")
+                .withCategory("config"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.coverAction],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
+                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [12, "motor_fault", tuya.valueConverter.trueFalse1],
+                [101, "remote_pairing", tuya.valueConverterBasic.lookup({PAIR: true})],
+                [103, "upper_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [104, "middle_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [105, "lower_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
+                [106, "motor_working_mode", tuya.valueConverterBasic.lookup({continuous: tuya.enum(0), intermittently: tuya.enum(1)})],
+            ],
+        },
     },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_a8z0g46u", "_TZE204_a8z0g46u"]),
