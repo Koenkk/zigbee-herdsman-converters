@@ -1096,6 +1096,20 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+    ts011f_5_power_outage_memory: {
+        key: ["power_outage_memory"],
+        // Responds with UNSUPPORTED_ATTRIBUTE but does apply the write
+        // https://github.com/Koenkk/zigbee2mqtt/issues/33471
+        convertSet: async (entity, key, value, meta) => {
+            await utils.ignoreUnsupportedAttribute(async () => {
+                await tuya.tz.power_on_behavior_1.convertSet(entity, key, value, meta);
+            }, "power_outage_memory");
+            return {state: {[key]: value}};
+        },
+        convertGet: async (entity, key, meta) => {
+            await utils.ignoreUnsupportedAttribute(() => tuya.tz.power_on_behavior_1.convertGet(entity, key, meta), "power_outage_memory");
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS011F_threshold: {
         key: [
@@ -2400,6 +2414,14 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
         return me201wzFiltered.get(msg);
     },
 };
+
+const am43OpeningMode = tuya.valueConverterBasic.lookup({tilt: tuya.enum(0), lift: tuya.enum(1)});
+const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (v, meta, options, publish, msg) => {
+        const value = converter.from(v, meta, options, publish, msg);
+        return {[meta.device.meta.openingMode === "tilt" ? "tilt" : "position"]: value, state: value === 0 ? "CLOSE" : "OPEN"};
+    },
+});
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -8893,6 +8915,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZ3000_gsat0axs",
             "_TZ3000_olo5jhjk",
             "_TZ3000_ahvrgyac",
+            "_TZ3000_g5pzotdr",
         ]),
         model: "TS0001_power",
         description: "Switch with power monitoring",
@@ -8950,6 +8973,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "XSH01A", "1 gang switch", ["_TZ3000_x3ewpzyr"]),
             tuya.whitelabel("Moes", "ZM-104-M-16AM", "1 gang switch with power monitoring", ["_TZ3000_x8mbwtsz"]),
             tuya.whitelabel("Nous", "B5Z", "1 gang switch with power monitoring", ["_TZ3000_iktiy8ue"]),
+            tuya.whitelabel("MoveSmart", "MS-M2Z", "1 Gang Switch with Power Monitoring", ["_TZ3000_g5pzotdr"]),
         ],
         extend: [
             tuya.modernExtend.tuyaBase(),
@@ -11042,8 +11066,8 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Cover",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            te.coverPosition(),
+        exposes: (device) => [
+            !isDummyDevice(device) && device.meta?.openingMode === "tilt" ? e.cover_tilt().setAccess("tilt", ea.STATE_SET) : te.coverPosition(),
             te.motorDirection(),
             e.numeric("motor_speed", ea.STATE_SET).withValueMin(0).withValueMax(255).withDescription("Motor speed").withUnit("rpm"),
             e.enum("opening_mode", ea.STATE_SET, ["tilt", "lift"]).withDescription("Opening mode"),
@@ -11058,19 +11082,34 @@ export const definitions: DefinitionWithExtend[] = [
         },
         meta: {
             tuyaDatapoints: [
+                [1, null, null], // last control command, not the actual state, which is derived from the position instead
                 [1, "state", tuya.valueConverter.coverAction],
+                [2, null, am43Position(tuya.valueConverter.coverPosition)],
+                [3, null, am43Position(tuya.valueConverter.raw)],
                 [2, "position", tuya.valueConverter.coverPosition],
-                [3, "position", tuya.valueConverter.raw],
+                [2, "tilt", tuya.valueConverter.coverPosition],
                 [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
                 [7, null, null], // work_state, not useful, ignore
                 [
                     101,
-                    "opening_mode",
-                    tuya.valueConverterBasic.lookup({
-                        tilt: tuya.enum(0),
-                        lift: tuya.enum(1),
-                    }),
+                    null,
+                    {
+                        from: (v, meta, options) => {
+                            const mode = am43OpeningMode.from(v, meta, options);
+                            const result: KeyValue = {opening_mode: mode};
+                            if (meta.device.meta.openingMode !== mode) {
+                                meta.device.meta.openingMode = mode;
+                                meta.device.save();
+                                meta.deviceExposesChanged();
+                                // Keep the current position when switching between position and tilt
+                                const [from, to] = mode === "tilt" ? ["position", "tilt"] : ["tilt", "position"];
+                                if (meta.state[from] !== undefined) result[to] = meta.state[from];
+                            }
+                            return result;
+                        },
+                    },
                 ],
+                [101, "opening_mode", am43OpeningMode],
                 [102, "factory_reset", tuya.valueConverter.raw],
                 [103, "set_upper_limit", tuya.valueConverter.setLimit],
                 [104, "set_bottom_limit", tuya.valueConverter.setLimit],
@@ -19349,6 +19388,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS011F_5",
         description: "Power strip 5 gang",
         vendor: "Tuya",
+        toZigbee: [tzLocal.ts011f_5_power_outage_memory],
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
@@ -19360,7 +19400,7 @@ export const definitions: DefinitionWithExtend[] = [
         endpoint: (device) => {
             return {l1: 1, l2: 2, l3: 3, l4: 4, l5: 5};
         },
-        meta: {multiEndpoint: true},
+        meta: {multiEndpoint: true, multiEndpointSkip: ["power_outage_memory"]},
         configure: async (device, coordinatorEndpoint) => {
             await tuya.configureMagicPacket(device, coordinatorEndpoint);
             for (const ID of [1, 2, 3, 4, 5]) {

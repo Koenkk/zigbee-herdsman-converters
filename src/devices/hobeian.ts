@@ -249,7 +249,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-308Z"],
+        zigbeeModel: ["ZG-308Z", "HS308Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZD200_y0rvjm11"]),
         model: "ZG-308Z",
         vendor: "HOBEIAN",
         description: "Water valve",
@@ -290,6 +291,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "battery", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS308Z", "Smart water valve", ["_TZD200_y0rvjm11"])],
     },
     {
         zigbeeModel: ["ZG-226Z"],
@@ -479,8 +481,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZX"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_w0ap83qu"]),
+        zigbeeModel: ["ZG-204ZX", "HS204ZX"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_w0ap83qu", "_TZD200_5ziwcyoe"]),
         model: "ZG-204ZX",
         vendor: "HOBEIAN",
         description: "24Ghz millimeter wave and T&H sensor",
@@ -549,6 +551,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS204ZX", "24GHz millimeter wave and T&H sensor", ["_TZD200_5ziwcyoe"])],
     },
     {
         zigbeeModel: ["ZG-210Z"],
@@ -1298,7 +1301,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
+        zigbeeModel: ["HS303Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo", "_TZD200_7khnomgh"]),
         model: "ZG-303Z",
         vendor: "HOBEIAN",
         description: "Soil moisture sensor",
@@ -1340,6 +1344,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [110, "soil_warning", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS303Z", "Soil moisture sensor", ["_TZD200_7khnomgh"])],
     },
     {
         zigbeeModel: ["ZG-303Z", "AY-303Z", "AY-302Z"],
@@ -1436,8 +1441,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZV", "AY204T"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
+        zigbeeModel: ["ZG-204ZV", "AY204T", "HS204ZV"],
+        fingerprint: [
+            ...tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
+            ...tuya.fingerprint("TS0202", ["_TZD200_vfh3tuo1"]),
+        ],
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
         description: "Millimeter wave motion detection",
@@ -1496,6 +1504,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Millimeter wave motion detection",
                 fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN"}],
             },
+            tuya.whitelabel("HYSYIOT", "HS204ZV", "10G millimeter wave motion detection", ["_TZD200_vfh3tuo1"]),
         ],
     },
     {
@@ -1631,7 +1640,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZL"],
+        zigbeeModel: ["ZG-204ZL", "HS204ZL"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_3towulqd",
             "_TZE200_1ibpyhdc",
@@ -1642,6 +1651,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_jxyhl4eq",
             "_TZE200_qxyh4r7g",
             "_TZE200_na5qlzow",
+            "_TZD200_gfng0whq",
         ]),
         model: "ZG-204ZL",
         vendor: "HOBEIAN",
@@ -1693,7 +1703,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"])],
+        whiteLabel: [
+            tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"]),
+            tuya.whitelabel("HYSYIOT", "HS204ZL", "Luminance motion sensor", ["_TZD200_gfng0whq"]),
+        ],
     },
     {
         zigbeeModel: ["ZG-225Z"],
