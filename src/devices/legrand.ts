@@ -294,6 +294,22 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // Leading space: the trimmed form catches any NUL-padded variant via normalizeModelID
+        zigbeeModel: [" Wired remote on / off switch", "Wired remote on / off switch"],
+        model: "WNRL24",
+        vendor: "Legrand",
+        description: "Wired remote smart switch with Netatmo",
+        ota: true,
+        meta: {publishDuplicateTransaction: true},
+        fromZigbee: [fz.identify, fz.command_on, fz.command_off, fz.command_toggle, fz.command_move, fz.command_stop],
+        toZigbee: [],
+        exposes: [e.action(["identify", "on", "off", "toggle", "brightness_move_up", "brightness_move_down", "brightness_stop"])],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genOnOff", "genLevelCtrl"]);
+        },
+    },
+    {
         zigbeeModel: [" Double gangs remote switch\u0000\u0000\u0000\u0000"],
         model: "067774",
         vendor: "Legrand",
