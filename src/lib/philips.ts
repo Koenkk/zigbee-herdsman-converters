@@ -324,7 +324,12 @@ const philipsModernExtend = {
         // that can be sent atomically via the manuSpecificPhilips2 cluster.
         // Command-only keys (brightness_move, hue_step, etc.) have no Philips2
         // equivalent and are left to their standard converters in the array.
-        const nativeKeys = ["state", "brightness", "brightness_percent", "color", "color_temp", "color_temp_percent", "transition"];
+        // Only claim the keys this light's standard converters handle. A white-only
+        // bulb has no color converters; claiming color/color_temp anyway would drop
+        // them for a group, since Z2M uses the converter of the first member that
+        // claims a key, and the delegation below only reaches this light's converters.
+        const lightKeys = ["state", "brightness", "brightness_percent", "color", "color_temp", "color_temp_percent", "transition"];
+        const nativeKeys = lightKeys.filter((k) => toZigbee.some((tz) => tz.key.includes(k)));
         const keys = [...nativeKeys, ...philips2Keys];
         const philipsLightTz = {
             key: keys,

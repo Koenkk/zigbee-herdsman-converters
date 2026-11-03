@@ -167,19 +167,19 @@ describe("lib/tuya", () => {
             expect(cluster.attributes.moesCalibrationTime).toMatchObject({ID: 0xf003, type: Zcl.DataType.UINT16});
         });
 
-        const setupB4z = async () => {
+        const setupTs130f = async (manufacturerName = "_TZ3000_yruungrl", initialPosition = 100) => {
             const device = mockDevice({
                 modelID: "TS130F",
-                manufacturerName: "_TZ3000_yruungrl",
+                manufacturerName,
                 endpoints: [{ID: 1, inputClusters: ["closuresWindowCovering"]}],
             });
             const definition = await findByDevice(device);
             const endpoint = device.getEndpoint(1);
             const toConverter = definition.toZigbee.find((converter) => converter.key.includes("position"));
             const fromConverter = definition.fromZigbee.find((converter) => converter.cluster === "closuresWindowCovering");
-            if (!toConverter?.convertSet || !fromConverter) throw new Error("B4Z cover converters not found");
+            if (!toConverter?.convertSet || !fromConverter) throw new Error("TS130F cover converters not found");
 
-            const state = {position: 100};
+            const state = {position: initialPosition};
             const sendPosition = async (position: number) => {
                 const commandResult = await toConverter.convertSet(endpoint, "position", position, {
                     device,
@@ -192,7 +192,7 @@ describe("lib/tuya", () => {
                 });
                 Object.assign(state, commandResult?.state);
             };
-            const convert = (data: {currentPositionLiftPercentage: number; tuyaMovingState: number}) =>
+            const convert = (data: {currentPositionLiftPercentage?: number; tuyaMovingState?: number}) =>
                 fromConverter.convert(
                     definition,
                     {
@@ -214,7 +214,7 @@ describe("lib/tuya", () => {
         };
 
         it("corrects a Nous B4Z stale start position after an optimistic position update", async () => {
-            const {convert, endpoint, sendPosition} = await setupB4z();
+            const {convert, endpoint, sendPosition} = await setupTs130f();
             await sendPosition(50);
 
             expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 2})).toMatchObject({position: 50});
@@ -223,7 +223,7 @@ describe("lib/tuya", () => {
         });
 
         it("does not correct a Nous B4Z STOP report before the target was acknowledged", async () => {
-            const {convert, endpoint, sendPosition} = await setupB4z();
+            const {convert, endpoint, sendPosition} = await setupTs130f();
             await sendPosition(50);
 
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 100});
@@ -231,13 +231,56 @@ describe("lib/tuya", () => {
         });
 
         it("does not replace an acknowledged Nous B4Z target with a stale moving report", async () => {
-            const {convert, endpoint, sendPosition} = await setupB4z();
+            const {convert, endpoint, sendPosition} = await setupTs130f();
             await sendPosition(50);
 
             expect(convert({currentPositionLiftPercentage: 50, tuyaMovingState: 0})).toMatchObject({position: 50});
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 0})).toMatchObject({position: 100});
             expect(convert({currentPositionLiftPercentage: 100, tuyaMovingState: 1})).toMatchObject({position: 50});
             expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 50}, expect.anything());
+        });
+
+        it("repairs the Lonsonho position attribute after STOP and target arrive in separate reports", async () => {
+            vi.useFakeTimers();
+            const {convert, endpoint, sendPosition} = await setupTs130f("_TZ3210_ol1uhvza");
+            await sendPosition(12);
+            endpoint.write.mockClear();
+
+            expect(convert({currentPositionLiftPercentage: 12})).toMatchObject({position: 12});
+            expect(convert({tuyaMovingState: 2})).toStrictEqual({});
+            expect(convert({currentPositionLiftPercentage: 96})).toMatchObject({position: 96});
+            expect(convert({tuyaMovingState: 1})).toStrictEqual({});
+            expect(convert({currentPositionLiftPercentage: 12})).toMatchObject({position: 12});
+            expect(endpoint.write).not.toHaveBeenCalled();
+
+            await vi.advanceTimersByTimeAsync(1000);
+
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 12}, expect.anything());
+            vi.useRealTimers();
+        });
+
+        it("primes the Lonsonho start position before sending an intermediate target", async () => {
+            const {endpoint, sendPosition} = await setupTs130f("_TZ3210_ol1uhvza");
+
+            await sendPosition(12);
+
+            expect(endpoint.write).toHaveBeenCalledWith("closuresWindowCovering", {currentPositionLiftPercentage: 100}, expect.anything());
+            expect(endpoint.command).toHaveBeenCalledWith(
+                "closuresWindowCovering",
+                "goToLiftPercentage",
+                {percentageliftvalue: 12},
+                expect.anything(),
+            );
+            expect(endpoint.write.mock.invocationCallOrder[0]).toBeLessThan(endpoint.command.mock.invocationCallOrder[0]);
+        });
+
+        it("does not send duplicate intermediate positions to the Lonsonho controller", async () => {
+            const {endpoint, sendPosition} = await setupTs130f("_TZ3210_ol1uhvza", 12);
+
+            await sendPosition(12);
+
+            expect(endpoint.command).not.toHaveBeenCalled();
+            expect(endpoint.write).not.toHaveBeenCalled();
         });
     });
 
@@ -406,6 +449,54 @@ describe("lib/tuya", () => {
             // 40000 W was decoded as 678 W before: 40000 > 0x7fff took the negative
             // branch, giving (0x999a - 40000) * -1
             expect(decode("l1", 1200, 300000, 40000)).toStrictEqual({voltage_l1: 120, current_l1: 300, power_l1: 40000});
+        });
+    });
+
+    describe("thresholdBlocks", () => {
+        // Payloads captured from an EARU EAYCBM-Z-1P (_TZE204_davzgqq0), DP 18
+        const converter = tuya.valueConverterBasic.thresholdBlocks([
+            [1, "over_current"],
+            [3, "over_voltage"],
+            [4, "under_voltage"],
+        ]);
+        const state = {
+            over_current_breaker: "ON",
+            over_current_threshold: 35,
+            over_voltage_breaker: "ON",
+            over_voltage_threshold: 265,
+            under_voltage_breaker: "ON",
+            under_voltage_threshold: 180,
+        };
+        const meta = (message: KeyValueAny) => ({state, message}) as unknown as Tz.Meta;
+
+        it("decodes every block", () => {
+            expect(converter.from(Buffer.from([1, 1, 0, 35, 3, 1, 1, 9, 4, 0, 0, 180]).toString("base64"))).toStrictEqual({
+                over_current_breaker: "ON",
+                over_current_threshold: 35,
+                over_voltage_breaker: "ON",
+                over_voltage_threshold: 265,
+                under_voltage_breaker: "OFF",
+                under_voltage_threshold: 180,
+            });
+        });
+
+        it("decodes only the blocks present and ignores unknown alarm codes", () => {
+            expect(converter.from(Buffer.from([4, 1, 0, 30]).toString("base64"))).toStrictEqual({
+                under_voltage_breaker: "ON",
+                under_voltage_threshold: 30,
+            });
+            expect(converter.from(Buffer.from([9, 1, 0, 30]).toString("base64"))).toStrictEqual({});
+        });
+
+        it("always writes the full buffer, merging state and message", () => {
+            expect(converter.to(266, meta({over_voltage_threshold: 266}))).toStrictEqual([1, 1, 0, 35, 3, 1, 1, 10, 4, 1, 0, 180]);
+            expect(converter.to("OFF", meta({over_current_breaker: "OFF", over_current_threshold: 40}))).toStrictEqual([
+                1, 0, 0, 40, 3, 1, 1, 9, 4, 1, 0, 180,
+            ]);
+        });
+
+        it("throws when a block is missing from state", () => {
+            expect(() => converter.to(35, {state: {}, message: {over_current_threshold: 35}} as unknown as Tz.Meta)).toThrow();
         });
     });
 
@@ -780,5 +871,25 @@ describe("thermostatScheduleDayMultiDP_TRV602Z", () => {
         ["fewer than 6 slots", "06:00/20.0/3 08:00/15.0/2"],
     ])("rejects %s", (_name, value) => {
         expect(() => converter.to(value)).toThrow();
+    });
+});
+
+describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
+    it("supports a custom maximum temperature", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 4, {maxTemperature: 45});
+        const text = "06:00/5.0 10:30/20.0 13:30/35.5 17:30/45.0";
+        const bytes = [7, 6, 0, 0, 50, 10, 30, 0, 200, 13, 30, 1, 99, 17, 30, 1, 194];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+        expect(() => converter.to("06:00/5 10:30/20 13:30/35.5 17:30/45.5")).toThrow("Invalid hour, minute or temperature");
+    });
+
+    it("supports a custom scale and minimum temperature", () => {
+        const converter = tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 4, {scale: 1, minTemperature: 32, maxTemperature: 104});
+        const text = "06:00/32.0 10:30/68.0 13:30/100.0 17:30/104.0";
+        const bytes = [1, 6, 0, 0, 32, 10, 30, 0, 68, 13, 30, 0, 100, 17, 30, 0, 104];
+        expect(converter.to(text)).toStrictEqual(bytes);
+        expect(converter.from(bytes as unknown as string)).toStrictEqual(text);
+        expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
     });
 });
