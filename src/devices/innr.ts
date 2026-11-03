@@ -217,6 +217,7 @@ export const definitions: DefinitionWithExtend[] = [
                 colorTemp: {range: [153, 555], startup: false},
                 color: {modes: ["xy", "hs"], applyRedFix: true},
                 turnsOffAtBrightness1: true,
+                powerOnBehavior: false,
             }),
         ],
     },

@@ -12,6 +12,7 @@ import {
     ignoreUnsupportedAttribute,
     isDummyDevice,
     postfixWithEndpointName,
+    precisionRound,
 } from "../lib/utils";
 import * as zosung from "../lib/zosung";
 
@@ -24,6 +25,17 @@ const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 const te = tuya.exposes;
+
+// Device reports the temperature in the selected temperature_unit instead of always in Celsius. Convert it back
+// so `temperature` (exposed with a fixed °C unit) stays consistent.
+// https://github.com/Koenkk/zigbee2mqtt/issues/32984
+const temperatureInSelectedUnit = {
+    from: (value: number, meta: Fz.Meta) => {
+        const raw = value / 10;
+        return precisionRound(meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw, 2);
+    },
+};
+
 // Convert HA raw IR timings (microseconds) to a Broadlink IR packet.
 // HOBEIAN ZG-IR01 only accepts Broadlink-encoded strings via ir_code_to_send,
 // but HA's native infrared.* platform sends raw {timings: [...]} through
@@ -123,7 +135,7 @@ const fzLocal = {
             let result: KeyValueAny = {};
             const data = msg.data;
             if (data && data.zoneStatus !== undefined) {
-                const result1 = fz.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta);
+                const result1 = fz.ias_occupancy_alarm_1_report.convert(model, msg, publish, options, meta) as KeyValueAny;
                 result = {...result1};
             }
             if (data && data.currentZoneSensitivityLevel !== undefined) {
@@ -215,21 +227,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "switch4", tuya.valueConverter.onOff],
                 [5, "switch5", tuya.valueConverter.onOff],
                 [6, "switch6", tuya.valueConverter.onOff],
-                [
-                    109,
-                    "temperature",
-                    {
-                        // Device reports the raw value already scaled in the currently selected
-                        // display unit (DP 111), instead of always reporting Celsius. Convert
-                        // back to Celsius here so `temperature` (exposed with a fixed °C unit)
-                        // stays consistent regardless of the device's temperature_unit setting.
-                        // https://github.com/Koenkk/zigbee2mqtt/issues/32984
-                        from: (value: number, meta: Fz.Meta) => {
-                            const raw = value / 10;
-                            return meta.state.temperature_unit === "fahrenheit" ? ((raw - 32) * 5) / 9 : raw;
-                        },
-                    },
-                ],
+                [109, "temperature", temperatureInSelectedUnit],
                 [110, "humidity", tuya.valueConverter.raw],
                 [112, "battery", tuya.valueConverter.raw],
                 [111, "temperature_unit", tuya.valueConverter.temperatureUnit],
@@ -251,7 +249,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-308Z"],
+        zigbeeModel: ["ZG-308Z", "HS308Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZD200_y0rvjm11"]),
         model: "ZG-308Z",
         vendor: "HOBEIAN",
         description: "Water valve",
@@ -292,6 +291,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [7, "battery", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS308Z", "Smart water valve", ["_TZD200_y0rvjm11"])],
     },
     {
         zigbeeModel: ["ZG-226Z"],
@@ -481,8 +481,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZX"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_w0ap83qu"]),
+        zigbeeModel: ["ZG-204ZX", "HS204ZX"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_w0ap83qu", "_TZD200_5ziwcyoe"]),
         model: "ZG-204ZX",
         vendor: "HOBEIAN",
         description: "24Ghz millimeter wave and T&H sensor",
@@ -543,7 +543,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [123, "motion_detection_sensitivity", tuya.valueConverter.raw],
                 [108, "indicator", tuya.valueConverter.onOff],
                 [110, "battery", tuya.valueConverter.raw],
-                [111, "temperature", tuya.valueConverter.divideBy10],
+                [111, "temperature", temperatureInSelectedUnit],
                 [101, "humidity", tuya.valueConverter.raw],
                 [109, "temperature_unit", tuya.valueConverter.temperatureUnit],
                 [105, "temperature_calibration", tuya.valueConverter.divideBy10],
@@ -551,6 +551,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [107, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS204ZX", "24GHz millimeter wave and T&H sensor", ["_TZD200_5ziwcyoe"])],
     },
     {
         zigbeeModel: ["ZG-210Z"],
@@ -1300,7 +1301,8 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo"]),
+        zigbeeModel: ["HS303Z"],
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_wqashyqo", "_TZD200_7khnomgh"]),
         model: "ZG-303Z",
         vendor: "HOBEIAN",
         description: "Soil moisture sensor",
@@ -1342,6 +1344,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [110, "soil_warning", tuya.valueConverter.raw],
             ],
         },
+        whiteLabel: [tuya.whitelabel("HYSYIOT", "HS303Z", "Soil moisture sensor", ["_TZD200_7khnomgh"])],
     },
     {
         zigbeeModel: ["ZG-303Z", "AY-303Z", "AY-302Z"],
@@ -1438,8 +1441,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZV", "AY204T"],
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
+        zigbeeModel: ["ZG-204ZV", "AY204T", "HS204ZV"],
+        fingerprint: [
+            ...tuya.fingerprint("TS0601", ["_TZE200_uli8wasj", "_TZE200_grgol3xp", "_TZE200_rhgsbacq"]),
+            ...tuya.fingerprint("TS0202", ["_TZD200_vfh3tuo1"]),
+        ],
         model: "ZG-204ZV",
         vendor: "HOBEIAN",
         description: "Millimeter wave motion detection",
@@ -1496,12 +1502,13 @@ export const definitions: DefinitionWithExtend[] = [
                 model: "AY204T",
                 vendor: "AOYAN",
                 description: "Millimeter wave motion detection",
-                fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN  "}],
+                fingerprint: [{modelID: "AY204T", manufacturerName: "AOYAN"}],
             },
+            tuya.whitelabel("HYSYIOT", "HS204ZV", "10G millimeter wave motion detection", ["_TZD200_vfh3tuo1"]),
         ],
     },
     {
-        zigbeeModel: ["ZG-223Z", "HS118Z"],
+        zigbeeModel: ["ZG-223Z", "HS118Z", "AY-223Z"],
         fingerprint: tuya.fingerprint("TS0601", ["_TZE200_jsaqgakf", "_TZE200_u6x1zyv2", "_TZE200_2pddnnrk", "_TZE200_gt1gge3x"]),
         model: "ZG-223Z",
         vendor: "HOBEIAN",
@@ -1531,6 +1538,12 @@ export const definitions: DefinitionWithExtend[] = [
                 vendor: "HYSYIOT",
                 description: "Rainwater detection sensor",
                 fingerprint: [{modelID: "HS118Z", manufacturerName: "HYSYIOT"}],
+            },
+            {
+                model: "AY-223Z",
+                vendor: "AOYAN",
+                description: "Rainwater detection sensor",
+                fingerprint: [{modelID: "AY-223Z", manufacturerName: "AOYAN"}],
             },
         ],
         meta: {
@@ -1627,7 +1640,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["ZG-204ZL"],
+        zigbeeModel: ["ZG-204ZL", "HS204ZL"],
         fingerprint: tuya.fingerprint("TS0601", [
             "_TZE200_3towulqd",
             "_TZE200_1ibpyhdc",
@@ -1638,6 +1651,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE200_jxyhl4eq",
             "_TZE200_qxyh4r7g",
             "_TZE200_na5qlzow",
+            "_TZD200_gfng0whq",
         ]),
         model: "ZG-204ZL",
         vendor: "HOBEIAN",
@@ -1689,7 +1703,10 @@ export const definitions: DefinitionWithExtend[] = [
                 [102, "illuminance_interval", tuya.valueConverter.raw],
             ],
         },
-        whiteLabel: [tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"])],
+        whiteLabel: [
+            tuya.whitelabel("Nedis", "ZBSM20WT", "Nedis motion sensor", ["_TZE200_s6hzw8g2"]),
+            tuya.whitelabel("HYSYIOT", "HS204ZL", "Luminance motion sensor", ["_TZD200_gfng0whq"]),
+        ],
     },
     {
         zigbeeModel: ["ZG-225Z"],
