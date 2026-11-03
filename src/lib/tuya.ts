@@ -875,7 +875,9 @@ const tuyaExposes = {
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Controls state after power outage: false = on, true = restore previous state")
+            .withDescription(
+                "Controls state after power outage: false = on, true = restore previous state. Power-cycle twice to ignore this setting and force on",
+            )
             .withCategory("config"),
     colorPowerOnBehavior: () =>
         e
