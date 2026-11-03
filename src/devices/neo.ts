@@ -97,7 +97,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "NAS-AB06B2",
         vendor: "NEO",
         description: "Outdoor solar alarm",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnDeviceAnnounce: true,
+                queryOnConfigure: true,
+            }),
+        ],
         exposes: [
             e.enum("alarm_state", ea.STATE, ["alarm_sound", "alarm_light", "alarm_sound_light", "no_alarm"]).withDescription("Alarm status"),
             e.binary("alarm_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable alarm"),
@@ -112,7 +118,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueStep(1)
                 .withUnit("min")
                 .withDescription("Alarm duration in minutes"),
-            e.binary("charging", ea.STATE, true, false).withDescription("Charging status"),
+            e.binary("charging", ea.STATE, true, false).withDescription("Wired USB-C charging status (solar charging not monitored by hardware)"),
             e.battery(),
         ],
         meta: {
@@ -138,7 +144,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [7, "alarm_time", tuya.valueConverter.raw],
                 [6, "charging", tuya.valueConverter.raw],
-                [15, "battery", tuya.valueConverter.raw],
+                [15, "battery", {from: (v: number) => (v === 0 ? 100 : v)}],
             ],
         },
     },
