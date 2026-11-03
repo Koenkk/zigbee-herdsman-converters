@@ -1572,6 +1572,37 @@ export const valueConverterBasic = {
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
     },
+    // Raw datapoint made of 4-byte blocks: [alarm code, breaker on/off, value high byte, value low byte].
+    // Exposes `<name>_breaker` (ON/OFF) and `<name>_threshold` for each alarm.
+    // Writes always send the full buffer (all alarms, in the given order), merging the current state
+    // with the message; some devices corrupt the other blocks when only the changed block is sent.
+    thresholdBlocks: (alarms: [code: number, name: string][]) => {
+        const onOff: Record<string, number> = {OFF: 0, ON: 1};
+        return {
+            from: (v: string) => {
+                const data = Buffer.from(v, "base64");
+                const result: KeyValue = {};
+                for (let i = 0; i + 3 < data.length; i += 4) {
+                    const alarm = alarms.find(([code]) => code === data[i]);
+                    if (alarm) {
+                        result[`${alarm[1]}_breaker`] = data[i + 1] === 1 ? "ON" : "OFF";
+                        result[`${alarm[1]}_threshold`] = (data[i + 2] << 8) | data[i + 3];
+                    }
+                }
+                return result;
+            },
+            to: (v: unknown, meta: Tz.Meta) => {
+                const values: KeyValue = {...meta.state, ...meta.message};
+                const payload: number[] = [];
+                for (const [code, name] of alarms) {
+                    const breaker = utils.getFromLookup(values[`${name}_breaker`], onOff);
+                    const threshold = utils.toNumber(values[`${name}_threshold`], `${name}_threshold`);
+                    payload.push(code, breaker, (threshold >> 8) & 0xff, threshold & 0xff);
+                }
+                return payload;
+            },
+        };
+    },
 };
 
 export const valueConverter = {

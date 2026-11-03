@@ -409,6 +409,54 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("thresholdBlocks", () => {
+        // Payloads captured from an EARU EAYCBM-Z-1P (_TZE204_davzgqq0), DP 18
+        const converter = tuya.valueConverterBasic.thresholdBlocks([
+            [1, "over_current"],
+            [3, "over_voltage"],
+            [4, "under_voltage"],
+        ]);
+        const state = {
+            over_current_breaker: "ON",
+            over_current_threshold: 35,
+            over_voltage_breaker: "ON",
+            over_voltage_threshold: 265,
+            under_voltage_breaker: "ON",
+            under_voltage_threshold: 180,
+        };
+        const meta = (message: KeyValueAny) => ({state, message}) as unknown as Tz.Meta;
+
+        it("decodes every block", () => {
+            expect(converter.from(Buffer.from([1, 1, 0, 35, 3, 1, 1, 9, 4, 0, 0, 180]).toString("base64"))).toStrictEqual({
+                over_current_breaker: "ON",
+                over_current_threshold: 35,
+                over_voltage_breaker: "ON",
+                over_voltage_threshold: 265,
+                under_voltage_breaker: "OFF",
+                under_voltage_threshold: 180,
+            });
+        });
+
+        it("decodes only the blocks present and ignores unknown alarm codes", () => {
+            expect(converter.from(Buffer.from([4, 1, 0, 30]).toString("base64"))).toStrictEqual({
+                under_voltage_breaker: "ON",
+                under_voltage_threshold: 30,
+            });
+            expect(converter.from(Buffer.from([9, 1, 0, 30]).toString("base64"))).toStrictEqual({});
+        });
+
+        it("always writes the full buffer, merging state and message", () => {
+            expect(converter.to(266, meta({over_voltage_threshold: 266}))).toStrictEqual([1, 1, 0, 35, 3, 1, 1, 10, 4, 1, 0, 180]);
+            expect(converter.to("OFF", meta({over_current_breaker: "OFF", over_current_threshold: 40}))).toStrictEqual([
+                1, 0, 0, 40, 3, 1, 1, 9, 4, 1, 0, 180,
+            ]);
+        });
+
+        it("throws when a block is missing from state", () => {
+            expect(() => converter.to(35, {state: {}, message: {over_current_threshold: 35}} as unknown as Tz.Meta)).toThrow();
+        });
+    });
+
     describe("TS130F manufacturer-dependent switch type", () => {
         const resolve = async (manufacturerName: string) => {
             const device = mockDevice({modelID: "TS130F", manufacturerName, endpoints: [{ID: 1}]});
