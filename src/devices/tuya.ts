@@ -5014,6 +5014,49 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_0corc0ph"]),
+        model: "X7633",
+        vendor: "Xenon Smart",
+        description: "Natural gas detector",
+        whiteLabel: [tuya.whitelabel("Zorro Alert", "JT-ZL2010Z", "Combustible gas detector", ["_TZE204_0corc0ph"])],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.gas(),
+            e.binary("preheat", ea.STATE, true, false).withDescription("Indicates sensor preheat is active"),
+            tuya.exposes.faultAlarm(),
+            e.binary("fault", ea.STATE, true, false).withDescription("Indicates whether a general fault was detected"),
+            e.binary("serious_fault", ea.STATE, true, false).withDescription("Indicates whether a serious fault was detected"),
+            e.binary("sensor_fault", ea.STATE, true, false).withDescription("Indicates whether a sensor fault was detected"),
+            e.binary("probe_fault", ea.STATE, true, false).withDescription("Indicates whether a probe fault was detected"),
+            e.binary("power_fault", ea.STATE, true, false).withDescription("Indicates whether a power fault was detected"),
+            e
+                .binary("end_of_life", ea.STATE, true, false)
+                .withDescription("Indicates whether the sensor has reached its end of life and should be replaced"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "gas", tuya.valueConverter.trueFalseEnum0],
+                [10, "preheat", tuya.valueConverter.raw],
+                [
+                    11,
+                    null,
+                    {
+                        // Fault bitmap; fault_alarm is true when any bit is set
+                        from: (v: number) => ({
+                            fault_alarm: v !== 0,
+                            fault: (v & 1) !== 0,
+                            serious_fault: (v & 2) !== 0,
+                            sensor_fault: (v & 4) !== 0,
+                            probe_fault: (v & 8) !== 0,
+                            power_fault: (v & 16) !== 0,
+                        }),
+                    },
+                ],
+                [12, "end_of_life", tuya.valueConverter.trueFalseInvert], // lifecycle
+            ],
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_mqij5jas"]),
         model: "JKD-839Z",
         vendor: "Jikaida",
