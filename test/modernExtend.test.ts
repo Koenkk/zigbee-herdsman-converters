@@ -361,6 +361,20 @@ describe("ModernExtend", () => {
         });
     });
 
+    test("philips.m.light() for a white-only bulb leaves color keys to a group's color bulbs", () => {
+        const white = philips.m.light().toZigbee ?? [];
+        const color = philips.m.light({colorTemp: {range: [153, 500]}, color: true}).toZigbee ?? [];
+        const whiteKeys = white.flatMap((c) => c.key);
+        expect(whiteKeys).toEqual(expect.arrayContaining(["state", "brightness", "brightness_percent", "transition"]));
+        for (const key of ["color", "color_temp", "color_temp_percent"]) {
+            expect(whiteKeys).not.toContain(key);
+            // Zigbee2MQTT picks a group's converter for a key from its members' converters in
+            // member order, so with the white bulb first the color bulb's must be the one found.
+            const found = [...white, ...color].find((c) => c.key.includes(key));
+            expect(color).toContain(found);
+        }
+    });
+
     test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {
         await assertDefinition({
             device: mockDevice({
