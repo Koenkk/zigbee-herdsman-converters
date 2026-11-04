@@ -94,6 +94,7 @@ import {definitions as enkin} from "./enkin";
 import {definitions as enocean} from "./enocean";
 import {definitions as ensystec} from "./ensystec";
 import {definitions as envilar} from "./envilar";
+import {definitions as espPac} from "./esp_pac";
 import {definitions as espressif} from "./espressif";
 import {definitions as essentialb} from "./essentialb";
 import {definitions as essentials} from "./essentials";
@@ -496,6 +497,7 @@ const definitions: DefinitionWithExtend[] = [
     ...enocean,
     ...ensystec,
     ...envilar,
+    ...espPac,
     ...espressif,
     ...essentialb,
     ...essentials,
