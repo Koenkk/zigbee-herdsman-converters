@@ -184,6 +184,8 @@ export interface DefinitionMeta {
      */
     turnsOffAtBrightness1?: boolean;
     moveToLevelWithOnOffDisable?: boolean | ((entity: Zh.Endpoint) => boolean);
+    /** Use separate on/off and level commands, with on sent before the level command. */
+    separateOnOffAndBrightness?: boolean | ((entity: Zh.Endpoint) => boolean);
     /**
      * Omit optional optionsMask/optionsOverride parameters for devices with strict ZCL v1 compliance
      *

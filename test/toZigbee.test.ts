@@ -548,6 +548,106 @@ describe("toZigbee converters", () => {
     });
 
     describe("light_onoff_brightness", () => {
+        describe.each(["ZB-DL01", "ZB-CT01"])("split light commands for %s", (modelID) => {
+            let device: ReturnType<typeof mockDevice>;
+            let meta: Tz.Meta;
+
+            beforeEach(async () => {
+                device = mockDevice({modelID, endpoints: [{ID: 1}]});
+                const mapped = await zhc.findByDevice(device);
+                meta = {state: {}, device, message: {}, mapped, options: {}, endpoint_name: null, publish: null};
+            });
+
+            test.each([{}, {state: "ON"}, {state: "OFF"}])("OFF sends only off for cached state %o", async (state) => {
+                meta.state = state;
+                meta.message = {state: "OFF", transition: 3};
+                const result = await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "OFF", meta);
+                expect(device.endpoints[0].command).toHaveBeenCalledTimes(1);
+                expect(device.endpoints[0].command).toHaveBeenCalledWith("genOnOff", "off", {}, {});
+                expect(result).toEqual({state: {state: "OFF"}});
+            });
+
+            test("ON with brightness sends on before level with transition", async () => {
+                meta.state = {state: "OFF"};
+                meta.message = {state: "ON", brightness: 100, transition: 5};
+                const result = await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "ON", meta);
+                expect(device.endpoints[0].command).toHaveBeenCalledTimes(2);
+                expect(device.endpoints[0].command).toHaveBeenNthCalledWith(1, "genOnOff", "on", {}, {});
+                expect(device.endpoints[0].command).toHaveBeenNthCalledWith(
+                    2,
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level: 100, transtime: 50, optionsMask: 0, optionsOverride: 0},
+                    {},
+                );
+                expect(result).toEqual({state: {state: "ON", brightness: 100}});
+            });
+
+            test("brightness while on sends only level; unknown state sends on first", async () => {
+                meta.state = {state: "ON"};
+                meta.message = {brightness: 127, transition: 0};
+                await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "brightness", 127, meta);
+                expect(device.endpoints[0].command).toHaveBeenCalledTimes(1);
+                expect(device.endpoints[0].command).toHaveBeenCalledWith(
+                    "genLevelCtrl",
+                    "moveToLevel",
+                    {level: 127, transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    {},
+                );
+                vi.clearAllMocks();
+                meta.state = {};
+                await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "brightness", 127, meta);
+                expect(device.endpoints[0].command).toHaveBeenNthCalledWith(1, "genOnOff", "on", {}, {});
+                expect(device.endpoints[0].command).toHaveBeenCalledTimes(2);
+            });
+
+            test.each([
+                [{brightness: 0}, "off", undefined],
+                [{brightness: 1}, "on", 1],
+                [{brightness: 254}, "on", 254],
+                [{brightness: 255}, "on", 254],
+                [{brightness_percent: 100}, "on", 254],
+            ])("handles %o", async (message, command, level) => {
+                meta.message = message;
+                await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "brightness", 0, meta);
+                expect(device.endpoints[0].command).toHaveBeenNthCalledWith(1, "genOnOff", command, {}, {});
+                if (level !== undefined)
+                    expect(device.endpoints[0].command).toHaveBeenNthCalledWith(
+                        2,
+                        "genLevelCtrl",
+                        "moveToLevel",
+                        expect.objectContaining({level}),
+                        {},
+                    );
+            });
+
+            test.each([
+                ["ON", "off"],
+                ["OFF", "on"],
+                [undefined, "on"],
+            ])("toggle from %s sends %s", async (state, command) => {
+                meta.state = {state};
+                meta.message = {state: "TOGGLE"};
+                await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "TOGGLE", meta);
+                expect(device.endpoints[0].command).toHaveBeenCalledTimes(1);
+                expect(device.endpoints[0].command).toHaveBeenCalledWith("genOnOff", command, {}, {});
+            });
+
+            test("explicit null state only changes brightness", async () => {
+                meta.message = {state: null, brightness: 120};
+                const result = await zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "brightness", 120, meta);
+                expect(device.endpoints[0].command).toHaveBeenCalledTimes(1);
+                expect(device.endpoints[0].command).toHaveBeenCalledWith("genLevelCtrl", "moveToLevel", expect.objectContaining({level: 120}), {});
+                expect(result).toEqual({state: {brightness: 120}});
+            });
+
+            test.each([{brightness: -1}, {brightness: 256}, {state: "invalid"}])("rejects invalid input %o", async (message) => {
+                meta.message = message;
+                await expect(zhc.toZigbee.light_onoff_brightness.convertSet(device.endpoints[0], "state", "", meta)).rejects.toThrow();
+                expect(device.endpoints[0].command).not.toHaveBeenCalled();
+            });
+        });
+
         test("Flow with device having moveToLevelWithOnOffDisable=true and noOffTransitionWhenOff=true", async () => {
             const device = mockDevice({modelID: "CK-BL702-AL-01(7009_Z102LG03-1)", endpoints: [{ID: 1, meta: {onLevelSupported: false}}]});
             const mapped = await zhc.findByDevice(device);
