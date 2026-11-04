@@ -14106,20 +14106,15 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TS0004",
         vendor: "Tuya",
         description: "Smart light switch - 4 gang with neutral wire",
-        meta: {disableDefaultResponse: (endpoint) => endpoint.getDevice().manufacturerName === "_TZ3000_uz6ibhib"},
         extend: [
             tuya.modernExtend.tuyaBase(),
             m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
             tuya.modernExtend.tuyaOnOff({
                 powerOnBehavior2: true,
-                backlightModeOffOn: (m) => m !== "_TZ3000_uz6ibhib",
+                backlightModeOffOn: true,
                 endpoints: ["l1", "l2", "l3", "l4"],
                 switchType: (m) => m === "_TZ3000_r9e2w7dn" || m === "_TZ3000_excgg5kb",
-                onOffCountdown: (m) => m === "_TZ3000_uz6ibhib",
-                inchingSwitch: (m) => m === "_TZ3000_uz6ibhib",
-                inchingSwitchRequiresFullState: (m) => m === "_TZ3000_uz6ibhib",
             }),
-            tuya.clusters.addTuyaCommonPrivateCluster(),
         ],
         whiteLabel: [
             tuya.whitelabel("Tuya", "DS-111", "Smart light switch - 4 gang with neutral wire", ["_TZ3000_mdj7kra9"]),
@@ -14134,6 +14129,29 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.bind(device.getEndpoint(2), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(3), coordinatorEndpoint, ["genOnOff"]);
             await reporting.bind(device.getEndpoint(4), coordinatorEndpoint, ["genOnOff"]);
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_uz6ibhib"]),
+        model: "TS0004_switch_module_3",
+        vendor: "Tuya",
+        description: "4 gang switch module with countdown and inching",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
         },
     },
     {

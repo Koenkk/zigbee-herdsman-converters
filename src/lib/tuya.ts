@@ -2856,7 +2856,7 @@ export const valueConverter = {
 
                 let state = value[`inching_control_${i}`] === "ENABLE" ? 1 : 0;
                 if (i !== 1) {
-                    // Bit 0 is the enable flag; bits 1..7 contain the zero-based channel.
+                    // Bit 0 is the enable flag, the bits above it contain the zero-based channel
                     state += (i - 1) * 2;
                 }
                 const secs: number = Number.parseInt(value[`inching_time_${i}`], 10);
@@ -3350,8 +3350,8 @@ const tuyaTz = {
             await endpoint.command<"manuSpecificTuya4", "setInchingSwitch", Tuya4>(
                 "manuSpecificTuya4",
                 "setInchingSwitch",
-                // The command carries ASCII base64, not the decoded records.
-                {payload: Buffer.from(valueConverter.inchingSwitch.to(value), "ascii")},
+                // TODO: correct? seems it would take the `!(values instanceof Buffer)` codepath of ZH before
+                {payload: Buffer.from(valueConverter.inchingSwitch.to(value))},
                 utils.getOptions(meta.mapped, endpoint),
             );
 
@@ -4009,9 +4009,6 @@ const tuyaFz = {
             if (msg.data.inching !== undefined) {
                 const payload: KeyValue = {};
                 const value = valueConverter.inchingSwitch.from(msg.data.inching);
-                // Some firmware returns an empty attribute instead of its settings.
-                // Do not erase the last successfully sent complete table.
-                if (Object.keys(value).length === 0) return;
                 payload.inching_control_set = value;
                 return payload;
             }
@@ -5059,8 +5056,6 @@ const tuyaModernExtend = {
             switchMode?: boolean;
             onOffCountdown?: boolean | ((manufacturerName: string) => boolean);
             inchingSwitch?: boolean | ((manufacturerName: string) => boolean);
-            /** Merge partial updates for firmware which replaces its complete inching table on every write. */
-            inchingSwitchRequiresFullState?: boolean | ((manufacturerName: string) => boolean);
         } = {},
     ): ModernExtend => {
         const {
@@ -5097,35 +5092,13 @@ const tuyaModernExtend = {
                     }
                 },
             });
+            toZigbee.push(tuyaTz.on_off_countdown);
             if (typeof onOffCountdown === "function") {
-                toZigbee.push({
-                    ...tuyaTz.on_off_countdown,
-                    convertSet: async (entity, key, value, meta) => {
-                        if (onOffCountdown(meta.device?.manufacturerName)) {
-                            return await tuyaTz.on_off_countdown.convertSet(entity, key, value, meta);
-                        }
-                        if (key === "countdown") throw new Error("Countdown is not supported by this device");
-                        return await tz.on_off.convertSet(entity, key, value, meta);
-                    },
-                    convertGet: async (entity, key, meta) => {
-                        if (onOffCountdown(meta.device?.manufacturerName)) {
-                            await tuyaTz.on_off_countdown.convertGet(entity, key, meta);
-                        } else {
-                            if (key === "countdown") throw new Error("Countdown is not supported by this device");
-                            await tz.on_off.convertGet(entity, key, meta);
-                        }
-                    },
-                });
+                exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.countdown()] : []));
+            } else if (args.endpoints) {
+                exposes.push(...args.endpoints.map((ee) => tuyaExposes.countdown().withAccess(ea.ALL).withEndpoint(ee)));
             } else {
-                toZigbee.push(tuyaTz.on_off_countdown);
-            }
-            const countdownExposes = args.endpoints
-                ? args.endpoints.map((ee) => tuyaExposes.countdown().withAccess(ea.ALL).withEndpoint(ee))
-                : [tuyaExposes.countdown().withAccess(ea.ALL)];
-            if (typeof onOffCountdown === "function") {
-                exposes.push((d) => (onOffCountdown(d.manufacturerName) ? countdownExposes : []));
-            } else {
-                exposes.push(...countdownExposes);
+                exposes.push(tuyaExposes.countdown().withAccess(ea.ALL));
             }
         } else {
             toZigbee.push(tz.on_off);
@@ -5286,68 +5259,11 @@ const tuyaModernExtend = {
         if (inchingSwitch) {
             const quantity = args.endpoints?.length ?? 1;
             fromZigbee.push(tuyaFz.inchingSwitch);
-            const requiresFullState = args.inchingSwitchRequiresFullState;
-            if (requiresFullState) {
-                toZigbee.push({
-                    ...tuyaTz.inchingSwitch,
-                    convertSet: async (entity, key, value, meta) => {
-                        if (typeof requiresFullState === "function" && !requiresFullState(meta.device?.manufacturerName)) {
-                            return await tuyaTz.inchingSwitch.convertSet(entity, key, value, meta);
-                        }
-                        utils.assertEndpoint(entity);
-                        utils.assertObject(value, key);
-                        const update = {...value};
-                        const device = meta.device;
-                        const previous: Promise<unknown> = globalStore.getValue(device, "inchingSwitchQueue", Promise.resolve());
-                        const run = async () => {
-                            const remembered: KeyValue = globalStore.getValue(device, "inchingSwitchState", meta.state?.inching_control_set ?? {});
-                            const merged = {...remembered, ...update};
-                            const next: KeyValue = {};
-                            for (let i = 1; i <= quantity; i++) {
-                                const controlKey = `inching_control_${i}`;
-                                const timeKey = `inching_time_${i}`;
-                                if (merged[controlKey] === undefined || merged[timeKey] === undefined) {
-                                    throw new Error(`Missing inching settings for endpoint ${i}; provide all channels on the first write`);
-                                }
-                                utils.validateValue(merged[controlKey], ["ENABLE", "DISABLE"]);
-                                const duration = merged[timeKey];
-                                utils.assertNumber(duration, timeKey);
-                                if (!Number.isInteger(duration) || duration < 1 || duration > 65535) {
-                                    throw new Error(`${timeKey} must be an integer between 1 and 65535 seconds`);
-                                }
-                                next[controlKey] = merged[controlKey];
-                                next[timeKey] = duration;
-                            }
-                            for (const property of Object.keys(update)) {
-                                if (!(property in next)) throw new Error(`Unknown inching property: ${property}`);
-                            }
-                            const result = await tuyaTz.inchingSwitch.convertSet(entity, key, next, meta);
-                            // Keep successful writes only, and isolate queues/caches per device.
-                            globalStore.putValue(device, "inchingSwitchState", next);
-                            return result;
-                        };
-                        const current = previous.then(run, run);
-                        globalStore.putValue(device, "inchingSwitchQueue", current);
-                        return await current;
-                    },
-                });
-            } else {
-                toZigbee.push(tuyaTz.inchingSwitch);
-            }
-            const inchingExpose = (manufacturerName?: string) => {
-                const expose = tuyaExposes.inchingSwitch(quantity);
-                if (typeof requiresFullState === "function" ? requiresFullState(manufacturerName) : requiresFullState) {
-                    expose.withDescription(
-                        "Automatically turn off after each turn on. Supply all channels on the first write; " +
-                            "later partial updates preserve the last sent settings of the other channels. Settings cannot be read back.",
-                    );
-                }
-                return expose;
-            };
+            toZigbee.push(tuyaTz.inchingSwitch);
             if (typeof inchingSwitch === "function") {
-                exposes.push((d) => (inchingSwitch(d.manufacturerName) ? [inchingExpose(d.manufacturerName)] : []));
+                exposes.push((d) => (inchingSwitch(d.manufacturerName) ? [tuyaExposes.inchingSwitch(quantity)] : []));
             } else {
-                exposes.push(inchingExpose());
+                exposes.push(tuyaExposes.inchingSwitch(quantity));
             }
         }
 
