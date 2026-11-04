@@ -14,7 +14,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["H2-ZB-SW-V1"],
         model: "H2-ZB-SW-V1",
-        vendor: "JIMMY",
+        vendor: "Coselig",
         description: "Four-channel switch",
         ota: true,
         extend: [
