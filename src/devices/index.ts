@@ -53,6 +53,7 @@ import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
+import {definitions as coselig} from "./coselig";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
@@ -456,6 +457,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cleverio,
     ...climax,
     ...commercialElectric,
+    ...coselig,
     ...cree,
     ...ctm,
     ...currentProductsCorp,
