@@ -1,4 +1,3 @@
-import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import type {DefinitionWithExtend, Fz, KeyValueAny, Tz, Zh} from "../lib/types";
 
@@ -46,6 +45,15 @@ const vSwingToId: {[s: string]: number} = {unknown: 0, up: 1, up_center: 2, cent
 const idToHSwing = ["unknown", "left", "left_center", "center", "right_center", "right", "auto"];
 const hSwingToId: {[s: string]: number} = {unknown: 0, left: 1, left_center: 2, center: 3, right_center: 4, right: 5, auto: 6};
 
+const zclSystemModeToMode: {[s: number]: string} = {
+    0: "off",
+    1: "auto",
+    3: "cool",
+    4: "heat",
+    7: "fan_only",
+    8: "dry",
+};
+
 const unwrap = (value: unknown): unknown => (value && typeof value === "object" && "value" in value ? value.value : value);
 
 const num = (value: unknown) => {
@@ -59,6 +67,14 @@ const onOff = (value: unknown) => {
     const raw = unwrap(value);
     if (raw === undefined) return undefined;
     return raw ? "ON" : "OFF";
+};
+
+const zclTemp = (value: unknown) => {
+    if (value === undefined) return undefined;
+    const raw = unwrap(value);
+    if (raw === 0x8000 || raw === -32768) return undefined;
+    const temp = Number(raw) / 100;
+    return Number.isFinite(temp) ? temp : undefined;
 };
 
 const formatFirmware = (value: unknown) => {
@@ -151,6 +167,28 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"genAnalogInput", undefined, ["attributeReport", "readResponse"]>,
+    thermostat: {
+        cluster: "hvacThermostat",
+        type: ["attributeReport", "readResponse"],
+        convert: (model, msg) => {
+            const result: KeyValueAny = {};
+            const local = zclTemp(msg.data.localTemp);
+            const outdoor = zclTemp(msg.data.outdoorTemp);
+            const cool = zclTemp(msg.data.occupiedCoolingSetpoint);
+            const heat = zclTemp(msg.data.occupiedHeatingSetpoint);
+            if (local !== undefined) result.local_temperature = local;
+            if (outdoor !== undefined) result.outdoor_temperature = outdoor;
+            if (cool !== undefined) result.occupied_cooling_setpoint = cool;
+            if (heat !== undefined) result.occupied_heating_setpoint = heat;
+            const systemMode = num(msg.data.systemMode);
+            if (systemMode !== undefined) {
+                const mode = zclSystemModeToMode[systemMode] ?? "auto";
+                result.system_mode = mode;
+                result.state = mode === "off" ? "OFF" : "ON";
+            }
+            return result;
+        },
+    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
 };
 
 const tzLocal = {
@@ -217,7 +255,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZB-PANASONIC-AC",
         vendor: "Custom devices (DiY)",
         description: "Panasonic CZ-TACG1 (CN-CNT) air conditioner controller (ESP32-C6)",
-        fromZigbee: [fzLocal.acAnalog, fz.thermostat],
+        fromZigbee: [fzLocal.acAnalog, fzLocal.thermostat],
         toZigbee: [
             tzLocal.state,
             tzLocal.system_mode,
