@@ -6,7 +6,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Fz, KeyValueAny, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -264,6 +264,38 @@ const fzLocal = {
         type: ["raw"],
         convert: () => undefined,
     } satisfies Fz.Converter<number, undefined, ["raw"]>,
+};
+
+// ZMD-208 screen dimmer gang name: a raw datapoint holding plain text with a 0 terminator ("switch1\0"
+// out of the box). Neither `name` (keeps the terminator) nor `screenName` (length-prefixed) matches it.
+// The screen shows 12 characters, so longer names are refused rather than silently cut.
+const zmd208ScreenName = (dp: number, endpoint: string, gang: number): ModernExtend => {
+    const [fromZigbee, toZigbee] = tuya.getHandlersForDP(
+        "name",
+        dp,
+        tuya.dataTypes.raw,
+        {
+            to: (v: string) => {
+                const text = String(v);
+                if (!/^[\x20-\x7e]{1,12}$/.test(text)) throw new Error("Name must be 1-12 printable ASCII characters");
+                return Buffer.concat([Buffer.from(text, "latin1"), Buffer.from([0])]);
+            },
+            from: (v: Buffer) => {
+                const buffer = Buffer.from(v);
+                const end = buffer.indexOf(0);
+                return buffer.subarray(0, end < 0 ? buffer.length : end).toString("latin1");
+            },
+        },
+        false,
+        undefined,
+        endpoint,
+    );
+    return {
+        exposes: [e.text("name", ea.STATE_SET).withEndpoint(endpoint).withDescription(`Name shown on the screen for gang ${gang}`)],
+        fromZigbee,
+        toZigbee,
+        isModernExtend: true,
+    };
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -1303,5 +1335,39 @@ export const definitions: DefinitionWithExtend[] = [
                 [113, null, {from: () => undefined}], // unknown datapoint — suppress "not defined" warning
             ],
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_gheewd2t"]),
+        model: "ZMD-208-2",
+        vendor: "Zemismart",
+        description: "Zigbee screen dimmer switch 2 gang",
+        extend: [
+            tuya.modernExtend.tuyaMagicPacket(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 1}}),
+            tuya.modernExtend.dpLight({
+                state: {
+                    dp: 1,
+                    type: tuya.dataTypes.bool,
+                    valueOn: ["ON", true],
+                    valueOff: ["OFF", false],
+                    skip: tuya.skip.stateOnAndBrightnessPresent,
+                },
+                brightness: {dp: 2, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                endpoint: "l1",
+            }),
+            tuya.modernExtend.dpLight({
+                state: {
+                    dp: 7,
+                    type: tuya.dataTypes.bool,
+                    valueOn: ["ON", true],
+                    valueOff: ["OFF", false],
+                    skip: tuya.skip.stateOnAndBrightnessPresent,
+                },
+                brightness: {dp: 8, type: tuya.dataTypes.number, scale: [0, 254, 0, 1000]},
+                endpoint: "l2",
+            }),
+            zmd208ScreenName(106, "l1", 1),
+            zmd208ScreenName(107, "l2", 2),
+        ],
     },
 ];
