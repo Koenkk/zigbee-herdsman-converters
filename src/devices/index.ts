@@ -53,6 +53,7 @@ import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
+import {definitions as coselig} from "./coselig";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
@@ -166,7 +167,6 @@ import {definitions as jasco} from "./jasco";
 import {definitions as javis} from "./javis";
 import {definitions as jethome} from "./jethome";
 import {definitions as jiawen} from "./jiawen";
-import {definitions as jimmy} from "./jimmy";
 import {definitions as jumitech} from "./jumitech";
 import {definitions as jxuan} from "./jxuan";
 import {definitions as kami} from "./kami";
@@ -456,6 +456,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cleverio,
     ...climax,
     ...commercialElectric,
+    ...coselig,
     ...cree,
     ...ctm,
     ...currentProductsCorp,
@@ -568,7 +569,6 @@ const definitions: DefinitionWithExtend[] = [
     ...javis,
     ...jethome,
     ...jiawen,
-    ...jimmy,
     ...jumitech,
     ...jxuan,
     ...kami,
