@@ -983,7 +983,7 @@ export const definitions: DefinitionWithExtend[] = [
         // power_on_behavior, backlight_mode, indicator_light_brightness). Fully confirmed against real
         // hardware (dp specification). PS: Some hardware could not have the vibration module
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z98viqa6"]),
-        model: "SFD02-Z",
+        model: "SFD02-Z_2",
         vendor: "Moes",
         description: "Star feather smart dimmer switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
