@@ -1,5 +1,22 @@
 # Changelog
 
+## [26.127.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.126.0...v26.127.0) (2026-11-04)
+
+
+### Features
+
+* **add:** H2-ZB-SW-V1 ([#13673](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13673)) ([f9c4f21](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f9c4f21c81ba02b1d288dbca45081bebbbfd45ed))
+* **add:** SFD02-Z ([#13666](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13666)) ([b2c0c4b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2c0c4b88e114a5b3c9d8ac4a10077029e7ad4da))
+* **add:** ZMD-208-2 ([#13691](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13691)) ([397efa7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/397efa75f96d242b9d856dd1c16b7f9478f62a93))
+* Heiman M1P-E: allow resetting radar learning settings ([#13692](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13692)) ([7b1685b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7b1685b291250ce1ddd9e04582a69589200299d2))
+* Tuya TS0005: expose countdown ([#13690](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13690)) ([6e96768](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6e9676822e41dbe33dca2fdca3ee386f63b555c2))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE284_fzo2pocs` as Zemismart ZM25TQ ([#13689](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13689)) ([7adb445](https://github.com/Koenkk/zigbee-herdsman-converters/commit/7adb4454c6b9da84dfc9fc583aa687916c4f328d))
+* Moes _TZE204_rtrmfadk: report the manual preset correctly while heating ([#13695](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13695)) ([70efbb8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/70efbb89def01bb1b06eb3f1cf69a41fc01c66e5))
+
 ## [26.126.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.125.0...v26.126.0) (2026-11-03)
 
 
