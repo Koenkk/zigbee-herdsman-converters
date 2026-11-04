@@ -1257,7 +1257,6 @@ export const light_onoff_brightness: Tz.Converter = {
         const transition = utils.getTransition(entity, "brightness", meta);
         const turnsOffAtBrightness1 = utils.getMetaValue(entity, meta.mapped, "turnsOffAtBrightness1", "allEqual", false);
         const moveToLevelWithOnOffDisable = utils.getMetaValue(entity, meta.mapped, "moveToLevelWithOnOffDisable", "allEqual", false);
-        const separateOnOffAndBrightness = utils.getMetaValue(entity, meta.mapped, "separateOnOffAndBrightness", "allEqual", false);
         const omitOptionalLevelAndColorParams = utils.getMetaValue(entity, meta.mapped, "omitOptionalLevelAndColorParams", "allEqual", false);
         const optionalParams = omitOptionalLevelAndColorParams ? null : {optionsMask: 0, optionsOverride: 0};
         let state = message.state !== undefined ? (typeof message.state === "string" ? message.state.toLowerCase() : null) : undefined;
@@ -1284,30 +1283,6 @@ export const light_onoff_brightness: Tz.Converter = {
 
         if ((state === undefined || state === null) && brightness === undefined) {
             throw new Error(`At least one of "brightness" or "state" must have a value: '${JSON.stringify(message)}'`);
-        }
-
-        if (separateOnOffAndBrightness) {
-            // Some devices mishandle moveToLevelWithOnOff. Send OFF directly, and send ON before changing the level.
-            // https://github.com/Koenkk/zigbee-herdsman-converters/issues/12248
-            const targetState =
-                state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state === undefined ? (brightness === 0 ? "off" : "on") : state;
-            if (targetState !== null && (targetState === "off" || meta.state.state !== "ON" || brightness === undefined)) {
-                await on_off.convertSet(entity, "state", targetState, {...meta, message: {...message, state: targetState}});
-            }
-            if (targetState === "off") {
-                return {state: {state: "OFF"}};
-            }
-            if (brightness === undefined) {
-                return {state: {state: "ON"}};
-            }
-            const level = Math.max(brightness, 1);
-            await entity.command(
-                "genLevelCtrl",
-                "moveToLevel",
-                {level, transtime: transition.time, ...optionalParams},
-                utils.getOptions(meta.mapped, entity),
-            );
-            return {state: targetState === null ? {brightness: level} : {state: "ON", brightness: level}};
         }
 
         // Infer state from desired brightness if unset. Ideally we'd want to keep it as it is, but this code has always
