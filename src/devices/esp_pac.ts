@@ -189,7 +189,7 @@ const tzLocal = {
     occupied_heating_setpoint: {
         key: ["occupied_heating_setpoint", "occupied_cooling_setpoint", "current_heating_setpoint", "current_cooling_setpoint"],
         convertSet: async (entity, key, value) => {
-            const temp = Math.round(Number(value) * 2) / 2;
+            const temp = Math.round(Number(value));
             if (!Number.isFinite(temp) || temp < 16 || temp > 30) {
                 throw new Error("Temperature must be 16..30");
             }
@@ -215,7 +215,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "ZB-PANASONIC-AC", manufacturerName: "ESP-PAC"}],
         model: "ZB-PANASONIC-AC",
-        vendor: "ESP-PAC",
+        vendor: "Custom devices (DiY)",
         description: "Panasonic CZ-TACG1 (CN-CNT) air conditioner controller (ESP32-C6)",
         fromZigbee: [fzLocal.acAnalog, fz.thermostat],
         toZigbee: [
@@ -236,7 +236,7 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e
                 .climate()
-                .withSetpoint("occupied_heating_setpoint", 16, 30, 0.5, ea.STATE_SET)
+                .withSetpoint("occupied_heating_setpoint", 16, 30, 1, ea.STATE_SET)
                 .withLocalTemperature()
                 .withSystemMode(["off", "auto", "cool", "heat", "dry", "fan_only"], ea.STATE_SET),
             e.enum("fan_mode", ea.STATE_SET, idToFan).withDescription("Fan speed"),
