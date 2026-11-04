@@ -10428,7 +10428,6 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_r0jdjrvi",
             "_TZE200_g5xqosu7",
             "_TZE204_g5xqosu7",
-            "_TZE284_fzo2pocs",
             "_TZE200_9vpe3fl1",
             "_TZE28C1000000_alh14edn",
         ]),
@@ -10493,7 +10492,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fzo2pocs"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_fzo2pocs", "_TZE284_fzo2pocs"]),
         model: "ZM25TQ",
         vendor: "Zemismart",
         description: "Tubular motor",
