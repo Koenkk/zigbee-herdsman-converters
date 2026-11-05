@@ -603,7 +603,7 @@ export async function discoverAttributes<Cl extends string>(endpoint: Zh.Endpoin
             disableRecovery: true,
             disableDefaultResponse: true,
         });
-        if (!result && extended) {
+        if (!result && extended && !endpoint.hasClusterAttributes(cluster)) {
             // fallback if extended command is unsupported
             await endpoint.discoverAttributes(cluster, false, {
                 sendPolicy: "immediate",
