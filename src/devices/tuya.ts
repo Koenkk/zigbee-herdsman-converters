@@ -29061,7 +29061,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BOT-R9V-ZB",
         vendor: "Beok",
         description: "Wall-mount thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             e
                 .climate()
