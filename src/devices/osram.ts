@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AB32840",
         vendor: "OSRAM",
         description: "LIGHTIFY LED Classic B40 tunable white",
-        extend: [ledvanceLight({colorTemp: {range: [150, 370]}})],
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}, osramPowerOnState: true})],
     },
     {
         zigbeeModel: ["Ceiling TW OSRAM"],
@@ -147,7 +147,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC03641",
         vendor: "OSRAM",
         description: "LIGHTIFY LED Classic A60 clear",
-        extend: [ledvanceLight({})],
+        extend: [ledvanceLight({osramPowerOnState: true})],
     },
     {
         zigbeeModel: ["Surface Light W �C LIGHTIFY"],

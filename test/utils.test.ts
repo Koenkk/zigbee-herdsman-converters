@@ -2,6 +2,9 @@ import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import type {Device} from "zigbee-herdsman/dist/controller/model";
 import type {Tz} from "../src/lib/types";
 import {
+    assertBoolean,
+    assertObject,
+    assertString,
     batteryVoltageToPercentage,
     getFromLookup,
     getFromLookupByValue,
@@ -143,6 +146,34 @@ describe("utils", () => {
         expect(toNumber("0")).toBe(0);
         expect(toNumber(0)).toBe(0);
         expect(() => toNumber("")).toThrowError("Value is not a number, got string ()");
+    });
+
+    describe("assert error formatting stays total", () => {
+        // A rejected value whose coercion throws must still produce the assert's
+        // intended Error, never a raw TypeError from message construction.
+        const hostile = {
+            [Symbol.toPrimitive]() {
+                throw new Error("coercion failed");
+            },
+        };
+
+        it("assertString rejects a hostile value with its own Error", () => {
+            expect(() => assertString(hostile)).toThrowError("is not a string");
+        });
+
+        it("assertBoolean rejects a hostile value with its own Error", () => {
+            expect(() => assertBoolean(hostile)).toThrowError("is not a boolean");
+        });
+
+        it("assertObject still formats values stringify handles only via toJSON (BigInt)", () => {
+            // zigbee-herdsman polyfills BigInt.prototype.toJSON, so stringify(10n) -> '"10"'
+            // rather than throwing; the assert must produce its Error either way
+            expect(() => assertObject(10n, "x")).toThrowError(`'x' is not an object, got bigint ("10")`);
+        });
+
+        it("assertObject without a property says Value, not undefined", () => {
+            expect(() => assertObject("notanobject")).toThrowError('Value is not an object, got string ("notanobject")');
+        });
     });
 
     describe("getFromLookup", () => {
