@@ -898,7 +898,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug", "TOFSMYGGA plug outdoor"],
+        zigbeeModel: ["GRILLPLATS Plug\u0000", "GRILLPLATS Plug"],
         whiteLabel: [
             {model: "E2435", description: "TOFSMYGGA smart plug (Matter)"},
             {model: "E2491", description: "GRILLPLATS smart plug (Matter)"},
@@ -907,6 +907,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "TOFSMYGGA/GRILLPLATS smart plug (Matter)",
         extend: [m.onOff(), m.identify()],
+    },
+    {
+        zigbeeModel: ["TOFSMYGGA plug outdoor"],
+        model: "E2435-NA",
+        vendor: "IKEA",
+        description: "TOFSMYGGA 2-gang outdoor plug (Matter)",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({endpointNames: ["1", "2"]}), m.identify()],
     },
     // #endregion on/off controls
     // #region blinds
