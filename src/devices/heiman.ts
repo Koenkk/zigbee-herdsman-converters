@@ -4627,7 +4627,6 @@ export const definitions: DefinitionWithExtend[] = [
                 type: ["attributeReport", "readResponse"],
                 convert: (_model, msg, publish, _options, _meta) => {
                     if (msg.data.occupancy === undefined) return;
-                    const occupied = msg.data.occupancy === 1;
                     // Used to execute automation in the case of Home Assistant's repeated occupied state.
                     const oldVal = Number(_meta.state.occupancy_report_counter ?? 0);
                     const counter = oldVal + 1;
