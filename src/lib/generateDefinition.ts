@@ -369,10 +369,10 @@ async function extenderPowerCfg(device: Zh.Device, endpoints: Zh.Endpoint[]): Pr
     if (attrs) {
         // keep percentage by default
         args.percentage = endpoint.hasClusterAttribute("genPowerCfg", "batteryPercentageRemaining") !== false;
-        args.percentageReporting = args.percentage ? ((attrs.batteryPercentageRemaining ?? 0x04) & 0x04) !== 0 : false;
+        args.percentageReporting = args.percentage ? ((attrs.batteryPercentageRemaining?.access ?? 0x04) & 0x04) !== 0 : false;
 
         args.voltage = endpoint.hasClusterAttribute("genPowerCfg", "batteryVoltage");
-        args.voltageReporting = ((attrs.batteryVoltage ?? 0) & 0x04) !== 0;
+        args.voltageReporting = ((attrs.batteryVoltage?.access ?? 0) & 0x04) !== 0;
 
         if (!args.percentage && !args.voltage) {
             // genPowerCfg cluster but no battery attributes
