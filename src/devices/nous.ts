@@ -495,7 +495,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIN rail smart switch with power monitoring",
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
         exposes: [
-            e.switch(),
+            te.switch(),
             te.countdown().withValueMax(86400),
             te.powerOnBehavior().withAccess(ea.STATE_SET),
             te.inchingSwitch2(),
