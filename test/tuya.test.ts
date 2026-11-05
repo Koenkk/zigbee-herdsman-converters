@@ -893,3 +893,226 @@ describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
         expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
     });
 });
+
+describe("Zemismart ZM25TQ", () => {
+    const VALUE = 2;
+    const ENUM = 4;
+    let nextIeeeAddr = 0x1000;
+
+    const setup = async (args: {manufacturerName?: string; options?: KeyValueAny; state?: KeyValueAny} = {}) => {
+        const {manufacturerName = "_TZE200_fzo2pocs", options = {}, state = {}} = args;
+        const device = mockDevice({modelID: "TS0601", manufacturerName, endpoints: [{ID: 1}], ieeeAddr: `0x${(nextIeeeAddr++).toString(16)}`});
+        const definition = (await findByDevice(device)) as Definition;
+        const endpoint = device.getEndpoint(1);
+        const publish = vi.fn();
+        const report = (dp: number, value: number) =>
+            tuya.fz.datapoints.convert(
+                definition,
+                {
+                    data: {
+                        dpValues: [
+                            dp === 3 ? {dp, datatype: VALUE, data: Buffer.from([0, 0, 0, value])} : {dp, datatype: ENUM, data: Buffer.from([value])},
+                        ],
+                    },
+                    device,
+                    endpoint,
+                    meta: {},
+                    type: "commandDataReport",
+                } as never,
+                publish,
+                options,
+                {state, device, deviceExposesChanged: () => {}},
+            );
+        const set = (key: string, value: unknown) =>
+            tuya.tz.datapoints.convertSet(endpoint, key, value, {
+                message: {[key]: value},
+                device,
+                mapped: definition,
+                options,
+                state,
+                publish,
+                endpoint_name: undefined,
+            } as Tz.Meta);
+        const sent = () => (endpoint.command as ReturnType<typeof vi.fn>).mock.calls.at(-1)[2].dpValues[0];
+        return {definition, report, set, sent, publish};
+    };
+
+    it("is not inverted by default", async () => {
+        const {report, set, sent} = await setup();
+        await set("position", 30);
+        expect(sent()).toStrictEqual({dp: 2, datatype: VALUE, data: Buffer.from([0, 0, 0, 30])});
+        expect(report(3, 0)).toStrictEqual({position: 0, state: "CLOSE", running: false, motor_state: "stopped"});
+        expect(report(3, 100)).toStrictEqual({position: 100, state: "OPEN", running: false, motor_state: "stopped"});
+    });
+
+    it("swaps position and direction with invert_cover", async () => {
+        const {report, set, sent} = await setup({options: {invert_cover: true}});
+        await set("position", 30);
+        expect(sent()).toStrictEqual({dp: 2, datatype: VALUE, data: Buffer.from([0, 0, 0, 70])});
+        await set("state", "OPEN");
+        expect(sent()).toStrictEqual({dp: 1, datatype: ENUM, data: Buffer.from([2])});
+        expect(report(7, 1)).toMatchObject({state: "OPEN", running: true, motor_state: "opening"});
+        expect(report(3, 0)).toMatchObject({position: 100, state: "OPEN"});
+    });
+
+    it("sends OPEN and CLOSE on DP1", async () => {
+        const {set, sent} = await setup();
+        await set("state", "OPEN");
+        expect(sent()).toStrictEqual({dp: 1, datatype: ENUM, data: Buffer.from([0])});
+        await set("state", "CLOSE");
+        expect(sent()).toStrictEqual({dp: 1, datatype: ENUM, data: Buffer.from([2])});
+    });
+
+    it("rounds to 10% steps only for _TZE200_fzo2pocs", async () => {
+        const tze200 = await setup();
+        await tze200.set("position", 27);
+        expect(tze200.sent().data).toStrictEqual(Buffer.from([0, 0, 0, 30]));
+        expect(tze200.report(3, 27)).toMatchObject({position: 30});
+
+        const tze284 = await setup({manufacturerName: "_TZE284_fzo2pocs"});
+        await tze284.set("position", 27);
+        expect(tze284.sent().data).toStrictEqual(Buffer.from([0, 0, 0, 27]));
+        expect(tze284.report(3, 27)).toMatchObject({position: 27});
+    });
+
+    it("publishes the target and movement of a position command in one message", async () => {
+        const {report, set, publish} = await setup({state: {position: 100}});
+        expect(await set("position", 27)).toStrictEqual({state: {}});
+        expect(publish).toHaveBeenCalledTimes(1);
+        expect(publish).toHaveBeenCalledWith({position: 30, state: "CLOSE", running: true, motor_state: "closing"});
+        // The DP2 echo doesn't publish anything
+        expect(report(2, 30)).toStrictEqual({});
+    });
+
+    it("publishes the target and movement of OPEN and CLOSE in one message", async () => {
+        const closing = await setup({state: {position: 100}});
+        await closing.set("state", "CLOSE");
+        expect(closing.publish).toHaveBeenCalledWith({position: 0, state: "CLOSE", running: true, motor_state: "closing"});
+
+        const opening = await setup({state: {position: 0}});
+        await opening.set("state", "OPEN");
+        expect(opening.publish).toHaveBeenCalledWith({position: 100, state: "OPEN", running: true, motor_state: "opening"});
+    });
+
+    it("doesn't change position when movement is started by RF or manually", async () => {
+        const {report, publish} = await setup({state: {position: 100}});
+        expect(report(7, 1)).not.toHaveProperty("position");
+        expect(publish).not.toHaveBeenCalled();
+    });
+
+    it("keeps moving when the current target is sent again", async () => {
+        const {report, set, sent, publish} = await setup({state: {position: 80, running: true}});
+        await set("position", 80);
+        expect(sent().data).toStrictEqual(Buffer.from([0, 0, 0, 80]));
+        expect(publish).not.toHaveBeenCalled();
+        expect(report(7, 1)).toMatchObject({running: true, motor_state: "closing"});
+    });
+
+    it("publishes stopped for a command that doesn't move the motor", async () => {
+        const {set, publish} = await setup({state: {position: 30}});
+        await set("position", 27);
+        expect(publish).toHaveBeenCalledWith({position: 30, state: "OPEN", running: false, motor_state: "stopped"});
+    });
+
+    it("clears running after a long timeout when a command doesn't result in a movement", async () => {
+        vi.useFakeTimers();
+        try {
+            const {set, publish} = await setup({state: {position: 100}});
+            await set("position", 50);
+            publish.mockClear();
+            vi.advanceTimersByTime(5 * 60 * 1000);
+            expect(publish).toHaveBeenCalledWith({running: false, motor_state: "stopped"});
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("only publishes STOP from DP1", async () => {
+        const {report} = await setup();
+        expect(report(1, 0)).toStrictEqual({});
+        expect(report(1, 2)).toStrictEqual({});
+        expect(report(1, 1)).toStrictEqual({state: "STOP", running: false, motor_state: "stopped"});
+    });
+
+    it("tracks a movement from DP7 until DP3", async () => {
+        const {report} = await setup();
+        expect(report(7, 0)).toStrictEqual({state: "OPEN", running: true, motor_state: "opening", work_state: "opening"});
+        expect(report(7, 1)).toStrictEqual({state: "CLOSE", running: true, motor_state: "closing", work_state: "closing"});
+        expect(report(3, 40)).toStrictEqual({position: 40, state: "OPEN", running: false, motor_state: "stopped"});
+    });
+
+    it("ignores DP7 after a command that doesn't move the motor", async () => {
+        vi.useFakeTimers();
+        try {
+            const {report, set} = await setup({state: {position: 30}});
+            await set("position", 27);
+            expect(report(7, 1)).toStrictEqual({});
+            // Movement started in another way (e.g. RF remote) is tracked again after a while
+            vi.advanceTimersByTime(8001);
+            expect(report(7, 1)).toMatchObject({running: true});
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("tracks DP7 after a command that moves the motor", async () => {
+        const {report, set} = await setup({state: {position: 30}});
+        await set("position", 27);
+        await set("position", 60);
+        expect(report(7, 0)).toMatchObject({running: true, motor_state: "opening"});
+    });
+
+    it("publishes stopped directly on a STOP command", async () => {
+        const {set, publish} = await setup();
+        await set("state", "STOP");
+        expect(publish).toHaveBeenCalledWith({state: "STOP", running: false, motor_state: "stopped"});
+    });
+
+    it("clears running after a long timeout when DP3 is missed, but not earlier", async () => {
+        vi.useFakeTimers();
+        try {
+            const {report, publish} = await setup();
+            report(7, 0);
+            vi.advanceTimersByTime(4 * 60 * 1000);
+            expect(publish).not.toHaveBeenCalled();
+            vi.advanceTimersByTime(60 * 1000);
+            expect(publish).toHaveBeenCalledWith({running: false, motor_state: "stopped"});
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("doesn't fire the timeout after DP3", async () => {
+        vi.useFakeTimers();
+        try {
+            const {report, publish} = await setup();
+            report(7, 0);
+            report(3, 100);
+            vi.advanceTimersByTime(5 * 60 * 1000);
+            expect(publish).not.toHaveBeenCalled();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("keeps the other features", async () => {
+        const {definition, report, set, sent} = await setup();
+        const names = definition.exposes.map((expose) => expose.name ?? expose.type).filter((name) => name !== "linkquality");
+        expect(names).toStrictEqual([
+            "cover",
+            "running",
+            "motor_state",
+            "work_state",
+            "motor_fault",
+            "reverse_direction",
+            "motor_working_mode",
+            "upper_stroke_limit",
+            "middle_stroke_limit",
+            "lower_stroke_limit",
+            "remote_pairing",
+        ]);
+        await set("upper_stroke_limit", "SET");
+        expect(sent()).toStrictEqual({dp: 103, datatype: 1, data: Buffer.from([1])});
+        expect(report(5, 1)).toStrictEqual({reverse_direction: "back"});
+    });
+});

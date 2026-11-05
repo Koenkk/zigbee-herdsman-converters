@@ -12,7 +12,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
 import * as tuya from "../lib/tuya";
-import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Tuya, Tz, Zh} from "../lib/types";
+import type {DefinitionWithExtend, Expose, Fz, KeyValue, KeyValueAny, Publish, Tuya, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {addActionGroup, hasAlreadyProcessedMessage, isDummyDevice, postfixWithEndpointName} from "../lib/utils";
 import * as zosung from "../lib/zosung";
@@ -2642,6 +2642,101 @@ const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverter
         return {[meta.device.meta.openingMode === "tilt" ? "tilt" : "position"]: value, state: value === 0 ? "CLOSE" : "OPEN"};
     },
 });
+
+const zm25tqNoOpWindowMs = 8000;
+// Only a safety net for a missed DP3, must be longer than a full movement.
+const zm25tqRunningTimeoutMs = 5 * 60 * 1000;
+
+// Motor moves in 10% steps, not confirmed yet for _TZE284_fzo2pocs.
+const zm25tqRound = (position: number, device: Zh.Device) => {
+    const step = device.manufacturerName === "_TZE200_fzo2pocs" ? 10 : 1;
+    return Math.round(position / step) * step;
+};
+
+const zm25tqMotionEnded = (device: Zh.Device) => {
+    clearTimeout(globalStore.getValue(device, "zm25tqRunningTimer"));
+    globalStore.clearValue(device, "zm25tqRunningTimer");
+    globalStore.clearValue(device, "zm25tqIgnoreWorkStateUntil");
+    return {running: false, motor_state: "stopped"};
+};
+
+const zm25tqStartRunningTimer = (device: Zh.Device, publish: Publish) => {
+    clearTimeout(globalStore.getValue(device, "zm25tqRunningTimer"));
+    const timer = setTimeout(() => publish(zm25tqMotionEnded(device)), zm25tqRunningTimeoutMs).unref();
+    globalStore.putValue(device, "zm25tqRunningTimer", timer);
+};
+
+// The target and movement are published in one message, this allows automations to distinguish
+// commands from Zigbee (position changes when movement starts) from RF/manual ones (position doesn't change).
+const zm25tqPublishCommand = (target: number, meta: Tz.Meta) => {
+    const current = meta.state.position as number | undefined;
+    if (current === target) {
+        if (meta.state.running) return;
+        // Doesn't move the motor, but it can still report DP7 without a final DP3.
+        const ended = zm25tqMotionEnded(meta.device);
+        globalStore.putValue(meta.device, "zm25tqIgnoreWorkStateUntil", Date.now() + zm25tqNoOpWindowMs);
+        meta.publish({position: target, state: target === 0 ? "CLOSE" : "OPEN", ...ended});
+        return;
+    }
+    globalStore.clearValue(meta.device, "zm25tqIgnoreWorkStateUntil");
+    zm25tqStartRunningTimer(meta.device, meta.publish);
+    const closing = current === undefined ? target === 0 : target < current;
+    meta.publish({position: target, state: closing ? "CLOSE" : "OPEN", running: true, motor_state: closing ? "closing" : "opening"});
+};
+
+// Only STOP is published, OPEN/CLOSE are echoes of the command and don't reflect the motor position.
+const zm25tqControlReport: Tuya.ValueConverterSingle = {
+    from: (v, meta) => (v === 1 ? {state: "STOP", ...zm25tqMotionEnded(meta.device)} : {}),
+};
+
+const zm25tqControl: Tuya.ValueConverterSingle = {
+    to: (v, meta) => {
+        const value = tuya.valueConverterBasic
+            .lookup((options) =>
+                options.invert_cover
+                    ? {OPEN: tuya.enum(2), STOP: tuya.enum(1), CLOSE: tuya.enum(0)}
+                    : {OPEN: tuya.enum(0), STOP: tuya.enum(1), CLOSE: tuya.enum(2)},
+            )
+            .to(v, meta);
+        const action = v.toUpperCase();
+        if (action === "STOP") {
+            meta.publish({state: "STOP", ...zm25tqMotionEnded(meta.device)});
+        } else {
+            zm25tqPublishCommand(action === "OPEN" ? 100 : 0, meta);
+        }
+        return value;
+    },
+};
+
+// DP2 is only an echo of the target, DP3 is the actual position once the motor stopped.
+const zm25tqPositionTarget: Tuya.ValueConverterSingle = {
+    to: (v, meta) => {
+        const target = zm25tqRound(v, meta.device);
+        zm25tqPublishCommand(target, meta);
+        return meta.options.invert_cover ? 100 - target : target;
+    },
+};
+
+const zm25tqPositionReport: Tuya.ValueConverterSingle = {
+    from: (v, meta, options) => {
+        const ended = zm25tqMotionEnded(meta.device);
+        // Not calibrated yet, no position is available
+        if (v < 0 || v > 100) return ended;
+        const position = zm25tqRound(options.invert_cover ? 100 - v : v, meta.device);
+        return {position, state: position === 0 ? "CLOSE" : "OPEN", ...ended};
+    },
+};
+
+const zm25tqWorkState: Tuya.ValueConverterSingle = {
+    from: (v, meta, options, publish) => {
+        if (v !== 0 && v !== 1) return {};
+        if (Date.now() < globalStore.getValue(meta.device, "zm25tqIgnoreWorkStateUntil", 0)) return {};
+        zm25tqStartRunningTimer(meta.device, publish);
+        const opening = options.invert_cover ? v === 1 : v === 0;
+        const direction = opening ? "opening" : "closing";
+        return {state: opening ? "OPEN" : "CLOSE", running: true, motor_state: direction, work_state: direction};
+    },
+};
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -10500,6 +10595,8 @@ export const definitions: DefinitionWithExtend[] = [
         options: [exposes.options.invert_cover()],
         exposes: [
             te.coverPosition(),
+            e.binary("running", ea.STATE, true, false).withDescription("Whether the motor is moving or not"),
+            e.enum("motor_state", ea.STATE, ["stopped", "opening", "closing"]).withDescription("Motor state"),
             e.enum("work_state", ea.STATE, ["opening", "closing"]).withDescription("Direction of the last movement"),
             e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor fault, reported while a limit is not set"),
             e.enum("reverse_direction", ea.STATE_SET, ["forward", "back"]).withDescription("Reverse the motor direction").withCategory("config"),
@@ -10526,11 +10623,12 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         meta: {
             tuyaDatapoints: [
-                [1, "state", tuya.valueConverter.coverAction],
-                [2, "position", tuya.valueConverter.coverPositionInverted],
-                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [1, null, zm25tqControlReport],
+                [1, "state", zm25tqControl, {optimistic: false}],
+                [2, "position", zm25tqPositionTarget, {optimistic: false}],
+                [3, null, zm25tqPositionReport],
                 [5, "reverse_direction", tuya.valueConverterBasic.lookup({forward: tuya.enum(0), back: tuya.enum(1)})],
-                [7, "work_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [7, null, zm25tqWorkState],
                 [12, "motor_fault", tuya.valueConverter.trueFalse1],
                 [101, "remote_pairing", tuya.valueConverterBasic.lookup({PAIR: true})],
                 [103, "upper_stroke_limit", tuya.valueConverterBasic.lookup({SET: true, RESET: false})],
