@@ -29061,7 +29061,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "BOT-R9V-ZB",
         vendor: "Beok",
         description: "Wall-mount thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, timeStart: "1970"})],
         exposes: [
             e
                 .climate()
@@ -29103,7 +29103,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(30)
                 .withValueStep(0.5)
                 .withDescription("Eco mode temperature"),
-            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -29135,13 +29135,13 @@ export const definitions: DefinitionWithExtend[] = [
                     },
                 ],
                 [40, "child_lock", tuya.valueConverter.lockUnlock],
-                [65, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [66, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [67, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [68, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [69, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [70, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
-                [71, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4)],
+                [65, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [66, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [67, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [68, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [69, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [70, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [71, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
                 [107, "battery", tuya.valueConverter.raw],
                 [109, "local_temperature_calibration", tuya.valueConverter.divideBy10],
                 [112, "deadzone_temperature", tuya.valueConverter.divideBy10],
