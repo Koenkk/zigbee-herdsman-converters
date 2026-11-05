@@ -274,7 +274,7 @@ const danfossExtend = {
                 danfossHeatingSystemMode: {
                     name: "danfossHeatingSystemMode",
                     ID: 0x4059,
-                    type: Zcl.DataType.ENUM8,
+                    type: Zcl.DataType.UINT8,
                     manufacturerCode: Zcl.ManufacturerCode.DANFOSS_A_S,
                     write: true,
                     max: 0xff,

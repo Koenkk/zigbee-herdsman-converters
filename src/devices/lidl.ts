@@ -565,6 +565,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "14149505L/14149506L_2",
         vendor: "Lidl",
         description: "Livarno Lux light bar RGB+CCT (black/white)",
+        // https://github.com/Koenkk/zigbee-herdsman-converters/issues/13034
+        meta: {tuyaColorTempInMireds: true},
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"], applyRedFix: true}})],
         // https://github.com/Koenkk/zigbee2mqtt/issues/32204
         toZigbee: [tz.on_off, tuya.tz.led_control],

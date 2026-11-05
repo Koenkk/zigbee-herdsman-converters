@@ -53,6 +53,7 @@ import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
+import {definitions as coselig} from "./coselig";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
@@ -109,6 +110,7 @@ import {definitions as ezviz} from "./ezviz";
 import {definitions as fantem} from "./fantem";
 import {definitions as feibit} from "./feibit";
 import {definitions as fireangel} from "./fireangel";
+import {definitions as fontastic} from "./fontastic";
 import {definitions as frankever} from "./frankever";
 import {definitions as frient} from "./frient";
 import {definitions as futurehome} from "./futurehome";
@@ -455,6 +457,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cleverio,
     ...climax,
     ...commercialElectric,
+    ...coselig,
     ...cree,
     ...ctm,
     ...currentProductsCorp,
@@ -510,6 +513,7 @@ const definitions: DefinitionWithExtend[] = [
     ...fantem,
     ...feibit,
     ...fireangel,
+    ...fontastic,
     ...frankever,
     ...frient,
     ...futurehome,

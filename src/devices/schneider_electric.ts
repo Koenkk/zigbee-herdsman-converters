@@ -4314,7 +4314,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             schneiderElectricExtend.addWiserDeviceInfoCluster(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            schneiderElectricExtend.pilotMode(),
+            schneiderElectricExtend.pilotMode({
+                description: "Heating output mode",
+                lookup: {disabled: 0, contactor: 1, pilot: 3},
+            }),
+            schneiderElectricExtend.addHvacUserInterfaceCfgCustomAttributes(),
+            schneiderElectricExtend.displayBrightnessActive(),
+            schneiderElectricExtend.displayBrightnessInactive(),
+            schneiderElectricExtend.displayActiveTimeout(),
             m.poll({
                 key: "measurement",
                 option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),

@@ -941,7 +941,7 @@ export const definitions: DefinitionWithExtend[] = [
         // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
         // power_on_behavior, backlight_mode). Fully confirmed against real
         // hardware (raw dp capture).
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu", "_TZE284_z98viqa6"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_t88bjhfu"]),
         model: "SFD02-Z",
         vendor: "Moes",
         description: "Star feather smart dimmer switch",
@@ -972,6 +972,49 @@ export const definitions: DefinitionWithExtend[] = [
                     102,
                     "vibration_mode",
                     tuya.valueConverterBasic.lookup({"Gear 0": tuya.enum(0), "Gear 1": tuya.enum(1), "Gear 2": tuya.enum(2), "Gear 3": tuya.enum(3)}),
+                ],
+            ],
+        },
+    },
+    {
+        // Star Feather dimmer. Shares the same board/firmware family as the
+        // SFL02-Z switches (no induction/vibration/indicator), plus the standard
+        // Tuya dimmer datapoints (min/max brightness, light_type, countdown,
+        // power_on_behavior, backlight_mode, indicator_light_brightness). Fully confirmed against real
+        // hardware (dp specification). PS: Some hardware could not have the vibration module
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_z98viqa6"]),
+        model: "SFD02-Z_2",
+        vendor: "Moes",
+        description: "Star feather smart dimmer switch",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            tuya.exposes.lightBrightnessWithMinMax(),
+            tuya.exposes.lightType(),
+            tuya.exposes.countdown(),
+            e.power_on_behavior().withAccess(ea.STATE_SET),
+            e
+                .enum("indicator_status", ea.STATE_SET, ["none", "relay", "pos"])
+                .withDescription("Indicator status (none = off, relay = follows switch, pos = night location)"),
+            e.binary("backlight_switch", ea.STATE_SET, "ON", "OFF").withDescription("Enable or disable switch backlight"),
+            e.enum("indicator_light_brightness", ea.STATE_SET, ["0", "1", "2"]).withDescription("Indicator light brightness level"),
+            e.enum("vibration_gear", ea.STATE_SET, ["0", "1", "2", "3"]).withDescription("Haptic feedback / vibration level"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.onOff, {skip: tuya.skip.stateOnAndBrightnessPresent}],
+                [2, "brightness", tuya.valueConverter.scale0_254to0_1000],
+                [3, "min_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [4, "light_type", tuya.valueConverter.lightType],
+                [5, "max_brightness", tuya.valueConverter.scale0_254to0_1000],
+                [6, "countdown", tuya.valueConverter.countdown],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehavior],
+                [21, "indicator_status", tuya.valueConverterBasic.lookup({none: tuya.enum(0), relay: tuya.enum(1), pos: tuya.enum(2)})],
+                [26, "backlight_switch", tuya.valueConverter.onOff],
+                [101, "indicator_light_brightness", tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2)})],
+                [
+                    102,
+                    "vibration_gear",
+                    tuya.valueConverterBasic.lookup({"0": tuya.enum(0), "1": tuya.enum(1), "2": tuya.enum(2), "3": tuya.enum(3)}),
                 ],
             ],
         },
@@ -2924,7 +2967,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_2fnssffc", "_TZE284_y7hpvgyp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE28C1000000_2fnssffc", "_TZE284_2fnssffc", "_TZE284_y7hpvgyp"]),
         model: "ZM6LT1",
         vendor: "Moes",
         description: "Smart 1-phase energy power meter with CT sensor clamp",
@@ -2976,7 +3019,7 @@ export const definitions: DefinitionWithExtend[] = [
                         to: (value, meta) =>
                             moesMeterEncodeThreshold(value, meta, "over_current_threshold", {
                                 min: 1,
-                                max: meta?.device.manufacturerName === "_TZE284_2fnssffc" ? 120 : 63,
+                                max: ["_TZE28C1000000_2fnssffc", "_TZE284_2fnssffc"].includes(meta?.device.manufacturerName) ? 120 : 63,
                             }),
                     },
                     {optimistic: false},
