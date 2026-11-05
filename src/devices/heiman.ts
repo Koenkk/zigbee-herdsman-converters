@@ -4632,7 +4632,7 @@ export const definitions: DefinitionWithExtend[] = [
                     const counter = oldVal + 1;
                     _meta.state.occupancy_report_counter = counter;
                     publish({
-                        occupancy_trigger_counter: counter
+                        occupancy_trigger_counter: counter,
                     });
                 },
             },
