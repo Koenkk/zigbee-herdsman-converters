@@ -130,6 +130,7 @@ import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
+import {definitions as heatzy} from "./heatzy";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
 import {definitions as heiwa} from "./heiwa";
@@ -532,6 +533,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hamptonBay,
     ...handshakeFinland,
     ...heatit,
+    ...heatzy,
     ...heiman,
     ...heimgardTechnologies,
     ...heiwa,
