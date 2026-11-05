@@ -25965,16 +25965,6 @@ export const definitions: DefinitionWithExtend[] = [
                 [12, "pir_delay", tuya.valueConverter.raw],
                 [103, "detection_distance", tuya.valueConverter.raw],
                 [104, "static_sensitivity", tuya.valueConverter.raw],
-                [
-                    105,
-                    "motion_state",
-                    tuya.valueConverterBasic.lookup({
-                        none: tuya.enum(0),
-                        large: tuya.enum(1),
-                        small: tuya.enum(2),
-                        static: tuya.enum(3),
-                    }),
-                ],
                 [107, "indicator", tuya.valueConverter.onOff],
                 [123, "detection_sensitivity", tuya.valueConverter.raw],
             ],
@@ -25987,7 +25977,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("pir_delay", ea.STATE_SET)
                 .withValueMin(30)
-                .withValueMax(120)
+                .withValueMax(28800)
                 .withValueStep(30)
                 .withUnit("s")
                 .withDescription("PIR occupancy detection delay / keep time"),
@@ -26010,8 +26000,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(10)
                 .withValueStep(1)
                 .withDescription("Radar motion detection sensitivity"),
-            e
-                .enum("motion_state", ea.STATE, ["none", "large", "small", "static"])
                 .withDescription("Radar motion state detail (none, large, small, static)"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator light mode"),
         ],
