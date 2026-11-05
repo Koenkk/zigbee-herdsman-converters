@@ -2545,7 +2545,9 @@ const sp107eLedChips = {
 
 // The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
 // gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
-const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device) => {
+// Small or pump-filled tanks really change faster than that, so the jump check can be turned off (readings outside the tank are
+// always dropped).
+const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device, filterJumps: boolean) => {
     const depth = result.liquid_depth as number | undefined;
     const percent = result.liquid_level_percent as number | undefined;
     const lastDepth = state.liquid_depth as number | undefined;
@@ -2555,7 +2557,7 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
     if (depth !== undefined) {
         if (depth < 0 || (height !== undefined && depth > height)) {
             glitch = true;
-        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
+        } else if (filterJumps && lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
             const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number} | undefined;
             if (candidate && Math.abs(depth - candidate.depth) <= 0.03) {
                 glitch = Date.now() - candidate.since < 12 * 60 * 60 * 1000;
@@ -2565,7 +2567,7 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
             }
         }
         if (!glitch) globalStore.clearValue(device, "me201wzCandidate");
-    } else if (percent !== undefined && lastDepth !== undefined && depthMax) {
+    } else if (filterJumps && percent !== undefined && lastDepth !== undefined && depthMax) {
         glitch = Math.abs(percent - Math.min(100, (lastDepth / depthMax) * 100)) > 5 / depthMax;
     }
     if (glitch) {
@@ -2605,7 +2607,7 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
             if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
             if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
-            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device));
+            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps !== false));
         }
         return me201wzFiltered.get(msg);
     },
@@ -24401,6 +24403,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Water level sensor",
         whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
+        options: [
+            e
+                .binary("filter_level_jumps", ea.SET, true, false)
+                .withDescription(
+                    "Ignore false echoes by dropping levels jumping more than 5 cm, unless read steadily for 12 hours. Disable for small " +
+                        "or fast-changing tanks (e.g. filled by a pump) where the level gets stuck. Levels outside the tank are always " +
+                        "dropped (default true).",
+                ),
+        ],
         extend: [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
