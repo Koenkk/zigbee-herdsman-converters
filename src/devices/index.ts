@@ -300,6 +300,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as selena} from "./selena";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
+import {definitions as sensyOne} from "./sensy_one";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
@@ -701,6 +702,7 @@ const definitions: DefinitionWithExtend[] = [
     ...selena,
     ...sengled,
     ...senoro,
+    ...sensyOne,
     ...sercomm,
     ...shada,
     ...shadeControl,
