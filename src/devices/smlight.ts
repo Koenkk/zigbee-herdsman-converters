@@ -44,5 +44,5 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Zigbee-Ethernet router",
         ota: true,
         extend: [m.identify(), m.linkQuality({reporting: true})],
-    },    
+    },
 ];
