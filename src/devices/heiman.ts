@@ -4621,6 +4621,23 @@ export const definitions: DefinitionWithExtend[] = [
             heimanExtend.rejoinedCount(),
             heimanExtend.rebootedCount(),
         ],
+        fromZigbee: [
+            {
+                cluster: "msOccupancySensing",
+                type: ["attributeReport", "readResponse"],
+                convert: (_model, msg, publish, _options, _meta) => {
+                    if (msg.data.occupancy === undefined) return;
+                    const occupied = msg.data.occupancy === 1;
+                    // Used to execute automation in the case of Home Assistant's repeated occupied state.
+                    const oldVal = Number(_meta.state.occupancy_report_counter ?? 0);
+                    const counter = oldVal + 1;
+                    _meta.state.occupancy_report_counter = counter;
+                    publish({
+                        occupancy_trigger_counter: counter
+                    });
+                },
+            },
+        ],
         ota: true,
     },
     {
