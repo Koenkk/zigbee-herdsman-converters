@@ -84,6 +84,7 @@ import {definitions as ecodim} from "./ecodim";
 import {definitions as ecolink} from "./ecolink";
 import {definitions as ecosmart} from "./ecosmart";
 import {definitions as ecozy} from "./ecozy";
+import {definitions as edflab} from "./edflab";
 import {definitions as edp} from "./edp";
 import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
@@ -490,6 +491,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ecolink,
     ...ecosmart,
     ...ecozy,
+    ...edflab,
     ...edp,
     ...efekta,
     ...ekaza,
