@@ -26000,7 +26000,6 @@ export const definitions: DefinitionWithExtend[] = [
                 .withValueMax(10)
                 .withValueStep(1)
                 .withDescription("Radar motion detection sensitivity"),
-                .withDescription("Radar motion state detail (none, large, small, static)"),
             e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator light mode"),
         ],
     },
