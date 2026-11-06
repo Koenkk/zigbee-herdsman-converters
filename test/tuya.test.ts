@@ -769,7 +769,7 @@ describe("Tuya ME201WZ", () => {
     const setup = async () => {
         const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_kyyu8rbj", endpoints: [{ID: 1}]});
         const definition = await findByDevice(device);
-        const convert = (dpValues: unknown[], state: Record<string, unknown>, options: Record<string, unknown> = {}) =>
+        const convert = (dpValues: unknown[], state: Record<string, unknown>, options: Record<string, unknown> = {filter_level_jumps: true}) =>
             Object.assign(
                 {},
                 ...definition.fromZigbee
@@ -826,9 +826,8 @@ describe("Tuya ME201WZ", () => {
         });
     });
 
-    it("lets level jumps through when filter_level_jumps is disabled", async () => {
+    it.each([[{}], [{filter_level_jumps: false}]])("lets level jumps through when filter_level_jumps is not enabled (%o)", async (options) => {
         const {convert} = await setup();
-        const options = {filter_level_jumps: false};
         expect(convert(reading(20, 10, 1), state, options)).toStrictEqual({liquid_depth: 0.2, liquid_level_percent: 10, liquid_state: "low"});
         expect(convert([tuya.dpValueFromNumberValue(22, 12)], state, options)).toStrictEqual({liquid_level_percent: 12});
         // Readings outside the tank are still dropped.

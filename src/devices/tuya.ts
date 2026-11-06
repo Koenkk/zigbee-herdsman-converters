@@ -2545,8 +2545,8 @@ const sp107eLedChips = {
 
 // The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
 // gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
-// Small or pump-filled tanks really change faster than that, so the jump check can be turned off (readings outside the tank are
-// always dropped).
+// Small or pump-filled tanks really change faster than that, so the jump check is opt-in (readings outside the tank are always
+// dropped).
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device, filterJumps: boolean) => {
     const depth = result.liquid_depth as number | undefined;
     const percent = result.liquid_level_percent as number | undefined;
@@ -2607,7 +2607,7 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
             if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
             if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
-            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps !== false));
+            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps === true));
         }
         return me201wzFiltered.get(msg);
     },
@@ -24407,9 +24407,9 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .binary("filter_level_jumps", ea.SET, true, false)
                 .withDescription(
-                    "Ignore false echoes by dropping levels jumping more than 5 cm, unless read steadily for 12 hours. Disable for small " +
-                        "or fast-changing tanks (e.g. filled by a pump) where the level gets stuck. Levels outside the tank are always " +
-                        "dropped (default true).",
+                    "Ignore false echoes by dropping levels jumping more than 5 cm, unless read steadily for 12 hours. Leave disabled for " +
+                        "small or fast-changing tanks (e.g. filled by a pump) where the level would get stuck. Levels outside the tank are " +
+                        "always dropped (default false).",
                 ),
         ],
         extend: [
