@@ -1991,6 +1991,7 @@ const heimanExtend = {
             attribute: "dewPoint",
             description: "Dew point",
             access: "STATE_GET",
+            homeassistant: {name: "Dew point"},
         }),
     vpd: () =>
         m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
