@@ -1,16 +1,11 @@
 import {Zcl} from "zigbee-herdsman";
 
 import {presets as e, access as ea} from "../lib/exposes";
-import type {Fz, KeyValue, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 import * as m from "./modernExtend";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
-
-const manufacturerCommandOptions = (meta: Tz.Meta, entity: Zh.Endpoint | Zh.Group): KeyValue & {manufacturerCode: Zcl.ManufacturerCode} => ({
-    ...manufacturerOptions,
-    ...utils.getOptions(meta.mapped, entity),
-});
 
 interface OsramCluster {
     attributes: never;
@@ -111,23 +106,17 @@ export const ledvanceTz = {
                 throw new Error(`Key '${normalized}' not found in: [off, on]`);
             }
             const mode = lookup[normalized];
-            if (!utils.isEndpoint(entity)) {
-                // Group command: delivery only, no per-device confirmation is possible.
-                await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
-                    "manuSpecificOsram",
-                    "setPowerOnState",
-                    {mode},
-                    manufacturerCommandOptions(meta, entity),
-                );
-                return;
-            }
-            const options = manufacturerCommandOptions(meta, entity);
+            const options: KeyValue = {...manufacturerOptions, ...utils.getOptions(meta.mapped, entity)};
             const response = await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
                 "manuSpecificOsram",
                 "setPowerOnState",
                 {mode},
                 options,
             );
+            if (!utils.isEndpoint(entity)) {
+                // Group command: delivery only, no per-device confirmation is possible.
+                return;
+            }
             // herdsman resolves the ZCL default response instead of throwing
             // (zclCommand runs with checkStatus=false), so the status must be checked here:
             // a firmware rejection (e.g. pre-V1.05 units reject the whole manufacturer
