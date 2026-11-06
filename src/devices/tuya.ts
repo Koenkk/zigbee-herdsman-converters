@@ -26720,73 +26720,54 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS209Z",
         vendor: "HYSYIOT",
         description: "PIR and millimeter-wave radar human presence sensor",
-        extend: [tuyaBase({dp: true})],
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
-        meta: {
-            tuyaDatapoints: [
-                [1, "occupancy", tuya.valueConverter.trueFalse0],
-                [
-                    3,
-                    "battery_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(0),
-                        middle: tuya.enum(1),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [4, "battery", tuya.valueConverter.raw],
-                [12, "pir_delay", tuya.valueConverter.raw],
-                [103, "detection_distance", tuya.valueConverter.raw],
-                [104, "static_sensitivity", tuya.valueConverter.raw],
-                [
-                    105,
-                    "motion_state",
-                    tuya.valueConverterBasic.lookup({
-                        none: tuya.enum(0),
-                        large: tuya.enum(1),
-                        small: tuya.enum(2),
-                        static: tuya.enum(3),
-                    }),
-                ],
-                [107, "indicator", tuya.valueConverter.onOff],
-                [123, "detection_sensitivity", tuya.valueConverter.raw],
-            ],
-        },
-        exposes: [
-            e.occupancy().withDescription("Indicates whether the device detected occupancy"),
-            e.battery().withDescription("Remaining battery in %"),
-            e.battery_low().withDescription("Indicates if the battery is low"),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery level state: low, middle, or high"),
-            e
-                .numeric("pir_delay", ea.STATE_SET)
-                .withValueMin(30)
-                .withValueMax(120)
-                .withValueStep(30)
-                .withUnit("s")
-                .withDescription("PIR occupancy detection delay / keep time"),
-            e
-                .numeric("detection_distance", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(500)
-                .withValueStep(1)
-                .withUnit("cm")
-                .withDescription("Radar detection distance"),
-            e
-                .numeric("static_sensitivity", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Radar static detection sensitivity"),
-            e
-                .numeric("detection_sensitivity", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Radar motion detection sensitivity"),
-            e
-                .enum("motion_state", ea.STATE, ["none", "large", "small", "static"])
-                .withDescription("Radar motion state detail (none, large, small, static)"),
-            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator light mode"),
+        extend: [
+            tuyaBase({dp: true}),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.battery(),
+            tuya.modernExtend.dpBatteryState({dp: 3, type: tuya.dataTypes.enum}),
+            dpNumeric({
+                name: "pir_delay",
+                dp: 12,
+                type: tuya.dataTypes.number,
+                valueMin: 30,
+                valueMax: 28800,
+                valueStep: 30,
+                unit: "s",
+                description: "PIR occupancy keep time",
+            }),
+            dpNumeric({
+                name: "detection_distance",
+                dp: 103,
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 500,
+                unit: "cm",
+                description: "Radar detection distance",
+            }),
+            dpNumeric({
+                name: "static_sensitivity",
+                dp: 104,
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 10,
+                description: "Radar static detection sensitivity",
+            }),
+            dpNumeric({
+                name: "detection_sensitivity",
+                dp: 123,
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 10,
+                description: "Radar motion detection sensitivity",
+            }),
+            dpBinary({
+                name: "indicator",
+                dp: 107,
+                type: tuya.dataTypes.bool,
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                description: "LED indicator",
+            }),
         ],
     },
 
