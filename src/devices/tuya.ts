@@ -26593,13 +26593,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS208Z",
         vendor: "HYSYIOT",
         description: "PIR 24Ghz human presence sensor",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1"]}), m.battery()],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
 
         meta: {
             tuyaDatapoints: [
-                //[1, "occupancy", tuya.valueConverter.trueFalse0],
+                [1, "occupancy", tuya.valueConverter.trueFalse0],
                 [3, "battery_state", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
-                //[4, "battery", tuya.valueConverter.raw],
+                [4, "battery", tuya.valueConverter.raw],
                 [9, "pir_sensitivity", tuya.valueConverterBasic.lookup({low: 0, middle: 1, high: 2})],
                 [11, "illuminance", tuya.valueConverter.raw],
                 [12, "pir_delay", tuya.valueConverter.raw],
@@ -26647,13 +26647,13 @@ export const definitions: DefinitionWithExtend[] = [
         },
 
         exposes: [
-            //e.occupancy(),
+            e.occupancy(),
             e.enum("motion_state", ea.STATE, ["none", "move", "Micro-move", "static"]).withDescription("Radar Motion State Detail"),
             e.vibration(),
             e.illuminance(),
             e.temperature(),
             e.humidity(),
-            //e.battery(),
+            e.battery(),
             tuya.exposes.temperatureUnit(),
             e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery State"),
             e.enum("pir_sensitivity", ea.STATE_SET, ["low", "middle", "high"]).withDescription("PIR Sensitivity"),
@@ -26677,7 +26677,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .withUnit("°C")
                 .withDescription("Temperature Calibration"),
             e.numeric("humidity_calibration", ea.STATE_SET).withValueMin(-10).withValueMax(10).withUnit("%").withDescription("Humidity Calibration"),
-            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(100).withDescription("Vibration Sensitivity"),
+            e.numeric("vibration_sensitivity", ea.STATE_SET).withValueMin(1).withValueMax(50).withDescription("Vibration Sensitivity"),
             e.numeric("vibration_delay", ea.STATE_SET).withValueMin(1).withValueMax(1440).withUnit("s").withDescription("Vibration Clear Delay Time"),
         ],
     },
