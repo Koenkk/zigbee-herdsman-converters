@@ -115,7 +115,10 @@ export function ledvancePowerOnBehavior(): ModernExtend {
             convertSet: async (entity, key, value, meta) => {
                 utils.assertString(value, key);
                 value = value.toLowerCase();
-                const mode = utils.getFromLookup(value, {off: 0x01, on: 0x03});
+                // Plain-object lookups also match inherited properties ("constructor", "__proto__"),
+                // which would serialize mode 0x00 to the bulb, so match the two values explicitly.
+                if (value !== "off" && value !== "on") throw new Error(`'${key}' must be 'off' or 'on', got '${value}'`);
+                const mode = value === "off" ? 0x01 : 0x03;
                 const response = await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
                     "manuSpecificOsram",
                     "setPowerOnState",
