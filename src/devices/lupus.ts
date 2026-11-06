@@ -49,7 +49,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_9dm33lp8"]),
         model: "LS12136",
         vendor: "Lupus",
-        description: "Lupus 2 gang outdoor mains socket (without power meter)",
+        description: "2 gang outdoor mains socket (without power meter)",
         extend: [
             tuya.modernExtend.tuyaBase(),
             tuya.modernExtend.tuyaOnOff({
