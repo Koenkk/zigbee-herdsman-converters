@@ -81,7 +81,7 @@ export const definitions: DefinitionWithExtend[] = [
 	        "energy"]
         },
         ota: true,
-   };
+   },
    {
         zigbeeModel: ["PRS3CH1_00.00.05.10TC", "PRS3CH1_00.00.05.11TC"],
         model: "12126",
