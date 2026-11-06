@@ -3773,7 +3773,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
-                endpoints: {floor: 3},
+                endpoints: {
+                    ambient: 2,
+                    floor: 3,
+                },
+            }),
+            m.temperature({
+                endpointNames: ["ambient", "floor"],
+                reporting: false,
             }),
             schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
