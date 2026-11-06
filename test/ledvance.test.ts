@@ -114,8 +114,9 @@ const expectSetMode = (endpoint: ReturnType<typeof osramBulb>["endpoints"][0], m
 describe("ledvance power_on_behavior (manuSpecificOsram 0x0C)", () => {
     it("off maps to mode 0x01 on the manufacturer cluster", async () => {
         const endpoint = bulbEndpoint();
-        await setPowerOnState(endpoint, "off");
+        const result = await setPowerOnState(endpoint, "off");
         expectSetMode(endpoint, 0x01);
+        expect(result?.state).toEqual({power_on_behavior: "off"});
     });
 
     it("on maps to mode 0x03", async () => {
@@ -273,10 +274,12 @@ describe("ledvance remember_state (deprecated osram_ keys)", () => {
 describe("manufacturer command options", () => {
     it("definition-level options are merged into the manufacturer command, but disableDefaultResponse is not a confirmation", async () => {
         const endpoint = bulbEndpoint();
+        // a valid success response is fed to prove the option ALONE routes to
+        // delivered-unconfirmed: the guard must fire before response validation
+        vi.mocked(endpoint.command).mockResolvedValue(successDefaultRsp as never);
         const meta = {...mockMeta, mapped: {meta: {disableDefaultResponse: true}} as never} as never;
-        await expect(ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", "off", meta)).rejects.toThrow(
-            "no confirmation",
-        );
+        const result = await ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", "off", meta);
+        expect(result).toBeUndefined();
         expect(endpoint.command).toHaveBeenCalledWith(
             "manuSpecificOsram",
             "setPowerOnState",

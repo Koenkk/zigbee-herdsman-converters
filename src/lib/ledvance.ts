@@ -6,6 +6,7 @@ import * as utils from "../lib/utils";
 import * as m from "./modernExtend";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
+const SET_POWER_ON_STATE_ID = 0x0c;
 
 interface OsramCluster {
     attributes: never;
@@ -28,7 +29,7 @@ const ledvanceExtend = {
             commands: {
                 saveStartupParams: {name: "saveStartupParams", ID: 0x01, parameters: []},
                 resetStartupParams: {name: "resetStartupParams", ID: 0x02, parameters: []},
-                setPowerOnState: {name: "setPowerOnState", ID: 0x0c, parameters: [{name: "mode", type: 0x20}]},
+                setPowerOnState: {name: "setPowerOnState", ID: SET_POWER_ON_STATE_ID, parameters: [{name: "mode", type: 0x20}]},
             },
             commandsResponse: {
                 saveStartupParamsRsp: {name: "saveStartupParamsRsp", ID: 0x00, parameters: []},
@@ -113,8 +114,10 @@ export const ledvanceTz = {
                 {mode},
                 options,
             );
-            if (!utils.isEndpoint(entity)) {
-                // Group command: delivery only, no per-device confirmation is possible.
+            if (options.disableDefaultResponse || !utils.isEndpoint(entity)) {
+                // Delivered without confirmation, never reported as confirmed
+                // configuration: group broadcast has no per-device response and
+                // disableDefaultResponse deliberately suppresses it.
                 return;
             }
             // herdsman resolves the ZCL default response instead of throwing
@@ -122,12 +125,7 @@ export const ledvanceTz = {
             // a firmware rejection (e.g. pre-V1.05 units reject the whole manufacturer
             // command set) must not be echoed as a successful configuration.
             const defaultRsp = response as {cmdId?: number; statusCode?: number} | undefined;
-            if (
-                options.disableDefaultResponse ||
-                !utils.isObject(defaultRsp) ||
-                defaultRsp.cmdId !== 0x0c ||
-                typeof defaultRsp.statusCode !== "number"
-            ) {
+            if (!utils.isObject(defaultRsp) || defaultRsp.cmdId !== SET_POWER_ON_STATE_ID || typeof defaultRsp.statusCode !== "number") {
                 throw new Error(`'${key}': no confirmation from the device (missing or malformed default response)`);
             }
             if (defaultRsp.statusCode !== Zcl.Status.SUCCESS) {
