@@ -9,7 +9,7 @@ import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as philips from "./philips";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "./types";
-import {getClusterAttributeValue, resolutionToDecimalPrecision} from "./utils";
+import {discoverAttributes, getClusterAttributeValue, resolutionToDecimalPrecision} from "./utils";
 
 const NS = "zhc:gendef";
 
@@ -616,6 +616,7 @@ async function extenderBinaryInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
     }
 
     for (const endpoint of endpoints) {
+        await discoverAttributes(endpoint, "genBinaryInput");
         const label = await getClusterAttributeValue(endpoint, "genBinaryInput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
@@ -656,6 +657,7 @@ async function extenderBinaryOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     }
 
     for (const endpoint of endpoints) {
+        await discoverAttributes(endpoint, "genBinaryOutput");
         const label = await getClusterAttributeValue(endpoint, "genBinaryOutput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
@@ -701,6 +703,7 @@ async function extenderAnalogInput(device: Zh.Device, endpoints: Zh.Endpoint[]):
     }
 
     for (const endpoint of endpoints) {
+        await discoverAttributes(endpoint, "genAnalogInput");
         const label = await getClusterAttributeValue(endpoint, "genAnalogInput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
@@ -788,6 +791,7 @@ async function extenderAnalogOutput(device: Zh.Device, endpoints: Zh.Endpoint[])
     }
 
     for (const endpoint of endpoints) {
+        await discoverAttributes(endpoint, "genAnalogOutput");
         const label = await getClusterAttributeValue(endpoint, "genAnalogOutput", "description", undefined);
 
         let labelHomeAssistant: HomeAssistant | undefined;
