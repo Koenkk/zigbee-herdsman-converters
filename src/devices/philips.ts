@@ -163,6 +163,13 @@ const extendLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["NGC001"],
+        model: "929004440102",
+        vendor: "Philips",
+        description: "Hue wall light module for Nanoleaf Shapes",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
+    },
+    {
         zigbeeModel: ["LWA036"],
         model: "929003856401",
         vendor: "Philips",
@@ -195,6 +202,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "929004284702",
         vendor: "Philips",
         description: "Hue Festavia permanent outdoor string lights",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
+    },
+    {
+        zigbeeModel: ["LCX049"],
+        model: "929004456604",
+        vendor: "Philips",
+        description: "Hue Festavia curtain lights (1.35 x 2 meter with 250 LEDs)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {

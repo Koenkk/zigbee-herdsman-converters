@@ -1,3 +1,4 @@
+import * as tuya from "zigbee-herdsman-converters/lib/tuya";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as exposes from "../lib/exposes";
@@ -43,6 +44,36 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.readMeteringMultiplierDivisor(endpoint);
             await reporting.instantaneousDemand(endpoint);
         },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS011F", ["_TZ3000_9dm33lp8"]),
+        model: "LS12136",
+        vendor: "Lupus",
+        description: "2 gang outdoor mains socket (without power meter)",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            tuya.modernExtend.tuyaOnOff({
+                electricalMeasurements: false,
+                powerOutageMemory: true,
+                indicatorMode: true,
+                childLock: true,
+                endpoints: ["left", "right"],
+            }),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
+            device.save();
+        },
+        endpoint: (device) => {
+            return {left: 1, right: 2};
+        },
+        meta: {
+            multiEndpoint: true,
+            multiEndpointSkip: ["power", "current", "voltage", "energy"],
+        },
+        ota: true,
     },
     {
         zigbeeModel: ["PRS3CH1_00.00.05.10TC", "PRS3CH1_00.00.05.11TC"],

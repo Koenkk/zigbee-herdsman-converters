@@ -32,6 +32,12 @@ const NS = "zhc:tuya";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface ThermostatScheduleTemperatureOptions {
+    scale?: number;
+    minTemperature?: number;
+    maxTemperature?: number;
+}
+
 interface KeyValueStringEnum {
     [s: string]: Enum;
 }
@@ -869,7 +875,9 @@ const tuyaExposes = {
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Controls state after power outage: false = on, true = restore previous state")
+            .withDescription(
+                "Controls state after power outage: false = on, true = restore previous state. Power-cycle twice to ignore this setting and force on",
+            )
             .withCategory("config"),
     colorPowerOnBehavior: () =>
         e
@@ -1563,6 +1571,37 @@ export const valueConverterBasic = {
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
+    },
+    // Raw datapoint made of 4-byte blocks: [alarm code, breaker on/off, value high byte, value low byte].
+    // Exposes `<name>_breaker` (ON/OFF) and `<name>_threshold` for each alarm.
+    // Writes always send the full buffer (all alarms, in the given order), merging the current state
+    // with the message; some devices corrupt the other blocks when only the changed block is sent.
+    thresholdBlocks: (alarms: [code: number, name: string][]) => {
+        const onOff: Record<string, number> = {OFF: 0, ON: 1};
+        return {
+            from: (v: string) => {
+                const data = Buffer.from(v, "base64");
+                const result: KeyValue = {};
+                for (let i = 0; i + 3 < data.length; i += 4) {
+                    const alarm = alarms.find(([code]) => code === data[i]);
+                    if (alarm) {
+                        result[`${alarm[1]}_breaker`] = data[i + 1] === 1 ? "ON" : "OFF";
+                        result[`${alarm[1]}_threshold`] = (data[i + 2] << 8) | data[i + 3];
+                    }
+                }
+                return result;
+            },
+            to: (v: unknown, meta: Tz.Meta) => {
+                const values: KeyValue = {...meta.state, ...meta.message};
+                const payload: number[] = [];
+                for (const [code, name] of alarms) {
+                    const breaker = utils.getFromLookup(values[`${name}_breaker`], onOff);
+                    const threshold = utils.toNumber(values[`${name}_threshold`], `${name}_threshold`);
+                    payload.push(code, breaker, (threshold >> 8) & 0xff, threshold & 0xff);
+                }
+                return payload;
+            },
+        };
     },
 };
 
@@ -2283,14 +2322,17 @@ export const valueConverter = {
         from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().from(v),
         to: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().to(v),
     },
-    thermostatScheduleDayMultiDPWithTransitionCount: (transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithTransitionCount: (
+        transitionCount = 4,
+        {scale = 10, minTemperature = 5, maxTemperature = 35}: ThermostatScheduleTemperatureOptions = {},
+    ) => {
         return {
             from: (v: string) => {
                 const schedule = [];
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
                         // @ts-expect-error
-                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
+                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / scale).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -2309,8 +2351,15 @@ export const valueConverter = {
                     const hourMin = timeTemp[0].split(":");
                     const hour = Number.parseInt(hourMin[0], 10);
                     const min = Number.parseInt(hourMin[1], 10);
-                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
+                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * scale);
+                    if (
+                        hour < 0 ||
+                        hour > 24 ||
+                        min < 0 ||
+                        min > 60 ||
+                        temperature < minTemperature * scale ||
+                        temperature > maxTemperature * scale
+                    ) {
                         throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
@@ -2319,11 +2368,11 @@ export const valueConverter = {
             },
         };
     },
-    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4, options: ThermostatScheduleTemperatureOptions = {}) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).to(v);
                 data[0] = dayNum;
                 return data;
             },
@@ -2917,6 +2966,16 @@ export const valueConverter = {
             },
         };
     },
+    utf8String: {
+        // Plain UTF-8 string datapoint. Both ends of the pipe work one byte per character:
+        // `convertStringToHexArray()` takes `charCodeAt(0)` of every character when sending
+        // and `getDataValue()` rebuilds the string with `String.fromCharCode()` when
+        // receiving. So the UTF-8 bytes are carried as latin1 characters, otherwise
+        // anything outside ASCII is truncated to a single byte.
+        to: (v: string) => Buffer.from(String(v), "utf8").toString("latin1"),
+        from: (v?: string) => (v ? Buffer.from(v, "latin1").toString("utf8") : ""),
+    },
+
     utf16BEHexString: {
         // String -> hex (UTF-16BE)
         to: (v: string) => {
@@ -3535,6 +3594,7 @@ const tuyaTz = {
         key: ["brightness", "color", "color_temp"],
         options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
+            const colorTempInMireds = utils.getMetaValue(entity, meta.mapped, "tuyaColorTempInMireds", "allEqual", false);
             if (
                 key === "brightness" &&
                 meta.state.color_mode === constants.colorModeLookup[2] &&
@@ -3563,7 +3623,7 @@ const tuyaTz = {
                     "lightingColorCtrl",
                     "moveToColorTemp",
                     {
-                        colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
+                        colortemp: colorTempInMireds ? meta.message.color_temp : utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
                         transtime: 0,
                         optionsMask: 0,
                         optionsOverride: 0,
@@ -3596,7 +3656,12 @@ const tuyaTz = {
                 await entity.command(
                     "lightingColorCtrl",
                     "moveToColorTemp",
-                    {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    {
+                        colortemp: colorTempInMireds ? value : utils.mapNumberRange(value, 500, 154, 0, 254),
+                        transtime: 0,
+                        optionsMask: 0,
+                        optionsOverride: 0,
+                    },
                     utils.getOptions(meta.mapped, entity),
                 );
                 await entity.command(
@@ -3946,7 +4011,7 @@ const tuyaFz = {
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     datapoints: {
         cluster: "manuSpecificTuya",
-        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
+        type: ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
@@ -3971,7 +4036,7 @@ const tuyaFz = {
     } satisfies Fz.Converter<
         "manuSpecificTuya",
         undefined,
-        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     on_off_action: {
         cluster: "genOnOff",
@@ -4585,6 +4650,7 @@ const tuyaModernExtend = {
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
+                "commandDataReportAlt",
                 "commandActiveStatusReport",
                 "commandActiveStatusReportAlt",
             ]
@@ -4594,6 +4660,7 @@ const tuyaModernExtend = {
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
+                "commandDataReportAlt",
                 "commandActiveStatusReport",
                 "commandActiveStatusReportAlt",
             ],
@@ -5362,6 +5429,16 @@ const tuyaModernExtend = {
             numberOfForecastDays?: number;
             correctForNegativeValues?: boolean;
             weatherConditionMap?: TuyaWeatherCondition;
+            /**
+             * Layout of the `tuyaWeatherSync` reply.
+             * - `default`: starts with the protocol version and location type (`0x11 0x00`)
+             *   and ends with a `0x00`. Works for the M8/M9 Pro panels.
+             * - `requestSequence`: starts with the two bytes echoed back from the request
+             *   and has no trailing byte. Some firmwares (e.g. `_TZE284_0or4eirj`) accept
+             *   the default reply with status `SUCCESS` but keep showing `--°C` and keep
+             *   polling every minute until they get this layout.
+             */
+            replyFormat?: "default" | "requestSequence";
         } = {},
     ): ModernExtend {
         const {
@@ -5369,6 +5446,7 @@ const tuyaModernExtend = {
             numberOfForecastDays = 3,
             correctForNegativeValues = false,
             weatherConditionMap = M8ProTuyaWeatherCondition,
+            replyFormat = "default",
         } = args;
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
@@ -5386,12 +5464,27 @@ const tuyaModernExtend = {
             return val;
         }
 
-        function _prepareTuyaWeatherSyncPayload(meta: Fz.Meta | Tz.Meta, numberOfForecastDays: number, includeCurrentWeather: boolean): Buffer {
+        function _prepareTuyaWeatherSyncPayload(
+            meta: Fz.Meta | Tz.Meta,
+            numberOfForecastDays: number,
+            includeCurrentWeather: boolean,
+            sequencePrefix?: Buffer,
+        ): Buffer {
+            const useSequence = replyFormat === "requestSequence" && sequencePrefix !== undefined;
             let bOffset = 0;
-            const buffer = Buffer.alloc(6 + (includeCurrentWeather ? 6 : 1) + numberOfForecastDays * 6);
+            // 2 bytes of header, 4 bytes of controls, then for every requested ID one byte
+            // for the ID itself plus its values (temperature and humidity are 2 bytes each,
+            // the weather condition is 1), and for the default layout a trailing 0x00.
+            const valueCount = (includeCurrentWeather ? 1 : 0) + numberOfForecastDays;
+            const buffer = Buffer.alloc(2 + 4 + (1 + valueCount * 2) + (1 + valueCount * 2) + (1 + valueCount) + (useSequence ? 0 : 1));
 
-            buffer.writeUInt8(0x11, bOffset++);
-            buffer.writeUInt8(0, bOffset++);
+            if (useSequence) {
+                sequencePrefix.copy(buffer, bOffset);
+                bOffset += 2;
+            } else {
+                buffer.writeUInt8(0x11, bOffset++);
+                buffer.writeUInt8(0, bOffset++);
+            }
             buffer.writeUInt8(0x12, bOffset++);
             buffer.writeUInt8(numberOfForecastDays, bOffset++);
             buffer.writeUInt8(0x13, bOffset++);
@@ -5435,7 +5528,9 @@ const tuyaModernExtend = {
                     }
                 }
             }
-            buffer.writeUInt8(0, bOffset++);
+            if (!useSequence) {
+                buffer.writeUInt8(0, bOffset++);
+            }
             return buffer;
         }
 
@@ -5466,7 +5561,15 @@ const tuyaModernExtend = {
                     const _current_weather_flag = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
                     const include_current_weather = buffer.readUInt8(bOffset++) !== 0;
 
-                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
+                    // Devices using the `requestSequence` layout expect the first two bytes
+                    // of their own request back; remember them for unsolicited updates too.
+                    let sequencePrefix: Buffer | undefined;
+                    if (replyFormat === "requestSequence" && buffer.length >= 4 && buffer[2] === 0x11 && (buffer[3] === 0x00 || buffer[3] === 0x01)) {
+                        sequencePrefix = Buffer.from(buffer.subarray(0, 2));
+                        globalStore.putValue(msg.device, "weatherSequencePrefix", sequencePrefix);
+                    }
+
+                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather, sequencePrefix);
 
                     msg.endpoint
                         .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
@@ -5482,7 +5585,14 @@ const tuyaModernExtend = {
             convertSet: (entity, key, value, meta) => {
                 meta.state[key] = value;
 
-                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
+                const sequencePrefix = replyFormat === "requestSequence" ? globalStore.getValue(meta.device, "weatherSequencePrefix") : undefined;
+                if (replyFormat === "requestSequence" && sequencePrefix === undefined) {
+                    // Nothing to echo back yet: the device polls for the weather on its own,
+                    // the new value is picked up with the next request.
+                    return {state: {[key]: value}};
+                }
+
+                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather, sequencePrefix);
 
                 entity
                     .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})

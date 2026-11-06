@@ -244,4 +244,41 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_tayx2ud6"]),
+        model: "TS0601_ND_4Gang",
+        vendor: "Nova Digital",
+        description: "4-Gang Smart Touch Switch (Tuya TS0601)",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "2000"})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.switch().withEndpoint("l4"),
+            e.enum("power_on_behavior", ea.STATE_SET, ["off", "on", "previous"]).withDescription("Power-on behavior"),
+            e.enum("backlight_mode", ea.STATE_SET, ["off", "relay", "position"]).withDescription("Backlight mode"),
+            e.binary("backlight", ea.STATE_SET, "ON", "OFF").withDescription("Backlight on/off"),
+        ],
+        endpoint: () => ({l1: 1, l2: 1, l3: 1, l4: 1}),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [1, "state_l1", tuya.valueConverter.onOff],
+                [2, "state_l2", tuya.valueConverter.onOff],
+                [3, "state_l3", tuya.valueConverter.onOff],
+                [4, "state_l4", tuya.valueConverter.onOff],
+                [14, "power_on_behavior", tuya.valueConverter.powerOnBehaviorEnum],
+                [
+                    15,
+                    "backlight_mode",
+                    tuya.valueConverterBasic.lookup({
+                        off: tuya.enum(0),
+                        relay: tuya.enum(1),
+                        position: tuya.enum(2),
+                    }),
+                ],
+                [16, "backlight", tuya.valueConverter.onOff],
+            ],
+        },
+    },
 ];

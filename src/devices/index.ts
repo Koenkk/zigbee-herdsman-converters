@@ -53,6 +53,7 @@ import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
+import {definitions as coselig} from "./coselig";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
 import {definitions as currentProductsCorp} from "./current_products_corp";
@@ -109,6 +110,7 @@ import {definitions as ezviz} from "./ezviz";
 import {definitions as fantem} from "./fantem";
 import {definitions as feibit} from "./feibit";
 import {definitions as fireangel} from "./fireangel";
+import {definitions as fontastic} from "./fontastic";
 import {definitions as frankever} from "./frankever";
 import {definitions as frient} from "./frient";
 import {definitions as futurehome} from "./futurehome";
@@ -129,6 +131,7 @@ import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
+import {definitions as heatzy} from "./heatzy";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
 import {definitions as heiwa} from "./heiwa";
@@ -298,6 +301,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as selena} from "./selena";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
+import {definitions as sensyOne} from "./sensy_one";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
@@ -455,6 +459,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cleverio,
     ...climax,
     ...commercialElectric,
+    ...coselig,
     ...cree,
     ...ctm,
     ...currentProductsCorp,
@@ -510,6 +515,7 @@ const definitions: DefinitionWithExtend[] = [
     ...fantem,
     ...feibit,
     ...fireangel,
+    ...fontastic,
     ...frankever,
     ...frient,
     ...futurehome,
@@ -530,6 +536,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hamptonBay,
     ...handshakeFinland,
     ...heatit,
+    ...heatzy,
     ...heiman,
     ...heimgardTechnologies,
     ...heiwa,
@@ -697,6 +704,7 @@ const definitions: DefinitionWithExtend[] = [
     ...selena,
     ...sengled,
     ...senoro,
+    ...sensyOne,
     ...sercomm,
     ...shada,
     ...shadeControl,

@@ -3183,6 +3183,7 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         zigbeeModel: ["4512788"],
+        fingerprint: [{modelID: "D726-ZG", manufacturerName: "HZC"}],
         model: "4512788",
         vendor: "Namron",
         description: "Zigbee smart plug dimmer 150W",
