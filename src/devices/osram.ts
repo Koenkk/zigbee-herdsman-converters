@@ -1,6 +1,6 @@
 import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
-import {ledvanceFz, ledvanceLight, ledvanceOnOff} from "../lib/ledvance";
+import {ledvanceFz, ledvanceLight, ledvanceOnOff, ledvancePowerOnBehavior} from "../lib/ledvance";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import type {DefinitionWithExtend} from "../lib/types";
@@ -133,7 +133,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AB32840",
         vendor: "OSRAM",
         description: "LIGHTIFY LED Classic B40 tunable white",
-        extend: [ledvanceLight({colorTemp: {range: [150, 370]}, osramPowerOnState: true})],
+        extend: [ledvanceLight({colorTemp: {range: [150, 370]}}), ledvancePowerOnBehavior()],
     },
     {
         zigbeeModel: ["Ceiling TW OSRAM"],
@@ -147,7 +147,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "AC03641",
         vendor: "OSRAM",
         description: "LIGHTIFY LED Classic A60 clear",
-        extend: [ledvanceLight({osramPowerOnState: true})],
+        extend: [ledvanceLight({}), ledvancePowerOnBehavior()],
     },
     {
         zigbeeModel: ["Surface Light W �C LIGHTIFY"],

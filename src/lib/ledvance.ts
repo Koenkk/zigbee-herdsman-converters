@@ -1,12 +1,10 @@
 import {Zcl} from "zigbee-herdsman";
-
-import {presets as e, access as ea} from "../lib/exposes";
 import type {Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
+import {presets as e, access as ea} from "./exposes";
 import * as m from "./modernExtend";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
-const SET_POWER_ON_STATE_ID = 0x0c;
 
 interface OsramCluster {
     attributes: never;
@@ -29,7 +27,7 @@ const ledvanceExtend = {
             commands: {
                 saveStartupParams: {name: "saveStartupParams", ID: 0x01, parameters: []},
                 resetStartupParams: {name: "resetStartupParams", ID: 0x02, parameters: []},
-                setPowerOnState: {name: "setPowerOnState", ID: SET_POWER_ON_STATE_ID, parameters: [{name: "mode", type: 0x20}]},
+                setPowerOnState: {name: "setPowerOnState", ID: 0x0c, parameters: [{name: "mode", type: Zcl.DataType.UINT8}]},
             },
             commandsResponse: {
                 saveStartupParamsRsp: {name: "saveStartupParamsRsp", ID: 0x00, parameters: []},
@@ -90,50 +88,6 @@ export const ledvanceTz = {
             }
         },
     } satisfies Tz.Converter,
-    ledvance_power_on_behavior: {
-        key: ["power_on_behavior"],
-        convertSet: async (entity, key, value, meta) => {
-            utils.assertString(value, key);
-            // The lowercase value is needed only to echo the normalized state,
-            // which must match the expose values.
-            const normalized = value.toLowerCase();
-            // Firmware only accepts 0x01 (power on off) and 0x03 (power on on); there is no
-            // toggle/previous power-on mode on these bulbs. Firmware rejects any other
-            // payload with INVALID_VALUE without writing. The lookup is checked with
-            // Object.hasOwn because plain-object indexing also matches inherited properties
-            // ("constructor", "__proto__"), which would serialize mode 0x00 to the bulb.
-            const lookup: Record<string, number> = {off: 0x01, on: 0x03};
-            if (!Object.hasOwn(lookup, normalized)) {
-                throw new Error(`Key '${normalized}' not found in: [off, on]`);
-            }
-            const mode = lookup[normalized];
-            const options: KeyValue = {...manufacturerOptions, ...utils.getOptions(meta.mapped, entity)};
-            const response = await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
-                "manuSpecificOsram",
-                "setPowerOnState",
-                {mode},
-                options,
-            );
-            if (options.disableDefaultResponse || !utils.isEndpoint(entity)) {
-                // Delivered without confirmation, never reported as confirmed
-                // configuration: group broadcast has no per-device response and
-                // disableDefaultResponse deliberately suppresses it.
-                return;
-            }
-            // herdsman resolves the ZCL default response instead of throwing
-            // (zclCommand runs with checkStatus=false), so the status must be checked here:
-            // a firmware rejection (e.g. pre-V1.05 units reject the whole manufacturer
-            // command set) must not be echoed as a successful configuration.
-            const defaultRsp = response as {cmdId?: number; statusCode?: number} | undefined;
-            if (!utils.isObject(defaultRsp) || defaultRsp.cmdId !== SET_POWER_ON_STATE_ID || typeof defaultRsp.statusCode !== "number") {
-                throw new Error(`'${key}': no confirmation from the device (missing or malformed default response)`);
-            }
-            if (defaultRsp.statusCode !== Zcl.Status.SUCCESS) {
-                throw new Error(`'${key}' rejected by the device: ${Zcl.Status[defaultRsp.statusCode] ?? String(defaultRsp.statusCode)}`);
-            }
-            return {state: {power_on_behavior: normalized}};
-        },
-    } satisfies Tz.Converter,
 };
 
 export function ledvanceOnOff(args?: m.OnOffArgs) {
@@ -141,11 +95,8 @@ export function ledvanceOnOff(args?: m.OnOffArgs) {
     return m.onOff(args);
 }
 
-export function ledvanceLight(args?: m.LightArgs & {osramPowerOnState?: boolean}): ModernExtend {
-    const {osramPowerOnState = false, ...lightArgs} = args ?? {};
-    // ?? keeps the LIGHTIFY default in one place: an explicitly passed undefined would
-    // otherwise re-enable the standard genOnOff converter inside m.light.
-    args = {ota: true, ...lightArgs, powerOnBehavior: lightArgs.powerOnBehavior ?? false};
+export function ledvanceLight(args?: m.LightArgs): ModernExtend {
+    args = {powerOnBehavior: false, ota: true, ...args};
     if (args.colorTemp) args.colorTemp.startup = false;
     if (args.color) args.color = {modes: ["xy", "hs"], ...(utils.isObject(args.color) ? args.color : {})};
     const extend = m.light(args);
@@ -153,20 +104,29 @@ export function ledvanceLight(args?: m.LightArgs & {osramPowerOnState?: boolean}
     extend.onEvent = [...(customCluster.onEvent ?? []), ...(extend.onEvent ?? [])];
     extend.configure = [...(customCluster.configure ?? []), ...(extend.configure ?? [])];
     extend.toZigbee.push(ledvanceTz.ledvance_commands);
-    // Legacy OSRAM LIGHTIFY firmware lacks genOnOff.startUpOnOff; power-on state goes
-    // through the manufacturer cluster instead (see ledvance_power_on_behavior). Opt-in
-    // per definition, on models verified to run the firmware implementing the command
-    // (V1.05.10: AC03641 proven both ways against the opposite setter, AB32840 verified
-    // for restore-off); an explicit powerOnBehavior: true keeps the standard genOnOff
-    // implementation instead.
-    if (osramPowerOnState && !args.powerOnBehavior) {
-        const powerOnStateConverter = args.endpointNames
-            ? {...ledvanceTz.ledvance_power_on_behavior, endpoints: args.endpointNames}
-            : ledvanceTz.ledvance_power_on_behavior;
-        extend.toZigbee.push(powerOnStateConverter);
-        // No readable attribute, so no convertGet; STATE reflects the echoed last-set value.
-        const expose = e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET);
-        extend.exposes.push(...utils.exposeEndpoints(expose, args.endpointNames));
-    }
     return extend;
+}
+
+/** For LIGHTIFY bulbs without `genOnOff.startUpOnOff`, requires `ledvanceLight()` for the custom cluster. */
+export function ledvancePowerOnBehavior(): ModernExtend {
+    const toZigbee: Tz.Converter[] = [
+        {
+            key: ["power_on_behavior"],
+            convertSet: async (entity, key, value, meta) => {
+                utils.assertString(value, key);
+                value = value.toLowerCase();
+                const mode = utils.getFromLookup(value, {off: 0x01, on: 0x03});
+                const response = await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
+                    "manuSpecificOsram",
+                    "setPowerOnState",
+                    {mode},
+                    manufacturerOptions,
+                );
+                // Herdsman doesn't throw on a negative default response, some firmwares reject this command.
+                if (response?.statusCode) throw new Error(`Failed to set '${key}' (${Zcl.Status[response.statusCode]})`);
+                return {state: {power_on_behavior: value}};
+            },
+        },
+    ];
+    return {toZigbee, exposes: [e.power_on_behavior(["off", "on"]).withAccess(ea.STATE_SET)], isModernExtend: true};
 }
