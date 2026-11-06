@@ -643,46 +643,22 @@ export function printNumbersAsHexSequence(numbers: number[], hexLength: number):
     return numbers.map((v) => v.toString(16).padStart(hexLength, "0")).join(":");
 }
 
-// Error-message formatting must never throw: a rejected value can carry a throwing
-// Symbol.toPrimitive/toString (or be circular/BigInt for stringify), and the assert
-// still has to produce its intended Error.
-function stringifyUnknown(value: unknown): string {
-    try {
-        return String(value);
-    } catch {
-        return "<unprintable>";
-    }
-}
-
 // biome-ignore lint/suspicious/noExplicitAny: generic object
 export function assertObject<T extends Record<string, any>>(value: unknown, property?: string): asserts value is T {
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
-        let display: string;
-        try {
-            display = JSON.stringify(value) ?? stringifyUnknown(value);
-        } catch {
-            // BigInt and circular values crash stringify
-            display = stringifyUnknown(value);
-        }
-        throw new Error(`${property ? `'${property}'` : "Value"} is not an object, got ${typeof value} (${display})`);
+        throw new Error(`${property} is not a object, got ${typeof value} (${JSON.stringify(value)})`);
     }
 }
 
 export function assertArray(value: unknown, property?: string): asserts value is Array<unknown> {
     if (!Array.isArray(value)) {
-        throw new Error(`${property ? `'${property}'` : "Value"} is not an array, got ${typeof value} (${stringifyUnknown(value)})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not an array, got ${typeof value} (${value.toString()})`);
     }
 }
 
 export function assertString(value: unknown, property?: string): asserts value is string {
     if (typeof value !== "string") {
-        throw new Error(`${property ? `'${property}'` : "Value"} is not a string, got ${typeof value} (${stringifyUnknown(value)})`);
-    }
-}
-
-export function assertBoolean(value: unknown, property?: string): asserts value is boolean {
-    if (typeof value !== "boolean") {
-        throw new Error(`${property ? `'${property}'` : "Value"} is not a boolean, got ${typeof value} (${stringifyUnknown(value)})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a string, got ${typeof value} (${value.toString()})`);
     }
 }
 
@@ -705,22 +681,15 @@ export function isBoolean(value: unknown): value is boolean {
 
 export function assertNumber(value: unknown, property?: string): asserts value is number {
     if (typeof value !== "number" || Number.isNaN(value)) {
-        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${stringifyUnknown(value)})`);
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
     }
 }
 
 export function toNumber(value: unknown, property?: string): number {
-    // parseFloat coerces via ToString first, so a hostile value throws inside the try
-    const friendly = () => `${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${stringifyUnknown(value)})`;
-    let result: number;
-    try {
-        // @ts-expect-error ignore
-        result = Number.parseFloat(value);
-    } catch {
-        throw new Error(friendly());
-    }
+    // @ts-expect-error ignore
+    const result = Number.parseFloat(value);
     if (Number.isNaN(result)) {
-        throw new Error(friendly());
+        throw new Error(`${property ? `'${property}'` : "Value"} is not a number, got ${typeof value} (${value?.toString()})`);
     }
     return result;
 }

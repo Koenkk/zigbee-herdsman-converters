@@ -97,8 +97,14 @@ const osramBulb = () =>
 
 const mockMeta = {mapped: undefined, options: null, state: {}, device: null, message: null, publish: null, endpoint_name: null} as never;
 
-const setPowerOnState = (endpoint: ReturnType<typeof osramBulb>["endpoints"][0], value: string) =>
-    ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", value, mockMeta);
+// herdsman resolves the ZCL default response instead of throwing on a negative status,
+// so success tests must feed the converter the response a real bulb would return.
+const successDefaultRsp = {cmdId: 0x0c, statusCode: 0};
+
+const setPowerOnState = (endpoint: ReturnType<typeof osramBulb>["endpoints"][0], value: string) => {
+    vi.mocked(endpoint.command).mockResolvedValue(successDefaultRsp as never);
+    return ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", value, mockMeta);
+};
 
 const expectSetMode = (endpoint: ReturnType<typeof osramBulb>["endpoints"][0], mode: number) =>
     expect(endpoint.command).toHaveBeenCalledWith("manuSpecificOsram", "setPowerOnState", {mode}, {manufacturerCode: 0x110c});
@@ -119,17 +125,17 @@ describe("ledvance power_on_behavior (manuSpecificOsram 0x0C)", () => {
         expect(result?.state).toEqual({power_on_behavior: "on"});
     });
 
-    it("previous/toggle are rejected: the firmware has no such power-on mode", async () => {
+    it("previous is rejected: the firmware has no such power-on mode", async () => {
         const device = osramBulb();
         const endpoint = device.getEndpoint(3);
-        await expect(setPowerOnState(endpoint, "previous")).rejects.toThrow();
+        await expect(setPowerOnState(endpoint, "previous")).rejects.toThrow("Key 'previous' not found");
         expect(endpoint.command).not.toHaveBeenCalled();
     });
 
-    it("null payload is rejected with a proper Error, not a TypeError", async () => {
+    it("toggle is rejected: the firmware has no such power-on mode", async () => {
         const device = osramBulb();
         const endpoint = device.getEndpoint(3);
-        await expect(setPowerOnState(endpoint, null as never)).rejects.toThrow("is not a string");
+        await expect(setPowerOnState(endpoint, "toggle")).rejects.toThrow("Key 'toggle' not found");
         expect(endpoint.command).not.toHaveBeenCalled();
     });
 
@@ -138,6 +144,67 @@ describe("ledvance power_on_behavior (manuSpecificOsram 0x0C)", () => {
         const endpoint = device.getEndpoint(3);
         await expect(setPowerOnState(endpoint, 1 as never)).rejects.toThrow();
         expect(endpoint.command).not.toHaveBeenCalled();
+    });
+
+    it("inherited property names are not lookup keys: constructor/__proto__ never reach the bulb", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(setPowerOnState(endpoint, "constructor")).rejects.toThrow("Key 'constructor' not found");
+        await expect(setPowerOnState(endpoint, "__proto__")).rejects.toThrow("Key '__proto__' not found");
+        expect(endpoint.command).not.toHaveBeenCalled();
+    });
+});
+
+describe("ledvance power_on_behavior default-response validation", () => {
+    const convertWith = (endpoint: ReturnType<typeof osramBulb>["endpoints"][0], commandImpl: () => Promise<unknown>) => {
+        vi.mocked(endpoint.command).mockImplementation(commandImpl as never);
+        return ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", "off", mockMeta);
+    };
+
+    it("a negative default response (INVALID_VALUE 0x87) is an error, not a success echo", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(convertWith(endpoint, async () => ({cmdId: 0x0c, statusCode: 0x87}))).rejects.toThrow("INVALID_VALUE");
+    });
+
+    it("a negative default response (UNSUP_MANUF_CLUSTER_COMMAND 0x83) is an error", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(convertWith(endpoint, async () => ({cmdId: 0x0c, statusCode: 0x83}))).rejects.toThrow("UNSUP_MANUF_CLUSTER_COMMAND");
+    });
+
+    it("a rejected command promise propagates without any echo", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(convertWith(endpoint, async () => Promise.reject(new Error("delivery failed")))).rejects.toThrow("delivery failed");
+    });
+
+    it("an absent response is not a confirmation", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(convertWith(endpoint, async () => undefined)).rejects.toThrow("no confirmation");
+    });
+
+    it("a malformed response is not a confirmation", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(convertWith(endpoint, async () => ({}))).rejects.toThrow("no confirmation");
+    });
+
+    it("a default response for another command is not a confirmation", async () => {
+        const device = osramBulb();
+        const endpoint = device.getEndpoint(3);
+        await expect(convertWith(endpoint, async () => ({cmdId: 0x01, statusCode: 0}))).rejects.toThrow("no confirmation");
+    });
+
+    it("a group command is delivered but never reported as confirmed configuration", async () => {
+        const command = vi.fn(async () => undefined);
+        class Group {}
+        const group = Object.create(Group.prototype) as never;
+        Object.assign(group as object, {command});
+        const result = await ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(group, "power_on_behavior", "off", mockMeta);
+        expect(command).toHaveBeenCalledWith("manuSpecificOsram", "setPowerOnState", {mode: 0x01}, {manufacturerCode: 0x110c});
+        expect(result).toBeUndefined();
     });
 });
 
@@ -202,13 +269,12 @@ describe("ledvanceLight exposes power_on_behavior off/on", () => {
 });
 
 describe("ledvance remember_state (deprecated osram_ keys)", () => {
-    it("non-boolean payloads are rejected with a proper Error before any radio write", async () => {
+    it("non-boolean payloads are ignored, preserving the pre-existing behavior", async () => {
         const device = osramBulb();
         const endpoint = device.getEndpoint(3);
-        await expect(ledvance.ledvanceTz.ledvance_commands.convertSet(endpoint, "remember_state", "true", mockMeta)).rejects.toThrow(
-            "'remember_state' is not a boolean",
-        );
+        const result = await ledvance.ledvanceTz.ledvance_commands.convertSet(endpoint, "remember_state", "true", mockMeta);
         expect(endpoint.command).not.toHaveBeenCalled();
+        expect(result).toBeUndefined();
     });
 
     it("boolean true sends saveStartupParams on the manufacturer cluster", async () => {
@@ -227,11 +293,13 @@ describe("ledvance remember_state (deprecated osram_ keys)", () => {
 });
 
 describe("manufacturer command options", () => {
-    it("definition-level options (e.g. disableDefaultResponse) are merged into the manufacturer command", async () => {
+    it("definition-level options are merged into the manufacturer command, but disableDefaultResponse is not a confirmation", async () => {
         const device = osramBulb();
         const endpoint = device.getEndpoint(3);
         const meta = {...mockMeta, mapped: {meta: {disableDefaultResponse: true}} as never} as never;
-        await ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", "off", meta);
+        await expect(ledvance.ledvanceTz.ledvance_power_on_behavior.convertSet(endpoint, "power_on_behavior", "off", meta)).rejects.toThrow(
+            "no confirmation",
+        );
         expect(endpoint.command).toHaveBeenCalledWith(
             "manuSpecificOsram",
             "setPowerOnState",

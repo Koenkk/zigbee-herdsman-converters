@@ -7,7 +7,7 @@ import * as m from "./modernExtend";
 
 const manufacturerOptions = {manufacturerCode: Zcl.ManufacturerCode.OSRAM_SYLVANIA};
 
-const manufacturerCommandOptions = (meta: Tz.Meta, entity: Zh.Endpoint | Zh.Group) => ({
+const manufacturerCommandOptions = (meta: Tz.Meta, entity: Zh.Endpoint | Zh.Group): KeyValue & {manufacturerCode: Zcl.ManufacturerCode} => ({
     ...manufacturerOptions,
     ...utils.getOptions(meta.mapped, entity),
 });
@@ -76,14 +76,21 @@ export const ledvanceTz = {
                     await entity.write("genLevelCtrl", payload);
                 }
             } else if (key === "osram_remember_state" || key === "remember_state") {
-                utils.assertBoolean(value, key);
-                const command = value ? "saveStartupParams" : "resetStartupParams";
-                await entity.command<"manuSpecificOsram", "saveStartupParams" | "resetStartupParams", OsramCluster>(
-                    "manuSpecificOsram",
-                    command,
-                    {},
-                    manufacturerCommandOptions(meta, entity),
-                );
+                if (value === true) {
+                    await entity.command<"manuSpecificOsram", "saveStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "saveStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
+                } else if (value === false) {
+                    await entity.command<"manuSpecificOsram", "resetStartupParams", OsramCluster>(
+                        "manuSpecificOsram",
+                        "resetStartupParams",
+                        {},
+                        manufacturerOptions,
+                    );
+                }
             }
         },
     } satisfies Tz.Converter,
@@ -91,21 +98,53 @@ export const ledvanceTz = {
         key: ["power_on_behavior"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertString(value, key);
-            // getFromLookup already tries lower/upper variants; the lowercase value is
-            // needed only to echo the normalized state, which must match the expose values.
-            value = value.toLowerCase();
+            // The lowercase value is needed only to echo the normalized state,
+            // which must match the expose values.
+            const normalized = value.toLowerCase();
             // Firmware only accepts 0x01 (power on off) and 0x03 (power on on); there is no
             // toggle/previous power-on mode on these bulbs. Firmware rejects any other
-            // payload with INVALID_VALUE without writing.
+            // payload with INVALID_VALUE without writing. The lookup is checked with
+            // Object.hasOwn because plain-object indexing also matches inherited properties
+            // ("constructor", "__proto__"), which would serialize mode 0x00 to the bulb.
             const lookup: Record<string, number> = {off: 0x01, on: 0x03};
-            const mode = utils.getFromLookup(value, lookup);
-            await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
+            if (!Object.hasOwn(lookup, normalized)) {
+                throw new Error(`Key '${normalized}' not found in: [off, on]`);
+            }
+            const mode = lookup[normalized];
+            if (!utils.isEndpoint(entity)) {
+                // Group command: delivery only, no per-device confirmation is possible.
+                await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
+                    "manuSpecificOsram",
+                    "setPowerOnState",
+                    {mode},
+                    manufacturerCommandOptions(meta, entity),
+                );
+                return;
+            }
+            const options = manufacturerCommandOptions(meta, entity);
+            const response = await entity.command<"manuSpecificOsram", "setPowerOnState", OsramCluster>(
                 "manuSpecificOsram",
                 "setPowerOnState",
                 {mode},
-                manufacturerCommandOptions(meta, entity),
+                options,
             );
-            return {state: {power_on_behavior: value}};
+            // herdsman resolves the ZCL default response instead of throwing
+            // (zclCommand runs with checkStatus=false), so the status must be checked here:
+            // a firmware rejection (e.g. pre-V1.05 units reject the whole manufacturer
+            // command set) must not be echoed as a successful configuration.
+            const defaultRsp = response as {cmdId?: number; statusCode?: number} | undefined;
+            if (
+                options.disableDefaultResponse ||
+                !utils.isObject(defaultRsp) ||
+                defaultRsp.cmdId !== 0x0c ||
+                typeof defaultRsp.statusCode !== "number"
+            ) {
+                throw new Error(`'${key}': no confirmation from the device (missing or malformed default response)`);
+            }
+            if (defaultRsp.statusCode !== Zcl.Status.SUCCESS) {
+                throw new Error(`'${key}' rejected by the device: ${Zcl.Status[defaultRsp.statusCode] ?? String(defaultRsp.statusCode)}`);
+            }
+            return {state: {power_on_behavior: normalized}};
         },
     } satisfies Tz.Converter,
 };
@@ -130,8 +169,9 @@ export function ledvanceLight(args?: m.LightArgs & {osramPowerOnState?: boolean}
     // Legacy OSRAM LIGHTIFY firmware lacks genOnOff.startUpOnOff; power-on state goes
     // through the manufacturer cluster instead (see ledvance_power_on_behavior). Opt-in
     // per definition, on models verified to run the firmware implementing the command
-    // (V1.05.10, verified on AC03641 and AB32840); an explicit powerOnBehavior: true
-    // keeps the standard genOnOff implementation instead.
+    // (V1.05.10: AC03641 proven both ways against the opposite setter, AB32840 verified
+    // for restore-off); an explicit powerOnBehavior: true keeps the standard genOnOff
+    // implementation instead.
     if (osramPowerOnState && !args.powerOnBehavior) {
         const powerOnStateConverter = args.endpointNames
             ? {...ledvanceTz.ledvance_power_on_behavior, endpoints: args.endpointNames}
