@@ -84,6 +84,7 @@ import {definitions as ecodim} from "./ecodim";
 import {definitions as ecolink} from "./ecolink";
 import {definitions as ecosmart} from "./ecosmart";
 import {definitions as ecozy} from "./ecozy";
+import {definitions as edflab} from "./edflab";
 import {definitions as edp} from "./edp";
 import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
@@ -131,6 +132,7 @@ import {definitions as haloSmartLabs} from "./halo_smart_labs";
 import {definitions as hamptonBay} from "./hampton_bay";
 import {definitions as handshakeFinland} from "./handshake_finland";
 import {definitions as heatit} from "./heatit";
+import {definitions as heatzy} from "./heatzy";
 import {definitions as heiman} from "./heiman";
 import {definitions as heimgardTechnologies} from "./heimgard_technologies";
 import {definitions as heiwa} from "./heiwa";
@@ -300,6 +302,7 @@ import {definitions as securifi} from "./securifi";
 import {definitions as selena} from "./selena";
 import {definitions as sengled} from "./sengled";
 import {definitions as senoro} from "./senoro";
+import {definitions as sensyOne} from "./sensy_one";
 import {definitions as sercomm} from "./sercomm";
 import {definitions as shada} from "./shada";
 import {definitions as shadeControl} from "./shade_control";
@@ -488,6 +491,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ecolink,
     ...ecosmart,
     ...ecozy,
+    ...edflab,
     ...edp,
     ...efekta,
     ...ekaza,
@@ -534,6 +538,7 @@ const definitions: DefinitionWithExtend[] = [
     ...hamptonBay,
     ...handshakeFinland,
     ...heatit,
+    ...heatzy,
     ...heiman,
     ...heimgardTechnologies,
     ...heiwa,
@@ -701,6 +706,7 @@ const definitions: DefinitionWithExtend[] = [
     ...selena,
     ...sengled,
     ...senoro,
+    ...sensyOne,
     ...sercomm,
     ...shada,
     ...shadeControl,
