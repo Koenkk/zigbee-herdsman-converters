@@ -3,9 +3,61 @@ import * as fz from "../converters/fromZigbee";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 
 const e = exposes.presets;
+const ea = exposes.access;
+
+// Clock (hvacThermostat 0x800b): Unix time (seconds since 1970) in local time.
+const localTime = (): number => Math.round(Date.now() / 1000) - new Date().getTimezoneOffset() * 60;
+
+// When auto time sync is enabled, the device expects the current time to be written to hvacThermostat 0x800b.
+const autoTime = (): ModernExtend => {
+    const expose = e.binary("auto_time", ea.ALL, "ON", "OFF").withDescription("Enable automatic time sync");
+    const fromZigbee = [
+        {
+            cluster: "hvacUserInterfaceCfg",
+            type: ["attributeReport", "readResponse"],
+            convert: async (model, msg, publish, options, meta) => {
+                const value = (msg.data as KeyValue)[0x8004];
+                if (value === undefined) {
+                    return;
+                }
+                if (value === 1) {
+                    await msg.endpoint.write("hvacThermostat", {[0x800b]: {value: localTime(), type: Zcl.DataType.UINT32}}).catch(() => {});
+                }
+                return {auto_time: value === 1 ? "ON" : "OFF"};
+            },
+        } satisfies Fz.Converter<"hvacUserInterfaceCfg", undefined, ["attributeReport", "readResponse"]>,
+    ];
+    const toZigbee = [
+        {
+            key: ["auto_time"],
+            convertSet: async (entity, key, value, meta) => {
+                const enable = value === "ON";
+                await entity.write("hvacUserInterfaceCfg", {[0x8004]: {value: enable, type: Zcl.DataType.BOOLEAN}});
+                if (enable) {
+                    await entity.write("hvacThermostat", {[0x800b]: {value: localTime(), type: Zcl.DataType.UINT32}});
+                }
+                return {state: {auto_time: value}};
+            },
+            convertGet: async (entity, key, meta) => {
+                await entity.read("hvacUserInterfaceCfg", [0x8004]);
+            },
+        } satisfies Tz.Converter,
+    ];
+    const configure = [
+        m.setupConfigureForReporting(
+            "hvacUserInterfaceCfg",
+            {ID: 0x8004, type: Zcl.DataType.BOOLEAN},
+            {
+                config: {min: "MIN", max: "1_HOUR", change: 0},
+                access: ea.ALL,
+            },
+        ),
+    ];
+    return {exposes: [expose], fromZigbee, toZigbee, configure, isModernExtend: true};
+};
 
 interface HzcWindowCluster {
     attributes: {windowCheck: number; windowStatus: number};
@@ -149,6 +201,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.binary<"hzcValue", HzcValueCluster>({
                 name: "boost_switch",
@@ -157,6 +210,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Boost",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hzcValue", HzcValueCluster>({
                 name: "boost_countdown",
@@ -166,6 +220,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 90,
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             m.binary<"hzcValue", HzcValueCluster>({
                 name: "value_switch",
@@ -174,6 +229,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Value switch",
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.enumLookup<"hzcValue", HzcValueCluster>({
                 name: "control_type",
@@ -182,6 +238,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Control type",
                 lookup: {PDPID: 0, NF: 1},
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hzcValue", HzcValueCluster>({
                 name: "value_opening",
@@ -191,6 +248,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 valueMin: 0,
                 valueMax: 10,
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             m.binary<"hzcValue", HzcValueCluster>({
                 name: "scale_switch",
@@ -200,6 +258,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.binary<"hvacThermostat", undefined>({
                 name: "frost",
@@ -209,6 +268,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["ON", 1],
                 valueOff: ["OFF", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hvacThermostat", undefined>({
                 name: "frost_temp",
@@ -221,6 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMax: 10,
                 valueStep: 0.5,
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             m.binary<"hvacUserInterfaceCfg", undefined>({
                 name: "keypad_lockout",
@@ -230,6 +291,7 @@ export const definitions: DefinitionWithExtend[] = [
                 valueOn: ["LOCK", 1],
                 valueOff: ["UNLOCK", 0],
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.enumLookup<"hvacUserInterfaceCfg", undefined>({
                 name: "display_mode",
@@ -238,6 +300,7 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Display orientation",
                 lookup: {forward: 0, reverse: 1},
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 0},
             }),
             m.numeric<"hvacUserInterfaceCfg", undefined>({
                 name: "holiday_time",
@@ -248,17 +311,22 @@ export const definitions: DefinitionWithExtend[] = [
                 valueMin: 1,
                 valueMax: 99,
                 entityCategory: "config",
+                reporting: {min: "MIN", max: "1_HOUR", change: 1},
             }),
             {
                 configure: [
                     async (device) => {
                         // Sync device time (local seconds since 1970)
-                        const time = Math.round(Date.now() / 1000) - new Date().getTimezoneOffset() * 60;
-                        await device.getEndpoint(1).write("hvacThermostat", {32779: {value: time, type: Zcl.DataType.UINT32}});
+                        await device.getEndpoint(1).write("hvacThermostat", {[0x800b]: {value: localTime(), type: Zcl.DataType.UINT32}});
                     },
                 ],
                 isModernExtend: true,
             },
+            autoTime(),
+            m.bindCluster({cluster: "hvacThermostat", clusterType: "input"}),
+            m.bindCluster({cluster: "hvacUserInterfaceCfg", clusterType: "input"}),
+            m.bindCluster({cluster: "hzcWindow", clusterType: "input"}),
         ],
+        meta: {timeout: 30000},
     },
 ];
