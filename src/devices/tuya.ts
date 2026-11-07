@@ -8453,6 +8453,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
             tuya.whitelabel("LUUMR", "10010339", "Smart LED G9 2,5W CCT Clear", ["_TZ3210_tqwyiitv"]),
             tuya.whitelabel("ECODO", "ECD-SS12", "Sunset smart downlight 12 W, 1800-5700K", ["_TZ3210_rnj5wxxg"]),
+            tuya.whitelabel("ECODO", "DR-MW-2436", "24-36W tunable white smart LED driver", ["_TZ3210_3632cjza"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
