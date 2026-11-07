@@ -18,7 +18,7 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["teelicht-c6", "teelicht-nrf"],
         model: "teelicht",
         vendor: "teelicht pro",
-        description: "Rechargeable tealight that flickers like a real candle",
+        description: "Rechargeable smart tealight",
         extend: [
             m.deviceAddCustomCluster("teelichtFlicker", {
                 name: "teelichtFlicker",
