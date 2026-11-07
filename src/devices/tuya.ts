@@ -16481,7 +16481,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIN mount RCBO with smart energy metering",
         fromZigbee: [legacy.fromZigbee.hoch_din],
         toZigbee: [legacy.toZigbee.hoch_din, tzLocal.TS0601_rcbo_threshold],
-        exposes: [
+        exposes: (device) => [
             e.text("meter_number", ea.STATE).withDescription("Meter number"),
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("State"),
             e.text("alarm", ea.STATE).withDescription("Alarm text"),
@@ -16528,7 +16528,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("under_voltage_threshold", ea.STATE_SET)
                 .withUnit("V")
-                .withValueMin(100)
+                // _TZE200_hkdl5fmv has been observed reporting 50 V with under-voltage trip disabled.
+                .withValueMin(device?.manufacturerName === "_TZE200_hkdl5fmv" ? 50 : 100)
                 .withValueMax(215)
                 .withValueStep(1)
                 .withDescription("Under voltage threshold")
