@@ -1725,155 +1725,22 @@ const tzLocal = {
 
 const ts130fPositionKey = "ts130f_position";
 
-type Sdm01DatapointTableVersion = "v1" | "v2";
-
-const sdm01Datapoints: Record<Sdm01DatapointTableVersion, Tuya.MetaTuyaDataPoints> = {
-    v1: [
-        [1, "energy", tuya.valueConverter.divideBy100],
-        [2, "produced_energy", tuya.valueConverter.divideBy100],
-        [15, "power_factor", tuya.valueConverter.raw],
-        [
-            18,
-            "data_report_duration",
-            {
-                to: (v: number) => {
-                    const value = Math.max(5, Math.min(3600, Math.round(v))) * 2;
-                    // The device reports twice within the configured interval, so multiply the requested interval by two.
-                    const byte1 = (value >> 8) & 0xff;
-                    const byte2 = value & 0xff;
-                    return [
-                        // Other device settings
-                        0x01,
-                        0x01,
-                        0x00,
-                        0x3c,
-                        0x02,
-                        0x00,
-                        0x00,
-                        0x0a,
-                        0x03,
-                        0x01,
-                        0x00,
-                        0xfd,
-                        0x04,
-                        0x00,
-                        0x00,
-                        0xb4,
-                        0x05,
-                        0x01,
-                        0x00,
-                        0x00,
-                        0x07,
-                        0x01,
-                        0x00,
-                        0x00,
-                        0x08,
-                        0x01,
-                        // Report duration
-                        byte1,
-                        byte2,
-                        // Only modify the report duration
-                        0x09,
-                        0x00,
-                        0x00,
-                        0x00,
-                    ];
-                },
-            },
-        ],
-        [101, "ac_frequency", tuya.valueConverter.divideBy100],
-        [102, "voltage_a", tuya.valueConverter.divideBy10],
-        [103, "current_a", tuya.valueConverter.divideBy1000],
-        [104, "power_a", tuya.valueConverter.raw],
-        [105, "voltage_b", tuya.valueConverter.divideBy10],
-        [106, "current_b", tuya.valueConverter.divideBy1000],
-        [107, "power_b", tuya.valueConverter.raw],
-        [108, "voltage_c", tuya.valueConverter.divideBy10],
-        [109, "current_c", tuya.valueConverter.divideBy1000],
-        [110, "power_c", tuya.valueConverter.raw],
-        [111, "power", tuya.valueConverter.raw],
-        [112, "energy_a", tuya.valueConverter.divideBy100],
-        [113, "energy_produced_a", tuya.valueConverter.divideBy100],
-        [114, "energy_b", tuya.valueConverter.divideBy100],
-        [115, "energy_produced_b", tuya.valueConverter.divideBy100],
-        [116, "energy_c", tuya.valueConverter.divideBy100],
-        [117, "energy_produced_c", tuya.valueConverter.divideBy100],
-        [118, "power_factor_a", tuya.valueConverter.raw],
-        [119, "power_factor_b", tuya.valueConverter.raw],
-        [120, "power_factor_c", tuya.valueConverter.raw],
-    ],
-    v2: [
-        [1, "energy", tuya.valueConverter.divideBy100],
-        [23, "produced_energy", tuya.valueConverter.divideBy100],
-        [29, "power", tuya.valueConverter.raw],
-        [32, "ac_frequency", tuya.valueConverter.divideBy100],
-        [50, "power_factor", tuya.valueConverter.raw],
-        [103, "voltage_a", tuya.valueConverter.divideBy10],
-        [104, "current_a", tuya.valueConverter.divideBy1000],
-        [105, "power_a", tuya.valueConverter.raw],
-        [108, "power_factor_a", tuya.valueConverter.raw],
-        [109, "energy_a", tuya.valueConverter.divideBy100],
-        [110, "energy_produced_a", tuya.valueConverter.divideBy100],
-        [112, "voltage_b", tuya.valueConverter.divideBy10],
-        [113, "current_b", tuya.valueConverter.divideBy1000],
-        [114, "power_b", tuya.valueConverter.raw],
-        [117, "power_factor_b", tuya.valueConverter.raw],
-        [118, "energy_b", tuya.valueConverter.divideBy100],
-        [119, "energy_produced_b", tuya.valueConverter.divideBy100],
-        [121, "voltage_c", tuya.valueConverter.divideBy10],
-        [122, "current_c", tuya.valueConverter.divideBy1000],
-        [123, "power_c", tuya.valueConverter.raw],
-        [126, "power_factor_c", tuya.valueConverter.raw],
-        [127, "energy_c", tuya.valueConverter.divideBy100],
-        [128, "energy_produced_c", tuya.valueConverter.divideBy100],
-    ],
-};
-
-const sdm01CommonDatapoints: Tuya.MetaTuyaDataPoints = [[1, "energy", tuya.valueConverter.divideBy100]];
-// Both tables use the same fingerprints and can report the same applicationVersion, so detect them from exclusive datapoints instead.
-const sdm01V1Markers = new Set([2, 15, 18, 101, 102, 106, 107, 111, 115, 116, 120]);
-const sdm01V2Markers = new Set([23, 29, 32, 50, 121, 122, 123, 126, 127, 128]);
-
-function detectSdm01DatapointTable(dpValues: Tuya.DpValue[]): Sdm01DatapointTableVersion | "conflict" | undefined {
-    const hasV1 = dpValues.some((dpValue) => sdm01V1Markers.has(dpValue.dp));
-    const hasV2 = dpValues.some((dpValue) => sdm01V2Markers.has(dpValue.dp));
-    if (hasV1 && hasV2) return "conflict";
-    if (hasV1) return "v1";
-    if (hasV2) return "v2";
-}
+// SDM01 variants share the same fingerprint and applicationVersion, the newer one (v2) is detected from datapoints only it reports.
+const sdm01V2Only = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (value, meta, options, publish, msg) => {
+        if (!meta.device.meta.sdm01V2) {
+            meta.device.meta.sdm01V2 = true;
+            meta.device.save();
+        }
+        return converter.from(value, meta, options, publish, msg);
+    },
+});
+const sdm01Variant = (v1Key: string, v1: Tuya.ValueConverterSingle, v2Key: string, v2: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (value, meta, options, publish, msg) =>
+        meta.device.meta.sdm01V2 ? {[v2Key]: v2.from(value, meta, options, publish, msg)} : {[v1Key]: v1.from(value, meta, options, publish, msg)},
+});
 
 const fzLocal = {
-    sdm01AdaptiveDatapoints: {
-        ...tuya.fz.datapoints,
-        convert: (model, msg, publish, options, meta) => {
-            const detected = detectSdm01DatapointTable(msg.data.dpValues);
-            if (detected === "conflict") {
-                logger.warning(`Conflicting SDM01 datapoint tables reported by '${msg.device.ieeeAddr}', ignoring message`, NS);
-                return;
-            }
-
-            const stored = msg.device.meta.sdm01DatapointTableVersion;
-            let version: Sdm01DatapointTableVersion | undefined = stored === "v1" || stored === "v2" ? stored : undefined;
-            if (detected && detected !== version) {
-                version = detected;
-                msg.device.meta.sdm01DatapointTableVersion = detected;
-                msg.device.save();
-                logger.info(`Detected SDM01 datapoint table ${detected} for '${msg.device.ieeeAddr}'`, NS);
-            }
-
-            const mapped = {
-                ...model,
-                meta: {...(model.meta ?? {}), tuyaDatapoints: version ? sdm01Datapoints[version] : sdm01CommonDatapoints},
-            };
-            const result = tuya.fz.datapoints.convert(mapped, msg, publish, options, meta);
-            if (result && version) result.datapoint_table_version = version;
-            return result;
-        },
-    } satisfies Fz.Converter<
-        "manuSpecificTuya",
-        undefined,
-        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
-    >,
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
     // as raw lightingColorCtrl frames without updating colorTemperature.
     FUT035ZrfColorTemp: {
@@ -19295,13 +19162,12 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        // incomplete / incorrect: https://github.com/Koenkk/zigbee-herdsman-converters/pull/12355
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ugekduaj", "_TZE200_ugekduaj"]),
         model: "SDM01",
         vendor: "Tuya",
         description: "Smart energy monitor for 3P+N system",
-        extend: [tuya.modernExtend.tuyaBase()],
-        fromZigbee: [fzLocal.sdm01AdaptiveDatapoints],
-        toZigbee: [tuya.tz.datapoints],
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.voltageWithPhase("a"),
             tuya.exposes.voltageWithPhase("b"),
@@ -19327,13 +19193,93 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.exposes.powerFactorWithPhase("a"),
             tuya.exposes.powerFactorWithPhase("b"),
             tuya.exposes.powerFactorWithPhase("c"),
-            e
-                .enum("datapoint_table_version", ea.STATE, ["v1", "v2"])
-                .withDescription("Detected datapoint table: v1 is legacy, v2 is updated")
-                .withCategory("diagnostic"),
         ],
         meta: {
-            tuyaDatapoints: sdm01Datapoints.v1,
+            tuyaDatapoints: [
+                [1, "energy", tuya.valueConverter.divideBy100],
+                [2, "produced_energy", tuya.valueConverter.divideBy100],
+                [15, "power_factor", tuya.valueConverter.raw],
+                [
+                    18,
+                    "data_report_duration",
+                    {
+                        to: (v: number) => {
+                            const value = Math.max(5, Math.min(3600, Math.round(v))) * 2;
+                            // The reporting logic of this device is: for example, if 30 is input, it will report twice within 30 seconds,
+                            // Which means reporting once every 15 seconds. Therefore, the input data needs to be multiplied by 2.
+                            const byte1 = (value >> 8) & 0xff;
+                            const byte2 = value & 0xff;
+                            return [
+                                // Other settings of the device
+                                0x01,
+                                0x01,
+                                0x00,
+                                0x3c,
+                                0x02,
+                                0x00,
+                                0x00,
+                                0x0a,
+                                0x03,
+                                0x01,
+                                0x00,
+                                0xfd,
+                                0x04,
+                                0x00,
+                                0x00,
+                                0xb4,
+                                0x05,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x07,
+                                0x01,
+                                0x00,
+                                0x00,
+                                0x08,
+                                0x01,
+                                // Report duration
+                                byte1,
+                                byte2,
+                                // Only modify the report duration
+                                0x09,
+                                0x00,
+                                0x00,
+                                0x00,
+                            ];
+                        },
+                    },
+                ],
+                [101, "ac_frequency", tuya.valueConverter.divideBy100],
+                [102, "voltage_a", tuya.valueConverter.divideBy10],
+                [103, null, sdm01Variant("current_a", tuya.valueConverter.divideBy1000, "voltage_a", tuya.valueConverter.divideBy10)],
+                [104, null, sdm01Variant("power_a", tuya.valueConverter.raw, "current_a", tuya.valueConverter.divideBy1000)],
+                [105, null, sdm01Variant("voltage_b", tuya.valueConverter.divideBy10, "power_a", tuya.valueConverter.raw)],
+                [106, "current_b", tuya.valueConverter.divideBy1000],
+                [107, "power_b", tuya.valueConverter.raw],
+                [108, null, sdm01Variant("voltage_c", tuya.valueConverter.divideBy10, "power_factor_a", tuya.valueConverter.raw)],
+                [109, null, sdm01Variant("current_c", tuya.valueConverter.divideBy1000, "energy_a", tuya.valueConverter.divideBy100)],
+                [110, null, sdm01Variant("power_c", tuya.valueConverter.raw, "energy_produced_a", tuya.valueConverter.divideBy100)],
+                [111, "power", tuya.valueConverter.raw],
+                [112, null, sdm01Variant("energy_a", tuya.valueConverter.divideBy100, "voltage_b", tuya.valueConverter.divideBy10)],
+                [114, null, sdm01Variant("energy_b", tuya.valueConverter.divideBy100, "power_b", tuya.valueConverter.raw)],
+                [116, "energy_c", tuya.valueConverter.divideBy100],
+                [113, null, sdm01Variant("energy_produced_a", tuya.valueConverter.divideBy100, "current_b", tuya.valueConverter.divideBy1000)],
+                [115, "energy_produced_b", tuya.valueConverter.divideBy100],
+                [117, null, sdm01Variant("energy_produced_c", tuya.valueConverter.divideBy100, "power_factor_b", tuya.valueConverter.raw)],
+                [118, null, sdm01Variant("power_factor_a", tuya.valueConverter.raw, "energy_b", tuya.valueConverter.divideBy100)],
+                [119, null, sdm01Variant("power_factor_b", tuya.valueConverter.raw, "energy_produced_b", tuya.valueConverter.divideBy100)],
+                [120, "power_factor_c", tuya.valueConverter.raw],
+                [23, "produced_energy", sdm01V2Only(tuya.valueConverter.divideBy100)],
+                [29, "power", sdm01V2Only(tuya.valueConverter.raw)],
+                [32, "ac_frequency", sdm01V2Only(tuya.valueConverter.divideBy100)],
+                [50, "power_factor", sdm01V2Only(tuya.valueConverter.raw)],
+                [121, "voltage_c", sdm01V2Only(tuya.valueConverter.divideBy10)],
+                [122, "current_c", sdm01V2Only(tuya.valueConverter.divideBy1000)],
+                [123, "power_c", sdm01V2Only(tuya.valueConverter.raw)],
+                [126, "power_factor_c", sdm01V2Only(tuya.valueConverter.raw)],
+                [127, "energy_c", sdm01V2Only(tuya.valueConverter.divideBy100)],
+                [128, "energy_produced_c", sdm01V2Only(tuya.valueConverter.divideBy100)],
+            ],
         },
     },
     {

@@ -663,104 +663,41 @@ describe("lib/tuya", () => {
         });
     });
 
-    describe("SDM01 adaptive datapoint tables", () => {
-        let transactionSequenceNumber = 10000;
-
-        const resolve = async () => {
-            const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_ugekduaj", endpoints: [{ID: 1}]});
-            const definition = await findByDevice(device);
-            const converter = definition.fromZigbee
-                .filter((candidate) => candidate.cluster === "manuSpecificTuya")
-                .find((candidate) => {
-                    const types = Array.isArray(candidate.type) ? candidate.type : [candidate.type];
-                    return types.length === 5 && types.includes("commandDataReport") && candidate.convert !== tuya.fz.datapoints.convert;
-                }) as Fz.Converter<
-                "manuSpecificTuya",
-                undefined,
-                ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
-            >;
-            expect(converter).toBeDefined();
-            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
-            return {device, definition, converter, properties: exposes.map((expose) => expose.property)};
-        };
-
-        const valueDp = (dp: number, value: number): Tuya.DpValue => ({
-            dp,
-            datatype: 2,
-            data: Buffer.from([(value >>> 24) & 0xff, (value >>> 16) & 0xff, (value >>> 8) & 0xff, value & 0xff]),
-        });
-
-        const convert = async (device: ReturnType<typeof mockDevice>, definition: Definition, converter: Fz.Converter, dpValues: Tuya.DpValue[]) => {
-            const message = {
-                data: {seq: 1, dpValues},
+    describe("SDM01 datapoint variants", () => {
+        const newDevice = () => mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_ugekduaj", endpoints: [{ID: 1}]});
+        const report = async (device: ReturnType<typeof mockDevice>, seq: number, dps: [number, number][]) => {
+            const dpValues = dps.map(([dp, value]) => ({dp, datatype: 2, data: Buffer.from([0, 0, value >> 8, value & 0xff])}));
+            const msg = {
+                data: {seq, dpValues},
                 device,
                 endpoint: device.getEndpoint(1),
-                meta: {zclTransactionSequenceNumber: transactionSequenceNumber++, rawData: Buffer.alloc(0)},
-                groupID: 0,
-                type: "commandDataReport",
-                cluster: "manuSpecificTuya",
-                linkquality: 100,
-            } as Fz.Message<"manuSpecificTuya", undefined, "commandDataReport">;
-            return await converter.convert(definition, message, null, {}, {state: {}, device, deviceExposesChanged: () => {}});
+                meta: {zclTransactionSequenceNumber: seq},
+            } as unknown as Fz.Message;
+            const meta = {state: {}, device, deviceExposesChanged: () => {}};
+            return await (tuya.fz.datapoints as Fz.Converter).convert(await findByDevice(device), msg, null, {}, meta);
         };
 
-        it("detects and decodes the updated v2 table", async () => {
-            const {device, definition, converter, properties} = await resolve();
-            const save = vi.spyOn(device, "save");
-            const result = await convert(device, definition, converter, [valueDp(29, 772), valueDp(103, 2315), valueDp(104, 2134), valueDp(108, 96)]);
-
-            expect(result).toStrictEqual({datapoint_table_version: "v2", power: 772, voltage_a: 231.5, current_a: 2.134, power_factor_a: 96});
-            expect(device.meta.sdm01DatapointTableVersion).toBe("v2");
-            expect(save).toHaveBeenCalledOnce();
-            expect(properties).toContain("datapoint_table_version");
+        it("uses the original datapoints by default", async () => {
+            const device = newDevice();
+            expect(
+                await report(device, 20001, [
+                    [102, 2298],
+                    [103, 1234],
+                ]),
+            ).toStrictEqual({voltage_a: 229.8, current_a: 1.234});
+            expect(device.meta.sdm01V2).toBeUndefined();
         });
 
-        it("detects and decodes the legacy v1 table", async () => {
-            const {device, definition, converter} = await resolve();
-            const result = await convert(device, definition, converter, [
-                valueDp(15, 97),
-                valueDp(102, 2298),
-                valueDp(103, 1234),
-                valueDp(111, 811),
-                valueDp(120, 95),
-            ]);
-
-            expect(result).toStrictEqual({
-                datapoint_table_version: "v1",
-                power_factor: 97,
-                voltage_a: 229.8,
-                current_a: 1.234,
-                power: 811,
-                power_factor_c: 95,
-            });
-            expect(device.meta.sdm01DatapointTableVersion).toBe("v1");
-        });
-
-        it("uses the persisted table for datapoints that are ambiguous between versions", async () => {
-            const {device, definition, converter} = await resolve();
-            device.meta.sdm01DatapointTableVersion = "v2";
-
-            const result = await convert(device, definition, converter, [valueDp(112, 2301), valueDp(113, 456)]);
-
-            expect(result).toStrictEqual({datapoint_table_version: "v2", voltage_b: 230.1, current_b: 0.456});
-        });
-
-        it("decodes only the common energy datapoint until the table is known", async () => {
-            const {device, definition, converter} = await resolve();
-
-            const result = await convert(device, definition, converter, [valueDp(1, 12345), valueDp(103, 999)]);
-
-            expect(result).toStrictEqual({energy: 123.45});
-            expect(device.meta.sdm01DatapointTableVersion).toBeUndefined();
-        });
-
-        it("ignores a message containing markers from both tables", async () => {
-            const {device, definition, converter} = await resolve();
-
-            const result = await convert(device, definition, converter, [valueDp(2, 100), valueDp(23, 200)]);
-
-            expect(result).toBeUndefined();
-            expect(device.meta.sdm01DatapointTableVersion).toBeUndefined();
+        it("switches to the v2 datapoints once a v2-only datapoint is reported and remembers it", async () => {
+            const device = newDevice();
+            expect(
+                await report(device, 20002, [
+                    [29, 772],
+                    [103, 2315],
+                ]),
+            ).toStrictEqual({power: 772, voltage_a: 231.5});
+            expect(await report(device, 20003, [[112, 2301]])).toStrictEqual({voltage_b: 230.1});
+            expect(device.meta.sdm01V2).toBe(true);
         });
     });
 
