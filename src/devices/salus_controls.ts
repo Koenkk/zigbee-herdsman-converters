@@ -83,7 +83,7 @@ const fzLocal = {
                 humidity: bcd(24, 1),
             };
             const battery = [0, 10, 25, 50, 75, 100][record[49]];
-            if (battery !== undefined) result.battery = battery;
+            if (model.model !== "SQ610NH" && battery !== undefined) result.battery = battery;
             // 12.34 is a placeholder the thermostat regularly sends instead of a reading
             if (record.readUInt16BE(4) !== 0x1234) result.local_temperature = bcd(4) / 100;
             return result;
