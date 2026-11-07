@@ -2905,8 +2905,8 @@ export const valueConverter = {
 
                 let state = value[`inching_control_${i}`] === "ENABLE" ? 1 : 0;
                 if (i !== 1) {
-                    // Second endpoint onwards base number is determined by 2 powered by endpoint number less 1
-                    state += 2 ** (i - 1);
+                    // Bit 0 is the enable flag, the bits above it contain the zero-based channel
+                    state += (i - 1) * 2;
                 }
                 const secs: number = Number.parseInt(value[`inching_time_${i}`], 10);
                 // Build the 3 bytes directly: going via String.fromCharCode() and the default utf8
@@ -2939,7 +2939,7 @@ export const valueConverter = {
                         break;
                     default:
                         // endpoint #
-                        tmp = Math.trunc(Math.log2(cca0)) + 1;
+                        tmp = Math.trunc(cca0 / 2) + 1;
                         status = cca0 % 2 ? "ENABLE" : "DISABLE";
                         data[`inching_control_${tmp}`] = status;
                         data[`inching_time_${tmp}`] = (cca1 << 8) + cca2;

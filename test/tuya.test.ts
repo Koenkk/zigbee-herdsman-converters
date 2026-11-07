@@ -711,6 +711,42 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("inching channel encoding", () => {
+        const records = [1, 0, 60, 3, 0, 1, 4, 1, 0, 7, 255, 255];
+        const value = {
+            inching_control_1: "ENABLE",
+            inching_time_1: 60,
+            inching_control_2: "ENABLE",
+            inching_time_2: 1,
+            inching_control_3: "DISABLE",
+            inching_time_3: 256,
+            inching_control_4: "ENABLE",
+            inching_time_4: 65535,
+        };
+
+        it("encodes and decodes channel 4 as records 6/7", () => {
+            expect(Buffer.from(tuya.valueConverter.inchingSwitch.to(value), "base64")).toStrictEqual(Buffer.from(records));
+            expect(tuya.valueConverter.inchingSwitch.from(Buffer.from(records).toString("base64"))).toStrictEqual(value);
+        });
+
+        it("resolves _TZ3000_uz6ibhib to its own definition with countdown and inching per channel", async () => {
+            const device = mockDevice({
+                modelID: "TS0004",
+                manufacturerName: "_TZ3000_uz6ibhib",
+                endpoints: [{ID: 1, inputClusterIDs: [6, 0xe000, 0xe001]}, {ID: 2}, {ID: 3}, {ID: 4}],
+            });
+            const definition = await findByDevice(device);
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(device, {}) : definition.exposes;
+            const properties = exposes.map((expose) => expose.property);
+
+            expect(definition.model).toStrictEqual("TS0004_switch_module_3");
+            expect(properties).toEqual(
+                expect.arrayContaining(["countdown_l1", "countdown_l4", "power_on_behavior_l1", "power_on_behavior_l4", "inching_control_set"]),
+            );
+            expect(properties).not.toContain("backlight_mode");
+        });
+    });
+
     describe("number data point encoding", () => {
         it("rounds values to whole numbers before encoding", () => {
             // 1.12 * 100 = 112.00000000000001

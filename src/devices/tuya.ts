@@ -14699,6 +14699,29 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_uz6ibhib"]),
+        model: "TS0004_switch_module_3",
+        vendor: "Tuya",
+        description: "4 gang switch module with countdown and inching",
+        extend: [
+            tuya.modernExtend.tuyaBase(),
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2, l3: 3, l4: 4}}),
+            tuya.modernExtend.tuyaOnOff({
+                powerOnBehavior2: true,
+                onOffCountdown: true,
+                inchingSwitch: true,
+                endpoints: ["l1", "l2", "l3", "l4"],
+            }),
+            tuya.clusters.addTuyaCommonPrivateCluster(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            await tuya.configureMagicPacket(device, coordinatorEndpoint);
+            for (const ep of [1, 2, 3, 4]) {
+                await reporting.bind(device.getEndpoint(ep), coordinatorEndpoint, ["genOnOff"]);
+            }
+        },
+    },
+    {
         fingerprint: tuya.fingerprint("TS0004", ["_TZ3000_ncb6mkx8"]),
         model: "TS0004_fan_light_switch",
         vendor: "Tuya",
