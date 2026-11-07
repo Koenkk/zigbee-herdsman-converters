@@ -1969,16 +1969,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
 export interface IasWarningArgs {
     reversePayload?: boolean;
     maxDuration?: boolean | {min?: number; max?: number};
-    /**
-     * Send an all-zero warning info byte whenever `mode` is `stop`, whatever the other fields say.
-     * Some devices keep sounding, or start a short warning, when the stop byte carries strobe or level bits.
-     */
     stopWithZeroInfo?: boolean;
-    /**
-     * Expose `warning_active`. The IAS WD cluster has no attribute telling whether a warning is sounding,
-     * so the state is derived from the warnings acknowledged by the device: on after a start, off after a stop
-     * or once the warning duration (capped by `max_duration`) has elapsed.
-     */
     warningActive?: boolean;
 }
 export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
@@ -2033,9 +2024,6 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
         : [];
 
     if (warningActive) {
-        // The end time lives in the device meta, which outlives a restart, while the timer does not.
-        // Any IAS zone message (the device sends one at least every few minutes) sets the state from it,
-        // which clears a state left on and initialises an unknown one.
         fromZigbee.push({
             cluster: "ssIasZone",
             type: ["commandStatusChangeNotification", "attributeReport", "readResponse"],
@@ -2082,11 +2070,9 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     strobeLevel: value.strobe_level != null ? getFromLookup(value.strobe_level, level) : 1,
                 };
 
-                const stop = values.mode === "stop";
-
                 // biome-ignore lint/suspicious/noImplicitAnyLet: ignored using `--suppress`
                 let info;
-                if (stop && stopWithZeroInfo) {
+                if (isStop && stopWithZeroInfo) {
                     info = 0;
                 } else if (reversePayload) {
                     info = getFromLookup(values.mode, warningMode) + ((values.strobe ? 1 : 0) << 4) + (getFromLookup(values.level, level) << 6);
@@ -2101,14 +2087,13 @@ export function iasWarning(args: IasWarningArgs = {}): ModernExtend {
                     strobelevel: values.strobeLevel,
                 };
 
-                // Only reached when the device acknowledged the command: a failed start or stop leaves the state as it was.
                 await entity.command("ssIasWd", "startWarning", payload, getOptions(meta.mapped, entity));
 
                 if (warningActive && meta.device) {
                     clearTimeout(globalStore.getValue(entity, "warningActiveTimer"));
                     globalStore.clearValue(entity, "warningActiveTimer");
 
-                    let seconds = stop ? 0 : Number(values.duration);
+                    let seconds = isStop ? 0 : Number(values.duration);
                     if (typeof meta.state.max_duration === "number") seconds = Math.min(seconds, meta.state.max_duration);
                     if (!(seconds > 0)) {
                         delete meta.device.meta.warningActiveUntil;
