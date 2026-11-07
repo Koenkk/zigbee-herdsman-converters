@@ -423,6 +423,34 @@ export const definitions: DefinitionWithExtend[] = [
         ota: {manufacturerName: "SalusControls"},
     },
     {
+        zigbeeModel: ["SQ610NH"],
+        model: "SQ610NH",
+        vendor: "Salus Controls",
+        description: "Quantum hardwired thermostat",
+        extend: [
+            salusExtend.addGatewayBasic(),
+            salusExtend.addIt600Cluster(),
+            salusExtend.it600Sync(0x20, 9),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+        fromZigbee: [fzLocal.it600_status],
+        toZigbee: [tzLocal.it600_system_mode, tzLocal.it600_setpoint, tzLocal.it600_child_lock, tzLocal.it600_wiring_centre_zones],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 40, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.humidity(),
+            e.child_lock(),
+            e
+                .list("wiring_centre_zones", ea.SET, e.numeric("zone", ea.SET).withValueMin(1).withValueMax(8))
+                .withDescription("Pairs the thermostat with these wiring centre zones, taking them over from any other thermostat"),
+        ],
+        ota: {manufacturerName: "SalusControls"},
+    },
+    {
         // Reports no modelId
         fingerprint: [{manufacturerName: "Computime", type: "Router", endpoints: [{ID: 8, profileID: 260}]}],
         model: "KL08RF",
