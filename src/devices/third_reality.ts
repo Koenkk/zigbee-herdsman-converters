@@ -1011,6 +1011,14 @@ export const definitions: DefinitionWithExtend[] = [
         ota: true,
     },
     {
+        zigbeeModel: ["3RRE0194Z"],
+        model: "3RRE0194Z",
+        vendor: "Third Reality, Inc",
+        description: "Smart Outdoor Repeater",
+        extend: [m.onOff(), m.battery()],
+        ota: true,
+    },
+    {
         zigbeeModel: ["3RTHS0324Z"],
         model: "3RTHS0324Z",
         vendor: "Third Reality",
@@ -1654,13 +1662,14 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.occupancy()],
     },
     {
-        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z"],
+        zigbeeModel: ["3RCB01057Z", "3RCB02070Z", "3RCB1095Z", "3RCB1097Z"],
         model: "3RCB01057Z",
         vendor: "Third Reality",
         description: "Smart Color Bulb ZL1",
         whiteLabel: [
             {vendor: "Third Reality", model: "3RCB02070Z", description: "Smart Color Bulb ZL4", fingerprint: [{modelID: "3RCB02070Z"}]},
             {vendor: "Third Reality", model: "3RCB1095Z", description: "Smart Color Bulb ZL2", fingerprint: [{modelID: "3RCB1095Z"}]},
+            {vendor: "Third Reality", model: "3RCB1097Z", description: "Smart Color Bulb LZ12", fingerprint: [{modelID: "3RCB1097Z"}]},
         ],
         ota: true,
         extend: [
@@ -1772,6 +1781,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["3RAP0149BZ"],
         model: "3RAP0149BZ",
+        version: "0.0.1",
         vendor: "Third Reality",
         description: "Smart Filter Sensor",
         extend: [

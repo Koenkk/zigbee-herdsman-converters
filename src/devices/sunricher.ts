@@ -2187,6 +2187,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG2835",
         vendor: "Sunricher",
         description: "Zigbee knob smart dimmer",
+        extend: [m.battery({voltage: true, voltageReporting: true})],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(["on", "off", "brightness_move_to_level"])],
         toZigbee: [],
@@ -2757,6 +2758,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.electrical_measurement,
             namron.fromZigbee.namron_hvac_user_interface,
             fzLocal.ZG9095B,
+            fz.fan,
         ],
         toZigbee: [
             tzLocal.ZG9095B.temperature_display,

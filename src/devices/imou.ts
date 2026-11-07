@@ -60,7 +60,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
     },
     {
-        zigbeeModel: ["ZTM1-EN"],
+        zigbeeModel: ["ZTM1-EN", "ZTM2-EN"],
         model: "ZTM1-EN",
         vendor: "IMOU",
         description: "Temperature and humidity sensor",

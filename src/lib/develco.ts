@@ -47,6 +47,11 @@ export interface DevelcoSeMetering {
     commandResponses: never;
 }
 
+interface DevelcoVocArgs extends Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>> {
+    /** Upper end of the sensor's measurement range in ppb, as read from maxMeasuredValue. */
+    maxPpb?: number;
+}
+
 export const develcoModernExtend = {
     addCustomClusterManuSpecificDevelcoGenBasic: () =>
         deviceAddCustomCluster("genBasic", {
@@ -193,26 +198,31 @@ export const develcoModernExtend = {
         ];
         return {configure, isModernExtend: true};
     },
-    voc: (args?: Partial<NumericArgs<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>>) =>
-        numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
+    voc: (args?: Partial<DevelcoVocArgs>) => {
+        // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
+        // "The mean molar mass of this mixture is 110 g/mol and hence,
+        // 1 ppb TVOC corresponds to 4.5 μg/m3."
+        const ppbToUgM3 = 4.5;
+        const {maxPpb, ...numericArgs} = args ?? {};
+
+        return numeric<"manuSpecificDevelcoAirQuality", DevelcoAirQuality>({
             name: "voc",
             cluster: "manuSpecificDevelcoAirQuality",
             attribute: "measuredValue",
             reporting: {min: "1_MINUTE", max: "1_HOUR", change: 10},
             description: "Measured VOC value",
-            // from Sensirion_Gas_Sensors_SGP3x_TVOC_Concept.pdf
-            // "The mean molar mass of this mixture is 110 g/mol and hence,
-            // 1 ppb TVOC corresponds to 4.5 μg/m3."
             scale: (value: number, type: "from" | "to") => {
                 if (type === "from") {
-                    return value * 4.5;
+                    return value * ppbToUgM3;
                 }
                 return value;
             },
             unit: "µg/m³",
             access: "STATE_GET",
-            ...args,
-        }),
+            ...(maxPpb !== undefined && {valueMin: 0, valueMax: maxPpb * ppbToUgM3}),
+            ...numericArgs,
+        });
+    },
     airQuality: (): ModernExtend => {
         // NOTE: do not setup reporting, this is handled by the voc() modernExtend
 

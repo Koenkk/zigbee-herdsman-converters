@@ -186,6 +186,25 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
     {
+        // Variant where endpoint 3 uses the AwoX manufacturer profile (4751) and only exposes genGroups + 0xff50/0xff51.
+        // Panel (color temperature) and RGB ring (color) are both controlled via endpoint 1 on this variant.
+        fingerprint: [
+            {
+                modelID: "EBF-RGB-ZMB-CLB",
+                manufacturerName: "AwoX",
+                endpoints: [
+                    {ID: 1, profileID: 260},
+                    {ID: 3, profileID: 4751},
+                    {ID: 242, profileID: 41440},
+                ],
+            },
+        ],
+        model: "901471_1",
+        vendor: "EGLO",
+        description: "ROVITO-Z ceiling light (variant without separate RGB endpoint)",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["EBF-RGB-ZMB-CLB"],
         model: "901471",
         vendor: "EGLO",

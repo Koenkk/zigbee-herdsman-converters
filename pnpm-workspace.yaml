@@ -1,8 +1,8 @@
 verifyDepsBeforeRun: false
 
 allowBuilds:
-  "@serialport/bindings-cpp": true
-  esbuild: true
+    "@serialport/bindings-cpp": true
+    esbuild: true
 
 minimumReleaseAgeExclude:
-  - zigbee-herdsman
+    - zigbee-herdsman

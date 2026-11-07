@@ -40,50 +40,40 @@ If any of those commands finish with an error your PR won't pass the tests and w
 ## Breaking changes
 
 25.0.0
-
 - Changed the `onEvent` api, see https://github.com/Koenkk/zigbee-herdsman-converters/pull/9650 for more info.
 - A `device` argument has been added to `postProcessConvertedFromZigbeeMessage` (https://github.com/Koenkk/zigbee-herdsman-converters/pull/9693)
 - `rawData` now needs to be provided to `Fz.Message.meta` (https://github.com/Koenkk/zigbee-herdsman-converters/pull/9775)
 
 24.0.0
-
 - It's not longer possible to call `definition.exposes(undefined, undefined)`, use `definition.exposes({isDummyDevice: true}, {})` instead (#9601)
 
 23.0.0
-
 - A `Publish` now has to be passed to toZigbee converters (#8875)
 
 22.0.0
-
 - `addDefinition` has been renamed to `addExternalDefinition`
 - An import of `zigbee-herdsman-converters` does not expose all `definitions` anymore. Use this instead:
 ```js
-(await import('zigbee-herdsman-converters/devices/index')).default.forEach((baseDefinition) => {
+(await import("zigbee-herdsman-converters/devices/index")).default.forEach((baseDefinition) => {
     const d = zhc.prepareDefinition(baseDefinition);
 });
 ```
 
 21.0.0
-
 - Various breaking changes, see [CHANGELOG.md](https://github.com/Koenkk/zigbee-herdsman-converters/blob/v21.0.0/CHANGELOG.md#-breaking-changes).
 
 20.0.0
-
 - A toZigbee converter is now allowed to not define any `key`, in this case the converter should be used for any key.
 
 19.0.0
-
 - Legacy extend was removed
 
 18.0.0
-
 - After converting a message with a fromZigbee converter, `postProcessConvertedFromZigbeeMessage` should be called now (for applying calibration/precision)
 
 17.0.0
-
 - Various methods in `index.ts` are now async and return a `Promise`
 
 15.0.0
-
 - OTA `isUpdateAvailable` now returns an object instead of a boolean (e.g. `{available: true, currentFileVersion: 120, otaFileVersion: 125}`)
 - OTA `updateToLatest` now returns a number (`fileVersion` of the new OTA) instead of a void

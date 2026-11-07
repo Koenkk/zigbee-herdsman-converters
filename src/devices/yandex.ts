@@ -284,7 +284,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Power supply type",
                 lookup: {
-                    full: 0x03,
                     low: 0x02,
                     medium: 0x01,
                     high: 0x00,
@@ -332,7 +331,6 @@ export const definitions: DefinitionWithExtend[] = [
                 zigbeeCommandOptions: {manufacturerCode: manufacturerCodeOld},
                 description: "Power supply type",
                 lookup: {
-                    full: 0x03,
                     low: 0x02,
                     medium: 0x01,
                     high: 0x00,
@@ -794,6 +792,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["YNDX-00529"],
         model: "YNDX_00529",
+        version: "0.0.1",
         vendor: "Yandex",
         description: "Temperature and humidity and pressure sensor",
         ota: true,
