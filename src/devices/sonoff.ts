@@ -9642,7 +9642,25 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         description: "Motion sensor",
-        extend: [ewelinkBattery(), m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]})],
+        extend: [
+            ewelinkBattery(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            {
+                configure: [
+                    async (device) => {
+                        // Some eWeLink SNZB-05 (water leak sensors) report modelID SNZB-03,
+                        // they can only be told apart by their IAS zoneType.
+                        const {zoneType} = await device.getEndpoint(1).read("ssIasZone", ["zoneType"]);
+
+                        if (zoneType === 0x002a) {
+                            device.modelID = "SNZB-05";
+                            device.save();
+                        }
+                    },
+                ],
+                isModernExtend: true,
+            },
+        ],
     },
     {
         zigbeeModel: ["S26R2ZB"],
