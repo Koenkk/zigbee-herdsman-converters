@@ -663,6 +663,44 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("SDM01 datapoint variants", () => {
+        const newDevice = () => mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_ugekduaj", endpoints: [{ID: 1}]});
+        const report = async (device: ReturnType<typeof mockDevice>, seq: number, dps: [number, number][]) => {
+            const dpValues = dps.map(([dp, value]) => ({dp, datatype: 2, data: Buffer.from([0, 0, value >> 8, value & 0xff])}));
+            const msg = {
+                data: {seq, dpValues},
+                device,
+                endpoint: device.getEndpoint(1),
+                meta: {zclTransactionSequenceNumber: seq},
+            } as unknown as Fz.Message;
+            const meta = {state: {}, device, deviceExposesChanged: () => {}};
+            return await (tuya.fz.datapoints as Fz.Converter).convert(await findByDevice(device), msg, null, {}, meta);
+        };
+
+        it("uses the original datapoints by default", async () => {
+            const device = newDevice();
+            expect(
+                await report(device, 20001, [
+                    [102, 2298],
+                    [103, 1234],
+                ]),
+            ).toStrictEqual({voltage_a: 229.8, current_a: 1.234});
+            expect(device.meta.sdm01V2).toBeUndefined();
+        });
+
+        it("switches to the v2 datapoints once a v2-only datapoint is reported and remembers it", async () => {
+            const device = newDevice();
+            expect(
+                await report(device, 20002, [
+                    [29, 772],
+                    [103, 2315],
+                ]),
+            ).toStrictEqual({power: 772, voltage_a: 231.5});
+            expect(await report(device, 20003, [[112, 2301]])).toStrictEqual({voltage_b: 230.1});
+            expect(device.meta.sdm01V2).toBe(true);
+        });
+    });
+
     describe("TS004F knob configure (ZG-101ZD)", () => {
         // https://github.com/Koenkk/zigbee2mqtt/issues/31917
         const unsupported = () => new Error("ZCL command genBasic.read(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')");
