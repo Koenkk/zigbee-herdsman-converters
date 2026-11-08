@@ -15,6 +15,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+import {ignoreErrors} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -364,7 +365,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput"]);
+            // Non-dimmer units don't support lightingBallastCfg
+            await ignoreErrors(
+                () => reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]),
+                ["INVALID_EP"],
+                "lightingBallastCfg bind",
+            );
         },
     },
     {
