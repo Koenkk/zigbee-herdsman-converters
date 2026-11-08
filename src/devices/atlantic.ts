@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -20,6 +20,17 @@ const thermostatPositions: KeyValue = {
     three_quarters_open: 3,
     fully_open: 4,
 };
+
+interface ThermorHvacThermostat {
+    attributes: {
+        connectedLoad: number;
+        windowDetection: number;
+        heatingDemand: number;
+        powerBoardTemperature: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
 
 const tzLocal = {
     quiet_fan: {
@@ -72,112 +83,6 @@ const tzLocal = {
         },
     } satisfies Tz.Converter,
 };
-
-// Manufacturer specific hvacThermostat attributes of the Thermor 400704 (not reportable, must be polled)
-const THERMOR_400704_ATTRIBUTES = {
-    // Power of the heating mat set at commissioning (W)
-    connectedLoad: 17030,
-    // Open window detection enabled (boolean)
-    windowDetection: 17034,
-    // 0 = idle, 2 = heating
-    heatingState: 17049,
-    // Heating mat duty cycle (%), shown as "Régime de chauffe" in the expert menu
-    heatingDemand: 17068,
-    // Power board temperature (0.01 °C)
-    powerBoardTemperature: 17075,
-} as const;
-
-const thermor400704PolledAttributes = Object.values(THERMOR_400704_ATTRIBUTES);
-
-const fzLocal = {
-    thermor400704: {
-        cluster: "hvacThermostat",
-        type: ["attributeReport", "readResponse"],
-        convert: (model, msg, publish, options, meta) => {
-            const data = msg.data as Record<number, number | undefined>;
-            const result: KeyValue = {};
-            if (data[THERMOR_400704_ATTRIBUTES.connectedLoad] !== undefined) {
-                result.connected_load = data[THERMOR_400704_ATTRIBUTES.connectedLoad];
-            }
-            if (data[THERMOR_400704_ATTRIBUTES.heatingState] !== undefined) {
-                result.running_state = data[THERMOR_400704_ATTRIBUTES.heatingState] === 0 ? "idle" : "heat";
-            }
-            if (data[THERMOR_400704_ATTRIBUTES.heatingDemand] !== undefined) {
-                result.pi_heating_demand = data[THERMOR_400704_ATTRIBUTES.heatingDemand];
-            }
-            if (data[THERMOR_400704_ATTRIBUTES.powerBoardTemperature] !== undefined) {
-                result.device_temperature = data[THERMOR_400704_ATTRIBUTES.powerBoardTemperature] / 100;
-            }
-            // Same estimation as the consumption computed by the device: connected load while heating
-            const load = result.connected_load ?? meta.state.connected_load;
-            const runningState = result.running_state ?? meta.state.running_state;
-            if (load !== undefined && runningState !== undefined) {
-                result.power = runningState === "heat" ? load : 0;
-            }
-            return result;
-        },
-    } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
-};
-
-const thermor400704Extend = (): ModernExtend[] => [
-    m.identify(),
-    m.thermostat({
-        localTemperature: {},
-        setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
-        systemMode: {values: ["off", "heat"]},
-        // runningState and pIHeatingDemand are unsupported, manufacturer specific attributes are used instead
-        runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
-        piHeatingDemand: {values: ea.STATE_GET, toZigbee: {skip: true}, configure: {skip: true}},
-    }),
-    // currentSummDelivered is in Wh while the device reports multiplier=1000/divisor=1000
-    m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000}}),
-    m.binary({
-        name: "window_detection",
-        cluster: "hvacThermostat",
-        attribute: {ID: THERMOR_400704_ATTRIBUTES.windowDetection, type: Zcl.DataType.BOOLEAN},
-        valueOn: ["ON", 1],
-        valueOff: ["OFF", 0],
-        zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP},
-        reporting: false,
-        entityCategory: "config",
-        description: "Stops heating when an open window is detected",
-    }),
-    {
-        isModernExtend: true,
-        fromZigbee: [fzLocal.thermor400704],
-        toZigbee: [
-            {
-                key: ["running_state", "pi_heating_demand", "power", "connected_load", "device_temperature"],
-                convertGet: async (entity, key, meta) => {
-                    await entity.read("hvacThermostat", thermor400704PolledAttributes, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
-                },
-            } satisfies Tz.Converter,
-        ],
-        exposes: [
-            e.power().withAccess(ea.STATE_GET).withDescription("Estimated power (connected load while heating)"),
-            e
-                .numeric("connected_load", ea.STATE_GET)
-                .withUnit("W")
-                .withLabel("Connected load")
-                .withDescription("Power of the heating mat set at commissioning")
-                .withCategory("diagnostic"),
-            e.device_temperature().withAccess(ea.STATE_GET).withDescription("Temperature of the power board").withCategory("diagnostic"),
-        ],
-    },
-    m.poll({
-        key: "thermor_400704",
-        defaultIntervalSeconds: 60,
-        option: exposes.options
-            .measurement_poll_interval()
-            .withDescription("Polling interval of the heating state and demand, window detection and power board temperature"),
-        optionKey: "measurement_poll_interval",
-        poll: async (device) => {
-            await device
-                .getEndpoint(1)
-                .read("hvacThermostat", thermor400704PolledAttributes, {manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP});
-        },
-    }),
-];
 
 const nirvanaExtend = (options: {horizontal: boolean}): ModernExtend[] => [
     m.deviceEndpoints({
@@ -357,7 +262,91 @@ export const definitions: DefinitionWithExtend[] = [
         zigbeeModel: ["100040070400"],
         model: "100040070400",
         vendor: "Atlantic Group",
-        description: "Thermor 400704 connected thermostat for electric underfloor heating (KS and Mozaik)",
-        extend: thermor400704Extend(),
+        description: "Thermor 400704 thermostat for electric underfloor heating",
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    connectedLoad: {
+                        name: "connectedLoad",
+                        ID: 17030,
+                        type: Zcl.DataType.UINT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    windowDetection: {
+                        name: "windowDetection",
+                        ID: 17034,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                        write: true,
+                    },
+                    heatingDemand: {
+                        name: "heatingDemand",
+                        ID: 17068,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    powerBoardTemperature: {
+                        name: "powerBoardTemperature",
+                        ID: 17075,
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.identify(),
+            // runningState and pIHeatingDemand are unsupported
+            m.thermostat({
+                localTemperature: {},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
+                systemMode: {values: ["off", "heat"]},
+            }),
+            // currentSummDelivered is in Wh while the device reports multiplier=1000/divisor=1000
+            m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000}}),
+            // Manufacturer specific attributes are not reportable
+            m.binary<"hvacThermostat", ThermorHvacThermostat>({
+                name: "window_detection",
+                cluster: "hvacThermostat",
+                attribute: "windowDetection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                reporting: false,
+                entityCategory: "config",
+                description: "Stops heating when an open window is detected",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "pi_heating_demand",
+                cluster: "hvacThermostat",
+                attribute: "heatingDemand",
+                access: "STATE_GET",
+                reporting: false,
+                unit: "%",
+                description: "Heating duty cycle",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "connected_load",
+                cluster: "hvacThermostat",
+                attribute: "connectedLoad",
+                access: "STATE_GET",
+                reporting: false,
+                unit: "W",
+                entityCategory: "diagnostic",
+                description: "Power of the heating mat set at commissioning",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "device_temperature",
+                cluster: "hvacThermostat",
+                attribute: "powerBoardTemperature",
+                access: "STATE_GET",
+                reporting: false,
+                unit: "°C",
+                scale: 100,
+                entityCategory: "diagnostic",
+                description: "Temperature of the power board",
+            }),
+        ],
     },
 ];
