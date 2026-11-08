@@ -364,7 +364,12 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput"]);
+            try {
+                await reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]);
+            } catch {
+                // Some 067771 units are wired/configured as a plain on/off switch and don't expose the ballast config cluster.
+            }
         },
     },
     {
