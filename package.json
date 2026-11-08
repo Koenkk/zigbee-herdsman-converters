@@ -45,7 +45,7 @@
     "homepage": "https://github.com/Koenkk/zigbee-herdsman-converters",
     "dependencies": {
         "iconv-lite": "^0.7.3",
-        "semver": "^7.8.5",
+        "semver": "^7.8.6",
         "zigbee-herdsman": "^11.2.1"
     },
     "exports": {
@@ -56,13 +56,13 @@
         "./package.json": "./package.json"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.6.4",
+        "@biomejs/biome": "^2.6.5",
         "@types/node": "^26.6.6",
         "@types/semver": "^7.8.0",
         "@vitest/coverage-v8": "4.1.11",
         "fast-deep-equal": "^3.1.3",
         "husky": "^9.1.7",
-        "rimraf": "^6.1.3",
+        "rimraf": "^6.1.4",
         "ts-morph": "^28.0.0",
         "tsc-watch": "^7.2.1",
         "typescript": "^7.0.2",
