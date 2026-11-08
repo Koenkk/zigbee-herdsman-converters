@@ -191,6 +191,7 @@ import {definitions as letsled} from "./letsled";
 import {definitions as letv} from "./letv";
 import {definitions as leviton} from "./leviton";
 import {definitions as lg} from "./lg";
+import {definitions as libraSoft} from "./librasoft";
 import {definitions as lidl} from "./lidl";
 import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
@@ -597,6 +598,7 @@ const definitions: DefinitionWithExtend[] = [
     ...letv,
     ...leviton,
     ...lg,
+    ...libraSoft,
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,
