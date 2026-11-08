@@ -348,4 +348,18 @@ describe("Check definitions", () => {
             console.log(lines);
         }
     });
+
+    it("Comfort temperature limits keep their Home Assistant name", () => {
+        // comfort_temperature_min/max get device_class temperature in Zigbee2MQTT, which drops the discovery name
+        // unless homeassistant.name is set, so Home Assistant would name them "Temperature".
+        const names = ["comfort_temperature_min", "comfort_temperature_max"];
+
+        for (const definition of definitions) {
+            iterateExposes(definitionExposes(definition), (expose) => {
+                if (names.includes(expose.name) && expose.homeassistant?.name !== expose.label) {
+                    throw new Error(`'${expose.name}' of '${definition.model}' should set homeassistant.name to '${expose.label}'`);
+                }
+            });
+        }
+    });
 });

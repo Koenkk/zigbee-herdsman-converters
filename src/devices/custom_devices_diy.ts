@@ -2248,6 +2248,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "comfort_temperature_min",
+                homeassistant: {name: "Comfort temperature min"},
                 unit: "°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
@@ -2258,6 +2259,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric({
                 name: "comfort_temperature_max",
+                homeassistant: {name: "Comfort temperature max"},
                 unit: "°C",
                 cluster: "hvacUserInterfaceCfg",
                 attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
