@@ -15,6 +15,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+import {ignoreErrors} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -365,11 +366,12 @@ export const definitions: DefinitionWithExtend[] = [
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput"]);
-            try {
-                await reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]);
-            } catch {
-                // Some 067771 units are wired/configured as a plain on/off switch and don't expose the ballast config cluster.
-            }
+            // Non-dimmer units don't support lightingBallastCfg
+            await ignoreErrors(
+                () => reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]),
+                ["INVALID_EP"],
+                "lightingBallastCfg bind",
+            );
         },
     },
     {
