@@ -1075,3 +1075,74 @@ describe("Sonoff SWV-ZFE", () => {
         });
     });
 });
+
+describe("Sonoff TP-WGZBA", () => {
+    describe("NTC temperature", () => {
+        let device: Definition;
+        // biome-ignore lint/suspicious/noExplicitAny: generic
+        let fzConverter: Fz.Converter<any, any, any>;
+
+        const message = (data: Record<string, unknown>) =>
+            ({
+                data,
+                endpoint: null,
+                device: null,
+                meta: {},
+                groupID: 0,
+                type: "attributeReport",
+                cluster: "customSonoffTpWgzba",
+                linkquality: 0,
+            }) as Fz.Message;
+        const meta = {state: {}, device: null, deviceExposesChanged: null} as Fz.Meta;
+        const convert = (data: Record<string, unknown>) => fzConverter.convert(device, message(data), vi.fn(), {}, meta);
+
+        beforeEach(async () => {
+            device = await findByDevice(mockDevice({modelID: "TP-WGZBA", endpoints: [{ID: 1}]}));
+            fzConverter = device.fromZigbee.find(
+                (c) =>
+                    c.cluster === "customSonoffTpWgzba" &&
+                    c.convert(device, message({currentNtcTemperature: 0}), vi.fn(), {}, meta)?.ntc_sensor_status !== undefined,
+            );
+        });
+
+        it("exposes the temperature as a numeric sensor and the status as a diagnostic enum", () => {
+            const exposes = device.exposes as {
+                name: string;
+                type: string;
+                unit?: string;
+                category?: string;
+                homeassistant?: {enabledByDefault?: boolean};
+            }[];
+            const temperature = exposes.find((expose) => expose.name === "ntc_temperature");
+            const status = exposes.find((expose) => expose.name === "ntc_sensor_status");
+
+            expect(temperature).toMatchObject({type: "numeric", unit: "°C", homeassistant: {enabledByDefault: false}});
+            expect(temperature.category).toBeUndefined();
+            expect(status).toMatchObject({type: "enum", category: "diagnostic"});
+            expect(status.homeassistant?.enabledByDefault).toBeUndefined();
+        });
+
+        it.each([
+            [2150, 21.5],
+            [0, 0],
+            [-550, -5.5],
+        ])("converts raw %s to %s °C", (raw, expected) => {
+            expect(convert({currentNtcTemperature: raw})).toEqual({ntc_temperature: expected, ntc_sensor_status: "ok"});
+        });
+
+        it.each([
+            [0x8000, "invalid_unknown"],
+            [0x8100, "not_connected"],
+            [0x8200, "short_circuit"],
+            [0x8300, "adc_invalid"],
+            [-32768, "invalid_unknown"],
+            [-30000, "invalid_unknown"],
+        ])("reports raw %s as fault %s with a null temperature", (raw, status) => {
+            expect(convert({currentNtcTemperature: raw})).toEqual({ntc_temperature: null, ntc_sensor_status: status});
+        });
+
+        it("ignores messages without the NTC attribute", () => {
+            expect(convert({})).toBeUndefined();
+        });
+    });
+});
