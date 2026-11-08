@@ -271,6 +271,17 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.temperature(), m.humidity(), m.battery()],
     },
     {
+        fingerprint: [
+            {
+                // Some SNZB-05 report modelID SNZB-03 (the motion sensor), with only the
+                // IAS zoneType differing (0x002a for water sensor, 0x000d for motion sensor)
+                type: "EndDevice",
+                manufacturerName: "eWeLink",
+                modelID: "SNZB-03",
+                endpoints: [{ID: 1, profileID: 260, deviceID: 1026, inputClusters: [0, 3, 1, 1280, 32], outputClusters: [25], zoneType: 0x002a}],
+                priority: 1,
+            },
+        ],
         zigbeeModel: ["SNZB-05", "CK-TLSR8656-SS5-01(7019)", "CK-TLSR8656-Z23SE11HW-01(7019)"],
         model: "SNZB-05",
         vendor: "eWeLink",

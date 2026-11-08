@@ -64,8 +64,15 @@ export interface Fingerprint {
     stackVersion?: number;
     zclVersion?: number;
     ieeeAddr?: RegExp;
-    // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
-    endpoints?: {ID?: number; profileID?: number; deviceID?: number; inputClusters?: number[]; outputClusters?: number[]}[];
+    endpoints?: {
+        // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
+        ID?: number;
+        profileID?: number;
+        deviceID?: number;
+        inputClusters?: number[];
+        outputClusters?: number[];
+        zoneType?: number;
+    }[];
     priority?: number;
 }
 export type WhiteLabel =

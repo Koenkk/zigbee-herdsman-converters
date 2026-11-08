@@ -634,7 +634,10 @@ function isFingerprintMatch(fingerprint: Fingerprint, device: Zh.Device): boolea
                 (!fingerprintEndpoint.inputClusters ||
                     (deviceEndpoint !== undefined && arrayEquals(deviceEndpoint.inputClusters, fingerprintEndpoint.inputClusters))) &&
                 (!fingerprintEndpoint.outputClusters ||
-                    (deviceEndpoint !== undefined && arrayEquals(deviceEndpoint.outputClusters, fingerprintEndpoint.outputClusters)));
+                    (deviceEndpoint !== undefined && arrayEquals(deviceEndpoint.outputClusters, fingerprintEndpoint.outputClusters))) &&
+                (fingerprintEndpoint.zoneType === undefined ||
+                    (deviceEndpoint !== undefined &&
+                        deviceEndpoint.getClusterAttributeValue("ssIasZone", "zoneType") === fingerprintEndpoint.zoneType));
         }
     }
 
