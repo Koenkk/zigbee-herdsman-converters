@@ -2936,6 +2936,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["RWL020", "RWL021"],
         model: "324131092621",
+        whiteLabel: [{model: "324131137411"}],
         vendor: "Philips",
         description: "Hue dimmer switch gen 1",
         fromZigbee: [
