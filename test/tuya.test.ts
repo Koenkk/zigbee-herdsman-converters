@@ -902,3 +902,85 @@ describe("thermostatScheduleDayMultiDP configurable temperatures", () => {
         expect(() => converter.to("06:00/31 10:30/68 13:30/100 17:30/104")).toThrow("Invalid hour, minute or temperature");
     });
 });
+
+describe("Rain Seer FJKB005ZG-1 (TS0049 _TZ3210_0jxeoadc)", () => {
+    const setup = async () => {
+        const device = mockDevice({modelID: "TS0049", manufacturerName: "_TZ3210_0jxeoadc", endpoints: [{ID: 1}]}, "EndDevice");
+        return {device, definition: await findByDevice(device)};
+    };
+
+    it("is no longer matched by the generic TS0049 definition", async () => {
+        const {definition} = await setup();
+        expect(definition.model).toBe("FJKB005ZG-1");
+        expect(definition.vendor).toBe("Rain Seer");
+
+        const other = await findByDevice(mockDevice({modelID: "TS0049", manufacturerName: "_TZ3210_unknown", endpoints: [{ID: 1}]}, "EndDevice"));
+        expect(other.model).toBe("TS0049");
+    });
+
+    it("converts the valve datapoints", async () => {
+        const {device, definition} = await setup();
+        const dpValues = [
+            tuya.dpValueFromBool(101, true),
+            tuya.dpValueFromNumberValue(111, 10),
+            tuya.dpValueFromEnum(115, 1),
+            tuya.dpValueFromNumberValue(26, 0),
+        ];
+        const result = Object.assign(
+            {},
+            ...definition.fromZigbee
+                .filter((c) => c.cluster === "manuSpecificTuya")
+                .map(
+                    (c) =>
+                        (c as Fz.Converter).convert(
+                            definition,
+                            {data: {dpValues}, endpoint: device.getEndpoint(1), device, type: "commandDataReport", meta: {}} as never,
+                            vi.fn(),
+                            {},
+                            {device, state: {}, deviceExposesChanged: () => {}} as never,
+                        ) ?? {},
+                ),
+        );
+        expect(result).toStrictEqual({state: "ON", countdown: 10, battery_state: "medium", error_status: 0});
+    });
+    it("publishes OFF when the countdown expires, because the valve does not report it", async () => {
+        vi.useFakeTimers();
+        try {
+            const {device, definition} = await setup();
+            const endpoint = device.getEndpoint(1);
+            expect(definition.toZigbee).toContain(tuya.tz.datapoints);
+            const publish = vi.fn();
+            const set = (value: string, state: Record<string, unknown>) =>
+                tuya.tz.datapoints.convertSet(endpoint, "state", value, {
+                    message: {state: value},
+                    device,
+                    mapped: definition,
+                    options: {},
+                    state,
+                    endpoint_name: undefined,
+                    publish,
+                    deviceExposesChanged: () => {},
+                } as Tz.Meta);
+
+            expect(await set("ON", {countdown: 1})).toStrictEqual({state: {state: "ON"}});
+            vi.advanceTimersByTime(59 * 1000);
+            expect(publish).not.toHaveBeenCalled();
+            vi.advanceTimersByTime(1000);
+            expect(publish).toHaveBeenCalledWith({state: "OFF"});
+
+            // Switching off before the countdown expires cancels the timer
+            publish.mockClear();
+            await set("ON", {countdown: 1});
+            await set("OFF", {countdown: 1});
+            vi.advanceTimersByTime(2 * 60 * 1000);
+            expect(publish).not.toHaveBeenCalled();
+
+            // Without a known countdown no timer is started
+            await set("ON", {});
+            vi.advanceTimersByTime(300 * 60 * 1000);
+            expect(publish).not.toHaveBeenCalled();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});
