@@ -47,10 +47,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "W08-Z10T",
         vendor: "Sygonix",
         description: "Water leak sensor with probe cable",
-        fromZigbee: [tuya.fz.datapoints],
-        toZigbee: [tuya.tz.datapoints],
-        onEvent: tuya.onEventSetTime,
-        configure: tuya.configureMagicPacket,
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e.water_leak(),
             e.battery(),
