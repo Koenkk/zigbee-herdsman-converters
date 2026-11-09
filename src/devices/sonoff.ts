@@ -11172,6 +11172,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
                 label: "Energy yesterday",
+                homeassistant: {name: "Energy yesterday"},
                 cluster: "customClusterEwelink",
                 attribute: "energyYesterday",
                 description: "Electricity consumption for the yesterday",
@@ -11182,6 +11183,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
                 label: "Energy today",
+                homeassistant: {name: "Energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -11192,6 +11194,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 label: "Energy this month",
+                homeassistant: {name: "Energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -11300,6 +11303,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
                 label: "Energy yesterday",
+                homeassistant: {name: "Energy yesterday"},
                 cluster: "customClusterEwelink",
                 attribute: "energyYesterday",
                 description: "Electricity consumption for the yesterday",
@@ -11310,6 +11314,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
                 label: "Energy today",
+                homeassistant: {name: "Energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -11320,6 +11325,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 label: "Energy this month",
+                homeassistant: {name: "Energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -12806,6 +12812,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
                 label: "Energy today",
+                homeassistant: {name: "Energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -12817,6 +12824,7 @@ export const definitions: DefinitionWithExtend[] = [
                 m.numeric<"customClusterEwelink", SonoffEwelink>({
                     name: "output_energy_today",
                     label: "Export energy today",
+                    homeassistant: {name: "Export energy today"},
                     cluster: "customClusterEwelink",
                     attribute: "outputEnergyToday",
                     description: "Energy fed back today through the plug.",
@@ -12829,6 +12837,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 label: "Energy this month",
+                homeassistant: {name: "Energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -12840,6 +12849,7 @@ export const definitions: DefinitionWithExtend[] = [
                 m.numeric<"customClusterEwelink", SonoffEwelink>({
                     name: "output_energy_month",
                     label: "Export energy this month",
+                    homeassistant: {name: "Export energy this month"},
                     cluster: "customClusterEwelink",
                     attribute: "outputEnergyMonth",
                     description: "Energy fed back this month through the plug.",
@@ -12851,6 +12861,7 @@ export const definitions: DefinitionWithExtend[] = [
             ),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
+                homeassistant: {name: "Energy yesterday"},
                 cluster: "customClusterEwelink",
                 attribute: "energyYesterday",
                 description: "Electricity consumption for the yesterday",
@@ -12861,6 +12872,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffBasicZB1GSP>({
                 name: "total_energy",
                 label: "Total energy",
+                homeassistant: {name: "Total energy"},
                 cluster: "customClusterEwelink",
                 attribute: "totalEnergyConsumption",
                 description: "Total energy used since the device started.",
@@ -12872,6 +12884,7 @@ export const definitions: DefinitionWithExtend[] = [
                 m.numeric<"customClusterEwelink", SonoffEwelink>({
                     name: "total_output_energy",
                     label: "Total export energy",
+                    homeassistant: {name: "Total export energy"},
                     cluster: "customClusterEwelink",
                     attribute: "totalOutputEnergyConsumption",
                     description: "Total energy fed back through the plug.",
@@ -13236,6 +13249,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
+                homeassistant: {name: "Energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Energy used today by the connected load.",
@@ -13246,6 +13260,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "output_energy_today",
                 label: "Export energy today",
+                homeassistant: {name: "Export energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "outputEnergyToday",
                 description: "Energy fed back today through the plug.",
@@ -13256,6 +13271,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 label: "Energy this month",
+                homeassistant: {name: "Energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Energy used this month by the connected load.",
@@ -13266,6 +13282,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "output_energy_month",
                 label: "Export energy this month",
+                homeassistant: {name: "Export energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "outputEnergyMonth",
                 description: "Energy fed back this month through the plug.",
@@ -13275,6 +13292,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "total_energy",
+                homeassistant: {name: "Total energy"},
                 cluster: "customClusterEwelink",
                 attribute: "totalEnergyConsumption",
                 description: "Total energy used by the connected load.",
@@ -13285,6 +13303,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "total_output_energy",
                 label: "Total export energy",
+                homeassistant: {name: "Total export energy"},
                 cluster: "customClusterEwelink",
                 attribute: "totalOutputEnergyConsumption",
                 description: "Total energy fed back through the plug.",
@@ -13384,6 +13403,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
+                homeassistant: {name: "Energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Energy used today by the connected load.",
@@ -13394,6 +13414,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "output_energy_today",
                 label: "Export energy today",
+                homeassistant: {name: "Export energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "outputEnergyToday",
                 description: "Energy fed back today through the plug.",
@@ -13404,6 +13425,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
                 label: "Energy this month",
+                homeassistant: {name: "Energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Energy used this month by the connected load.",
@@ -13414,6 +13436,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "output_energy_month",
                 label: "Export energy this month",
+                homeassistant: {name: "Export energy this month"},
                 cluster: "customClusterEwelink",
                 attribute: "outputEnergyMonth",
                 description: "Energy fed back this month through the plug.",
@@ -13424,6 +13447,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "total_energy",
                 label: "Total energy",
+                homeassistant: {name: "Total energy"},
                 cluster: "customClusterEwelink",
                 attribute: "totalEnergyConsumption",
                 description: "Total energy used by the connected load.",
@@ -13434,6 +13458,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "total_output_energy",
                 label: "Total export energy",
+                homeassistant: {name: "Total export energy"},
                 cluster: "customClusterEwelink",
                 attribute: "totalOutputEnergyConsumption",
                 description: "Total energy fed back through the plug.",
@@ -13976,6 +14001,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"seMetering">({
                 name: "total_energy_consumption",
+                homeassistant: {name: "Total energy consumption"},
                 cluster: "seMetering",
                 attribute: "currentSummDelivered",
                 description: "CurrentSummationDelivered",
@@ -13999,6 +14025,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_today",
+                homeassistant: {name: "Energy today"},
                 cluster: "customClusterEwelink",
                 attribute: "energyToday",
                 description: "Electricity consumption for the day",
@@ -14008,6 +14035,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_month",
+                homeassistant: {name: "Energy month"},
                 cluster: "customClusterEwelink",
                 attribute: "energyMonth",
                 description: "Electricity consumption for the month",
@@ -14017,6 +14045,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffEwelink>({
                 name: "energy_yesterday",
+                homeassistant: {name: "Energy yesterday"},
                 cluster: "customClusterEwelink",
                 attribute: "energyYesterday",
                 description: "Electricity consumption for the yesterday",

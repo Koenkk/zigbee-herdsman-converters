@@ -138,6 +138,30 @@ describe("Check definitions", () => {
         }
     });
 
+    it("SONOFF energy sensors keep their Home Assistant name", () => {
+        // Zigbee2MQTT gives kWh sensors device_class energy and drops the discovery name unless homeassistant.name is set,
+        // so Home Assistant would name all of them "Energy".
+        const names = [
+            "energy_today",
+            "energy_yesterday",
+            "energy_month",
+            "output_energy_today",
+            "output_energy_month",
+            "total_energy",
+            "total_energy_consumption",
+            "total_output_energy",
+        ];
+
+        for (const definition of definitions) {
+            if (!["SONOFF", "eWeLink"].includes(definition.vendor)) continue;
+            iterateExposes(definitionExposes(definition), (expose) => {
+                if (names.includes(expose.name) && expose.homeassistant?.name !== expose.label) {
+                    throw new Error(`'${expose.name}' of '${definition.model}' should set homeassistant.name to '${expose.label}'`);
+                }
+            });
+        }
+    });
+
     it("Vendor name casing should be consistent", () => {
         const vendors = new Set<string>();
         const vendorsLower = new Set<string>();
