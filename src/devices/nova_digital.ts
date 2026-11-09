@@ -281,7 +281,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-    
+
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bb5xlia1"]),
         model: "SA-WK 4X4",
@@ -296,16 +296,14 @@ export const definitions: DefinitionWithExtend[] = [
             e.switch().withEndpoint("l5"),
             e.switch().withEndpoint("l6"),
             e.switch().withEndpoint("master"),
-            e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"])
-                .withDescription("Relay state after power restoration"),
+            e.enum("relay_status", ea.STATE_SET, ["off", "on", "memory"]).withDescription("Relay state after power restoration"),
             e.numeric("countdown_l1", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s"),
             e.numeric("countdown_l2", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s"),
             e.numeric("countdown_l3", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s"),
             e.numeric("countdown_l4", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s"),
             e.numeric("countdown_l5", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s"),
             e.numeric("countdown_l6", ea.STATE_SET).withValueMin(0).withValueMax(43200).withValueStep(1).withUnit("s"),
-            e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"])
-                .withDescription("LED indicator operating mode"),
+            e.enum("light_mode", ea.STATE_SET, ["none", "relay", "pos"]).withDescription("LED indicator operating mode"),
         ],
         endpoint: () => ({
             l1: 1,
@@ -353,5 +351,4 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-
 ];
