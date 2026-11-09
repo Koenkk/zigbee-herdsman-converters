@@ -105,6 +105,21 @@ describe("Check definitions", () => {
         }
     });
 
+    it("Derived sensors keep their Home Assistant name", () => {
+        // These share the device_class of their source (e.g. dew_point is a temperature). Zigbee2MQTT drops the
+        // discovery name when a device_class is set, unless homeassistant.name is set, so Home Assistant would
+        // otherwise name them after the device_class (e.g. a second "Temperature").
+        const derivedSensors = ["apparent_temperature", "dew_point", "gust_speed", "humidex", "wind_chill"];
+
+        for (const definition of definitions) {
+            iterateExposes(definitionExposes(definition), (expose) => {
+                if (derivedSensors.includes(expose.name) && expose.homeassistant?.name !== expose.label) {
+                    throw new Error(`'${expose.name}' of '${definition.model}' should set homeassistant.name to '${expose.label}'`);
+                }
+            });
+        }
+    });
+
     it("Model should be unique", () => {
         const models = new Set<string>();
         for (const definition of definitions) {
