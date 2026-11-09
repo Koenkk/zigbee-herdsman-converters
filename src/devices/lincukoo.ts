@@ -43,33 +43,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pfbtmgo1"]),
-        model: "W08-Z10T",
-        vendor: "Sygonix",
-        description: "Water leak sensor with probe cable",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        exposes: [
-            e.water_leak(),
-            e.battery(),
-            e.enum("alarm_status", ea.STATE, ["normal", "alarm"]).withDescription("Device alarm status"),
-            e.enum("alarm_ringtone", ea.STATE_SET, ["mute", "ring1", "ring2", "ring3"]).withDescription("Buzzer ringtone"),
-            e.enum("mode", ea.STATE_SET, ["leakage", "shortage"]).withDescription("Alarm on water leakage or on water shortage"),
-        ],
-        meta: {
-            tuyaDatapoints: [
-                [1, "water_leak", tuya.valueConverter.trueFalse1],
-                [4, "battery", tuya.valueConverter.raw],
-                [101, "mode", tuya.valueConverterBasic.lookup({leakage: tuya.enum(0), shortage: tuya.enum(1)})],
-                [102, "alarm_status", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), alarm: tuya.enum(1)})],
-                [
-                    103,
-                    "alarm_ringtone",
-                    tuya.valueConverterBasic.lookup({mute: tuya.enum(0), ring1: tuya.enum(1), ring2: tuya.enum(2), ring3: tuya.enum(3)}),
-                ],
-            ],
-        },
-    },
-    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_lw5ny7tp", "_TZE28C1000000_lw5ny7tp"]),
         model: "SZLR08",
         vendor: "Lincukoo",
