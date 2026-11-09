@@ -148,7 +148,7 @@ describe("lib/tuya", () => {
     describe("closuresWindowCovering custom cluster (Tuya covers)", () => {
         // Regression: moesCalibrationTime was declared as ENUM8 (a single byte,
         // max 255). The calibration_time converter writes value * 10 and the
-        // exposed max is 500 s -> 5000, which does not fit in a byte:
+        // exposed max is 500 s -> 500000, which does not fit in a byte:
         //   - calibration_time 26 -> 260 throws RangeError (> 255) before sending
         //   - smaller values (e.g. 25 -> 250) are rejected on-air as
         //     INVALID_DATA_TYPE
