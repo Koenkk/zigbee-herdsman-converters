@@ -1780,6 +1780,9 @@ export const definitions: DefinitionWithExtend[] = [
             m.battery({
                 voltage: true,
                 voltageReporting: true,
+                // Device doesn't support batteryPercentageRemaining, percentage is calculated from voltage
+                // https://github.com/Koenkk/zigbee-herdsman-converters/issues/13759
+                percentageReporting: false,
                 voltageToPercentage: {min: 2850, max: 3000},
             }),
             m.quirkCheckinInterval("1_HOUR"),
