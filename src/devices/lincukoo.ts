@@ -42,7 +42,7 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
-        {
+    {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pfbtmgo1"]),
         model: "W08-Z10T",
         vendor: "Sygonix",
@@ -64,7 +64,11 @@ export const definitions: DefinitionWithExtend[] = [
                 [4, "battery", tuya.valueConverter.raw],
                 [101, "mode", tuya.valueConverterBasic.lookup({leakage: tuya.enum(0), shortage: tuya.enum(1)})],
                 [102, "alarm_status", tuya.valueConverterBasic.lookup({normal: tuya.enum(0), alarm: tuya.enum(1)})],
-                [103, "alarm_ringtone", tuya.valueConverterBasic.lookup({mute: tuya.enum(0), ring1: tuya.enum(1), ring2: tuya.enum(2), ring3: tuya.enum(3)})],
+                [
+                    103,
+                    "alarm_ringtone",
+                    tuya.valueConverterBasic.lookup({mute: tuya.enum(0), ring1: tuya.enum(1), ring2: tuya.enum(2), ring3: tuya.enum(3)}),
+                ],
             ],
         },
     },
