@@ -8,7 +8,7 @@ import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as philips from "../lib/philips";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, KeyValue, ModernExtend, Tz} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValue, ModernExtend, Tz} from "../lib/types";
 import * as utils from "../lib/utils";
 
 const e = exposes.presets;
@@ -25,6 +25,7 @@ interface ThermorHvacThermostat {
     attributes: {
         connectedLoad: number;
         windowDetection: number;
+        heatingState: number;
         heatingDemand: number;
         powerBoardTemperature: number;
     };
@@ -263,6 +264,26 @@ export const definitions: DefinitionWithExtend[] = [
         model: "100040070400",
         vendor: "Atlantic Group",
         description: "Thermor 400704 thermostat for electric underfloor heating",
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    // 0 = idle, 2 = heating
+                    if (msg.data.heatingState !== undefined) {
+                        return {running_state: msg.data.heatingState === 0 ? "idle" : "heat"};
+                    }
+                },
+            } satisfies Fz.Converter<"hvacThermostat", ThermorHvacThermostat, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["running_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingState"]);
+                },
+            } satisfies Tz.Converter,
+        ],
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
                 name: "hvacThermostat",
@@ -281,6 +302,12 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
                         write: true,
                     },
+                    heatingState: {
+                        name: "heatingState",
+                        ID: 17049,
+                        type: Zcl.DataType.ENUM8,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
                     heatingDemand: {
                         name: "heatingDemand",
                         ID: 17068,
@@ -298,11 +325,12 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.identify(),
-            // runningState and pIHeatingDemand are unsupported
+            // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingState instead
             m.thermostat({
                 localTemperature: {},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
                 systemMode: {values: ["off", "heat"]},
+                runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
             }),
             // currentSummDelivered is in Wh while the device reports multiplier=1000/divisor=1000
             m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000}}),
