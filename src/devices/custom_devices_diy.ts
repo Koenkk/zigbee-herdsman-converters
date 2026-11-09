@@ -262,7 +262,7 @@ export const fzLocal = {
         convert: (model, msg, publish, options, meta) => {
             const voltage = msg.data.batteryVoltage * 100;
             const battery = (voltage - 2200) / 8;
-            return {battery: battery > 100 ? 100 : battery, voltage: voltage};
+            return {battery: Math.min(battery, 100), voltage: voltage};
         },
     } satisfies Fz.Converter<"genPowerCfg", undefined, ["attributeReport", "readResponse"]>,
     multi_zig_sw_switch_buttons: {
@@ -1341,7 +1341,127 @@ function mdGateGatePosition(): ModernExtend {
     };
 }
 
+interface RamsesTxCluster {
+    attributes: never;
+    commands: {nativeMode: {enabled: boolean}};
+    commandResponses: never;
+}
+
 export const definitions: DefinitionWithExtend[] = [
+    /**
+     * ELECRAM Ramses_esp32c6 — RAMSES II RF-to-Zigbee bridge (ESP32-C6).
+     *
+     * This device uses two manufacturer-specific clusters (command mode only):
+     *
+     *   0xFC00  ramsesRxCluster  OUTPUT cluster — ESP32 (client) → Coordinator (server)
+     *     commands:         sendText  id=0x00  ESP32 sends a RAMSES frame (or chunk) to the coordinator
+     *     commandsResponse: ackText   id=0x01  Coordinator ACKs each chunk back to the ESP32
+     *
+     *   0xFC01  ramsesTxCluster  INPUT cluster — Coordinator (client) → ESP32 (server)
+     *     commands:         setText   id=0x00  Coordinator sends a RAMSES frame (or chunk) to the ESP32
+     *     commandsResponse: ackChunk  id=0x01  ESP32 ACKs each chunk back to the coordinator
+     *
+     * This mirrors the ZHA quirk in zhaquirks/elecram/ramses_esp.py 1:1.
+     * All MQTT bridging logic is handled by the external extension
+     * ramses-esp-bridge.mjs — this definition only registers the custom clusters
+     * so zigbee-herdsman can encode/decode their frames correctly.
+     */
+    {
+        zigbeeModel: ["Ramses_esp32c6"],
+        model: "Ramses_esp32c6",
+        vendor: "ELECRAM",
+        description: "RAMSES II RF-to-Zigbee bridge (ESP32-C6)",
+        ota: true,
+        extend: [
+            // 0xFC00 OUTPUT cluster: ESP32 (client) sends frames to coordinator (server).
+            // Mirrors RamsesRXCluster / ClientCommandDefs + ServerCommandDefs in ramses_esp.py.
+            m.deviceAddCustomCluster("ramsesRxCluster", {
+                name: "ramsesRxCluster",
+                ID: 0xfc00,
+                attributes: {},
+                commands: {
+                    // Client command: ESP32 sends a RAMSES frame (or chunk) to coordinator.
+                    sendText: {
+                        name: "sendText",
+                        ID: 0x00,
+                        parameters: [{name: "text", type: Zcl.DataType.CHAR_STR}],
+                    },
+                },
+                commandsResponse: {
+                    receiveChunk: {
+                        name: "receiveChunk",
+                        ID: 0x02,
+                        parameters: [
+                            {name: "message_id", type: Zcl.DataType.UINT32},
+                            {name: "sequence", type: Zcl.DataType.UINT8},
+                            {name: "total", type: Zcl.DataType.UINT8},
+                            {name: "text", type: Zcl.DataType.CHAR_STR},
+                        ],
+                    },
+                    // Server→client response: coordinator ACKs each received chunk.
+                    ackText: {
+                        name: "ackText",
+                        ID: 0x01,
+                        parameters: [{name: "text", type: Zcl.DataType.CHAR_STR}],
+                    },
+                },
+            }),
+
+            // 0xFC01 INPUT cluster: coordinator (client) sends frames to ESP32 (server).
+            // Mirrors RamsesTXCluster / ClientCommandDefs + ServerCommandDefs in ramses_esp.py.
+            m.deviceAddCustomCluster("ramsesTxCluster", {
+                name: "ramsesTxCluster",
+                ID: 0xfc01,
+                attributes: {},
+                commands: {
+                    // Client command: coordinator sends a RAMSES frame (or chunk) to ESP32.
+                    setText: {
+                        name: "setText",
+                        ID: 0x00,
+                        parameters: [{name: "text", type: Zcl.DataType.CHAR_STR}],
+                    },
+                    sendChunk: {
+                        name: "sendChunk",
+                        ID: 0x02,
+                        parameters: [
+                            {name: "message_id", type: Zcl.DataType.UINT32},
+                            {name: "sequence", type: Zcl.DataType.UINT8},
+                            {name: "total", type: Zcl.DataType.UINT8},
+                            {name: "text", type: Zcl.DataType.CHAR_STR},
+                        ],
+                    },
+                    nativeMode: {
+                        name: "nativeMode",
+                        ID: 0x03,
+                        parameters: [{name: "enabled", type: Zcl.DataType.BOOLEAN}],
+                    },
+                },
+                commandsResponse: {
+                    // Server→client response: ESP32 ACKs each received chunk.
+                    ackChunk: {
+                        name: "ackChunk",
+                        ID: 0x01,
+                        parameters: [{name: "text", type: Zcl.DataType.CHAR_STR}],
+                    },
+                },
+            }),
+        ],
+        fromZigbee: [],
+        toZigbee: [],
+        exposes: [],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(10);
+            if (endpoint.supportsOutputCluster("genOta")) {
+                await endpoint.command<"ramsesTxCluster", "nativeMode", RamsesTxCluster>(
+                    "ramsesTxCluster",
+                    "nativeMode",
+                    {enabled: true},
+                    {disableDefaultResponse: true},
+                );
+            }
+        },
+    },
+
     {
         zigbeeModel: ["MD-GATE-ZB1"],
         model: "MD-GATE-ZB1",
@@ -1513,6 +1633,7 @@ export const definitions: DefinitionWithExtend[] = [
             {modelID: "ZB-GW04-1v1", manufacturerName: "easyiot", applicationVersion: 200},
             {modelID: "ZB-GW04-1v2", manufacturerName: "easyiot", applicationVersion: 200},
             {modelID: "ZBM-MG24", manufacturerName: "Inswift", applicationVersion: 200},
+            {modelID: "ZBM-MG21", manufacturerName: "Inswift", applicationVersion: 200},
             {modelID: "SkyConnect", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "ZBT-2", manufacturerName: "NabuCasa", applicationVersion: 200},
             {modelID: "SLZB-06M", manufacturerName: "SMLIGHT", applicationVersion: 200},
@@ -2184,102 +2305,6 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        zigbeeModel: ["MHO-C401N"],
-        model: "MHO-C401N",
-        vendor: "Custom devices (DiY)",
-        description: "Xiaomi temperature & humidity sensor with custom firmware",
-        extend: [
-            m.quirkAddEndpointCluster({
-                endpointID: 1,
-                outputClusters: ["hvacUserInterfaceCfg"],
-                inputClusters: ["genPowerCfg", "msTemperatureMeasurement", "msRelativeHumidity", "hvacUserInterfaceCfg"],
-            }),
-            m.battery(),
-            m.temperature({reporting: {min: 10, max: 300, change: 10}}),
-            m.humidity({reporting: {min: 10, max: 300, change: 50}}),
-            // Temperature display and show smile.
-            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issue-2033984519
-            m.enumLookup({
-                name: "temperature_display_mode",
-                lookup: {celsius: 0, fahrenheit: 1},
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "tempDisplayMode",
-                description: "The units of the temperature displayed on the device screen.",
-            }),
-            m.binary({
-                name: "show_smile",
-                valueOn: ["HIDE", 1],
-                valueOff: ["SHOW", 0],
-                cluster: "hvacUserInterfaceCfg",
-                attribute: "programmingVisibility",
-                description: "Whether to show a smile on the device screen.",
-            }),
-            // Setting offsets for temperature and humidity.
-            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/30
-            m.numeric({
-                name: "temperature_calibration",
-                unit: "C",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0100, type: 40},
-                valueMin: -12.7,
-                valueMax: 12.7,
-                valueStep: 0.1,
-                scale: 10,
-                description: "The temperature calibration, in 0.1° steps. Requires v0.1.1.6 or newer.",
-            }),
-            m.numeric({
-                name: "humidity_calibration",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0101, type: 40},
-                valueMin: -12.7,
-                valueMax: 12.7,
-                valueStep: 0.1,
-                scale: 10,
-                description: "The humidity offset is set in 0.1 % steps. Requires v0.1.1.6 or newer.",
-            }),
-            // Comfort parameters.
-            // For details, see: https://github.com/pvvx/ZigbeeTLc/issues/28#issuecomment-1855763432
-            m.numeric({
-                name: "comfort_temperature_min",
-                unit: "C",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0102, type: 40},
-                valueMin: -127,
-                valueMax: 127,
-                description: "Comfort parameters/Temperature minimum, in 1° steps. Requires v0.1.1.7 or newer.",
-            }),
-            m.numeric({
-                name: "comfort_temperature_max",
-                unit: "C",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0103, type: 40},
-                valueMin: -127,
-                valueMax: 127,
-                description: "Comfort parameters/Temperature maximum, in 1° steps. Requires v0.1.1.7 or newer.",
-            }),
-            m.numeric({
-                name: "comfort_humidity_min",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0104, type: 32},
-                valueMin: 0,
-                valueMax: 100,
-                description: "Comfort parameters/Humidity minimum, in 1% steps. Requires v0.1.1.7 or newer.",
-            }),
-            m.numeric({
-                name: "comfort_humidity_max",
-                unit: "%",
-                cluster: "hvacUserInterfaceCfg",
-                attribute: {ID: 0x0105, type: 32},
-                valueMin: 0,
-                valueMax: 100,
-                description: "Comfort parameters/Humidity maximum, in 1% steps. Requires v0.1.1.7 or newer.",
-            }),
-        ],
-        ota: true,
-    },
-    {
         zigbeeModel: ["QUAD-ZIG-SW"],
         model: "QUAD-ZIG-SW",
         vendor: "smarthjemmet.dk",
@@ -2528,40 +2553,6 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {
             publishDuplicateTransaction: true,
         },
-    },
-    {
-        zigbeeModel: ["ZG-204ZL-z"],
-        model: "ZG-204ZL-z",
-        vendor: "Custom devices (DiY)",
-        description: "Luminance motion sensor (pvvx/ZigbeeTLc)",
-        ota: true,
-        extend: [
-            m.battery(),
-            m.occupancy(),
-            m.illuminance(),
-            m.enumLookup({
-                name: "power_on_behavior",
-                cluster: "genOnOff",
-                attribute: "startUpOnOff",
-                lookup: {
-                    off: 0,
-                    on: 1,
-                    toggle: 2,
-                    previous: 255,
-                },
-                description: "Power-on behavior",
-            }),
-            m.numeric({
-                name: "pir_timeout",
-                cluster: "msOccupancySensing",
-                attribute: "pirOToUDelay",
-                unit: "s",
-                valueMin: 0,
-                valueMax: 65535,
-                access: "ALL",
-                description: "PIR timeout in seconds",
-            }),
-        ],
     },
     {
         zigbeeModel: ["LIGHT-CCT-TRK", "LIGHT-CCT-STR", "LIGHT-CCT-CUST"],

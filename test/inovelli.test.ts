@@ -1728,7 +1728,7 @@ describe("Inovelli fromZigbee converters", () => {
                     return c.cluster === "manuSpecificInovelli" && typeMatch;
                 }) as Fz.Converter;
                 const published: KeyValue[] = [];
-                converter.convert(
+                await converter.convert(
                     definition,
                     // biome-ignore lint/suspicious/noExplicitAny: test mock
                     {data: {notificationType: 16}, endpoint: device.getEndpoint(1)} as any,

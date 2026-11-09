@@ -177,7 +177,7 @@ export const calibrateAndPrecisionRoundOptionsDefaultPrecision: KeyValue = {
     soil_moisture: 2,
     co2: 0,
     illuminance: 0,
-    voc: 0,
+    voc: 3,
     formaldehyd: 0,
     co: 0,
 };
@@ -694,17 +694,22 @@ export function toNumber(value: unknown, property?: string): number {
     return result;
 }
 
-export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, failMessage: string) => {
+export const ignoreErrors = async (func: () => Promise<void>, errors: string[], failMessage: string) => {
     try {
         await func();
     } catch (error) {
         const message = (error as Error).message;
-        if (message.includes("UNSUPPORTED_ATTRIBUTE") || message.includes("UNREPORTABLE_ATTRIBUTE")) {
-            logger.debug(`Ignoring unsupported attribute error: ${failMessage}`, NS);
+        const ignored = errors.find((e) => message.includes(e));
+        if (ignored) {
+            logger.debug(`Ignoring ${ignored} error: ${failMessage}`, NS);
         } else {
             throw error;
         }
     }
+};
+
+export const ignoreUnsupportedAttribute = async (func: () => Promise<void>, failMessage: string) => {
+    await ignoreErrors(func, ["UNSUPPORTED_ATTRIBUTE", "UNREPORTABLE_ATTRIBUTE"], failMessage);
 };
 
 export function getFromLookup<V>(key: unknown, lookup: Record<string | number, V>, defaultValue: V = undefined, keyIsBool = false): V {
