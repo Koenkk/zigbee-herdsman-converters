@@ -9232,6 +9232,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "comfort_temperature_min",
+                homeassistant: {name: "Comfort temperature min"},
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMin",
                 entityCategory: "config",
@@ -9245,6 +9246,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customSonoffSnzb02d", SonoffSnzb02d>({
                 name: "comfort_temperature_max",
+                homeassistant: {name: "Comfort temperature max"},
                 cluster: "customSonoffSnzb02d",
                 attribute: "comfortTemperatureMax",
                 entityCategory: "config",
@@ -9500,6 +9502,7 @@ export const definitions: DefinitionWithExtend[] = [
             withConditionalExpose(sonoffExtend.snzb02dr2RemoteSource(), featureGates.snzb02dr2_support_remote_source),
             m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
                 name: "comfort_temperature_min",
+                homeassistant: {name: "Comfort temperature min"},
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMin",
                 entityCategory: "config",
@@ -9513,6 +9516,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customSonoffSnzb02dr2", SonoffSnzb02dr2>({
                 name: "comfort_temperature_max",
+                homeassistant: {name: "Comfort temperature max"},
                 cluster: "customSonoffSnzb02dr2",
                 attribute: "comfortTemperatureMax",
                 entityCategory: "config",
@@ -13801,6 +13805,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
             m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
                 name: "comfort_temperature_min",
+                homeassistant: {name: "Comfort temperature min"},
                 cluster: "customClusterEwelink",
                 attribute: "comfortTemperatureMin",
                 entityCategory: "config",
@@ -13814,6 +13819,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.numeric<"customClusterEwelink", SonoffSnzb02ul>({
                 name: "comfort_temperature_max",
+                homeassistant: {name: "Comfort temperature max"},
                 cluster: "customClusterEwelink",
                 attribute: "comfortTemperatureMax",
                 entityCategory: "config",
