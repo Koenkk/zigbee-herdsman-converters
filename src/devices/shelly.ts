@@ -706,6 +706,41 @@ const ws90Scaled = (name: string, raw: unknown, invalid: number): {[key: string]
     typeof raw === "number" && raw !== invalid ? {[name]: raw / 10} : undefined;
 
 /**
+ * Now and then the station sends an all-zero frame: pressure, humidity, temperature, illuminance and the
+ * cumulative precipitation read 0 for a few seconds up to an hour before the real values come back. A
+ * precipitation counter going 208.9 -> 0 -> 208.9 is seen as a counter reset downstream and the whole
+ * total gets counted again. Drop readings that cannot be real, compared with the last published state;
+ * a genuine 0 °C after a near-zero reading or a real counter reset (0.1, 0.2...) still goes through.
+ */
+// biome-ignore lint/suspicious/noExplicitAny: custom clusters not in type registry
+const ws90IsZeroFrame = (msg: Fz.Message<any, any, any>, state: KeyValue): boolean => {
+    const data = msg.data as KeyValue;
+    switch (msg.cluster) {
+        case "msPressureMeasurement":
+            return data.measuredValue === 0;
+        case "msRelativeHumidity":
+            return data.measuredValue === 0 && typeof state.humidity === "number" && state.humidity > 5;
+        case "msTemperatureMeasurement":
+            return data.measuredValue === 0 && typeof state.temperature === "number" && Math.abs(state.temperature) > 2;
+        case "msIlluminanceMeasurement":
+            return data.measuredValue === 0 && typeof state.illuminance === "number" && state.illuminance > 50;
+        case "shellyWS90Rain":
+            return data.precipitation === 0 && typeof state.precipitation === "number" && state.precipitation > 0;
+        default:
+            return false;
+    }
+};
+
+const ws90IgnoreZeroFrames = (extend: ModernExtend): ModernExtend => ({
+    ...extend,
+    fromZigbee: extend.fromZigbee?.map((converter) => ({
+        ...converter,
+        convert: (model, msg, publish, options, meta) =>
+            ws90IsZeroFrame(msg, meta.state) ? undefined : converter.convert(model, msg, publish, options, meta),
+    })),
+});
+
+/**
  * Update calculated values whenever we get new sensor data (uses device.meta for persistence)
  */
 function updateWS90CalculatedValues(device: Zh.Device, payload: {[key: string]: number | boolean}): {[key: string]: number | string | null} {
@@ -1948,14 +1983,16 @@ const handlePosition = e
     .enum("handle_position", ea.STATE, ["closed", "tilted", "open"])
     .withDescription("Handle position: closed, tilted (partly open), or open");
 
-// Resolves which switch input (1 or 2) sent a message, from the definition's own endpoint map:
-// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4 and the
-// single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from any
-// other endpoint return undefined and must be ignored, not mislabeled as input 1.
+// Resolves which switch input (swN -> N) sent a message, from the definition's own endpoint map:
+// the cover-mode 2PM has its inputs on endpoints 2/3, the switch-mode 2PM on 3/4, the i4 on 1-4
+// and the single-channel devices on 2 - a fixed endpoint list cannot serve them all. Messages from
+// any other endpoint return undefined and must be ignored, not mislabeled as input 1.
 const shellyInputNumber = (model: Definition, msg: {device: Zh.Device; endpoint: Zh.Endpoint}): number | undefined => {
     const endpoints = model.endpoint?.(msg.device) ?? {};
-    if (endpoints.sw1 === msg.endpoint.ID) return 1;
-    if (endpoints.sw2 === msg.endpoint.ID) return 2;
+    for (const [name, endpoint] of Object.entries(endpoints)) {
+        const match = /^sw(\d+)$/.exec(name);
+        if (match && endpoint === msg.endpoint.ID) return Number(match[1]);
+    }
     return undefined;
 };
 
@@ -2062,7 +2099,7 @@ const fzLocal = {
     // The input numbering comes from the definition's endpoint map (see shellyInputNumber): a
     // fixed endpoint lookup broke the cover-mode 2PM, whose inputs live on endpoints 2/3 while
     // the switch-mode device has them on 3/4 - input 1 threw and input 2 was reported as input 1.
-    two_switch_inputs_events: {
+    switch_inputs_events: {
         cluster: "genOnOff",
         type: ["commandOn", "commandOff", "commandToggle"],
         convert: (model, msg, publish, options, meta) => {
@@ -2074,7 +2111,7 @@ const fzLocal = {
         },
     } satisfies Fz.Converter<"genOnOff", undefined, ["commandOn", "commandOff", "commandToggle"]>,
 
-    two_switch_inputs_scene_events: {
+    switch_inputs_scene_events: {
         cluster: "genScenes",
         type: ["commandRecall"],
         convert: (model, msg, publish, options, meta) => {
@@ -2639,9 +2676,9 @@ const shellyTRVExternalOccupancyOnEvent: OnEvent.Handler = (event) => {
     );
 };
 
-const shellyTRVExternalInputsOnEvent: OnEvent.Handler = (event) => {
-    shellyTRVExternalTemperatureOnEvent(event);
-    shellyTRVExternalOccupancyOnEvent(event);
+const shellyTRVExternalInputsOnEvent: OnEvent.Handler = async (event) => {
+    await shellyTRVExternalTemperatureOnEvent(event);
+    await shellyTRVExternalOccupancyOnEvent(event);
 };
 
 // =============================================================================
@@ -2656,12 +2693,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "1L Gen4",
         ota: true,
         version: "0.0.1",
-        fromZigbee: [
-            fzLocal.two_switch_inputs_events,
-            fzLocal.two_switch_inputs_scene_events,
-            fzLocal.momentary_toggle_binding,
-            fzLocal.switch_input_type,
-        ],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.momentary_toggle_binding, fzLocal.switch_input_type],
         toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2875,7 +2907,7 @@ export const definitions: DefinitionWithExtend[] = [
         // this device was first released; bump the patch version so already paired devices get
         // re-configured and their input events start arriving (same rule as the BLU remotes).
         version: "0.0.1",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2951,7 +2983,7 @@ export const definitions: DefinitionWithExtend[] = [
         // this device was first released; bump the patch version so already paired devices get
         // re-configured and their input events start arriving (same rule as the BLU remotes).
         version: "0.0.1",
-        fromZigbee: [fzLocal.two_switch_inputs_events, fzLocal.two_switch_inputs_scene_events, fzLocal.switch_input_type],
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.switch_input_type],
         toZigbee: [tzLocal.switch_input_type],
         exposes: (device) => [
             e.action([
@@ -2988,6 +3020,51 @@ export const definitions: DefinitionWithExtend[] = [
                     await ep.bind("genOnOff", coordinatorEndpoint);
                     await ep.bind("genScenes", coordinatorEndpoint);
                     await ep.read("genOnOffSwitchCfg", ["switchType"]);
+                }
+            }
+        },
+    },
+    {
+        zigbeeModel: ["I4"],
+        model: "S4SN-0A24X",
+        vendor: "Shelly",
+        description: "i4 Gen4",
+        ota: true,
+        fromZigbee: [fzLocal.switch_inputs_events, fzLocal.switch_inputs_scene_events, fzLocal.momentary_toggle_binding, fzLocal.switch_input_type],
+        toZigbee: [tzLocal.momentary_toggle_binding, tzLocal.switch_input_type],
+        // All four inputs are detached - the device has no relay - so they only report actions and,
+        // with momentary_toggle_binding, can drive a directly bound group. Endpoints 5 and 6 only
+        // declare outgoing on/off, level control and window covering clusters, like the extra
+        // endpoint of the 2PM. No input mode is known that makes them send anything, so they are
+        // left out here as on the 2PM.
+        exposes: (device) => [
+            e.action(
+                [1, 2, 3, 4].flatMap((input) =>
+                    ["on", "off", "toggle", "single", "double", "triple", "hold"].map((event) => `input_${input}_${event}`),
+                ),
+            ),
+            ...shellySwitchInputExposes(device, {sw1: 1, sw2: 2, sw3: 3, sw4: 4}),
+            ...Object.keys(shellySwitchInputEndpoints(device, {sw1: 1, sw2: 2, sw3: 3, sw4: 4})).map((endpoint) =>
+                e
+                    .binary("momentary_toggle_binding", ea.ALL, "ON", "OFF")
+                    .withEndpoint(endpoint)
+                    .withDescription("Enable or disable toggle commands for a direct group binding with a momentary input")
+                    .withCategory("config"),
+            ),
+        ],
+        extend: [
+            shellyDeviceEndpoints({sw1: 1, sw2: 2, sw3: 3, sw4: 4}),
+            ...shellyModernExtend.shellyCustomClusters(),
+            shellyModernExtend.shellyWiFiSetup(),
+            m.identify(),
+        ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [1, 2, 3, 4]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genOnOff", coordinatorEndpoint);
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                    await ep.read("genOnOffSwitchCfg", ["switchType", "switchActions"]);
                 }
             }
         },
@@ -3056,6 +3133,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "Ecowitt WS90", manufacturerName: "Shelly"}],
         model: "WS90",
+        version: "0.0.1",
         vendor: "Shelly",
         description: "Weather station",
         extend: [
@@ -3071,10 +3149,10 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
                 entityCategory: "diagnostic",
             }),
-            m.illuminance(),
-            m.temperature(),
-            m.pressure(),
-            m.humidity(),
+            m.illuminance({valueMin: 0, valueMax: 200000}),
+            m.temperature({valueMin: -40, valueMax: 60}),
+            m.pressure({valueMin: 300, valueMax: 1100}),
+            m.humidity({valueMin: 1, valueMax: 99}),
             m.deviceAddCustomCluster("shellyWS90Wind", {
                 name: "shellyWS90Wind",
                 ID: 0xfc01,
@@ -3093,7 +3171,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "windSpeed",
                 fzConvert: (model, msg) => ws90Scaled("wind_speed", msg.data.windSpeed, 0xffff),
                 valueMin: 0,
-                valueMax: 140,
+                valueMax: 40,
+                valueStep: 0.1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Wind speed in m/s",
                 scale: 10,
@@ -3119,7 +3198,8 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "gustSpeed",
                 fzConvert: (model, msg) => ws90Scaled("gust_speed", msg.data.gustSpeed, 0xffff),
                 valueMin: 0,
-                valueMax: 140,
+                valueMax: 40,
+                valueStep: 0.1,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Gust speed in m/s",
                 scale: 10,
@@ -3143,7 +3223,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "uvIndex",
                 fzConvert: (model, msg) => ws90Scaled("uv_index", msg.data.uvIndex, 0xff),
                 valueMin: 0,
-                valueMax: 11,
+                valueMax: 15,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "UV index",
                 scale: 10,
@@ -3176,7 +3256,7 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: "precipitation",
                 fzConvert: (model, msg) => ws90Scaled("precipitation", msg.data.precipitation, 0xffffff),
                 valueMin: 0,
-                valueMax: 100000,
+                valueMax: 9999,
                 reporting: {min: "10_SECONDS", max: "1_HOUR", change: 1},
                 description: "Precipitation",
                 unit: "mm",
@@ -3186,7 +3266,7 @@ export const definitions: DefinitionWithExtend[] = [
             // Calculated values (added by PR #11437)
             shellyModernExtend.ws90CalculatedValues(),
             m.identify({isSleepy: true}),
-        ],
+        ].map(ws90IgnoreZeroFrames),
     },
     {
         fingerprint: [
@@ -3196,13 +3276,43 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4DM-0A101WWL",
         vendor: "Shelly",
         description: "Dimmer Gen4",
+        // The input bindings in configure were added after this device was first released; bump the
+        // patch version so already paired devices get re-configured and their input events start
+        // arriving (same rule as the Gen4 switches).
+        version: "0.0.1",
+        // SW1/SW2 report every press as a genScenes recall from endpoint 2/3, with the same scene ids
+        // as the Gen4 switches (1/2/3 = single/double/triple, 4 = hold). The genOnOff commands that
+        // come along with a single press are left out: on firmware 2.0.3 both an on and an off press
+        // send commandOff, so they say nothing about the input.
+        fromZigbee: [fzLocal.switch_inputs_scene_events],
+        exposes: [
+            e.action([
+                "input_1_single",
+                "input_1_double",
+                "input_1_triple",
+                "input_1_hold",
+                "input_2_single",
+                "input_2_double",
+                "input_2_triple",
+                "input_2_hold",
+            ]),
+        ],
         extend: [
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
             m.light({configureReporting: true}),
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
             m.identify(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [2, 3]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                }
+            }
+        },
     },
     {
         fingerprint: [{modelID: "Dimmer 0-1/10", manufacturerName: "Shelly"}],
@@ -3210,7 +3320,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Dimmer 0/1-10V PM Gen4",
         extend: [
-            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239}}),
+            m.deviceEndpoints({
+                endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "239": 239},
+                multiEndpointSkip: ["power", "current", "voltage", "energy"],
+            }),
             m.light(),
             m.electricityMeter(),
             m.commandsOnOff({endpointNames: ["2", "3", "4"]}),
@@ -3450,6 +3563,38 @@ export const definitions: DefinitionWithExtend[] = [
         toZigbee: [],
         exposes: [e.contact(), handlePosition, e.battery_low()],
         extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow Mini ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-203C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow Mini ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow Outdoor ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-302C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow Outdoor ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), m.identify()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             if (endpoint) {

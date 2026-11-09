@@ -51,6 +51,8 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+const t30s3zActions = ["top_click", "middle_click", "bottom_click"];
+
 export const fzLocal = {
     orvibo_raw_1: {
         cluster: 23,
@@ -112,6 +114,17 @@ export const fzLocal = {
             if (button) {
                 return {action: `${button}_${action}`};
             }
+        },
+    } satisfies Fz.Converter<23, undefined, "raw">,
+    t30s3zButton: {
+        cluster: 23,
+        type: "raw",
+        convert: (model, msg) => {
+            const data = msg.data;
+            if (data.length < 6 || data[0] !== 0x19 || data[2] !== 0x08 || data[4] !== 0 || data[5] !== 0) return;
+
+            const action = t30s3zActions[data[3] - 1];
+            if (action) return {action};
         },
     } satisfies Fz.Converter<23, undefined, "raw">,
 };
@@ -756,6 +769,15 @@ export const definitions: DefinitionWithExtend[] = [
                 "button_3_release",
             ]),
         ],
+    },
+    {
+        zigbeeModel: ["d0d2422bbf3a4982b31ea843bfedb559"],
+        model: "T30S3Z",
+        vendor: "ORVIBO",
+        description: "Three-button Zigbee scene switch",
+        fromZigbee: [fzLocal.t30s3zButton],
+        toZigbee: [],
+        exposes: [e.action(t30s3zActions)],
     },
     {
         zigbeeModel: ["bcb949e87e8c4ea6bc2803052dd8fbf5"],

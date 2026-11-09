@@ -1043,6 +1043,25 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {multiEndpoint: true},
     },
     {
+        zigbeeModel: ["ZGRC-KEY-008"],
+        model: "SR-ZG9001K8-CCT",
+        vendor: "Sunricher",
+        description: "CCT wireless wall switch with 2 scene buttons",
+        extend: [
+            m.battery(),
+            m.commandsOnOff(),
+            m.commandsLevelCtrl({
+                commands: ["brightness_step_up", "brightness_step_down"],
+            }),
+            m.commandsColorCtrl({
+                commands: ["color_temperature_step_up", "color_temperature_step_down"],
+            }),
+            m.commandsScenes({
+                commands: ["recall", "store"],
+            }),
+        ],
+    },
+    {
         zigbeeModel: ["HK-ZRC-K10N-E"],
         model: "SR-ZG2856-Pro",
         vendor: "Sunricher",
@@ -2168,6 +2187,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZG2835",
         vendor: "Sunricher",
         description: "Zigbee knob smart dimmer",
+        extend: [m.battery({voltage: true, voltageReporting: true})],
         fromZigbee: [fz.command_on, fz.command_off, fz.command_move_to_level],
         exposes: [e.action(["on", "off", "brightness_move_to_level"])],
         toZigbee: [],
@@ -2738,6 +2758,7 @@ export const definitions: DefinitionWithExtend[] = [
             fz.electrical_measurement,
             namron.fromZigbee.namron_hvac_user_interface,
             fzLocal.ZG9095B,
+            fz.fan,
         ],
         toZigbee: [
             tzLocal.ZG9095B.temperature_display,

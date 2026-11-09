@@ -185,16 +185,39 @@ export const definitions: DefinitionWithExtend[] = [
         description: "ROVITO-Z ceiling light",
         extend: [m.light({colorTemp: {range: [153, 370]}, color: true})],
     },
-
+    {
+        // Variant where endpoint 3 uses the AwoX manufacturer profile (4751) and only exposes genGroups + 0xff50/0xff51.
+        // Panel (color temperature) and RGB ring (color) are both controlled via endpoint 1 on this variant.
+        fingerprint: [
+            {
+                modelID: "EBF-RGB-ZMB-CLB",
+                manufacturerName: "AwoX",
+                endpoints: [
+                    {ID: 1, profileID: 260},
+                    {ID: 3, profileID: 4751},
+                    {ID: 242, profileID: 41440},
+                ],
+            },
+        ],
+        model: "901471_1",
+        vendor: "EGLO",
+        description: "ROVITO-Z ceiling light (variant without separate RGB endpoint)",
+        extend: [m.light({colorTemp: {range: [153, 370]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
     {
         zigbeeModel: ["EBF-RGB-ZMB-CLB"],
         model: "901471",
         vendor: "EGLO",
-        description: "ROVITO-Z ceiling light",
+        description: "ROVITO-Z ceiling light (separated CCT panel and RGB ring)",
+        meta: {multiEndpoint: true},
         extend: [
-            m.deviceEndpoints({endpoints: {1: 1, 3: 3}}),
+            m.deviceEndpoints({endpoints: {white: 1, rgb: 3}}),
             m.light({
+                endpointNames: ["white"],
                 colorTemp: {range: [153, 370]},
+            }),
+            m.light({
+                endpointNames: ["rgb"],
                 color: {modes: ["xy", "hs"], enhancedHue: true},
             }),
             m.commandsOnOff(),
@@ -202,12 +225,14 @@ export const definitions: DefinitionWithExtend[] = [
             m.commandsColorCtrl(),
         ],
     },
+
     {
         zigbeeModel: ["ESMLFzm_w6_TW"],
         model: "12242",
         vendor: "EGLO",
         description: "ST64 adjustable white filament bulb",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, levelConfig: {features: ["current_level_startup"]}})],
+        whiteLabel: [{vendor: "EGLO", model: "12245", description: "G125 globe adjustable white filament bulb"}],
     },
     {
         zigbeeModel: ["EGLO_ZM_RGB_TW"],

@@ -38,24 +38,22 @@ describe("Plugwise 170-01 (Emma)", () => {
             meta = {endpoint_name: null} as unknown as Tz.Meta;
         });
 
-        it.each(cases)("$property convertSet writes the scaled value with the Plugwise manufacturer code", async ({
-            property,
-            attribute,
-            input,
-            raw,
-        }) => {
-            // Arrange
-            const converter = emma.toZigbee?.find((c) => c.key.includes(property));
-            if (!converter?.convertSet) throw new Error(`No toZigbee convertSet for '${property}'`);
+        it.each(cases)(
+            "$property convertSet writes the scaled value with the Plugwise manufacturer code",
+            async ({property, attribute, input, raw}) => {
+                // Arrange
+                const converter = emma.toZigbee?.find((c) => c.key.includes(property));
+                if (!converter?.convertSet) throw new Error(`No toZigbee convertSet for '${property}'`);
 
-            // Act
-            const result = await converter.convertSet(endpoint, property, input, meta);
+                // Act
+                const result = await converter.convertSet(endpoint, property, input, meta);
 
-            // Assert
-            expect(writeFn).toHaveBeenCalledTimes(1);
-            expect(writeFn).toHaveBeenCalledWith("hvacThermostat", {[attribute]: raw}, PLUGWISE_MFG);
-            expect(result).toStrictEqual({state: {[property]: input}});
-        });
+                // Assert
+                expect(writeFn).toHaveBeenCalledTimes(1);
+                expect(writeFn).toHaveBeenCalledWith("hvacThermostat", {[attribute]: raw}, PLUGWISE_MFG);
+                expect(result).toStrictEqual({state: {[property]: input}});
+            },
+        );
 
         it.each(cases)("$property convertGet reads the attribute with the Plugwise manufacturer code", async ({property, attribute}) => {
             // Arrange

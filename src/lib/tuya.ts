@@ -32,6 +32,12 @@ const NS = "zhc:tuya";
 const e = exposes.presets;
 const ea = exposes.access;
 
+interface ThermostatScheduleTemperatureOptions {
+    scale?: number;
+    minTemperature?: number;
+    maxTemperature?: number;
+}
+
 interface KeyValueStringEnum {
     [s: string]: Enum;
 }
@@ -548,7 +554,7 @@ function convertStringToHexArray(value: string) {
     return asciiKeys;
 }
 
-function getDataValue(dpValue: Tuya.DpValue) {
+export function getDataValue(dpValue: Tuya.DpValue) {
     let dataString = "";
     switch (dpValue.datatype) {
         case dataTypes.raw:
@@ -579,11 +585,14 @@ export function convertDecimalValueTo4ByteHexArray(value: number) {
     // +4294967294 -> 0XFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
     //          -2 -> 0xFFFFFFFE -> [0xFF, 0xFF, 0xFF, 0xFE] -> [255, 255, 255, 254]
 
+    // Scaled values can carry floating point noise (e.g. 1.12 * 100 = 112.00000000000001)
+    let intValue = Math.round(value);
+
     // Encode negative values as 2s complement
-    if (value < 0) {
-        value = 0x100000000 + value;
+    if (intValue < 0) {
+        intValue = 0x100000000 + intValue;
     }
-    const hexValue = Number(value).toString(16).padStart(8, "0");
+    const hexValue = Number(intValue).toString(16).padStart(8, "0");
     const chunk1 = hexValue.substring(0, 2);
     const chunk2 = hexValue.substring(2, 4);
     const chunk3 = hexValue.substring(4, 6);
@@ -612,7 +621,7 @@ function decodeTuyaVersion(value: number) {
 }
 
 // Return `seq` - transaction ID for handling concrete response
-async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
+export async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpValue[], cmd = "dataRequest", seq?: number) {
     if (seq === undefined) {
         seq = globalStore.getValue(entity, "sequence", 0);
         globalStore.putValue(entity, "sequence", (seq + 1) % 0xffff);
@@ -622,15 +631,15 @@ async function sendDataPoints(entity: Zh.Endpoint | Zh.Group, dpValues: Tuya.DpV
     return seq;
 }
 
-function dpValueFromNumberValue(dp: number, value: number) {
+export function dpValueFromNumberValue(dp: number, value: number) {
     return {dp, datatype: dataTypes.number, data: Buffer.from(convertDecimalValueTo4ByteHexArray(value))};
 }
 
-function dpValueFromBool(dp: number, value: boolean) {
+export function dpValueFromBool(dp: number, value: boolean) {
     return {dp, datatype: dataTypes.bool, data: Buffer.from([value ? 1 : 0])};
 }
 
-function dpValueFromEnum(dp: number, value: number) {
+export function dpValueFromEnum(dp: number, value: number) {
     return {dp, datatype: dataTypes.enum, data: Buffer.from([value])};
 }
 
@@ -638,7 +647,7 @@ export function dpValueFromString(dp: number, string: string) {
     return {dp, datatype: dataTypes.string, data: Buffer.from(convertStringToHexArray(string))};
 }
 
-function dpValueFromRaw(dp: number, rawBuffer: Buffer) {
+export function dpValueFromRaw(dp: number, rawBuffer: Buffer) {
     return {dp, datatype: dataTypes.raw, data: rawBuffer};
 }
 
@@ -788,11 +797,12 @@ const tuyaExposes = {
     soilCalibration: () =>
         e
             .numeric("soil_calibration", ea.STATE_SET)
+            .withLabel("Soil moisture calibration")
             .withValueMin(-30)
             .withValueMax(30)
             .withValueStep(1)
             .withUnit("%")
-            .withDescription("Soil Humidity calibration"),
+            .withDescription("Offset for measured soil moisture"),
     temperatureSampling: () =>
         e
             .numeric("temperature_sampling", ea.STATE_SET)
@@ -804,11 +814,12 @@ const tuyaExposes = {
     soilSampling: () =>
         e
             .numeric("soil_sampling", ea.STATE_SET)
+            .withLabel("Soil sampling interval")
             .withValueMin(5)
             .withValueMax(3600)
             .withValueStep(1)
             .withUnit("s")
-            .withDescription("Soil humidity sampling"),
+            .withDescription("Time interval between soil samplings"),
     soilWarning: () =>
         e
             .numeric("soil_warning", ea.STATE_SET)
@@ -864,7 +875,9 @@ const tuyaExposes = {
     doNotDisturb: () =>
         e
             .binary("do_not_disturb", ea.STATE_SET, true, false)
-            .withDescription("Controls state after power outage: false = on, true = restore previous state")
+            .withDescription(
+                "Controls state after power outage: false = on, true = restore previous state. Power-cycle twice to ignore this setting and force on",
+            )
             .withCategory("config"),
     colorPowerOnBehavior: () =>
         e
@@ -1533,11 +1546,62 @@ export const valueConverterBasic = {
     divideByWithLimits: (value: number, min: number, max: number) => {
         return {
             to: (v: number) => (v > max ? max * value : v < min ? min * value : v * value),
-            from: (v: number) => (v / value > max ? max : v / value < min ? min : v / value),
+            from: (v: number) => (v / value > max ? max : Math.max(v / value, min)),
+        };
+    },
+    twosComplementWithBitsizeScaled: (bits: number, scale = 1) => {
+        const overflow: number = 2 ** bits;
+        const limit: number = 2 ** (bits - 1);
+        return {
+            to: (v: number) => {
+                // Apply scale to logical value.
+                const scaled = v * scale;
+
+                // Convert to 2's complement [raw] representation.
+                return scaled < 0 ? scaled + overflow : scaled;
+            },
+            from: (v: number) => {
+                // Convert from 2's complement [raw] representation.
+                const signed = v >= limit ? v - overflow : v;
+
+                // Apply scale to compute logical value.
+                return signed / scale;
+            },
         };
     },
     trueFalse: (valueTrue: number | Enum) => {
         return {from: (v: number) => v === valueTrue.valueOf()};
+    },
+    // Raw datapoint made of 4-byte blocks: [alarm code, breaker on/off, value high byte, value low byte].
+    // Exposes `<name>_breaker` (ON/OFF) and `<name>_threshold` for each alarm.
+    // Writes always send the full buffer (all alarms, in the given order), merging the current state
+    // with the message; some devices corrupt the other blocks when only the changed block is sent.
+    thresholdBlocks: (alarms: [code: number, name: string][]) => {
+        const onOff: Record<string, number> = {OFF: 0, ON: 1};
+        return {
+            from: (v: string) => {
+                const data = Buffer.from(v, "base64");
+                const result: KeyValue = {};
+                for (let i = 0; i + 3 < data.length; i += 4) {
+                    const alarm = alarms.find(([code]) => code === data[i]);
+                    if (alarm) {
+                        result[`${alarm[1]}_breaker`] = data[i + 1] === 1 ? "ON" : "OFF";
+                        result[`${alarm[1]}_threshold`] = (data[i + 2] << 8) | data[i + 3];
+                    }
+                }
+                return result;
+            },
+            to: (v: unknown, meta: Tz.Meta) => {
+                const values: KeyValue = {...meta.state, ...meta.message};
+                const payload: number[] = [];
+                for (const [code, name] of alarms) {
+                    const breaker = utils.getFromLookup(values[`${name}_breaker`], onOff);
+                    const threshold = utils.toNumber(values[`${name}_threshold`], `${name}_threshold`);
+                    payload.push(code, breaker, (threshold >> 8) & 0xff, threshold & 0xff);
+                }
+                return payload;
+            },
+        };
     },
 };
 
@@ -1582,6 +1646,8 @@ export const valueConverter = {
     divideBy1000: valueConverterBasic.divideBy(1000),
     multiplyBy10: valueConverterBasic.multiplyBy(10),
     divideBy10FromOnly: valueConverterBasic.divideByFromOnly(10),
+    twosComplement8Bit: valueConverterBasic.twosComplementWithBitsizeScaled(8),
+    twosComplement8BitScaled10x: valueConverterBasic.twosComplementWithBitsizeScaled(8, 10),
     switchMode: valueConverterBasic.lookup({switch: new Enum(0), scene: new Enum(1)}),
     switchMode2: valueConverterBasic.lookup({switch: new Enum(0), curtain: new Enum(1)}),
     lightMode: valueConverterBasic.lookup({normal: new Enum(0), on: new Enum(1), off: new Enum(2), flash: new Enum(3)}),
@@ -1739,15 +1805,23 @@ export const valueConverter = {
         // Captured on _TZE200_nslr42tt: [9,38,0,0,146,153,153,134] -> 0x999986 -> -20 W
         // https://github.com/Koenkk/zigbee2mqtt/issues/18603#issuecomment-2267514694
         // https://github.com/Koenkk/zigbee2mqtt/issues/32995
+        //
+        // Other _TZE200_nslr42tt units send negative power as plain 24 bit two's
+        // complement instead: [9,38,0,0,29,255,255,247] -> 0xfffff7 -> -9 W.
+        // The two negative ranges do not overlap, so both can be decoded:
+        //   0x000000..0x7fffff  positive
+        //   0x800000..0x99999a  offset encoding, -1.67 MW..0 W
+        //   0x99999b..0xffffff  two's complement, about -6.7 MW..-1 W
         const NEGATIVE_POWER_OFFSET = 0x99999a;
-        // Negative readings span 0x800000..0x99999a (down to about -1.67 MW), so any
-        // value with the top bit set is negative; anything below is a real positive reading.
         const NEGATIVE_POWER_THRESHOLD = 0x800000;
+        const TWOS_COMPLEMENT_MODULUS = 0x1000000;
         return {
             from: (v: string) => {
                 const buf = Buffer.from(v, "base64");
                 let power = buf[7] | (buf[6] << 8) | (buf[5] << 16);
-                if (power >= NEGATIVE_POWER_THRESHOLD) {
+                if (power > NEGATIVE_POWER_OFFSET) {
+                    power -= TWOS_COMPLEMENT_MODULUS;
+                } else if (power >= NEGATIVE_POWER_THRESHOLD) {
                     power -= NEGATIVE_POWER_OFFSET;
                 }
 
@@ -2248,14 +2322,17 @@ export const valueConverter = {
         from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().from(v),
         to: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount().to(v),
     },
-    thermostatScheduleDayMultiDPWithTransitionCount: (transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithTransitionCount: (
+        transitionCount = 4,
+        {scale = 10, minTemperature = 5, maxTemperature = 35}: ThermostatScheduleTemperatureOptions = {},
+    ) => {
         return {
             from: (v: string) => {
                 const schedule = [];
                 for (let index = 1; index < transitionCount * 4 - 1; index = index + 4) {
                     schedule.push(
                         // @ts-expect-error
-                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / 10.0).toFixed(1)}`,
+                        `${String(Number.parseInt(v[index + 0], 10)).padStart(2, "0")}:${String(Number.parseInt(v[index + 1], 10)).padStart(2, "0")}/${(Number.parseFloat((v[index + 2] << 8) + v[index + 3]) / scale).toFixed(1)}`,
                     );
                 }
                 return schedule.join(" ");
@@ -2274,8 +2351,15 @@ export const valueConverter = {
                     const hourMin = timeTemp[0].split(":");
                     const hour = Number.parseInt(hourMin[0], 10);
                     const min = Number.parseInt(hourMin[1], 10);
-                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
-                    if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 350) {
+                    const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * scale);
+                    if (
+                        hour < 0 ||
+                        hour > 24 ||
+                        min < 0 ||
+                        min > 60 ||
+                        temperature < minTemperature * scale ||
+                        temperature > maxTemperature * scale
+                    ) {
                         throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
                     }
                     payload.push(hour, min, (temperature & 0xff00) >> 8, temperature & 0xff);
@@ -2284,11 +2368,11 @@ export const valueConverter = {
             },
         };
     },
-    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4) => {
+    thermostatScheduleDayMultiDPWithDayNumber: (dayNum: number, transitionCount = 4, options: ThermostatScheduleTemperatureOptions = {}) => {
         return {
-            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).from(v),
+            from: (v: string) => valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).from(v),
             to: (v: string) => {
-                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount).to(v);
+                const data = valueConverter.thermostatScheduleDayMultiDPWithTransitionCount(transitionCount, options).to(v);
                 data[0] = dayNum;
                 return data;
             },
@@ -2306,9 +2390,10 @@ export const valueConverter = {
 
                 const hour = Math.floor(minutesSinceMidnight / 60);
                 const minutes = minutesSinceMidnight % 60;
+                const preset = Number.parseInt(v[index + 2], 10) >> 4;
 
                 schedule.push(
-                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}`,
+                    `${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}/${(Number.parseFloat(v[index + 3]) / 10.0).toFixed(1)}/${preset}`,
                 );
             }
             return schedule.join(" ");
@@ -2320,16 +2405,20 @@ export const valueConverter = {
                 throw new Error("Invalid schedule: there should be 6 transitions");
             }
             for (const transition of transitions) {
-                const timeTemp = transition.split("/");
-                if (timeTemp.length !== 2) {
+                const timeTempPreset = transition.split("/");
+                if (timeTempPreset.length !== 3) {
                     throw new Error(`Invalid schedule: wrong transition format: ${transition}`);
                 }
-                const hourMin = timeTemp[0].split(":");
+                const hourMin = timeTempPreset[0].split(":");
                 const hour = Number.parseInt(hourMin[0], 10);
                 const min = Number.parseInt(hourMin[1], 10);
-                const temperature = Math.floor(Number.parseFloat(timeTemp[1]) * 10);
+                const temperature = Math.floor(Number.parseFloat(timeTempPreset[1]) * 10);
+                const preset = Number.parseInt(timeTempPreset[2], 10);
                 if (hour < 0 || hour > 24 || min < 0 || min > 60 || temperature < 50 || temperature > 300) {
                     throw new Error(`Invalid hour, minute or temperature of: ${transition}`);
+                }
+                if (preset !== 2 && preset !== 3) {
+                    throw new Error(`Invalid preset (2 = eco, 3 = comfort) of: ${transition}`);
                 }
 
                 const minutesSinceMidnight = hour * 60 + min;
@@ -2337,7 +2426,7 @@ export const valueConverter = {
                 const firstByte = ((minutesSinceMidnight & 3840) >> 8) + 192;
                 const secondByte = minutesSinceMidnight & 255;
 
-                payload.push(firstByte, secondByte, 64, temperature);
+                payload.push(firstByte, secondByte, preset * 16, temperature);
             }
             return payload;
         },
@@ -2877,6 +2966,16 @@ export const valueConverter = {
             },
         };
     },
+    utf8String: {
+        // Plain UTF-8 string datapoint. Both ends of the pipe work one byte per character:
+        // `convertStringToHexArray()` takes `charCodeAt(0)` of every character when sending
+        // and `getDataValue()` rebuilds the string with `String.fromCharCode()` when
+        // receiving. So the UTF-8 bytes are carried as latin1 characters, otherwise
+        // anything outside ASCII is truncated to a single byte.
+        to: (v: string) => Buffer.from(String(v), "utf8").toString("latin1"),
+        from: (v?: string) => (v ? Buffer.from(v, "latin1").toString("utf8") : ""),
+    },
+
     utf16BEHexString: {
         // String -> hex (UTF-16BE)
         to: (v: string) => {
@@ -3495,6 +3594,7 @@ const tuyaTz = {
         key: ["brightness", "color", "color_temp"],
         options: [exposes.options.color_sync()],
         convertSet: async (entity, key, value, meta) => {
+            const colorTempInMireds = utils.getMetaValue(entity, meta.mapped, "tuyaColorTempInMireds", "allEqual", false);
             if (
                 key === "brightness" &&
                 meta.state.color_mode === constants.colorModeLookup[2] &&
@@ -3523,7 +3623,7 @@ const tuyaTz = {
                     "lightingColorCtrl",
                     "moveToColorTemp",
                     {
-                        colortemp: utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
+                        colortemp: colorTempInMireds ? meta.message.color_temp : utils.mapNumberRange(meta.message.color_temp, 500, 154, 0, 254),
                         transtime: 0,
                         optionsMask: 0,
                         optionsOverride: 0,
@@ -3556,7 +3656,12 @@ const tuyaTz = {
                 await entity.command(
                     "lightingColorCtrl",
                     "moveToColorTemp",
-                    {colortemp: utils.mapNumberRange(value, 500, 154, 0, 254), transtime: 0, optionsMask: 0, optionsOverride: 0},
+                    {
+                        colortemp: colorTempInMireds ? value : utils.mapNumberRange(value, 500, 154, 0, 254),
+                        transtime: 0,
+                        optionsMask: 0,
+                        optionsOverride: 0,
+                    },
                     utils.getOptions(meta.mapped, entity),
                 );
                 await entity.command(
@@ -3906,7 +4011,7 @@ const tuyaFz = {
     } satisfies Fz.Converter<"genLevelCtrl", undefined, ["attributeReport", "readResponse"]>,
     datapoints: {
         cluster: "manuSpecificTuya",
-        type: ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
+        type: ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"],
         convert: (model, msg, publish, options, meta) => {
             if (utils.hasAlreadyProcessedMessage(msg, model)) return;
             const result: KeyValue = {};
@@ -3920,7 +4025,7 @@ const tuyaFz = {
                     if (dpEntry[1]) {
                         result[dpEntry[1]] = dpEntry[2].from(value, meta, options, publish, msg);
                     } else {
-                        Object.assign(result, dpEntry[2].from(value, meta, options, publish, msg));
+                        Object.assign(result, {...(dpEntry[2].from(value, meta, options, publish, msg) as KeyValue), ...result});
                     }
                 } else {
                     logger.debug(`Datapoint ${dpId} not defined for '${meta.device.manufacturerName}' with value ${value}`, NS);
@@ -3931,7 +4036,7 @@ const tuyaFz = {
     } satisfies Fz.Converter<
         "manuSpecificTuya",
         undefined,
-        ["commandDataResponse", "commandDataReport", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
     >,
     on_off_action: {
         cluster: "genOnOff",
@@ -4545,6 +4650,7 @@ const tuyaModernExtend = {
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
+                "commandDataReportAlt",
                 "commandActiveStatusReport",
                 "commandActiveStatusReportAlt",
             ]
@@ -4554,6 +4660,7 @@ const tuyaModernExtend = {
                 "commandMcuGatewayConnectionStatus",
                 "commandDataResponse",
                 "commandDataReport",
+                "commandDataReportAlt",
                 "commandActiveStatusReport",
                 "commandActiveStatusReportAlt",
             ],
@@ -4594,7 +4701,12 @@ const tuyaModernExtend = {
                     // 0x01: The gateway is connected to the internet.
                     // 0x02: The request timed out after three seconds.
                     msg.endpoint
-                        .command("manuSpecificTuya", "mcuGatewayConnectionStatus", {payloadSize: 1, payload: 1}, {})
+                        .command(
+                            "manuSpecificTuya",
+                            "mcuGatewayConnectionStatus",
+                            {payloadSize: 1, payload: 1},
+                            {disableResponse: true, disableDefaultResponse: true},
+                        )
                         .catch((error) => logger.error(`Failed respond to gateway connection status '${msg.device.ieeeAddr}' (${error})`, NS));
                 }
             },
@@ -4995,6 +5107,7 @@ const tuyaModernExtend = {
             powerOutageMemory?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior2?: boolean | ((manufacturerName: string) => boolean);
             powerOnBehavior3?: boolean;
+            powerOnBehavior?: boolean | ((manufacturerName: string) => boolean);
             switchType?: boolean | ((manufacturerName: string) => boolean);
             switchTypeCurtain?: boolean;
             switchTypeButton?: boolean | ((manufacturerName: string) => boolean);
@@ -5021,6 +5134,7 @@ const tuyaModernExtend = {
             backlightModeOffOn = false,
             powerOnBehavior2 = false,
             powerOnBehavior3 = false,
+            powerOnBehavior = true,
             switchType = false,
             switchTypeButton = false,
         } = args;
@@ -5032,6 +5146,19 @@ const tuyaModernExtend = {
         const toZigbee: Tz.Converter[] = [];
         if (onOffCountdown) {
             fromZigbee.push(tuyaFz.on_off_countdown);
+            // Some devices (e.g. Lidl HG06620) report offWaitTime for ON+countdown instead of onTime
+            fromZigbee.push({
+                cluster: "genOnOff",
+                type: ["attributeReport", "readResponse"] as const,
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.offWaitTime !== undefined) {
+                        const payload: KeyValue = {};
+                        const property = utils.postfixWithEndpointName("countdown", msg, model, meta);
+                        payload[property] = msg.data.offWaitTime;
+                        return payload;
+                    }
+                },
+            });
             toZigbee.push(tuyaTz.on_off_countdown);
             if (typeof onOffCountdown === "function") {
                 exposes.push((d) => (onOffCountdown(d.manufacturerName) ? [tuyaExposes.countdown()] : []));
@@ -5101,7 +5228,7 @@ const tuyaModernExtend = {
                 toZigbee.push(...result.toZigbee);
                 exposes.push(...result.exposes);
             }
-        } else {
+        } else if (powerOnBehavior) {
             fromZigbee.push(tuyaFz.power_on_behavior_1);
             toZigbee.push(tuyaTz.power_on_behavior_1);
             exposes.push(e.power_on_behavior());
@@ -5302,6 +5429,16 @@ const tuyaModernExtend = {
             numberOfForecastDays?: number;
             correctForNegativeValues?: boolean;
             weatherConditionMap?: TuyaWeatherCondition;
+            /**
+             * Layout of the `tuyaWeatherSync` reply.
+             * - `default`: starts with the protocol version and location type (`0x11 0x00`)
+             *   and ends with a `0x00`. Works for the M8/M9 Pro panels.
+             * - `requestSequence`: starts with the two bytes echoed back from the request
+             *   and has no trailing byte. Some firmwares (e.g. `_TZE284_0or4eirj`) accept
+             *   the default reply with status `SUCCESS` but keep showing `--°C` and keep
+             *   polling every minute until they get this layout.
+             */
+            replyFormat?: "default" | "requestSequence";
         } = {},
     ): ModernExtend {
         const {
@@ -5309,6 +5446,7 @@ const tuyaModernExtend = {
             numberOfForecastDays = 3,
             correctForNegativeValues = false,
             weatherConditionMap = M8ProTuyaWeatherCondition,
+            replyFormat = "default",
         } = args;
 
         const tz_fileds = includeCurrentWeather ? ["temperature_0", "humidity_0", "condition_0"] : [];
@@ -5326,12 +5464,27 @@ const tuyaModernExtend = {
             return val;
         }
 
-        function _prepareTuyaWeatherSyncPayload(meta: Fz.Meta | Tz.Meta, numberOfForecastDays: number, includeCurrentWeather: boolean): Buffer {
+        function _prepareTuyaWeatherSyncPayload(
+            meta: Fz.Meta | Tz.Meta,
+            numberOfForecastDays: number,
+            includeCurrentWeather: boolean,
+            sequencePrefix?: Buffer,
+        ): Buffer {
+            const useSequence = replyFormat === "requestSequence" && sequencePrefix !== undefined;
             let bOffset = 0;
-            const buffer = Buffer.alloc(6 + (includeCurrentWeather ? 6 : 1) + numberOfForecastDays * 6);
+            // 2 bytes of header, 4 bytes of controls, then for every requested ID one byte
+            // for the ID itself plus its values (temperature and humidity are 2 bytes each,
+            // the weather condition is 1), and for the default layout a trailing 0x00.
+            const valueCount = (includeCurrentWeather ? 1 : 0) + numberOfForecastDays;
+            const buffer = Buffer.alloc(2 + 4 + (1 + valueCount * 2) + (1 + valueCount * 2) + (1 + valueCount) + (useSequence ? 0 : 1));
 
-            buffer.writeUInt8(0x11, bOffset++);
-            buffer.writeUInt8(0, bOffset++);
+            if (useSequence) {
+                sequencePrefix.copy(buffer, bOffset);
+                bOffset += 2;
+            } else {
+                buffer.writeUInt8(0x11, bOffset++);
+                buffer.writeUInt8(0, bOffset++);
+            }
             buffer.writeUInt8(0x12, bOffset++);
             buffer.writeUInt8(numberOfForecastDays, bOffset++);
             buffer.writeUInt8(0x13, bOffset++);
@@ -5375,7 +5528,9 @@ const tuyaModernExtend = {
                     }
                 }
             }
-            buffer.writeUInt8(0, bOffset++);
+            if (!useSequence) {
+                buffer.writeUInt8(0, bOffset++);
+            }
             return buffer;
         }
 
@@ -5406,7 +5561,15 @@ const tuyaModernExtend = {
                     const _current_weather_flag = nextField === 0x12 ? buffer.readUInt8(bOffset++) : 0;
                     const include_current_weather = buffer.readUInt8(bOffset++) !== 0;
 
-                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather);
+                    // Devices using the `requestSequence` layout expect the first two bytes
+                    // of their own request back; remember them for unsolicited updates too.
+                    let sequencePrefix: Buffer | undefined;
+                    if (replyFormat === "requestSequence" && buffer.length >= 4 && buffer[2] === 0x11 && (buffer[3] === 0x00 || buffer[3] === 0x01)) {
+                        sequencePrefix = Buffer.from(buffer.subarray(0, 2));
+                        globalStore.putValue(msg.device, "weatherSequencePrefix", sequencePrefix);
+                    }
+
+                    const pld = _prepareTuyaWeatherSyncPayload(meta, number_of_forecast_days, include_current_weather, sequencePrefix);
 
                     msg.endpoint
                         .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
@@ -5422,7 +5585,14 @@ const tuyaModernExtend = {
             convertSet: (entity, key, value, meta) => {
                 meta.state[key] = value;
 
-                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather);
+                const sequencePrefix = replyFormat === "requestSequence" ? globalStore.getValue(meta.device, "weatherSequencePrefix") : undefined;
+                if (replyFormat === "requestSequence" && sequencePrefix === undefined) {
+                    // Nothing to echo back yet: the device polls for the weather on its own,
+                    // the new value is picked up with the next request.
+                    return {state: {[key]: value}};
+                }
+
+                const pld = _prepareTuyaWeatherSyncPayload(meta, numberOfForecastDays, includeCurrentWeather, sequencePrefix);
 
                 entity
                     .command("manuSpecificTuya", "tuyaWeatherSync", {payload: pld})
