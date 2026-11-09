@@ -489,6 +489,13 @@ describe("ZHC", () => {
         expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
     });
 
+    it("finds definition by model ID with different casing when a fingerprint-only definition is a second candidate", async () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/33654
+        const device = mockDevice({modelID: "ms01", manufacturerName: "eWeLink", endpoints: []}, "EndDevice");
+
+        expect((await findByDevice(device)).model).toStrictEqual("SNZB-03");
+    });
+
     it("exposes light with endpoint", () => {
         const expected = {
             type: "light",
