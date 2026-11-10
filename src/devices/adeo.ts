@@ -51,6 +51,27 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    ldsenk06Warning: {
+        key: ["warning"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject<{mode?: string; duration?: number}>(value);
+            const mode = value.mode ?? "alarm";
+            if (mode !== "alarm" && mode !== "stop") throw new Error(`Unsupported warning mode: ${mode}`);
+            const duration = mode === "stop" ? 0 : (value.duration ?? 10);
+            utils.assertNumber(duration, "duration");
+            if (!Number.isInteger(duration) || duration < 0 || duration > 1800)
+                throw new Error("Warning duration must be an integer between 0 and 1800 seconds");
+            // Enki uses the non-standard warning mode 7 with strobe and high level.
+            const payload = {
+                startwarninginfo: mode === "stop" ? 0 : 0x76,
+                warningduration: duration,
+                strobedutycycle: mode === "stop" ? 0 : 1,
+                strobelevel: mode === "stop" ? 0 : 1,
+            };
+            // The siren performs the command but does not send the ZCL default response.
+            await entity.command("ssIasWd", "startWarning", payload, {...utils.getOptions(meta.mapped, entity), disableDefaultResponse: true});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LDSENK08_sensitivity: {
         key: ["sensitivity"],
@@ -67,7 +88,14 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LDSENK06",
         vendor: "ADEO",
         description: "ENKI LEXMAN indoor siren 85db",
-        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
+        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+        toZigbee: [tzLocal.ldsenk06Warning],
+        exposes: [
+            e
+                .composite("warning", "warning", ea.SET)
+                .withFeature(e.enum("mode", ea.SET, ["alarm", "stop"]).withDescription("Start the siren and strobe, or stop the warning"))
+                .withFeature(e.numeric("duration", ea.SET).withUnit("s").withValueMin(0).withValueMax(1800).withDescription("Duration in seconds")),
+        ],
     },
     {
         zigbeeModel: ["LDSENK08"],
