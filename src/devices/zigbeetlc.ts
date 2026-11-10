@@ -78,6 +78,7 @@ const extend = {
     }),
     comfortTemperatureMin: m.numeric({
         name: "comfort_temperature_min",
+        homeassistant: {name: "Comfort temperature min"},
         cluster: "hvacUserInterfaceCfg",
         attribute: {ID: 0x0102, type: Zcl.DataType.INT16},
         description: "Minimum temperature that is considered comfortable (default 20.00°C).",
@@ -89,6 +90,7 @@ const extend = {
     }),
     comfortTemperatureMax: m.numeric({
         name: "comfort_temperature_max",
+        homeassistant: {name: "Comfort temperature max"},
         cluster: "hvacUserInterfaceCfg",
         attribute: {ID: 0x0103, type: Zcl.DataType.INT16},
         description: "Maximum temperature that is considered comfortable (default 25.00°C).",

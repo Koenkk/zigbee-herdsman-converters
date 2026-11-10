@@ -242,6 +242,35 @@ describe("ZHC", () => {
         expect(definition.model).toStrictEqual("291.52");
     });
 
+    it.each([
+        [0x002a, "SNZB-05"],
+        [0x000d, "SNZB-03_eWeLink"],
+    ])("eWeLink SNZB-03 configure remaps to the right model by IAS zoneType %d", async (zoneType, model) => {
+        const device = mockDevice(
+            {
+                modelID: "SNZB-03",
+                manufacturerName: "eWeLink",
+                endpoints: [
+                    {
+                        ID: 1,
+                        profileID: 260,
+                        deviceID: 1026,
+                        inputClusterIDs: [0, 3, 1, 1280, 32],
+                        outputClusterIDs: [25],
+                        read: () => Promise.resolve({zoneType}),
+                    },
+                ],
+            },
+            "EndDevice",
+        );
+        vi.spyOn(device, "save").mockImplementation(() => {});
+
+        const definition = await findByDevice(device);
+        await definition.configure(device, device.getEndpoint(1), definition);
+
+        expect((await findByDevice(device)).model).toStrictEqual(model);
+    });
+
     it("finds definition by fingerprint - index of size 250+", async () => {
         const device = mockDevice(
             {
@@ -458,6 +487,13 @@ describe("ZHC", () => {
         expect((await findByDevice(device))?.model).toStrictEqual("mock-model");
         removeExternalDefinitions("mock-model.js");
         expect((await findByDevice(device)).model).toStrictEqual("RTCGQ01LM");
+    });
+
+    it("finds definition by model ID with different casing when a fingerprint-only definition is a second candidate", async () => {
+        // https://github.com/Koenkk/zigbee2mqtt/issues/33654
+        const device = mockDevice({modelID: "ms01", manufacturerName: "eWeLink", endpoints: []}, "EndDevice");
+
+        expect((await findByDevice(device)).model).toStrictEqual("SNZB-03");
     });
 
     it("exposes light with endpoint", () => {
