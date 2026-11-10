@@ -55,7 +55,7 @@ const tzLocal = {
         key: ["warning"],
         convertSet: async (entity, key, value, meta) => {
             // biome-ignore lint/style/useNamingConvention: Zigbee2MQTT composite property name
-            utils.assertObject<{mode?: string; duration?: number; strobe?: boolean; strobe_duty_cycle?: number}>(value);
+            utils.assertObject<{mode?: string; duration?: number; level?: string; strobe?: boolean; strobe_duty_cycle?: number}>(value);
             const mode = value.mode ?? "alarm";
             if (mode !== "alarm" && mode !== "flash" && mode !== "stop") throw new Error(`Unsupported warning mode: ${mode}`);
             const duration = mode === "stop" ? 0 : (value.duration ?? 10);
@@ -63,14 +63,17 @@ const tzLocal = {
             if (!Number.isInteger(duration) || duration < 0 || duration > 1800)
                 throw new Error("Warning duration must be an integer between 0 and 1800 seconds");
             if (value.strobe !== undefined && typeof value.strobe !== "boolean") throw new Error("strobe must be a boolean");
+            const levels: Record<string, number> = {medium: 1, high: 2, very_high: 3};
+            const level = value.level ?? "high";
+            if (!Object.hasOwn(levels, level)) throw new Error(`Unsupported warning level: ${level}`);
             const dutyCycle = value.strobe_duty_cycle ?? (mode === "flash" ? 10 : 1);
             utils.assertNumber(dutyCycle, "strobe_duty_cycle");
             if (!Number.isInteger(dutyCycle) || dutyCycle < 1 || dutyCycle > 99)
                 throw new Error("Strobe duty cycle must be an integer between 1 and 99");
-            // Enki uses the non-standard warning mode 7 with high level.
+            // Enki uses the non-standard warning mode 7.
             const strobe = mode === "flash" || (mode === "alarm" && (value.strobe ?? true));
             const payload = {
-                startwarninginfo: mode === "alarm" ? (strobe ? 0x76 : 0x72) : strobe ? 0x04 : 0,
+                startwarninginfo: mode === "alarm" ? 0x70 | (strobe ? 0x04 : 0) | levels[level] : strobe ? 0x04 : 0,
                 warningduration: duration,
                 strobedutycycle: mode === "stop" ? 0 : dutyCycle,
                 strobelevel: mode === "stop" ? 0 : 1,
@@ -101,6 +104,7 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .composite("warning", "warning", ea.SET)
                 .withFeature(e.enum("mode", ea.SET, ["alarm", "flash", "stop"]).withDescription("Start the siren, flash only, or stop the warning"))
+                .withFeature(e.enum("level", ea.SET, ["medium", "high", "very_high"]).withDescription("Sound level during an alarm"))
                 .withFeature(e.binary("strobe", ea.SET, true, false).withDescription("Enable the flash during an alarm"))
                 .withFeature(
                     e.numeric("strobe_duty_cycle", ea.SET).withUnit("%").withValueMin(1).withValueMax(99).withDescription("Flash duty cycle"),

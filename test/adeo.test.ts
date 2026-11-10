@@ -41,6 +41,16 @@ describe("LDSENK06 warning", () => {
         );
     });
 
+    it.each([
+        ["medium", 0x71],
+        ["high", 0x72],
+        ["very_high", 0x73],
+    ])("encodes %s sound level", async (level, expected) => {
+        const command = vi.fn();
+        await convertSet({command}, "warning", {mode: "alarm", strobe: false, level}, {mapped: definition});
+        expect(command).toHaveBeenCalledWith("ssIasWd", "startWarning", expect.objectContaining({startwarninginfo: expected}), expect.anything());
+    });
+
     it("supports flash alone with a specified duty cycle", async () => {
         const command = vi.fn();
         await convertSet({command}, "warning", {mode: "flash", duration: 2, strobe_duty_cycle: 50}, {mapped: definition});
@@ -57,6 +67,7 @@ describe("LDSENK06 warning", () => {
         await expect(convertSet({command}, "warning", {mode: "fire"}, {mapped: definition})).rejects.toThrow();
         await expect(convertSet({command}, "warning", {mode: "alarm", duration: 1801}, {mapped: definition})).rejects.toThrow();
         await expect(convertSet({command}, "warning", {mode: "flash", strobe_duty_cycle: 100}, {mapped: definition})).rejects.toThrow();
+        await expect(convertSet({command}, "warning", {mode: "alarm", level: "low"}, {mapped: definition})).rejects.toThrow();
         expect(command).not.toHaveBeenCalled();
     });
 
