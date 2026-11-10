@@ -332,6 +332,20 @@ export const definitions: DefinitionWithExtend[] = [
                 systemMode: {values: ["off", "heat"]},
                 runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
             }),
+            // heatingState is only sent by the device when the setpoint changes
+            m.poll({
+                key: "running_state",
+                option: e
+                    .numeric("running_state_poll_interval", ea.SET)
+                    .withValueMin(-1)
+                    .withDescription(
+                        "The device does not report running_state by itself, so it is polled. Default is 300 seconds, set to -1 to disable.",
+                    ),
+                defaultIntervalSeconds: 300,
+                poll: async (device) => {
+                    await device.getEndpoint(1)?.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingState"]);
+                },
+            }),
             // currentSummDelivered is in Wh while the device reports multiplier=1000/divisor=1000
             m.electricityMeter({cluster: "metering", power: false, energy: {multiplier: 1, divisor: 1000}}),
             // Manufacturer specific attributes are not reportable
