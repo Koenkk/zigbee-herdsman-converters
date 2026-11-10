@@ -5247,10 +5247,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}}), m.identify()],
     },
     {
-        zigbeeModel: ['929003693901'],
-        model: '929003693901',
-        vendor: 'Philips',
-        description: 'Hue Signe Smart Table Lamp',
-        extend: [m.identify(), philips.m.light({"colorTemp":{"range":[153,500]},"color":{"modes":["xy","hs"],"enhancedHue":true}})],
+        zigbeeModel: ["929003693901"],
+        model: "929003693901",
+        vendor: "Philips",
+        description: "Hue Signe Smart Table Lamp",
+        extend: [m.identify(), philips.m.light({colorTemp: {range: [153, 500]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
 ];
