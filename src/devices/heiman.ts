@@ -3348,6 +3348,54 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         exposes: [e.text("camera_status", ea.STATE_GET).withDescription("Raw 9-byte camera status in hexadecimal").withCategory("diagnostic")],
+        configure: async (device) => {
+            const endpoint = device.getEndpoint(1);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint.read("msIlluminanceMeasurement", ["measuredValue"]);
+            const options = {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD};
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["sensorSensitivityLevel", "illuminanceThreshold", "mcuSoftwareVersion", "sensorArmed"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["pictureQuantity", "pictureQuality", "zoneCaptureMode", "serverPort"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["wifiStatus", "wifiCandidateStatus", "wifiRssi", "serverStatus"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["serverCandidateStatus", "cameraReady", "wifiProvisioningStatus", "flashLightBrightness"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraGop", "cameraAudioEnable", "cameraDayNightMode", "cameraMode"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraSubtype", "cameraCaptureMethod", "cameraCaptureInterval", "cameraInitQp"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["cameraFlip", "cameraMirror", "cameraOsdEnable", "cameraVideoCodec"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraFrameRate", "cameraBitRate"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraStatus"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["wifiSsid"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["wifiSsidCandidate"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraRtspUser"], options);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>("heimanClusterSpecial", ["cameraOsdText"], options);
+        },
         extend: [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
             m.battery(),
