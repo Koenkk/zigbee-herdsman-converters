@@ -1733,6 +1733,29 @@ const fzLocal = {
         type: ["commandSetpointRaiseLower"],
         convert: () => {},
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSetpointRaiseLower"]>,
+    schneider_scene_actions: {
+        cluster: "genScenes",
+        type: ["commandRecall", "commandStore"],
+
+        convert: (model, msg) => {
+            const action = msg.type === "commandRecall" ? "single" : msg.type === "commandStore" ? "hold" : undefined;
+
+            if (!action) {
+                return;
+            }
+
+            switch (msg.endpoint.ID) {
+                case 21:
+                    return {action_l1: action};
+
+                case 22:
+                    return {action_l2: action};
+
+                default:
+                    return;
+            }
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall", "commandStore"]>,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -2507,7 +2530,7 @@ export const definitions: DefinitionWithExtend[] = [
             switchActions("l1"),
             switchActions("l2"),
         ],
-        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration, fzLocal.schneider_scene_actions],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
@@ -2523,6 +2546,14 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
+            e
+                .enum("action_l1", ea.STATE, ["single", "hold"])
+                .withLabel("Last Action L1")
+                .withDescription("Only relevant when Switch action L1 is set to scene. Triggered action on input L1 (single or hold)."),
+            e
+                .enum("action_l2", ea.STATE, ["single", "hold"])
+                .withLabel("Last Action L2")
+                .withDescription("Only relevant when Switch action L2 is set to scene. Triggered action on input L2 (single or hold)."),
         ],
     },
     {
