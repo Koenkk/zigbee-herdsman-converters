@@ -4605,7 +4605,6 @@ export const definitions: DefinitionWithExtend[] = [
                     manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
                 },
             );
-                                
         },
         exposes: [],
         extend: [
