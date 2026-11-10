@@ -15288,11 +15288,11 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6kijc7nd", "_TZE204_6kijc7nd"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_6kijc7nd", "_TZE204_6kijc7nd", "_TZE200_6kijc7nd"]),
         model: "_TZE284_6kijc7nd",
         vendor: "Tervix",
         description: "Tervix Zigbee thermostat",
-        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
         exposes: [
             // Weekly Schedule (Datapoint 48) - Placeholder
             // The schedule is a raw 168-byte array (7 days x 24 bytes/day):
@@ -15333,9 +15333,19 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("working_status", ea.STATE, ["Keeping Warm", "Working"]).withDescription("Current working status of the thermostat."),
             e.binary("window_check", ea.STATE_SET, "ON", "OFF").withDescription("Checks whether the window is open or closed."),
             e.binary("frost_protection", ea.STATE_SET, "ON", "OFF").withDescription("Enables frost protection mode."),
-            e.enum("sensor_choose", ea.STATE_SET, ["in", "out"]).withDescription("Selects between internal or external temperature sensors."),
+            e
+                .enum("sensor_choose", ea.STATE_SET, ["in", "out", "in_out"])
+                .withDescription(
+                    "Sensor mode: in - internal (air), out - external (floor), in_out - air with floor overheat limit. Can only be changed while the thermostat is off.",
+                ),
             e.binary("humidity_control", ea.STATE_SET, "ON", "OFF").withDescription("Controls the humidity protection feature."),
             e.numeric("humidity", ea.STATE).withUnit("%").withDescription("Displays the current relative humidity level in percentage."),
+            e
+                .numeric("upper_humidity_limit", ea.STATE_SET)
+                .withUnit("%")
+                .withValueMin(0)
+                .withValueMax(100)
+                .withDescription("Humidity limit that stops cooling when humidity control is enabled."),
 
             // Weekly Schedule
             e
@@ -15415,7 +15425,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [34, "humidity", tuya.valueConverter.raw],
                 [39, "factory_reset", tuya.valueConverter.onOff],
                 [40, "child_lock", tuya.valueConverter.onOff],
-                [43, "sensor_choose", tuya.valueConverterBasic.lookup({in: 0, out: 1})],
+                [43, "sensor_choose", tuya.valueConverterBasic.lookup({in: tuya.enum(0), out: tuya.enum(1), in_out: tuya.enum(2)})],
                 [48, "week_schedule", tuya.valueConverter.raw],
                 [58, "run_mode", tuya.valueConverterBasic.lookup({heat_mode: 1, cool_mode: 2})],
                 [61, "week_program_periods", tuya.valueConverterBasic.lookup({periods_4: "periods_4"})],
