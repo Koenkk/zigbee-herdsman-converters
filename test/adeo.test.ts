@@ -30,10 +30,33 @@ describe("LDSENK06 warning", () => {
         );
     });
 
+    it("supports sound without strobe", async () => {
+        const command = vi.fn();
+        await convertSet({command}, "warning", {mode: "alarm", duration: 2, strobe: false}, {mapped: definition});
+        expect(command).toHaveBeenCalledWith(
+            "ssIasWd",
+            "startWarning",
+            {startwarninginfo: 0x72, warningduration: 2, strobedutycycle: 1, strobelevel: 1},
+            expect.anything(),
+        );
+    });
+
+    it("supports flash alone with a specified duty cycle", async () => {
+        const command = vi.fn();
+        await convertSet({command}, "warning", {mode: "flash", duration: 2, strobe_duty_cycle: 50}, {mapped: definition});
+        expect(command).toHaveBeenCalledWith(
+            "ssIasWd",
+            "startWarning",
+            {startwarninginfo: 4, warningduration: 2, strobedutycycle: 50, strobelevel: 1},
+            expect.anything(),
+        );
+    });
+
     it("rejects unverified modes and invalid durations", async () => {
         const command = vi.fn();
         await expect(convertSet({command}, "warning", {mode: "fire"}, {mapped: definition})).rejects.toThrow();
         await expect(convertSet({command}, "warning", {mode: "alarm", duration: 1801}, {mapped: definition})).rejects.toThrow();
+        await expect(convertSet({command}, "warning", {mode: "flash", strobe_duty_cycle: 100}, {mapped: definition})).rejects.toThrow();
         expect(command).not.toHaveBeenCalled();
     });
 

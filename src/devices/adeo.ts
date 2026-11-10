@@ -54,18 +54,25 @@ const tzLocal = {
     ldsenk06Warning: {
         key: ["warning"],
         convertSet: async (entity, key, value, meta) => {
-            utils.assertObject<{mode?: string; duration?: number}>(value);
+            // biome-ignore lint/style/useNamingConvention: Zigbee2MQTT composite property name
+            utils.assertObject<{mode?: string; duration?: number; strobe?: boolean; strobe_duty_cycle?: number}>(value);
             const mode = value.mode ?? "alarm";
-            if (mode !== "alarm" && mode !== "stop") throw new Error(`Unsupported warning mode: ${mode}`);
+            if (mode !== "alarm" && mode !== "flash" && mode !== "stop") throw new Error(`Unsupported warning mode: ${mode}`);
             const duration = mode === "stop" ? 0 : (value.duration ?? 10);
             utils.assertNumber(duration, "duration");
             if (!Number.isInteger(duration) || duration < 0 || duration > 1800)
                 throw new Error("Warning duration must be an integer between 0 and 1800 seconds");
-            // Enki uses the non-standard warning mode 7 with strobe and high level.
+            if (value.strobe !== undefined && typeof value.strobe !== "boolean") throw new Error("strobe must be a boolean");
+            const dutyCycle = value.strobe_duty_cycle ?? (mode === "flash" ? 10 : 1);
+            utils.assertNumber(dutyCycle, "strobe_duty_cycle");
+            if (!Number.isInteger(dutyCycle) || dutyCycle < 1 || dutyCycle > 99)
+                throw new Error("Strobe duty cycle must be an integer between 1 and 99");
+            // Enki uses the non-standard warning mode 7 with high level.
+            const strobe = mode === "flash" || (mode === "alarm" && (value.strobe ?? true));
             const payload = {
-                startwarninginfo: mode === "stop" ? 0 : 0x76,
+                startwarninginfo: mode === "alarm" ? (strobe ? 0x76 : 0x72) : strobe ? 0x04 : 0,
                 warningduration: duration,
-                strobedutycycle: mode === "stop" ? 0 : 1,
+                strobedutycycle: mode === "stop" ? 0 : dutyCycle,
                 strobelevel: mode === "stop" ? 0 : 1,
             };
             // The siren performs the command but does not send the ZCL default response.
@@ -93,7 +100,11 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [
             e
                 .composite("warning", "warning", ea.SET)
-                .withFeature(e.enum("mode", ea.SET, ["alarm", "stop"]).withDescription("Start the siren and strobe, or stop the warning"))
+                .withFeature(e.enum("mode", ea.SET, ["alarm", "flash", "stop"]).withDescription("Start the siren, flash only, or stop the warning"))
+                .withFeature(e.binary("strobe", ea.SET, true, false).withDescription("Enable the flash during an alarm"))
+                .withFeature(
+                    e.numeric("strobe_duty_cycle", ea.SET).withUnit("%").withValueMin(1).withValueMax(99).withDescription("Flash duty cycle"),
+                )
                 .withFeature(e.numeric("duration", ea.SET).withUnit("s").withValueMin(0).withValueMax(1800).withDescription("Duration in seconds")),
         ],
     },
