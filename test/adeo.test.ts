@@ -53,11 +53,11 @@ describe("LDSENK06 warning", () => {
 
     it("supports flash alone with a specified duty cycle", async () => {
         const command = vi.fn();
-        await convertSet({command}, "warning", {mode: "flash", duration: 2, strobe_duty_cycle: 50}, {mapped: definition});
+        await convertSet({command}, "warning", {mode: "flash", duration: 2, strobe_duty_cycle: 50, strobe_level: 3}, {mapped: definition});
         expect(command).toHaveBeenCalledWith(
             "ssIasWd",
             "startWarning",
-            {startwarninginfo: 4, warningduration: 2, strobedutycycle: 50, strobelevel: 1},
+            {startwarninginfo: 4, warningduration: 2, strobedutycycle: 50, strobelevel: 3},
             expect.anything(),
         );
     });
@@ -67,6 +67,7 @@ describe("LDSENK06 warning", () => {
         await expect(convertSet({command}, "warning", {mode: "fire"}, {mapped: definition})).rejects.toThrow();
         await expect(convertSet({command}, "warning", {mode: "alarm", duration: 1801}, {mapped: definition})).rejects.toThrow();
         await expect(convertSet({command}, "warning", {mode: "flash", strobe_duty_cycle: 100}, {mapped: definition})).rejects.toThrow();
+        await expect(convertSet({command}, "warning", {mode: "flash", strobe_level: 0}, {mapped: definition})).rejects.toThrow();
         await expect(convertSet({command}, "warning", {mode: "alarm", level: "low"}, {mapped: definition})).rejects.toThrow();
         expect(command).not.toHaveBeenCalled();
     });
