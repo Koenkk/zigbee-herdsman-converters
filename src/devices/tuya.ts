@@ -7510,8 +7510,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "6 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            if (device.manufacturerName === "_TZE204_gxbdnfrh") {
-                // DP only device, the genOnOff bind fails with INVALID_EP on some units
+            if (["_TZE204_gxbdnfrh", "_TZE284_znkkcauq"].includes(device.manufacturerName)) {
+                // DP only devices, the genOnOff bind fails with INVALID_EP on some units
                 await tuya.configureMagicPacket(device, coordinatorEndpoint);
             } else {
                 const endpoint = device.getEndpoint(1);
