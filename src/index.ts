@@ -572,11 +572,18 @@ export async function findDefinition(device: Zh.Device, generateForUnknown = fal
 
         // Match based on fingerprint failed, return first matching definition based on zigbeeModel.
         // A candidate can be here because the lookups above matched the normalized modelID, so compare against that form too.
+        // The lookups above are case-insensitive, so compare case-insensitively here as well.
         if (device.modelID) {
-            const normalizedModelID = normalizeModelID(device.modelID);
+            const modelID = device.modelID.toLowerCase();
+            const normalizedModelID = normalizeModelID(modelID);
 
             for (const candidate of candidates) {
-                if (candidate.zigbeeModel?.some((zigbeeModel) => zigbeeModel === device.modelID || zigbeeModel === normalizedModelID)) {
+                if (
+                    candidate.zigbeeModel?.some((zigbeeModel) => {
+                        const lower = zigbeeModel.toLowerCase();
+                        return lower === modelID || lower === normalizedModelID;
+                    })
+                ) {
                     return candidate;
                 }
             }

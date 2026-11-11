@@ -67,9 +67,10 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_1di7ujzp", "_TZE284_pfbtmgo1"]),
         model: "E13",
         vendor: "Nous",
+        whiteLabel: [tuya.whitelabel("Sygonix", "W08-Z10T", "Water leakage or shortage sensor with sound alarm", ["_TZE284_pfbtmgo1"])],
         description: "Water leakage or shortage sensor with sound alarm",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [

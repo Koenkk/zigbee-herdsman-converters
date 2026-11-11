@@ -83,7 +83,7 @@ const fzLocal = {
                 humidity: bcd(24, 1),
             };
             const battery = [0, 10, 25, 50, 75, 100][record[49]];
-            if (battery !== undefined) result.battery = battery;
+            if (model.model !== "SQ610NH" && battery !== undefined) result.battery = battery;
             // 12.34 is a placeholder the thermostat regularly sends instead of a reading
             if (record.readUInt16BE(4) !== 0x1234) result.local_temperature = bcd(4) / 100;
             return result;
@@ -415,6 +415,34 @@ export const definitions: DefinitionWithExtend[] = [
                 .withRunningState(["idle", "heat"], ea.STATE),
             e.humidity(),
             e.battery(),
+            e.child_lock(),
+            e
+                .list("wiring_centre_zones", ea.SET, e.numeric("zone", ea.SET).withValueMin(1).withValueMax(8))
+                .withDescription("Pairs the thermostat with these wiring centre zones, taking them over from any other thermostat"),
+        ],
+        ota: {manufacturerName: "SalusControls"},
+    },
+    {
+        zigbeeModel: ["SQ610NH"],
+        model: "SQ610NH",
+        vendor: "Salus Controls",
+        description: "Quantum hardwired thermostat",
+        extend: [
+            salusExtend.addGatewayBasic(),
+            salusExtend.addIt600Cluster(),
+            salusExtend.it600Sync(0x20, 9),
+            m.forcePowerSource({powerSource: "Mains (single phase)"}),
+        ],
+        fromZigbee: [fzLocal.it600_status],
+        toZigbee: [tzLocal.it600_system_mode, tzLocal.it600_setpoint, tzLocal.it600_child_lock, tzLocal.it600_wiring_centre_zones],
+        exposes: [
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 40, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "heat", "cool"], ea.STATE_SET)
+                .withRunningState(["idle", "heat"], ea.STATE),
+            e.humidity(),
             e.child_lock(),
             e
                 .list("wiring_centre_zones", ea.SET, e.numeric("zone", ea.SET).withValueMin(1).withValueMax(8))

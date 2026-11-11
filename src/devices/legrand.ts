@@ -15,6 +15,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
+import {ignoreErrors} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -247,10 +248,11 @@ export const definitions: DefinitionWithExtend[] = [
             legrandExtend.addLegrandClosuresWindowCovering(),
             tuya.clusters.addTuyaClosuresWindowCoveringCluster(),
         ],
-        fromZigbee: [fzLegrand.cover_moving_state, fz.cover_position_tilt, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
+        fromZigbee: [fz.cover_position_tilt, fzLegrand.cover_moving_state, fz.identify, fzLegrand.cluster_fc01, fzLegrand.calibration_mode(true)],
         toZigbee: [
             tzLegrand.cover_state_with_moving,
             tzLegrand.cover_position_with_moving,
+            tzLegrand.cover_moving,
             tzLegrand.identify,
             tzLegrand.led_mode,
             tzLegrand.calibration_mode(true),
@@ -364,7 +366,13 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [legrandExtend.addLegrandDevicesCluster(), m.light({configureReporting: true, levelConfig: {features: ["on_level"]}})],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput", "lightingBallastCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genIdentify", "genBinaryInput"]);
+            // Non-dimmer units don't support lightingBallastCfg
+            await ignoreErrors(
+                () => reporting.bind(endpoint, coordinatorEndpoint, ["lightingBallastCfg"]),
+                ["INVALID_EP"],
+                "lightingBallastCfg bind",
+            );
         },
     },
     {
