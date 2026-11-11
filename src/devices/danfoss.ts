@@ -5,7 +5,7 @@ import * as constants from "../lib/constants";
 import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
-import type {DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
+import type {Configure, DefinitionWithExtend, Fz, KeyValueAny, ModernExtend, Tz, Zh} from "../lib/types";
 import * as utils from "../lib/utils";
 import {postfixWithEndpointName, precisionRound} from "../lib/utils";
 
@@ -1002,6 +1002,113 @@ const danfossExtend = {
             },
         ],
     }),
+    danfossWeeklySchedule: (): ModernExtend => {
+        // ZCL dayofweek bitmap: bit 0 = sunday ... bit 6 = saturday
+        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        const dayBit = (key: string) => 1 << days.indexOf(key.replace("schedule_", ""));
+        const transitionRegex = /^([01][0-9]|2[0-3]):([0-5][0-9])\/(\d+(\.\d+)?)$/;
+        // eTRV spec, hvacThermostat attribute 0x0022 "Number of daily transitions" is fixed at 6
+        const maxDailyTransitions = 6;
+        // A request for several days is answered with one getWeeklyScheduleRsp per day (handled by fromZigbee),
+        // so don't wait for a single matching response.
+        const readDays = async (entity: Zh.Endpoint | Zh.Group, daystoreturn: number) => {
+            await entity.command("hvacThermostat", "getWeeklySchedule", {daystoreturn, modetoreturn: 1}, {disableResponse: true});
+        };
+
+        const exposes = days.map((day) =>
+            e
+                .text(`schedule_${day}`, ea.ALL)
+                .withDescription(
+                    `Schedule for ${day}, up to ${maxDailyTransitions} transitions "HH:MM/temperature", ` +
+                        'e.g. "06:00/21.0 22:00/17.0". Empty value clears the day.',
+                ),
+        );
+
+        const fromZigbee = [
+            {
+                cluster: "hvacThermostat",
+                type: ["commandGetWeeklyScheduleRsp"],
+                convert: (model, msg, publish, options, meta) => {
+                    const schedule = msg.data.transitions
+                        .map((t) => {
+                            const hours = Math.floor(t.transitionTime / 60);
+                            const minutes = t.transitionTime % 60;
+                            return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}/${(t.heatSetpoint / 100).toFixed(1)}`;
+                        })
+                        .join(" ");
+
+                    const result: KeyValueAny = {};
+                    for (const [bit, day] of days.entries()) {
+                        if (msg.data.dayofweek & (1 << bit)) {
+                            result[`schedule_${day}`] = schedule;
+                        }
+                    }
+                    return result;
+                },
+            } satisfies Fz.Converter<"hvacThermostat", undefined, ["commandGetWeeklyScheduleRsp"]>,
+        ];
+
+        const toZigbee: Tz.Converter[] = [
+            {
+                key: days.map((day) => `schedule_${day}`),
+                convertSet: async (entity, key, value, meta) => {
+                    utils.assertString(value, key);
+                    const entries = value.trim() === "" ? [] : value.trim().split(/\s+/);
+                    if (entries.length > maxDailyTransitions) {
+                        throw new Error(`Invalid schedule: at most ${maxDailyTransitions} transitions per day, found: ${entries.length}`);
+                    }
+
+                    // Respect the limits configured on the TRV, when known; otherwise leave it to the device
+                    const minLimit = meta.state.min_heat_setpoint_limit;
+                    const maxLimit = meta.state.max_heat_setpoint_limit;
+                    const transitions = entries
+                        .map((entry) => {
+                            const matches = entry.match(transitionRegex);
+                            if (!matches) {
+                                throw new Error(
+                                    `Invalid schedule: transitions must be in format HH:MM/temperature (e.g. 06:00/21.0), found: ${entry}`,
+                                );
+                            }
+                            const temperature = Number.parseFloat(matches[3]);
+                            if (
+                                (typeof minLimit === "number" && temperature < minLimit) ||
+                                (typeof maxLimit === "number" && temperature > maxLimit)
+                            ) {
+                                throw new Error(
+                                    `Invalid schedule: temperature must be within the heat setpoint limits ${minLimit ?? "?"}-${maxLimit ?? "?"}, found: ${temperature}`,
+                                );
+                            }
+                            return {
+                                transitionTime: Number.parseInt(matches[1], 10) * 60 + Number.parseInt(matches[2], 10),
+                                heatSetpoint: Math.round(temperature * 100),
+                            };
+                        })
+                        .sort((a, b) => a.transitionTime - b.transitionTime);
+
+                    await entity.command(
+                        "hvacThermostat",
+                        "setWeeklySchedule",
+                        {dayofweek: dayBit(key), numoftrans: transitions.length, mode: 1, transitions},
+                        // Queue for the next check-in when the (sleepy) TRV misses the request; see Koenkk/zigbee-herdsman#1948
+                        {...utils.getOptions(meta.mapped, entity), sendPolicy: "keep-payload"},
+                    );
+                    // Read the day back, so the state reflects what the TRV actually stored
+                    await readDays(entity, dayBit(key)).catch(() => {});
+                },
+                convertGet: async (entity, key, meta) => {
+                    await readDays(entity, dayBit(key));
+                },
+            },
+        ];
+
+        const configure: Configure[] = [
+            async (device) => {
+                await readDays(device.getEndpoint(1), 0x7f);
+            },
+        ];
+
+        return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    },
 };
 
 const tzLocal = {
@@ -1517,6 +1624,7 @@ export const definitions: DefinitionWithExtend[] = [
             danfossExtend.danfossAdaptionRunControl(),
             danfossExtend.danfossRegulationSetpointOffset(),
             danfossExtend.danfossTimeSyncOnAnnounce(),
+            danfossExtend.danfossWeeklySchedule(),
             m.poll({
                 key: "danfossTime",
                 defaultIntervalSeconds: 60 * 60 * 24,
