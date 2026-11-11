@@ -25,7 +25,6 @@ interface ThermorHvacThermostat {
     attributes: {
         connectedLoad: number;
         windowDetection: number;
-        heatingState: number;
         heatingDemand: number;
         powerBoardTemperature: number;
     };
@@ -269,9 +268,9 @@ export const definitions: DefinitionWithExtend[] = [
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
-                    // 0 = idle, 2 = heating
-                    if (msg.data.heatingState !== undefined) {
-                        return {running_state: msg.data.heatingState === 0 ? "idle" : "heat"};
+                    // heatingState (17049) stays at heating while the mat is off, the duty cycle follows the actual heating
+                    if (msg.data.heatingDemand !== undefined) {
+                        return {running_state: msg.data.heatingDemand > 0 ? "heat" : "idle"};
                     }
                 },
             } satisfies Fz.Converter<"hvacThermostat", ThermorHvacThermostat, ["attributeReport", "readResponse"]>,
@@ -280,7 +279,7 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 key: ["running_state"],
                 convertGet: async (entity, key, meta) => {
-                    await entity.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingState"]);
+                    await entity.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingDemand"]);
                 },
             } satisfies Tz.Converter,
         ],
@@ -302,12 +301,6 @@ export const definitions: DefinitionWithExtend[] = [
                         manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
                         write: true,
                     },
-                    heatingState: {
-                        name: "heatingState",
-                        ID: 17049,
-                        type: Zcl.DataType.ENUM8,
-                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
-                    },
                     heatingDemand: {
                         name: "heatingDemand",
                         ID: 17068,
@@ -325,7 +318,7 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.identify(),
-            // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingState instead
+            // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingDemand instead
             m.thermostat({
                 localTemperature: {},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
