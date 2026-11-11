@@ -31,6 +31,34 @@ const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
 
 // EARU EAYCBM-Z DP 18: overcurrent (1), overvoltage (3) and undervoltage (4) alarms
+// The Rain Seer FJKB005ZG-1 closes itself after its countdown but never reports that. Mirror the countdown with a timer
+// so the published state follows the valve instead of staying ON forever.
+const rainSeerAutoOffKey = "rain_seer_auto_off_timer";
+const rainSeerValveState: Tuya.ValueConverterSingle = {
+    to: (value: string, meta: Tz.Meta) => {
+        const on = tvc.onOff.to(value, meta) as boolean;
+        const device = meta.device;
+        if (device) {
+            const previous = globalStore.getValue(device, rainSeerAutoOffKey);
+            if (previous) clearTimeout(previous);
+            globalStore.clearValue(device, rainSeerAutoOffKey);
+            const countdown = meta.state.countdown;
+            if (on && typeof countdown === "number" && countdown > 0) {
+                const timer = setTimeout(
+                    () => {
+                        globalStore.clearValue(device, rainSeerAutoOffKey);
+                        meta.publish({state: "OFF"});
+                    },
+                    countdown * 60 * 1000,
+                ).unref();
+                globalStore.putValue(device, rainSeerAutoOffKey, timer);
+            }
+        }
+        return on;
+    },
+    from: tvc.onOff.from,
+};
+
 const eaycbmThresholds = tuya.valueConverterBasic.thresholdBlocks([
     [1, "over_current"],
     [3, "over_voltage"],
@@ -17911,6 +17939,34 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 [26, "error_status", tuya.valueConverter.raw],
                 [101, "state", tuya.valueConverter.onOff],
+                [111, "countdown", tuya.valueConverter.raw],
+                [115, "battery_state", tuya.valueConverter.batteryState],
+            ],
+        },
+    },
+    {
+        // Sold as "Rain Seer Tuya Zigbee Garden Home Irrigation Water Timer", made by Ningbo Fujin Garden & Irrigation
+        // Equipment (label FJKB005ZG-1). Tested on a real device (app version 81): it accepts sendData commands on DP 101,
+        // but does not report datapoints back, not even in response to a dataQuery (it only acknowledges with a
+        // defaultRsp). It has no genPowerCfg cluster. The state is therefore optimistic and is set back to OFF by a timer
+        // when the countdown (DP 111, verified) expires; battery_state and error_status can only update if the device
+        // decides to report them on change. Operating the valve with its own button is not reflected.
+        fingerprint: tuya.fingerprint("TS0049", ["_TZ3210_0jxeoadc"]),
+        model: "FJKB005ZG-1",
+        vendor: "Rain Seer",
+        description: "Zigbee garden irrigation water timer",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true})],
+        exposes: [
+            tuya.exposes.errorStatus(),
+            tuya.exposes.switch(),
+            tuya.exposes.batteryState(),
+            tuya.exposes.countdown().withValueMin(0).withValueMax(255).withUnit("minutes").withDescription("Max on time in minutes"),
+        ],
+        meta: {
+            tuyaSendCommand: "sendData",
+            tuyaDatapoints: [
+                [26, "error_status", tuya.valueConverter.raw],
+                [101, "state", rainSeerValveState],
                 [111, "countdown", tuya.valueConverter.raw],
                 [115, "battery_state", tuya.valueConverter.batteryState],
             ],
