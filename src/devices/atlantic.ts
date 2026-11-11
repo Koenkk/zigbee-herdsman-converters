@@ -79,17 +79,18 @@ const addAtlanticHvacThermostatCluster = () =>
     });
 
 /**
- * Map `heatingState` to `running_state`, the standard `runningState` attribute being unsupported.
- * The value meaning "heating" differs between products.
+ * Map a manufacturer-specific attribute to `running_state`, the standard `runningState` attribute being unsupported.
+ * The attribute and the value meaning "heating" differ between products.
  */
-const atlanticRunningState = (isHeating: (heatingState: number) => boolean): ModernExtend => ({
+const atlanticRunningState = (attribute: "heatingState" | "heatingDemand", isHeating: (value: number) => boolean): ModernExtend => ({
     fromZigbee: [
         {
             cluster: "hvacThermostat",
             type: ["attributeReport", "readResponse"],
             convert: (model, msg, publish, options, meta) => {
-                if (msg.data.heatingState !== undefined) {
-                    return {running_state: isHeating(msg.data.heatingState) ? "heat" : "idle"};
+                const value = msg.data[attribute];
+                if (value !== undefined) {
+                    return {running_state: isHeating(value) ? "heat" : "idle"};
                 }
             },
         } satisfies Fz.Converter<"hvacThermostat", AtlanticHvacThermostat, ["attributeReport", "readResponse"]>,
@@ -98,7 +99,7 @@ const atlanticRunningState = (isHeating: (heatingState: number) => boolean): Mod
         {
             key: ["running_state"],
             convertGet: async (entity, key, meta) => {
-                await entity.read<"hvacThermostat", AtlanticHvacThermostat>("hvacThermostat", ["heatingState"]);
+                await entity.read<"hvacThermostat", AtlanticHvacThermostat>("hvacThermostat", [attribute]);
             },
         } satisfies Tz.Converter,
     ],
@@ -343,7 +344,7 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
             }),
             // 0 = idle, 1 = heating, 2 = briefly while heating stops
-            atlanticRunningState((heatingState) => heatingState === 1),
+            atlanticRunningState("heatingState", (heatingState) => heatingState === 1),
             m.identify(),
             // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingState instead
             m.thermostat({
@@ -460,10 +461,10 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Thermor 400704 thermostat for electric underfloor heating",
         extend: [
             addAtlanticHvacThermostatCluster(),
-            // 0 = idle, 2 = heating
-            atlanticRunningState((heatingState) => heatingState !== 0),
+            // heatingState stays at heating while the mat is off, the duty cycle follows the actual heating
+            atlanticRunningState("heatingDemand", (heatingDemand) => heatingDemand > 0),
             m.identify(),
-            // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingState instead
+            // runningState and pIHeatingDemand are unsupported, running_state is mapped from heatingDemand instead
             m.thermostat({
                 localTemperature: {},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
