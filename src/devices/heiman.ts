@@ -3300,7 +3300,8 @@ export const definitions: DefinitionWithExtend[] = [
                 name: "pir_sensitivity_level",
                 lookup: {disabled: 0, low: 1, medium: 2, high: 3},
                 cluster: "heimanClusterSpecial",
-                attribute: "sensorSensitivityLevel",
+                // HS9MS-E rejects the shared UINT8 type for this attribute.
+                attribute: {ID: 0x0004, type: Zcl.DataType.ENUM8},
                 description: "The sensitivity of PIR Sensor",
                 access: "ALL",
             }),

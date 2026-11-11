@@ -63,6 +63,17 @@ describe("Heiman HS9MS-E camera attributes", () => {
         expect(endpoint.read).toHaveBeenCalledWith("heimanClusterSpecial", [attribute], undefined);
     });
 
+    it("writes PIR sensitivity as an 8-bit enum", async () => {
+        const endpoint = device.getEndpoint(1);
+        const key = "pir_sensitivity_level";
+        const converter = definition.toZigbee.find((candidate) => candidate.key.includes(key));
+        const meta = {device, mapped: definition, state: {}, message: {}, options: {}} as Tz.Meta;
+        await converter.convertSet(endpoint, key, "medium", meta);
+        expect(endpoint.write).toHaveBeenCalledWith("heimanClusterSpecial", {4: {value: 2, type: Zcl.DataType.ENUM8}}, undefined);
+        await converter.convertGet(endpoint, key, meta);
+        expect(endpoint.read).toHaveBeenCalledWith("heimanClusterSpecial", [4], undefined);
+    });
+
     it("decodes the read-only camera status as hexadecimal", async () => {
         const endpoint = device.getEndpoint(1);
         const message = {
