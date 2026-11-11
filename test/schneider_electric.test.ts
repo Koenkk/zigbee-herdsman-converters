@@ -1,6 +1,7 @@
 import {describe, expect, it, vi} from "vitest";
+import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
-import type {Fz, KeyValueAny} from "../src/lib/types";
+import type {Fz, KeyValueAny, Tz} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("Schneider Electric S520567", () => {
@@ -88,5 +89,36 @@ describe("Schneider Electric WV704R0A0902", () => {
                 "hvacUserInterfaceCfg.keypadLockout",
             ]),
         );
+    });
+});
+
+describe("Schneider Electric EER51000", () => {
+    it("answers the thermostat's setpoint and mode reads from the cache", async () => {
+        const device = mockDevice({
+            modelID: "EH-ZB-RTS",
+            manufacturerName: "Schneider Electric",
+            endpoints: [{ID: 11, inputClusters: ["hvacThermostat"]}],
+        });
+        const definition = await findByDevice(device);
+        const endpoint = device.getEndpoint(11);
+        endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: 1500});
+        await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
+        await definition.toZigbee.find((c) => c.key?.includes("zone_mode"))?.convertSet?.(endpoint, "zone_mode", "schedule", {} as Tz.Meta);
+        const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
+        const read = (attrId: number) =>
+            device.customReadResponse?.(
+                Zcl.Frame.create(Zcl.FrameType.GLOBAL, Zcl.Direction.CLIENT_TO_SERVER, true, undefined, 1, "read", "hvacThermostat", [{attrId}], {}),
+                endpoint,
+            );
+
+        // Simulate the reads made when increasing/decreasing the temperature
+        expect(read(0x0012)).toBe(true);
+        expect(read(0xe010)).toBe(true);
+        expect(readResponse.mock.calls).toStrictEqual([
+            ["hvacThermostat", 1, {occupiedHeatingSetpoint: 1500}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {[0xe010]: {value: 2, type: Zcl.DataType.ENUM8}}, {srcEndpoint: 11, manufacturerCode: undefined}],
+        ]);
+        // Other attributes are left to zigbee-herdsman.
+        expect(read(0x0000)).toBe(false);
     });
 });
