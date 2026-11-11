@@ -355,7 +355,6 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [
             {modelID: "Dimmable Light", manufacturerName: "Paulmann lamp"},
-            {modelID: "Dimmable Light ", manufacturerName: "Paulmann lamp "},
         ],
         model: "501.22",
         vendor: "Paulmann",
@@ -422,10 +421,11 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 vendor: "Paulmann",
                 model: "291.50",
-                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"}],
+                fingerprint: [
+                    {modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"},
+                    {modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51109"},
+                ],
             },
-        ],
-    },
     {
         fingerprint: [
             {
