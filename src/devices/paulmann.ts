@@ -422,10 +422,11 @@ export const definitions: DefinitionWithExtend[] = [
             {
                 vendor: "Paulmann",
                 model: "291.50",
-                fingerprint: [{modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"}],
+                fingerprint: [
+                {modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51104"},
+                {modelID: "RGBWW", manufacturerName: "Paulmann Licht GmbH", softwareBuildID: "PIIC51109"},
+                ],
             },
-        ],
-    },
     {
         fingerprint: [
             {
