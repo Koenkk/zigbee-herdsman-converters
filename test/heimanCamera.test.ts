@@ -42,6 +42,12 @@ describe("Heiman HS9MS-E camera attributes", () => {
         {key: "camera_gop", value: 15, attribute: "cameraGop"},
         {key: "camera_audio_enable", value: true, attribute: "cameraAudioEnable", written: 1},
         {key: "camera_rtsp_user", value: "viewer", attribute: "cameraRtspUser"},
+        {key: "wifi_ssid", value: "home-network", attribute: "wifiSsid"},
+        {key: "wifi_password", value: "password", attribute: "wifiPassword"},
+        {key: "wifi_ssid_candidate", value: "backup-network", attribute: "wifiSsidCandidate"},
+        {key: "wifi_password_candidate", value: "backup-password", attribute: "wifiPasswordCandidate"},
+        {key: "server_url", value: "https://camera.example", attribute: "serverAddress"},
+        {key: "server_url_candidate", value: "https://backup.example", attribute: "serverAddressCandidate"},
         {key: "server_port", value: 554, attribute: "serverPort"},
         {key: "camera_capture_interval", value: 60, attribute: "cameraCaptureInterval"},
         {key: "camera_osd_text", value: "Front door", attribute: "cameraOsdText"},
@@ -91,16 +97,27 @@ describe("Heiman HS9MS-E camera attributes", () => {
         await expect(converter.convertSet(device.getEndpoint(1), "camera_osd_text", "测".repeat(22), meta)).rejects.toThrow("64 bytes");
     });
 
+    it("rejects Wi-Fi and server strings exceeding their firmware byte limits", async () => {
+        const meta = {device, mapped: definition, state: {}, message: {}, options: {}} as Tz.Meta;
+        for (const {key, maxLength} of [
+            {key: "wifi_ssid", maxLength: 32},
+            {key: "wifi_password", maxLength: 64},
+            {key: "wifi_ssid_candidate", maxLength: 32},
+            {key: "wifi_password_candidate", maxLength: 32},
+            {key: "server_url", maxLength: 251},
+            {key: "server_url_candidate", maxLength: 251},
+        ]) {
+            const converter = definition.toZigbee.find((candidate) => candidate.key.includes(key));
+            await expect(converter.convertSet(device.getEndpoint(1), key, "a".repeat(maxLength + 1), meta)).rejects.toThrow(`${maxLength} bytes`);
+        }
+    });
+
     it("maps the server address using the cluster attribute name", async () => {
         const endpoint = device.getEndpoint(1);
         const converter = definition.toZigbee.find((candidate) => candidate.key.includes("server_url"));
         const meta = {device, mapped: definition, state: {}, message: {}, options: {}} as Tz.Meta;
         await converter.convertSet(endpoint, "server_url", "https://camera.example", meta);
-        expect(endpoint.write).toHaveBeenCalledWith(
-            "heimanClusterSpecial",
-            {8198: {value: "https://camera.example", type: Zcl.DataType.CHAR_STR}},
-            {disableDefaultResponse: false},
-        );
+        expect(endpoint.write).toHaveBeenCalledWith("heimanClusterSpecial", {serverAddress: "https://camera.example"}, undefined);
         const message = {
             cluster: "heimanClusterSpecial",
             type: "readResponse",

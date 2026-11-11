@@ -1662,111 +1662,6 @@ const heimanExtend = {
             fromZigbee,
         };
     },
-    heimanClusterSensorWifiExposure: (): ModernExtend => {
-        const clusterName = "heimanClusterSpecial" as const;
-
-        const attrIds: Record<string, number> = {
-            wifiSsid: 0x2000,
-            wifiPassword: 0x2001,
-            wifiSsidCandidate: 0x2002,
-            wifiPasswordCandidate: 0x2003,
-            serverAddress: 0x2006,
-            serverAddressCandidate: 0x2007,
-        };
-
-        const exposes = [
-            e.text("wifi_ssid", ea.ALL).withDescription("Current WiFi SSID"),
-            e.text("wifi_password", ea.ALL).withDescription("Current WiFi Password"),
-            e.text("wifi_ssid_candidate", ea.ALL).withDescription("Candidate WiFi SSID"),
-            e.text("wifi_password_candidate", ea.ALL).withDescription("Candidate WiFi Password"),
-            e.text("server_url", ea.ALL).withDescription("Current Server URL"),
-            e.text("server_url_candidate", ea.ALL).withDescription("Candidate WiFi Server URL"),
-        ];
-
-        const fromZigbee = [
-            {
-                cluster: clusterName,
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    const result: Record<string, unknown> = {};
-                    const data = msg.data as Record<string, unknown>;
-
-                    if (data.wifiSsid !== undefined) result.wifi_ssid = data.wifiSsid;
-                    if (data.wifiPassword !== undefined) result.wifi_password = data.wifiPassword;
-                    if (data.wifiSsidCandidate !== undefined) result.wifi_ssid_candidate = data.wifiSsidCandidate;
-                    if (data.wifiPasswordCandidate !== undefined) result.wifi_password_candidate = data.wifiPasswordCandidate;
-                    if (data.serverAddress !== undefined) result.server_url = data.serverAddress;
-                    if (data.serverAddressCandidate !== undefined) result.server_url_candidate = data.serverAddressCandidate;
-
-                    return result;
-                },
-            } satisfies Fz.Converter<typeof clusterName, HeimanPrivateCluster, ["attributeReport", "readResponse"]>,
-        ];
-
-        const toZigbee: Tz.Converter[] = [
-            {
-                key: ["wifi_ssid", "wifi_password", "wifi_ssid_candidate", "wifi_password_candidate", "server_url", "server_url_candidate"],
-                convertSet: async (entity, key, value, meta) => {
-                    const attrNameMap: Record<string, string> = {
-                        wifi_ssid: "wifiSsid",
-                        wifi_password: "wifiPassword",
-                        wifi_ssid_candidate: "wifiSsidCandidate",
-                        wifi_password_candidate: "wifiPasswordCandidate",
-                        server_url: "serverAddress",
-                        server_url_candidate: "serverAddressCandidate",
-                    };
-
-                    const attrName = attrNameMap[key];
-                    const attrId = attrIds[attrName];
-
-                    if (attrId !== undefined) {
-                        const maxLength = key.includes("password")
-                            ? key === "wifi_password_candidate"
-                                ? 32
-                                : 64
-                            : key.startsWith("server_")
-                              ? 251
-                              : 32;
-                        assert(
-                            typeof value === "string" && Buffer.byteLength(value, "utf8") <= maxLength,
-                            `${key} must be at most ${maxLength} bytes`,
-                        );
-                        const payload = {
-                            [attrId]: {
-                                value: value,
-                                type: Zcl.DataType.CHAR_STR,
-                            },
-                        };
-                        await entity.write(clusterName, payload, defaultResponseOptions);
-                        // await entity.write<typeof clusterName, HeimanPrivateCluster>(clusterName, {[attrId]: value}, defaultResponseOptions);
-                    }
-                    return {state: {[key]: value}};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const attrNameMap: Record<string, string> = {
-                        wifi_ssid: "wifiSsid",
-                        wifi_password: "wifiPassword",
-                        wifi_ssid_candidate: "wifiSsidCandidate",
-                        wifi_password_candidate: "wifiPasswordCandidate",
-                        server_url: "serverAddress",
-                        server_url_candidate: "serverAddressCandidate",
-                    };
-
-                    const attrId = attrIds[attrNameMap[key]];
-                    if (attrId !== undefined) {
-                        await entity.read(clusterName, [attrId], defaultResponseOptions);
-                    }
-                },
-            },
-        ];
-
-        return {
-            exposes,
-            fromZigbee,
-            toZigbee,
-            isModernExtend: true,
-        };
-    },
     heimanClusterSensorActiveTrigger: (): ModernExtend => {
         const clusterName = "heimanClusterSpecial" as const;
         const manufacturerCode = 0x120b;
@@ -3398,102 +3293,88 @@ export const definitions: DefinitionWithExtend[] = [
         },
         extend: [
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "tamper", "battery_low"]}),
+            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
             m.battery(),
             heimanExtend.heimanClusterSpecial(),
-            heimanExtend.heimanClusterSensorTestTrigger(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "pir_sensitivity_level",
+                lookup: {disabled: 0, low: 1, medium: 2, high: 3},
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorSensitivityLevel",
+                description: "The sensitivity of PIR Sensor",
+                access: "ALL",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "sensor_armed",
+                valueOn: ["Armed", 1],
+                valueOff: ["Disarmed", 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "sensorArmed",
+                description: "armed",
+                access: "ALL",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "illuminance_threshold",
+                unit: "Lx",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 1000,
+                cluster: "heimanClusterSpecial",
+                attribute: "illuminanceThreshold",
+                description: "when the illuminance exceeds the threshold, it activates local linkages.",
+                access: "ALL",
+            }),
             heimanExtend.heimanClusterSensorActiveTrigger(),
-            heimanExtend.heimanClusterLegacyIlluminanceExtend(),
-            heimanExtend.heimanClusterSensorWifiExposure(),
-            heimanCameraNumeric("camera_gop", "cameraGop", "Camera GOP length", 0xffff),
-            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_audio_enable",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
+            heimanExtend.heimanClusterSensorTestTrigger(),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_ready",
+                lookup: {unavailable: 0, low_power: 1, normal: 2, advanced: 3},
                 cluster: "heimanClusterSpecial",
-                attribute: "cameraAudioEnable",
-                description: "Enable camera audio",
+                attribute: "cameraReady",
+                description: "Camera readiness status",
+                access: "STATE_GET",
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_mode",
+                lookup: {capture: 0, video: 1, ota: 2},
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraMode",
+                description: "Camera operating mode",
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_rtsp_user",
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_subtype",
                 cluster: "heimanClusterSpecial",
-                attribute: "cameraRtspUser",
-                description: "Camera RTSP user name",
+                attribute: "cameraSubtype",
+                description: "Subtype: capture 0 JPEG / 1 H.265; video 0 RTSP / 1 HTTP JPEG; OTA 0 APP / 1 firmware",
                 access: "ALL",
                 entityCategory: "config",
-                validate: (value) => validateCameraText(value, 32),
+                valueMin: 0,
+                valueMax: 1,
+                valueStep: 1,
             }),
-            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_rtsp_password",
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_capture_method",
+                lookup: {aov: 0, normal: 1},
                 cluster: "heimanClusterSpecial",
-                attribute: "cameraRtspPassword",
-                description: "Camera RTSP password",
-                access: "ALL",
-                entityCategory: "config",
-                validate: (value) => validateCameraText(value, 64),
-            }),
-            heimanCameraNumeric("camera_day_night_mode", "cameraDayNightMode", "Camera day/night mode", 0xff),
-            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "auth_token",
-                cluster: "heimanClusterSpecial",
-                attribute: "authToken",
-                description: "Camera server authentication token",
-                access: "ALL",
-                entityCategory: "config",
-                validate: (value) => validateCameraText(value, 32),
-            }),
-            heimanCameraNumeric("server_port", "serverPort", "Camera server port", 0xffff),
-            heimanCameraNumeric("zone_capture_mode", "zoneCaptureMode", "Zone capture mode", 0xff),
-            heimanCameraNumeric("wifi_provisioning_status", "wifiProvisioningStatus", "Wi-Fi provisioning status", 0xff),
-            heimanCameraNumeric("flash_light_brightness", "flashLightBrightness", "Camera flash brightness", 0xff),
-            heimanCameraNumeric("camera_mode", "cameraMode", "Camera mode", 0xff),
-            heimanCameraNumeric("camera_subtype", "cameraSubtype", "Camera subtype", 0xff),
-            heimanCameraNumeric("camera_capture_method", "cameraCaptureMethod", "Camera capture method", 0xff),
-            heimanCameraNumeric("camera_capture_interval", "cameraCaptureInterval", "Camera capture interval", 0xffffffff, "s"),
-            heimanCameraNumeric("camera_init_qp", "cameraInitQp", "Camera initial quantization parameter", 0xffff),
-            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_flip",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                cluster: "heimanClusterSpecial",
-                attribute: "cameraFlip",
-                description: "Flip camera image vertically",
+                attribute: "cameraCaptureMethod",
+                description: "Capture method (capture mode only)",
                 access: "ALL",
                 entityCategory: "config",
             }),
-            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_mirror",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_capture_interval",
                 cluster: "heimanClusterSpecial",
-                attribute: "cameraMirror",
-                description: "Mirror camera image horizontally",
+                attribute: "cameraCaptureInterval",
+                description: "Capture interval; AOV requires at least 1 second, 0 means no additional wait in Normal or HTTP JPEG mode",
                 access: "ALL",
                 entityCategory: "config",
+                valueMin: 0,
+                valueMax: 2147483,
+                valueStep: 1,
+                unit: "s",
             }),
-            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_osd_enable",
-                valueOn: [true, 1],
-                valueOff: [false, 0],
-                cluster: "heimanClusterSpecial",
-                attribute: "cameraOsdEnable",
-                description: "Enable camera on-screen display",
-                access: "ALL",
-                entityCategory: "config",
-            }),
-            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_osd_text",
-                cluster: "heimanClusterSpecial",
-                attribute: "cameraOsdText",
-                description: "Camera on-screen display text",
-                access: "ALL",
-                entityCategory: "config",
-                validate: (value) => validateCameraText(value, 64),
-            }),
-            heimanCameraNumeric("camera_video_codec", "cameraVideoCodec", "Camera video codec", 0xff),
-            heimanCameraNumeric("camera_frame_rate", "cameraFrameRate", "Camera frame rate", 0xff, "fps"),
-            heimanCameraNumeric("camera_bit_rate", "cameraBitRate", "Camera bit rate", 0xffffffff, "kbps"),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "picture_quantity",
                 unit: "",
@@ -3516,45 +3397,209 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "picture quality",
                 access: "ALL",
             }),
+            heimanCameraNumeric("zone_capture_mode", "zoneCaptureMode", "Zone capture mode", 0xff),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "mcu_software_version",
-                unit: "",
-                scale: 1,
-                valueMin: 0,
-                valueMax: 255,
+                name: "camera_init_qp",
                 cluster: "heimanClusterSpecial",
-                attribute: "mcuSoftwareVersion",
-                description: "version of mcu",
-                access: "STATE_GET",
-            }),
-            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "illuminance_threshold",
-                unit: "Lx",
-                scale: 1,
-                valueMin: 0,
-                valueMax: 1000,
-                cluster: "heimanClusterSpecial",
-                attribute: "illuminanceThreshold",
-                description: "when the illuminance exceeds the threshold, it activates local linkages.",
+                attribute: "cameraInitQp",
+                description: "Initial QP (capture mode only)",
                 access: "ALL",
-            }),
-            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "sensor_armed",
-                valueOn: ["Armed", 1],
-                valueOff: ["Disarmed", 0],
-                cluster: "heimanClusterSpecial",
-                attribute: "sensorArmed",
-                description: "armed",
-                access: "ALL",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 100,
+                valueStep: 1,
             }),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "pir_sensitivity_level",
-                lookup: {disabled: 0, low: 1, medium: 2, high: 3},
+                name: "camera_day_night_mode",
+                lookup: {day_color: 0, day_black_and_white: 1, night_color: 2, night_black_and_white: 3},
                 cluster: "heimanClusterSpecial",
-                attribute: "sensorSensitivityLevel",
-                description: "The sensitivity of PIR Sensor",
+                attribute: "cameraDayNightMode",
+                description: "Camera day/night mode",
                 access: "ALL",
+                entityCategory: "config",
             }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_flip",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraFlip",
+                description: "Flip camera image vertically",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_mirror",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraMirror",
+                description: "Mirror camera image horizontally",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            heimanCameraNumeric("flash_light_brightness", "flashLightBrightness", "Camera flash brightness", 0xff),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_osd_enable",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraOsdEnable",
+                description: "Enable camera on-screen display",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_osd_text",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraOsdText",
+                description: "OSD text: printable ASCII and newlines, up to 64 bytes; empty when OSD is disabled",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => {
+                    validateCameraText(value, 64);
+                    assert(typeof value === "string" && /^[\x20-\x7e\n]*$/.test(value), "OSD text must contain only printable ASCII and newlines");
+                },
+            }),
+            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_video_codec",
+                lookup: {h264: 0, h265: 1},
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraVideoCodec",
+                description: "Video codec (RTSP only)",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_frame_rate",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraFrameRate",
+                description: "Video frame rate (RTSP only; reference value 15)",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 30,
+                valueStep: 1,
+                unit: "fps",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_bit_rate",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraBitRate",
+                description: "Video bit rate (RTSP only; reference value 2048)",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 65535,
+                valueStep: 1,
+                unit: "kbps",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_gop",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraGop",
+                description: "GOP length in frames (RTSP only; reference value 15)",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 65535,
+                valueStep: 1,
+            }),
+            m.binary<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_audio_enable",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraAudioEnable",
+                description: "Enable camera audio",
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_rtsp_user",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraRtspUser",
+                description: "Camera RTSP user name (1–32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => {
+                    validateCameraText(value, 32);
+                    assert(
+                        typeof value === "string" && value.length > 0 && !value.includes("\0"),
+                        "RTSP user name must be nonempty and contain no null characters",
+                    );
+                },
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_rtsp_password",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraRtspPassword",
+                description: "Camera RTSP password (1–64 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => {
+                    validateCameraText(value, 64);
+                    assert(
+                        typeof value === "string" && value.length > 0 && !value.includes("\0"),
+                        "RTSP password must be nonempty and contain no null characters",
+                    );
+                },
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_ssid",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiSsid",
+                description: "Name of the current Wi-Fi network (SSID; up to 32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_password",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiPassword",
+                description: "Password for the current Wi-Fi network (up to 64 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 64),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_ssid_candidate",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiSsidCandidate",
+                description: "Name of the candidate Wi-Fi network (SSID; up to 32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_password_candidate",
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiPasswordCandidate",
+                description: "Password for the candidate Wi-Fi network (up to 32 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "server_url",
+                cluster: "heimanClusterSpecial",
+                attribute: "serverAddress",
+                description: "URL of the current camera server (up to 251 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 251),
+            }),
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "server_url_candidate",
+                cluster: "heimanClusterSpecial",
+                attribute: "serverAddressCandidate",
+                description: "URL of the candidate camera server (up to 251 bytes)",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 251),
+            }),
+            heimanCameraNumeric("server_port", "serverPort", "Port of the camera server (0–65535)", 0xffff),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "wifi_status",
                 lookup: {unconfigurated: 0, unconnected: 1, connected: 2, connection_timeout: 3},
@@ -3571,6 +3616,18 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "wifi candidate status",
                 access: "STATE_GET",
             }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "wifi_rssi",
+                unit: "dBm",
+                scale: (value, type) => (type === "from" ? (value > 127 ? value - 256 : value) : value < 0 ? value + 256 : value),
+                valueMin: -128,
+                valueMax: 127,
+                cluster: "heimanClusterSpecial",
+                attribute: "wifiRssi",
+                description: "wifi rssi",
+                access: "ALL",
+            }),
+            heimanCameraNumeric("wifi_provisioning_status", "wifiProvisioningStatus", "Wi-Fi provisioning status", 0xff),
             m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "server_status",
                 lookup: {unconfigurated: 0, unconnected: 1, connected: 2, api_timeout: 3},
@@ -3587,24 +3644,25 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "server candidate status",
                 access: "STATE_GET",
             }),
-            m.enumLookup<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "camera_ready",
-                lookup: {unavailable: 0, low_power: 1, normal: 2, advanced: 3},
+            m.text<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "auth_token",
                 cluster: "heimanClusterSpecial",
-                attribute: "cameraReady",
-                description: "Camera readiness status",
-                access: "STATE_GET",
+                attribute: "authToken",
+                description: "Camera server authentication token",
+                access: "ALL",
+                entityCategory: "config",
+                validate: (value) => validateCameraText(value, 32),
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
-                name: "wifi_rssi",
-                unit: "dBm",
-                scale: (value, type) => (type === "from" ? (value > 127 ? value - 256 : value) : value < 0 ? value + 256 : value),
-                valueMin: -128,
-                valueMax: 127,
+                name: "mcu_software_version",
+                unit: "",
+                scale: 1,
+                valueMin: 0,
+                valueMax: 255,
                 cluster: "heimanClusterSpecial",
-                attribute: "wifiRssi",
-                description: "wifi rssi",
-                access: "ALL",
+                attribute: "mcuSoftwareVersion",
+                description: "version of mcu",
+                access: "STATE_GET",
             }),
         ],
     },
