@@ -32318,10 +32318,10 @@ export const definitions: DefinitionWithExtend[] = [
                 .withSystemMode(["auto", "heat", "off"], ea.STATE_SET, "Mode of this device")
                 .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Open window detection"),
             e.binary("boost_heating", ea.STATE_SET, "ON", "OFF").withDescription("Boost heating"),
             e.numeric("boost_time", ea.STATE).withUnit("s").withDescription("Boost duration remaining"),
-            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Open window detection"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -32334,20 +32334,25 @@ export const definitions: DefinitionWithExtend[] = [
                         off: tuya.enum(2),
                     }),
                 ],
-                [105, "current_heating_setpoint", tuya.valueConverter.divideBy2],
-                [16, "current_heating_setpoint", tuya.valueConverter.divideBy2],
-                [24, "local_temperature", tuya.valueConverter.divideBy10],
-                [30, "child_lock", tuya.valueConverter.lockUnlock],
+                [8, "window_detection", tuya.valueConverter.onOff],
                 [
-                    34,
-                    "battery",
+                    16,
+                    "current_heating_setpoint",
                     {
-                        from: (v: number) => (v > 130 ? 100 : v < 70 ? 0 : Math.round((v - 70) * 1.7)),
+                        from: (v: number) => v / 2,
+                        to: async (v: number, meta: Tz.Meta) => {
+                            const raw = Math.round(v * 2);
+                            await tuya.sendDataPointValue(meta.device.endpoints[0], 105, raw, "dataRequest", 1);
+                            return raw;
+                        },
                     },
                 ],
-                [104, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [27, "local_temperature_calibration", tuya.valueConverter.raw],
+                [30, "child_lock", tuya.valueConverter.lockUnlock],
+                [34, "battery", tuya.valueConverterBasic.scale(0, 100, 50, 150)],
+                [105, "current_heating_setpoint", tuya.valueConverter.divideBy2],
                 [106, "boost_heating", tuya.valueConverter.onOff],
-                [107, "window_detection", tuya.valueConverter.onOff],
                 [118, "boost_time", tuya.valueConverter.raw],
             ],
         },
