@@ -154,18 +154,22 @@ describe("Schneider Electric EER53000", () => {
         await set("occupied_heating_setpoint", 21.5);
         await set("zone_mode", "schedule");
         await set("local_temperature_calibration", -0.7);
+        await set("keypad_lockout", "lock1");
+        await set("calibrate_valve", "calibrate");
         // Nothing is sent while the valve sleeps
         expect(command).not.toHaveBeenCalled();
         expect(write).not.toHaveBeenCalled();
 
-        // The valve reports, so it listens: the last setpoint is sent and the offset is written, once
+        // The valve reports, so it listens: everything is sent once, with the last setpoint
         await report();
         await report();
         expect(command.mock.calls.map((call) => call.slice(0, 3))).toStrictEqual([
             ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 2, setpoint: 2150, reserved: 0xff}],
+            ["hvacThermostat", "wiserSmartCalibrateValve", {}],
         ]);
-        expect(write.mock.calls.map((call) => call[1]).filter((data) => "localTemperatureCalibration" in data)).toStrictEqual([
+        expect(write.mock.calls.map((call) => call[1]).filter((data) => !(0xe013 in data))).toStrictEqual([
             {localTemperatureCalibration: -7},
+            {keypadLockout: 1},
         ]);
 
         // Simulate the reads made after a button press

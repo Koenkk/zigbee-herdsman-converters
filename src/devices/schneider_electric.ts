@@ -1625,9 +1625,9 @@ const tzLocal = {
     } satisfies Tz.Converter,
     wiser_vact_calibrate_valve: {
         key: ["calibrate_valve"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            if (value === "calibrate") await wiserVactCalibrate(entity);
+            if (value === "calibrate") wiserVactQueue(entity, key, () => wiserVactCalibrate(entity));
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
@@ -1684,11 +1684,14 @@ const tzLocal = {
     } satisfies Tz.Converter,
     wiser_sed_thermostat_keypad_lockout: {
         key: ["keypad_lockout"],
-        convertSet: async (entity, key, value, meta) => {
-            await entity.write(
-                "hvacUserInterfaceCfg",
-                {keypadLockout: utils.getKey(constants.keypadLockoutMode, value, value as number, Number)},
-                {srcEndpoint: 11, disableDefaultResponse: true},
+        convertSet: (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            wiserVactQueue(entity, key, () =>
+                entity.write(
+                    "hvacUserInterfaceCfg",
+                    {keypadLockout: utils.getKey(constants.keypadLockoutMode, value, value as number, Number)},
+                    {srcEndpoint: 11, disableDefaultResponse: true},
+                ),
             );
             return {state: {keypad_lockout: value}};
         },
