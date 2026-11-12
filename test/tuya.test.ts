@@ -718,6 +718,18 @@ describe("lib/tuya", () => {
             expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", expect.anything());
         });
 
+        it("ignores UNSUPPORTED_ATTRIBUTE on the tuyaOperationMode read", async () => {
+            const device = mockDevice({modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            expect(definition.model).toStrictEqual("ZG-101ZD");
+            const endpoint = device.getEndpoint(1);
+            vi.mocked(endpoint.read).mockImplementation((cluster) => (cluster === "genOnOff" ? Promise.reject(unsupported()) : Promise.resolve({})));
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).resolves.toBeUndefined();
+            expect(endpoint.read).toHaveBeenCalledWith("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", expect.anything());
+        });
+
         it("still fails on other errors", async () => {
             const device = mockDevice({modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs", endpoints: [{ID: 1}]}, "EndDevice");
             const definition = await findByDevice(device);

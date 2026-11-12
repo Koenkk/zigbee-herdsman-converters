@@ -162,22 +162,28 @@ describe("Check definitions", () => {
         }
     });
 
-    it("Vendor name casing should be consistent", () => {
-        const vendors = new Set<string>();
-        const vendorsLower = new Set<string>();
+    it("Vendor names should be consistent in casing and styling", () => {
+        const vendors = new Map<string, string>();
+
+        const normalizeVendor = (vendor: string): string =>
+            vendor
+                .normalize("NFKC")
+                .toLowerCase()
+                .replace(/[\s\p{P}\p{S}_]+/gu, "");
 
         for (const definition of definitions) {
-            const v = definition.vendor;
-            const vl = v.toLowerCase();
+            const vendor = definition.vendor;
+            const normalizedVendor = normalizeVendor(vendor);
+            const existingMatch = vendors.get(normalizedVendor);
 
-            if (vendors.has(v)) continue;
-
-            if (vendorsLower.has(vl)) {
-                throw new Error(`'${v}' has inconsistent casing`);
+            if (existingMatch !== undefined) {
+                if (existingMatch !== vendor) {
+                    throw new Error(`'${vendor}' has inconsistent casing/style compared to '${existingMatch}'`);
+                }
+                continue;
             }
 
-            vendors.add(v);
-            vendorsLower.add(vl);
+            vendors.set(normalizedVendor, vendor);
         }
     });
 
