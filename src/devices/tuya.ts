@@ -32296,4 +32296,60 @@ export const definitions: DefinitionWithExtend[] = [
             ],
         },
     },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE204_ytryxh0a", "_TZE200_ytryxh0a"]),
+        model: "KZTETHEAU",
+        vendor: "Kozii",
+        description: "Smart thermostatic radiator valve",
+        whiteLabel: [{vendor: "Xanlite", model: "KZTETHEAU"}],
+        extend: [
+            tuya.modernExtend.tuyaBase({
+                dp: true,
+                queryOnDeviceAnnounce: true,
+                queryOnConfigure: true,
+                timeStart: "2000",
+            }),
+        ],
+        exposes: [
+            e.battery(),
+            e.child_lock(),
+            e
+                .climate()
+                .withSystemMode(["auto", "heat", "off"], ea.STATE_SET, "Mode of this device")
+                .withSetpoint("current_heating_setpoint", 5, 30, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 0.1, ea.STATE_SET),
+            e.binary("boost_heating", ea.STATE_SET, "ON", "OFF").withDescription("Boost heating"),
+            e.numeric("boost_time", ea.STATE).withUnit("s").withDescription("Boost duration remaining"),
+            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Open window detection"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverterBasic.lookup({
+                        auto: tuya.enum(0),
+                        heat: tuya.enum(1),
+                        off: tuya.enum(2),
+                    }),
+                ],
+                [105, "current_heating_setpoint", tuya.valueConverter.divideBy2],
+                [16, "current_heating_setpoint", tuya.valueConverter.divideBy2],
+                [24, "local_temperature", tuya.valueConverter.divideBy10],
+                [30, "child_lock", tuya.valueConverter.lockUnlock],
+                [
+                    34,
+                    "battery",
+                    {
+                        from: (v: number) => (v > 130 ? 100 : v < 70 ? 0 : Math.round((v - 70) * 1.7)),
+                    },
+                ],
+                [104, "local_temperature_calibration", tuya.valueConverter.divideBy10],
+                [106, "boost_heating", tuya.valueConverter.onOff],
+                [107, "window_detection", tuya.valueConverter.onOff],
+                [118, "boost_time", tuya.valueConverter.raw],
+            ],
+        },
+    },
 ];
