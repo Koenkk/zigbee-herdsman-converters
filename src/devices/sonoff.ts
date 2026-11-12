@@ -395,6 +395,33 @@ interface SonoffSnzb02ul {
     };
 }
 
+interface SonoffSsZ2n {
+    attributes: {
+        temperatureUnits: number;
+        temperatureCalibration: number;
+        humidityCalibration: number;
+        measureInterval: number;
+        comfortTemperatureMax: number;
+        comfortTemperatureMin: number;
+        comfortHumidityMin: number;
+        comfortHumidityMax: number;
+        frostProtectionTemperature: number;
+        temperatureThresholdEnable: number;
+        humidityThresholdEnable: number;
+        frostThresholdEnable: number;
+        temperatureMaxInHour: number;
+        temperatureMinInHour: number;
+        temperatureAverInHour: number;
+        humidityMaxInHour: number;
+        humidityMinInHour: number;
+        humidityAverInHour: number;
+    };
+    commands: {
+        refreshMeasurements: Record<never, never>;
+    };
+    commandResponses: never;
+}
+
 type SonoffStructElement = {elmType: number; elmVal: unknown};
 type SonoffStructValue = SonoffStructElement[];
 
@@ -8940,6 +8967,31 @@ const sonoffExtend = {
             isModernExtend: true,
         };
     },
+    /** SS-Z2N: manual measurement refresh command. */
+    ssZ2nRefreshMeasurements: (): ModernExtend => ({
+        exposes: [
+            e
+                .enum("refresh_measurements", ea.SET, ["refresh"])
+                .withDescription(
+                    "Click Refresh to take new soil temperature and moisture measurements. The device will report the latest readings once the measurements are complete.",
+                ),
+        ],
+        toZigbee: [
+            {
+                key: ["refresh_measurements"],
+                convertSet: async (entity, key, value, meta) => {
+                    await entity.command<"customClusterEwelink", "refreshMeasurements", SonoffSsZ2n>(
+                        "customClusterEwelink",
+                        "refreshMeasurements",
+                        {},
+                        utils.getOptions(meta.mapped, entity),
+                    );
+                    return {state: {refresh_measurements: value}};
+                },
+            },
+        ],
+        isModernExtend: true,
+    }),
 };
 
 // Filter out 0 value for timer_mode_target_temp, as 0 indicates "no timer target temperature set"
@@ -8957,6 +9009,88 @@ const trvzbTimerModeTempFzConvert: Fz.Converter<"customSonoffTrvzb", SonoffTrvzb
         return {timer_mode_target_temp: value / 100};
     }
     return undefined;
+};
+
+/**
+ * SS-Z2N: classify a measurement against the configured comfort thresholds.
+ * Values equal to the minimum or the maximum are classified as `Normal`.
+ */
+const ssZ2nClassifyStatus = (value: unknown, min: unknown, max: unknown): "Low" | "Normal" | "High" | undefined => {
+    if (typeof value !== "number" || typeof min !== "number" || typeof max !== "number") {
+        return undefined;
+    }
+
+    return value < min ? "Low" : value > max ? "High" : "Normal";
+};
+
+/**
+ * SS-Z2N: comfort threshold convertSet that validates min/max ordering and keeps the derived status in sync.
+ * Designed for use with `m.numeric({ tzConvertSet: ... })`.
+ */
+const ssZ2nThresholdConvertSet = (args: {
+    attribute: keyof SonoffSsZ2n["attributes"];
+    statusKey: string;
+    pairKey: string;
+    measureKey: string;
+    isMin: boolean;
+}): Tz.Converter["convertSet"] => {
+    const {attribute, statusKey, pairKey, measureKey, isMin} = args;
+
+    return async (entity, key, value, meta) => {
+        utils.assertNumber(value, key);
+
+        const cachedPair = meta.state?.[pairKey];
+        if (typeof cachedPair === "number") {
+            const inverted = isMin ? value >= cachedPair : value <= cachedPair;
+            if (inverted) {
+                const current = meta.state?.[key];
+                if (typeof current === "number") {
+                    // z2m only logs converter errors, so the control would keep the rejected value.
+                    // The frontend merges device state with a 250 ms debounce, so the publishes have to be
+                    // spaced out, otherwise they collapse into one update equal to the current value.
+                    await meta.publish({[key]: value});
+                    await new Promise((resolve) => setTimeout(resolve, 400));
+                    await meta.publish({[key]: current});
+                }
+                // The frontend shows the content of the last parenthesis of this message as a toast, so the
+                // sentence sits inside it. Keep it free of nested parentheses.
+                throw new Error(
+                    isMin ? `invalid threshold (${key} must be lower than ${pairKey})` : `invalid threshold (${key} must be higher than ${pairKey})`,
+                );
+            }
+        }
+
+        await entity.write<"customClusterEwelink", SonoffSsZ2n>("customClusterEwelink", {[attribute]: Math.round(value * 100)} as Partial<
+            SonoffSsZ2n["attributes"]
+        >);
+
+        const status = ssZ2nClassifyStatus(meta.state?.[measureKey], isMin ? value : cachedPair, isMin ? cachedPair : value);
+
+        return {state: status === undefined ? {[key]: value} : {[key]: value, [statusKey]: status}};
+    };
+};
+
+/**
+ * SS-Z2N: frost risk classification, `Risk` below the configured frost protection threshold.
+ */
+const ssZ2nClassifyFrostRisk = (value: unknown, threshold: unknown): "Risk" | "Normal" | undefined => {
+    if (typeof value !== "number" || typeof threshold !== "number") {
+        return undefined;
+    }
+
+    return value < threshold ? "Risk" : "Normal";
+};
+
+/**
+ * SS-Z2N: frost protection threshold convertSet that keeps the derived frost risk status in sync.
+ */
+const ssZ2nFrostThresholdConvertSet: Tz.Converter["convertSet"] = async (entity, key, value, meta) => {
+    utils.assertNumber(value, key);
+    await entity.write<"customClusterEwelink", SonoffSsZ2n>("customClusterEwelink", {frostProtectionTemperature: Math.round(value * 100)});
+
+    const status = ssZ2nClassifyFrostRisk(meta.state?.temperature, value);
+
+    return {state: status === undefined ? {[key]: value} : {[key]: value, frost_risk_status: status}};
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -14277,6 +14411,319 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE_GET",
             }),
             m.battery({percentageReportingConfig: {min: 3600, max: 7200, change: 2}}),
+        ],
+        ota: true,
+    },
+    {
+        zigbeeModel: ["SS-Z2N"],
+        model: "SS-Z2N",
+        vendor: "SONOFF",
+        description: "Soil temperature and humidity sensor",
+        extend: [
+            m.deviceAddCustomCluster("customClusterEwelink", {
+                name: "customClusterEwelink",
+                ID: 0xfc11,
+                attributes: {
+                    temperatureUnits: {name: "temperatureUnits", ID: 0x0007, type: Zcl.DataType.UINT16, write: true},
+                    temperatureCalibration: {name: "temperatureCalibration", ID: 0x2003, type: Zcl.DataType.INT16, write: true},
+                    humidityCalibration: {name: "humidityCalibration", ID: 0x2004, type: Zcl.DataType.INT16, write: true},
+                    measureInterval: {name: "measureInterval", ID: 0x202d, type: Zcl.DataType.UINT16, write: true},
+                    temperatureMaxInHour: {name: "temperatureMaxInHour", ID: 0x2008, type: Zcl.DataType.INT16},
+                    temperatureMinInHour: {name: "temperatureMinInHour", ID: 0x2009, type: Zcl.DataType.INT16},
+                    temperatureAverInHour: {name: "temperatureAverInHour", ID: 0x200a, type: Zcl.DataType.INT16},
+                    humidityMaxInHour: {name: "humidityMaxInHour", ID: 0x200b, type: Zcl.DataType.UINT16},
+                    humidityMinInHour: {name: "humidityMinInHour", ID: 0x200c, type: Zcl.DataType.UINT16},
+                    humidityAverInHour: {name: "humidityAverInHour", ID: 0x200d, type: Zcl.DataType.UINT16},
+                    comfortTemperatureMax: {name: "comfortTemperatureMax", ID: 0x0003, type: Zcl.DataType.INT16, write: true},
+                    comfortTemperatureMin: {name: "comfortTemperatureMin", ID: 0x0004, type: Zcl.DataType.INT16, write: true},
+                    comfortHumidityMin: {name: "comfortHumidityMin", ID: 0x0005, type: Zcl.DataType.UINT16, write: true},
+                    comfortHumidityMax: {name: "comfortHumidityMax", ID: 0x0006, type: Zcl.DataType.UINT16, write: true},
+                    frostProtectionTemperature: {name: "frostProtectionTemperature", ID: 0x6002, type: Zcl.DataType.INT16, write: true},
+                    temperatureThresholdEnable: {name: "temperatureThresholdEnable", ID: 0x202a, type: Zcl.DataType.UINT8, write: true},
+                    humidityThresholdEnable: {name: "humidityThresholdEnable", ID: 0x202b, type: Zcl.DataType.UINT8, write: true},
+                    frostThresholdEnable: {name: "frostThresholdEnable", ID: 0x202c, type: Zcl.DataType.UINT8, write: true},
+                },
+                commands: {
+                    refreshMeasurements: {name: "refreshMeasurements", ID: 0x00, parameters: []},
+                },
+                commandsResponse: {},
+            }),
+            sonoffExtend.ssZ2nRefreshMeasurements(),
+            // official clusters
+            m.battery({
+                // Battery percentage reporting interval from the firmware spec (1620s / 1740s / Δ2%).
+                percentageReportingConfig: {min: 1620, max: 1740, change: 2},
+            }),
+            m.temperature({valueMin: -20, valueMax: 60, reporting: {min: 120, max: 3600, change: 100}}),
+            m.soilMoisture({valueMin: 0, valueMax: 100, reporting: {min: 120, max: 3600, change: 300}}),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+
+            // attributes
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "temperature_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureCalibration",
+                entityCategory: "config",
+                description: "Offset to add/subtract to the reported temperature.",
+                valueMin: -10,
+                valueMax: 10,
+                scale: 100,
+                valueStep: 0.1,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "humidity_calibration",
+                cluster: "customClusterEwelink",
+                attribute: "humidityCalibration",
+                entityCategory: "config",
+                description: "Offset added to or subtracted from the reported soil moisture value.",
+                valueMin: -100,
+                valueMax: 100,
+                scale: 100,
+                valueStep: 1,
+                unit: "%",
+            }),
+            m.enumLookup<"customClusterEwelink", SonoffSsZ2n>({
+                name: "measure_interval",
+                lookup: {"2_min": 0, "5_min": 1, "15_min": 2, "30_min": 3, "1_hour": 4, "2_hours": 5},
+                cluster: "customClusterEwelink",
+                attribute: "measureInterval",
+                entityCategory: "config",
+                description: "Set the interval for scheduled measurements and reports. Default: 5 minutes.",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "comfort_temperature_min",
+                homeassistant: {name: "Comfort temperature min"},
+                cluster: "customClusterEwelink",
+                attribute: "comfortTemperatureMin",
+                entityCategory: "config",
+                description: "Soil temperature below this value is classified as low. Default: 8 °C.",
+                valueMin: -20,
+                valueMax: 60,
+                valueStep: 1,
+                scale: 100,
+                unit: "°C",
+                tzConvertSet: ssZ2nThresholdConvertSet({
+                    attribute: "comfortTemperatureMin",
+                    statusKey: "temperature_status",
+                    pairKey: "comfort_temperature_max",
+                    measureKey: "temperature",
+                    isMin: true,
+                }),
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "comfort_temperature_max",
+                homeassistant: {name: "Comfort temperature max"},
+                cluster: "customClusterEwelink",
+                attribute: "comfortTemperatureMax",
+                entityCategory: "config",
+                description: "Soil temperature above this value is classified as high. Default: 32 °C.",
+                valueMin: -20,
+                valueMax: 60,
+                valueStep: 1,
+                scale: 100,
+                unit: "°C",
+                tzConvertSet: ssZ2nThresholdConvertSet({
+                    attribute: "comfortTemperatureMax",
+                    statusKey: "temperature_status",
+                    pairKey: "comfort_temperature_min",
+                    measureKey: "temperature",
+                    isMin: false,
+                }),
+            }),
+            // SS-Z2N: derived soil temperature status, recomputed on every temperature report.
+            m.enumLookup({
+                name: "temperature_status",
+                cluster: "msTemperatureMeasurement",
+                // Derived expose with no attribute of its own: `measuredValue` is only a placeholder and `lookup` just supplies the enum keys.
+                attribute: "measuredValue",
+                lookup: {Low: 0, Normal: 1, High: 2},
+                access: "STATE",
+                label: "Soil temperature status",
+                description: "Current soil temperature status based on the configured temperature thresholds.",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    const measuredValue = msg.data.measuredValue;
+                    if (typeof measuredValue !== "number") {
+                        return;
+                    }
+                    const status = ssZ2nClassifyStatus(measuredValue / 100, meta.state?.comfort_temperature_min, meta.state?.comfort_temperature_max);
+                    return status === undefined ? undefined : {temperature_status: status};
+                },
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "comfort_humidity_min",
+                cluster: "customClusterEwelink",
+                attribute: "comfortHumidityMin",
+                entityCategory: "config",
+                description: "Soil moisture below this value is classified as low. Default: 15%.",
+                valueMin: 1,
+                valueMax: 99,
+                valueStep: 1,
+                scale: 100,
+                unit: "%",
+                tzConvertSet: ssZ2nThresholdConvertSet({
+                    attribute: "comfortHumidityMin",
+                    statusKey: "humidity_status",
+                    pairKey: "comfort_humidity_max",
+                    measureKey: "soil_moisture",
+                    isMin: true,
+                }),
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "comfort_humidity_max",
+                cluster: "customClusterEwelink",
+                attribute: "comfortHumidityMax",
+                entityCategory: "config",
+                description: "Soil moisture above this value is classified as high. Default: 30%.",
+                valueMin: 1,
+                valueMax: 99,
+                valueStep: 1,
+                scale: 100,
+                unit: "%",
+                tzConvertSet: ssZ2nThresholdConvertSet({
+                    attribute: "comfortHumidityMax",
+                    statusKey: "humidity_status",
+                    pairKey: "comfort_humidity_min",
+                    measureKey: "soil_moisture",
+                    isMin: false,
+                }),
+            }),
+            // SS-Z2N: derived soil moisture status, recomputed on every moisture report.
+            m.enumLookup({
+                name: "humidity_status",
+                cluster: "msSoilMoisture",
+                // Derived expose with no attribute of its own: `measuredValue` is only a placeholder and `lookup` just supplies the enum keys.
+                attribute: "measuredValue",
+                lookup: {Low: 0, Normal: 1, High: 2},
+                access: "STATE",
+                label: "Soil moisture status",
+                description: "Current soil moisture status based on the configured moisture thresholds.",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    const measuredValue = msg.data.measuredValue;
+                    if (typeof measuredValue !== "number") {
+                        return;
+                    }
+                    const status = ssZ2nClassifyStatus(measuredValue / 100, meta.state?.comfort_humidity_min, meta.state?.comfort_humidity_max);
+                    return status === undefined ? undefined : {humidity_status: status};
+                },
+            }),
+            // Frost alarm range -10~20℃ with default 5℃, per PRD §5.8.4.
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "frost_protection_temperature",
+                cluster: "customClusterEwelink",
+                attribute: "frostProtectionTemperature",
+                entityCategory: "config",
+                description: "Soil temperature below this value indicates a risk of frost. Default: 5 °C.",
+                valueMin: -10,
+                valueMax: 20,
+                valueStep: 1,
+                scale: 100,
+                unit: "°C",
+                tzConvertSet: ssZ2nFrostThresholdConvertSet,
+            }),
+            // SS-Z2N: derived frost risk status, recomputed on every temperature report.
+            m.enumLookup({
+                name: "frost_risk_status",
+                cluster: "msTemperatureMeasurement",
+                // Derived expose with no attribute of its own: `measuredValue` is only a placeholder and `lookup` just supplies the enum keys.
+                attribute: "measuredValue",
+                lookup: {Risk: 0, Normal: 1},
+                access: "STATE",
+                label: "Frost risk status",
+                description: "Current frost risk status based on the configured frost risk temperature threshold.",
+                fzConvert: (model, msg, publish, options, meta) => {
+                    const measuredValue = msg.data.measuredValue;
+                    if (typeof measuredValue !== "number") {
+                        return;
+                    }
+                    const frostRisk = ssZ2nClassifyFrostRisk(measuredValue / 100, meta.state?.frost_protection_temperature);
+                    return frostRisk === undefined ? undefined : {frost_risk_status: frostRisk};
+                },
+            }),
+            m.binary<"customClusterEwelink", SonoffSsZ2n>({
+                name: "temperature_threshold_enable",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureThresholdEnable",
+                entityCategory: "config",
+                description:
+                    "Enables/disables the temperature threshold alarm. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary<"customClusterEwelink", SonoffSsZ2n>({
+                name: "humidity_threshold_enable",
+                cluster: "customClusterEwelink",
+                attribute: "humidityThresholdEnable",
+                entityCategory: "config",
+                description:
+                    "Enables/disables the humidity threshold alarm. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.binary<"customClusterEwelink", SonoffSsZ2n>({
+                name: "frost_threshold_enable",
+                cluster: "customClusterEwelink",
+                attribute: "frostThresholdEnable",
+                entityCategory: "config",
+                description:
+                    "Enables/disables the frost protection threshold alarm. Note: wake up the device by pressing the button on the back before changing this value.",
+                valueOn: ["ON", 0x01],
+                valueOff: ["OFF", 0x00],
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "temperature_max_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureMaxInHour",
+                description: "Maximum temperature recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "temperature_min_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureMinInHour",
+                description: "Minimum temperature recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "temperature_aver_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "temperatureAverInHour",
+                description: "Average temperature recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "°C",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "humidity_max_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "humidityMaxInHour",
+                description: "Maximum humidity recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "humidity_min_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "humidityMinInHour",
+                description: "Minimum humidity recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "%",
+            }),
+            m.numeric<"customClusterEwelink", SonoffSsZ2n>({
+                name: "humidity_aver_in_hour",
+                cluster: "customClusterEwelink",
+                attribute: "humidityAverInHour",
+                description: "Average humidity recorded in the last hour",
+                access: "STATE_GET",
+                scale: 100,
+                unit: "%",
+            }),
         ],
         ota: true,
     },
