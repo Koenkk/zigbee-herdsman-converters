@@ -124,7 +124,7 @@ describe("Schneider Electric EER51000", () => {
 });
 
 describe("Schneider Electric EER53000", () => {
-    it("answers the valve's setpoint, limits and mode reads from the cache or the Wiser controller defaults", async () => {
+    it("pushes setpoint and zone mode changes to the valve and answers its reads with them", async () => {
         const device = mockDevice({
             modelID: "EH-ZB-VACT",
             manufacturerName: "Schneider Electric",
@@ -132,27 +132,30 @@ describe("Schneider Electric EER53000", () => {
         });
         const definition = await findByDevice(device);
         const endpoint = device.getEndpoint(11);
-        endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: 1500});
         await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
+        const command = vi.spyOn(endpoint, "command").mockResolvedValue(undefined);
         const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
+        const set = (key: string, value: unknown) =>
+            definition.toZigbee.find((c) => c.key?.includes(key))?.convertSet?.(endpoint, key, value, {} as Tz.Meta);
         const read = (attrId: number) =>
             device.customReadResponse?.(
                 Zcl.Frame.create(Zcl.FrameType.GLOBAL, Zcl.Direction.CLIENT_TO_SERVER, true, undefined, 1, "read", "hvacThermostat", [{attrId}], {}),
                 endpoint,
             );
 
-        // Simulate the reads made after a button press
-        expect(read(0x0015)).toBe(true);
-        expect(read(0x0016)).toBe(true);
-        expect(read(0xe010)).toBe(true);
-        expect(read(0x0012)).toBe(true);
-        expect(readResponse.mock.calls).toStrictEqual([
-            ["hvacThermostat", 1, {minHeatSetpointLimit: 700}, {srcEndpoint: 11, manufacturerCode: undefined}],
-            ["hvacThermostat", 1, {maxHeatSetpointLimit: 3000}, {srcEndpoint: 11, manufacturerCode: undefined}],
-            ["hvacThermostat", 1, {[0xe010]: {value: 1, type: Zcl.DataType.ENUM8}}, {srcEndpoint: 11, manufacturerCode: undefined}],
-            ["hvacThermostat", 1, {occupiedHeatingSetpoint: 1500}, {srcEndpoint: 11, manufacturerCode: undefined}],
+        await set("occupied_heating_setpoint", 21.5);
+        await set("zone_mode", "schedule");
+        expect(command.mock.calls.map((call) => call.slice(0, 3))).toStrictEqual([
+            ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 1, setpoint: 2150, reserved: 0xff}],
+            ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 2, setpoint: 2150, reserved: 0xff}],
         ]);
-        // Other attributes are left to zigbee-herdsman.
-        expect(read(0x0000)).toBe(false);
+
+        // Simulate the reads made after a button press
+        expect(read(0x0012)).toBe(true);
+        expect(read(0xe010)).toBe(true);
+        expect(readResponse.mock.calls).toStrictEqual([
+            ["hvacThermostat", 1, {occupiedHeatingSetpoint: 2150}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {[0xe010]: {value: 2, type: Zcl.DataType.ENUM8}}, {srcEndpoint: 11, manufacturerCode: undefined}],
+        ]);
     });
 });

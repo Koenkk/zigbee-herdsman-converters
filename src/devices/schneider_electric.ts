@@ -1411,34 +1411,33 @@ function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
 
 // #endregion
 
-// Same issue as the CCTFR6400 above: Wiser thermostat clients read these attributes from the controller and fail without
-// an answer. Like the Wiser controller, an unknown attribute leaves the whole read unanswered. Values default to `attributes`.
-function wiserInstallCustomReadResponse(device: Zh.Device, attributes: Record<string, number | undefined>): void {
+// Same issue as the CCTFR6400 above: when adjusting the temperature, the EER51000 reads these attributes and fails without an answer.
+function wiserRtsInstallCustomReadResponse(device: Zh.Device): void {
+    const lookup: Record<number, string> = {
+        18: "occupiedHeatingSetpoint",
+        21: "minHeatSetpointLimit",
+        22: "maxHeatSetpointLimit",
+        28: "systemMode",
+    };
     device.customReadResponse = (frame, endpoint) => {
         if (!frame.isCluster("hvacThermostat")) {
             return false;
         }
-        const cluster = Zcl.Utils.getCluster("hvacThermostat", undefined, device.customClusters);
-        const response: KeyValueAny = {};
+        const attributes: KeyValueAny = {};
         for (const {attrId} of frame.payload as {attrId: number}[]) {
-            const attribute = Zcl.Utils.getClusterAttribute(cluster, attrId, Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC);
-            if (!attribute || !(attribute.name in attributes)) {
-                return false;
-            }
-            const value = endpoint.getClusterAttributeValue("hvacThermostat", attribute.name) ?? attributes[attribute.name];
-            if (typeof value !== "number") {
-                return false;
-            }
-            if (attribute.manufacturerCode) {
+            const value = endpoint.getClusterAttributeValue("hvacThermostat", lookup[attrId] ?? "wiserSmartZoneMode");
+            if (attrId === 0xe010) {
                 // Answer by ID, as the device reads it with or without manufacturer code
-                response[attrId] = {value, type: attribute.type};
+                attributes[attrId] = {value: value ?? 1, type: Zcl.DataType.ENUM8};
+            } else if (lookup[attrId] && typeof value === "number") {
+                attributes[lookup[attrId]] = value;
             } else {
-                response[attribute.name] = value;
+                return false;
             }
         }
         const options = {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode};
-        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, response, options).catch((error) => {
-            logger.warning(`Wiser read response failed for '${device.ieeeAddr}': ${error}`, NS);
+        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, attributes, options).catch((error) => {
+            logger.warning(`EER51000 read response failed for '${device.ieeeAddr}': ${error}`, NS);
         });
         return true;
     };
@@ -1447,21 +1446,6 @@ function wiserInstallCustomReadResponse(device: Zh.Device, attributes: Record<st
 // #region Wiser radiator thermostat (VACT)
 
 const wiserVactCommandOptions = {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
-const wiserZoneModes = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-// Answers of the Wiser controller (EER21000) to thermostat clients reading their settings, for a manual setpoint zone
-// (min/max keep the previous z2m 7-30 °C range). Used until z2m has stored a value.
-const wiserVactDefaults: Record<string, number> = {
-    occupiedHeatingSetpoint: 2000,
-    minHeatSetpointLimit: 700,
-    maxHeatSetpointLimit: 3000,
-    systemMode: 4,
-    wiserSmartZoneMode: 1,
-    wiserSmartHactConfig: 0x80,
-    wiserSmartCurrentFilPiloteMode: 0,
-};
-
-const wiserVactStored = (endpoint: Zh.Endpoint, attribute: string): number =>
-    (endpoint.getClusterAttributeValue("hvacThermostat", attribute) as number | undefined) ?? wiserVactDefaults[attribute];
 
 // The valve never pulls its setpoint on its own, the Wiser controller pushes it with this command
 async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
@@ -1470,8 +1454,8 @@ async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
         "wiserSmartSetSetpoint",
         {
             operatingmode: 0,
-            zonemode: wiserVactStored(endpoint, "wiserSmartZoneMode"),
-            setpoint: wiserVactStored(endpoint, "occupiedHeatingSetpoint"),
+            zonemode: (endpoint.getClusterAttributeValue("hvacThermostat", "wiserSmartZoneMode") as number) ?? 1,
+            setpoint: endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint") as number,
             reserved: 0xff,
         },
         wiserVactCommandOptions,
@@ -1637,21 +1621,17 @@ const tzLocal = {
         key: ["occupied_heating_setpoint", "zone_mode"],
         convertSet: async (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            if (key === "zone_mode") {
-                entity.saveClusterAttributeKeyValue("hvacThermostat", {wiserSmartZoneMode: utils.getFromLookup(value, wiserZoneModes)});
-            } else {
-                utils.assertNumber(value, key);
-                entity.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: Math.round(value * 2) * 50});
-            }
+            const converter: Tz.Converter = key === "zone_mode" ? tzLocal.wiser_sed_zone_mode : tzLocal.wiser_sed_occupied_heating_setpoint;
+            const result = await converter.convertSet(entity, key, value, meta);
             await wiserVactPushSetpoint(entity);
-            return {state: {[key]: value}};
+            return result;
         },
     } satisfies Tz.Converter,
     wiser_sed_zone_mode: {
         key: ["zone_mode"],
         convertSet: (entity, key, value, meta) => {
             if (utils.isEndpoint(entity)) {
-                const wiserSmartZoneMode = utils.getFromLookup(value, wiserZoneModes);
+                const wiserSmartZoneMode = utils.getFromLookup(value, {manual: 1, schedule: 2, energy_saver: 3, holiday: 6});
                 entity.saveClusterAttributeKeyValue("hvacThermostat", {wiserSmartZoneMode});
             }
             return {state: {zone_mode: value}};
@@ -2194,17 +2174,6 @@ const fzLocal = {
                     }
                     if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
                         result.calibrate_valve = msg.data.wiserSmartValveCalibrationStatus === 0 ? "calibrate" : "idle";
-                    }
-                    // Like the Wiser controller: push again a setpoint the valve did not take over, unless a window is open
-                    if (
-                        msg.data.occupiedHeatingSetpoint !== undefined &&
-                        msg.data.occupiedHeatingSetpoint !== wiserVactStored(msg.endpoint, "occupiedHeatingSetpoint") &&
-                        !(result.window_open ?? meta.state.window_open)
-                    ) {
-                        delete result.occupied_heating_setpoint;
-                        wiserVactPushSetpoint(msg.endpoint).catch((error) =>
-                            logger.debug(`Failed to push setpoint to '${msg.device.ieeeAddr}' (${error})`, NS),
-                        );
                     }
                 }
                 publish(result);
@@ -3512,7 +3481,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         onEvent: (event) => {
             if (event.type === "start") {
-                wiserInstallCustomReadResponse(event.data.device, wiserVactDefaults);
+                wiserRtsInstallCustomReadResponse(event.data.device);
             }
         },
         configure: async (device, coordinatorEndpoint) => {
@@ -3561,13 +3530,7 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 3000, max: 4200}}},
         onEvent: (event) => {
             if (event.type === "start") {
-                wiserInstallCustomReadResponse(event.data.device, {
-                    occupiedHeatingSetpoint: undefined,
-                    minHeatSetpointLimit: undefined,
-                    maxHeatSetpointLimit: undefined,
-                    systemMode: undefined,
-                    wiserSmartZoneMode: 1,
-                });
+                wiserRtsInstallCustomReadResponse(event.data.device);
             }
         },
         configure: async (device, coordinatorEndpoint) => {
