@@ -124,7 +124,7 @@ describe("Schneider Electric EER51000", () => {
 });
 
 describe("Schneider Electric EER53000", () => {
-    it("pushes setpoint and zone mode changes to the valve and answers its reads with them", async () => {
+    it("sends setpoint and offset changes when the valve reports and answers its reads with them", async () => {
         const device = mockDevice({
             modelID: "EH-ZB-VACT",
             manufacturerName: "Schneider Electric",
@@ -133,10 +133,18 @@ describe("Schneider Electric EER53000", () => {
         const definition = await findByDevice(device);
         const endpoint = device.getEndpoint(11);
         await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
+        vi.spyOn(device, "save").mockImplementation(() => {});
         const command = vi.spyOn(endpoint, "command").mockResolvedValue(undefined);
+        const write = vi.spyOn(endpoint, "write").mockResolvedValue(undefined);
         const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
         const set = (key: string, value: unknown) =>
             definition.toZigbee.find((c) => c.key?.includes(key))?.convertSet?.(endpoint, key, value, {} as Tz.Meta);
+        const report = async () => {
+            const msg = {data: {localTemp: 1900}, endpoint, device, type: "attributeReport", cluster: "hvacThermostat"};
+            const converter = definition.fromZigbee.find((c) => c.cluster === "hvacThermostat" && c.type.includes("attributeReport"));
+            await converter?.convert(definition, msg as never, () => {}, {open_window_detection: false}, {state: {}, device} as never);
+            await new Promise(setImmediate);
+        };
         const read = (attrId: number) =>
             device.customReadResponse?.(
                 Zcl.Frame.create(Zcl.FrameType.GLOBAL, Zcl.Direction.CLIENT_TO_SERVER, true, undefined, 1, "read", "hvacThermostat", [{attrId}], {}),
@@ -145,9 +153,19 @@ describe("Schneider Electric EER53000", () => {
 
         await set("occupied_heating_setpoint", 21.5);
         await set("zone_mode", "schedule");
+        await set("local_temperature_calibration", -0.7);
+        // Nothing is sent while the valve sleeps
+        expect(command).not.toHaveBeenCalled();
+        expect(write).not.toHaveBeenCalled();
+
+        // The valve reports, so it listens: the last setpoint is sent and the offset is written, once
+        await report();
+        await report();
         expect(command.mock.calls.map((call) => call.slice(0, 3))).toStrictEqual([
-            ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 1, setpoint: 2150, reserved: 0xff}],
             ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 2, setpoint: 2150, reserved: 0xff}],
+        ]);
+        expect(write.mock.calls.map((call) => call[1]).filter((data) => "localTemperatureCalibration" in data)).toStrictEqual([
+            {localTemperatureCalibration: -7},
         ]);
 
         // Simulate the reads made after a button press

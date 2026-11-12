@@ -1447,19 +1447,33 @@ function wiserRtsInstallCustomReadResponse(device: Zh.Device): void {
 
 const wiserVactCommandOptions = {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
 
+// The valve only listens for a few seconds after it reports: like the Wiser controller, queue messages until then
+const wiserVactQueue = (endpoint: Zh.Endpoint, key: string, send: () => Promise<unknown>) =>
+    globalStore.putValue(endpoint, "queue", {...globalStore.getValue(endpoint, "queue"), [key]: send});
+
+function wiserVactSendQueue(endpoint: Zh.Endpoint) {
+    let sent: Promise<unknown> = Promise.resolve();
+    for (const send of Object.values<() => Promise<unknown>>(globalStore.getValue(endpoint, "queue", {}))) {
+        sent = sent.then(send).catch((error) => logger.debug(`Queued message to '${endpoint.deviceIeeeAddress}' failed (${error})`, NS));
+    }
+    globalStore.clearValue(endpoint, "queue");
+}
+
 // The valve never pulls its setpoint on its own, the Wiser controller pushes it with this command
-async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
-    await endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
-        "hvacThermostat",
-        "wiserSmartSetSetpoint",
-        {
-            operatingmode: 0,
-            zonemode: (endpoint.getClusterAttributeValue("hvacThermostat", "wiserSmartZoneMode") as number) ?? 1,
-            setpoint: endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint") as number,
-            reserved: 0xff,
-        },
-        wiserVactCommandOptions,
-    );
+function wiserVactSetpointCommand(endpoint: Zh.Endpoint) {
+    const payload = {
+        operatingmode: 0,
+        zonemode: (endpoint.getClusterAttributeValue("hvacThermostat", "wiserSmartZoneMode") as number) ?? 1,
+        setpoint: endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint") as number,
+        reserved: 0xff,
+    };
+    return () =>
+        endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
+            "hvacThermostat",
+            "wiserSmartSetSetpoint",
+            payload,
+            wiserVactCommandOptions,
+        );
 }
 
 async function wiserVactCalibrate(endpoint: Zh.Endpoint) {
@@ -1623,7 +1637,7 @@ const tzLocal = {
             utils.assertEndpoint(entity);
             const converter: Tz.Converter = key === "zone_mode" ? tzLocal.wiser_sed_zone_mode : tzLocal.wiser_sed_occupied_heating_setpoint;
             const result = await converter.convertSet(entity, key, value, meta);
-            await wiserVactPushSetpoint(entity);
+            wiserVactQueue(entity, "setpoint", wiserVactSetpointCommand(entity));
             return result;
         },
     } satisfies Tz.Converter,
@@ -1649,17 +1663,23 @@ const tzLocal = {
     } satisfies Tz.Converter,
     wiser_sed_thermostat_local_temperature_calibration: {
         key: ["local_temperature_calibration"],
-        convertSet: async (entity, key, value, meta) => {
+        convertSet: (entity, key, value, meta) => {
             utils.assertNumber(value);
-            await entity.write(
-                "hvacThermostat",
-                {localTemperatureCalibration: Math.round(value * 10)},
-                {srcEndpoint: 11, disableDefaultResponse: true},
-            );
+            utils.assertEndpoint(entity);
+            wiserVactQueue(entity, key, async () => {
+                await entity.write(
+                    "hvacThermostat",
+                    {localTemperatureCalibration: Math.round(value * 10)},
+                    {srcEndpoint: 11, disableDefaultResponse: true},
+                );
+                await entity.read("hvacThermostat", ["localTemperatureCalibration"]);
+            });
             return {state: {local_temperature_calibration: value}};
         },
-        convertGet: async (entity, key, meta) => {
-            await entity.read("hvacThermostat", ["localTemperatureCalibration"]);
+        convertGet: (entity, key, meta) => {
+            utils.assertEndpoint(entity);
+            wiserVactQueue(entity, `${key}_get`, () => entity.read("hvacThermostat", ["localTemperatureCalibration"]));
+            return Promise.resolve();
         },
     } satisfies Tz.Converter,
     wiser_sed_thermostat_keypad_lockout: {
@@ -2167,6 +2187,7 @@ const fzLocal = {
                     result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
                 }
                 if (meta.device.modelID === "EH-ZB-VACT") {
+                    wiserVactSendQueue(msg.endpoint);
                     wiserVactLimescaleProtection(msg.endpoint, options);
                     wiserVactOpenWindowDetection(msg.endpoint, options, msg.data);
                     if (msg.data.wiserSmartOpenWindowDetectionStatus !== undefined) {
