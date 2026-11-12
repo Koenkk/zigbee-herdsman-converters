@@ -1411,6 +1411,38 @@ function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
 
 // #endregion
 
+// Same issue as the CCTFR6400 above: when adjusting the temperature, the EER51000 reads these attributes and fails without an answer.
+function wiserRtsInstallCustomReadResponse(device: Zh.Device): void {
+    const lookup: Record<number, string> = {
+        18: "occupiedHeatingSetpoint",
+        21: "minHeatSetpointLimit",
+        22: "maxHeatSetpointLimit",
+        28: "systemMode",
+    };
+    device.customReadResponse = (frame, endpoint) => {
+        if (!frame.isCluster("hvacThermostat")) {
+            return false;
+        }
+        const attributes: KeyValueAny = {};
+        for (const {attrId} of frame.payload as {attrId: number}[]) {
+            const value = endpoint.getClusterAttributeValue("hvacThermostat", lookup[attrId] ?? "wiserSmartZoneMode");
+            if (attrId === 0xe010) {
+                // Answer by ID, as the device reads it with or without manufacturer code
+                attributes[attrId] = {value: value ?? 1, type: Zcl.DataType.ENUM8};
+            } else if (lookup[attrId] && typeof value === "number") {
+                attributes[lookup[attrId]] = value;
+            } else {
+                return false;
+            }
+        }
+        const options = {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode};
+        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, attributes, options).catch((error) => {
+            logger.warning(`EER51000 read response failed for '${device.ieeeAddr}': ${error}`, NS);
+        });
+        return true;
+    };
+}
+
 const tzLocal = {
     lift_duration: {
         key: ["lift_duration"],
@@ -1514,6 +1546,10 @@ const tzLocal = {
     wiser_sed_zone_mode: {
         key: ["zone_mode"],
         convertSet: (entity, key, value, meta) => {
+            if (utils.isEndpoint(entity)) {
+                const wiserSmartZoneMode = utils.getFromLookup(value, {manual: 1, schedule: 2, energy_saver: 3, holiday: 6});
+                entity.saveClusterAttributeKeyValue("hvacThermostat", {wiserSmartZoneMode});
+            }
             return {state: {zone_mode: value}};
         },
     } satisfies Tz.Converter,
@@ -1746,6 +1782,29 @@ const fzLocal = {
         type: ["commandSetpointRaiseLower"],
         convert: () => {},
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSetpointRaiseLower"]>,
+    schneider_scene_actions: {
+        cluster: "genScenes",
+        type: ["commandRecall", "commandStore"],
+
+        convert: (model, msg) => {
+            const action = msg.type === "commandRecall" ? "single" : msg.type === "commandStore" ? "hold" : undefined;
+
+            if (!action) {
+                return;
+            }
+
+            switch (msg.endpoint.ID) {
+                case 21:
+                    return {action_l1: action};
+
+                case 22:
+                    return {action_l2: action};
+
+                default:
+                    return;
+            }
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall", "commandStore"]>,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -2529,7 +2588,7 @@ export const definitions: DefinitionWithExtend[] = [
             switchActions("l1"),
             switchActions("l2"),
         ],
-        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration, fzLocal.schneider_scene_actions],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
@@ -2545,6 +2604,14 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
+            e
+                .enum("action_l1", ea.STATE, ["single", "hold"])
+                .withLabel("Last Action L1")
+                .withDescription("Only relevant when Switch action L1 is set to scene. Triggered action on input L1 (single or hold)."),
+            e
+                .enum("action_l2", ea.STATE, ["single", "hold"])
+                .withLabel("Last Action L2")
+                .withDescription("Only relevant when Switch action L2 is set to scene. Triggered action on input L2 (single or hold)."),
         ],
     },
     {
@@ -3371,7 +3438,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
-            fzLocal.wiser_smart_thermostat_client,
+            fzLocal.cctfr6400_ignore_thermostat_read,
             fzLocal.wiser_smart_setpoint_command_client,
             fzLocal.schneider_temperature,
         ],
@@ -3382,6 +3449,11 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("zone_mode", ea.STATE_SET, ["manual", "schedule", "energy_saver", "holiday"]).withDescription("Icon shown on device displays"),
         ],
         meta: {battery: {voltageToPercentage: {min: 3000, max: 4200}}},
+        onEvent: (event) => {
+            if (event.type === "start") {
+                wiserRtsInstallCustomReadResponse(event.data.device);
+            }
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             // Insert default values for client requested attributes

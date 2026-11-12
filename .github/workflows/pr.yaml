@@ -1,4 +1,4 @@
-name: PR title
+name: PR
 
 on:
     pull_request_target:
@@ -6,6 +6,8 @@ on:
             - opened
             - reopened
             - ready_for_review
+            - edited
+            - closed
     workflow_dispatch:
         inputs:
             pr_number:
@@ -18,6 +20,7 @@ permissions:
 
 jobs:
     prs:
+        if: github.event.action != 'closed'
         runs-on: ubuntu-latest
         outputs:
             prs: ${{ steps.prs.outputs.result }}
@@ -42,7 +45,7 @@ jobs:
 
     pr-title:
         needs: prs
-        if: needs.prs.outputs.prs != '[]'
+        if: needs.prs.outputs.prs != '[]' && github.event.action != 'edited'
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
@@ -185,3 +188,48 @@ jobs:
                           pull_number: pr.number,
                           title,
                       });
+
+    # New devices (`feat(add): MODEL` PRs) require a 512x512 PNG picture in the PR description, which is committed to
+    # zigbee2mqtt.io (public/images/devices) upon merge.
+    # Runs after pr-title since the title update uses GITHUB_TOKEN, which doesn't trigger a new `edited` event.
+    device-picture-check:
+        needs: [prs, pr-title]
+        # Also run when pr-title failed or was skipped (edited), the check then uses the current title
+        if: ${{ !cancelled() && needs.prs.result == 'success' && needs.prs.outputs.prs != '[]' && (github.event.action != 'edited' || startsWith(github.event.pull_request.title, 'feat(add)')) }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            max-parallel: 5
+            matrix:
+                pr: ${{ fromJSON(needs.prs.outputs.prs) }}
+        concurrency:
+            group: device-picture-check-${{ matrix.pr }}
+            cancel-in-progress: true
+        # Checks out the base branch (for the script), never PR code.
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  sparse-checkout: .github/scripts
+            - name: Check device picture
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      const {check} = require("./.github/scripts/device_picture.cjs");
+                      await check({github, context, core, prNumber: ${{ matrix.pr }}});
+
+    device-picture-upload:
+        if: github.event.action == 'closed' && github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'feat(add)')
+        runs-on: ubuntu-latest
+        # Checks out the base branch (for the script), never PR code.
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  sparse-checkout: .github/scripts
+            - name: Upload device picture to zigbee2mqtt.io
+              uses: actions/github-script@v9
+              env:
+                  DOCS_TOKEN: ${{ secrets.GH_TOKEN }}
+              with:
+                  script: |
+                      const {upload} = require("./.github/scripts/device_picture.cjs");
+                      await upload({github, context, core, docsGithub: getOctokit(process.env.DOCS_TOKEN)});

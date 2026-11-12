@@ -285,7 +285,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE204_bb5xlia1"]),
         model: "SA-WK 4X4",
-        vendor: "NovaDigital",
+        vendor: "Nova Digital",
         description: "6-channel Zigbee smart switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [

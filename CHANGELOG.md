@@ -1,5 +1,29 @@
 # Changelog
 
+## [26.130.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.129.0...v26.130.0) (2026-11-11)
+
+
+### Features
+
+* **add:** 929003858301 ([#13779](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13779)) ([c5ce802](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5ce802b48442bf5b8acc732f6bfed8d74f96524))
+* **add:** GWA1221 ([#13784](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13784)) ([d01883e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d01883ed10c2516dade741073b1506ab88080a11))
+* **add:** SC6 ([#13769](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13769)) ([fd9d5f8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fd9d5f8740c46bf94f8a82b35a519be3338dbf4a))
+* HEIMAN HS9MS: support more features ([#13771](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13771)) ([b2708a5](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b2708a5e79afe1ed858c6eeb1aa0d1bdb16ea963))
+* Schneider Electric CCT5010-0003: expose `action_l1` and `action_l2` for scene actions ([#13775](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13775)) ([e9346bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e9346bd1cedd5c0222ef8d46a271cc68546e278f))
+* Tuya IH-K663: expose hold action ([#13788](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13788)) ([3375f53](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3375f53cbc5645499b75172c82aa9ef8de966f9b))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZE28C1000000_lbhh5o6z` as AVATTO ZWSMD-4 ([#13776](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13776)) ([972de3d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/972de3d42d876e6989459fc5615bc3669950b1e3))
+* **detect:** Detect `PIIC540B` as Paulmann 291.53 ([#13780](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13780)) ([73f3474](https://github.com/Koenkk/zigbee-herdsman-converters/commit/73f347499c2cf178e127e777873d509686b441bf))
+* Ekaza EKGD-T4085P-4Z: fix configuration failing on startup ([#13767](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13767)) ([5850300](https://github.com/Koenkk/zigbee-herdsman-converters/commit/5850300eec41a4d45914912df9daf86baa8a037a))
+* HOBEIAN ZG-101ZD: allow configuration to complete when operation mode reads are unsupported ([#13786](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13786)) ([a2e45ee](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a2e45eeea0b263a0eb22af8396dfe9634bff6b6c))
+* Powernity / Xanlite PO-BOCO-ELEC: fix schedule times incorrect https://github.com/Koenkk/zigbee2mqtt/issues/33631 ([f4ce2a6](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f4ce2a6e29ef0759e79f9f88c6b6ce8f16fd3e7e))
+* Prevent duplicate vendor names ([#13778](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13778)) ([fb9f9e3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fb9f9e38f8ba6e683052ec5b317a069a70ab1425))
+* Schneider Electric EER51000: allow temperature adjustment ([#13747](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13747)) ([d9b6280](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d9b62808cd237934710906879041272f5738d385))
+* Thermor 400704 - 100040070400: report `running_state` correctly ([#13777](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13777)) ([8ee3bf4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ee3bf4c4019488ca2fa75d23cf7c095edf96f7f))
+
 ## [26.129.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.128.0...v26.129.0) (2026-11-09)
 
 

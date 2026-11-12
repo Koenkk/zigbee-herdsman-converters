@@ -1,4 +1,4 @@
-// Used by .github/workflows/device_picture.yml
+// Used by .github/workflows/pr.yaml
 // Runs in pull_request_target context: never execute or checkout PR code, the PR body is only parsed as data.
 
 const DOCS_REPO = {owner: "Koenkk", repo: "zigbee2mqtt.io"};
@@ -140,8 +140,9 @@ async function upsertComment(github, context, prNumber, body) {
     }
 }
 
-async function check({github, context, core}) {
-    const pr = context.payload.pull_request;
+async function check({github, context, core, prNumber}) {
+    // Fetch the PR instead of using the event payload: the PR title workflow may have changed the title in the meantime
+    const pr = (await github.rest.pulls.get({...context.repo, pull_number: prNumber})).data;
     const results = await collect(github, pr);
     if (results.length === 0) {
         core.info("Not a `feat(add)` pull request, nothing to check");
