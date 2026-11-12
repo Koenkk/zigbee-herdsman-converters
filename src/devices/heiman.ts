@@ -154,6 +154,8 @@ interface HeimanPrivateCluster {
         reportedPackages: number;
         illuminanceThreshold: number;
         mcuSoftwareVersion: number;
+        cameraImageSize: number;
+        cameraVideoDuration: number;
         cameraGop: number;
         cameraAudioEnable: number;
         cameraRtspUser: string;
@@ -601,6 +603,8 @@ const heimanExtend = {
                 mcuSoftwareVersion: {name: "mcuSoftwareVersion", ID: 0x0030, type: Zcl.DataType.UINT8},
 
                 // Camera and Wi-Fi attributes
+                cameraImageSize: {name: "cameraImageSize", ID: 0x1ff8, type: Zcl.DataType.UINT8, write: true},
+                cameraVideoDuration: {name: "cameraVideoDuration", ID: 0x1ff9, type: Zcl.DataType.UINT16, write: true},
                 cameraGop: {name: "cameraGop", ID: 0x1ffa, type: Zcl.DataType.UINT16, write: true},
                 cameraAudioEnable: {name: "cameraAudioEnable", ID: 0x1ffb, type: Zcl.DataType.UINT8, write: true},
                 cameraRtspUser: {name: "cameraRtspUser", ID: 0x1ffc, type: Zcl.DataType.CHAR_STR, write: true},
@@ -3276,6 +3280,11 @@ export const definitions: DefinitionWithExtend[] = [
             );
             await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
                 "heimanClusterSpecial",
+                ["cameraImageSize", "cameraVideoDuration"],
+                options,
+            );
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
                 ["cameraSubtype", "cameraCaptureMethod", "cameraCaptureInterval", "cameraInitQp"],
                 options,
             );
@@ -3343,6 +3352,38 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Camera operating mode",
                 access: "ALL",
                 entityCategory: "config",
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_image_size",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraImageSize",
+                description: "Image size: 0 640x360, 1 640x480, 2 1280x720, 3 960x1080, 4 1920x1080; takes effect on next start",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 0,
+                valueMax: 4,
+                valueStep: 1,
+                scale: (value, direction) => {
+                    if (direction === "to") assert(Number.isInteger(value) && value >= 0 && value <= 4, "Image size must be an integer from 0 to 4");
+                    return value;
+                },
+            }),
+            m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
+                name: "camera_video_duration",
+                cluster: "heimanClusterSpecial",
+                attribute: "cameraVideoDuration",
+                description: "Video runtime; takes effect on next start",
+                access: "ALL",
+                entityCategory: "config",
+                valueMin: 1,
+                valueMax: 600,
+                valueStep: 1,
+                unit: "s",
+                scale: (value, direction) => {
+                    if (direction === "to")
+                        assert(Number.isInteger(value) && value >= 1 && value <= 600, "Video duration must be an integer from 1 to 600");
+                    return value;
+                },
             }),
             m.numeric<"heimanClusterSpecial", HeimanPrivateCluster>({
                 name: "camera_subtype",
