@@ -3100,7 +3100,7 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                           assertNumber(value, key);
                           let payloadValue = value;
                           if (scale !== undefined) {
-                              payloadValue = typeof scale === "number" ? payloadValue * scale : scale(payloadValue, "to");
+                              payloadValue = typeof scale === "number" ? Math.round(payloadValue * scale) : scale(payloadValue, "to");
                           }
                           assertNumber(payloadValue);
 

@@ -36,6 +36,22 @@ describe("ModernExtend", () => {
         expect(extend.exposes?.map((expose) => (expose as Numeric).value_min)).toStrictEqual([10, 10]);
     });
 
+    test("numeric rounds scaled values before writing them", async () => {
+        const extend = numeric({
+            name: "occupied_heating_setpoint",
+            cluster: "hvacThermostat",
+            attribute: "occupiedHeatingSetpoint",
+            description: "Heating setpoint",
+            scale: 100,
+        });
+        const device = mockDevice({modelID: "test", endpoints: [{ID: 1, inputClusters: ["hvacThermostat"]}]});
+        const endpoint = device.getEndpoint(1);
+
+        await extend.toZigbee[0].convertSet(endpoint, "occupied_heating_setpoint", 19.9, {device} as never);
+
+        expect(endpoint.write).toHaveBeenCalledWith("hvacThermostat", {occupiedHeatingSetpoint: 1990}, undefined);
+    });
+
     test("binary preserves explicit per-endpoint optional values", () => {
         const extend = binary({
             name: "state",
