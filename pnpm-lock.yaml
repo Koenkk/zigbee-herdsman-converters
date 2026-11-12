@@ -116,8 +116,8 @@ importers:
         specifier: ^7.8.6
         version: 7.8.6
       zigbee-herdsman:
-        specifier: ^11.2.1
-        version: 11.2.1(supports-color@7.2.0)
+        specifier: github:eduardobittencourt/zigbee-herdsman#4c783aa32be2af048e493336634c9c84d30c91fe
+        version: https://codeload.github.com/eduardobittencourt/zigbee-herdsman/tar.gz/4c783aa32be2af048e493336634c9c84d30c91fe(supports-color@7.2.0)
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.6.5
@@ -1212,8 +1212,9 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  zigbee-herdsman@11.2.1:
-    resolution: {integrity: sha512-fEBk4IwOR38BLJqx5XpGhW8Pyyk5Jak298/BlHRMRk9TUCm/swB6emyRwPYEGqcBMVSpOYvEY94qE+zAJDk2wg==}
+  zigbee-herdsman@https://codeload.github.com/eduardobittencourt/zigbee-herdsman/tar.gz/4c783aa32be2af048e493336634c9c84d30c91fe:
+    resolution: {gitHosted: true, integrity: sha512-eKO5qlVTvyiwE43R4jnYL+LerMWoga5mO7/qAhgUMdJEy737tCc0jL6mNtsue5snj8g5IpM6x8FaFzygu+c9+Q==, tarball: https://codeload.github.com/eduardobittencourt/zigbee-herdsman/tar.gz/4c783aa32be2af048e493336634c9c84d30c91fe}
+    version: 11.2.1
     engines: {node: ^22.2.0 || ^24 || <=26.2}
 
   zigbee-on-host@0.3.2:
@@ -2014,7 +2015,7 @@ snapshots:
       siginfo: 2.0.0
       stackback: 0.0.2
 
-  zigbee-herdsman@11.2.1(supports-color@7.2.0):
+  zigbee-herdsman@https://codeload.github.com/eduardobittencourt/zigbee-herdsman/tar.gz/4c783aa32be2af048e493336634c9c84d30c91fe(supports-color@7.2.0):
     dependencies:
       '@date-fns/tz': 1.5.0
       '@serialport/bindings-cpp': 13.0.1(supports-color@7.2.0)

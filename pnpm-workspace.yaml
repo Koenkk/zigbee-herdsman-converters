@@ -1,6 +1,7 @@
 verifyDepsBeforeRun: false
 
 allowBuilds:
+    "zigbee-herdsman@https://codeload.github.com/eduardobittencourt/zigbee-herdsman/tar.gz/4c783aa32be2af048e493336634c9c84d30c91fe": true
     "@serialport/bindings-cpp": true
     esbuild: true
 
