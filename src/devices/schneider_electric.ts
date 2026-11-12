@@ -1,5 +1,5 @@
 import {Zcl} from "zigbee-herdsman";
-import type {PartialClusterOrRawAttributes, PartialClusterOrRawWriteAttributes} from "zigbee-herdsman/dist/controller/tstype";
+import type {PartialClusterOrRawAttributes} from "zigbee-herdsman/dist/controller/tstype";
 import {COORDINATOR_ADDRESS} from "zigbee-herdsman/dist/zspec";
 import type {GpdManufAttributeReport} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
@@ -1411,6 +1411,39 @@ function cctfr6400InstallCustomReadResponse(device: Zh.Device): void {
 
 // #endregion
 
+// Same issue as the CCTFR6400 above: Wiser thermostat clients read these attributes from the controller and fail without
+// an answer. Like the Wiser controller, an unknown attribute leaves the whole read unanswered. Values default to `attributes`.
+function wiserInstallCustomReadResponse(device: Zh.Device, attributes: Record<string, number | undefined>): void {
+    device.customReadResponse = (frame, endpoint) => {
+        if (!frame.isCluster("hvacThermostat")) {
+            return false;
+        }
+        const cluster = Zcl.Utils.getCluster("hvacThermostat", undefined, device.customClusters);
+        const response: KeyValueAny = {};
+        for (const {attrId} of frame.payload as {attrId: number}[]) {
+            const attribute = Zcl.Utils.getClusterAttribute(cluster, attrId, Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC);
+            if (!attribute || !(attribute.name in attributes)) {
+                return false;
+            }
+            const value = endpoint.getClusterAttributeValue("hvacThermostat", attribute.name) ?? attributes[attribute.name];
+            if (typeof value !== "number") {
+                return false;
+            }
+            if (attribute.manufacturerCode) {
+                // Answer by ID, as the device reads it with or without manufacturer code
+                response[attrId] = {value, type: attribute.type};
+            } else {
+                response[attribute.name] = value;
+            }
+        }
+        const options = {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode};
+        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, response, options).catch((error) => {
+            logger.warning(`Wiser read response failed for '${device.ieeeAddr}': ${error}`, NS);
+        });
+        return true;
+    };
+}
+
 // #region Wiser radiator thermostat (VACT)
 
 const wiserVactCommandOptions = {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
@@ -1429,42 +1462,6 @@ const wiserVactDefaults: Record<string, number> = {
 
 const wiserVactStored = (endpoint: Zh.Endpoint, attribute: string): number =>
     (endpoint.getClusterAttributeValue("hvacThermostat", attribute) as number | undefined) ?? wiserVactDefaults[attribute];
-
-// Unlike most thermostats, the VACT does not keep its own settings: when a button is pressed or after a calibration it reads
-// its setpoint, limits and zone mode from the controller, one attribute per request, and waits for the answers.
-// Since zigbee-herdsman 10.0.3 device reads are no longer answered from the coordinator attribute cache: only genTime/genBasic
-// get an answer, any other cluster gets UNSUPPORTED_ATTRIBUTE, which leaves the valve stuck waiting, so the values z2m stored
-// for this valve are served here instead.
-function wiserVactReadResponse(): ModernExtend {
-    return {
-        isModernExtend: true,
-        onEvent: [
-            (event) => {
-                if (event.type === "stop") return;
-                event.data.device.customReadResponse = (frame, endpoint) => {
-                    if (!frame.isCluster("hvacThermostat")) return false;
-                    const response: KeyValueAny = {};
-                    for (const {attrId} of frame.payload as {attrId: number}[]) {
-                        const attribute = Zcl.Utils.getClusterAttribute(frame.cluster, attrId, Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC);
-                        response[attrId] = {
-                            value: attribute && wiserVactStored(endpoint, attribute.name),
-                            type: attribute?.type ?? Zcl.DataType.NO_DATA,
-                        };
-                    }
-                    endpoint
-                        .readResponse(
-                            "hvacThermostat",
-                            frame.header.transactionSequenceNumber,
-                            response as PartialClusterOrRawWriteAttributes<"hvacThermostat">,
-                            {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode},
-                        )
-                        .catch((error) => logger.warning(`Read response to '${endpoint.deviceIeeeAddress}' failed (${error})`, NS));
-                    return true;
-                };
-            },
-        ],
-    };
-}
 
 // The valve never pulls its setpoint on its own, the Wiser controller pushes it with this command
 async function wiserVactPushSetpoint(endpoint: Zh.Endpoint) {
@@ -1539,38 +1536,6 @@ function wiserVactOpenWindowDetection(endpoint: Zh.Endpoint, options: KeyValue, 
 }
 
 // #endregion
-
-// Same issue as the CCTFR6400 above: when adjusting the temperature, the EER51000 reads these attributes and fails without an answer.
-function wiserRtsInstallCustomReadResponse(device: Zh.Device): void {
-    const lookup: Record<number, string> = {
-        18: "occupiedHeatingSetpoint",
-        21: "minHeatSetpointLimit",
-        22: "maxHeatSetpointLimit",
-        28: "systemMode",
-    };
-    device.customReadResponse = (frame, endpoint) => {
-        if (!frame.isCluster("hvacThermostat")) {
-            return false;
-        }
-        const attributes: KeyValueAny = {};
-        for (const {attrId} of frame.payload as {attrId: number}[]) {
-            const value = endpoint.getClusterAttributeValue("hvacThermostat", lookup[attrId] ?? "wiserSmartZoneMode");
-            if (attrId === 0xe010) {
-                // Answer by ID, as the device reads it with or without manufacturer code
-                attributes[attrId] = {value: value ?? 1, type: Zcl.DataType.ENUM8};
-            } else if (lookup[attrId] && typeof value === "number") {
-                attributes[lookup[attrId]] = value;
-            } else {
-                return false;
-            }
-        }
-        const options = {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode};
-        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, attributes, options).catch((error) => {
-            logger.warning(`EER51000 read response failed for '${device.ieeeAddr}': ${error}`, NS);
-        });
-        return true;
-    };
-}
 
 const tzLocal = {
     lift_duration: {
@@ -1686,7 +1651,7 @@ const tzLocal = {
         key: ["zone_mode"],
         convertSet: (entity, key, value, meta) => {
             if (utils.isEndpoint(entity)) {
-                const wiserSmartZoneMode = utils.getFromLookup(value, {manual: 1, schedule: 2, energy_saver: 3, holiday: 6});
+                const wiserSmartZoneMode = utils.getFromLookup(value, wiserZoneModes);
                 entity.saveClusterAttributeKeyValue("hvacThermostat", {wiserSmartZoneMode});
             }
             return {state: {zone_mode: value}};
@@ -2173,13 +2138,6 @@ const fzLocal = {
             return result;
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandWiserSmartSetSetpoint"]>,
-    wiser_vact_ignore_thermostat_read: {
-        // The valve reads answered by wiserVactReadResponse() also pass through the fromZigbee pipeline;
-        // absorb them silently to avoid "No converter available" log spam on every button press.
-        cluster: "hvacThermostat",
-        type: ["read"],
-        convert: () => {},
-    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["read"]>,
     wiser_smart_thermostat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -2253,20 +2211,6 @@ const fzLocal = {
             }
         },
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["attributeReport", "readResponse"]>,
-    wiser_smart_thermostat_client: {
-        cluster: "hvacThermostat",
-        type: "read",
-        convert: async (model, msg, publish, options, meta: KeyValueAny) => {
-            const response: KeyValueAny = {};
-            if (msg.data.includes("wiserSmartZoneMode") || msg.data.includes(0xe010)) {
-                // Zone Mode
-                const lookup: KeyValueAny = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
-                const zonemodeNum = meta.state.zone_mode ? lookup[meta.state.zone_mode] : 1;
-                response.wiserSmartZoneMode = {value: zonemodeNum};
-                await msg.endpoint.readResponse(msg.cluster, msg.meta.zclTransactionSequenceNumber, response, {srcEndpoint: 11});
-            }
-        },
-    } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, "read">,
     thermostat_running_state_from_piheat: {
         cluster: "hvacThermostat",
         type: ["attributeReport", "readResponse"],
@@ -3520,13 +3464,13 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EER53000",
         vendor: "Schneider Electric",
         description: "Wiser radiator thermostat (VACT)",
-        extend: [schneiderElectricExtend.customThermostatCluster(), wiserVactReadResponse()],
+        extend: [schneiderElectricExtend.customThermostatCluster()],
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
             fzLocal.wiser_smart_thermostat,
             fzLocal.wiser_smart_setpoint_command_client,
-            fzLocal.wiser_vact_ignore_thermostat_read,
+            fzLocal.cctfr6400_ignore_thermostat_read,
         ],
         toZigbee: [
             tzLocal.wiser_sed_thermostat_local_temperature_calibration,
@@ -3566,6 +3510,11 @@ export const definitions: DefinitionWithExtend[] = [
                 .withDescription("Let the valve close when it detects a fast temperature drop (default true)"),
         ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
+        onEvent: (event) => {
+            if (event.type === "start") {
+                wiserInstallCustomReadResponse(event.data.device, wiserVactDefaults);
+            }
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             // Insert default values for client requested attributes
@@ -3612,7 +3561,13 @@ export const definitions: DefinitionWithExtend[] = [
         meta: {battery: {voltageToPercentage: {min: 3000, max: 4200}}},
         onEvent: (event) => {
             if (event.type === "start") {
-                wiserRtsInstallCustomReadResponse(event.data.device);
+                wiserInstallCustomReadResponse(event.data.device, {
+                    occupiedHeatingSetpoint: undefined,
+                    minHeatSetpointLimit: undefined,
+                    maxHeatSetpointLimit: undefined,
+                    systemMode: undefined,
+                    wiserSmartZoneMode: 1,
+                });
             }
         },
         configure: async (device, coordinatorEndpoint) => {

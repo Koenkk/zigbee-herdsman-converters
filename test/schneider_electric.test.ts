@@ -122,3 +122,37 @@ describe("Schneider Electric EER51000", () => {
         expect(read(0x0000)).toBe(false);
     });
 });
+
+describe("Schneider Electric EER53000", () => {
+    it("answers the valve's setpoint, limits and mode reads from the cache or the Wiser controller defaults", async () => {
+        const device = mockDevice({
+            modelID: "EH-ZB-VACT",
+            manufacturerName: "Schneider Electric",
+            endpoints: [{ID: 11, inputClusters: ["hvacThermostat"]}],
+        });
+        const definition = await findByDevice(device);
+        const endpoint = device.getEndpoint(11);
+        endpoint.saveClusterAttributeKeyValue("hvacThermostat", {occupiedHeatingSetpoint: 1500});
+        await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
+        const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
+        const read = (attrId: number) =>
+            device.customReadResponse?.(
+                Zcl.Frame.create(Zcl.FrameType.GLOBAL, Zcl.Direction.CLIENT_TO_SERVER, true, undefined, 1, "read", "hvacThermostat", [{attrId}], {}),
+                endpoint,
+            );
+
+        // Simulate the reads made after a button press
+        expect(read(0x0015)).toBe(true);
+        expect(read(0x0016)).toBe(true);
+        expect(read(0xe010)).toBe(true);
+        expect(read(0x0012)).toBe(true);
+        expect(readResponse.mock.calls).toStrictEqual([
+            ["hvacThermostat", 1, {minHeatSetpointLimit: 700}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {maxHeatSetpointLimit: 3000}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {[0xe010]: {value: 1, type: Zcl.DataType.ENUM8}}, {srcEndpoint: 11, manufacturerCode: undefined}],
+            ["hvacThermostat", 1, {occupiedHeatingSetpoint: 1500}, {srcEndpoint: 11, manufacturerCode: undefined}],
+        ]);
+        // Other attributes are left to zigbee-herdsman.
+        expect(read(0x0000)).toBe(false);
+    });
+});
