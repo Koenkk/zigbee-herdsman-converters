@@ -5,7 +5,7 @@ import {mockDevice} from "./utils";
 const endpoint = () => mockDevice({modelID: "TY0A01", endpoints: [{ID: 1}]}).getEndpoint(1);
 
 describe("Encrypted Tuya lock public transport", () => {
-    it("uses only the public command API with APS acknowledgement and the original deadline", async () => {
+    it("uses only the public command API without requiring extra delivery options", async () => {
         const ep = endpoint();
         const payload = Buffer.from("aabbccdd", "hex");
         const expiresAt = performance.now() + 5000;
@@ -20,8 +20,6 @@ describe("Encrypted Tuya lock public transport", () => {
                 disableRecovery: true,
                 sendPolicy: "immediate",
                 timeout: 5000,
-                requestApsAck: true,
-                sendDeadline: expiresAt,
             },
         );
     });

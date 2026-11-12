@@ -46,7 +46,7 @@
     "dependencies": {
         "iconv-lite": "^0.7.3",
         "semver": "^7.8.6",
-        "zigbee-herdsman": "github:eduardobittencourt/zigbee-herdsman#4c783aa32be2af048e493336634c9c84d30c91fe"
+        "zigbee-herdsman": "^11.2.1"
     },
     "exports": {
         ".": "./dist/index.js",

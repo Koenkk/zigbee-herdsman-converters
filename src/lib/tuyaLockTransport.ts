@@ -9,14 +9,16 @@ interface EncryptedLockCluster {
 export interface EncryptedLockPacket {
     command: string;
     payload: Buffer;
-    /** Same monotonic clock as herdsman's sendDeadline, never a wall-clock timestamp. */
+    /** Monotonic expiration checked immediately before calling the public command API. */
     expiresAt?: number;
 }
 
 /**
  * Tuya encrypted replies have independent ZCL transaction IDs. Correlate their
- * inner sequence in the lock controller, while asking the radio for APS ACKs.
- * Requires herdsman's timed APS unicast API; never fall back to an unguarded send.
+ * inner sequence in the lock controller without a ZCL response waiter.
+ * Stock Ember clears APS RETRY in this mode; the tested IFR7001 still replies.
+ * Expiration is checked before invoking the public API. The current API cannot
+ * cancel an already queued/submitted packet; a timeout means uncertain delivery.
  */
 export async function sendEncryptedLockPackets(endpoint: Zh.Endpoint, clusterName: string, packets: readonly EncryptedLockPacket[]): Promise<void> {
     for (const packet of packets) {
@@ -34,8 +36,6 @@ export async function sendEncryptedLockPackets(endpoint: Zh.Endpoint, clusterNam
                 disableRecovery: true,
                 sendPolicy: "immediate",
                 timeout: 5000,
-                requestApsAck: true,
-                sendDeadline: packet.expiresAt,
             },
         );
     }
