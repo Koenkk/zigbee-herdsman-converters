@@ -134,11 +134,11 @@ describe("ModernExtend", () => {
         });
     });
 
-    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true}', async () => {
+    test('light({color: {modes: ["xy", "hs"], applyRedFix: true}, colorTemp: {range: [153, 555], startup: false}, turnsOffAtBrightness1: true, powerOnBehavior: false}', async () => {
         await assertDefinition({
             device: mockDevice({modelID: "OPL 130 C", endpoints: [{inputClusters: ["genOnOff", "genLevelCtrl", "lightingColorCtrl"]}]}),
             meta: {applyRedFix: true, supportsHueAndSaturation: true, turnsOffAtBrightness1: true},
-            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp, fz.power_on_behavior],
+            fromZigbee: [fz.on_off, fz.brightness, fz.level_config, fz.color_colortemp],
             toZigbee: [
                 "state",
                 "brightness",
@@ -167,9 +167,8 @@ describe("ModernExtend", () => {
                 "effect",
                 "alert",
                 "flash",
-                "power_on_behavior",
             ],
-            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)", "power_on_behavior"],
+            exposes: ["effect", "light(state,brightness,color_temp,color_xy,color_hs)"],
             bind: {},
             read: {
                 1: [
@@ -360,6 +359,20 @@ describe("ModernExtend", () => {
             write: {},
             configureReporting: {},
         });
+    });
+
+    test("philips.m.light() for a white-only bulb leaves color keys to a group's color bulbs", () => {
+        const white = philips.m.light().toZigbee ?? [];
+        const color = philips.m.light({colorTemp: {range: [153, 500]}, color: true}).toZigbee ?? [];
+        const whiteKeys = white.flatMap((c) => c.key);
+        expect(whiteKeys).toEqual(expect.arrayContaining(["state", "brightness", "brightness_percent", "transition"]));
+        for (const key of ["color", "color_temp", "color_temp_percent"]) {
+            expect(whiteKeys).not.toContain(key);
+            // Zigbee2MQTT picks a group's converter for a key from its members' converters in
+            // member order, so with the white bulb first the color bulb's must be the one found.
+            const found = [...white, ...color].find((c) => c.key.includes(key));
+            expect(color).toContain(found);
+        }
     });
 
     test(`ledvanceLight({configureReporting: true, endpoints: {'l1': 10, 'l2': 11, 's1': 25}, ota: true})`, async () => {

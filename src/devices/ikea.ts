@@ -248,10 +248,11 @@ export const definitions: DefinitionWithExtend[] = [
             "TRADFRI bulb E14 CWS opal 600lm",
             "TRADFRI bulb E12 CWS opal 600lm",
             "TRADFRI bulb E27 C/WS opal 600",
+            "TRADFRI bulb E17 CWS opal 600lm",
         ],
         model: "LED1624G9",
         vendor: "IKEA",
-        description: "TRADFRI bulb E12/E14/E26/E27, color/white spectrum, globe, opal, 600 lm",
+        description: "TRADFRI bulb E12/E14/E17/E26/E27, color/white spectrum, globe, opal, 600 lm",
         extend: [
             addCustomClusterManuSpecificIkeaUnknown(),
             ikeaLight({colorTemp: {range: [153, 500], viaColor: true}, color: true}), // light is pure RGB (XY), advertise 2000K-6500K
@@ -906,6 +907,13 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "IKEA",
         description: "TOFSMYGGA/GRILLPLATS smart plug (Matter)",
         extend: [m.onOff(), m.identify()],
+    },
+    {
+        zigbeeModel: ["TOFSMYGGA plug outdoor"],
+        model: "E2435-NA",
+        vendor: "IKEA",
+        description: "TOFSMYGGA 2-gang outdoor plug (Matter)",
+        extend: [m.deviceEndpoints({endpoints: {"1": 1, "2": 2}}), m.onOff({endpointNames: ["1", "2"]}), m.identify()],
     },
     // #endregion on/off controls
     // #region blinds

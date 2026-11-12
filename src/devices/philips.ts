@@ -163,6 +163,13 @@ const extendLocal = {
 
 export const definitions: DefinitionWithExtend[] = [
     {
+        zigbeeModel: ["NGC001"],
+        model: "929004440102",
+        vendor: "Philips",
+        description: "Hue wall light module for Nanoleaf Shapes",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}, gradient: true}), m.identify()],
+    },
+    {
         zigbeeModel: ["LWA036"],
         model: "929003856401",
         vendor: "Philips",
@@ -191,10 +198,24 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: true}), m.identify()],
     },
     {
+        zigbeeModel: ["LCX026"],
+        model: "929003858301",
+        vendor: "Philips",
+        description: "Hue Festavia globe outdoor string lights (7 meter with 8 bulbs)",
+        extend: [philips.m.light({colorTemp: {range: [50, 1000]}, color: true, gradient: true}), m.identify()],
+    },
+    {
         zigbeeModel: ["LCX030", "LCX048"],
         model: "929004284702",
         vendor: "Philips",
         description: "Hue Festavia permanent outdoor string lights",
+        extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
+    },
+    {
+        zigbeeModel: ["LCX049"],
+        model: "929004456604",
+        vendor: "Philips",
+        description: "Hue Festavia curtain lights (1.35 x 2 meter with 250 LEDs)",
         extend: [philips.m.light({colorTemp: {range: [153, 500]}, color: true, gradient: true}), m.identify()],
     },
     {
@@ -2922,6 +2943,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         zigbeeModel: ["RWL020", "RWL021"],
         model: "324131092621",
+        whiteLabel: [{model: "324131137411"}],
         vendor: "Philips",
         description: "Hue dimmer switch gen 1",
         fromZigbee: [

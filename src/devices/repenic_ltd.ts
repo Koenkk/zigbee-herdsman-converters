@@ -1,5 +1,23 @@
+import {Zcl} from "zigbee-herdsman";
+import * as exposes from "../lib/exposes";
 import * as m from "../lib/modernExtend";
-import type {DefinitionWithExtend} from "../lib/types";
+import type {DefinitionWithExtend, Fz, KeyValueNumberString} from "../lib/types";
+
+const e = exposes.presets;
+
+const actionLookup: KeyValueNumberString = {2: "hold", 4: "release", 8: "double", 16: "triple"};
+
+interface RepenicPrivateE003Cluster {
+    attributes: {sceneMode: number};
+    commands: never;
+    commandResponses: never;
+}
+
+interface RepenicPrivateE00BCluster {
+    attributes: {remoteMode: number};
+    commands: never;
+    commandResponses: never;
+}
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -8,7 +26,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Repenic Ltd.",
         description: "Dimmer",
         extend: [
-            m.light({configureReporting: true}),
+            m.light({effect: false, configureReporting: true}),
             m.electricityMeter(),
             m.numeric({
                 name: "min_brightness",
@@ -56,6 +74,63 @@ export const definitions: DefinitionWithExtend[] = [
                 description: "Default Move Rate",
                 valueMin: 1,
                 valueMax: 10,
+            }),
+            m.deviceAddCustomCluster("repenicPrivateE003", {
+                ID: 0xe003,
+                name: "repenicPrivateE003",
+                attributes: {
+                    sceneMode: {ID: 0x0003, name: "sceneMode", type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.binary<"repenicPrivateE003", RepenicPrivateE003Cluster>({
+                name: "scene_mode",
+                cluster: "repenicPrivateE003",
+                attribute: "sceneMode",
+                description: "Scene mode",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+            }),
+            {
+                fromZigbee: [
+                    {
+                        cluster: 0xe004,
+                        type: ["raw"],
+                        convert: (model, msg, publish, options, meta) => {
+                            const value = msg.data.findLast((byte) => byte in actionLookup);
+                            if (value !== undefined) return {action: actionLookup[value]};
+                        },
+                    } satisfies Fz.Converter<0xe004, undefined, ["raw"]>,
+                ],
+                exposes: [e.action(Object.values(actionLookup))],
+                isModernExtend: true,
+            },
+        ],
+    },
+    {
+        zigbeeModel: ["RS-T03AZG", "RS-R03AZG"],
+        model: "RS-T03AZG",
+        vendor: "Repenic Ltd.",
+        description: "Smart plug with power monitoring",
+        extend: [
+            m.onOff({powerOnBehavior: false}),
+            m.electricityMeter(),
+            m.deviceAddCustomCluster("repenicPrivateE00B", {
+                ID: 0xe00b,
+                name: "repenicPrivateE00B",
+                attributes: {
+                    remoteMode: {ID: 0x0000, name: "remoteMode", type: Zcl.DataType.ENUM8, write: true, max: 0xff},
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.enumLookup<"repenicPrivateE00B", RepenicPrivateE00BCluster>({
+                name: "remote_mode",
+                cluster: "repenicPrivateE00B",
+                attribute: "remoteMode",
+                description: "Remote controller mode: with load or remote only",
+                lookup: {load: 0, remote: 1},
             }),
         ],
     },

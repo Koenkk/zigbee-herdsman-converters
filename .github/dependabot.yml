@@ -12,10 +12,10 @@ updates:
                   - minor
                   - patch
       commit-message:
-        prefix: fix(ignore)
+          prefix: fix(ignore)
     - package-ecosystem: github-actions
       directory: /
       schedule:
-        interval: weekly
+          interval: weekly
       commit-message:
-        prefix: chore
+          prefix: chore

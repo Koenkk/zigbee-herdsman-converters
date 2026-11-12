@@ -285,12 +285,12 @@ const fzLocal = {
             if (msg.data.localTemp !== undefined) {
                 result.local_temperature = precisionRound(msg.data.localTemp, 2) / 100;
 
-                if (model.model === "TH1300ZB") {
+                if (model.model === "TH1300ZB" || model.model === "TH1400ZB") {
                     // floorTemperature and roomTemperature do not support configureReporting;
                     // piggyback on local_temperature reports to keep values in sync.
                     msg.endpoint
                         .read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature", "roomTemperature"], manuSinope)
-                        .catch((e: unknown) => logger.debug(`TH1300ZB: failed to read floor/room temperature: ${e}`, "sinope"));
+                        .catch((e: unknown) => logger.debug(`${model.model}: failed to read floor/room temperature: ${e}`, "sinope"));
                 }
             }
             if (msg.data.localTemperatureCalibration !== undefined) {
@@ -1913,6 +1913,9 @@ export const definitions: DefinitionWithExtend[] = [
                 "temperatureSensor",
                 "pumpProtection",
             ]);
+            // floorTemperature (0x0107) and roomTemperature (0x010D) do not support configureReporting.
+            // Perform an initial read on pairing; ongoing sync is handled in fzLocal.thermostat.
+            await endpoint.read<"manuSpecificSinope", ManuSpecificSinope>("manuSpecificSinope", ["floorTemperature", "roomTemperature"], manuSinope);
 
             await reporting.temperature(endpoint, {min: 1, max: 0xffff}); // disable reporting
         },
@@ -1922,7 +1925,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "TH1500ZB",
         vendor: "Sinopé",
         description: "Zigbee dual pole line volt thermostat",
-        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster()],
+        extend: [sinopeExtend.addManuSpecificSinopeCluster(), sinopeExtend.addSinopeHvacThermostatCluster(), m.electricityMeter()],
         fromZigbee: [
             fzLocal.thermostat,
             fzLocal.sinope,

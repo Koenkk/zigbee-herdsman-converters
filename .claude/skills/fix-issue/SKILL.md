@@ -21,7 +21,7 @@ Input: a URL like `https://github.com/Koenkk/zigbee2mqtt/issues/<N>` (optionally
    - Check what the converters used actually publish before adding exposes.
 5. Make the minimal fix, following the surrounding code style. Prefer modern extends for new functionality (see AGENTS.md), but don't rewrite an existing legacy definition just to fix a bug. Do not add tests.
 6. Verify inside `$WT`: `pnpm run check --fix`, `pnpm run check`, `pnpm exec tsc --noEmit -p .`.
-7. Report to the user: the worktree path (so they can open/review it in VS Code), the root cause and the change in a few sentences, and the verification results. Print the commit message using the rules in the prompt in `.github/workflows/pr_title.yml` (re-read it each time), with the issue URL appended, e.g.:
+7. Report to the user: the worktree path (so they can open/review it in VS Code), the root cause and the change in a few sentences, and the verification results. Print the commit message using the rules in the prompt in `.github/workflows/pr.yaml` (re-read it each time), with the issue URL appended, e.g.:
    ```
    fix: HOBEIAN ZG-102ZA: expose `battery_low` and `tamper` https://github.com/Koenkk/zigbee2mqtt/issues/33249
    ```

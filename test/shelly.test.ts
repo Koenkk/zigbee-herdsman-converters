@@ -1171,6 +1171,108 @@ describe("Shelly 2PM Gen4 switch input events", () => {
     });
 });
 
+describe("Shelly Dimmer Gen4 input events", () => {
+    // Endpoint layout captured from an S4DM-0A101WWL on Zigbee firmware 2.0.3.
+    const mockDimmer = (ieeeAddr: string) =>
+        mockDevice({
+            modelID: "Dimmer",
+            manufacturerName: "Shelly",
+            ieeeAddr,
+            endpoints: [
+                {
+                    ID: 1,
+                    profileID: 260,
+                    deviceID: 257,
+                    inputClusterIDs: [0, 3, 4, 5, 8, 6, 2820, 1794],
+                    outputClusterIDs: [25],
+                    // The electricity meter's configure reads these divisors before it sets up reporting.
+                    attributes: {
+                        haElectricalMeasurement: {
+                            attributes: {
+                                acPowerMultiplier: 1,
+                                acPowerDivisor: 1,
+                                acVoltageMultiplier: 1,
+                                acVoltageDivisor: 1,
+                                acCurrentMultiplier: 1,
+                                acCurrentDivisor: 1000,
+                            },
+                        },
+                        seMetering: {attributes: {multiplier: 1, divisor: 1000}},
+                    },
+                },
+                {ID: 2, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 3, profileID: 260, deviceID: 0, inputClusterIDs: [7], outputClusterIDs: [4, 6, 3, 5]},
+                {ID: 4, profileID: 260, deviceID: 0, inputClusterIDs: [], outputClusterIDs: [4, 258, 8, 6, 3]},
+                {ID: 239, profileID: 49153, deviceID: 8193, inputClusterIDs: [64513, 64514], outputClusterIDs: []},
+                {ID: 242, profileID: 41440, deviceID: 97, inputClusterIDs: [], outputClusterIDs: [33]},
+            ],
+        });
+
+    const convertRecall = async (device: ReturnType<typeof mockDevice>, endpointId: number, sceneid: number, sequence: number) => {
+        const definition = await findByDevice(device);
+        const converter = definition.fromZigbee.find((c) => c.cluster === "genScenes") as Fz.Converter;
+        return converter.convert(
+            definition,
+            {
+                data: {groupid: endpointId, sceneid},
+                endpoint: device.getEndpoint(endpointId),
+                device,
+                type: "commandRecall",
+                meta: {zclTransactionSequenceNumber: sequence},
+            } as never,
+            vi.fn(),
+            {},
+            {device, state: {}, deviceExposesChanged: () => {}} as never,
+        );
+    };
+
+    it("maps SW1 and SW2 to the input endpoints and keeps the light on endpoint 1", async () => {
+        const device = mockDimmer("0x000000000000d101");
+        const definition = await findByDevice(device);
+
+        expect(definition.model).toBe("S4DM-0A101WWL");
+        expect(definition.endpoint?.(device)).toStrictEqual({sw1: 2, sw2: 3});
+
+        const exposes = definition.exposes as Expose[];
+        const light = exposes.find((expose) => expose.type === "light");
+        assert(light);
+        expect(light.endpoint).toBeUndefined();
+        expect(getFeatureNames(light)).toContain("state");
+        expect(exposes.map((expose) => expose.name)).toContain("action");
+    });
+
+    it("reports single, double, triple and hold per input", async () => {
+        const device = mockDimmer("0x000000000000d102");
+
+        expect(await convertRecall(device, 2, 1, 1)).toStrictEqual({action: "input_1_single"});
+        expect(await convertRecall(device, 2, 2, 2)).toStrictEqual({action: "input_1_double"});
+        expect(await convertRecall(device, 2, 3, 3)).toStrictEqual({action: "input_1_triple"});
+        expect(await convertRecall(device, 2, 4, 4)).toStrictEqual({action: "input_1_hold"});
+        expect(await convertRecall(device, 3, 2, 5)).toStrictEqual({action: "input_2_double"});
+    });
+
+    it("ignores recalls from endpoints that are no input", async () => {
+        const device = mockDimmer("0x000000000000d103");
+
+        expect(await convertRecall(device, 4, 1, 6)).toBeUndefined();
+    });
+
+    it("binds the scene recalls of both inputs and carries the re-configure version bump", async () => {
+        const device = mockDimmer("0x000000000000d104");
+        const definition = await findByDevice(device);
+        const coordinatorEndpoint = mockDevice({endpoints: [{ID: 1}]}).getEndpoint(1);
+
+        expect(definition.version).toBe("0.0.1");
+        assert(definition.configure);
+        await definition.configure(device, coordinatorEndpoint, definition);
+
+        for (const epID of [2, 3]) {
+            expect(device.getEndpoint(epID).bind).toHaveBeenCalledWith("genScenes", coordinatorEndpoint);
+        }
+        expect(device.getEndpoint(4).bind).not.toHaveBeenCalledWith("genScenes", coordinatorEndpoint);
+    });
+});
+
 // The genOnOff/genScenes bindings and the switchType read in configure were added to these
 // definitions after their devices shipped. Without a version bump the application never
 // re-configures already paired devices, so their input events silently never arrive - the
@@ -1278,7 +1380,7 @@ describe("Shelly WS90 rain rate", () => {
         const meta = {device, state: {}, deviceExposesChanged: () => {}} as never;
         const report = (windSpeed: number) => {
             for (const c of wind) {
-                (c as Fz.Converter).convert(
+                void (c as Fz.Converter).convert(
                     definition,
                     {data: {windSpeed}, endpoint: device.getEndpoint(1), device, type: "attributeReport"} as never,
                     vi.fn(),

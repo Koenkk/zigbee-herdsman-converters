@@ -1295,6 +1295,7 @@ export interface LightArgs {
     levelConfig?: {features?: LevelConfigFeatures};
     levelReportingConfig?: ReportingConfigWithoutAttribute;
     moveToLevelWithOnOffDisable?: boolean;
+    homeassistant?: exposes.HomeAssistant;
 }
 export function light(args: LightArgs = {}): ModernExtend {
     const {
@@ -1308,6 +1309,7 @@ export function light(args: LightArgs = {}): ModernExtend {
         endpointNames = undefined,
         levelReportingConfig = undefined,
         moveToLevelWithOnOffDisable = false,
+        homeassistant = undefined,
     } = args;
     let {colorTemp = undefined} = args;
     if (colorTemp) {
@@ -1322,7 +1324,9 @@ export function light(args: LightArgs = {}): ModernExtend {
           }
         : false;
 
-    const lightExpose = exposeEndpoints(e.light().withBrightness(), endpointNames);
+    const baseLightExpose = e.light().withBrightness();
+    if (homeassistant) baseLightExpose.withHomeAssistant(homeassistant);
+    const lightExpose = exposeEndpoints(baseLightExpose, endpointNames);
 
     const fromZigbee: Fz.Converter<"genBasic" | "genOnOff" | "genLevelCtrl" | "lightingColorCtrl", undefined, ["attributeReport", "readResponse"]>[] =
         [fz.on_off, fz.brightness, fz.level_config];
@@ -1793,6 +1797,8 @@ export type ManufacturerZoneAttribute = {
 export interface IasArgs {
     zoneType: IasZoneType;
     zoneAttributes: IasZoneAttribute[];
+    /** Only process IAS messages from this endpoint. */
+    endpointId?: number;
     alarmTimeout?: boolean;
     keepAliveTimeout?: (device: Device) => number;
     zoneStatusReporting?: boolean | Partial<ReportingConfigWithoutAttribute>;
@@ -1863,6 +1869,7 @@ export function iasZoneAlarm(args: IasArgs): ModernExtend {
                   ]
                 : [],
             convert: (model, msg, publish, options, meta) => {
+                if (args.endpointId !== undefined && msg.endpoint.ID !== args.endpointId) return;
                 if (args.alarmTimeout) {
                     const timeout = options?.[timeoutProperty] != null ? Number(options[timeoutProperty]) : 90;
                     clearTimeout(globalStore.getValue(msg.endpoint, "timer"));

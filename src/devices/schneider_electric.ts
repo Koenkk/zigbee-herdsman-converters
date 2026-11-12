@@ -1417,7 +1417,6 @@ const wiserVactCommandOptions = {srcEndpoint: 11, disableDefaultResponse: true, 
 const wiserZoneModes = {manual: 1, schedule: 2, energy_saver: 3, holiday: 6};
 // Answers of the Wiser controller (EER21000) to thermostat clients reading their settings, for a manual setpoint zone
 // (min/max keep the previous z2m 7-30 °C range). Used until z2m has stored a value.
-// The controller serves them to every thermostat client: untested, EER51000 (RTS) could reuse wiserVactReadResponse().
 const wiserVactDefaults: Record<string, number> = {
     occupiedHeatingSetpoint: 2000,
     minHeatSetpointLimit: 700,
@@ -1541,6 +1540,38 @@ function wiserVactOpenWindowDetection(endpoint: Zh.Endpoint, options: KeyValue, 
 
 // #endregion
 
+// Same issue as the CCTFR6400 above: when adjusting the temperature, the EER51000 reads these attributes and fails without an answer.
+function wiserRtsInstallCustomReadResponse(device: Zh.Device): void {
+    const lookup: Record<number, string> = {
+        18: "occupiedHeatingSetpoint",
+        21: "minHeatSetpointLimit",
+        22: "maxHeatSetpointLimit",
+        28: "systemMode",
+    };
+    device.customReadResponse = (frame, endpoint) => {
+        if (!frame.isCluster("hvacThermostat")) {
+            return false;
+        }
+        const attributes: KeyValueAny = {};
+        for (const {attrId} of frame.payload as {attrId: number}[]) {
+            const value = endpoint.getClusterAttributeValue("hvacThermostat", lookup[attrId] ?? "wiserSmartZoneMode");
+            if (attrId === 0xe010) {
+                // Answer by ID, as the device reads it with or without manufacturer code
+                attributes[attrId] = {value: value ?? 1, type: Zcl.DataType.ENUM8};
+            } else if (lookup[attrId] && typeof value === "number") {
+                attributes[lookup[attrId]] = value;
+            } else {
+                return false;
+            }
+        }
+        const options = {srcEndpoint: 11, manufacturerCode: frame.header.manufacturerCode};
+        endpoint.readResponse("hvacThermostat", frame.header.transactionSequenceNumber, attributes, options).catch((error) => {
+            logger.warning(`EER51000 read response failed for '${device.ieeeAddr}': ${error}`, NS);
+        });
+        return true;
+    };
+}
+
 const tzLocal = {
     lift_duration: {
         key: ["lift_duration"],
@@ -1654,6 +1685,10 @@ const tzLocal = {
     wiser_sed_zone_mode: {
         key: ["zone_mode"],
         convertSet: (entity, key, value, meta) => {
+            if (utils.isEndpoint(entity)) {
+                const wiserSmartZoneMode = utils.getFromLookup(value, {manual: 1, schedule: 2, energy_saver: 3, holiday: 6});
+                entity.saveClusterAttributeKeyValue("hvacThermostat", {wiserSmartZoneMode});
+            }
             return {state: {zone_mode: value}};
         },
     } satisfies Tz.Converter,
@@ -1788,8 +1823,8 @@ const fzLocal = {
 
                 let screenAwake = globalStore.getValue(msg.endpoint, "screenAwake");
                 screenAwake = screenAwake !== undefined ? screenAwake : false;
-                const keypadLockedNumber = Number(msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout"));
-                const keypadLocked = keypadLockedNumber !== undefined ? keypadLockedNumber !== 0 : false;
+                const keypadLockout = msg.endpoint.getClusterAttributeValue("hvacUserInterfaceCfg", "keypadLockout");
+                const keypadLocked = keypadLockout != null && Number(keypadLockout) !== 0;
                 // While the boost selection UI is open (center press seen,
                 // clock icon shown), +/- presses adjust the device's local
                 // boost target, not the setpoint. Emulating them against the
@@ -1889,6 +1924,29 @@ const fzLocal = {
         type: ["commandSetpointRaiseLower"],
         convert: () => {},
     } satisfies Fz.Converter<"hvacThermostat", SchneiderThermostatCluster, ["commandSetpointRaiseLower"]>,
+    schneider_scene_actions: {
+        cluster: "genScenes",
+        type: ["commandRecall", "commandStore"],
+
+        convert: (model, msg) => {
+            const action = msg.type === "commandRecall" ? "single" : msg.type === "commandStore" ? "hold" : undefined;
+
+            if (!action) {
+                return;
+            }
+
+            switch (msg.endpoint.ID) {
+                case 21:
+                    return {action_l1: action};
+
+                case 22:
+                    return {action_l2: action};
+
+                default:
+                    return;
+            }
+        },
+    } satisfies Fz.Converter<"genScenes", undefined, ["commandRecall", "commandStore"]>,
     schneider_powertag: {
         cluster: "greenPower",
         type: ["commandNotification", "commandCommissioningNotification"],
@@ -2586,8 +2644,17 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
-            const binds = ["genBasic", "genPowerCfg", "hvacThermostat", "haDiagnostic"];
-            await reporting.bind(endpoint, coordinatorEndpoint, binds);
+            // The binding table has 5 entries and the valve fills most of them itself on joining (poll control,
+            // hvacThermostat on endpoints 1 and 2). Binding genBasic/haDiagnostic (unused) took the last slot and
+            // the genPowerCfg bind then failed with TABLE_FULL, aborting configure before any reporting was set
+            // up (no pi_heating_demand/setpoint/temperature reports). Bind only what is reported, one at a time.
+            for (const cluster of ["hvacThermostat", "genPowerCfg"]) {
+                try {
+                    await reporting.bind(endpoint, coordinatorEndpoint, [cluster]);
+                } catch (error) {
+                    logger.warning(`WV704R0A0902 bind of ${cluster} failed for '${device.ieeeAddr}': ${error}`, NS);
+                }
+            }
             await reporting.batteryVoltage(endpoint);
             await reporting.thermostatTemperature(endpoint);
             await reporting.thermostatOccupiedHeatingSetpoint(endpoint);
@@ -2665,7 +2732,7 @@ export const definitions: DefinitionWithExtend[] = [
             switchActions("l1"),
             switchActions("l2"),
         ],
-        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration],
+        fromZigbee: [fzLocal.wiser_lighting_ballast_configuration, fzLocal.schneider_scene_actions],
         toZigbee: [tz.ballast_config, tzLocal.wiser_dimmer_mode],
         exposes: [
             e
@@ -2681,6 +2748,14 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .enum("dimmer_mode", ea.ALL, ["auto", "rc", "rl", "rl_led"])
                 .withDescription("Sets dimming mode to autodetect or fixed RC/RL/RL_LED mode (max load is reduced in RL_LED)"),
+            e
+                .enum("action_l1", ea.STATE, ["single", "hold"])
+                .withLabel("Last Action L1")
+                .withDescription("Only relevant when Switch action L1 is set to scene. Triggered action on input L1 (single or hold)."),
+            e
+                .enum("action_l2", ea.STATE, ["single", "hold"])
+                .withLabel("Last Action L2")
+                .withDescription("Only relevant when Switch action L2 is set to scene. Triggered action on input L2 (single or hold)."),
         ],
     },
     {
@@ -3388,13 +3463,14 @@ export const definitions: DefinitionWithExtend[] = [
         },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint1 = device.getEndpoint(1);
+            // Seed before binding: binds often fail (TABLE_FULL) on devices taken over from a Wiser hub
+            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
+            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
+            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
             await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "hvacThermostat", "msTemperatureMeasurement", "msRelativeHumidity"]);
             await reporting.temperature(endpoint1);
             await reporting.humidity(endpoint1);
             await reporting.batteryPercentageRemaining(endpoint1);
-            endpoint1.saveClusterAttributeKeyValue("genBasic", {zclVersion: 3});
-            endpoint1.saveClusterAttributeKeyValue("hvacThermostat", {schneiderWiserSpecific: 1, systemMode: 4, ctrlSeqeOfOper: 2});
-            endpoint1.saveClusterAttributeKeyValue("hvacUserInterfaceCfg", {keypadLockout: 0});
         },
     },
     {
@@ -3523,7 +3599,7 @@ export const definitions: DefinitionWithExtend[] = [
         fromZigbee: [
             fz.battery,
             fz.hvac_user_interface,
-            fzLocal.wiser_smart_thermostat_client,
+            fzLocal.cctfr6400_ignore_thermostat_read,
             fzLocal.wiser_smart_setpoint_command_client,
             fzLocal.schneider_temperature,
         ],
@@ -3534,6 +3610,11 @@ export const definitions: DefinitionWithExtend[] = [
             e.enum("zone_mode", ea.STATE_SET, ["manual", "schedule", "energy_saver", "holiday"]).withDescription("Icon shown on device displays"),
         ],
         meta: {battery: {voltageToPercentage: {min: 3000, max: 4200}}},
+        onEvent: (event) => {
+            if (event.type === "start") {
+                wiserRtsInstallCustomReadResponse(event.data.device);
+            }
+        },
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(11);
             // Insert default values for client requested attributes
@@ -3925,7 +4006,14 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             schneiderElectricExtend.customTemperatureMeasurementCluster(),
             m.deviceEndpoints({
-                endpoints: {floor: 3},
+                endpoints: {
+                    ambient: 2,
+                    floor: 3,
+                },
+            }),
+            m.temperature({
+                endpointNames: ["ambient", "floor"],
+                reporting: false,
             }),
             schneiderElectricExtend.sensorCorrection({
                 endpointNames: ["floor"],
@@ -4466,7 +4554,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [
             schneiderElectricExtend.addWiserDeviceInfoCluster(),
             schneiderElectricExtend.addHeatingCoolingOutputClusterServer(),
-            schneiderElectricExtend.pilotMode(),
+            schneiderElectricExtend.pilotMode({
+                description: "Heating output mode",
+                lookup: {disabled: 0, contactor: 1, pilot: 3},
+            }),
+            schneiderElectricExtend.addHvacUserInterfaceCfgCustomAttributes(),
+            schneiderElectricExtend.displayBrightnessActive(),
+            schneiderElectricExtend.displayBrightnessInactive(),
+            schneiderElectricExtend.displayActiveTimeout(),
             m.poll({
                 key: "measurement",
                 option: exposes.options.measurement_poll_interval().withDescription("Polling interval of the occupied heating/cooling setpoint"),

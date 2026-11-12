@@ -431,10 +431,6 @@ interface ShellyLightLevel {
 // not queue every RPC transaction behind one global lock.
 const shellyRpcBusy = new Set<string>();
 
-const preserveNameHA = (name: string): exposes.HomeAssistant => {
-    return {name: name};
-};
-
 const shellyRpcLock = async <T>(endpoint: Zh.Endpoint | Zh.Group, callback: () => Promise<T>): Promise<T> => {
     const key = utils.isEndpoint(endpoint) ? endpoint.getDevice().ieeeAddr : "group";
     while (shellyRpcBusy.has(key)) {
@@ -1802,22 +1798,22 @@ const shellyModernExtend = {
                 .numeric("dew_point", ea.STATE)
                 .withUnit("°C")
                 .withDescription("Calculated dew point temperature")
-                .withHomeAssistant(preserveNameHA("Dew Point")),
+                .withHomeAssistant({name: "Dew point"}),
             e
                 .numeric("wind_chill", ea.STATE)
                 .withUnit("°C")
                 .withDescription("Calculated wind chill temperature")
-                .withHomeAssistant(preserveNameHA("Wind Chill")),
+                .withHomeAssistant({name: "Wind chill"}),
             e
                 .numeric("humidex", ea.STATE)
                 .withUnit("°C")
                 .withDescription("Calculated humidex (feels-like for warm conditions)")
-                .withHomeAssistant(preserveNameHA("Humidex")),
+                .withHomeAssistant({name: "Humidex"}),
             e
                 .numeric("apparent_temperature", ea.STATE)
                 .withUnit("°C")
                 .withDescription("Calculated apparent temperature")
-                .withHomeAssistant(preserveNameHA("Apparent Temperature")),
+                .withHomeAssistant({name: "Apparent temperature"}),
             e.numeric("heat_stress", ea.STATE).withUnit("%").withDescription("Calculated heat stress percentage (0-100%)"),
             e.numeric("rain_rate", ea.STATE).withUnit("mm/h").withDescription("Calculated rainfall rate"),
             e.numeric("pressure_trend", ea.STATE).withUnit("hPa/h").withDescription("Pressure change rate (negative = falling)"),
@@ -2676,9 +2672,9 @@ const shellyTRVExternalOccupancyOnEvent: OnEvent.Handler = (event) => {
     );
 };
 
-const shellyTRVExternalInputsOnEvent: OnEvent.Handler = (event) => {
-    shellyTRVExternalTemperatureOnEvent(event);
-    shellyTRVExternalOccupancyOnEvent(event);
+const shellyTRVExternalInputsOnEvent: OnEvent.Handler = async (event) => {
+    await shellyTRVExternalTemperatureOnEvent(event);
+    await shellyTRVExternalOccupancyOnEvent(event);
 };
 
 // =============================================================================
@@ -3205,7 +3201,7 @@ export const definitions: DefinitionWithExtend[] = [
                 scale: 10,
                 unit: "m/s",
                 access: "STATE_GET",
-                homeassistant: preserveNameHA("Gust Speed"),
+                homeassistant: {name: "Gust speed"},
             }),
             m.deviceAddCustomCluster("shellyWS90UV", {
                 name: "shellyWS90UV",
@@ -3276,13 +3272,43 @@ export const definitions: DefinitionWithExtend[] = [
         model: "S4DM-0A101WWL",
         vendor: "Shelly",
         description: "Dimmer Gen4",
+        // The input bindings in configure were added after this device was first released; bump the
+        // patch version so already paired devices get re-configured and their input events start
+        // arriving (same rule as the Gen4 switches).
+        version: "0.0.1",
+        // SW1/SW2 report every press as a genScenes recall from endpoint 2/3, with the same scene ids
+        // as the Gen4 switches (1/2/3 = single/double/triple, 4 = hold). The genOnOff commands that
+        // come along with a single press are left out: on firmware 2.0.3 both an on and an off press
+        // send commandOff, so they say nothing about the input.
+        fromZigbee: [fzLocal.switch_inputs_scene_events],
+        exposes: [
+            e.action([
+                "input_1_single",
+                "input_1_double",
+                "input_1_triple",
+                "input_1_hold",
+                "input_2_single",
+                "input_2_double",
+                "input_2_triple",
+                "input_2_hold",
+            ]),
+        ],
         extend: [
+            shellyDeviceEndpoints({sw1: 2, sw2: 3}),
             m.light({configureReporting: true}),
             m.electricityMeter(),
             ...shellyModernExtend.shellyCustomClusters(),
             shellyModernExtend.shellyWiFiSetup(),
             m.identify(),
         ],
+        configure: async (device, coordinatorEndpoint) => {
+            for (const epID of [2, 3]) {
+                const ep = device.getEndpoint(epID);
+                if (ep) {
+                    await ep.bind("genScenes", coordinatorEndpoint);
+                }
+            }
+        },
     },
     {
         fingerprint: [{modelID: "Dimmer 0-1/10", manufacturerName: "Shelly"}],
@@ -3529,6 +3555,22 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SBDW-103C",
         vendor: "Shelly",
         description: "BLU DoorWindow ZB",
+        fromZigbee: [fzLocal.blu_door_window],
+        toZigbee: [],
+        exposes: [e.contact(), handlePosition, e.battery_low()],
+        extend: [m.battery(), ...shellyModernExtend.shellyLightLevel(), m.identify()],
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            if (endpoint) {
+                await endpoint.read("ssIasZone", ["zoneStatus"]);
+            }
+        },
+    },
+    {
+        fingerprint: [{modelID: "BLU DoorWindow Mini ZB", manufacturerName: "Shelly"}],
+        model: "SBDW-203C",
+        vendor: "Shelly",
+        description: "BLU DoorWindow Mini ZB",
         fromZigbee: [fzLocal.blu_door_window],
         toZigbee: [],
         exposes: [e.contact(), handlePosition, e.battery_low()],
