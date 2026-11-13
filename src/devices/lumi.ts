@@ -77,6 +77,7 @@ const {
 
 const NS = "zhc:lumi";
 const {manufacturerCode} = lumi;
+
 const aqaraH2EuShutterSwitchEndpoints = {top_wireless_button: 3, bottom_wireless_button: 4} as const;
 type AqaraH2EuShutterSwitchEndpointName = keyof typeof aqaraH2EuShutterSwitchEndpoints;
 const aqaraH2EuShutterSwitchEndpointNames: AqaraH2EuShutterSwitchEndpointName[] = ["top_wireless_button", "bottom_wireless_button"];
@@ -6765,6 +6766,30 @@ export const definitions: DefinitionWithExtend[] = [
             // OTA
             m.quirkCheckinInterval("1_HOUR"),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
+        ],
+    },
+    {
+        zigbeeModel: ["lumi.models.4447_8295"],
+        model: "FP400",
+        vendor: "Aqara",
+        description: "Presence multi-sensor FP400",
+        // A new patch version has Zigbee2MQTT configure sensors paired under an older one again.
+        version: "0.0.1",
+        extend: [
+            // Its own clusters 0xFC0A-0xFC0C and 0x0080 (see lib/lumi.ts).
+            lumi.lumiModernExtend.fp400AddClusters(),
+            // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones, whose reports are ignored here.
+            m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
+            m.occupancy({endpointNames: ["1"]}),
+            m.illuminance({endpointNames: ["2"], reporting: false}),
+            ...lumi.lumiModernExtend.fp400Settings(),
+            ...lumi.lumiModernExtend.fp400Room(),
+            m.identify(),
+            lumi.lumiModernExtend.lumiZigbeeOTA(),
+            // Herdsman cannot parse Aqara's 0x8A/0x8B frames and answers each with a Default Response (UNSUP_COMMAND):
+            // 6,757 transmissions in 5 hours with two sensors tracking, one per position frame. The sensor sets Disable
+            // Default Response on every other frame it sends (2026-11-12 logs), so it never needs one.
+            m.skipDefaultResponse(),
         ],
     },
 ];
