@@ -6827,7 +6827,7 @@ export const definitions: DefinitionWithExtend[] = [
         // A new patch version has Zigbee2MQTT configure sensors paired under an older one again.
         version: "0.0.1",
         extend: [
-            // Its own clusters 0xFC0A-0xFC0C and 0x0080 (see lib/lumi.ts).
+            // Its own clusters 0xFC0A-0xFC0C and 0x0080, 0x0040 (see lib/lumi.ts).
             lumi.lumiModernExtend.fp400AddClusters(),
             // 1 is the room and 2 the light sensor; 3-10 carry the sensor's own zones.
             m.deviceEndpoints({endpoints: {"1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10}}),
@@ -6837,6 +6837,7 @@ export const definitions: DefinitionWithExtend[] = [
             ...lumi.lumiModernExtend.fp400Room(),
             ...lumi.lumiModernExtend.fp400Areas(),
             ...lumi.lumiModernExtend.fp400NativeZones(),
+            lumi.lumiModernExtend.fp400Experimental(),
             m.identify(),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
             // Herdsman cannot parse Aqara's 0x8A/0x8B frames and answers each with a Default Response (UNSUP_COMMAND):

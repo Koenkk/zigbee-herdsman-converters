@@ -198,6 +198,32 @@ describe("FP400 definition", () => {
             });
         });
 
+        it("decodes the second processor's version from cluster 0x0040, frame for frame", async () => {
+            // Reported right after pairing, firmware 63 (2026-11-11): an array holding one struct of two char strings.
+            const frame = hex("18140a0000484c01000200420b6d63752d76657273696f6e42023632");
+            const parsed = Zcl.Frame.fromBuffer(0x0040, Zcl.Header.fromBuffer(frame), frame, fp400.clusters);
+            expect(parsed.cluster.name).toBe("aqaraFp400Versions");
+            const [{attrId, attrData}] = parsed.payload as {attrId: number; attrData: unknown}[];
+            expect(attrId).toBe(0);
+            const device = sensor();
+            expect((await receive(device, 1, "aqaraFp400Versions", "attributeReport", {versions: attrData})).state).toStrictEqual({
+                mcu_version: "62",
+            });
+            expect((await receive(device, 3, "aqaraFp400Versions", "attributeReport", {versions: attrData})).state).toStrictEqual({});
+            const other = [
+                [
+                    {elmType: 66, elmVal: "other"},
+                    {elmType: 66, elmVal: "1"},
+                ],
+            ];
+            expect((await receive(device, 1, "aqaraFp400Versions", "readResponse", {versions: other})).state).toStrictEqual({});
+            expect((await receive(device, 1, "aqaraFp400Versions", "readResponse", {versions: "62"})).state).toStrictEqual({});
+            const definition = await findByDevice(device);
+            // @ts-expect-error mock meta
+            await definition.toZigbee.find((c) => c.key.includes("mcu_version")).convertGet(device.getEndpoint(1), "mcu_version", {device});
+            expect(device.getEndpoint(1).read).toHaveBeenCalledWith("aqaraFp400Versions", ["versions"]);
+        });
+
         it("reports activity 0 as none: it comes with an empty room", async () => {
             const device = sensor();
             expect((await receive(device, 1, "aqaraFp400Location", "attributeReport", {activityState: 0})).state).toStrictEqual({
@@ -421,6 +447,113 @@ describe("FP400 definition", () => {
             await vi.advanceTimersByTimeAsync(120000);
             expect(subscriptions()).toHaveLength(3);
             await definition.onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
+        });
+    });
+
+    describe("experimental", () => {
+        async function set(device: Zh.Device, key: string, value: unknown) {
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key.includes(key));
+            // @ts-expect-error mock meta
+            return await converter.convertSet(device.getEndpoint(1), key, value, {device, message: {[key]: value}, options: {}, state: {}});
+        }
+        const sent = (device: Zh.Device) => vi.mocked(device.getEndpoint(1).command).mock.calls;
+
+        it.each([
+            ["1c5f11078b000000", "enter"],
+            ["1c5f11078b000001", "leave"],
+            ["1c5f11078b000006", "approach"],
+            ["1c5f11078b00003007", "away"],
+            ["1c5f11078b00002004", "right_in"],
+        ])("publishes movement event %s as %s", async (frame, action) => {
+            expect((await receive(sensor(), 1, "aqaraFp400Radar", "raw", hex(frame))).state).toStrictEqual({action});
+        });
+
+        it.each([
+            ["an unknown value", 1, "1c5f11078b000009"],
+            ["another event", 1, "1c5f11078b030000"],
+            ["no value", 1, "1c5f11078b0000"],
+            ["the light endpoint", 2, "1c5f11078b000006"],
+        ])("publishes no movement for %s", async (_, endpoint, frame) => {
+            expect((await receive(sensor(), endpoint, "aqaraFp400Radar", "raw", hex(frame))).state).toStrictEqual({});
+        });
+
+        it.each([
+            // Captured from zone endpoints on firmware 63 (2026-11-11), with zone 1 on endpoint 3 and zone 2 on endpoint 4.
+            [3, "1c5f114c8b000001", "leave_3"],
+            [4, "1c5f11498b000006", "approach_4"],
+            [4, "1c5f11078b00002004", "right_in_4"],
+        ])("publishes a zone's movement from endpoint %s, frame %s, as %s", async (endpoint, frame, action) => {
+            expect((await receive(sensor(), endpoint, "aqaraFp400Radar", "raw", hex(frame))).state).toStrictEqual({action});
+        });
+
+        it("lists the movements of the room and of each zone endpoint as actions", async () => {
+            const definition = await findByDevice(sensor());
+            const exposes = typeof definition.exposes === "function" ? definition.exposes(sensor(), {}) : definition.exposes;
+            const actions = (exposes.find((expose) => expose.property === "action") as {values: string[]}).values;
+            expect(actions).toHaveLength(8 + 8 * 8);
+            expect(actions.slice(0, 8)).toStrictEqual(["enter", "leave", "left_in", "right_out", "right_in", "left_out", "approach", "away"]);
+            expect(actions).toEqual(expect.arrayContaining(["enter_3", "away_10"]));
+            expect(await exposedProperties(sensor())).toEqual(expect.arrayContaining(["remove_target"]));
+        });
+
+        it("asks the sensor to forget a target and reports a refusal", async () => {
+            const device = sensor();
+            await set(device, "remove_target", 3);
+            expect(sent(device)).toStrictEqual([["aqaraFp400Location", "removeDetectionTarget", {targetId: 3}, {manufacturerCode: 0x115f}]]);
+            vi.mocked(device.getEndpoint(1).command).mockResolvedValueOnce({cmdId: 1, statusCode: 0x81});
+            await expect(set(device, "remove_target", 4)).rejects.toThrow("did not accept");
+            for (const bad of [-1, 256, 1.5, "x"]) await expect(set(device, "remove_target", bad)).rejects.toThrow();
+            expect(sent(device)).toHaveLength(2);
+        });
+
+        it("sends the recognition commands", async () => {
+            const device = sensor();
+            await set(device, "auto_interference_recognition", "start");
+            await set(device, "auto_edge_recognition", 120);
+            await set(device, "ai_entry_exit_recognition_subscribe", "start");
+            expect(sent(device)).toStrictEqual([
+                ["aqaraFp400Config", "subscribeAutoInterference", {}, {manufacturerCode: 0x115f}],
+                ["aqaraFp400Config", "subscribeAutoEdge", {timeout: 120}, {manufacturerCode: 0x115f}],
+                ["aqaraFp400Config", "subscribeAiEntryExit", {}, {manufacturerCode: 0x115f}],
+            ]);
+            await expect(set(device, "auto_edge_recognition", 0)).rejects.toThrow("1 to 3600");
+            await expect(set(device, "auto_interference_recognition", "stop")).rejects.toThrow("Send start");
+            expect(sent(device)).toHaveLength(3);
+        });
+
+        it("encodes the recognition commands as the sensor's Matter firmware takes them", () => {
+            const frame = (command: string, payload: KeyValueAny) =>
+                Zcl.Frame.create(
+                    Zcl.FrameType.SPECIFIC,
+                    Zcl.Direction.CLIENT_TO_SERVER,
+                    true,
+                    0x115f,
+                    1,
+                    command,
+                    "aqaraFp400Config",
+                    payload,
+                    fp400.clusters,
+                )
+                    .toBuffer()
+                    .toString("hex");
+            expect(frame("subscribeAutoInterference", {})).toBe("155f110100");
+            expect(frame("subscribeAutoEdge", {timeout: 120})).toBe("155f1101017800");
+            expect(frame("subscribeAiEntryExit", {})).toBe("155f110102");
+        });
+
+        it.each([
+            ["tagged", `1c5f11078b02004128${"0f".repeat(40)}`],
+            ["with its length", `1c5f11078b020028${"0f".repeat(40)}`],
+            ["bare", `1c5f11078b0200${"0f".repeat(40)}`],
+        ])("publishes the recognised entrances and exits, %s", async (_, frame) => {
+            expect((await receive(sensor(), 1, "aqaraFp400Config", "raw", hex(frame))).state).toStrictEqual({
+                ai_entry_exit_recognition_hex: "0f".repeat(40),
+            });
+        });
+
+        it("publishes no entrances and exits from a cut map", async () => {
+            expect((await receive(sensor(), 1, "aqaraFp400Config", "raw", hex(`1c5f11078b0200${"0f".repeat(39)}`))).state).toStrictEqual({});
         });
     });
 

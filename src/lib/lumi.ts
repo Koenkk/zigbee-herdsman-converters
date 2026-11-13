@@ -2150,6 +2150,9 @@ export interface AqaraFp400Config {
         proximityDistance: number;
     };
     commands: {
+        subscribeAutoInterference: Record<string, never>;
+        subscribeAutoEdge: {timeout: number};
+        subscribeAiEntryExit: Record<string, never>;
         startLearning: Record<string, never>;
         appendZone: {zone: {elmType: number; elmVal: unknown}[]};
         updateZone: {zone: {elmType: number; elmVal: unknown}[]};
@@ -2164,7 +2167,7 @@ export interface AqaraFp400Radar {
 }
 export interface AqaraFp400Location {
     attributes: {activityState: number};
-    commands: {subscribeLocationData: {timeout: number}};
+    commands: {subscribeLocationData: {timeout: number}; removeDetectionTarget: {targetId: number}};
     commandResponses: never;
 }
 export interface AqaraFp400Sensitivity {
@@ -2172,8 +2175,13 @@ export interface AqaraFp400Sensitivity {
     commands: never;
     commandResponses: never;
 }
+export interface AqaraFp400Versions {
+    attributes: {versions: unknown[]};
+    commands: never;
+    commandResponses: never;
+}
 
-type Fp400ClusterName = "aqaraFp400Config" | "aqaraFp400Radar" | "aqaraFp400Location" | "aqaraFp400Sensitivity";
+type Fp400ClusterName = "aqaraFp400Config" | "aqaraFp400Radar" | "aqaraFp400Location" | "aqaraFp400Sensitivity" | "aqaraFp400Versions";
 
 const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
     aqaraFp400Config: {
@@ -2202,6 +2210,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
         },
         commands: {
+            subscribeAutoInterference: {name: "subscribeAutoInterference", ID: 0x00, parameters: []},
+            subscribeAutoEdge: {name: "subscribeAutoEdge", ID: 0x01, parameters: [{name: "timeout", type: Zcl.DataType.UINT16}]},
+            subscribeAiEntryExit: {name: "subscribeAiEntryExit", ID: 0x02, parameters: []},
             startLearning: {name: "startLearning", ID: 0x03, parameters: []},
             appendZone: {name: "appendZone", ID: 0x04, response: 0x05, parameters: [{name: "zone", type: Zcl.DataType.STRUCT}]},
             updateZone: {name: "updateZone", ID: 0x06, response: 0x07, parameters: [{name: "zone", type: Zcl.DataType.STRUCT}]},
@@ -2234,6 +2245,7 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         },
         commands: {
             subscribeLocationData: {name: "subscribeLocationData", ID: 0x00, parameters: [{name: "timeout", type: Zcl.DataType.UINT16}]},
+            removeDetectionTarget: {name: "removeDetectionTarget", ID: 0x01, parameters: [{name: "targetId", type: Zcl.DataType.UINT8}]},
         },
         commandsResponse: {},
     },
@@ -2244,7 +2256,28 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         commands: {},
         commandsResponse: {},
     },
+    // Not a ZCL cluster: a list of name/value string pairs the sensor reports after pairing and power-up. Firmware 63
+    // lists only [["mcu-version", "62"]].
+    aqaraFp400Versions: {
+        name: "aqaraFp400Versions",
+        ID: 0x0040,
+        attributes: {versions: {name: "versions", ID: 0x0000, type: Zcl.DataType.ARRAY}},
+        commands: {},
+        commandsResponse: {},
+    },
 };
+
+/** The name/value pairs of cluster 0x0040's list: structs of two strings, as herdsman decodes them. */
+function fp400DecodeVersions(value: unknown): Record<string, string> | undefined {
+    if (!Array.isArray(value)) return undefined;
+    const versions: Record<string, string> = {};
+    for (const entry of value) {
+        if (!Array.isArray(entry) || entry.length !== 2) continue;
+        const [name, version] = entry.map((element) => (isObject(element) ? element.elmVal : element));
+        if (typeof name === "string" && (typeof version === "string" || typeof version === "number")) versions[name] = String(version);
+    }
+    return versions;
+}
 
 // Sizes of the ZCL types that appear in FP400 structures and attribute records.
 const fp400TypeSizes: Record<number, number> = {
@@ -2279,6 +2312,13 @@ function fp400ParseFrame(data: unknown): {command: number; payload: Buffer} | un
     // Global frame type, manufacturer specific, server to client.
     if ((frameControl & 0x03) !== 0 || (frameControl & 0x0c) !== 0x0c || data.readUInt16LE(1) !== manufacturerCode) return;
     return {command: data[4], payload: data.subarray(5)};
+}
+
+/** An 0x8B event: `<event id u16> <payload>`. */
+function fp400ParseEvent(data: unknown): {event: number; payload: Buffer} | undefined {
+    const frame = fp400ParseFrame(data);
+    if (frame?.command !== 0x8b || frame.payload.length < 2) return;
+    return {event: frame.payload.readUInt16LE(0), payload: frame.payload.subarray(2)};
 }
 
 // The attribute records the sensor sends with 0x8A, as captured from an Aqara hub; anything else is not trusted.
@@ -2528,7 +2568,7 @@ const fp400SettingSpecs: Fp400SettingSpec[] = [
         cluster: "aqaraFp400Config",
         attribute: "detectionDirection",
         values: {omnidirectional: 0, left_right: 1},
-        description: "Which movements the sensor reports: left_right adds left_in, left_out, right_in and right_out",
+        description: "Which movements the sensor reports as actions: left_right adds left_in, left_out, right_in and right_out",
     },
     {
         name: "proximity_distance",
@@ -2711,6 +2751,35 @@ function fp400Room(): ModernExtend[] {
         },
         {
             isModernExtend: true,
+            exposes: [
+                e
+                    .text("mcu_version", ea.STATE_GET)
+                    .withCategory("diagnostic")
+                    .withDescription(
+                        "Firmware version of the sensor's second processor, which the sensor calls mcu-version (62 next to firmware 63)",
+                    ),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "aqaraFp400Versions",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const version = msg.endpoint.ID === 1 ? fp400DecodeVersions(msg.data.versions)?.["mcu-version"] : undefined;
+                        if (version !== undefined) return {mcu_version: version};
+                    },
+                } satisfies Fz.Converter<"aqaraFp400Versions", AqaraFp400Versions, ["attributeReport", "readResponse"]>,
+            ],
+            toZigbee: [
+                {
+                    key: ["mcu_version"],
+                    convertGet: async (entity, key, meta) => {
+                        await meta.device.getEndpoint(1).read<"aqaraFp400Versions", AqaraFp400Versions>("aqaraFp400Versions", ["versions"]);
+                    },
+                },
+            ],
+        },
+        {
+            isModernExtend: true,
             // The sensor also sends occupancy, light, people count and activity as 0x8A frames. They are handed to the
             // definition's ordinary attribute-report converters, from the endpoint they came from.
             fromZigbee: Object.keys(fp400SyncAttributes).map((cluster) => ({
@@ -2805,6 +2874,18 @@ function fp400Room(): ModernExtend[] {
             ],
         },
     ];
+}
+
+async function fp400RemoveTarget(device: Zh.Device, targetId: number) {
+    const reply = await device
+        .getEndpoint(1)
+        .command<"aqaraFp400Location", "removeDetectionTarget", AqaraFp400Location>(
+            "aqaraFp400Location",
+            "removeDetectionTarget",
+            {targetId},
+            {manufacturerCode},
+        );
+    if (reply?.statusCode) throw new Error(`The sensor did not accept removing target ${targetId} (status ${reply.statusCode})`);
 }
 
 /**
@@ -3097,6 +3178,141 @@ function fp400NativeZones(): ModernExtend[] {
     ];
 }
 
+// Movement events (0xFC0B event 0), named after the Matter enum; only 0, 1, 6 and 7 have been seen over Zigbee.
+const fp400MovementEvents = ["enter", "leave", "left_in", "right_out", "right_in", "left_out", "approach", "away"];
+
+// A cell map takes 40 bytes, like the area masks: 20 rows of 16 cells, one bit per cell.
+const FP400_MASK_BYTES = 40;
+
+/** The cell map of an event 2, with or without its octet-string tag and length. */
+function fp400EventMask(payload: Buffer): Buffer | undefined {
+    if (payload.length === FP400_MASK_BYTES + 2 && payload[0] === Zcl.DataType.OCTET_STR && payload[1] === FP400_MASK_BYTES)
+        return payload.subarray(2);
+    if (payload.length === FP400_MASK_BYTES + 1 && payload[0] === FP400_MASK_BYTES) return payload.subarray(1);
+    if (payload.length === FP400_MASK_BYTES) return payload;
+}
+
+/**
+ * Features whose Zigbee payloads come from the sensor's Matter firmware and community converters, without a published
+ * capture of every message: movement events, forgetting a target, and the AI recognition commands.
+ */
+function fp400Experimental(): ModernExtend {
+    const experimental = "Experimental: ";
+    // The zone endpoints report the movement in their zone, as <movement>_<endpoint>.
+    const zoneEndpoints = [3, 4, 5, 6, 7, 8, 9, 10];
+    return {
+        isModernExtend: true,
+        exposes: [
+            e
+                .action([
+                    ...fp400MovementEvents,
+                    ...zoneEndpoints.flatMap((endpoint) => fp400MovementEvents.map((movement) => `${movement}_${endpoint}`)),
+                ])
+                .withDescription(
+                    `${experimental}movement the sensor reports: enter, leave, approach and away; left_in, left_out, right_in and right_out with detection_direction left_right. Zone endpoints report the movement in their zone as <movement>_<endpoint>`,
+                ),
+            e
+                .numeric("remove_target", ea.SET)
+                .withValueMin(0)
+                .withValueMax(255)
+                .withCategory("config")
+                .withDescription(
+                    `${experimental}make the sensor forget a target by its id in targets, for example a ghost; a real person is found again`,
+                ),
+            e
+                .enum("auto_interference_recognition", ea.SET, ["start"])
+                .withCategory("config")
+                .withDescription(`${experimental}ask the sensor to look for interference sources itself`),
+            e
+                .numeric("auto_edge_recognition", ea.SET)
+                .withValueMin(1)
+                .withValueMax(3600)
+                .withUnit("s")
+                .withCategory("config")
+                .withDescription(`${experimental}ask the sensor to work out the edges of the room itself, for this long`),
+            e
+                .enum("ai_entry_exit_recognition_subscribe", ea.SET, ["start"])
+                .withCategory("config")
+                .withDescription(
+                    `${experimental}ask the sensor for the entrances and exits it recognised; they arrive in ai_entry_exit_recognition_hex`,
+                ),
+            e
+                .text("ai_entry_exit_recognition_hex", ea.STATE)
+                .withCategory("diagnostic")
+                .withDescription(
+                    `${experimental}cells the sensor recognised as entrances and exits, as 80 hexadecimal characters like the area masks`,
+                ),
+        ],
+        fromZigbee: [
+            {
+                cluster: "aqaraFp400Radar",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    const event = fp400ParseEvent(msg.data);
+                    if (event?.event !== 0 || event.payload.length === 0) return;
+                    // Zone endpoints send the same events for their zone (on firmware 63: zones 1-3, 2026-11-11).
+                    const endpoint = msg.endpoint.ID;
+                    if (endpoint !== 1 && !zoneEndpoints.includes(endpoint)) return;
+                    // The value may come with its enum8 or uint8 type.
+                    const tagged = event.payload.length === 2 && [Zcl.DataType.ENUM8, Zcl.DataType.UINT8].includes(event.payload[0]);
+                    if (event.payload.length !== (tagged ? 2 : 1)) return;
+                    const movement = fp400MovementEvents[event.payload[tagged ? 1 : 0]];
+                    if (movement) return {action: endpoint === 1 ? movement : `${movement}_${endpoint}`};
+                },
+            } satisfies Fz.Converter<"aqaraFp400Radar", AqaraFp400Radar, ["raw"]>,
+            {
+                cluster: "aqaraFp400Config",
+                type: ["raw"],
+                convert: (model, msg, publish, options, meta) => {
+                    const event = fp400ParseEvent(msg.data);
+                    if (msg.endpoint.ID !== 1 || event?.event !== 2) return;
+                    const mask = fp400EventMask(event.payload);
+                    if (mask) return {ai_entry_exit_recognition_hex: mask.toString("hex")};
+                },
+            } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["raw"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["remove_target"],
+                convertSet: async (entity, key, value, meta) => {
+                    const targetId = toNumber(value, key);
+                    if (!Number.isInteger(targetId) || targetId < 0 || targetId > 255)
+                        throw new Error("remove_target needs a target id from 0 to 255");
+                    await fp400RemoveTarget(meta.device, targetId);
+                },
+            },
+            // One converter per key: Zigbee2MQTT calls a converter once per message.
+            ...["auto_interference_recognition", "auto_edge_recognition", "ai_entry_exit_recognition_subscribe"].map(
+                (name): Tz.Converter => ({
+                    key: [name],
+                    convertSet: async (entity, key, value, meta) => {
+                        const endpoint = meta.device.getEndpoint(1);
+                        if (key === "auto_edge_recognition") {
+                            const timeout = toNumber(value, key);
+                            if (!Number.isInteger(timeout) || timeout < 1 || timeout > 3600) throw new Error(`${key} must be 1 to 3600 seconds`);
+                            await endpoint.command<"aqaraFp400Config", "subscribeAutoEdge", AqaraFp400Config>(
+                                "aqaraFp400Config",
+                                "subscribeAutoEdge",
+                                {timeout},
+                                {manufacturerCode},
+                            );
+                            return;
+                        }
+                        if (value !== "start") throw new Error(`Send start to ${key.replaceAll("_", " ")}`);
+                        const command = key === "auto_interference_recognition" ? "subscribeAutoInterference" : "subscribeAiEntryExit";
+                        await endpoint.command<"aqaraFp400Config", typeof command, AqaraFp400Config>(
+                            "aqaraFp400Config",
+                            command,
+                            {},
+                            {manufacturerCode},
+                        );
+                    },
+                }),
+            ),
+        ],
+    };
+}
+
 export const fp400 = {
     clusters: fp400Clusters,
     parseFrame: fp400ParseFrame,
@@ -3123,7 +3339,7 @@ export const lumiModernExtend = {
             commands: {},
             commandsResponse: {},
         }),
-    /** Registers the FP400's clusters 0xFC0A, 0xFC0B, 0xFC0C and 0x0080; must come before the FP400 extends that use them. */
+    /** Registers the FP400's clusters 0xFC0A, 0xFC0B, 0xFC0C, 0x0080 and 0x0040; must come before the FP400 extends that use them. */
     fp400AddClusters: (): ModernExtend => {
         const extend = Object.values(fp400Clusters).map((cluster) => modernExtend.deviceAddCustomCluster(cluster.name, cluster));
         return {onEvent: extend.flatMap((e) => e.onEvent), configure: extend.flatMap((e) => e.configure), isModernExtend: true};
@@ -3132,6 +3348,7 @@ export const lumiModernExtend = {
     fp400Room,
     fp400Areas,
     fp400NativeZones,
+    fp400Experimental,
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, "colorTemp"> & {
             colorTemp?: true;
