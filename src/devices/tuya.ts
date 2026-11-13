@@ -24574,7 +24574,9 @@ export const definitions: DefinitionWithExtend[] = [
                 ? [
                       te
                           .liquidDepthMax()
-                          .withDescription("Maximum liquid depth, from the tank bottom up to the full level (the level percentage is relative to it)"),
+                          .withDescription(
+                              "Maximum liquid depth, from the tank bottom up to the full level (the level percentage is relative to it)",
+                          ),
                       te.liquidInstallationHeight(),
                   ]
                 : [
