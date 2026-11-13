@@ -1,21 +1,20 @@
-import {logger} from "../lib/logger";
 import * as m from "../lib/modernExtend";
 import type {DefinitionWithExtend, ModernExtend} from "../lib/types";
 
-const thermostatArgs: m.ThermostatArgs = {
-    systemMode: {values: ["off", "heat"]},
-    runningMode: {values: ["off", "heat"]},
-    setpoints: {
-        values: {
-            occupiedHeatingSetpoint: {min: 7, max: 32, step: 1},
-            unoccupiedHeatingSetpoint: {min: 7, max: 32, step: 1},
+// Device falls back to a 7 °C setpoint after losing the connection for ~5 minutes without reporting it,
+// read the state on start so it isn't stale after a Z2M restart.
+const readStateOnStart: ModernExtend = {
+    onEvent: [
+        async (event) => {
+            if (event.type === "start") {
+                await event.data.device
+                    .getEndpoint(1)
+                    .read("hvacThermostat", ["occupiedHeatingSetpoint", "unoccupiedHeatingSetpoint", "systemMode", "runningMode", "localTemp"])
+                    .catch(() => {});
+            }
         },
-    },
-    localTemperature: {
-        values: {
-            description: "Current temperature measured by the internal sensor",
-        },
-    },
+    ],
+    isModernExtend: true,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -24,39 +23,49 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SWT-IZ",
         vendor: "Nobø",
         description: "Smart thermostat for floor heating control",
-        extend: [m.identify(), m.thermostat(thermostatArgs), readThermostatStateOnStart()],
+        extend: [
+            m.identify(),
+            m.thermostat({
+                systemMode: {values: ["off", "heat"]},
+                runningMode: {values: ["off", "heat"]},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 7, max: 32, step: 1},
+                        unoccupiedHeatingSetpoint: {min: 7, max: 32, step: 1},
+                    },
+                },
+                localTemperature: {
+                    values: {
+                        description: "Current temperature measured by the internal sensor",
+                    },
+                },
+            }),
+            readStateOnStart,
+        ],
     },
     {
         zigbeeModel: ["SPC-IZ"],
         model: "SPC-IZ",
         vendor: "Nobø",
         description: "Control unit for panel heaters",
-        extend: [m.identify(), m.thermostat(thermostatArgs), readThermostatStateOnStart()],
+        extend: [
+            m.identify(),
+            m.thermostat({
+                systemMode: {values: ["off", "heat"]},
+                runningMode: {values: ["off", "heat"]},
+                setpoints: {
+                    values: {
+                        occupiedHeatingSetpoint: {min: 7, max: 32, step: 1},
+                        unoccupiedHeatingSetpoint: {min: 7, max: 32, step: 1},
+                    },
+                },
+                localTemperature: {
+                    values: {
+                        description: "Current temperature measured by the internal sensor",
+                    },
+                },
+            }),
+            readStateOnStart,
+        ],
     },
 ];
-
-const NAMESPACE = "zhc:nobo";
-
-function readThermostatStateOnStart(): ModernExtend {
-    return {
-        onEvent: [
-            async (event) => {
-                if (event.type !== "start") return;
-
-                const endpoint = event.data.device.getEndpoint(1);
-                try {
-                    await endpoint.read("hvacThermostat", [
-                        "occupiedHeatingSetpoint",
-                        "unoccupiedHeatingSetpoint",
-                        "systemMode",
-                        "runningMode",
-                        "localTemp",
-                    ]);
-                } catch (error) {
-                    logger.warning(`Failed to read thermostat state of '${event.data.device.ieeeAddr}' on start (${error})`, NAMESPACE);
-                }
-            },
-        ],
-        isModernExtend: true,
-    };
-}
