@@ -10468,6 +10468,8 @@ export const definitions: DefinitionWithExtend[] = [
         version: "0.0.1",
         extend: [
             m.battery(),
+            m.bindCluster({cluster: "genPollCtrl", clusterType: "input"}),
+            m.pollControl({longPollInterval: 8, checkinInterval: 3600}),
             m.customLocalTemperatureCalibrationRange({
                 min: sonoffTrvzbtLocalTemperatureCalibrationRange.min,
                 max: sonoffTrvzbtLocalTemperatureCalibrationRange.max,
