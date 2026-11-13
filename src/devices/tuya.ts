@@ -7501,6 +7501,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_lmgrbuwf",
             "_TZE204_wskr3up8",
             "_TZE204_gxbdnfrh",
+            "_TZE28C1000000_gxbdnfrh",
             "_TZE284_g1enhdsi",
             "_TZE284_r731zlxk",
             "_TZE284_znkkcauq",
@@ -7511,7 +7512,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "6 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            if (["_TZE204_gxbdnfrh", "_TZE284_znkkcauq"].includes(device.manufacturerName)) {
+            if (["_TZE204_gxbdnfrh", "_TZE28C1000000_gxbdnfrh", "_TZE284_znkkcauq"].includes(device.manufacturerName)) {
                 // DP only devices, the genOnOff bind fails with INVALID_EP on some units
                 await tuya.configureMagicPacket(device, coordinatorEndpoint);
             } else {
@@ -7532,7 +7533,7 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.powerOnBehavior(),
                 tuya.exposes.indicatorModeNoneRelayPos(),
             ];
-            if (isDummyDevice(device) || device.manufacturerName === "_TZE204_gxbdnfrh") {
+            if (isDummyDevice(device) || ["_TZE204_gxbdnfrh", "_TZE28C1000000_gxbdnfrh"].includes(device.manufacturerName)) {
                 exps.push(
                     ...["l1", "l2", "l3", "l4", "l5", "l6"].map((ep) =>
                         e
@@ -7581,7 +7582,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
             tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
-            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
+            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh", "_TZE28C1000000_gxbdnfrh"]),
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
             tuya.whitelabel("Ekaza", "EKGD-T4085P-4Z", "4 gang switch with 2 gang socket 4x4", ["_TZE284_znkkcauq"]),
             tuya.whitelabel("JWCOM", "SA-ZB417F-BR", "6 gang switch", ["_TZE284_1iii6x0y"]),
