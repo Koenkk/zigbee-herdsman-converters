@@ -1385,6 +1385,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "SIRZB-111",
         vendor: "Develco",
         description: "Customizable siren",
+        ota: true,
         extend: [
             develcoModernExtend.addCustomClusterManuSpecificDevelcoGenBasic(),
             develcoModernExtend.readGenBasicPrimaryVersions(),
@@ -1397,11 +1398,11 @@ export const definitions: DefinitionWithExtend[] = [
                 percentageReporting: false,
             }),
             m.iasZoneAlarm({
-                zoneType: "smoke",
-                zoneAttributes: ["alarm_1", "battery_low", "supervision_reports", "restore_reports", "test"],
+                zoneType: "generic",
+                zoneAttributes: ["tamper", "battery_low", "ac_status", "test"],
                 zoneStatusReporting: true,
             }),
-            m.iasWarning({reversePayload: true, maxDuration: {min: 0, max: 900}}),
+            m.iasWarning({maxDuration: true, stopWithZeroInfo: true, warningActive: true}),
             {
                 exposes: [e.squawk()],
                 toZigbee: [tz.squawk],
