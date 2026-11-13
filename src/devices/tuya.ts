@@ -13301,7 +13301,7 @@ export const definitions: DefinitionWithExtend[] = [
                 indicatorMode: (manufacturerName) => manufacturerName !== "_TZ3000_ww6drja5",
                 childLock: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
                 onOffCountdown: (manufacturerName) => manufacturerName !== "_TZ3000_cicwjqth",
-                switchTypeButton: (manufacturerName) => !["_TZ3000_w0qqde0g", "_TZ3000_typdpbpg", "_TZ3008_reatplte"].includes(manufacturerName),
+                switchTypeButton: (manufacturerName) => !["_TZ3000_w0qqde0g", "_TZ3000_typdpbpg"].includes(manufacturerName),
             }),
             m.identify(),
         ],
