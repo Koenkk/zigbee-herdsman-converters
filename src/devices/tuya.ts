@@ -14859,7 +14859,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd", "_TZ3000_ovbvmhiq"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd", "_TZ3000_ovbvmhiq", "_TZ3002_wowrpxxu"]),
         model: "TS0726_1_gang",
         vendor: "Tuya",
         description: "1 gang switch with neutral wire",
