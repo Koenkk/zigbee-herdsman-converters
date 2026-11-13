@@ -198,20 +198,21 @@ interface SchneiderClosuresWindowCovering {
     commandResponses: never;
 }
 
-function indicatorMode(endpoint?: string) {
+function indicatorMode(endpoint?: string, flashOnClick = true) {
     let description = "Set Indicator Mode.";
     if (endpoint) {
         description = `Set Indicator Mode for ${endpoint} switch.`;
     }
+    const lookup: Record<string, number> = {
+        reverse_with_load: 2,
+        consistent_with_load: 0,
+        always_off: 3,
+        always_on: 1,
+    };
+    if (flashOnClick) lookup.flash_on_click = 4;
     return m.enumLookup<"manuSpecificSchneiderLightSwitchConfiguration", SchneiderLightSwitchConfiguration>({
         name: "indicator_mode",
-        lookup: {
-            reverse_with_load: 2,
-            consistent_with_load: 0,
-            always_off: 3,
-            always_on: 1,
-            flash_on_click: 4,
-        },
+        lookup,
         cluster: "manuSpecificSchneiderLightSwitchConfiguration",
         attribute: "ledIndication",
         description: description,
@@ -2662,6 +2663,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Rotary dimmer",
         ota: true,
         extend: [
+            m.deviceEndpoints({
+                endpoints: {default: 3, indicator: 21},
+                multiEndpointSkip: ["state", "brightness", "level_config"],
+            }),
+            schneiderElectricExtend.addSchneiderLightSwitchConfigurationCluster(),
             m.light({
                 effect: false,
                 powerOnBehavior: false,
@@ -2672,6 +2678,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.lightingBallast(),
             schneiderElectricExtend.addSchneiderLightingBallastCfgCluster(),
             schneiderElectricExtend.dimmingMode(),
+            indicatorMode("indicator", false),
         ],
         whiteLabel: [
             {vendor: "ELKO", model: "EKO07278"},
