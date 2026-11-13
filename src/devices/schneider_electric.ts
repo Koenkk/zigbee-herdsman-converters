@@ -1443,13 +1443,10 @@ function wiserRtsInstallCustomReadResponse(device: Zh.Device): void {
     };
 }
 
-// #region Wiser radiator thermostat (VACT)
-
-const wiserVactCommandOptions = {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC};
-
-// The valve only listens for a few seconds after it reports: like the Wiser controller, queue messages until then
-const wiserVactQueue = (endpoint: Zh.Endpoint, key: string, send: () => Promise<unknown>) =>
+// The EER53000 only listens for a few seconds after it reports, queue messages until then (like the Wiser controller)
+function wiserVactQueue(endpoint: Zh.Endpoint, key: string, send: () => Promise<unknown>) {
     globalStore.putValue(endpoint, "queue", {...globalStore.getValue(endpoint, "queue"), [key]: send});
+}
 
 function wiserVactSendQueue(endpoint: Zh.Endpoint) {
     let sent: Promise<unknown> = Promise.resolve();
@@ -1458,82 +1455,6 @@ function wiserVactSendQueue(endpoint: Zh.Endpoint) {
     }
     globalStore.clearValue(endpoint, "queue");
 }
-
-// The valve never pulls its setpoint on its own, the Wiser controller pushes it with this command
-function wiserVactSetpointCommand(endpoint: Zh.Endpoint) {
-    const payload = {
-        operatingmode: 0,
-        zonemode: (endpoint.getClusterAttributeValue("hvacThermostat", "wiserSmartZoneMode") as number) ?? 1,
-        setpoint: endpoint.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint") as number,
-        reserved: 0xff,
-    };
-    return () =>
-        endpoint.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
-            "hvacThermostat",
-            "wiserSmartSetSetpoint",
-            payload,
-            wiserVactCommandOptions,
-        );
-}
-
-async function wiserVactCalibrate(endpoint: Zh.Endpoint) {
-    await endpoint.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
-        "hvacThermostat",
-        "wiserSmartCalibrateValve",
-        {},
-        wiserVactCommandOptions,
-    );
-    endpoint.getDevice().meta.wiserLastCalibration = Date.now();
-    endpoint.getDevice().save();
-}
-
-// Last Monday 13:00 (Wiser controller default) or first Monday of the month 13:00 not later than now
-function wiserVactLastLimescaleSlot(now: Date, monthly: boolean): Date {
-    const slot = new Date(now.getFullYear(), now.getMonth(), monthly ? 1 : now.getDate(), 13);
-    slot.setDate(monthly ? 1 + ((8 - slot.getDay()) % 7) : slot.getDate() - ((slot.getDay() + 6) % 7));
-    if (slot <= now) return slot;
-    if (monthly) return wiserVactLastLimescaleSlot(new Date(now.getFullYear(), now.getMonth(), 0, 23), true);
-    slot.setDate(slot.getDate() - 7);
-    return slot;
-}
-
-// The valve never calibrates on its own, the Wiser controller runs it periodically to keep the pin from seizing.
-// It is sent when the valve reports, as it is awake then.
-function wiserVactLimescaleProtection(endpoint: Zh.Endpoint, options: KeyValue) {
-    const device = endpoint.getDevice();
-    const last = device.meta.wiserLastCalibration;
-    const slot = wiserVactLastLimescaleSlot(new Date(), options.limescale_protection_frequency === "monthly");
-    if (options.limescale_protection === false || last >= slot.getTime()) return;
-    device.meta.wiserLastCalibration = Date.now();
-    device.save();
-    if (last === undefined) return;
-    wiserVactCalibrate(endpoint).catch((error) => {
-        device.meta.wiserLastCalibration = last;
-        device.save();
-        logger.debug(`Limescale protection calibration of '${device.ieeeAddr}' failed (${error})`, NS);
-    });
-}
-
-// Like the Wiser controller: threshold 4 (0.4 °C, below 4 disables detection) and interval 600 s, rewritten when they differ
-function wiserVactOpenWindowDetection(endpoint: Zh.Endpoint, options: KeyValue, data: KeyValueAny) {
-    const device = endpoint.getDevice();
-    const threshold = options.open_window_detection === false ? 0 : 4;
-    if ((data[0xe013] ?? device.meta.wiserOpenWindowThreshold) === threshold && (data[0xe014] ?? 600) === 600) return;
-    device.meta.wiserOpenWindowThreshold = threshold;
-    endpoint
-        .write(
-            "hvacThermostat",
-            {57363: {value: threshold, type: Zcl.DataType.UINT8}, 57364: {value: 600, type: Zcl.DataType.UINT16}},
-            {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-        )
-        .then(() => device.save())
-        .catch((error) => {
-            device.meta.wiserOpenWindowThreshold = undefined;
-            logger.debug(`Open window detection setup of '${device.ieeeAddr}' failed (${error})`, NS);
-        });
-}
-
-// #endregion
 
 const tzLocal = {
     lift_duration: {
@@ -1627,7 +1548,14 @@ const tzLocal = {
         key: ["calibrate_valve"],
         convertSet: (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            if (value === "calibrate") wiserVactQueue(entity, key, () => wiserVactCalibrate(entity));
+            wiserVactQueue(entity, key, () =>
+                entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
+                    "hvacThermostat",
+                    "wiserSmartCalibrateValve",
+                    {},
+                    {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                ),
+            );
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
@@ -1637,7 +1565,20 @@ const tzLocal = {
             utils.assertEndpoint(entity);
             const converter: Tz.Converter = key === "zone_mode" ? tzLocal.wiser_sed_zone_mode : tzLocal.wiser_sed_occupied_heating_setpoint;
             const result = await converter.convertSet(entity, key, value, meta);
-            wiserVactQueue(entity, "setpoint", wiserVactSetpointCommand(entity));
+            // The valve never reads its setpoint, the Wiser controller pushes it with this command
+            wiserVactQueue(entity, "setpoint", () =>
+                entity.command<"hvacThermostat", "wiserSmartSetSetpoint", SchneiderThermostatCluster>(
+                    "hvacThermostat",
+                    "wiserSmartSetSetpoint",
+                    {
+                        operatingmode: 0,
+                        zonemode: (entity.getClusterAttributeValue("hvacThermostat", "wiserSmartZoneMode") as number) ?? 1,
+                        setpoint: entity.getClusterAttributeValue("hvacThermostat", "occupiedHeatingSetpoint") as number,
+                        reserved: 0xff,
+                    },
+                    {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                ),
+            );
             return result;
         },
     } satisfies Tz.Converter,
@@ -1666,20 +1607,14 @@ const tzLocal = {
         convertSet: (entity, key, value, meta) => {
             utils.assertNumber(value);
             utils.assertEndpoint(entity);
-            wiserVactQueue(entity, key, async () => {
-                await entity.write(
+            wiserVactQueue(entity, key, () =>
+                entity.write(
                     "hvacThermostat",
                     {localTemperatureCalibration: Math.round(value * 10)},
                     {srcEndpoint: 11, disableDefaultResponse: true},
-                );
-                await entity.read("hvacThermostat", ["localTemperatureCalibration"]);
-            });
+                ),
+            );
             return {state: {local_temperature_calibration: value}};
-        },
-        convertGet: (entity, key, meta) => {
-            utils.assertEndpoint(entity);
-            wiserVactQueue(entity, `${key}_get`, () => entity.read("hvacThermostat", ["localTemperatureCalibration"]));
-            return Promise.resolve();
         },
     } satisfies Tz.Converter,
     wiser_sed_thermostat_keypad_lockout: {
@@ -2152,9 +2087,13 @@ const fzLocal = {
                     const name = Zcl.Utils.getClusterAttribute(cluster, Number(key), Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC)?.name;
                     if (name) (msg.data as KeyValueAny)[name] = value;
                 }
+                wiserVactSendQueue(msg.endpoint);
             }
             const result = fz.thermostat.convert(model, msg, publish, options, meta) as KeyValueAny;
             if (result) {
+                if (msg.data.wiserSmartOpenWindowDetectionStatus !== undefined) {
+                    result.window_open = msg.data.wiserSmartOpenWindowDetectionStatus === 1;
+                }
                 if (msg.data.wiserSmartZoneMode !== undefined) {
                     const lookup: Record<number, string> = {1: "manual", 2: "schedule", 3: "energy_saver", 6: "holiday"};
                     result.zone_mode = lookup[msg.data.wiserSmartZoneMode];
@@ -2174,7 +2113,7 @@ const fzLocal = {
                     };
                     result.fip_setting = lookup[msg.data.wiserSmartCurrentFilPiloteMode as number];
                 }
-                // Values above 100 are raw calibration codes from the valve unit
+                // Values above 100 are raw calibration codes
                 if (msg.data.wiserSmartValvePosition !== undefined && msg.data.wiserSmartValvePosition <= 100) {
                     result.pi_heating_demand = msg.data.wiserSmartValvePosition;
                 }
@@ -2188,17 +2127,6 @@ const fzLocal = {
                         5: "failed_e3",
                     };
                     result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
-                }
-                if (meta.device.modelID === "EH-ZB-VACT") {
-                    wiserVactSendQueue(msg.endpoint);
-                    wiserVactLimescaleProtection(msg.endpoint, options);
-                    wiserVactOpenWindowDetection(msg.endpoint, options, msg.data);
-                    if (msg.data.wiserSmartOpenWindowDetectionStatus !== undefined) {
-                        result.window_open = msg.data.wiserSmartOpenWindowDetectionStatus === 1;
-                    }
-                    if (msg.data.wiserSmartValveCalibrationStatus !== undefined) {
-                        result.calibrate_valve = msg.data.wiserSmartValveCalibrationStatus === 0 ? "calibrate" : "idle";
-                    }
                 }
                 publish(result);
             }
@@ -3475,32 +3403,15 @@ export const definitions: DefinitionWithExtend[] = [
             e.battery(),
             e.binary("keypad_lockout", ea.STATE_SET, "lock1", "unlock").withDescription("Enables/disables physical input on the device"),
             e.binary("calibrate_valve", ea.STATE_SET, "calibrate", "idle").withDescription("Calibrates valve on next wakeup"),
-            e
-                .enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"])
-                .withDescription(
-                    "Result of the last valve calibration. E1: adaptation not possible, E2: valve stroke too short, E3: motor movement not possible",
-                ),
+            e.enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"]),
             e.enum("zone_mode", ea.STATE_SET, ["manual", "schedule", "energy_saver", "holiday"]).withDescription("Icon shown on device displays"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Open window detected by the valve"),
             e
                 .climate()
                 .withSetpoint("occupied_heating_setpoint", 7, 30, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
-                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.ALL)
+                .withLocalTemperatureCalibration(-5, 5, 0.1, ea.STATE_SET)
                 .withPiHeatingDemand(),
-        ],
-        options: [
-            e
-                .binary("limescale_protection", ea.SET, true, false)
-                .withDescription("Periodically calibrate the valve to keep the pin from seizing (default true)"),
-            e
-                .enum("limescale_protection_frequency", ea.SET, ["weekly", "monthly"])
-                .withDescription(
-                    "Weekly: every Monday at 13:00. Monthly: first Monday of the month at 13:00. Runs at the next valve report (default weekly)",
-                ),
-            e
-                .binary("open_window_detection", ea.SET, true, false)
-                .withDescription("Let the valve close when it detects a fast temperature drop (default true)"),
         ],
         meta: {battery: {voltageToPercentage: {min: 2500, max: 3000}}},
         onEvent: (event) => {

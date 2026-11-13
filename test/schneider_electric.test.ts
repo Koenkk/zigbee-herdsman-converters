@@ -133,7 +133,6 @@ describe("Schneider Electric EER53000", () => {
         const definition = await findByDevice(device);
         const endpoint = device.getEndpoint(11);
         await definition.onEvent?.({type: "start", data: {device, state: {}, options: {}, deviceExposesChanged: () => {}}});
-        vi.spyOn(device, "save").mockImplementation(() => {});
         const command = vi.spyOn(endpoint, "command").mockResolvedValue(undefined);
         const write = vi.spyOn(endpoint, "write").mockResolvedValue(undefined);
         const readResponse = vi.spyOn(endpoint, "readResponse").mockResolvedValue(undefined);
@@ -142,7 +141,7 @@ describe("Schneider Electric EER53000", () => {
         const report = async () => {
             const msg = {data: {localTemp: 1900}, endpoint, device, type: "attributeReport", cluster: "hvacThermostat"};
             const converter = definition.fromZigbee.find((c) => c.cluster === "hvacThermostat" && c.type.includes("attributeReport"));
-            await converter?.convert(definition, msg as never, () => {}, {open_window_detection: false}, {state: {}, device} as never);
+            await converter?.convert(definition, msg as never, () => {}, {}, {state: {}, device} as never);
             await new Promise(setImmediate);
         };
         const read = (attrId: number) =>
@@ -167,10 +166,7 @@ describe("Schneider Electric EER53000", () => {
             ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 2, setpoint: 2150, reserved: 0xff}],
             ["hvacThermostat", "wiserSmartCalibrateValve", {}],
         ]);
-        expect(write.mock.calls.map((call) => call[1]).filter((data) => !(0xe013 in data))).toStrictEqual([
-            {localTemperatureCalibration: -7},
-            {keypadLockout: 1},
-        ]);
+        expect(write.mock.calls.map((call) => call[1])).toStrictEqual([{localTemperatureCalibration: -7}, {keypadLockout: 1}]);
 
         // Simulate the reads made after a button press
         expect(read(0x0012)).toBe(true);
