@@ -797,6 +797,7 @@ export function poll(args: {
                 }
 
                 clearTimeout(globalStore.getValue(event.data.device.ieeeAddr, args.key));
+                globalStore.clearValue(event.data.device.ieeeAddr, args.key);
 
                 if (seconds <= 0 || event.data.options.disabled) {
                     logger.debug(

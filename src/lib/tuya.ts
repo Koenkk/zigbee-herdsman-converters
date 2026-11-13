@@ -17,6 +17,7 @@ import type {
     KeyValueNumberString,
     KeyValueString,
     ModernExtend,
+    OnEvent,
     Publish,
     Range,
     Tuya,
@@ -4629,6 +4630,7 @@ const tuyaModernExtend = {
             queryOnConfigure?: true;
             bindBasicOnConfigure?: true;
             queryIntervalSeconds?: number;
+            queryIntervalConfigurable?: true;
             forceTimeUpdates?: true;
             timeStart?: "2000" | "1970";
         } = {},
@@ -4639,6 +4641,7 @@ const tuyaModernExtend = {
             queryOnConfigure = false,
             bindBasicOnConfigure = false,
             queryIntervalSeconds = undefined,
+            queryIntervalConfigurable = false,
             // Allow force updating for device with a very bad clock
             // Every hour when a message is received the time will be updated.
             forceTimeUpdates = false,
@@ -4721,6 +4724,7 @@ const tuyaModernExtend = {
             fromZigbee: [fzConverter, tuyaFz.mcu_version],
             toZigbee: [],
             options: [tuyaOptions.timeStart(timeStart)],
+            onEvent: [],
         };
 
         if (queryOnConfigure) {
@@ -4733,41 +4737,50 @@ const tuyaModernExtend = {
             result.configure.push(configureBindBasic);
         }
 
-        if (queryOnDeviceAnnounce || queryIntervalSeconds !== undefined) {
-            result.onEvent = [
-                (event) => {
-                    // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
-                    if (event.type === "deviceAnnounce") {
-                        const shouldQuery =
-                            typeof queryOnDeviceAnnounce === "function" ? queryOnDeviceAnnounce(event.data.device) : queryOnDeviceAnnounce;
-                        if (shouldQuery) {
-                            event.data.device.endpoints[0]
-                                .command("manuSpecificTuya", "dataQuery", {})
-                                .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
-                        }
+        if (queryOnDeviceAnnounce) {
+            result.onEvent.push((event) => {
+                // Some devices require a dataQuery on deviceAnnounce, otherwise they don't report any data
+                if (event.type === "deviceAnnounce") {
+                    const shouldQuery =
+                        typeof queryOnDeviceAnnounce === "function" ? queryOnDeviceAnnounce(event.data.device) : queryOnDeviceAnnounce;
+                    if (shouldQuery) {
+                        event.data.device.endpoints[0]
+                            .command("manuSpecificTuya", "dataQuery", {})
+                            .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on device announce (${error})`, NS));
                     }
+                }
+            });
+        }
 
-                    if (queryIntervalSeconds !== undefined) {
-                        if (event.type === "stop") {
-                            clearTimeout(globalStore.getValue(event.data.ieeeAddr, "query_interval"));
-                            globalStore.clearValue(event.data.ieeeAddr, "query_interval");
-                        } else if (event.type === "start") {
-                            const setTimer = () => {
-                                const timer = setTimeout(() => {
-                                    event.data.device.endpoints[0]
-                                        .command("manuSpecificTuya", "dataQuery", {})
-                                        .catch((error) => logger.error(`Failed to query '${event.data.device.ieeeAddr}' on interval (${error})`, NS));
-                                    if (globalStore.getValue(event.data.device.ieeeAddr, "query_interval") === timer) {
-                                        setTimer();
-                                    }
-                                }, queryIntervalSeconds * 1000).unref();
-                                globalStore.putValue(event.data.device.ieeeAddr, "query_interval", timer);
-                            };
-                            setTimer();
-                        }
-                    }
+        if (queryIntervalConfigurable || queryIntervalSeconds !== undefined) {
+            const defaultIntervalSeconds = queryIntervalSeconds ?? 60;
+            const queryPoll = modernExtend.poll({
+                key: "query_interval",
+                optionKey: queryIntervalConfigurable ? "measurement_poll_interval" : undefined,
+                defaultIntervalSeconds,
+                option: queryIntervalConfigurable
+                    ? new exposes.Numeric("measurement_poll_interval", ea.SET)
+                          .withUnit("s")
+                          .withDescription(
+                              `Interval between Tuya datapoint queries in seconds (default: ${defaultIntervalSeconds}). Set to 0 or -1 to disable polling.`,
+                          )
+                    : undefined,
+                poll: (device) => {
+                    const query = device.endpoints[0].command("manuSpecificTuya", "dataQuery", {});
+                    if (queryIntervalConfigurable) return query;
+                    query.catch((error) => logger.error(`Failed to query '${device.ieeeAddr}' on interval (${error})`, NS));
                 },
-            ];
+            });
+            result.options.push(...queryPoll.options);
+            result.onEvent.push(
+                ...queryPoll.onEvent.map((handler): OnEvent.Handler => {
+                    if (queryIntervalConfigurable) return handler;
+                    return (event) => {
+                        if (event.type === "start") return handler({...event, data: {...event.data, options: {}}});
+                        if (event.type === "stop") return handler(event);
+                    };
+                }),
+            );
         }
 
         const tuyaGenBasic = tuyaClusters.addTuyaGenBasicCluster();

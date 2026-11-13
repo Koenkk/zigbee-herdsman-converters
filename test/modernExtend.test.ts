@@ -3,13 +3,50 @@ import * as fz from "../src/converters/fromZigbee";
 import * as tz from "../src/converters/toZigbee";
 import {findByDevice} from "../src/index";
 import {repInterval} from "../src/lib/constants";
-import type {Numeric} from "../src/lib/exposes";
+import {access, Numeric} from "../src/lib/exposes";
 import {fromZigbee as lumiFz} from "../src/lib/lumi";
-import {binary, electricityMeter, light, numeric, setupAttributes} from "../src/lib/modernExtend";
+import {binary, electricityMeter, light, numeric, poll, setupAttributes} from "../src/lib/modernExtend";
 import * as philips from "../src/lib/philips";
 import {assertDefinition, mockDevice, reportingItem} from "./utils";
 
 describe("ModernExtend", () => {
+    test.each([-1, 0, "stop", 120] as const)("poll does not restart an outdated timer after %s", async (nextInterval) => {
+        vi.useFakeTimers();
+        const device = mockDevice({modelID: "test", endpoints: [{}]});
+        const pending = Promise.withResolvers<void>();
+        const pollCallback = vi.fn().mockReturnValueOnce(pending.promise);
+        const onEvent = poll({
+            key: "test",
+            defaultIntervalSeconds: 60,
+            option: new Numeric("test_poll_interval", access.SET),
+            poll: pollCallback,
+        }).onEvent[0];
+        const data = {device, deviceExposesChanged: () => {}, state: {}, options: {test_poll_interval: 60}};
+
+        try {
+            onEvent({type: "start", data});
+            vi.advanceTimersByTime(60_000);
+            expect(pollCallback).toHaveBeenCalledOnce();
+
+            if (nextInterval === "stop") {
+                onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
+            } else {
+                const options = {test_poll_interval: nextInterval};
+                onEvent({type: "deviceOptionsChanged", data: {...data, options, from: data.options, to: options}});
+            }
+
+            pending.resolve();
+            await vi.advanceTimersByTimeAsync(119_999);
+            expect(pollCallback).toHaveBeenCalledOnce();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(pollCallback).toHaveBeenCalledTimes(nextInterval === 120 ? 2 : 1);
+        } finally {
+            pending.resolve();
+            onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
+            vi.useRealTimers();
+        }
+    });
+
     test("numeric preserves explicit per-endpoint optional values", () => {
         const extend = numeric({
             name: "measurement",
