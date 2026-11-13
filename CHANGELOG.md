@@ -1,5 +1,25 @@
 # Changelog
 
+## [26.131.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.130.0...v26.131.0) (2026-11-13)
+
+
+### Features
+
+* **add:** HPM-300-WZ ([#13802](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13802)) ([397dda7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/397dda75c80add249c21cd727edf13d17f9abf1d))
+* **add:** SS-Z2N ([#13792](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13792)) ([41a342b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/41a342baf031f24757dbb8ee77ccb30393283637))
+* **add:** TS0601_lqhqj73n ([#13793](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13793)) ([8ccd0e0](https://github.com/Koenkk/zigbee-herdsman-converters/commit/8ccd0e0af2ae0318698f611c1b863b555091f5a8))
+* Danfoss 014G2461: expose per-day heating schedules ([#13785](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13785)) ([6636ae9](https://github.com/Koenkk/zigbee-herdsman-converters/commit/6636ae9bf84370e97f31bdfd69eca15c24402a8f))
+* Heiman HS9MS: expose `camera_image_size` and `camera_video_duration` ([#13794](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13794)) ([39c892a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/39c892ab68a8ef3b91fd5ec2158b6092a2b4f953))
+* Plugwise 170-01: support firmware updates ([#13795](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13795)) ([fa6ddf8](https://github.com/Koenkk/zigbee-herdsman-converters/commit/fa6ddf85700ea0b1667d5b3c3b87ca394218eeff))
+* Schneider NH3516A: expose `indicator_mode` to control the indicator light ([#13797](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13797)) ([acde2a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/acde2a4ce822dfd213a0e2ac23768c34d5238ed4))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3002_wowrpxxu` as Tuya TS0726_1_gang https://github.com/Koenkk/zigbee2mqtt/issues/33677 ([ad43c48](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ad43c4882d5ed0586b1ef00eb734d3d72feaf14f))
+* Paulmann 291.50: add additional fingerprint ([#13790](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13790)) ([64ac11e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/64ac11ec74502ad5df027aa9f90819609d1f41c1))
+* Tuya Nuos A7Z: expose switch type button ([#13803](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13803)) ([c5608e7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c5608e708c0da0bcc6ed788764ba7919628a9e41))
+
 ## [26.130.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.129.0...v26.130.0) (2026-11-11)
 
 
