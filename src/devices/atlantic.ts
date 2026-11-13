@@ -25,6 +25,7 @@ interface ThermorHvacThermostat {
     attributes: {
         connectedLoad: number;
         windowDetection: number;
+        windowOpen: number;
         heatingDemand: number;
         powerBoardTemperature: number;
     };
@@ -233,6 +234,76 @@ export const definitions: DefinitionWithExtend[] = [
             },
         ],
         extend: nirvanaExtend({horizontal: false}),
+    },
+    {
+        zigbeeModel: ["100050072300"],
+        model: "100050072300",
+        vendor: "Atlantic Group",
+        description: "Sauter Kartala connected radiator horizontal 1000W",
+        extend: [
+            m.deviceAddCustomCluster("hvacThermostat", {
+                name: "hvacThermostat",
+                ID: Zcl.Clusters.hvacThermostat.ID,
+                attributes: {
+                    windowDetection: {
+                        name: "windowDetection",
+                        ID: 0x428a,
+                        type: Zcl.DataType.BOOLEAN,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                        write: true,
+                    },
+                    windowOpen: {name: "windowOpen", ID: 0x4298, type: Zcl.DataType.BOOLEAN, manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP},
+                    heatingDemand: {
+                        name: "heatingDemand",
+                        ID: 0x42ac,
+                        type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                },
+                commands: {},
+                commandsResponse: {},
+            }),
+            m.identify(),
+            m.thermostat({
+                localTemperature: {},
+                setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
+                systemMode: {values: ["off", "heat"]},
+            }),
+            m.occupancy(),
+            m.electricityMeter({
+                power: {cluster: "electrical", multiplier: 1, divisor: 1},
+                energy: {multiplier: 1, divisor: 1000, max: "1_HOUR"},
+                voltage: false,
+                current: false,
+            }),
+            m.binary<"hvacThermostat", ThermorHvacThermostat>({
+                name: "window_detection",
+                cluster: "hvacThermostat",
+                attribute: "windowDetection",
+                valueOn: ["ON", 1],
+                valueOff: ["OFF", 0],
+                reporting: false,
+                entityCategory: "config",
+                description: "Stops heating when an open window is detected",
+            }),
+            m.binary<"hvacThermostat", ThermorHvacThermostat>({
+                name: "window_open",
+                cluster: "hvacThermostat",
+                attribute: "windowOpen",
+                access: "STATE",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                description: "Open window detected",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "pi_heating_demand",
+                cluster: "hvacThermostat",
+                attribute: "heatingDemand",
+                access: "STATE",
+                unit: "%",
+                description: "Heating duty cycle",
+            }),
+        ],
     },
     {
         zigbeeModel: ["100042838900", "100042838900 "],
