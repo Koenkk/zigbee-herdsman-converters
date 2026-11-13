@@ -1025,7 +1025,7 @@ export function createDefinition(controllerOptions: ControllerOptions = {}): Def
         fingerprint: [{modelID: "TY0A01", manufacturerName: "_TYST12_snr3p274"}],
         model: "IFR 7001",
         vendor: "Intelbras",
-        description: "Encrypted Tuya lock; PIN/fingerprint enrollment on the lock keypad and reader",
+        description: "Smart mortise door lock without handle",
         fromZigbee: [
             {
                 cluster: clusterName,
