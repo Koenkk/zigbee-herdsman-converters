@@ -1,6 +1,7 @@
-import {beforeAll, describe, expect, it, vi} from "vitest";
+import {beforeAll, beforeEach, describe, expect, it, vi} from "vitest";
 import {definitions as inovelliDeviceDefinitions} from "../src/devices/inovelli";
 import {findByDevice} from "../src/index";
+import * as globalStore from "../src/lib/store";
 import type {Definition, Expose, Fz, KeyValue, KeyValueAny, Tz, Zh} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
@@ -610,6 +611,226 @@ describe("Inovelli toZigbee converters", () => {
     });
 
     describe("light_onoff_brightness_inovelli", () => {
+        beforeEach(() => globalStore.clear());
+
+        describe.each([
+            {model: "VZM31-SN", setup: setupVZM31},
+            {model: "VZM32-SN", setup: setupVZM32},
+        ])("$model brightness after fade-off", ({setup}) => {
+            async function fadeOff() {
+                const {device, definition} = await setup();
+                const converter = findTzConverter(definition, "state");
+                const endpoint = device.getEndpoint(1);
+                await converter.convertSet(
+                    endpoint,
+                    "state",
+                    "OFF",
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "OFF", transition: 3},
+                        state: {state: "ON", brightness: 190, defaultLevelRemote: 255},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenLastCalledWith(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    expect.objectContaining({level: 0, transtime: 30}),
+                    expect.any(Object),
+                );
+                processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 1}, 1, device);
+                processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 0}, 1, device);
+                vi.mocked(endpoint.command).mockClear();
+                return {device, definition, converter, endpoint};
+            }
+
+            it.each(["ON", "toggle"])("restores pre-fade brightness for %s with no transition", async (state) => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                const message = {state};
+                const result = await converter.convertSet(
+                    endpoint,
+                    "state",
+                    state,
+                    buildMeta(device, {mapped: definition, message, state: {state: "OFF", brightness: 1, defaultLevelRemote: 255}}),
+                );
+
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    expect.objectContaining({level: 190, transtime: 0xffff}),
+                    expect.any(Object),
+                );
+                expect(result).toStrictEqual({state: {brightness: 190, state: "ON"}});
+                expect(message).toStrictEqual({state});
+                expect(globalStore.getValue(endpoint, "turnedOffWithTransition")).not.toBe(true);
+            });
+
+            it.each([100, 0, undefined])("leaves defaultLevelRemote=%s to the firmware", async (defaultLevelRemote) => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                await converter.convertSet(
+                    endpoint,
+                    "state",
+                    "ON",
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "ON"},
+                        state: {state: "OFF", brightness: 1, defaultLevelRemote},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith("genOnOff", "on", {}, expect.any(Object));
+                expect(globalStore.getValue(endpoint, "turnedOffWithTransition")).not.toBe(true);
+            });
+
+            it("honors an explicit brightness instead of restoring the pre-fade level", async () => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                await converter.convertSet(
+                    endpoint,
+                    "brightness",
+                    80,
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "ON", brightness: 80},
+                        state: {state: "OFF", brightness: 1, defaultLevelRemote: 255},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    expect.objectContaining({level: 80, transtime: 0xffff}),
+                    expect.any(Object),
+                );
+            });
+
+            it("preserves timed ON behavior after a fade-off", async () => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                await converter.convertSet(
+                    endpoint,
+                    "state",
+                    "ON",
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "ON", on_time: 5, off_wait_time: 2},
+                        state: {state: "OFF", brightness: 1, defaultLevelRemote: 255},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith(
+                    "genOnOff",
+                    "onWithTimedOff",
+                    {ctrlbits: 0, ontime: 50, offwaittime: 20},
+                    expect.any(Object),
+                );
+            });
+
+            it("preserves the snapshot across another OFF request while already off", async () => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                const state = {state: "OFF", brightness: 1, defaultLevelRemote: 255};
+                await converter.convertSet(endpoint, "state", "OFF", buildMeta(device, {mapped: definition, message: {state: "OFF"}, state}));
+                expect(globalStore.getValue(endpoint, "brightness")).toBe(190);
+                expect(globalStore.getValue(endpoint, "turnedOffWithTransition")).toBe(true);
+
+                await converter.convertSet(endpoint, "state", "ON", buildMeta(device, {mapped: definition, message: {state: "ON"}, state}));
+                expect(endpoint.command).toHaveBeenLastCalledWith(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    expect.objectContaining({level: 190}),
+                    expect.any(Object),
+                );
+            });
+
+            it.each([undefined, 0, 255, Number.NaN])("does not invent brightness when the saved level is %s", async (savedBrightness) => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                globalStore.putValue(endpoint, "brightness", savedBrightness);
+                await converter.convertSet(
+                    endpoint,
+                    "state",
+                    "ON",
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "ON"},
+                        state: {state: "OFF", brightness: 1, defaultLevelRemote: 255},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith("genOnOff", "on", {}, expect.any(Object));
+            });
+
+            it("uses plain ON when no software fade preceded it", async () => {
+                const {device, definition} = await setup();
+                const converter = findTzConverter(definition, "state");
+                const endpoint = device.getEndpoint(1);
+                await converter.convertSet(
+                    endpoint,
+                    "state",
+                    "ON",
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "ON"},
+                        state: {state: "OFF", brightness: 190, defaultLevelRemote: 255},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith("genOnOff", "on", {}, expect.any(Object));
+            });
+
+            it("does not restore a stale level after a local off/on cycle", async () => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 1}, 1, device);
+                processFromZigbeeMessage(definition, "genLevelCtrl", "attributeReport", {currentLevel: 80}, 1, device);
+                processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 0}, 1, device);
+
+                await converter.convertSet(
+                    endpoint,
+                    "state",
+                    "ON",
+                    buildMeta(device, {
+                        mapped: definition,
+                        message: {state: "ON"},
+                        state: {state: "OFF", brightness: 80, defaultLevelRemote: 255},
+                    }),
+                );
+                expect(endpoint.command).toHaveBeenCalledExactlyOnceWith("genOnOff", "on", {}, expect.any(Object));
+            });
+
+            it("keeps pending restoration when the restore command fails", async () => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                vi.mocked(endpoint.command).mockRejectedValueOnce(new Error("delivery failed"));
+                const meta = buildMeta(device, {
+                    mapped: definition,
+                    message: {state: "ON"},
+                    state: {state: "OFF", brightness: 1, defaultLevelRemote: 255},
+                });
+                await expect(converter.convertSet(endpoint, "state", "ON", meta)).rejects.toThrow("delivery failed");
+                expect(globalStore.getValue(endpoint, "turnedOffWithTransition")).toBe(true);
+                expect(globalStore.getValue(endpoint, "brightness")).toBe(190);
+
+                await converter.convertSet(endpoint, "state", "ON", meta);
+                expect(endpoint.command).toHaveBeenLastCalledWith(
+                    "genLevelCtrl",
+                    "moveToLevelWithOnOff",
+                    expect.objectContaining({level: 190}),
+                    expect.any(Object),
+                );
+            });
+
+            it("does not reinstate stale restoration if an ON report arrives before a delivery error", async () => {
+                const {device, definition, converter, endpoint} = await fadeOff();
+                vi.mocked(endpoint.command).mockImplementationOnce(() => {
+                    processFromZigbeeMessage(definition, "genOnOff", "attributeReport", {onOff: 1}, 1, device);
+                    return Promise.reject(new Error("delivery failed after ON report"));
+                });
+                await expect(
+                    converter.convertSet(
+                        endpoint,
+                        "state",
+                        "ON",
+                        buildMeta(device, {
+                            mapped: definition,
+                            message: {state: "ON"},
+                            state: {state: "OFF", brightness: 1, defaultLevelRemote: 255},
+                        }),
+                    ),
+                ).rejects.toThrow("delivery failed after ON report");
+                expect(globalStore.getValue(endpoint, "turnedOffWithTransition")).not.toBe(true);
+            });
+        });
+
         it("off with no transition -> delegates to on_off path", async () => {
             const {device, definition} = await setupVZM31();
             const converter = findTzConverter(definition, "state");

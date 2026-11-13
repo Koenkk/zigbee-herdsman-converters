@@ -2496,7 +2496,31 @@ const tzLocal = {
             } else if (message.brightness_percent != null) {
                 brightness = utils.mapNumberRange(Number(message.brightness_percent), 0, 100, 0, 255);
             }
-            if ((state === "toggle" || state === "off" || (brightness === undefined && state === "on")) && !transition.specified) {
+            const targetState = state === "toggle" ? (meta.state.state === "ON" ? "off" : "on") : state;
+            const supportsPreviousLevelRestore =
+                utils.isEndpoint(entity) && (meta.device.modelID === Model.VZM31 || meta.device.modelID === Model.VZM32);
+            const savedBrightness = globalStore.getValue(entity, "brightness");
+            // A fade to level 0 can leave the switch's remembered level at its minimum. Only override a plain ON
+            // when the device is configured to use its previous level; fixed Inovelli defaults remain firmware-controlled.
+            const restoreBrightness =
+                supportsPreviousLevelRestore &&
+                targetState === "on" &&
+                meta.state.state === "OFF" &&
+                brightness === undefined &&
+                !transition.specified &&
+                message.on_time == null &&
+                message.off_wait_time == null &&
+                meta.state.defaultLevelRemote === 255 &&
+                globalStore.getValue(entity, "turnedOffWithTransition") === true &&
+                typeof savedBrightness === "number" &&
+                Number.isInteger(savedBrightness) &&
+                savedBrightness >= 1 &&
+                savedBrightness <= 254;
+            if (
+                (state === "toggle" || state === "off" || (brightness === undefined && state === "on")) &&
+                !transition.specified &&
+                !restoreBrightness
+            ) {
                 const localMeta = {
                     ...meta,
                     converterOptions: {
@@ -2505,17 +2529,38 @@ const tzLocal = {
                         offwaittime: message.off_wait_time != null ? Math.round((message.off_wait_time as number) * 10) : 0xffff,
                     },
                 };
-                return await tz.on_off.convertSet(entity, key, value, localMeta);
+                const result = await tz.on_off.convertSet(entity, key, value, localMeta);
+                if (supportsPreviousLevelRestore && (targetState === "on" || meta.state.state === "ON")) {
+                    globalStore.clearValue(entity, "turnedOffWithTransition");
+                    globalStore.clearValue(entity, "inovelliOffTransitionComplete");
+                }
+                return result;
             }
 
+            if (supportsPreviousLevelRestore && targetState === "off") {
+                globalStore.clearValue(entity, "inovelliOffTransitionComplete");
+            }
+            if (restoreBrightness) {
+                // Once ON is requested, any subsequent ON report supersedes this restoration, even if delivery fails.
+                globalStore.putValue(entity, "inovelliOffTransitionComplete", true);
+            }
             const localMeta = {
                 ...meta,
                 message: {
                     ...message,
+                    ...(restoreBrightness ? {state: "ON", brightness: savedBrightness} : {}),
                     transition: (!transition.specified ? 0xffff : transition.time) / 10,
                 },
             };
-            return await tz.light_onoff_brightness.convertSet(entity, key, value, localMeta);
+            try {
+                return await tz.light_onoff_brightness.convertSet(entity, key, value, localMeta);
+            } catch (error) {
+                // The generic converter clears this flag before delivery. Keep the snapshot usable for a retry.
+                if (restoreBrightness && globalStore.getValue(entity, "inovelliOffTransitionComplete") === true) {
+                    globalStore.putValue(entity, "turnedOffWithTransition", true);
+                }
+                throw error;
+            }
         },
     } satisfies Tz.Converter,
 
@@ -2725,6 +2770,15 @@ const fzLocal = {
             convert: (model, msg, publish, options, meta) => {
                 if (msg.endpoint.ID !== endpointId || msg.data.onOff === undefined) {
                     return;
+                }
+                if (model.model === Model.VZM31 || model.model === Model.VZM32) {
+                    if (msg.data.onOff === 0 && globalStore.getValue(msg.endpoint, "turnedOffWithTransition") === true) {
+                        globalStore.putValue(msg.endpoint, "inovelliOffTransitionComplete", true);
+                    } else if (msg.data.onOff === 1 && globalStore.getValue(msg.endpoint, "inovelliOffTransitionComplete") === true) {
+                        // A local activation consumes the saved level too. Do not reuse it after a later local OFF.
+                        globalStore.clearValue(msg.endpoint, "turnedOffWithTransition");
+                        globalStore.clearValue(msg.endpoint, "inovelliOffTransitionComplete");
+                    }
                 }
                 return {[stateKey]: msg.data.onOff === 1 ? "ON" : "OFF"};
             },
