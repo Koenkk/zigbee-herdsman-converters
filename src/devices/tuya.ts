@@ -24571,8 +24571,18 @@ export const definitions: DefinitionWithExtend[] = [
             te.liquidMinimalPercent(),
 
             ...(!device || ["_TZE284_kyyu8rbj"].includes(device.manufacturerName)
-                ? [te.liquidDepthMax(), te.liquidInstallationHeight()]
-                : [te.liquidDepthMax().withValueMax(10)]),
+                ? [
+                      te
+                          .liquidDepthMax()
+                          .withDescription("Maximum liquid depth, from the tank bottom up to the full level (the level percentage is relative to it)"),
+                      te.liquidInstallationHeight(),
+                  ]
+                : [
+                      te
+                          .liquidDepthMax()
+                          .withDescription("Maximum liquid depth, from the tank bottom up to the full level (the level percentage is relative to it)")
+                          .withValueMax(10),
+                  ]),
             te.relaySwitch(),
             te.pumpMode(),
             te.autoPumpControl(),
