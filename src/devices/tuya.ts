@@ -2660,7 +2660,180 @@ const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverter
     },
 });
 
+// Keep the tested boolean converter: the generic lookup converter rejected
+// boolean values when writing child_lock and window_check on this device.
+const sv60BooleanConverter: Tuya.ValueConverterSingle = {
+    from: (value) => value === true || value === 1,
+    to: (value) => {
+        if (value === true || value === "true" || value === 1) return true;
+        if (value === false || value === "false" || value === 0) return false;
+        throw new Error(`Invalid boolean value: ${value}`);
+    },
+};
+
 export const definitions: DefinitionWithExtend[] = [
+    {
+        fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE204_wo2axd51"}],
+        model: "SV60_TVR",
+        vendor: "Tesla",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            // Already tested and working.
+            e.numeric("current_temperature", ea.STATE).withUnit("°C").withDescription("Current measured temperature"),
+            e
+                .numeric("target_temperature", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription("Target temperature"),
+            e.numeric("battery", ea.STATE).withUnit("%").withValueMin(0).withValueMax(100).withDescription("Battery percentage"),
+            e.binary("child_lock", ea.STATE_SET, true, false).withDescription("Child lock"),
+            e.binary("window_check", ea.STATE_SET, true, false).withDescription("Window detection enable"),
+            e
+                .enum("mode", ea.STATE_SET, ["Standby", "Anti_forst", "eco", "Comfort", "auto", "on"])
+                .withDescription("Operating mode (auto/on not yet tested)"),
+
+            // Additional datapoints observed in dataQuery; mostly read-only.
+            e.numeric("valve_work_state_raw", ea.STATE).withDescription("DP3 valve work state: raw enum (0 or 1)"),
+            e.numeric("window_state_raw", ea.STATE).withDescription("DP15 window state: raw enum (0 or 1)"),
+            e
+                .numeric("upper_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(20)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription("Maximum allowed setpoint"),
+            e
+                .numeric("lower_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(15)
+                .withValueStep(0.5)
+                .withDescription("Minimum allowed setpoint"),
+            e
+                .numeric("temp_correction", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(-10)
+                .withValueMax(10)
+                .withValueStep(0.1)
+                .withDescription("Temperature calibration offset"),
+            e.text("mfg_model", ea.STATE).withDescription("Manufacturer model identifier"),
+            e.numeric("motor_thrust_raw", ea.STATE).withDescription("DP110 motor thrust: raw enum"),
+            e.enum("brightness", ea.STATE_SET, ["high", "mid", "low"]).withDescription("Display brightness (DP111)"),
+            e.enum("screen_orientation", ea.STATE_SET, ["up", "down", "left", "right"]).withDescription("Display orientation (DP113)"),
+            e.numeric("valve_open_degree", ea.STATE).withUnit("%").withDescription("Valve opening percentage"),
+            e.numeric("switch_wrap", ea.STATE).withDescription("DP115 switch wrap setting, scaled by 10"),
+            e.text("motor_data", ea.STATE).withDescription("Raw motor diagnostic string"),
+            e
+                .numeric("vacation_duration", ea.STATE_SET)
+                .withUnit("days")
+                .withValueMin(0)
+                .withValueMax(364)
+                .withValueStep(1)
+                .withDescription("Vacation duration"),
+            e
+                .numeric("boost_duration", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(120)
+                .withValueStep(1)
+                .withDescription("Boost duration"),
+            e
+                .numeric("comfort_set_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription("Comfort preset temperature"),
+            e
+                .numeric("eco_set_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription("Eco preset temperature"),
+            e
+                .numeric("antifreeze_set_temp", ea.STATE_SET)
+                .withUnit("°C")
+                .withValueMin(0.5)
+                .withValueMax(35)
+                .withValueStep(0.5)
+                .withDescription("Antifreeze preset temperature"),
+            e.binary("antifreeze_enabled", ea.STATE_SET, true, false).withDescription("Antifreeze protection enabled"),
+            e.numeric("temporary_start_time", ea.STATE).withDescription("DP124 temporary start time (raw)"),
+            e.numeric("system_mode_raw", ea.STATE).withDescription("DP127 system mode: raw enum"),
+            e.numeric("support_features", ea.STATE).withDescription("DP125 supported feature bitmask"),
+            e.numeric("app_features", ea.STATE).withDescription("DP126 application feature bitmask"),
+            e.numeric("app_command_timestamp", ea.STATE).withDescription("DP112 app command timestamp (raw)"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                // Tested controls.
+                [4, "target_temperature", tuya.valueConverter.divideBy10],
+                [5, "current_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", sv60BooleanConverter],
+                [14, "window_check", sv60BooleanConverter],
+                [
+                    2,
+                    "mode",
+                    tuya.valueConverterBasic.lookup({
+                        Standby: tuya.enum(0),
+                        // biome-ignore lint/style/useNamingConvention: preserve the external converter’s published mode value
+                        Anti_forst: tuya.enum(1),
+                        eco: tuya.enum(2),
+                        Comfort: tuya.enum(3),
+                        auto: tuya.enum(4),
+                        on: tuya.enum(5),
+                    }),
+                ],
+
+                // Additional reported datapoints (only selected exposes are writable).
+                [3, "valve_work_state_raw", tuya.valueConverter.raw],
+                [15, "window_state_raw", tuya.valueConverter.raw],
+                [9, "upper_temp", tuya.valueConverter.divideBy10],
+                [10, "lower_temp", tuya.valueConverter.divideBy10],
+                [47, "temp_correction", tuya.valueConverter.divideBy10],
+                [109, "mfg_model", tuya.valueConverter.raw],
+                [110, "motor_thrust_raw", tuya.valueConverter.raw],
+                [
+                    111,
+                    "brightness",
+                    tuya.valueConverterBasic.lookup({
+                        high: tuya.enum(0),
+                        mid: tuya.enum(1),
+                        low: tuya.enum(2),
+                    }),
+                ],
+                [
+                    113,
+                    "screen_orientation",
+                    tuya.valueConverterBasic.lookup({
+                        up: tuya.enum(0),
+                        down: tuya.enum(1),
+                        left: tuya.enum(2),
+                        right: tuya.enum(3),
+                    }),
+                ],
+                [114, "valve_open_degree", tuya.valueConverter.divideBy10],
+                [115, "switch_wrap", tuya.valueConverter.divideBy10],
+                [116, "motor_data", tuya.valueConverter.raw],
+                [117, "vacation_duration", tuya.valueConverter.raw],
+                [118, "boost_duration", tuya.valueConverter.raw],
+                [119, "comfort_set_temp", tuya.valueConverter.divideBy10],
+                [120, "eco_set_temp", tuya.valueConverter.divideBy10],
+                [121, "antifreeze_set_temp", tuya.valueConverter.divideBy10],
+                [122, "antifreeze_enabled", sv60BooleanConverter],
+                [124, "temporary_start_time", tuya.valueConverter.raw],
+                [127, "system_mode_raw", tuya.valueConverter.raw],
+                [125, "support_features", tuya.valueConverter.raw],
+                [126, "app_features", tuya.valueConverter.raw],
+                [112, "app_command_timestamp", tuya.valueConverter.raw],
+            ],
+        },
+    },
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_5qfrnbqs"]),
         model: "CTL-Mini-DTP-TYZ/AC",
