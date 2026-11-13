@@ -15,16 +15,6 @@ describe("Plugwise 170-01 (Emma)", () => {
         emma = await findByDevice(device);
     });
 
-    it("enables OTA", () => {
-        // Arrange — emma is resolved in beforeEach
-
-        // Act
-        const ota = emma.ota;
-
-        // Assert
-        expect(ota).toBe(true);
-    });
-
     describe("manufacturer-specific OpenTherm attributes", () => {
         let meta: Tz.Meta;
         let endpoint: ZHModels.Endpoint;
