@@ -93,6 +93,66 @@ describe("FP400 codec", () => {
             expect(fp400.decodeAttributeSync(cluster, hex(frame))).toBeUndefined();
         });
     });
+
+    describe("region masks", () => {
+        const empty = () => Buffer.alloc(40);
+        const rectangle = (rowStart: number, rowEnd: number, columnStart: number, columnEnd: number) => ({rowStart, rowEnd, columnStart, columnEnd});
+        // As MQTT sends it.
+        const mqtt = (rowStart: number, rowEnd: number, columnStart: number, columnEnd: number) => ({
+            row_start: rowStart,
+            row_end: rowEnd,
+            column_start: columnStart,
+            column_end: columnEnd,
+        });
+
+        it("reads an empty octet string as a mask with no cell set", () => {
+            expect(fp400.mask(Buffer.alloc(0))).toStrictEqual(empty());
+            expect(fp400.mask(Buffer.alloc(40, 0xff))).toStrictEqual(Buffer.alloc(40, 0xff));
+        });
+
+        it("rejects masks that are not 40 bytes", () => {
+            expect(() => fp400.mask(Buffer.alloc(39))).toThrow("39 bytes");
+            expect(() => fp400.mask(Buffer.alloc(41))).toThrow("41 bytes");
+            expect(() => fp400.mask("00")).toThrow("not an octet string");
+        });
+
+        it("numbers cells row by row, most significant bit first", () => {
+            expect(fp400.editMask(empty(), rectangle(0, 0, 0, 0), true)[0]).toBe(0x80);
+            expect(fp400.editMask(empty(), rectangle(0, 0, 15, 15), true)[1]).toBe(0x01);
+            expect(fp400.editMask(empty(), rectangle(1, 1, 0, 0), true)[2]).toBe(0x80);
+            expect(fp400.editMask(empty(), rectangle(19, 19, 15, 15), true)[39]).toBe(0x01);
+        });
+
+        it("sets and clears a rectangle, keeping the other cells", () => {
+            const mask = fp400.editMask(empty(), rectangle(0, 19, 0, 15), true);
+            expect(mask).toStrictEqual(Buffer.alloc(40, 0xff));
+            const cleared = fp400.editMask(mask, rectangle(2, 3, 4, 11), false);
+            expect(cleared.toString("hex")).toBe(`${"ffff".repeat(2)}${"f00f".repeat(2)}${"ffff".repeat(16)}`);
+            expect(mask).toStrictEqual(Buffer.alloc(40, 0xff));
+        });
+
+        it("checks rectangle bounds", () => {
+            expect(fp400.validateRectangle(mqtt(0, 19, 0, 15), "edit")).toStrictEqual(rectangle(0, 19, 0, 15));
+            for (const bad of [
+                mqtt(-1, 0, 0, 0),
+                mqtt(0, 20, 0, 0),
+                mqtt(0, 0, 0, 16),
+                mqtt(3, 2, 0, 0),
+                mqtt(0, 0, 1.5, 2),
+                rectangle(0, 0, 0, 0),
+            ]) {
+                expect(() => fp400.validateRectangle(bad, "edit")).toThrow("rows 0-19 and columns 0-15");
+            }
+            expect(() => fp400.validateRectangle(undefined, "edit")).toThrow("rows 0-19");
+        });
+
+        it("accepts 80 hexadecimal characters", () => {
+            expect(fp400.maskFromHex("ff".repeat(40), "mask")).toStrictEqual(Buffer.alloc(40, 0xff));
+            for (const bad of ["ff".repeat(39), "zz".repeat(40), "", 7]) {
+                expect(() => fp400.maskFromHex(bad, "mask")).toThrow("80 hexadecimal characters");
+            }
+        });
+    });
 });
 
 type ReadMock = (cluster: string | number, attributes: (string | number)[]) => Promise<KeyValueAny>;
@@ -142,7 +202,8 @@ async function exposedProperties(device: Zh.Device | undefined, options: KeyValu
 
 describe("FP400 definition", () => {
     it("gives every settable property its own converter, as Zigbee2MQTT calls a converter once per message", async () => {
-        // A shared converter would apply only the first of its keys in a message.
+        // A shared converter would apply only the first of its keys in a message: on a real sensor,
+        // {"edge_mask_hex": ..., "entry_exit_mask_hex": ...} wrote only the first mask.
         const definition = await findByDevice(sensor());
         const exposes = typeof definition.exposes === "function" ? definition.exposes({isDummyDevice: true}, {}) : definition.exposes;
         const settable = exposes.filter((e) => e.access !== undefined && e.access & 2).map((e) => e.property);
@@ -157,17 +218,25 @@ describe("FP400 definition", () => {
     });
 
     describe("room", () => {
-        it("exposes the sensor's tilt and limits", async () => {
+        it("exposes the sensor's tilt, limits and learning result", async () => {
             expect(await exposedProperties(sensor())).toEqual(
-                expect.arrayContaining(["installation_status", "installation_angle", "absence_timeout_bounds"]),
+                expect.arrayContaining([
+                    "installation_status",
+                    "installation_angle",
+                    "learning_reporting_timeout",
+                    "learning_state",
+                    "learning_result_code",
+                    "absence_timeout_bounds",
+                ]),
             );
         });
 
         it("decodes the installation diagnostics", async () => {
-            const data = {installationStatus: 3, installationAngle: 12};
+            const data = {installationStatus: 3, installationAngle: 12, learningReportingTimeout: 30};
             expect((await receive(sensor(), 1, "aqaraFp400Config", "readResponse", data)).state).toStrictEqual({
                 installation_status: "side_facing_forward",
                 installation_angle: 12,
+                learning_reporting_timeout: 30,
             });
         });
 
@@ -180,6 +249,25 @@ describe("FP400 definition", () => {
             expect((await receive(device, 1, "aqaraFp400Location", "raw", hex("1c5f11108a07003000"))).state).toMatchObject({
                 activity_state: "none",
             });
+        });
+
+        it("records the spatial-learning result from event 3", async () => {
+            const device = sensor();
+            expect((await receive(device, 1, "aqaraFp400Config", "raw", hex("1c5f116f8b030000"))).state).toStrictEqual({
+                learning_state: "result_received",
+                learning_result_code: 0,
+            });
+            expect((await receive(device, 3, "aqaraFp400Config", "raw", hex("1c5f116f8b030000"))).state).toStrictEqual({});
+            expect((await receive(device, 1, "aqaraFp400Config", "raw", hex("1c5f116f8b02000000"))).state).toStrictEqual({});
+        });
+
+        it("marks spatial learning as accepted once the sensor took the command", async () => {
+            const device = sensor();
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key.includes("spatial_learning"));
+            // @ts-expect-error mock
+            const result = await converter.convertSet(device.getEndpoint(1), "spatial_learning", "start", {device});
+            expect(result).toStrictEqual({state: {learning_state: "accepted", learning_result_code: null}});
         });
 
         it("decodes the absence-timeout bounds of the room only", async () => {
@@ -270,6 +358,7 @@ describe("FP400 definition", () => {
                     "human_count",
                     "activity_state",
                     "targets",
+                    "spatial_learning",
                     "installation_height_min",
                     "installation_height_max",
                     ...SETTINGS,
@@ -313,6 +402,15 @@ describe("FP400 definition", () => {
             expect((await receive(sensor(), 4, cluster, "readResponse", data)).state).toStrictEqual({});
         });
 
+        it("starts spatial learning and drops the result of an earlier run", async () => {
+            const device = sensor();
+            expect(await set(device, "spatial_learning", "start")).toStrictEqual({state: {learning_state: "accepted", learning_result_code: null}});
+            expect(vi.mocked(device.getEndpoint(1).command).mock.calls).toStrictEqual([
+                ["aqaraFp400Config", "startLearning", {}, {manufacturerCode: 0x115f}],
+            ]);
+            await expect(set(device, "spatial_learning", "stop")).rejects.toThrow("Send start");
+        });
+
         it("polls people count and activity every minute, and the light only while it has no reporting entry", async () => {
             vi.useFakeTimers();
             try {
@@ -338,6 +436,19 @@ describe("FP400 definition", () => {
             } finally {
                 vi.useRealTimers();
             }
+        });
+
+        it("reads the monitored area as a depth in 0.5 m steps, and takes only such depths", async () => {
+            const rows = (n: number) => Buffer.alloc(40, 0xff).fill(0, 0, n * 2);
+            const depth = async (mask: Buffer) =>
+                (await receive(sensor(), 1, "aqaraFp400Config", "readResponse", {monitoringRegion: mask})).state.detection_depth;
+            expect(await depth(Buffer.alloc(0))).toBe(10);
+            expect(await depth(rows(20))).toBe(10);
+            expect(await depth(rows(7))).toBe(3.5);
+            expect(await depth(rows(1))).toBe(0.5);
+            const device = sensor();
+            for (const bad of [0, 0.25, 10.5]) await expect(set(device, "detection_depth", bad)).rejects.toThrow("from 0.5 to 10 m");
+            expect(device.getEndpoint(1).write).not.toHaveBeenCalled();
         });
     });
 
@@ -389,6 +500,140 @@ describe("FP400 definition", () => {
             await vi.advanceTimersByTimeAsync(120000);
             expect(subscriptions()).toHaveLength(3);
             await definition.onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
+        });
+    });
+
+    describe("areas", () => {
+        /** A sensor that keeps the masks written to it and reads them back, each step taking a moment. */
+        function storingSensor() {
+            const stored: KeyValueAny = {entryExitRegion: Buffer.alloc(40), interferenceRegion: Buffer.alloc(40), monitoringRegion: Buffer.alloc(0)};
+            const pause = () => new Promise((resolve) => setTimeout(resolve, 1));
+            const device = sensor({
+                1: async (cluster, attributes) => {
+                    await pause();
+                    return Object.fromEntries(attributes.filter((a) => typeof a === "string" && a in stored).map((a) => [a, stored[a]]));
+                },
+            });
+            vi.mocked(device.getEndpoint(1).write).mockImplementation(async (cluster, payload) => {
+                await pause();
+                Object.assign(stored, payload);
+            });
+            return {device, stored};
+        }
+        async function set(device: Zh.Device, key: string, value: unknown) {
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key.includes(key));
+            // @ts-expect-error mock meta
+            return await converter.convertSet(device.getEndpoint(1), key, value, {device, message: {[key]: value}, options: {}, state: {}});
+        }
+        const rect = (operation: string, rowStart: number, rowEnd: number, columnStart: number, columnEnd: number) => ({
+            operation,
+            row_start: rowStart,
+            row_end: rowEnd,
+            column_start: columnStart,
+            column_end: columnEnd,
+        });
+
+        it("exposes an editor and the raw cells of each area", async () => {
+            expect(await exposedProperties(sensor())).toEqual(
+                expect.arrayContaining([
+                    "entry_exit_region_edit",
+                    "interference_region_edit",
+                    "monitoring_region_edit",
+                    "entry_exit_mask_hex",
+                    "interference_mask_hex",
+                    "edge_mask_hex",
+                    "detection_depth",
+                ]),
+            );
+        });
+
+        it("publishes the cells it reads, an empty mask as no cell", async () => {
+            const mask = Buffer.alloc(40);
+            mask[0] = 0x80;
+            const data = {entryExitRegion: mask, interferenceRegion: Buffer.alloc(0), monitoringRegion: Buffer.alloc(40, 0xff).fill(0, 0, 8)};
+            expect((await receive(sensor(), 1, "aqaraFp400Config", "readResponse", data)).state).toMatchObject({
+                entry_exit_mask_hex: `80${"00".repeat(39)}`,
+                interference_mask_hex: "00".repeat(40),
+                edge_mask_hex: `${"00".repeat(8)}${"ff".repeat(32)}`,
+                detection_depth: 2,
+            });
+        });
+
+        it("keeps the last cells when the sensor sends something that is not a mask", async () => {
+            const {state} = await receive(sensor(), 1, "aqaraFp400Config", "readResponse", {monitoringRegion: Buffer.alloc(39)});
+            expect(state).not.toHaveProperty("edge_mask_hex");
+            expect(state.detection_depth).toBeNull();
+        });
+
+        it("adds and removes rectangles, keeping the other cells", async () => {
+            const {device, stored} = storingSensor();
+            expect(await set(device, "interference_region_edit", rect("add", 0, 1, 0, 15))).toStrictEqual({
+                state: {interference_mask_hex: `${"ff".repeat(4)}${"00".repeat(36)}`},
+            });
+            await set(device, "interference_region_edit", rect("remove", 1, 1, 8, 15));
+            expect(stored.interferenceRegion.toString("hex")).toBe(`ffffff00${"00".repeat(36)}`);
+            expect(device.getEndpoint(1).write).toHaveBeenCalledWith(
+                "aqaraFp400Config",
+                {interferenceRegion: expect.any(Buffer)},
+                {manufacturerCode: 0x115f},
+            );
+        });
+
+        it("clears the bits of cells added to the monitored area, which stores the excluded cells", async () => {
+            const {device, stored} = storingSensor();
+            stored.monitoringRegion = Buffer.alloc(40, 0xff);
+            const result = await set(device, "monitoring_region_edit", rect("add", 0, 3, 0, 15));
+            expect(stored.monitoringRegion.toString("hex")).toBe(`${"00".repeat(8)}${"ff".repeat(32)}`);
+            expect(result).toStrictEqual({state: {edge_mask_hex: stored.monitoringRegion.toString("hex"), detection_depth: 2}});
+        });
+
+        it("writes raw cells and reads them on request", async () => {
+            const {device, stored} = storingSensor();
+            const cells = `0f${"00".repeat(39)}`;
+            expect(await set(device, "entry_exit_mask_hex", cells)).toStrictEqual({state: {entry_exit_mask_hex: cells}});
+            expect(stored.entryExitRegion.toString("hex")).toBe(cells);
+            const definition = await findByDevice(device);
+            const converter = definition.toZigbee.find((c) => c.key.includes("edge_mask_hex"));
+            // @ts-expect-error mock meta
+            await converter.convertGet(device.getEndpoint(1), "edge_mask_hex", {device});
+            expect(device.getEndpoint(1).read).toHaveBeenLastCalledWith("aqaraFp400Config", ["monitoringRegion"], {manufacturerCode: 0x115f});
+        });
+
+        it("rejects bad input without writing", async () => {
+            const {device} = storingSensor();
+            await expect(set(device, "entry_exit_region_edit", rect("toggle", 0, 0, 0, 0))).rejects.toThrow("operation add or remove");
+            await expect(set(device, "entry_exit_region_edit", rect("add", 0, 20, 0, 0))).rejects.toThrow("rows 0-19");
+            await expect(set(device, "entry_exit_mask_hex", "ff")).rejects.toThrow("80 hexadecimal characters");
+            expect(device.getEndpoint(1).write).not.toHaveBeenCalled();
+        });
+
+        it("fails when the sensor reads back other cells", async () => {
+            const {device} = storingSensor();
+            vi.mocked(device.getEndpoint(1).write).mockResolvedValue(undefined);
+            await expect(set(device, "entry_exit_mask_hex", "ff".repeat(40))).rejects.toThrow("did not confirm");
+        });
+
+        it("applies edits sent at the same time one after the other, so none is lost", async () => {
+            const {device, stored} = storingSensor();
+            await Promise.all([
+                set(device, "interference_region_edit", rect("add", 0, 0, 0, 7)),
+                set(device, "interference_region_edit", rect("add", 0, 0, 8, 15)),
+                set(device, "interference_region_edit", rect("add", 19, 19, 0, 15)),
+            ]);
+            expect(stored.interferenceRegion.toString("hex")).toBe(`ffff${"00".repeat(36)}ffff`);
+        });
+
+        it("keeps the depth and the monitored area consistent", async () => {
+            const {device, stored} = storingSensor();
+            expect(await set(device, "detection_depth", 3)).toStrictEqual({
+                state: {detection_depth: 3, edge_mask_hex: `${"00".repeat(12)}${"ff".repeat(28)}`},
+            });
+            await set(device, "monitoring_region_edit", rect("remove", 0, 0, 0, 0));
+            expect((await set(device, "monitoring_region_edit", rect("add", 0, 0, 0, 0))).state.detection_depth).toBe(3);
+            await set(device, "monitoring_region_edit", rect("remove", 0, 0, 0, 0));
+            await expect(set(device, "detection_depth", 5)).rejects.toThrow("drawn cell by cell");
+            expect(stored.monitoringRegion[0]).toBe(0x80);
         });
     });
 
