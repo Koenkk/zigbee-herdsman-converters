@@ -2894,6 +2894,8 @@ export interface NumericArgs<Cl extends string | number, Custom extends TCustomC
     entityCategory?: "config" | "diagnostic";
     precision?: number | (number | undefined)[];
     fzConvert?: Fz.Converter<Cl, Custom, ["attributeReport", "readResponse"]>["convert"];
+    tzConvertSet?: Tz.Converter["convertSet"];
+    tzConvertGet?: Tz.Converter["convertGet"];
     homeassistant?: exposes.HomeAssistant | (exposes.HomeAssistant | undefined)[];
 }
 export function numeric<Cl extends string | number, Custom extends TCustomCluster | undefined = undefined>(
@@ -2915,6 +2917,8 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
         entityCategory,
         precision,
         fzConvert,
+        tzConvertSet,
+        tzConvertGet,
         homeassistant,
     } = args;
 
@@ -3096,7 +3100,8 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
             key: [uniqName],
             convertSet:
                 access & ea.SET
-                    ? async (entity, key, value, meta) => {
+                    ? (tzConvertSet ??
+                      (async (entity, key, value, meta) => {
                           assertNumber(value, key);
                           let payloadValue = value;
                           if (scale !== undefined) {
@@ -3117,18 +3122,19 @@ export function numeric<Cl extends string | number, Custom extends TCustomCluste
                               zigbeeCommandOptions,
                           );
                           return {state: {[key]: value}};
-                      }
+                      }))
                     : undefined,
             convertGet:
                 access & ea.GET
-                    ? async (entity, key, meta) => {
+                    ? (tzConvertGet ??
+                      (async (entity, key, meta) => {
                           await determineEndpoint(entity, meta, cluster).read(
                               cluster,
                               // XXX: too dynamic for typing
                               [attributeKey] as ClusterOrRawAttributeKeys<Cl>,
                               zigbeeCommandOptions,
                           );
-                      }
+                      }))
                     : undefined,
         };
         toZigbee.push(tZ);
