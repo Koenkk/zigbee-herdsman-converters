@@ -9,7 +9,7 @@ import {logger} from "./logger";
 import * as m from "./modernExtend";
 import * as philips from "./philips";
 import type {DefinitionWithExtend, ModernExtend, Zh} from "./types";
-import {getClusterAttributeValue, resolutionToDecimalPrecision} from "./utils";
+import {discoverAttributes, getClusterAttributeValue, resolutionToDecimalPrecision} from "./utils";
 
 const NS = "zhc:gendef";
 
@@ -69,7 +69,7 @@ const INPUT_EXTENDERS: Extender[] = [
     [["msPressureMeasurement"], async (d, eps) => [new ExtendGenerator({extend: m.pressure, args: maybeEndpointArgs(d, eps), source: "pressure"})]],
     [["msRelativeHumidity"], async (d, eps) => [new ExtendGenerator({extend: m.humidity, args: maybeEndpointArgs(d, eps), source: "humidity"})]],
     [["msCO2"], async (d, eps) => [new ExtendGenerator({extend: m.co2, args: maybeEndpointArgs(d, eps), source: "co2"})]],
-    [["genPowerCfg"], async (d, eps) => [new ExtendGenerator({extend: m.battery, source: "battery"})]],
+    [["genPowerCfg"], extenderPowerCfg],
     [["genOnOff", "genLevelCtrl", "lightingColorCtrl"], extenderOnOffLight],
     [["seMetering", "haElectricalMeasurement"], extenderElectricityMeter],
     [["closuresDoorLock"], extenderLock],
@@ -353,6 +353,34 @@ function maybeEndpointArgs<T>(device: Zh.Device, endpoints: Zh.Endpoint[], toExt
     }
 
     return {endpointNames: stringifyEps(endpoints), ...toExtend};
+}
+
+async function extenderPowerCfg(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
+    if (endpoints.length > 1) {
+        logger.warning("extenderPowerCfg can accept only one endpoint", NS);
+    }
+
+    const args: m.BatteryArgs = {};
+    const endpoint = endpoints[0];
+    await discoverAttributes(endpoint, "genPowerCfg", true);
+
+    const attrs = endpoint.clusters["genPowerCfg"]?.attributeList;
+
+    if (attrs) {
+        // keep percentage by default
+        args.percentage = endpoint.hasClusterAttribute("genPowerCfg", "batteryPercentageRemaining") !== false;
+        args.percentageReporting = args.percentage ? ((attrs.batteryPercentageRemaining?.access ?? 0x04) & 0x04) !== 0 : false;
+
+        args.voltage = endpoint.hasClusterAttribute("genPowerCfg", "batteryVoltage");
+        args.voltageReporting = ((attrs.batteryVoltage?.access ?? 0) & 0x04) !== 0;
+
+        if (!args.percentage && !args.voltage) {
+            // genPowerCfg cluster but no battery attributes
+            return [];
+        }
+    }
+
+    return [new ExtendGenerator({extend: m.battery, args, source: "battery"})];
 }
 
 async function extenderLock(device: Zh.Device, endpoints: Zh.Endpoint[]): Promise<GeneratedExtend[]> {
