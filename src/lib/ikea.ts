@@ -495,7 +495,20 @@ export function ikeaAirPurifier(): ModernExtend {
         },
     ];
 
-    return {exposes, fromZigbee, toZigbee, configure, isModernExtend: true};
+    return {
+        exposes,
+        fromZigbee,
+        toZigbee,
+        configure,
+        meta: {
+            overrideHaDiscoveryPayload: (payload) => {
+                if (payload.percentage_command_topic?.endsWith("/set/fan_mode")) {
+                    payload.percentage_value_template = '{% if "fan_speed" in value_json %}{{ value_json["fan_speed"] }}{% endif %}';
+                }
+            },
+        },
+        isModernExtend: true,
+    };
 }
 
 export function ikeaVoc(args?: Partial<m.NumericArgs<"manuSpecificIkeaVocIndexMeasurement", IkeaVocIndexMeasurement>>) {
