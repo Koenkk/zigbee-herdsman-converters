@@ -51,6 +51,48 @@ const fzLocal = {
 };
 
 const tzLocal = {
+    ldsenk06Warning: {
+        key: ["warning"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject<{
+                mode?: string;
+                duration?: number;
+                level?: string;
+                strobe?: boolean;
+                // biome-ignore lint/style/useNamingConvention: Zigbee2MQTT composite property name
+                strobe_duty_cycle?: number;
+                // biome-ignore lint/style/useNamingConvention: Zigbee2MQTT composite property name
+                strobe_level?: number;
+            }>(value);
+            const mode = value.mode ?? "alarm";
+            if (mode !== "alarm" && mode !== "flash" && mode !== "stop") throw new Error(`Unsupported warning mode: ${mode}`);
+            const duration = mode === "stop" ? 0 : (value.duration ?? 10);
+            utils.assertNumber(duration, "duration");
+            if (!Number.isInteger(duration) || duration < 0 || duration > 1800)
+                throw new Error("Warning duration must be an integer between 0 and 1800 seconds");
+            if (value.strobe !== undefined && typeof value.strobe !== "boolean") throw new Error("strobe must be a boolean");
+            const levels: Record<string, number> = {medium: 1, high: 2, very_high: 3};
+            const level = value.level ?? "high";
+            if (!Object.hasOwn(levels, level)) throw new Error(`Unsupported warning level: ${level}`);
+            const dutyCycle = value.strobe_duty_cycle ?? (mode === "flash" ? 10 : 1);
+            utils.assertNumber(dutyCycle, "strobe_duty_cycle");
+            if (!Number.isInteger(dutyCycle) || dutyCycle < 1 || dutyCycle > 99)
+                throw new Error("Strobe duty cycle must be an integer between 1 and 99");
+            const strobeLevel = value.strobe_level ?? 1;
+            utils.assertNumber(strobeLevel, "strobe_level");
+            if (!Number.isInteger(strobeLevel) || strobeLevel < 1 || strobeLevel > 3) throw new Error("Strobe level must be between 1 and 3");
+            // Enki uses the non-standard warning mode 7.
+            const strobe = mode === "flash" || (mode === "alarm" && (value.strobe ?? true));
+            const payload = {
+                startwarninginfo: mode === "alarm" ? 0x70 | (strobe ? 0x04 : 0) | levels[level] : strobe ? 0x04 : 0,
+                warningduration: duration,
+                strobedutycycle: mode === "stop" ? 0 : dutyCycle,
+                strobelevel: mode === "stop" ? 0 : strobeLevel,
+            };
+            // The siren performs the command but does not send the ZCL default response.
+            await entity.command("ssIasWd", "startWarning", payload, {...utils.getOptions(meta.mapped, entity), disableDefaultResponse: true});
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     LDSENK08_sensitivity: {
         key: ["sensitivity"],
@@ -67,7 +109,20 @@ export const definitions: DefinitionWithExtend[] = [
         model: "LDSENK06",
         vendor: "ADEO",
         description: "ENKI LEXMAN indoor siren 85db",
-        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]}), m.iasWarning()],
+        extend: [m.iasZoneAlarm({zoneType: "alarm", zoneAttributes: ["alarm_1", "alarm_2", "tamper", "battery_low"]})],
+        toZigbee: [tzLocal.ldsenk06Warning],
+        exposes: [
+            e
+                .composite("warning", "warning", ea.SET)
+                .withFeature(e.enum("mode", ea.SET, ["alarm", "flash", "stop"]).withDescription("Start the siren, flash only, or stop the warning"))
+                .withFeature(e.enum("level", ea.SET, ["medium", "high", "very_high"]).withDescription("Sound level during an alarm"))
+                .withFeature(e.binary("strobe", ea.SET, true, false).withDescription("Enable the flash during an alarm"))
+                .withFeature(e.numeric("strobe_level", ea.SET).withValueMin(1).withValueMax(3).withDescription("Flash speed: 1 is slow, 3 is fast"))
+                .withFeature(
+                    e.numeric("strobe_duty_cycle", ea.SET).withUnit("%").withValueMin(1).withValueMax(99).withDescription("Flash duty cycle"),
+                )
+                .withFeature(e.numeric("duration", ea.SET).withUnit("s").withValueMin(0).withValueMax(1800).withDescription("Duration in seconds")),
+        ],
     },
     {
         zigbeeModel: ["LDSENK08"],
