@@ -26,6 +26,8 @@ const ea = exposes.access;
 const te = tuya.exposes;
 const tvc = tuya.valueConverter;
 
+const t3eAction = (action: string) => ({from: (value: unknown) => (value === 0 ? {action} : {})});
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -32368,6 +32370,10 @@ export const definitions: DefinitionWithExtend[] = [
                 "air_conditioner_off",
                 "air_conditioner_cooling",
                 "air_conditioner_heating",
+                ...Array.from({length: 12}, (_, i) => {
+                    const name = `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`;
+                    return [`${name}_on`, `${name}_off`];
+                }).flat(),
             ]),
         ],
         meta: {
@@ -32375,42 +32381,60 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "state_l1", tuya.valueConverter.onOff],
                 [25, "state_l2", tuya.valueConverter.onOff],
                 [26, "state_l3", tuya.valueConverter.onOff],
+                // Receive mappings must come first: the Tuya receiver uses the first matching DP.
+                ...Array.from({length: 12}, (_, i): Tuya.MetaTuyaDataPointsSingle => {
+                    const name = `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`;
+                    return [
+                        130 + i,
+                        null,
+                        {
+                            from: (value) =>
+                                typeof value === "boolean" ? {[name]: value ? "ON" : "OFF", action: `${name}_${value ? "on" : "off"}`} : {},
+                        },
+                    ];
+                }),
                 ...Array.from(
                     {length: 12},
                     (_, i): Tuya.MetaTuyaDataPointsSingle => [
                         130 + i,
                         `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`,
-                        tuya.valueConverter.onOff,
+                        {
+                            to: (value) => {
+                                if (value !== "ON" && value !== "OFF") throw new Error("Expected ON or OFF");
+                                return value === "ON";
+                            },
+                        },
+                        {optimistic: false},
                     ],
                 ),
-                [5, "action", tuya.valueConverter.static("scene_1")],
-                [6, "action", tuya.valueConverter.static("scene_2")],
-                [7, "action", tuya.valueConverter.static("scene_3")],
-                [8, "action", tuya.valueConverter.static("scene_4")],
-                [9, "action", tuya.valueConverter.static("scene_5")],
-                [10, "action", tuya.valueConverter.static("scene_6")],
-                [104, "action", tuya.valueConverter.static("smart_curtain_open")],
-                [105, "action", tuya.valueConverter.static("smart_curtain_stop")],
-                [106, "action", tuya.valueConverter.static("smart_curtain_close")],
-                [107, "action", tuya.valueConverter.static("roller_shutter_down")],
-                [108, "action", tuya.valueConverter.static("roller_shutter_stop")],
-                [109, "action", tuya.valueConverter.static("roller_shutter_up")],
-                [110, "action", tuya.valueConverter.static("blinds_open")],
-                [111, "action", tuya.valueConverter.static("blinds_stop")],
-                [112, "action", tuya.valueConverter.static("blinds_close")],
-                [115, "action", tuya.valueConverter.static("screen_down")],
-                [116, "action", tuya.valueConverter.static("screen_stop")],
-                [117, "action", tuya.valueConverter.static("screen_up")],
-                [118, "action", tuya.valueConverter.static("gauze_curtain_open")],
-                [119, "action", tuya.valueConverter.static("gauze_curtain_stop")],
-                [120, "action", tuya.valueConverter.static("gauze_curtain_close")],
-                [121, "action", tuya.valueConverter.static("smart_window_open")],
-                [122, "action", tuya.valueConverter.static("smart_window_stop")],
-                [123, "action", tuya.valueConverter.static("smart_window_close")],
-                [124, "action", tuya.valueConverter.static("air_conditioner_on")],
-                [125, "action", tuya.valueConverter.static("air_conditioner_off")],
-                [126, "action", tuya.valueConverter.static("air_conditioner_cooling")],
-                [127, "action", tuya.valueConverter.static("air_conditioner_heating")],
+                [5, null, t3eAction("scene_1")],
+                [6, null, t3eAction("scene_2")],
+                [7, null, t3eAction("scene_3")],
+                [8, null, t3eAction("scene_4")],
+                [9, null, t3eAction("scene_5")],
+                [10, null, t3eAction("scene_6")],
+                [104, null, t3eAction("smart_curtain_open")],
+                [105, null, t3eAction("smart_curtain_stop")],
+                [106, null, t3eAction("smart_curtain_close")],
+                [107, null, t3eAction("roller_shutter_down")],
+                [108, null, t3eAction("roller_shutter_stop")],
+                [109, null, t3eAction("roller_shutter_up")],
+                [110, null, t3eAction("blinds_open")],
+                [111, null, t3eAction("blinds_stop")],
+                [112, null, t3eAction("blinds_close")],
+                [115, null, t3eAction("screen_down")],
+                [116, null, t3eAction("screen_stop")],
+                [117, null, t3eAction("screen_up")],
+                [118, null, t3eAction("gauze_curtain_open")],
+                [119, null, t3eAction("gauze_curtain_stop")],
+                [120, null, t3eAction("gauze_curtain_close")],
+                [121, null, t3eAction("smart_window_open")],
+                [122, null, t3eAction("smart_window_stop")],
+                [123, null, t3eAction("smart_window_close")],
+                [124, null, t3eAction("air_conditioner_on")],
+                [125, null, t3eAction("air_conditioner_off")],
+                [126, null, t3eAction("air_conditioner_cooling")],
+                [127, null, t3eAction("air_conditioner_heating")],
             ],
         },
     },
