@@ -722,7 +722,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Legrand",
         description: "Outlet with power consumption monitoring",
         ota: true,
-        whiteLabel: [{ vendor: "Legrand", description: "Mobile outlet", model: "064887" }],
+        whiteLabel: [{vendor: "Legrand", description: "Mobile outlet", model: "064887"}],
         fromZigbee: [fz.identify, fz.on_off, fz.electrical_measurement, fz.power_on_behavior, fzLegrand.cluster_fc01],
         toZigbee: [tz.on_off, tzLegrand.led_mode, tzLegrand.identify, tz.power_on_behavior],
         extend: [legrandExtend.addLegrandDevicesCluster()],
