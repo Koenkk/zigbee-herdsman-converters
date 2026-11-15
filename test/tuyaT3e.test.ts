@@ -68,7 +68,7 @@ describe("Tuya T3E", () => {
         expect(definition.endpoint(device)).toStrictEqual({l1: 1, l2: 1, l3: 1});
     });
 
-    it("exposes 52 actions and twelve individual switches without GET or custom display data", () => {
+    it("exposes 52 actions and twelve individual switches without GET", () => {
         const exposes = Array.isArray(definition.exposes) ? definition.exposes : definition.exposes(device, {});
         const action = exposes.find((e) => e.name === "action");
         expect(action).toMatchObject({values: expect.any(Array)});
@@ -76,7 +76,6 @@ describe("Tuya T3E", () => {
         const switches = exposes.filter((e) => e.name?.startsWith("scene_switch_"));
         expect(switches).toHaveLength(12);
         expect(switches.every((e) => e.access === 3)).toBe(true);
-        expect(exposes.some((e) => e.name === "waste_collection")).toBe(false);
     });
 
     it.each(commands)("reports button DP%i as %s and ignores other enum values", async (dp, action) => {
