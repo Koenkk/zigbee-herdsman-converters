@@ -1548,14 +1548,15 @@ const tzLocal = {
         key: ["calibrate_valve"],
         convertSet: (entity, key, value, meta) => {
             utils.assertEndpoint(entity);
-            wiserVactQueue(entity, key, () =>
-                entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
+            wiserVactQueue(entity, key, async () => {
+                if (value !== "calibrate") return;
+                await entity.command<"hvacThermostat", "wiserSmartCalibrateValve", SchneiderThermostatCluster>(
                     "hvacThermostat",
                     "wiserSmartCalibrateValve",
                     {},
                     {srcEndpoint: 11, disableDefaultResponse: true, manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
-                ),
-            );
+                );
+            });
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
@@ -2142,6 +2143,7 @@ const fzLocal = {
                         5: "failed_e3",
                     };
                     result.valve_calibration_status = lookup[msg.data.wiserSmartValveCalibrationStatus as number];
+                    result.calibrate_valve = "idle";
                 }
                 publish(result);
             }
