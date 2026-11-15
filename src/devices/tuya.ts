@@ -22644,7 +22644,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "lcd_rotation",
                     tuya.valueConverterBasic.lookup({
                         FWD: tuya.enum(0),
-                        RWD: tuya.enum(1),
+                        REV: tuya.enum(1),
                     }),
                 ],
 
@@ -23148,7 +23148,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [26, "min_temperature", tuya.valueConverter.divideBy10],
                 [27, "local_temperature_calibration", tuya.valueConverter.raw],
-                [28, "factory_reset", tuya.valueConverterBasic.lookup({factory_reset: true})],
+                [28, "factory_reset", tuya.valueConverterBasic.lookup({"factory reset": true})],
                 [
                     36,
                     "running_state",
@@ -25057,7 +25057,7 @@ export const definitions: DefinitionWithExtend[] = [
                         Bedroom: tuya.enum(4),
                         Livingroom: tuya.enum(5),
                         Meetingroom: tuya.enum(6),
-                        Default: tuya.enum(7),
+                        "Factory default": tuya.enum(7),
                     }),
                 ],
                 [

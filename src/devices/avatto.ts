@@ -206,7 +206,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.holiday_temperature().withValueMin(5).withValueMax(25),
             e
                 .climate()
-                .withPreset(["auto", "manual", "holiday", "comfort", "o", "antifrost"])
+                .withPreset(["auto", "manual", "holiday", "comfort", "eco", "antifrost"])
                 .withLocalTemperatureCalibration(-9, 9, 0.5, ea.STATE_SET)
                 .withLocalTemperature(ea.STATE)
                 .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
