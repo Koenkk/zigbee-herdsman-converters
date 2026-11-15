@@ -26,6 +26,76 @@ const ea = exposes.access;
 const te = tuya.exposes;
 const tvc = tuya.valueConverter;
 
+const t3eCommands: Record<number, string> = {
+    5: "scene_1",
+    6: "scene_2",
+    7: "scene_3",
+    8: "scene_4",
+    9: "scene_5",
+    10: "scene_6",
+    104: "smart_curtain_open",
+    105: "smart_curtain_stop",
+    106: "smart_curtain_close",
+    107: "roller_shutter_down",
+    108: "roller_shutter_stop",
+    109: "roller_shutter_up",
+    110: "blinds_open",
+    111: "blinds_stop",
+    112: "blinds_close",
+    115: "screen_down",
+    116: "screen_stop",
+    117: "screen_up",
+    118: "gauze_curtain_open",
+    119: "gauze_curtain_stop",
+    120: "gauze_curtain_close",
+    121: "smart_window_open",
+    122: "smart_window_stop",
+    123: "smart_window_close",
+    124: "air_conditioner_on",
+    125: "air_conditioner_off",
+    126: "air_conditioner_cooling",
+    127: "air_conditioner_heating",
+};
+const t3ePanelSwitches = Array.from({length: 12}, (_, i) => ({
+    dp: 130 + i,
+    name: `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`,
+}));
+// The Tuya receiver uses the first matching DP. Keep receive mappings before the
+// property-bound write mappings so reports retain both their state and action.
+const t3eCommandDatapoints: Tuya.MetaTuyaDataPoints = Object.entries(t3eCommands).map(
+    ([dp, action]): Tuya.MetaTuyaDataPointsSingle => [Number(dp), null, {from: (value) => (value === 0 ? {action} : {})}],
+);
+const t3eSwitchDatapoints: Tuya.MetaTuyaDataPoints = t3ePanelSwitches.map(
+    ({dp, name}): Tuya.MetaTuyaDataPointsSingle => [
+        dp,
+        null,
+        {
+            from: (value) =>
+                typeof value === "boolean"
+                    ? {
+                          [name]: value ? "ON" : "OFF",
+                          action: `${name}_${value ? "on" : "off"}`,
+                      }
+                    : {},
+        },
+    ],
+);
+const t3eSwitchWriteDatapoints: Tuya.MetaTuyaDataPoints = t3ePanelSwitches.map(
+    ({dp, name}): Tuya.MetaTuyaDataPointsSingle => [
+        dp,
+        name,
+        {
+            to: (value) => {
+                if (value !== "ON" && value !== "OFF") {
+                    throw new Error(`${name}: expected ON or OFF`);
+                }
+                return value === "ON";
+            },
+        },
+        {optimistic: false},
+    ],
+);
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -32325,6 +32395,34 @@ export const definitions: DefinitionWithExtend[] = [
                     "obstacle_sensitivity",
                     tuya.valueConverterBasic.lookup({off: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)}),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mua6ucdj"]),
+        model: "T3E_mua6ucdj",
+        vendor: "Tuya",
+        description: "T3E touch panel with three relays and scene buttons",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            e.switch().withEndpoint("l1"),
+            e.switch().withEndpoint("l2"),
+            e.switch().withEndpoint("l3"),
+            e.action([...Object.values(t3eCommands), ...t3ePanelSwitches.flatMap(({name}) => [`${name}_on`, `${name}_off`])]),
+            ...t3ePanelSwitches.map(({name}) =>
+                e.binary(name, ea.STATE_SET, "ON", "OFF").withDescription("Individual panel switch. A remote state change can also report an action"),
+            ),
+        ],
+        endpoint: () => ({l1: 1, l2: 1, l3: 1}),
+        meta: {
+            multiEndpoint: true,
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                ...t3eCommandDatapoints,
+                ...t3eSwitchDatapoints,
+                ...t3eSwitchWriteDatapoints,
             ],
         },
     },
