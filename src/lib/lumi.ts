@@ -1,5 +1,6 @@
 import {Buffer} from "node:buffer";
 import {Zcl} from "zigbee-herdsman";
+import type {Cluster} from "zigbee-herdsman/dist/zspec/zcl/definition/tstype";
 import * as fz from "../converters/fromZigbee";
 import * as tz from "../converters/toZigbee";
 import * as libColor from "./color";
@@ -2101,6 +2102,531 @@ function clampToIndicatorGamut(xy: {x: number; y: number}): {x: number; y: numbe
 /** `fz.brightness` and `fz.color_colortemp` only postfix their properties with the endpoint name (`_led`) for `meta.multiEndpoint`. */
 const withMultiEndpoint = (model: Definition): Definition => ({...model, meta: {...model.meta, multiEndpoint: true}});
 
+// Aqara FP400 (lumi.models.4447_8295) ---------------------------------------------------------------------------------
+// The FP400 keeps its radar settings in three manufacturer clusters (0xFC0A configuration, 0xFC0B people and zones,
+// 0xFC0C positions) and its sensitivity in 0x0080. Their ids are shared with the sensor's Matter firmware, whose names
+// are used here. Endpoint 1 is the room, 2 the light sensor and 3-10 the sensor's own detection zones. The sensor also
+// sends manufacturer-specific global commands that herdsman cannot parse, so they arrive as raw frames: 0x8A carries
+// attribute records laid out as in Report Attributes, 0x8B events (learning result, movement, positions).
+
+export interface AqaraFp400Config {
+    attributes: {
+        installationMode: number;
+        sideInstallation: number;
+        installationHeight: number;
+        installationHeightMin: number;
+        installationHeightMax: number;
+        installationStatus: number;
+        installationAngle: number;
+        humanCountEnabled: number;
+        aiHighPrecision: number;
+        aiAdaptiveSensitivity: number;
+        aiEntryExitRecognition: number;
+        aiInterferenceRecognition: number;
+        coordinateReverse: number;
+        detectionDirection: number;
+        proximityDistance: number;
+    };
+    commands: never;
+    commandResponses: never;
+}
+export interface AqaraFp400Radar {
+    attributes: {humanCount: number};
+    commands: never;
+    commandResponses: never;
+}
+export interface AqaraFp400Location {
+    attributes: {activityState: number};
+    commands: never;
+    commandResponses: never;
+}
+export interface AqaraFp400Sensitivity {
+    attributes: {presenceSensitivity: number};
+    commands: never;
+    commandResponses: never;
+}
+
+type Fp400ClusterName = "aqaraFp400Config" | "aqaraFp400Radar" | "aqaraFp400Location" | "aqaraFp400Sensitivity";
+
+const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
+    aqaraFp400Config: {
+        name: "aqaraFp400Config",
+        ID: 0xfc0a,
+        manufacturerCode,
+        attributes: {
+            installationMode: {name: "installationMode", ID: 0x0000, type: Zcl.DataType.ENUM8, write: true, max: 2},
+            sideInstallation: {name: "sideInstallation", ID: 0x0002, type: Zcl.DataType.ENUM8, write: true, max: 3},
+            installationHeight: {name: "installationHeight", ID: 0x0004, type: Zcl.DataType.UINT16, write: true, max: 0xffff},
+            installationHeightMin: {name: "installationHeightMin", ID: 0x0005, type: Zcl.DataType.UINT16},
+            installationHeightMax: {name: "installationHeightMax", ID: 0x0006, type: Zcl.DataType.UINT16},
+            installationStatus: {name: "installationStatus", ID: 0x0007, type: Zcl.DataType.ENUM8},
+            installationAngle: {name: "installationAngle", ID: 0x0008, type: Zcl.DataType.UINT8},
+            humanCountEnabled: {name: "humanCountEnabled", ID: 0x0023, type: Zcl.DataType.BOOLEAN, write: true},
+            aiHighPrecision: {name: "aiHighPrecision", ID: 0x0029, type: Zcl.DataType.BOOLEAN, write: true},
+            aiAdaptiveSensitivity: {name: "aiAdaptiveSensitivity", ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
+            aiEntryExitRecognition: {name: "aiEntryExitRecognition", ID: 0x002b, type: Zcl.DataType.BOOLEAN, write: true},
+            aiInterferenceRecognition: {name: "aiInterferenceRecognition", ID: 0x002c, type: Zcl.DataType.BOOLEAN, write: true},
+            coordinateReverse: {name: "coordinateReverse", ID: 0x002d, type: Zcl.DataType.ENUM8, write: true, max: 2},
+            detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
+            proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
+        },
+        commands: {},
+        commandsResponse: {},
+    },
+    aqaraFp400Radar: {
+        name: "aqaraFp400Radar",
+        ID: 0xfc0b,
+        manufacturerCode,
+        attributes: {
+            humanCount: {name: "humanCount", ID: 0x0002, type: Zcl.DataType.UINT16},
+        },
+        commands: {},
+        commandsResponse: {},
+    },
+    aqaraFp400Location: {
+        name: "aqaraFp400Location",
+        ID: 0xfc0c,
+        manufacturerCode,
+        attributes: {
+            activityState: {name: "activityState", ID: 0x0007, type: Zcl.DataType.ENUM8},
+        },
+        commands: {},
+        commandsResponse: {},
+    },
+    aqaraFp400Sensitivity: {
+        name: "aqaraFp400Sensitivity",
+        ID: 0x0080,
+        attributes: {presenceSensitivity: {name: "presenceSensitivity", ID: 0x0000, type: Zcl.DataType.UINT8, write: true, max: 2}},
+        commands: {},
+        commandsResponse: {},
+    },
+};
+
+// Sizes of the ZCL types that appear in FP400 structures and attribute records.
+const fp400TypeSizes: Record<number, number> = {
+    [Zcl.DataType.BOOLEAN]: 1,
+    [Zcl.DataType.BITMAP8]: 1,
+    [Zcl.DataType.UINT8]: 1,
+    [Zcl.DataType.UINT16]: 2,
+    [Zcl.DataType.INT8]: 1,
+    [Zcl.DataType.INT16]: 2,
+    [Zcl.DataType.ENUM8]: 1,
+};
+function fp400ReadValue(buffer: Buffer, offset: number, type: number): number {
+    switch (type) {
+        case Zcl.DataType.UINT16:
+            return buffer.readUInt16LE(offset);
+        case Zcl.DataType.INT16:
+            return buffer.readInt16LE(offset);
+        case Zcl.DataType.INT8:
+            return buffer.readInt8(offset);
+        default:
+            return buffer.readUInt8(offset);
+    }
+}
+
+/**
+ * Splits a raw FP400 frame (manufacturer-specific global command from the sensor, manufacturer 0x115F) into its
+ * command id and payload; anything else is undefined.
+ */
+function fp400ParseFrame(data: unknown): {command: number; payload: Buffer} | undefined {
+    if (!Buffer.isBuffer(data) || data.length < 5) return;
+    const frameControl = data[0];
+    // Global frame type, manufacturer specific, server to client.
+    if ((frameControl & 0x03) !== 0 || (frameControl & 0x0c) !== 0x0c || data.readUInt16LE(1) !== manufacturerCode) return;
+    return {command: data[4], payload: data.subarray(5)};
+}
+
+// The attribute records the sensor sends with 0x8A, as captured from an Aqara hub; anything else is not trusted.
+const fp400SyncAttributes: Record<string, Record<number, {type: number; name: string}>> = {
+    msOccupancySensing: {0: {type: Zcl.DataType.BITMAP8, name: "occupancy"}},
+    msIlluminanceMeasurement: {0: {type: Zcl.DataType.UINT16, name: "measuredValue"}},
+    aqaraFp400Radar: {2: {type: Zcl.DataType.UINT16, name: "humanCount"}},
+    aqaraFp400Location: {7: {type: Zcl.DataType.ENUM8, name: "activityState"}},
+};
+
+/** Decodes an 0x8A attribute-sync frame into attribute values by name; undefined unless every record is known and complete. */
+function fp400DecodeAttributeSync(cluster: string | number, data: unknown): KeyValue | undefined {
+    const frame = fp400ParseFrame(data);
+    const schema = fp400SyncAttributes[cluster];
+    if (frame?.command !== 0x8a || !schema || frame.payload.length === 0) return;
+    const values: KeyValue = {};
+    let offset = 0;
+    while (offset < frame.payload.length) {
+        if (offset + 3 > frame.payload.length) return;
+        const attribute = schema[frame.payload.readUInt16LE(offset)];
+        const type = frame.payload[offset + 2];
+        if (!attribute || attribute.type !== type || offset + 3 + fp400TypeSizes[type] > frame.payload.length) return;
+        values[attribute.name] = fp400ReadValue(frame.payload, offset + 3, type);
+        offset += 3 + fp400TypeSizes[type];
+    }
+    return values;
+}
+
+/**
+ * Restricts an extend to endpoint 1: endpoints 3-10 repeat some of its clusters for the zones. Its fromZigbee converters
+ * ignore the zone endpoints, and its configure sees endpoint 1 only. zhc reads an attribute at configure on every endpoint
+ * with its cluster, which on firmware 63 meant five room attributes read on eight zone endpoints, some of them timing out
+ * (endpoints 8 and 9 on a new sensor, 2026-11-12).
+ */
+function fp400FromRoom(extend: ModernExtend): ModernExtend {
+    const converters: ModernExtend["fromZigbee"] = extend.fromZigbee?.map((converter) => {
+        const roomConvert: typeof converter.convert = (...args) => {
+            const [, msg] = args;
+            if (msg.endpoint.ID !== 1) return undefined;
+            return converter.convert(...args);
+        };
+        return {...converter, convert: roomConvert};
+    });
+    const configure: Configure[] | undefined = extend.configure?.map(
+        (step) =>
+            (device, ...rest) =>
+                step(fp400RoomView(device), ...rest),
+    );
+    return {...extend, fromZigbee: converters, configure};
+}
+
+/** The device with endpoint 1 as its only endpoint, for configure steps that look for endpoints by cluster. */
+function fp400RoomView(device: Zh.Device): Zh.Device {
+    return new Proxy(device, {
+        get(target, property) {
+            if (property === "endpoints") return target.endpoints.filter((endpoint) => endpoint.ID === 1);
+            const value = Reflect.get(target, property);
+            // Methods run on the device itself, whose private fields a proxy cannot reach. The constructor stays as it is:
+            // zhc tells devices from endpoints by its name.
+            return typeof value === "function" && property !== "constructor" ? value.bind(target) : value;
+        },
+    });
+}
+
+const fp400LightReporting = (maximumReportInterval: number) => [
+    {attribute: "measuredValue" as const, minimumReportInterval: 10, maximumReportInterval, reportableChange: 5},
+];
+
+/**
+ * The sensor's reporting table holds five entries. Room presence takes the first (`m.occupancy` on endpoint 1) and the
+ * light sensor the next; when it gets no entry, it is polled.
+ */
+const fp400ConfigureReporting: Configure = async (device, coordinatorEndpoint) => {
+    const reported: number[] = [];
+    try {
+        const light = device.getEndpoint(2);
+        await light.bind("msIlluminanceMeasurement", coordinatorEndpoint);
+        await light.configureReporting("msIlluminanceMeasurement", fp400LightReporting(3600));
+        reported.push(2);
+    } catch (error) {
+        logger.debug(`FP400 '${device.ieeeAddr}': endpoint 2 is polled instead of reported (${error})`, NS);
+    }
+    device.meta.fp400ReportedEndpoints = reported;
+    device.save();
+};
+
+/* ── The sensor's own settings ───────────────────────────────────────────────────────────────────────────────────── */
+
+type Fp400SettingAttribute = keyof AqaraFp400Config["attributes"] | keyof AqaraFp400Sensitivity["attributes"];
+
+interface Fp400SettingSpec {
+    name: string;
+    cluster: "aqaraFp400Config" | "aqaraFp400Sensitivity";
+    attribute: Fp400SettingAttribute;
+    description: string;
+    /** An enumeration, by MQTT value. */
+    values?: Record<string, number>;
+    /** A number: lowest and highest value, and unit. */
+    range?: [number, number, string];
+}
+
+const fp400SettingSpecs: Fp400SettingSpec[] = [
+    {
+        name: "installation_mode",
+        cluster: "aqaraFp400Config",
+        attribute: "installationMode",
+        values: {unknown: 0, wall: 1, ceiling: 2},
+        description: "Whether the sensor hangs on a wall or on the ceiling",
+    },
+    {
+        name: "side_installation",
+        cluster: "aqaraFp400Config",
+        attribute: "sideInstallation",
+        values: {unknown: 0, wall: 1, left_corner: 2, right_corner: 3},
+        description: "On a wall, whether the sensor sits flat on it or across a corner, seen from the room",
+    },
+    {
+        name: "installation_height",
+        cluster: "aqaraFp400Config",
+        attribute: "installationHeight",
+        range: [0, 65535, "mm"],
+        description: "Height of the sensor above the floor; installation_height_min and _max give the range it accepts",
+    },
+    {
+        name: "human_count_enabled",
+        cluster: "aqaraFp400Config",
+        attribute: "humanCountEnabled",
+        description: "Count the people in the room (human_count)",
+    },
+    {
+        name: "ai_high_precision",
+        cluster: "aqaraFp400Config",
+        attribute: "aiHighPrecision",
+        description: "Recognise people with the AI model's higher-precision mode",
+    },
+    {
+        name: "ai_adaptive_sensitivity",
+        cluster: "aqaraFp400Config",
+        attribute: "aiAdaptiveSensitivity",
+        description: "Let the AI model adjust the detection sensitivity to the room",
+    },
+    {
+        name: "ai_entry_exit_recognition",
+        cluster: "aqaraFp400Config",
+        attribute: "aiEntryExitRecognition",
+        description: "Let the AI model find the room's doorways",
+    },
+    {
+        name: "ai_interference_recognition",
+        cluster: "aqaraFp400Config",
+        attribute: "aiInterferenceRecognition",
+        description: "Let the AI model find sources of false movement such as fans",
+    },
+    {
+        name: "coordinate_reverse",
+        cluster: "aqaraFp400Config",
+        attribute: "coordinateReverse",
+        values: {disabled: 0, enabled: 1, auto: 2},
+        description: "Swap left and right in the target positions; auto leaves it to the sensor",
+    },
+    {
+        name: "detection_direction",
+        cluster: "aqaraFp400Config",
+        attribute: "detectionDirection",
+        values: {omnidirectional: 0, left_right: 1},
+        description: "Which movements the sensor reports: left_right adds left_in, left_out, right_in and right_out",
+    },
+    {
+        name: "proximity_distance",
+        cluster: "aqaraFp400Config",
+        attribute: "proximityDistance",
+        values: {far: 0, medium: 1, near: 2},
+        description: "How close someone has to come before the sensor reports them approaching",
+    },
+    {
+        name: "presence_sensitivity",
+        cluster: "aqaraFp400Sensitivity",
+        attribute: "presenceSensitivity",
+        values: {low: 0, medium: 1, high: 2},
+        description: "How readily the sensor takes movement for presence",
+    },
+];
+
+/** The settings, read from endpoint 1 only. */
+function fp400Settings(): ModernExtend[] {
+    const common = {reporting: false, entityCategory: "config"} as const;
+    const extend = (spec: Fp400SettingSpec): ModernExtend => {
+        const base = {
+            name: spec.name,
+            cluster: spec.cluster,
+            attribute: spec.attribute,
+            description: spec.description,
+            ...(spec.cluster === "aqaraFp400Config" ? {zigbeeCommandOptions: {manufacturerCode}} : {}),
+            ...common,
+        };
+        if (spec.values) return modernExtend.enumLookup<string, AqaraFp400Config | AqaraFp400Sensitivity>({...base, lookup: spec.values});
+        if (spec.range) {
+            const [valueMin, valueMax, unit] = spec.range;
+            return modernExtend.numeric<string, AqaraFp400Config | AqaraFp400Sensitivity>({...base, valueMin, valueMax, unit});
+        }
+        return modernExtend.binary<string, AqaraFp400Config | AqaraFp400Sensitivity>({...base, valueOn: ["ON", 1], valueOff: ["OFF", 0]});
+    };
+    return [
+        ...fp400SettingSpecs.map((spec) => fp400FromRoom(extend(spec))),
+        fp400FromRoom(
+            modernExtend.numeric<"msOccupancySensing", undefined>({
+                name: "absence_timeout",
+                cluster: "msOccupancySensing",
+                // Not in the ZCL definition of the cluster.
+                attribute: {ID: 0x0003, type: Zcl.DataType.UINT16},
+                // The sensor reports a minimum of 10 s (absence_timeout_bounds), yet takes 0 like the Aqara app sends.
+                valueMin: 0,
+                valueMax: 300,
+                valueStep: 1,
+                unit: "s",
+                description: "Seconds without any detection before the room is reported empty",
+                ...common,
+            }),
+        ),
+    ];
+}
+
+/**
+ * Room-level additions: the sensor's tilt reading and limits, people count and activity, the absence-timeout bounds,
+ * attribute-sync frames, the pairing initialisation, and polling what is not reported.
+ */
+function fp400Room(): ModernExtend[] {
+    const diagnostic = {zigbeeCommandOptions: {manufacturerCode}, access: "STATE_GET", reporting: false, entityCategory: "diagnostic"} as const;
+    return [
+        modernExtend.enumLookup<"aqaraFp400Config", AqaraFp400Config>({
+            name: "installation_status",
+            lookup: {
+                level_facing_up: 0,
+                level_tilted_facing_up: 1,
+                level_reverse_tilted_facing_up: 2,
+                side_facing_forward: 3,
+                side_reverse_facing_forward: 4,
+                top_facing_down: 5,
+                tilted_facing_down: 6,
+                reverse_tilted_facing_down: 7,
+                invalid: 8,
+            },
+            cluster: "aqaraFp400Config",
+            attribute: "installationStatus",
+            description: "Orientation measured by the sensor's tilt sensor",
+            ...diagnostic,
+        }),
+        modernExtend.numeric<"aqaraFp400Config", AqaraFp400Config>({
+            name: "installation_angle",
+            cluster: "aqaraFp400Config",
+            attribute: "installationAngle",
+            unit: "°",
+            description: "Tilt from horizontal measured by the sensor",
+            ...diagnostic,
+        }),
+        modernExtend.numeric<"aqaraFp400Config", AqaraFp400Config>({
+            name: "installation_height_min",
+            cluster: "aqaraFp400Config",
+            attribute: "installationHeightMin",
+            unit: "mm",
+            description: "Lowest mounting height the sensor accepts (0: it gives no limit)",
+            ...diagnostic,
+        }),
+        modernExtend.numeric<"aqaraFp400Config", AqaraFp400Config>({
+            name: "installation_height_max",
+            cluster: "aqaraFp400Config",
+            attribute: "installationHeightMax",
+            unit: "mm",
+            description: "Highest mounting height the sensor accepts (0: it gives no limit)",
+            ...diagnostic,
+        }),
+        // Both clusters repeat on the zone endpoints, with the zones' own values.
+        fp400FromRoom(
+            modernExtend.numeric<"aqaraFp400Radar", AqaraFp400Radar>({
+                name: "human_count",
+                cluster: "aqaraFp400Radar",
+                attribute: "humanCount",
+                description: "People in the room as the radar counts them; a pet can count too",
+                zigbeeCommandOptions: {manufacturerCode},
+                access: "STATE_GET",
+                reporting: false,
+            }),
+        ),
+        fp400FromRoom(
+            modernExtend.enumLookup<"aqaraFp400Location", AqaraFp400Location>({
+                name: "activity_state",
+                // 0 comes with an empty room: 1,224 of 1,358 times on firmware 63 (2026-11-11), the rest in transitions.
+                lookup: {none: 0, active: 1, still: 2},
+                cluster: "aqaraFp400Location",
+                attribute: "activityState",
+                description: "Whether people in the room are moving; none when nobody is there",
+                zigbeeCommandOptions: {manufacturerCode},
+                access: "STATE_GET",
+                reporting: false,
+            }),
+        ),
+        // People count and activity come with the sensor's own sync frames now and then; the light only when it got a
+        // reporting entry (fp400ConfigureReporting).
+        modernExtend.poll({
+            key: "fp400_room",
+            defaultIntervalSeconds: 60,
+            poll: async (device) => {
+                const room = device.getEndpoint(1);
+                const reads: Promise<unknown>[] = [
+                    room.read<"aqaraFp400Radar", AqaraFp400Radar>("aqaraFp400Radar", ["humanCount"], {manufacturerCode}),
+                    room.read<"aqaraFp400Location", AqaraFp400Location>("aqaraFp400Location", ["activityState"], {manufacturerCode}),
+                ];
+                if (!(device.meta?.fp400ReportedEndpoints ?? []).includes(2)) {
+                    reads.push(device.getEndpoint(2).read("msIlluminanceMeasurement", ["measuredValue"]));
+                }
+                const failed = (await Promise.allSettled(reads)).filter((result) => result.status === "rejected");
+                if (failed.length) logger.debug(`FP400 '${device.ieeeAddr}': ${failed.length} of ${reads.length} polled reads failed`, NS);
+            },
+        }),
+        {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .composite("absence_timeout_bounds", "absence_timeout_bounds", ea.STATE_GET)
+                    .withFeature(e.numeric("minimum", ea.STATE).withUnit("s"))
+                    .withFeature(e.numeric("maximum", ea.STATE).withUnit("s"))
+                    .withFeature(e.numeric("default", ea.STATE).withUnit("s"))
+                    .withCategory("diagnostic")
+                    .withDescription("Absence timeout limits the sensor reports; it accepts 0 even though it reports a minimum of 10 s"),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "msOccupancySensing",
+                    type: ["attributeReport", "readResponse"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const bounds = msg.data[4];
+                        if (msg.endpoint.ID !== 1 || !Array.isArray(bounds) || bounds.length < 3) return;
+                        const [minimum, maximum, fallback] = (bounds as {elmVal: unknown}[]).map((field) => field?.elmVal);
+                        return {absence_timeout_bounds: {minimum, maximum, default: fallback}};
+                    },
+                } satisfies Fz.Converter<"msOccupancySensing", undefined, ["attributeReport", "readResponse"]>,
+            ],
+            toZigbee: [
+                {
+                    key: ["absence_timeout_bounds"],
+                    convertGet: async (entity, key, meta) => {
+                        await meta.device.getEndpoint(1).read("msOccupancySensing", [4]);
+                    },
+                },
+            ],
+        },
+        {
+            isModernExtend: true,
+            // The sensor also sends occupancy, light, people count and activity as 0x8A frames. They are handed to the
+            // definition's ordinary attribute-report converters, from the endpoint they came from.
+            fromZigbee: Object.keys(fp400SyncAttributes).map((cluster) => ({
+                cluster,
+                type: ["raw"],
+                convert: async (model, msg, publish, options, meta) => {
+                    const data = fp400DecodeAttributeSync(cluster, msg.data);
+                    if (!data) return;
+                    const report = {...msg, type: "attributeReport" as const, data};
+                    const state: KeyValue = {};
+                    for (const converter of model.fromZigbee) {
+                        if (converter.cluster !== cluster || ![converter.type].flat().includes("attributeReport")) continue;
+                        Object.assign(state, await converter.convert(model, report, publish, options, meta));
+                    }
+                    return state;
+                },
+            })),
+        },
+        {
+            isModernExtend: true,
+            configure: [
+                async (device, coordinatorEndpoint, definition) => {
+                    // The Aqara hub writes this when pairing; afterwards the sensor reports people count and installation
+                    // status by itself. Its meaning is not documented. The polls keep working when it fails.
+                    try {
+                        await device
+                            .getEndpoint(1)
+                            .write(0xfcc0, {160: {value: 1, type: Zcl.DataType.UINT8}}, {manufacturerCode, disableDefaultResponse: false});
+                    } catch (error) {
+                        logger.debug(`FP400 '${device.ieeeAddr}': pairing initialisation failed (${error})`, NS);
+                    }
+                    await fp400ConfigureReporting(device, coordinatorEndpoint, definition);
+                },
+            ],
+        },
+    ];
+}
+
+export const fp400 = {
+    clusters: fp400Clusters,
+    parseFrame: fp400ParseFrame,
+    decodeAttributeSync: fp400DecodeAttributeSync,
+};
+
 export const lumiModernExtend = {
     addManuSpecificLumiCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificLumi", {
@@ -2120,6 +2646,13 @@ export const lumiModernExtend = {
             commands: {},
             commandsResponse: {},
         }),
+    /** Registers the FP400's clusters 0xFC0A, 0xFC0B, 0xFC0C and 0x0080; must come before the FP400 extends that use them. */
+    fp400AddClusters: (): ModernExtend => {
+        const extend = Object.values(fp400Clusters).map((cluster) => modernExtend.deviceAddCustomCluster(cluster.name, cluster));
+        return {onEvent: extend.flatMap((e) => e.onEvent), configure: extend.flatMap((e) => e.configure), isModernExtend: true};
+    },
+    fp400Settings,
+    fp400Room,
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, "colorTemp"> & {
             colorTemp?: true;
