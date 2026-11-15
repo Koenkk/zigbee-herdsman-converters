@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
 import {fp400} from "../src/lib/lumi";
@@ -222,11 +222,6 @@ describe("FP400 definition", () => {
             expect((await receive(sensor(), 3, "aqaraFp400Radar", "raw", hex("1c5f113f8a0200210000"))).state).not.toHaveProperty("human_count");
         });
 
-        it("publishes the positions of the tracked targets from the room only", async () => {
-            expect((await receive(sensor(), 1, "aqaraFp400Location", "raw", POSITIONS_APP_63_THREE)).state.targets).toHaveLength(3);
-            expect((await receive(sensor(), 3, "aqaraFp400Location", "raw", POSITIONS_APP_63_THREE)).state).toStrictEqual({});
-        });
-
         it("publishes nothing from a truncated frame", async () => {
             expect((await receive(sensor(), 1, "aqaraFp400Radar", "raw", hex("1c5f117d8a02002101"))).state).toStrictEqual({});
         });
@@ -343,6 +338,57 @@ describe("FP400 definition", () => {
             } finally {
                 vi.useRealTimers();
             }
+        });
+    });
+
+    describe("tracking", () => {
+        const EMPTY_ROOM = hex("1c5f11758b00004c0000");
+        const track = async (device: Zh.Device, frame: Buffer, options: KeyValue = {tracking: true}, endpoint = 1) =>
+            (await receive(device, endpoint, "aqaraFp400Location", "raw", frame, options)).state;
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it("publishes the positions of the tracked targets from the room, while the tracking option is on", async () => {
+            expect((await track(sensor(), POSITIONS_APP_63_THREE)).targets).toHaveLength(3);
+            expect(await track(sensor(), POSITIONS_APP_63_THREE, {})).toStrictEqual({});
+            expect(await track(sensor(), POSITIONS_APP_63_THREE, {tracking: true}, 3)).toStrictEqual({});
+        });
+
+        it("publishes once a second at most, and a new number of targets at once", async () => {
+            vi.useFakeTimers();
+            const device = sensor();
+            expect(await track(device, POSITIONS_APP_63_THREE)).toHaveProperty("targets");
+            vi.advanceTimersByTime(500);
+            expect(await track(device, POSITIONS_APP_63_THREE)).toStrictEqual({});
+            expect(await track(device, EMPTY_ROOM)).toStrictEqual({targets: []});
+            vi.advanceTimersByTime(999);
+            expect(await track(device, EMPTY_ROOM)).toStrictEqual({});
+            vi.advanceTimersByTime(1);
+            expect(await track(device, EMPTY_ROOM)).toStrictEqual({targets: []});
+        });
+
+        it("subscribes to the positions every minute while the tracking option is on", async () => {
+            vi.useFakeTimers();
+            const device = sensor();
+            const definition = await findByDevice(device);
+            const subscriptions = () =>
+                vi.mocked(device.getEndpoint(1).command).mock.calls.filter(([, command]) => command === "subscribeLocationData");
+            const base = {device, state: {}, deviceExposesChanged: vi.fn()};
+            await definition.onEvent({type: "start", data: {...base, options: {}}});
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(subscriptions()).toHaveLength(0);
+            await definition.onEvent({type: "deviceOptionsChanged", data: {...base, options: {tracking: true}, from: {}, to: {tracking: true}}});
+            for (const count of [1, 2, 3]) {
+                await vi.advanceTimersByTimeAsync(60000);
+                expect(subscriptions()).toHaveLength(count);
+            }
+            expect(subscriptions()[0]).toStrictEqual(["aqaraFp400Location", "subscribeLocationData", {timeout: 180}, {manufacturerCode: 0x115f}]);
+            await definition.onEvent({type: "deviceOptionsChanged", data: {...base, options: {}, from: {tracking: true}, to: {}}});
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(subscriptions()).toHaveLength(3);
+            await definition.onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
         });
     });
 

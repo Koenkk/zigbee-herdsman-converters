@@ -2137,7 +2137,7 @@ export interface AqaraFp400Radar {
 }
 export interface AqaraFp400Location {
     attributes: {activityState: number};
-    commands: never;
+    commands: {subscribeLocationData: {timeout: number}};
     commandResponses: never;
 }
 export interface AqaraFp400Sensitivity {
@@ -2190,7 +2190,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         attributes: {
             activityState: {name: "activityState", ID: 0x0007, type: Zcl.DataType.ENUM8},
         },
-        commands: {},
+        commands: {
+            subscribeLocationData: {name: "subscribeLocationData", ID: 0x00, parameters: [{name: "timeout", type: Zcl.DataType.UINT16}]},
+        },
         commandsResponse: {},
     },
     aqaraFp400Sensitivity: {
@@ -2631,6 +2633,13 @@ function fp400Room(): ModernExtend[] {
         },
         fp400FromRoom({
             isModernExtend: true,
+            options: [
+                e
+                    .binary("tracking", ea.SET, true, false)
+                    .withDescription(
+                        "Ask the sensor for the positions of the people it tracks and publish them, at most once a second (default false)",
+                    ),
+            ],
             exposes: [
                 e
                     .list(
@@ -2643,18 +2652,42 @@ function fp400Room(): ModernExtend[] {
                             .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Distance ahead of the sensor"))
                             .withFeature(e.numeric("zone", ea.STATE).withDescription("Native zone the target is in, 0 when in none")),
                     )
-                    .withDescription("Positions of the people (and pets) the sensor tracks"),
+                    .withDescription("Positions of the people (and pets) the sensor tracks, while the tracking option is on"),
             ],
             fromZigbee: [
                 {
                     cluster: "aqaraFp400Location",
                     type: ["raw"],
                     convert: (model, msg, publish, options, meta) => {
+                        if (options.tracking !== true) return;
                         const targets = fp400DecodeTargets(msg.data);
-                        if (targets) return {targets};
+                        if (!targets) return;
+                        // About 7 reports a second arrive: publish one a second at most, and a new number of targets at once.
+                        const last = globalStore.getValue(msg.device.ieeeAddr, "fp400_targets");
+                        const now = Date.now();
+                        if (last?.count === targets.length && now - last.time < 1000) return;
+                        globalStore.putValue(msg.device.ieeeAddr, "fp400_targets", {time: now, count: targets.length});
+                        return {targets};
                     },
                 } satisfies Fz.Converter<"aqaraFp400Location", AqaraFp400Location, ["raw"]>,
             ],
+        }),
+        // The sensor sends positions only while subscribed to them, for at most 3 minutes per subscription.
+        modernExtend.poll({
+            key: "fp400_tracking",
+            optionKey: "tracking",
+            defaultIntervalSeconds: 60,
+            poll: async (device, options) => {
+                if (options.tracking !== true) return;
+                await device
+                    .getEndpoint(1)
+                    .command<"aqaraFp400Location", "subscribeLocationData", AqaraFp400Location>(
+                        "aqaraFp400Location",
+                        "subscribeLocationData",
+                        {timeout: 180},
+                        {manufacturerCode},
+                    );
+            },
         }),
         {
             isModernExtend: true,
