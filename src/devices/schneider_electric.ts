@@ -1559,6 +1559,21 @@ const tzLocal = {
             return {state: {calibrate_valve: value}};
         },
     } satisfies Tz.Converter,
+    wiser_vact_open_window_detection: {
+        key: ["open_window_detection"],
+        convertSet: (entity, key, value, meta) => {
+            utils.assertEndpoint(entity);
+            // Like the Wiser controller: threshold 4 (0.4 °C, below 4 disables detection) and interval 600 s
+            wiserVactQueue(entity, key, () =>
+                entity.write(
+                    "hvacThermostat",
+                    {57363: {value: value ? 4 : 0, type: Zcl.DataType.UINT8}, 57364: {value: 600, type: Zcl.DataType.UINT16}},
+                    {manufacturerCode: Zcl.ManufacturerCode.SCHNEIDER_ELECTRIC},
+                ),
+            );
+            return {state: {open_window_detection: value}};
+        },
+    } satisfies Tz.Converter,
     wiser_vact_setpoint: {
         key: ["occupied_heating_setpoint", "zone_mode"],
         convertSet: async (entity, key, value, meta) => {
@@ -3398,6 +3413,7 @@ export const definitions: DefinitionWithExtend[] = [
             tzLocal.wiser_vact_setpoint,
             tzLocal.wiser_sed_thermostat_keypad_lockout,
             tzLocal.wiser_vact_calibrate_valve,
+            tzLocal.wiser_vact_open_window_detection,
         ],
         exposes: [
             e.battery(),
@@ -3405,6 +3421,7 @@ export const definitions: DefinitionWithExtend[] = [
             e.binary("calibrate_valve", ea.STATE_SET, "calibrate", "idle").withDescription("Calibrates valve on next wakeup"),
             e.enum("valve_calibration_status", ea.STATE, ["ongoing", "successful", "uncalibrated", "failed_e1", "failed_e2", "failed_e3"]),
             e.enum("zone_mode", ea.STATE_SET, ["manual", "schedule", "energy_saver", "holiday"]).withDescription("Icon shown on device displays"),
+            e.binary("open_window_detection", ea.STATE_SET, true, false).withDescription("Detect open window"),
             e.binary("window_open", ea.STATE, true, false).withDescription("Open window detected by the valve"),
             e
                 .climate()

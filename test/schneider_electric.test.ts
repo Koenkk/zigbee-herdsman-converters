@@ -155,6 +155,7 @@ describe("Schneider Electric EER53000", () => {
         await set("local_temperature_calibration", -0.7);
         await set("keypad_lockout", "lock1");
         await set("calibrate_valve", "calibrate");
+        await set("open_window_detection", false);
         // Nothing is sent while the valve sleeps
         expect(command).not.toHaveBeenCalled();
         expect(write).not.toHaveBeenCalled();
@@ -166,7 +167,11 @@ describe("Schneider Electric EER53000", () => {
             ["hvacThermostat", "wiserSmartSetSetpoint", {operatingmode: 0, zonemode: 2, setpoint: 2150, reserved: 0xff}],
             ["hvacThermostat", "wiserSmartCalibrateValve", {}],
         ]);
-        expect(write.mock.calls.map((call) => call[1])).toStrictEqual([{localTemperatureCalibration: -7}, {keypadLockout: 1}]);
+        expect(write.mock.calls.map((call) => call[1])).toStrictEqual([
+            {localTemperatureCalibration: -7},
+            {keypadLockout: 1},
+            {57363: {value: 0, type: Zcl.DataType.UINT8}, 57364: {value: 600, type: Zcl.DataType.UINT16}},
+        ]);
 
         // Simulate the reads made after a button press
         expect(read(0x0012)).toBe(true);
