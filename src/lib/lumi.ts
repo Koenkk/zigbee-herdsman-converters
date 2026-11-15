@@ -13,15 +13,12 @@ import type {
     BatteryNonLinearVoltage,
     Configure,
     Definition,
-    DefinitionExposesFunction,
     Expose,
     Fz,
     KeyValue,
     KeyValueAny,
     KeyValueNumberString,
     ModernExtend,
-    OnEvent,
-    Publish,
     Range,
     Tz,
     Zh,
@@ -37,7 +34,6 @@ import {
     getKey,
     getOptions,
     hasAlreadyProcessedMessage,
-    isDummyDevice,
     isObject,
     isString,
     noOccupancySince,
@@ -2140,8 +2136,8 @@ export interface AqaraFp400Radar {
     commandResponses: never;
 }
 export interface AqaraFp400Location {
-    attributes: {maxDetectionTargets: number; activityState: number};
-    commands: {subscribeLocationData: {timeout: number}};
+    attributes: {activityState: number};
+    commands: never;
     commandResponses: never;
 }
 export interface AqaraFp400Sensitivity {
@@ -2192,12 +2188,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         ID: 0xfc0c,
         manufacturerCode,
         attributes: {
-            maxDetectionTargets: {name: "maxDetectionTargets", ID: 0x0000, type: Zcl.DataType.UINT8},
             activityState: {name: "activityState", ID: 0x0007, type: Zcl.DataType.ENUM8},
         },
-        commands: {
-            subscribeLocationData: {name: "subscribeLocationData", ID: 0x00, parameters: [{name: "timeout", type: Zcl.DataType.UINT16}]},
-        },
+        commands: {},
         commandsResponse: {},
     },
     aqaraFp400Sensitivity: {
@@ -2208,20 +2201,6 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         commandsResponse: {},
     },
 };
-
-const FP400_MAX_TARGETS = 10;
-
-export interface Fp400Target {
-    id: number;
-    x: number;
-    y: number;
-    /** Native zone the target is in (1-8), 0 when in none. */
-    zone?: number;
-    /** Movement speed the sensor reports, roughly cm/s; firmware 60 and later. */
-    speed?: number;
-    /** Whether the sensor is dropping the target (after a person left, or a ghost); firmware 60 and later. */
-    leaving?: boolean;
-}
 
 // Sizes of the ZCL types that appear in FP400 structures and attribute records.
 const fp400TypeSizes: Record<number, number> = {
@@ -2258,96 +2237,6 @@ function fp400ParseFrame(data: unknown): {command: number; payload: Buffer} | un
     return {command: data[4], payload: data.subarray(5)};
 }
 
-/** An 0x8B event: `<event id u16> <payload>`. */
-function fp400ParseEvent(data: unknown): {event: number; payload: Buffer} | undefined {
-    const frame = fp400ParseFrame(data);
-    if (frame?.command !== 0x8b || frame.payload.length < 2) return;
-    return {event: frame.payload.readUInt16LE(0), payload: frame.payload.subarray(2)};
-}
-
-/**
- * Decodes one target record of a position event: a structure of nine typed fields. The first three are the target id
- * (uint8) and its position x and y (int16, cm; negative x is left of the sensor). What the others carry was measured
- * on firmware 63 (date code 20261026) and fits the firmware 60 captures; firmware 51 uses fields 3-5 differently
- * (grid cell, activity):
- * - 3 (int16): movement speed, roughly cm/s; 0 when still. Decoded as `speed` from firmware 60 on.
- * - 4 (int16): body-movement energy; about 50-70 for a person in any posture, about 0 for a track the sensor keeps
- *   after the person left. Not decoded.
- * - 5 (uint16): track state; 2000 joined an occupied room, 4000 made an empty room occupied, +800 being dropped.
- *   Not decoded.
- * - 6, 7 (enum8): always 0 and 254, also when sitting, sitting on the floor or lying down. Not decoded.
- * - 8 (uint8): native zone the target is in, 0 when in none. Decoded as `zone`.
- * `cut` is set when the frame ends inside the record; the target is still returned when its id and position arrived.
- */
-function fp400DecodeTargetRecord(buffer: Buffer, offset: number, appVersion?: number): {target?: Fp400Target; end: number; cut: boolean} | undefined {
-    if (offset + 2 > buffer.length) return {end: buffer.length, cut: true};
-    const fields = buffer.readUInt16LE(offset);
-    if (fields < 3 || fields > 32) return;
-    const expected = [Zcl.DataType.UINT8, Zcl.DataType.INT16, Zcl.DataType.INT16];
-    const values: number[] = [];
-    let position = offset + 2;
-    let cut = false;
-    for (let field = 0; field < fields; field++) {
-        if (position >= buffer.length) {
-            cut = true;
-            break;
-        }
-        const type = buffer[position];
-        const size = fp400TypeSizes[type];
-        if (size === undefined || (field < expected.length && type !== expected[field])) return;
-        if (position + 1 + size > buffer.length) {
-            cut = true;
-            break;
-        }
-        values.push(fp400ReadValue(buffer, position + 1, type));
-        position += 1 + size;
-    }
-    if (values.length < 3) return {end: position, cut};
-    const target: Fp400Target = {id: values[0], x: values[1], y: values[2]};
-    if (appVersion >= 60 && values.length > 3) target.speed = values[3];
-    if (values.length > 8) target.zone = values[8];
-    // Field 5, the track state (firmware 60 and later; 0 on 51): 2000 joined an occupied room, 4000 made an empty room
-    // occupied, and both carry +800 while the sensor drops the target (10 of 10 disappearances on firmware 63, never
-    // before a target that stayed). Other values are left out.
-    if (appVersion >= 60 && values.length > 5) {
-        if (values[5] === 2800 || values[5] === 4800) target.leaving = true;
-        else if (values[5] === 2000 || values[5] === 4000) target.leaving = false;
-    }
-    return {target, end: position, cut};
-}
-
-/**
- * Decodes the payload of a position event (0xFC0C event 0): an array of target structures, `4C <count u16>` followed by
- * the records. Ember coordinators deliver only the first 80 bytes of a longer frame (zigbee-herdsman#1886), so a
- * frame that ends early still yields the reported count and every target whose position arrived, with `complete`
- * false. Malformed frames are undefined, so that they never read as an empty room.
- */
-function fp400DecodeLocation(payload: Buffer, appVersion?: number): {reported: number; targets: Fp400Target[]; complete: boolean} | undefined {
-    if (payload.length < 3 || payload[0] !== Zcl.DataType.STRUCT) return;
-    const reported = payload.readUInt16LE(1);
-    if (reported > FP400_MAX_TARGETS) return;
-    const targets: Fp400Target[] = [];
-    let offset = 3;
-    let complete = true;
-    for (let i = 0; i < reported; i++) {
-        if (offset >= payload.length) {
-            complete = false;
-            break;
-        }
-        const record = fp400DecodeTargetRecord(payload, offset, appVersion);
-        if (!record) return;
-        if (record.target) targets.push(record.target);
-        if (record.cut) {
-            complete = false;
-            break;
-        }
-        offset = record.end;
-    }
-    if (complete && offset !== payload.length) return;
-    if (new Set(targets.map((t) => t.id)).size !== targets.length) return;
-    return {reported, targets, complete};
-}
-
 // The attribute records the sensor sends with 0x8A, as captured from an Aqara hub; anything else is not trusted.
 const fp400SyncAttributes: Record<string, Record<number, {type: number; name: string}>> = {
     msOccupancySensing: {0: {type: Zcl.DataType.BITMAP8, name: "occupancy"}},
@@ -2372,6 +2261,34 @@ function fp400DecodeAttributeSync(cluster: string | number, data: unknown): KeyV
         offset += 3 + fp400TypeSizes[type];
     }
     return values;
+}
+
+/**
+ * Decodes a position event (0xFC0C, 0x8B event 0): `4C <count u16>`, then per target a structure of typed fields of
+ * which 0 is the id, 1 and 2 are x and y (cm) and 8 is the native zone (0 when in none). Ember coordinators deliver only
+ * the first 80 bytes of a frame (zigbee-herdsman#1886), so targets whose position did not arrive are left out.
+ */
+function fp400DecodeTargets(data: unknown): {id: number; x: number; y: number; zone?: number}[] | undefined {
+    const frame = fp400ParseFrame(data);
+    const payload = frame?.payload;
+    if (frame?.command !== 0x8b || payload.length < 5 || payload.readUInt16LE(0) !== 0 || payload[2] !== Zcl.DataType.STRUCT) return;
+    const targets = [];
+    let offset = 5;
+    for (let i = 0; i < payload.readUInt16LE(3) && offset + 2 <= payload.length; i++) {
+        const fields = payload.readUInt16LE(offset);
+        const values: number[] = [];
+        offset += 2;
+        while (values.length < fields && offset < payload.length) {
+            const size = fp400TypeSizes[payload[offset]];
+            if (size === undefined) return;
+            if (offset + 1 + size > payload.length) break;
+            values.push(fp400ReadValue(payload, offset + 1, payload[offset]));
+            offset += 1 + size;
+        }
+        if (values.length >= 3) targets.push({id: values[0], x: values[1], y: values[2], zone: values[8]});
+        if (values.length < fields) break;
+    }
+    return targets;
 }
 
 /**
@@ -2660,16 +2577,6 @@ function fp400Room(): ModernExtend[] {
                 if (failed.length) logger.debug(`FP400 '${device.ieeeAddr}': ${failed.length} of ${reads.length} polled reads failed`, NS);
             },
         }),
-        // Firmware 63 also has 0xFC0C on the zone endpoints.
-        fp400FromRoom(
-            modernExtend.numeric<"aqaraFp400Location", AqaraFp400Location>({
-                name: "maximum_detection_targets",
-                cluster: "aqaraFp400Location",
-                attribute: "maxDetectionTargets",
-                description: "Number of targets the sensor tracks at most",
-                ...diagnostic,
-            }),
-        ),
         {
             isModernExtend: true,
             exposes: [
@@ -2722,6 +2629,33 @@ function fp400Room(): ModernExtend[] {
                 },
             })),
         },
+        fp400FromRoom({
+            isModernExtend: true,
+            exposes: [
+                e
+                    .list(
+                        "targets",
+                        ea.STATE,
+                        e
+                            .composite("target", "target", ea.STATE)
+                            .withFeature(e.numeric("id", ea.STATE))
+                            .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("Sideways from the sensor, negative to its left"))
+                            .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Distance ahead of the sensor"))
+                            .withFeature(e.numeric("zone", ea.STATE).withDescription("Native zone the target is in, 0 when in none")),
+                    )
+                    .withDescription("Positions of the people (and pets) the sensor tracks"),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "aqaraFp400Location",
+                    type: ["raw"],
+                    convert: (model, msg, publish, options, meta) => {
+                        const targets = fp400DecodeTargets(msg.data);
+                        if (targets) return {targets};
+                    },
+                } satisfies Fz.Converter<"aqaraFp400Location", AqaraFp400Location, ["raw"]>,
+            ],
+        }),
         {
             isModernExtend: true,
             configure: [
@@ -2742,194 +2676,10 @@ function fp400Room(): ModernExtend[] {
     ];
 }
 
-/** Exposes that appear only while a device option is on; the documentation (dummy device) always lists them. */
-function fp400WhenOption(option: string, items: Expose[]): DefinitionExposesFunction {
-    return (device, options) => (isDummyDevice(device) || options?.[option] === true ? items : []);
-}
-
-// Global store key of a followed device option; its own prefix, so it cannot clash with a poll's timer key.
-const fp400OptionKey = (option: string) => `fp400_option_${option}`;
-
-/** Whether a device option followed by fp400FollowOption is on. */
-function fp400OptionEnabled(device: Zh.Device, option: string): boolean {
-    return globalStore.getValue(device.ieeeAddr, fp400OptionKey(option)) === true;
-}
-
-/**
- * Keeps a device option in the global store, where polls see changes without a restart, and refreshes the exposes
- * when it changes. Returns whether the option was just turned on.
- */
-function fp400FollowOption(event: OnEvent.Event, option: string): boolean {
-    if (event.type === "stop") {
-        globalStore.clearValue(event.data.ieeeAddr, fp400OptionKey(option));
-        return false;
-    }
-    if (event.type !== "start" && event.type !== "deviceOptionsChanged") return false;
-    const enabled = event.data.options?.[option] === true;
-    globalStore.putValue(event.data.device.ieeeAddr, fp400OptionKey(option), enabled);
-    if (event.type === "deviceOptionsChanged" && (event.data.from?.[option] === true) !== enabled) {
-        event.data.deviceExposesChanged();
-        return enabled;
-    }
-    return false;
-}
-
-const FP400_TRACKING_SUBSCRIPTION = 180;
-
-/** Asks the sensor for its fast position stream (about 7 reports per second) for the next three minutes. */
-async function fp400SubscribeLocation(device: Zh.Device) {
-    await device
-        .getEndpoint(1)
-        .command<"aqaraFp400Location", "subscribeLocationData", AqaraFp400Location>(
-            "aqaraFp400Location",
-            "subscribeLocationData",
-            {timeout: FP400_TRACKING_SUBSCRIPTION},
-            {manufacturerCode},
-        );
-}
-
-interface Fp400TrackingPublish {
-    time: number;
-    count: number;
-    timer?: ReturnType<typeof setTimeout>;
-}
-
-/**
- * Publishes position state at most once per `interval` seconds; a change in the number of targets is published at
- * once, and the last state withheld within an interval is published when it ends.
- */
-function fp400ThrottleTracking(device: Zh.Device, state: KeyValue, publish: Publish, interval: number): KeyValue | undefined {
-    const key = "fp400_tracking_publish";
-    const now = Date.now();
-    const last: Fp400TrackingPublish | undefined = globalStore.getValue(device.ieeeAddr, key);
-    clearTimeout(last?.timer);
-    if (!last || last.count !== state.target_count || now - last.time >= interval * 1000) {
-        globalStore.putValue(device.ieeeAddr, key, {time: now, count: state.target_count});
-        return state;
-    }
-    last.timer = setTimeout(
-        () => {
-            globalStore.putValue(device.ieeeAddr, key, {time: Date.now(), count: state.target_count});
-            publish(state);
-        },
-        last.time + interval * 1000 - now,
-    ).unref();
-}
-
-/**
- * Positions of the people (and animals) the radar tracks, from 0xFC0C event 0. The sensor sends them by itself while
- * targets move or appear; while the `tracking` option is on it is also asked for its fast stream, and the positions
- * are published.
- */
-function fp400Tracking(): ModernExtend[] {
-    const options = [
-        e
-            .binary("tracking", ea.SET, true, false)
-            .withDescription("Publish the positions of the targets the sensor tracks, and ask it for its fast position stream (default false)"),
-        e
-            .numeric("tracking_interval", ea.SET)
-            .withValueMin(0)
-            .withValueMax(60)
-            .withUnit("s")
-            .withDescription(
-                "Shortest time between two published position updates; a change in the number of targets is published at once (default 1 s)",
-            ),
-    ];
-    const exposes = [
-        e
-            .numeric("target_count", ea.STATE)
-            .withDescription(
-                "Number of targets the sensor tracks. A target is not necessarily a person: a pet counts, and one person can briefly be two",
-            ),
-        e
-            .list(
-                "targets",
-                ea.STATE,
-                e
-                    .composite("target", "target", ea.STATE)
-                    .withFeature(e.numeric("id", ea.STATE))
-                    .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("Sideways from the sensor, negative to its left"))
-                    .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Distance ahead of the sensor"))
-                    .withFeature(e.numeric("zone", ea.STATE).withDescription("Native zone the target is in, 0 when in none"))
-                    .withFeature(
-                        e
-                            .numeric("speed", ea.STATE)
-                            .withUnit("cm/s")
-                            .withDescription("Movement speed the sensor reports, approximate; firmware 60 and later"),
-                    )
-                    .withFeature(
-                        e
-                            .binary("leaving", ea.STATE, true, false)
-                            .withDescription("The sensor is dropping this target, as after a person left; firmware 60 and later"),
-                    ),
-            )
-            .withDescription("Targets whose position arrived in the last report"),
-        e.text("targets_xy", ea.STATE).withDescription("Targets as id:x:y in cm, separated by ';', or 'none'"),
-        e
-            .enum("tracking_status", ea.STATE, ["valid", "partial"])
-            .withCategory("diagnostic")
-            .withDescription(
-                "partial: the report arrived cut short, so targets lists fewer targets than target_count (Ember coordinators deliver only the first 80 bytes, 2-3 targets)",
-            ),
-    ];
-    return [
-        {
-            isModernExtend: true,
-            options,
-            exposes: [fp400WhenOption("tracking", exposes)],
-            fromZigbee: [
-                {
-                    cluster: "aqaraFp400Location",
-                    type: ["raw"],
-                    convert: (model, msg, publish, options, meta) => {
-                        if (msg.endpoint.ID !== 1 || options.tracking !== true) return;
-                        const event = fp400ParseEvent(msg.data);
-                        if (event?.event !== 0) return;
-                        const location = fp400DecodeLocation(event.payload, msg.device.applicationVersion);
-                        if (!location) {
-                            logger.debug(`FP400 '${msg.device.ieeeAddr}': ignoring malformed position report ${msg.data.toString("hex")}`, NS);
-                            return;
-                        }
-                        const state = {
-                            target_count: location.reported,
-                            targets: location.targets,
-                            targets_xy: location.targets.map((t) => `${t.id}:${t.x}:${t.y}`).join(";") || "none",
-                            tracking_status: location.complete ? "valid" : "partial",
-                        };
-                        const interval = toNumber(options.tracking_interval ?? 1, "tracking_interval");
-                        return fp400ThrottleTracking(msg.device, state, publish, interval);
-                    },
-                } satisfies Fz.Converter<"aqaraFp400Location", AqaraFp400Location, ["raw"]>,
-            ],
-            onEvent: [
-                async (event) => {
-                    if (event.type === "stop") clearTimeout(globalStore.getValue(event.data.ieeeAddr, "fp400_tracking_publish")?.timer);
-                    if (fp400FollowOption(event, "tracking") && event.type === "deviceOptionsChanged") {
-                        try {
-                            await fp400SubscribeLocation(event.data.device);
-                        } catch (error) {
-                            logger.debug(`FP400 '${event.data.device.ieeeAddr}': subscribing to positions failed (${error})`, NS);
-                        }
-                    }
-                },
-            ],
-        },
-        // Renew the subscription well before it runs out.
-        modernExtend.poll({
-            key: "fp400_tracking",
-            defaultIntervalSeconds: 60,
-            poll: async (device) => {
-                if (fp400OptionEnabled(device, "tracking")) await fp400SubscribeLocation(device);
-            },
-        }),
-    ];
-}
-
 export const fp400 = {
     clusters: fp400Clusters,
     parseFrame: fp400ParseFrame,
-    parseEvent: fp400ParseEvent,
-    decodeLocation: fp400DecodeLocation,
+    decodeTargets: fp400DecodeTargets,
     decodeAttributeSync: fp400DecodeAttributeSync,
 };
 
@@ -2959,7 +2709,6 @@ export const lumiModernExtend = {
     },
     fp400Settings,
     fp400Room,
-    fp400Tracking,
     lumiLight: (
         args?: Omit<modernExtend.LightArgs, "colorTemp"> & {
             colorTemp?: true;
