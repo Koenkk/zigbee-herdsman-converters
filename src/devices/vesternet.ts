@@ -8,7 +8,7 @@ import {precisionRound} from "../lib/utils";
 
 const e = exposes.presets;
 const fzLocal = {
-    battery_ves_zb_rem_013: {
+    battery_ves_zb_remotes: {
         cluster: "genPowerCfg",
         type: ["attributeReport", "readResponse"],
         convert: (model, msg, publish, options, meta) => {
@@ -96,7 +96,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-REM-013",
         vendor: "Vesternet",
         description: "Zigbee remote control - 12 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fzLocal.battery_ves_zb_rem_013],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.command_recall, fzLocal.battery_ves_zb_remotes],
         exposes: [
             e.battery(),
             e.action([
@@ -223,7 +223,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-WAL-006",
         vendor: "Vesternet",
         description: "Zigbee wall controller - 2 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fzLocal.battery_ves_zb_remotes],
         exposes: [e.battery(), e.action(["on_1", "off_1", "stop_1", "brightness_move_up_1", "brightness_move_down_1", "brightness_stop_1"])],
         toZigbee: [],
         meta: {multiEndpoint: true, battery: {dontDividePercentage: true}},
@@ -241,7 +241,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-WAL-011",
         vendor: "Vesternet",
         description: "Zigbee wall controller - 4 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fzLocal.battery_ves_zb_remotes],
         exposes: [
             e.battery(),
             e.action([
@@ -277,7 +277,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "VES-ZB-WAL-012",
         vendor: "Vesternet",
         description: "Zigbee wall controller - 8 button",
-        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fz.battery],
+        fromZigbee: [fz.command_on, fz.command_off, fz.command_move, fz.command_stop, fzLocal.battery_ves_zb_remotes],
         exposes: [
             e.battery(),
             e.action([
