@@ -17,14 +17,60 @@ function getImageName(model) {
     return `${model.replace(/[/:' ]/g, "-")}.png`;
 }
 
+function stripPrNumber(value) {
+    return value.replace(/\s*\(#\d+\)\s*$/, "").trim();
+}
+
 function getModels(title) {
     const match = title.match(/^feat\(add\):\s*(.+)$/);
     if (!match) return [];
-    return match[1]
-        .replace(/\s*\(#\d+\)\s*$/, "")
+    return stripPrNumber(match[1])
         .split(",")
         .map((m) => m.trim())
         .filter((m) => m);
+}
+
+/** Returns `VENDOR MODEL` from `fix(detect): Detect `ID` as VENDOR MODEL` */
+function getDetectTarget(title) {
+    const match = title.match(/^fix\(detect\):.*\sas\s+(.+)$/);
+    return match ? stripPrNumber(match[1]).replace(/`/g, "") : undefined;
+}
+
+/**
+ * Determine the model from `VENDOR MODEL`, both may contain spaces (e.g. `Schneider Electric EER53000`).
+ * Picks the longest suffix that occurs as a string literal in the changed files (e.g. `model: "X"` or
+ * `tuya.whitelabel("Vendor", "X", ...)`), falls back to the last word.
+ */
+function resolveDetectModel(target, contents) {
+    const words = target.split(/\s+/);
+    const candidates = words.length === 1 ? words : words.slice(1).map((_, i) => words.slice(i + 1).join(" "));
+    return candidates.find((c) => contents.some((content) => content.includes(`"${c}"`) || content.includes(`'${c}'`))) ?? words.at(-1);
+}
+
+/** Fetches the full content of the files changed by the PR (at the PR head, as data only) */
+async function getChangedFileContents(github, context, pr) {
+    const files = await github.paginate(github.rest.pulls.listFiles, {...context.repo, pull_number: pr.number, per_page: 100});
+    const repo = pr.head.repo ? {owner: pr.head.repo.owner.login, repo: pr.head.repo.name} : context.repo;
+    const contents = [];
+    for (const file of files.filter((f) => f.status !== "removed" && f.filename.startsWith("src/devices/"))) {
+        try {
+            const {data} = await github.rest.repos.getContent({...repo, path: file.filename, ref: pr.head.sha});
+            contents.push(Buffer.from(data.content, data.encoding).toString("utf8"));
+        } catch {
+            // Fall back to the patch when the content cannot be fetched (e.g. too large)
+            if (file.patch) contents.push(file.patch);
+        }
+    }
+    return contents;
+}
+
+/** Models that need a picture: the added models for `feat(add)`, the detected model for `fix(detect)` */
+async function getTargetModels(github, context, pr) {
+    const models = getModels(pr.title);
+    if (models.length) return models;
+    const target = getDetectTarget(pr.title);
+    if (!target) return [];
+    return [resolveDetectModel(target, await getChangedFileContents(github, context, pr))];
 }
 
 function extractImages(text) {
@@ -109,8 +155,8 @@ async function getExistingSha(github, imageName) {
 }
 
 /** Returns a result per model: {model, imageName, url, buffer, exists, error} */
-async function collect(github, pr) {
-    const models = getModels(pr.title);
+async function collect(github, context, pr) {
+    const models = await getTargetModels(github, context, pr);
     const urls = mapImages(models, pr.body ?? "");
     const results = [];
     for (const model of models) {
@@ -143,9 +189,9 @@ async function upsertComment(github, context, prNumber, body) {
 async function check({github, context, core, prNumber}) {
     // Fetch the PR instead of using the event payload: the PR title workflow may have changed the title in the meantime
     const pr = (await github.rest.pulls.get({...context.repo, pull_number: prNumber})).data;
-    const results = await collect(github, pr);
+    const results = await collect(github, context, pr);
     if (results.length === 0) {
-        core.info("Not a `feat(add)` pull request, nothing to check");
+        core.info("Not a `feat(add)` or `fix(detect)` pull request, nothing to check");
         return;
     }
 
@@ -155,7 +201,7 @@ async function check({github, context, core, prNumber}) {
         lines.push(
             "## Device picture required",
             "",
-            "This pull request adds a new device, please provide a picture for it in the pull request description so it can be shown on " +
+            "This pull request adds a new device or detection, please provide a picture for it in the pull request description so it can be shown on " +
                 "[zigbee2mqtt.io](https://www.zigbee2mqtt.io/supported-devices/) and in the frontend. Requirements:",
             "",
             "- Format: `PNG`",
@@ -199,8 +245,7 @@ async function check({github, context, core, prNumber}) {
 
 async function upload({github, context, core, docsGithub}) {
     const pr = context.payload.pull_request;
-    const results = await collect(github, pr);
-    const uploaded = [];
+    const results = await collect(github, context, pr);
     for (const r of results.filter((r) => r.buffer)) {
         const path = `${IMAGE_DIR}/${r.imageName}`;
         const {data} = await docsGithub.rest.repos.createOrUpdateFileContents({
@@ -212,11 +257,6 @@ async function upload({github, context, core, docsGithub}) {
             sha: await getExistingSha(docsGithub, r.imageName),
         });
         core.info(`Uploaded '${path}': ${data.commit.html_url}`);
-        uploaded.push(`- \`${r.model}\`: [\`${path}\`](${data.commit.html_url})`);
-    }
-
-    if (uploaded.length) {
-        await upsertComment(github, context, pr.number, [MARKER, "## Device picture", "", "Added to zigbee2mqtt.io:", "", ...uploaded].join("\n"));
     }
 
     const failed = results.filter((r) => r.error);
@@ -225,4 +265,4 @@ async function upload({github, context, core, docsGithub}) {
     }
 }
 
-module.exports = {check, upload, getImageName, getModels, mapImages};
+module.exports = {check, upload, getImageName, getModels, getDetectTarget, resolveDetectModel, mapImages};
