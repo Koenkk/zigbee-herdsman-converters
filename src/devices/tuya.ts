@@ -5806,7 +5806,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "809WZT", "Motion sensor", ["_TZ3040_bb6xaihh"]),
             tuya.whitelabel("Niceboy", "ORBIS Motion Sensor", "Motion sensor", ["_TZ3000_qomxlryd"]),
             tuya.whitelabel("Luminea", "ZX-5311", "Motion sensor", ["_TZ3000_jmrgyl7o"]),
-            tuya.whitelabel("Tuya", "ZP01", "Motion sensor", ["_TZ3000_lf56vpxj", "_TZ3040_o4mkahkc"]),
             tuya.whitelabel("Tuya", "HW500A", "Motion sensor", ["_TZ3000_bsvqrxru"]),
             tuya.whitelabel("Nedis", "ZBSM10WT", "Motion sensor", ["_TZ3000_nss8amz9"]),
         ],
@@ -5820,6 +5819,33 @@ export const definitions: DefinitionWithExtend[] = [
 
             return exps;
         },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            try {
+                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
+            } catch {
+                /* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708 */
+            }
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0202", ["_TZ3000_lf56vpxj", "_TZ3040_o4mkahkc"]),
+        model: "ZP01",
+        vendor: "Tuya",
+        description: "Motion sensor",
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ias_occupancy_alarm_1_report, fzLocal.ZM35HQ_attr],
+        toZigbee: [tzLocal.ZM35HQ_attr],
+        exposes: [
+            e.occupancy(),
+            e.battery_low(),
+            e.battery(),
+            e.battery_voltage(),
+            e.tamper(),
+            e.enum("sensitivity", ea.ALL, ["low", "medium", "high"]).withDescription("PIR sensor sensitivity"),
+            e.enum("keep_time", ea.ALL, [30, 60, 120]).withDescription("PIR keep time in seconds"),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
