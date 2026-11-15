@@ -12,6 +12,16 @@ const vibrantLight = (args: m.LightArgs): ModernExtend => {
         convertSet: async (entity, key, value, meta) => {
             const {brightness_percent: percent, ...message} = meta.message;
             if (percent != null) message.brightness = utils.mapNumberRange(Number(percent), 0, 100, 0, 254);
+            // A plain "on" makes the bulb go to full brightness instead of its previous level
+            const onOff = typeof message.state === "string" ? message.state.toUpperCase() : undefined;
+            if (
+                message.brightness == null &&
+                meta.state.brightness != null &&
+                (onOff === "ON" || (onOff === "TOGGLE" && meta.state.state === "OFF"))
+            ) {
+                message.state = "ON";
+                message.brightness = meta.state.brightness;
+            }
             message.brightness = scale(message.brightness, 254, 100);
             const state = {...meta.state, brightness: scale(meta.state.brightness, 254, 100)};
             const result = await tz.light_onoff_brightness.convertSet(entity, key, value, {...meta, message, state});
