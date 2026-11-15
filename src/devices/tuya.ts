@@ -2562,11 +2562,14 @@ const sp107eLedChips = {
 // gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
 // Small or pump-filled tanks really change faster than that, so the jump check is opt-in (readings outside the tank are always
 // dropped).
+const me201wzWithInstallationHeight = ["_TZE284_kyyu8rbj"];
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device, filterJumps: boolean) => {
     const depth = result.liquid_depth as number | undefined;
     const percent = result.liquid_level_percent as number | undefined;
     const lastDepth = state.liquid_depth as number | undefined;
-    const height = (result.installation_height ?? state.installation_height) as number | undefined;
+    const height = me201wzWithInstallationHeight.includes(device.manufacturerName)
+        ? ((result.installation_height ?? state.installation_height) as number | undefined)
+        : undefined;
     const depthMax = (result.liquid_depth_max ?? state.liquid_depth_max) as number | undefined;
     let glitch = false;
     if (depth !== undefined) {
@@ -24553,8 +24556,8 @@ export const definitions: DefinitionWithExtend[] = [
                 .binary("filter_level_jumps", ea.SET, true, false)
                 .withDescription(
                     "Ignore false echoes by dropping levels jumping more than 5 cm, unless read steadily for 12 hours. Leave disabled for " +
-                        "small or fast-changing tanks (e.g. filled by a pump) where the level would get stuck. Levels outside the tank are " +
-                        "always dropped (default false).",
+                        "small or fast-changing tanks (e.g. filled by a pump) where the level would get stuck. Levels below zero, or above an " +
+                        "exposed installation height, are always dropped (default false).",
                 ),
         ],
         extend: [
@@ -24571,7 +24574,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.liquidMaximalPercent(),
             te.liquidMinimalPercent(),
 
-            ...(!device || ["_TZE284_kyyu8rbj"].includes(device.manufacturerName)
+            ...(!device || me201wzWithInstallationHeight.includes(device.manufacturerName)
                 ? [te.liquidDepthMax(), te.liquidInstallationHeight()]
                 : [te.liquidDepthMax().withValueMax(10)]),
             te.relaySwitch(),

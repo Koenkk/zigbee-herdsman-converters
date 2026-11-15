@@ -816,8 +816,8 @@ describe("legacy.fz.moes_thermostat", () => {
 });
 
 describe("Tuya ME201WZ", () => {
-    const setup = async () => {
-        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_kyyu8rbj", endpoints: [{ID: 1}]});
+    const setup = async (manufacturerName = "_TZE284_kyyu8rbj") => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName, endpoints: [{ID: 1}]});
         const definition = await findByDevice(device);
         const convert = (dpValues: unknown[], state: Record<string, unknown>, options: Record<string, unknown> = {filter_level_jumps: true}) =>
             Object.assign(
@@ -883,6 +883,13 @@ describe("Tuya ME201WZ", () => {
         // Readings outside the tank are still dropped.
         expect(convert(reading(-110, 0, 1), state, options)).toStrictEqual({});
         expect(convert(reading(500, 100, 2), state, options)).toStrictEqual({});
+    });
+
+    it("ignores installation_height on the ME202WZ, which does not expose it", async () => {
+        const {convert} = await setup("_TZE284_mxujdmxo");
+        const me202wz = {liquid_depth: 1.19, liquid_level_percent: 94, installation_height: 0.17, liquid_depth_max: 1.26};
+        expect(convert(reading(40, 32, 1), me202wz, {})).toStrictEqual({liquid_depth: 0.4, liquid_level_percent: 32, liquid_state: "low"});
+        expect(convert(reading(-110, 0, 1), me202wz, {})).toStrictEqual({});
     });
 
     it("accepts a sudden change once it has been read steadily for 12 hours", async () => {
