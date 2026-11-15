@@ -15,7 +15,7 @@ import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as tuya from "../lib/tuya";
 import type {DefinitionWithExtend, Fz} from "../lib/types";
-import {ignoreErrors} from "../lib/utils";
+import {ignoreErrors, ignoreUnsupportedAttribute} from "../lib/utils";
 
 const e = exposes.presets;
 const ea = exposes.access;
@@ -197,7 +197,10 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
             p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
-            await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
+            await ignoreUnsupportedAttribute(
+                async () => await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions),
+                "Tilt reporting not supported",
+            );
         },
     },
     {
@@ -275,7 +278,10 @@ export const definitions: DefinitionWithExtend[] = [
             await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
 
             p = reporting.payload<"closuresWindowCovering">("currentPositionTiltPercentage", 1, 120, 1);
-            await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions);
+            await ignoreUnsupportedAttribute(
+                async () => await endpoint.configureReporting("closuresWindowCovering", p, legrandOptions),
+                "Tilt reporting not supported",
+            );
         },
     },
     {
