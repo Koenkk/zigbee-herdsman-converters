@@ -155,6 +155,15 @@ export const definitions: DefinitionWithExtend[] = [
                 exposes: [e.action(Object.values(actionLookup))],
                 isModernExtend: true,
             },
+            {
+                configure: [
+                    async (device) => {
+                        const time = Math.round(Date.now() / 1000) - new Date().getTimezoneOffset() * 60;
+                        await device.getEndpoint(1).write("genTime", {time});
+                    },
+                ],
+                isModernExtend: true,
+            },
         ],
     },
     {
