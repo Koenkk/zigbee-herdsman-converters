@@ -13,6 +13,7 @@ import {
     type HeimanSpecificInfraRedRemoteCluster,
     type HeimanSpecificScenesCluster,
 } from "../lib/heiman";
+import {hs2vtdPlus} from "../lib/heimanMotion";
 import * as m from "../lib/modernExtend";
 import * as reporting from "../lib/reporting";
 import * as globalStore from "../lib/store";
@@ -2315,6 +2316,7 @@ const fzLocal = {
 };
 
 export const definitions: DefinitionWithExtend[] = [
+    hs2vtdPlus,
     {
         zigbeeModel: ["PIRILLSensor-EF-3.0"],
         model: "HS1MIS-3.0",
