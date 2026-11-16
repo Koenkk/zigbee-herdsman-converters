@@ -948,6 +948,14 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
     },
     {
+        zigbeeModel: ["FL 290 C"],
+        model: "FL 290 C",
+        vendor: "Innr",
+        description: "Lightstrip colour, 10m",
+        ota: true,
+        extend: [m.light({colorTemp: {range: [50, 1000]}, color: {modes: ["xy", "hs"], enhancedHue: true}})],
+    },
+    {
         zigbeeModel: ["OFL 120 C"],
         model: "OFL 120 C",
         vendor: "Innr",
