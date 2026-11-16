@@ -9,4 +9,11 @@ export const definitions: DefinitionWithExtend[] = [
         description: "On/off switch",
         extend: [m.onOff({powerOnBehavior: false})],
     },
+    {
+        zigbeeModel: ["TH03"],
+        model: "TH03",
+        vendor: "Zbeacon",
+        description: "Temperature and humidity sensor",
+        extend: [m.identify(), m.battery(), m.temperature(), m.humidity()],
+    },
 ];

@@ -189,13 +189,14 @@ jobs:
                           title,
                       });
 
-    # New devices (`feat(add): MODEL` PRs) require a 512x512 PNG picture in the PR description, which is committed to
+    # New devices (`feat(add): MODEL` PRs) and detections (`fix(detect): Detect `ID` as VENDOR MODEL` PRs, e.g. a new
+    # whitelabel) require a 512x512 PNG picture in the PR description when none exists yet, which is committed to
     # zigbee2mqtt.io (public/images/devices) upon merge.
     # Runs after pr-title since the title update uses GITHUB_TOKEN, which doesn't trigger a new `edited` event.
     device-picture-check:
         needs: [prs, pr-title]
         # Also run when pr-title failed or was skipped (edited), the check then uses the current title
-        if: ${{ !cancelled() && needs.prs.result == 'success' && needs.prs.outputs.prs != '[]' && (github.event.action != 'edited' || startsWith(github.event.pull_request.title, 'feat(add)')) }}
+        if: ${{ !cancelled() && needs.prs.result == 'success' && needs.prs.outputs.prs != '[]' && (github.event.action != 'edited' || startsWith(github.event.pull_request.title, 'feat(add)') || startsWith(github.event.pull_request.title, 'fix(detect)')) }}
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
@@ -218,7 +219,7 @@ jobs:
                       await check({github, context, core, prNumber: ${{ matrix.pr }}});
 
     device-picture-upload:
-        if: github.event.action == 'closed' && github.event.pull_request.merged && startsWith(github.event.pull_request.title, 'feat(add)')
+        if: github.event.action == 'closed' && github.event.pull_request.merged && (startsWith(github.event.pull_request.title, 'feat(add)') || startsWith(github.event.pull_request.title, 'fix(detect)'))
         runs-on: ubuntu-latest
         # Checks out the base branch (for the script), never PR code.
         steps:
