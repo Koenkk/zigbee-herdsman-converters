@@ -1,4 +1,5 @@
 import {Zcl, ZSpec} from "zigbee-herdsman";
+import * as fz from "../converters/fromZigbee";
 import type {Feature} from "../lib/exposes";
 import * as exposes from "../lib/exposes";
 import {logger} from "../lib/logger";
@@ -14,7 +15,6 @@ import type {
     KeyValue,
     ModernExtend,
     OnEvent,
-    Publish,
     Tz,
     Zh,
 } from "../lib/types";
@@ -390,7 +390,6 @@ interface ShellyTRVManualMode {
  * Tracks an external temperature until the TRV reports the same value as its local temperature.
  */
 interface ShellyTRVExternalTemperatureRequest {
-    requestId?: string;
     temperature: number;
     measuredValue: number;
     createdAt: number;
@@ -406,50 +405,6 @@ interface ShellyTRVExternalOccupancyRequest {
     createdAt: number;
     lastAttemptAt: number;
     attempts: number;
-}
-
-type ShellyTRVInputKind = "temperature" | "occupancy";
-type ShellyTRVRequestStatus = "pending" | "sent" | "confirmed" | "expired" | "awaiting_confirmation";
-interface ShellyTRVInputRecord {
-    requested: number | boolean;
-    createdAt: number;
-    status: ShellyTRVRequestStatus;
-    confirmed: number | boolean;
-    confirmedAt: string;
-    requestId?: string;
-    deliveryStatus?: "pending" | "sent" | "failed";
-    confirmationBasis?: string;
-    attemptStartedAt?: number;
-    confirmationExpiresAt?: number;
-    feedbackReads?: number;
-    lastFeedbackAt?: number;
-    sent?: number;
-    sentAt?: string;
-    feedback?: {localTemp?: number; localTempAt?: number; remoteSensing?: number; remoteSensingAt?: number};
-}
-interface ShellyTRVSettingRequest {
-    id: string;
-    requested: number | string;
-    raw: number;
-    createdAt: number;
-    attempts: number;
-    lastAttemptAt: number;
-    feedbackReads?: number;
-    lastFeedbackAt?: number;
-    writeRequired?: boolean;
-    mismatchAt?: number;
-    status: ShellyTRVRequestStatus;
-    deliveryStatus: "pending" | "sent" | "failed";
-    confirmed: number | string;
-    confirmedAt: string;
-}
-function shellyTRVInputRecords(device: Zh.Device): Partial<Record<ShellyTRVInputKind, ShellyTRVInputRecord>> {
-    device.meta[shellyTRVStatusMetaKey] ??= {};
-    return device.meta[shellyTRVStatusMetaKey];
-}
-function shellyTRVSettingRecords(device: Zh.Device): Record<string, ShellyTRVSettingRequest> {
-    device.meta[shellyTRVSetpointMetaKey] ??= {};
-    return device.meta[shellyTRVSetpointMetaKey];
 }
 
 const SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY = "shelly_trv_external_temperature_request";
@@ -2409,34 +2364,129 @@ async function shellyTRVSendExternalTemperature(endpoint: Zh.Endpoint, request: 
     );
 }
 
-/** Stores the latest external temperature without confusing successful sending with confirmation. */
+/**
+ * Enables remote sensing and sends the currently reserved external temperature request.
+ */
+async function shellyTRVDeliverExternalTemperature(
+    endpoint: Zh.Endpoint,
+    request: ShellyTRVExternalTemperatureRequest,
+    remoteSensing: number,
+): Promise<void> {
+    await shellyTRVEnableRemoteTemperature(endpoint, remoteSensing);
+    await shellyTRVSendExternalTemperature(endpoint, request);
+}
+
+/**
+ * Checks whether the TRV has confirmed the requested value while using the remote source.
+ */
+function shellyTRVExternalTemperatureIsConfirmed(
+    request: ShellyTRVExternalTemperatureRequest,
+    localTemperature: number | undefined,
+    remoteSensing: number,
+): boolean {
+    return localTemperature === request.measuredValue && (remoteSensing & 1) !== 0;
+}
+
+/**
+ * Checks whether a request reached its bounded retry limit.
+ */
+function shellyTRVExternalTemperatureIsExpired(request: ShellyTRVExternalTemperatureRequest): boolean {
+    return (
+        request.attempts >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS ||
+        Date.now() - request.createdAt >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS
+    );
+}
+
+/**
+ * Confirms an external temperature from incoming thermostat reports and retries an unconfirmed value during a wake window.
+ */
+const fzShellyTRVExternalTemperature = {
+    cluster: "hvacThermostat",
+    type: ["attributeReport", "readResponse"],
+    convert: (model, msg, publish, options, meta) => {
+        const request = shellyTRVGetExternalTemperatureRequest(msg.device);
+        if (!request) return;
+
+        const remoteSensing = shellyTRVGetRemoteSensing(
+            msg.endpoint,
+            meta.state,
+            typeof msg.data.remoteSensing === "number" ? msg.data.remoteSensing : undefined,
+        );
+
+        if (shellyTRVExternalTemperatureIsConfirmed(request, msg.data.localTemp, remoteSensing)) {
+            shellyTRVClearExternalTemperatureRequest(msg.device);
+            logger.debug(`External temperature ${request.temperature} °C was confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (shellyTRVExternalTemperatureIsExpired(request)) {
+            shellyTRVClearExternalTemperatureRequest(msg.device);
+            logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${msg.device.ieeeAddr}'`, NS);
+            return;
+        }
+
+        if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
+
+        const reserved = shellyTRVReserveExternalTemperatureAttempt(msg.device, request);
+        shellyTRVDeliverExternalTemperature(msg.endpoint, reserved, remoteSensing).catch((error) =>
+            logger.debug(`Failed to retry external temperature for '${msg.device.ieeeAddr}': ${error}`, NS),
+        );
+    },
+} satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>;
+
+/**
+ * Stores and sends an external temperature while marking the request as pending until the TRV confirms it.
+ */
 const tzShellyTRVExternalTemperature = {
     key: ["external_temperature"],
     convertSet: async (entity, key, value, meta) => {
         utils.assertEndpoint(entity);
         utils.assertNumber(value, key);
-        if (!Number.isFinite(value) || value < -40 || value > 85) {
+        if (value < -40 || value > 85) {
             throw new Error(`External temperature must be between -40 and 85 °C, got ${value}`);
         }
 
         const temperature = Math.round(value * 100) / 100;
         const request = shellyTRVCreateExternalTemperatureRequest(temperature);
         shellyTRVPutExternalTemperatureRequest(entity.getDevice(), request);
-        shellyTRVUpdateInputStatus(entity.getDevice(), "temperature", "pending", request);
-        meta.publish?.(shellyTRVInputStatus(entity.getDevice(), "temperature"));
 
         const remoteSensing = shellyTRVGetRemoteSensing(entity, meta.state);
         const reserved = shellyTRVReserveExternalTemperatureAttempt(entity.getDevice(), request);
 
         try {
-            await shellyTRVDeliverExternalTemperature(entity, reserved, remoteSensing, meta.publish);
+            await shellyTRVDeliverExternalTemperature(entity, reserved, remoteSensing);
         } catch (error) {
             logger.debug(`Initial external temperature delivery to '${entity.getDevice().ieeeAddr}' failed: ${error}`, NS);
         }
 
-        return {state: shellyTRVInputStatus(entity.getDevice(), "temperature")};
+        return {state: {external_temperature: temperature}};
     },
 } satisfies Tz.Converter;
+
+/**
+ * Retries a persisted pending external temperature when the TRV announces itself.
+ */
+const shellyTRVExternalTemperatureOnEvent: OnEvent.Handler = (event) => {
+    if (event.type !== "deviceAnnounce") return;
+
+    const endpoint = event.data.device.getEndpoint(1);
+    const request = shellyTRVGetExternalTemperatureRequest(event.data.device);
+    if (!endpoint || !request) return;
+
+    if (shellyTRVExternalTemperatureIsExpired(request)) {
+        shellyTRVClearExternalTemperatureRequest(event.data.device);
+        logger.warning(`External temperature ${request.temperature} °C was not confirmed by '${event.data.device.ieeeAddr}'`, NS);
+        return;
+    }
+
+    if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
+
+    const remoteSensing = shellyTRVGetRemoteSensing(endpoint, event.data.state);
+    const reserved = shellyTRVReserveExternalTemperatureAttempt(event.data.device, request);
+    shellyTRVDeliverExternalTemperature(endpoint, reserved, remoteSensing).catch((error) =>
+        logger.debug(`Failed to deliver external temperature after announce from '${event.data.device.ieeeAddr}': ${error}`, NS),
+    );
+};
 
 /**
  * Returns the persisted pending external occupancy request for a TRV.
@@ -2519,7 +2569,6 @@ async function shellyTRVDeliverExternalOccupancy(
 ): Promise<void> {
     await shellyTRVEnableRemoteOccupancy(endpoint, remoteSensing);
     await shellyTRVSendExternalOccupancy(endpoint, request);
-    await shellyTRVReadFeedback(endpoint, ["remoteSensing", "occupancy"]);
 }
 
 function shellyTRVExternalOccupancyIsConfirmed(
@@ -2553,20 +2602,16 @@ const fzShellyTRVExternalOccupancy = {
         );
 
         if (shellyTRVExternalOccupancyIsConfirmed(request, msg.data.occupancy, remoteSensing)) {
-            shellyTRVUpdateInputStatus(msg.device, "occupancy", "confirmed", request);
             shellyTRVClearExternalOccupancyRequest(msg.device);
             logger.debug(`External occupancy ${request.occupancy} was confirmed by '${msg.device.ieeeAddr}'`, NS);
             return;
         }
 
         if (shellyTRVExternalOccupancyIsExpired(request)) {
-            shellyTRVUpdateInputStatus(msg.device, "occupancy", "expired", request);
             shellyTRVClearExternalOccupancyRequest(msg.device);
             logger.warning(`External occupancy ${request.occupancy} was not confirmed by '${msg.device.ieeeAddr}'`, NS);
             return;
         }
-
-        if (msg.type !== "attributeReport") return;
 
         if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_OCCUPANCY_MIN_RETRY_INTERVAL_MS) return;
 
@@ -2588,8 +2633,6 @@ const tzShellyTRVExternalOccupancy = {
 
         const request = shellyTRVCreateExternalOccupancyRequest(value);
         shellyTRVPutExternalOccupancyRequest(entity.getDevice(), request);
-        shellyTRVUpdateInputStatus(entity.getDevice(), "occupancy", "pending", request);
-        meta.publish?.(shellyTRVInputStatus(entity.getDevice(), "occupancy"));
 
         const remoteSensing = shellyTRVGetRemoteSensing(entity, meta.state);
         const reserved = shellyTRVReserveExternalOccupancyAttempt(entity.getDevice(), request);
@@ -2600,7 +2643,7 @@ const tzShellyTRVExternalOccupancy = {
             logger.debug(`Initial external occupancy delivery to '${entity.getDevice().ieeeAddr}' failed: ${error}`, NS);
         }
 
-        return {state: shellyTRVInputStatus(entity.getDevice(), "occupancy")};
+        return {state: {external_occupancy: value}};
     },
 } satisfies Tz.Converter;
 
@@ -2615,7 +2658,6 @@ const shellyTRVExternalOccupancyOnEvent: OnEvent.Handler = (event) => {
     if (!endpoint || !request) return;
 
     if (shellyTRVExternalOccupancyIsExpired(request)) {
-        shellyTRVUpdateInputStatus(event.data.device, "occupancy", "expired", request);
         shellyTRVClearExternalOccupancyRequest(event.data.device);
         logger.warning(`External occupancy ${request.occupancy} was not confirmed by '${event.data.device.ieeeAddr}'`, NS);
         return;
@@ -2630,577 +2672,14 @@ const shellyTRVExternalOccupancyOnEvent: OnEvent.Handler = (event) => {
     );
 };
 
-const SHELLY_TRV_TEMPERATURE_FEEDBACK_WINDOW_MS = 10000;
-const SHELLY_TRV_TEMPERATURE_CONFIRMATION_MS = 90 * 60 * 1000;
-const SHELLY_TRV_TEMPERATURE_READ_RETRY_MS = 5000;
-const shellyTRVTemperatureReadRuntime = new Map<string, {stopped: boolean}>();
-function shellyTRVTemperatureConfirmationDeadline(request: ShellyTRVExternalTemperatureRequest, record: ShellyTRVInputRecord) {
-    return (
-        record.confirmationExpiresAt ??
-        (record.attemptStartedAt ?? request.lastAttemptAt ?? request.createdAt) + SHELLY_TRV_TEMPERATURE_CONFIRMATION_MS
-    );
-}
-async function shellyTRVReadTemperatureFeedback(endpoint: Zh.Endpoint, request: ShellyTRVExternalTemperatureRequest, publish?: Publish) {
-    const device = endpoint.getDevice();
-    const record = shellyTRVCurrentTemperatureRecord(device, request);
-    if (
-        record?.deliveryStatus !== "sent" ||
-        Date.now() >= shellyTRVTemperatureConfirmationDeadline(request, record) ||
-        (record.feedbackReads ?? 0) >= 30 ||
-        (record.feedbackReads > 0 && Date.now() - record.lastFeedbackAt < SHELLY_TRV_TEMPERATURE_READ_RETRY_MS)
-    )
-        return;
-    if (shellyTRVTemperatureReadRuntime.has(device.ieeeAddr)) return;
-    const runtime = {stopped: false};
-    shellyTRVTemperatureReadRuntime.set(device.ieeeAddr, runtime);
-    record.feedbackReads = (record.feedbackReads ?? 0) + 1;
-    record.lastFeedbackAt = Date.now();
-    device.save();
-    try {
-        await shellyTRVReadFeedback(endpoint, ["remoteSensing", "localTemp"]);
-        if (!runtime.stopped && shellyTRVCurrentTemperatureRecord(device, request)) {
-            publish?.(shellyTRVInputStatus(device, "temperature"));
-        }
-    } finally {
-        if (shellyTRVTemperatureReadRuntime.get(device.ieeeAddr) === runtime) shellyTRVTemperatureReadRuntime.delete(device.ieeeAddr);
-    }
-}
-
-function shellyTRVCurrentTemperatureRecord(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest) {
-    const record = shellyTRVInputRecords(device).temperature;
-    const pending = shellyTRVGetExternalTemperatureRequest(device);
-    return pending && pending.requestId === request.requestId && record?.requestId === request.requestId ? record : undefined;
-}
-
-function shellyTRVTryTemperatureConfirmation(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest) {
-    const record = shellyTRVCurrentTemperatureRecord(device, request);
-    if (record?.deliveryStatus !== "sent" || Date.now() >= shellyTRVTemperatureConfirmationDeadline(request, record)) return false;
-    const feedback = record.feedback;
-    if (!feedback || !Number.isFinite(feedback.localTempAt) || !Number.isFinite(feedback.remoteSensingAt)) return false;
-    const oldest = Math.min(feedback.localTempAt, feedback.remoteSensingAt);
-    const newest = Math.max(feedback.localTempAt, feedback.remoteSensingAt);
-    if (
-        oldest < record.attemptStartedAt ||
-        newest - oldest > SHELLY_TRV_TEMPERATURE_FEEDBACK_WINDOW_MS ||
-        Date.now() - oldest > SHELLY_TRV_TEMPERATURE_FEEDBACK_WINDOW_MS
-    )
-        return false;
-    // This is an observation of agreement, not an echo of the external-temperature register.
-    // Do not turn arbitrary compensation offsets into a positive acknowledgement.
-    if (feedback.localTemp !== request.measuredValue || (feedback.remoteSensing & 1) === 0) return false;
-    shellyTRVUpdateInputStatus(device, "temperature", "confirmed", request);
-    const confirmed = shellyTRVInputRecords(device).temperature;
-    confirmed.confirmationBasis = "local_temperature_match";
-    shellyTRVClearExternalTemperatureRequest(device);
-    logger.debug(`External temperature ${request.temperature} °C matches fresh thermostat feedback from '${device.ieeeAddr}'`, NS);
-    return true;
-}
-
-function shellyTRVObserveTemperatureFeedback(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest, data: KeyValue) {
-    const record = shellyTRVCurrentTemperatureRecord(device, request);
-    if (!record || !Number.isFinite(record.attemptStartedAt)) return;
-    record.feedback ??= {};
-    const feedback = record.feedback;
-    const now = Date.now();
-    if (typeof data.localTemp === "number" && Number.isInteger(data.localTemp) && data.localTemp >= -27315 && data.localTemp <= 32767) {
-        feedback.localTemp = data.localTemp;
-        feedback.localTempAt = now;
-    }
-    if (typeof data.remoteSensing === "number" && Number.isInteger(data.remoteSensing)) {
-        feedback.remoteSensing = data.remoteSensing;
-        feedback.remoteSensingAt = now;
-    }
-    shellyTRVTryTemperatureConfirmation(device, request);
-}
-
-async function shellyTRVDeliverExternalTemperature(
-    endpoint: Zh.Endpoint,
-    request: ShellyTRVExternalTemperatureRequest,
-    remoteSensing: number,
-    publish?: Publish,
-) {
-    const device = endpoint.getDevice();
-    if (!shellyTRVCurrentTemperatureRecord(device, request)) return;
-    try {
-        await shellyTRVEnableRemoteTemperature(endpoint, remoteSensing);
-        const record = shellyTRVCurrentTemperatureRecord(device, request);
-        if (!record || record.deliveryStatus === "sent") return;
-        record.attemptStartedAt = Date.now();
-        record.feedback = {};
-        await shellyTRVSendExternalTemperature(endpoint, request);
-        const current = shellyTRVCurrentTemperatureRecord(device, request);
-        if (!current) return; // An older send must not overwrite a newer request.
-        current.deliveryStatus = "sent";
-        current.sent = request.temperature;
-        current.sentAt = new Date().toISOString();
-        current.status = "sent";
-        current.confirmationExpiresAt = Date.now() + SHELLY_TRV_TEMPERATURE_CONFIRMATION_MS;
-        device.save();
-        shellyTRVTryTemperatureConfirmation(device, request);
-        publish?.(shellyTRVInputStatus(device, "temperature"));
-        await shellyTRVReadTemperatureFeedback(endpoint, request, publish);
-    } catch (error) {
-        const current = shellyTRVCurrentTemperatureRecord(device, request);
-        if (current && current.deliveryStatus !== "sent") {
-            current.deliveryStatus = "failed";
-            current.feedback = {};
-            device.save();
-            publish?.(shellyTRVInputStatus(device, "temperature"));
-        }
-        throw error;
-    }
-}
-
-function shellyTRVExpireTemperatureRequest(device: Zh.Device, request: ShellyTRVExternalTemperatureRequest) {
-    const record = shellyTRVCurrentTemperatureRecord(device, request);
-    // Once sent, wait for observations until the age limit. Do not resend on a mismatch.
-    const expired =
-        record?.deliveryStatus === "sent"
-            ? Date.now() >= shellyTRVTemperatureConfirmationDeadline(request, record)
-            : Date.now() - request.createdAt >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_AGE_MS ||
-              request.attempts >= SHELLY_TRV_EXTERNAL_TEMPERATURE_MAX_ATTEMPTS;
-    if (!expired) return false;
-    shellyTRVUpdateInputStatus(device, "temperature", "expired", request);
-    shellyTRVClearExternalTemperatureRequest(device);
-    return true;
-}
-
-const fzShellyTRVExternalTemperature: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish, options, meta) => {
-        let request = shellyTRVGetExternalTemperatureRequest(msg.device);
-        if (!request) return;
-        // Initializes migrated requests with an ID, but does not infer successful sending.
-        shellyTRVInputStatus(msg.device, "temperature");
-        request = shellyTRVGetExternalTemperatureRequest(msg.device);
-        if (!request || shellyTRVExpireTemperatureRequest(msg.device, request)) return;
-        shellyTRVObserveTemperatureFeedback(msg.device, request, msg.data);
-        const record = shellyTRVCurrentTemperatureRecord(msg.device, request);
-        if (!record || msg.type !== "attributeReport") return;
-        if (record.deliveryStatus === "sent") {
-            shellyTRVReadTemperatureFeedback(msg.endpoint, request, publish).catch((error) =>
-                logger.debug(`Temperature feedback failed: ${error}`, NS),
-            );
-            return;
-        }
-        if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
-        const remoteSensing = shellyTRVGetRemoteSensing(msg.endpoint, meta.state, msg.data.remoteSensing);
-        const reserved = shellyTRVReserveExternalTemperatureAttempt(msg.device, request);
-        shellyTRVDeliverExternalTemperature(msg.endpoint, reserved, remoteSensing, publish).catch((error) =>
-            logger.debug(`Failed to retry external temperature for '${msg.device.ieeeAddr}': ${error}`, NS),
-        );
-    },
-};
-
-const shellyTRVExternalTemperatureOnEvent: OnEvent.Handler = (event) => {
-    if (event.type === "stop") {
-        const runtime = shellyTRVTemperatureReadRuntime.get(event.data.ieeeAddr);
-        if (runtime) runtime.stopped = true;
-        shellyTRVTemperatureReadRuntime.delete(event.data.ieeeAddr);
-        return;
-    }
-    if (event.type !== "deviceAnnounce") return;
-    const device = event.data.device;
-    const endpoint = device.getEndpoint(1);
-    shellyTRVInputStatus(device, "temperature");
-    const request = shellyTRVGetExternalTemperatureRequest(device);
-    if (!endpoint || !request || shellyTRVExpireTemperatureRequest(device, request)) return;
-    const record = shellyTRVCurrentTemperatureRecord(device, request);
-    if (record?.deliveryStatus === "sent") return shellyTRVReadTemperatureFeedback(endpoint, request);
-    if (Date.now() - request.lastAttemptAt < SHELLY_TRV_EXTERNAL_TEMPERATURE_MIN_RETRY_INTERVAL_MS) return;
-    const reserved = shellyTRVReserveExternalTemperatureAttempt(device, request);
-    shellyTRVDeliverExternalTemperature(endpoint, reserved, shellyTRVGetRemoteSensing(endpoint, event.data.state)).catch((error) =>
-        logger.debug(`Failed to retry external temperature after announce from '${device.ieeeAddr}': ${error}`, NS),
-    );
-};
-
-const fzShellyTRVTemperatureWake: Fz.Converter<"genPowerCfg" | "shellyTRVManualMode", ShellyTRVManualMode, ["attributeReport"]>[] = (
-    ["genPowerCfg", "shellyTRVManualMode"] as const
-).map((cluster) => ({
-    cluster,
-    type: ["attributeReport"],
-    convert: (model, msg, publish) => {
-        shellyTRVInputStatus(msg.device, "temperature");
-        const request = shellyTRVGetExternalTemperatureRequest(msg.device);
-        if (request)
-            shellyTRVReadTemperatureFeedback(msg.endpoint, request, publish).catch((error) =>
-                logger.debug(`Temperature wake feedback failed: ${error}`, NS),
-            );
-    },
-}));
-
 const shellyTRVExternalInputsOnEvent: OnEvent.Handler = async (event) => {
     await shellyTRVExternalTemperatureOnEvent(event);
     await shellyTRVExternalOccupancyOnEvent(event);
 };
 
-// A bounded best-effort read: a sleeping TRV must not turn successful sending into an error.
-async function shellyTRVReadFeedback(endpoint: Zh.Endpoint, attributes: (keyof Zcl.ClustersTypes.TClusters["hvacThermostat"]["attributes"])[]) {
-    try {
-        await endpoint.read("hvacThermostat", attributes, {timeout: 3000, sendPolicy: "immediate"});
-    } catch (error) {
-        logger.debug(`Feedback read from '${endpoint.getDevice().ieeeAddr}' failed: ${error}`, NS);
-    }
-}
-
-// Historical confirmation of the latest request, not a promise of permanent regulation.
-const shellyTRVStatusMetaKey = "shelly_trv_external_input_status_v2";
-let shellyTRVTemperatureRequestSequence = 0;
-const shellyTRVInputKinds = {
-    temperature: {key: "external_temperature", pendingKey: SHELLY_TRV_EXTERNAL_TEMPERATURE_META_KEY, valueKey: "temperature"},
-    occupancy: {key: "external_occupancy", pendingKey: SHELLY_TRV_EXTERNAL_OCCUPANCY_META_KEY, valueKey: "occupancy"},
-};
-
-function shellyTRVUpdateInputStatus(
-    device: Zh.Device,
-    kind: ShellyTRVInputKind,
-    status: ShellyTRVRequestStatus,
-    request: ShellyTRVExternalTemperatureRequest | ShellyTRVExternalOccupancyRequest,
-) {
-    const root = shellyTRVInputRecords(device);
-    const previous = root[kind];
-    const value = "temperature" in request ? request.temperature : request.occupancy;
-    root[kind] = {
-        ...previous,
-        requested: value,
-        createdAt: request.createdAt,
-        status,
-        confirmed: status === "confirmed" ? value : (previous?.confirmed ?? null),
-        confirmedAt: status === "confirmed" ? new Date().toISOString() : (previous?.confirmedAt ?? null),
-    };
-    if (kind === "temperature") {
-        if (!("temperature" in request)) return;
-        request.requestId ??= `${request.createdAt}-${++shellyTRVTemperatureRequestSequence}`;
-        root[kind].requestId = request.requestId;
-        if (status === "pending") {
-            root[kind].deliveryStatus = "pending";
-            root[kind].confirmationBasis = "none";
-            delete root[kind].attemptStartedAt;
-            delete root[kind].feedback;
-            delete root[kind].confirmationExpiresAt;
-            delete root[kind].lastFeedbackAt;
-            root[kind].feedbackReads = 0;
-        }
-    }
-    device.save();
-}
-
-function shellyTRVInputStatus(device: Zh.Device, kind: ShellyTRVInputKind) {
-    const config = shellyTRVInputKinds[kind];
-    const pending = device.meta[config.pendingKey];
-    let record = shellyTRVInputRecords(device)[kind];
-    // Adopt older pending requests; never infer confirmation from MQTT state.
-    if (
-        pending &&
-        (!record ||
-            record.createdAt !== pending.createdAt ||
-            record.requested !== pending[config.valueKey] ||
-            (kind === "temperature" && (!pending.requestId || pending.requestId !== record.requestId)))
-    ) {
-        shellyTRVUpdateInputStatus(device, kind, "pending", pending);
-        record = shellyTRVInputRecords(device)[kind];
-    }
-    if (pending && kind === "temperature") {
-        shellyTRVExpireTemperatureRequest(device, pending);
-        record = shellyTRVInputRecords(device)[kind];
-    }
-    if (pending && kind !== "temperature" && Date.now() - pending.createdAt >= 3600000) {
-        shellyTRVUpdateInputStatus(device, kind, "expired", pending);
-        delete device.meta[config.pendingKey];
-        device.save();
-        record = shellyTRVInputRecords(device)[kind];
-    }
-    const result: KeyValue = {};
-    if (record?.requested !== undefined) result[config.key] = record.requested;
-    return result;
-}
-
-function shellyTRVAllInputStatus(device: Zh.Device) {
-    return {...shellyTRVInputStatus(device, "temperature"), ...shellyTRVInputStatus(device, "occupancy")};
-}
-
-const fzShellyTRVInputStatus: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg) => shellyTRVAllInputStatus(msg.device),
-};
-
-const shellyTRVSetpointMetaKey = "shelly_trv_heating_setpoints_v4";
-const shellyTRVSetpointRuntime = new Map<string, {promise: Promise<void> | null; currentId: string | null; stopped: boolean}>();
-const SHELLY_TRV_SETPOINT_RETRY_MS = 5000;
-const SHELLY_TRV_SETPOINT_MAX_ATTEMPTS = 30;
-const SHELLY_TRV_SETPOINT_MAX_AGE_MS = 3600000;
-const SHELLY_TRV_CONFIRMATION_MS = 90 * 60 * 1000;
-const SHELLY_TRV_MAX_FEEDBACK_READS = 30;
-let shellyTRVSetpointSequence = 0;
-const setpointAttributes: Record<string, keyof Zcl.ClustersTypes.TClusters["hvacThermostat"]["attributes"]> = {
-    occupied_heating_setpoint: "occupiedHeatingSetpoint",
-    unoccupied_heating_setpoint: "unoccupiedHeatingSetpoint",
-    system_mode: "systemMode",
-    local_temperature_calibration: "localTemperatureCalibration",
-    min_heat_setpoint_limit: "minHeatSetpointLimit",
-    max_heat_setpoint_limit: "maxHeatSetpointLimit",
-};
-
-function shellyTRVSettingDeadlines(record: ShellyTRVSettingRequest) {
-    // Derive deadlines for older persisted records without reviving expired requests.
-    return {
-        delivery: record.createdAt + SHELLY_TRV_SETPOINT_MAX_AGE_MS,
-        confirmation: record.attempts > 0 ? record.lastAttemptAt + SHELLY_TRV_CONFIRMATION_MS : record.createdAt + SHELLY_TRV_SETPOINT_MAX_AGE_MS,
-    };
-}
-function shellyTRVCanWriteSetting(record: ShellyTRVSettingRequest) {
-    return Date.now() < shellyTRVSettingDeadlines(record).delivery && record.attempts < SHELLY_TRV_SETPOINT_MAX_ATTEMPTS;
-}
-function shellyTRVSettingActive(record: ShellyTRVSettingRequest) {
-    return record && ["pending", "sent", "awaiting_confirmation"].includes(record.status);
-}
-function shellyTRVSetpointState(device: Zh.Device) {
-    const root = shellyTRVSettingRecords(device);
-    const state: KeyValue = {};
-    for (const key of Object.keys(setpointAttributes)) {
-        const record = root[key];
-        if (shellyTRVSettingActive(record)) {
-            const deadlines = shellyTRVSettingDeadlines(record);
-            const nextStatus =
-                Date.now() >= deadlines.confirmation
-                    ? "expired"
-                    : record.deliveryStatus === "sent" && record.writeRequired !== true
-                      ? "sent"
-                      : shellyTRVCanWriteSetting(record)
-                        ? "pending"
-                        : "awaiting_confirmation";
-            if (record.status !== nextStatus) {
-                record.status = nextStatus;
-                device.save();
-            }
-        }
-    }
-    return state;
-}
-async function shellyTRVReadSettingFeedback(endpoint: Zh.Endpoint, key: string, record: ShellyTRVSettingRequest) {
-    const device = endpoint.getDevice();
-    if (
-        !shellyTRVSetpointIsCurrent(device, key, record) ||
-        !shellyTRVSettingActive(record) ||
-        Date.now() >= shellyTRVSettingDeadlines(record).confirmation ||
-        (record.feedbackReads ?? 0) >= SHELLY_TRV_MAX_FEEDBACK_READS ||
-        (record.feedbackReads > 0 && Date.now() - record.lastFeedbackAt < SHELLY_TRV_SETPOINT_RETRY_MS)
-    )
-        return;
-    record.feedbackReads = (record.feedbackReads ?? 0) + 1;
-    record.lastFeedbackAt = Date.now();
-    device.save();
-    await shellyTRVReadFeedback(endpoint, [setpointAttributes[key]]);
-}
-
-function shellyTRVSetpointIsCurrent(device: Zh.Device, key: string, record: ShellyTRVSettingRequest) {
-    return device.meta[shellyTRVSetpointMetaKey]?.[key]?.id === record.id;
-}
-
-async function shellyTRVDeliverSetpoints(endpoint: Zh.Endpoint, publish?: Publish) {
-    const device = endpoint.getDevice();
-    let runtime = shellyTRVSetpointRuntime.get(device.ieeeAddr);
-    if (!runtime) {
-        runtime = {promise: null, currentId: null, stopped: false};
-        shellyTRVSetpointRuntime.set(device.ieeeAddr, runtime);
-    }
-    if (runtime.promise !== null) return runtime.promise;
-    // Defer work until the promise is stored: incoming reports cannot start a second writer.
-    runtime.promise = Promise.resolve().then(async () => {
-        const attempted = new Set();
-        try {
-            while (!runtime.stopped) {
-                shellyTRVSetpointState(device);
-                const root = shellyTRVSettingRecords(device);
-                const next = Object.entries(root).find(
-                    ([key, record]) =>
-                        Object.hasOwn(setpointAttributes, key) &&
-                        !attempted.has(record.id) &&
-                        shellyTRVSettingActive(record) &&
-                        ((shellyTRVCanWriteSetting(record) &&
-                            (record.writeRequired ?? record.deliveryStatus !== "sent") &&
-                            (record.attempts === 0 || Date.now() - record.lastAttemptAt >= SHELLY_TRV_SETPOINT_RETRY_MS)) ||
-                            ((record.feedbackReads ?? 0) < SHELLY_TRV_MAX_FEEDBACK_READS &&
-                                record.attempts > 0 &&
-                                (record.feedbackReads === undefined || Date.now() - record.lastFeedbackAt >= SHELLY_TRV_SETPOINT_RETRY_MS))),
-                );
-                if (!next) break;
-                const [key, record] = next;
-                attempted.add(record.id);
-                runtime.currentId = record.id;
-                const shouldWrite =
-                    shellyTRVCanWriteSetting(record) &&
-                    (record.writeRequired ?? record.deliveryStatus !== "sent") &&
-                    (record.attempts === 0 || Date.now() - record.lastAttemptAt >= SHELLY_TRV_SETPOINT_RETRY_MS);
-                if (!shouldWrite) {
-                    await shellyTRVReadSettingFeedback(endpoint, key, record);
-                    runtime.currentId = null;
-                    continue;
-                }
-                delete record.mismatchAt;
-                record.attempts++;
-                record.lastAttemptAt = Date.now();
-                device.save();
-                try {
-                    // Avoid a second, hidden queue replaying obsolete values after the converter supersedes them.
-                    const attributes: Partial<Zcl.ClustersTypes.TClusters["hvacThermostat"]["attributes"]> = {};
-                    attributes[setpointAttributes[key]] = record.raw;
-                    await endpoint.write("hvacThermostat", attributes, {timeout: 3000, sendPolicy: "immediate", disableRecovery: true});
-                    if (runtime.stopped || !shellyTRVSetpointIsCurrent(device, key, record) || record.status === "expired") continue;
-                    record.deliveryStatus = "sent";
-                    if (record.status !== "confirmed") record.writeRequired = record.mismatchAt >= record.lastAttemptAt;
-                    if (record.status !== "confirmed") record.status = "sent";
-                    device.save();
-                    publish?.(shellyTRVSetpointState(device));
-                } catch (error) {
-                    if (runtime.stopped || !shellyTRVSetpointIsCurrent(device, key, record) || record.status === "expired") continue;
-                    record.deliveryStatus = "failed";
-                    record.writeRequired = true;
-                    device.save();
-                    logger.debug(`Thermostat setting ${key}=${record.requested} for '${device.ieeeAddr}' remains queued: ${error}`, NS);
-                    publish?.(shellyTRVSetpointState(device));
-                }
-                // A missing write response does not prove that the write was not applied.
-                // Read-back may confirm either a successful write or a write whose response was lost.
-                if (!runtime.stopped && shellyTRVSetpointIsCurrent(device, key, record) && record.status !== "confirmed") {
-                    await shellyTRVReadSettingFeedback(endpoint, key, record);
-                }
-                runtime.currentId = null;
-            }
-        } finally {
-            runtime.currentId = null;
-            runtime.promise = null;
-            if (!runtime.stopped) publish?.(shellyTRVSetpointState(device));
-        }
-    });
-    return await runtime.promise;
-}
-
-const tzShellyTRVSetpoints: Tz.Converter = {
-    key: Object.keys(setpointAttributes),
-    options: [exposes.options.thermostat_unit()],
-    convertSet: async (entity, key, value, meta) => {
-        utils.assertEndpoint(entity);
-        const {requested, raw} = shellyTRVNormalizeSetting(key, value, meta.options);
-        const device = entity.getDevice();
-        const root = shellyTRVSettingRecords(device);
-        const previous = root[key];
-        root[key] = {
-            id: `${Date.now()}-${++shellyTRVSetpointSequence}`,
-            requested,
-            raw,
-            createdAt: Date.now(),
-            attempts: 0,
-            lastAttemptAt: 0,
-            feedbackReads: 0,
-            lastFeedbackAt: 0,
-            writeRequired: true,
-            status: "pending",
-            deliveryStatus: "pending",
-            confirmed: previous?.confirmed ?? null,
-            confirmedAt: previous?.confirmedAt ?? null,
-        };
-        device.save();
-        meta.publish?.(shellyTRVSetpointState(device));
-        await shellyTRVDeliverSetpoints(entity, meta.publish);
-        // The climate setpoint remains the last reported device value. The new desired value is separate.
-        return {state: shellyTRVSetpointState(device)};
-    },
-    convertGet: async (entity, key) => {
-        await entity.read("hvacThermostat", [setpointAttributes[key]], {timeout: 3000, sendPolicy: "immediate"});
-    },
-};
-
-// Z2M calls each converter instance only once per SET message. Keep a distinct
-// instance per independently writable property while sharing delivery and metadata.
-const tzShellyTRVSettingWriters = Object.keys(setpointAttributes).map((key) => ({
-    ...tzShellyTRVSetpoints,
-    key: [key],
-}));
-
-const fzShellyTRVSetpoints: Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]> = {
-    cluster: "hvacThermostat",
-    type: ["attributeReport", "readResponse"],
-    convert: (model, msg, publish) => {
-        const root = shellyTRVSettingRecords(msg.device);
-        for (const [key, attribute] of Object.entries(setpointAttributes)) {
-            const record = root[key];
-            if (!shellyTRVSettingActive(record) || record.attempts === 0 || Date.now() >= shellyTRVSettingDeadlines(record).confirmation) continue;
-            // Only an attribute actually present in this new report/response can confirm the request.
-            if (msg.data[attribute] === record.raw) {
-                record.status = "confirmed";
-                record.confirmed = record.requested;
-                record.confirmedAt = new Date().toISOString();
-                record.writeRequired = false;
-                msg.device.save();
-            } else if (msg.data[attribute] !== undefined) {
-                // A fresh mismatch permits another write only within the delivery budget.
-                record.writeRequired = true;
-                record.mismatchAt = Date.now();
-                msg.device.save();
-            }
-        }
-        const state = shellyTRVSetpointState(msg.device);
-        if (msg.type === "attributeReport") {
-            shellyTRVDeliverSetpoints(msg.endpoint, publish).catch((error) => logger.debug(`Setpoint retry failed: ${error}`, NS));
-        }
-        return state;
-    },
-};
-
-const fzShellyTRVSetpointWake: Fz.Converter<"genPowerCfg" | "shellyTRVManualMode", ShellyTRVManualMode, ["attributeReport"]>[] = (
-    ["genPowerCfg", "shellyTRVManualMode"] as const
-).map((cluster) => ({
-    cluster,
-    type: ["attributeReport"],
-    convert: (model, msg, publish) => {
-        const state = shellyTRVSetpointState(msg.device);
-        shellyTRVDeliverSetpoints(msg.endpoint, publish).catch((error) => logger.debug(`Setpoint wake retry failed: ${error}`, NS));
-        return state;
-    },
-}));
-
-const shellyTRVSetpointsOnEvent: OnEvent.Handler = async (event) => {
-    if (event.type === "stop") {
-        const runtime = shellyTRVSetpointRuntime.get(event.data.ieeeAddr);
-        if (runtime) runtime.stopped = true;
-        shellyTRVSetpointRuntime.delete(event.data.ieeeAddr);
-    } else if (event.type === "deviceAnnounce") {
-        const endpoint = event.data.device.getEndpoint(1);
-        if (endpoint) await shellyTRVDeliverSetpoints(endpoint);
-    }
-};
-
-// Filter only the overridden writers; preserve standard exposes, reporting and incoming conversions.
-function shellyTRVThermostat(args: Parameters<typeof m.thermostat>[0]) {
-    const extension = m.thermostat(args);
-    extension.toZigbee = extension.toZigbee.filter((converter) => !converter.key.some((key) => Object.hasOwn(setpointAttributes, key)));
-    return extension;
-}
-
-const shellyTRVSystemModes: Record<string, number> = {off: 0, auto: 1, heat: 4};
-function shellyTRVNormalizeSetting(key: string, value: unknown, options: KeyValue) {
-    if (key === "system_mode") {
-        if (typeof value !== "string" || !Object.hasOwn(shellyTRVSystemModes, value)) {
-            throw new Error("system_mode must be off, auto or heat");
-        }
-        return {requested: value, raw: shellyTRVSystemModes[value]};
-    }
-    utils.assertNumber(value, key);
-    const calibration = key === "local_temperature_calibration";
-    const min = calibration ? -10 : 4;
-    const max = calibration ? 10 : 30;
-    if (!Number.isFinite(value) || value < min || value > max) {
-        throw new Error(`${key} must be between ${min} and ${max} degrees Celsius`);
-    }
-    // API values are Celsius; retain the central converter's Fahrenheit-grid normalization
-    // for absolute temperatures only. Calibration is a Celsius difference.
-    const celsius = !calibration && options?.thermostat_unit === "fahrenheit" ? utils.normalizeCelsiusVersionOfFahrenheit(value) : value;
-    const requested = Math.min(max, Math.max(min, utils.precisionRound(celsius, 1)));
-    return {requested, raw: Math.round(requested * (calibration ? 10 : 100))};
-}
+// =============================================================================
+// Device Definitions
+// =============================================================================
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -3957,23 +3436,42 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Shelly",
         description: "Thermostatic radiator valve",
         fromZigbee: [
-            fzShellyTRVSetpoints,
-            ...fzShellyTRVSetpointWake,
-            ...fzShellyTRVTemperatureWake,
+            fz.thermostat,
             fzShellyTRVExternalTemperature,
             fzShellyTRVExternalOccupancy,
-            fzShellyTRVInputStatus,
             {
                 cluster: "hvacThermostat",
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg, publish, options, meta) => {
                     if (msg.data.alarmMask === undefined) return;
-                    return {calibration_ok: (msg.data.alarmMask & (1 << 2)) === 0};
+                    return {calibration_ok: !((msg.data.alarmMask & (1 << 2)) > 0)};
                 },
             } satisfies Fz.Converter<"hvacThermostat", undefined, ["attributeReport", "readResponse"]>,
         ],
         toZigbee: [
-            ...tzShellyTRVSettingWriters,
+            ...(
+                [
+                    ["occupied_heating_setpoint", "occupiedHeatingSetpoint"],
+                    ["unoccupied_heating_setpoint", "unoccupiedHeatingSetpoint"],
+                    ["min_heat_setpoint_limit", "minHeatSetpointLimit"],
+                    ["max_heat_setpoint_limit", "maxHeatSetpointLimit"],
+                ] as const
+            ).map(
+                ([key, attribute]) =>
+                    ({
+                        key: [key],
+                        options: [exposes.options.thermostat_unit()],
+                        convertSet: async (entity, key, value, meta) => {
+                            utils.assertNumber(value, key);
+                            const celsius = meta.options.thermostat_unit === "fahrenheit" ? utils.normalizeCelsiusVersionOfFahrenheit(value) : value;
+                            await entity.write("hvacThermostat", {[attribute]: Math.round(celsius * 100)} as Record<typeof attribute, number>);
+                            return {state: {[key]: value}};
+                        },
+                        convertGet: async (entity, key, meta) => {
+                            await entity.read("hvacThermostat", [attribute]);
+                        },
+                    }) satisfies Tz.Converter,
+            ),
             tzShellyTRVExternalTemperature,
             tzShellyTRVExternalOccupancy,
             {
@@ -3985,8 +3483,6 @@ export const definitions: DefinitionWithExtend[] = [
                         {},
                         {manufacturerCode: Zcl.ManufacturerCode.SHELLY},
                     );
-                    utils.assertEndpoint(entity);
-                    await shellyTRVReadFeedback(entity, ["alarmMask"]);
                 },
             },
         ],
@@ -4006,7 +3502,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         extend: [
             m.battery(),
-            shellyTRVThermostat({
+            m.thermostat({
                 localTemperatureCalibration: {values: {min: -10, max: 10, step: 0.1}},
                 setpoints: {
                     toZigbee: {skip: true},
@@ -4041,7 +3537,6 @@ export const definitions: DefinitionWithExtend[] = [
                 attribute: {ID: 0x0000, type: Zcl.DataType.UINT8},
                 valueOn: [true, 1],
                 valueOff: [false, 0],
-                reporting: {min: "MIN", max: "1_HOUR", change: 1},
                 description: "Manual mode (0 = auto, 1 = manual)",
                 access: "ALL",
             }),
@@ -4058,20 +3553,7 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             m.identify(),
         ],
-        configure: async (device, coordinatorEndpoint) => {
-            const endpoint = device.getEndpoint(1);
-            await endpoint.bind("hvacThermostat", coordinatorEndpoint);
-            await endpoint.configureReporting("hvacThermostat", [
-                {attribute: "remoteSensing", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-                {attribute: "alarmMask", minimumReportInterval: 0, maximumReportInterval: 3600, reportableChange: 0},
-            ]);
-            // Occupancy is readable, not reportable. Do not configure reporting for it.
-            await shellyTRVReadFeedback(endpoint, ["remoteSensing", "occupancy", "alarmMask"]);
-        },
-        onEvent: async (event) => {
-            await shellyTRVExternalInputsOnEvent(event);
-            await shellyTRVSetpointsOnEvent(event);
-        },
+        onEvent: shellyTRVExternalInputsOnEvent,
     },
     {
         fingerprint: [{modelID: "Presence", manufacturerName: "Shelly"}],
