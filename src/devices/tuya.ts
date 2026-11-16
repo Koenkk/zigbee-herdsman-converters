@@ -26,6 +26,8 @@ const ea = exposes.access;
 const te = tuya.exposes;
 const tvc = tuya.valueConverter;
 
+const t3eAction = (action: string) => ({from: (value: unknown) => (value === 0 ? {action} : {})});
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -32355,6 +32357,114 @@ export const definitions: DefinitionWithExtend[] = [
                     "obstacle_sensitivity",
                     tuya.valueConverterBasic.lookup({off: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)}),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mua6ucdj"]),
+        model: "T3E_mua6ucdj",
+        vendor: "Tuya",
+        description: "T3E touch panel with 3 relays and scene buttons",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
+        exposes: [
+            ...[1, 2, 3].map((i) => e.switch().withEndpoint(`l${i}`)),
+            ...Array.from({length: 12}, (_, i) =>
+                e.binary(`scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`, ea.STATE_SET, "ON", "OFF").withDescription("Panel scene switch"),
+            ),
+            e.action([
+                "scene_1",
+                "scene_2",
+                "scene_3",
+                "scene_4",
+                "scene_5",
+                "scene_6",
+                "smart_curtain_open",
+                "smart_curtain_stop",
+                "smart_curtain_close",
+                "roller_shutter_down",
+                "roller_shutter_stop",
+                "roller_shutter_up",
+                "blinds_open",
+                "blinds_stop",
+                "blinds_close",
+                "screen_down",
+                "screen_stop",
+                "screen_up",
+                "gauze_curtain_open",
+                "gauze_curtain_stop",
+                "gauze_curtain_close",
+                "smart_window_open",
+                "smart_window_stop",
+                "smart_window_close",
+                "air_conditioner_on",
+                "air_conditioner_off",
+                "air_conditioner_cooling",
+                "air_conditioner_heating",
+                ...Array.from({length: 12}, (_, i) => {
+                    const name = `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`;
+                    return [`${name}_on`, `${name}_off`];
+                }).flat(),
+            ]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                // Receive mappings must come first: the Tuya receiver uses the first matching DP.
+                ...Array.from({length: 12}, (_, i): Tuya.MetaTuyaDataPointsSingle => {
+                    const name = `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`;
+                    return [
+                        130 + i,
+                        null,
+                        {
+                            from: (value) =>
+                                typeof value === "boolean" ? {[name]: value ? "ON" : "OFF", action: `${name}_${value ? "on" : "off"}`} : {},
+                        },
+                    ];
+                }),
+                ...Array.from(
+                    {length: 12},
+                    (_, i): Tuya.MetaTuyaDataPointsSingle => [
+                        130 + i,
+                        `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`,
+                        {
+                            to: (value) => {
+                                if (value !== "ON" && value !== "OFF") throw new Error("Expected ON or OFF");
+                                return value === "ON";
+                            },
+                        },
+                        {optimistic: false},
+                    ],
+                ),
+                [5, null, t3eAction("scene_1")],
+                [6, null, t3eAction("scene_2")],
+                [7, null, t3eAction("scene_3")],
+                [8, null, t3eAction("scene_4")],
+                [9, null, t3eAction("scene_5")],
+                [10, null, t3eAction("scene_6")],
+                [104, null, t3eAction("smart_curtain_open")],
+                [105, null, t3eAction("smart_curtain_stop")],
+                [106, null, t3eAction("smart_curtain_close")],
+                [107, null, t3eAction("roller_shutter_down")],
+                [108, null, t3eAction("roller_shutter_stop")],
+                [109, null, t3eAction("roller_shutter_up")],
+                [110, null, t3eAction("blinds_open")],
+                [111, null, t3eAction("blinds_stop")],
+                [112, null, t3eAction("blinds_close")],
+                [115, null, t3eAction("screen_down")],
+                [116, null, t3eAction("screen_stop")],
+                [117, null, t3eAction("screen_up")],
+                [118, null, t3eAction("gauze_curtain_open")],
+                [119, null, t3eAction("gauze_curtain_stop")],
+                [120, null, t3eAction("gauze_curtain_close")],
+                [121, null, t3eAction("smart_window_open")],
+                [122, null, t3eAction("smart_window_stop")],
+                [123, null, t3eAction("smart_window_close")],
+                [124, null, t3eAction("air_conditioner_on")],
+                [125, null, t3eAction("air_conditioner_off")],
+                [126, null, t3eAction("air_conditioner_cooling")],
+                [127, null, t3eAction("air_conditioner_heating")],
             ],
         },
     },
