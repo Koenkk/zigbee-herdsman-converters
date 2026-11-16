@@ -2720,7 +2720,11 @@ export const valueConverter = {
                     const hours = Number.parseInt(time[0], 10);
                     const minutes = Math.floor(Number.parseInt(time[1], 10) / 5);
                     const total = hours * 12 + minutes;
-                    if (total > 0) payload.push(total);
+                    if (total > 0) {
+                        // Times don't fit in a byte (24:00 = 288), bit 8 is stored in bit 6 of the preceding mode byte.
+                        if (total > 255) payload[payload.length - 1] |= 0x40;
+                        payload.push(total & 0xff);
+                    }
                 }
             });
 
@@ -2737,23 +2741,22 @@ export const valueConverter = {
                 0: "comfort",
             };
 
-            for (let index = 1; index < v.length; index++) {
+            for (let index = 1; index < v.length; index += 2) {
                 const item = v[index];
-                if (index % 2) {
-                    if (item > 5) break;
+                const mode = modeMapping[item & 0x3f];
+                if (mode === undefined) break;
+                payload.push(mode);
 
-                    const mode = modeMapping[item];
-                    payload.push(mode);
-                } else {
-                    const nextItem = v[index + 1];
-                    if (nextItem > 5) break;
+                if (index + 1 >= v.length) break;
+                const time = ((item & 0x40) << 2) | v[index + 1];
+                // 24:00 ends the schedule, the remaining bytes are padding.
+                if (time >= 288) break;
 
-                    const date = new Date();
-                    date.setHours(0, item * 5);
-                    const hours = date.getHours().toString().padStart(2, "0");
-                    const minutes = date.getMinutes().toString().padStart(2, "0");
-                    payload.push(`${hours}:${minutes}`);
-                }
+                const date = new Date();
+                date.setHours(0, time * 5);
+                const hours = date.getHours().toString().padStart(2, "0");
+                const minutes = date.getMinutes().toString().padStart(2, "0");
+                payload.push(`${hours}:${minutes}`);
             }
             return payload.join(" / ");
         },

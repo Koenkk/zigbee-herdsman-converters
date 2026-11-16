@@ -1530,7 +1530,7 @@ export const definitions: DefinitionWithExtend[] = [
                 e.child_lock(),
                 e.deadzone_temperature(),
                 e.max_temperature_limit().withValueMax(80),
-                e.min_temperature_limit(),
+                e.min_temperature_limit().withValueMax(10),
                 e
                     .climate()
                     .withSetpoint("current_heating_setpoint", 5, 90, heatingStepSize, ea.STATE_SET)

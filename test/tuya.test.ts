@@ -663,6 +663,44 @@ describe("lib/tuya", () => {
         });
     });
 
+    describe("SDM01 datapoint variants", () => {
+        const newDevice = () => mockDevice({modelID: "TS0601", manufacturerName: "_TZE204_ugekduaj", endpoints: [{ID: 1}]});
+        const report = async (device: ReturnType<typeof mockDevice>, seq: number, dps: [number, number][]) => {
+            const dpValues = dps.map(([dp, value]) => ({dp, datatype: 2, data: Buffer.from([0, 0, value >> 8, value & 0xff])}));
+            const msg = {
+                data: {seq, dpValues},
+                device,
+                endpoint: device.getEndpoint(1),
+                meta: {zclTransactionSequenceNumber: seq},
+            } as unknown as Fz.Message;
+            const meta = {state: {}, device, deviceExposesChanged: () => {}};
+            return await (tuya.fz.datapoints as Fz.Converter).convert(await findByDevice(device), msg, null, {}, meta);
+        };
+
+        it("uses the original datapoints by default", async () => {
+            const device = newDevice();
+            expect(
+                await report(device, 20001, [
+                    [102, 2298],
+                    [103, 1234],
+                ]),
+            ).toStrictEqual({voltage_a: 229.8, current_a: 1.234});
+            expect(device.meta.sdm01V2).toBeUndefined();
+        });
+
+        it("switches to the v2 datapoints once a v2-only datapoint is reported and remembers it", async () => {
+            const device = newDevice();
+            expect(
+                await report(device, 20002, [
+                    [29, 772],
+                    [103, 2315],
+                ]),
+            ).toStrictEqual({power: 772, voltage_a: 231.5});
+            expect(await report(device, 20003, [[112, 2301]])).toStrictEqual({voltage_b: 230.1});
+            expect(device.meta.sdm01V2).toBe(true);
+        });
+    });
+
     describe("TS004F knob configure (ZG-101ZD)", () => {
         // https://github.com/Koenkk/zigbee2mqtt/issues/31917
         const unsupported = () => new Error("ZCL command genBasic.read(...) failed (Status 'UNSUPPORTED_ATTRIBUTE')");
@@ -674,6 +712,18 @@ describe("lib/tuya", () => {
             const endpoint = device.getEndpoint(1);
             vi.mocked(endpoint.read).mockImplementation((cluster) => (cluster === "genBasic" ? Promise.reject(unsupported()) : Promise.resolve({})));
             vi.mocked(endpoint.write).mockRejectedValue(unsupported());
+
+            await expect(definition.configure?.(device, device.getEndpoint(1), definition)).resolves.toBeUndefined();
+            expect(endpoint.read).toHaveBeenCalledWith("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
+            expect(endpoint.bind).toHaveBeenCalledWith("genOnOff", expect.anything());
+        });
+
+        it("ignores UNSUPPORTED_ATTRIBUTE on the tuyaOperationMode read", async () => {
+            const device = mockDevice({modelID: "TS004F", manufacturerName: "_TZ3000_gwkzibhs", endpoints: [{ID: 1}]}, "EndDevice");
+            const definition = await findByDevice(device);
+            expect(definition.model).toStrictEqual("ZG-101ZD");
+            const endpoint = device.getEndpoint(1);
+            vi.mocked(endpoint.read).mockImplementation((cluster) => (cluster === "genOnOff" ? Promise.reject(unsupported()) : Promise.resolve({})));
 
             await expect(definition.configure?.(device, device.getEndpoint(1), definition)).resolves.toBeUndefined();
             expect(endpoint.read).toHaveBeenCalledWith("genPowerCfg", ["batteryVoltage", "batteryPercentageRemaining"]);
@@ -766,10 +816,10 @@ describe("legacy.fz.moes_thermostat", () => {
 });
 
 describe("Tuya ME201WZ", () => {
-    const setup = async () => {
-        const device = mockDevice({modelID: "TS0601", manufacturerName: "_TZE284_kyyu8rbj", endpoints: [{ID: 1}]});
+    const setup = async (manufacturerName = "_TZE284_kyyu8rbj") => {
+        const device = mockDevice({modelID: "TS0601", manufacturerName, endpoints: [{ID: 1}]});
         const definition = await findByDevice(device);
-        const convert = (dpValues: unknown[], state: Record<string, unknown>) =>
+        const convert = (dpValues: unknown[], state: Record<string, unknown>, options: Record<string, unknown> = {filter_level_jumps: true}) =>
             Object.assign(
                 {},
                 ...definition.fromZigbee
@@ -780,7 +830,7 @@ describe("Tuya ME201WZ", () => {
                                 definition,
                                 {data: {dpValues}, endpoint: device.getEndpoint(1), device, type: "commandDataReport", meta: {}} as never,
                                 vi.fn(),
-                                {},
+                                options,
                                 {device, state, deviceExposesChanged: () => {}} as never,
                             ) ?? {},
                     ),
@@ -824,6 +874,22 @@ describe("Tuya ME201WZ", () => {
             liquid_level_percent: 63,
             liquid_state: "low",
         });
+    });
+
+    it.each([[{}], [{filter_level_jumps: false}]])("lets level jumps through when filter_level_jumps is not enabled (%o)", async (options) => {
+        const {convert} = await setup();
+        expect(convert(reading(20, 10, 1), state, options)).toStrictEqual({liquid_depth: 0.2, liquid_level_percent: 10, liquid_state: "low"});
+        expect(convert([tuya.dpValueFromNumberValue(22, 12)], state, options)).toStrictEqual({liquid_level_percent: 12});
+        // Readings outside the tank are still dropped.
+        expect(convert(reading(-110, 0, 1), state, options)).toStrictEqual({});
+        expect(convert(reading(500, 100, 2), state, options)).toStrictEqual({});
+    });
+
+    it("ignores installation_height on the ME202WZ, which does not expose it", async () => {
+        const {convert} = await setup("_TZE284_mxujdmxo");
+        const me202wz = {liquid_depth: 1.19, liquid_level_percent: 94, installation_height: 0.17, liquid_depth_max: 1.26};
+        expect(convert(reading(40, 32, 1), me202wz, {})).toStrictEqual({liquid_depth: 0.4, liquid_level_percent: 32, liquid_state: "low"});
+        expect(convert(reading(-110, 0, 1), me202wz, {})).toStrictEqual({});
     });
 
     it("accepts a sudden change once it has been read steadily for 12 hours", async () => {

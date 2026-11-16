@@ -15,10 +15,10 @@ interface TeelichtFlicker {
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        zigbeeModel: ["teelicht-c6"],
+        zigbeeModel: ["teelicht-c6", "teelicht-nrf"],
         model: "teelicht",
-        vendor: "teelicht",
-        description: "Rechargeable tealight that flickers like a real candle",
+        vendor: "teelicht pro",
+        description: "Rechargeable smart tealight",
         extend: [
             m.deviceAddCustomCluster("teelichtFlicker", {
                 name: "teelichtFlicker",

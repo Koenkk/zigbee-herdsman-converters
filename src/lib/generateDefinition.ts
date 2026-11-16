@@ -203,6 +203,7 @@ function generateSource(definition: DefinitionWithZigbeeModel, generatedExtend: 
     const imports = [...new Set(generatedExtend.map((e) => e.lib ?? "modernExtend"))];
     const importsStr = imports.map((e) => `import * as ${e === "modernExtend" ? "m" : e} from 'zigbee-herdsman-converters/lib/${e}';`).join("\n");
     const meta = definition.meta ? `\n    meta: ${JSON.stringify(definition.meta)},` : "";
+    const ota = definition.ota ? `\n    ota: ${JSON.stringify(definition.ota)},` : "";
     return `${importsStr}
 
 export default {
@@ -210,7 +211,7 @@ export default {
     model: '${definition.model}',
     vendor: '${definition.vendor}',
     description: 'Automatically generated definition',
-    extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],${meta}
+    extend: [${generatedExtend.map((e) => `${e.lib ?? "m"}.${e.getSource()}`).join(", ")}],${meta}${ota}
 };
 `;
 }
@@ -315,6 +316,11 @@ export async function generateDefinition(device: Zh.Device): Promise<{externalDe
         extend: extenders,
         generated: true,
     };
+
+    // Enable OTA for devices that act as OTA client.
+    if (device.endpoints.some((e) => e.supportsOutputCluster("genOta"))) {
+        definition.ota = true;
+    }
 
     const externalDefinitionSource = generateSource(definition, generatedExtend);
     return {externalDefinitionSource, definition};

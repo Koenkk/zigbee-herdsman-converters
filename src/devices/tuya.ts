@@ -1725,6 +1725,21 @@ const tzLocal = {
 
 const ts130fPositionKey = "ts130f_position";
 
+// SDM01 variants share the same fingerprint and applicationVersion, the newer one (v2) is detected from datapoints only it reports.
+const sdm01V2Only = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (value, meta, options, publish, msg) => {
+        if (!meta.device.meta.sdm01V2) {
+            meta.device.meta.sdm01V2 = true;
+            meta.device.save();
+        }
+        return converter.from(value, meta, options, publish, msg);
+    },
+});
+const sdm01Variant = (v1Key: string, v1: Tuya.ValueConverterSingle, v2Key: string, v2: Tuya.ValueConverterSingle): Tuya.ValueConverterSingle => ({
+    from: (value, meta, options, publish, msg) =>
+        meta.device.meta.sdm01V2 ? {[v2Key]: v2.from(value, meta, options, publish, msg)} : {[v1Key]: v1.from(value, meta, options, publish, msg)},
+});
+
 const fzLocal = {
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
     // as raw lightingColorCtrl frames without updating colorTemperature.
@@ -2545,17 +2560,22 @@ const sp107eLedChips = {
 
 // The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
 // gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
-const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device) => {
+// Small or pump-filled tanks really change faster than that, so the jump check is opt-in (readings outside the tank are always
+// dropped).
+const me201wzWithInstallationHeight = ["_TZE284_kyyu8rbj"];
+const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device, filterJumps: boolean) => {
     const depth = result.liquid_depth as number | undefined;
     const percent = result.liquid_level_percent as number | undefined;
     const lastDepth = state.liquid_depth as number | undefined;
-    const height = (result.installation_height ?? state.installation_height) as number | undefined;
+    const height = me201wzWithInstallationHeight.includes(device.manufacturerName)
+        ? ((result.installation_height ?? state.installation_height) as number | undefined)
+        : undefined;
     const depthMax = (result.liquid_depth_max ?? state.liquid_depth_max) as number | undefined;
     let glitch = false;
     if (depth !== undefined) {
         if (depth < 0 || (height !== undefined && depth > height)) {
             glitch = true;
-        } else if (lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
+        } else if (filterJumps && lastDepth !== undefined && Math.abs(depth - lastDepth) > 0.05) {
             const candidate = globalStore.getValue(device, "me201wzCandidate") as {depth: number; since: number} | undefined;
             if (candidate && Math.abs(depth - candidate.depth) <= 0.03) {
                 glitch = Date.now() - candidate.since < 12 * 60 * 60 * 1000;
@@ -2565,7 +2585,7 @@ const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Dev
             }
         }
         if (!glitch) globalStore.clearValue(device, "me201wzCandidate");
-    } else if (percent !== undefined && lastDepth !== undefined && depthMax) {
+    } else if (filterJumps && percent !== undefined && lastDepth !== undefined && depthMax) {
         glitch = Math.abs(percent - Math.min(100, (lastDepth / depthMax) * 100)) > 5 / depthMax;
     }
     if (glitch) {
@@ -2605,7 +2625,7 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
             if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
             if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
-            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device));
+            me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps === true));
         }
         return me201wzFiltered.get(msg);
     },
@@ -4470,6 +4490,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_1wnh8bqp",
             "_TZE284_1wnh8bqp",
             "_TZE284_ksz749x8",
+            "_TZE204_kwi6bbk4",
         ]),
         model: "TS0601_temperature_humidity_sensor_2",
         vendor: "Tuya",
@@ -4498,6 +4519,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "ZTH05", "Temperature and humidity sensor", ["_TZE204_upagmta9", "_TZE200_upagmta9", "_TZE284_upagmta9"]),
             tuya.whitelabel("Tuya", "ZTH08-E", "Temperature and humidity sensor", ["_TZE200_cirvgep4", "_TZE204_cirvgep4"]),
             tuya.whitelabel("Tuya", "ZTH08", "Temperature and humidity sensor", ["_TZE204_d7lpruvi", "_TZE284_d7lpruvi", "_TZE284_hdyjyqjm"]),
+            tuya.whitelabel("Tuya", "ZTH13", "Temperature and humidity sensor", ["_TZE204_kwi6bbk4"]),
         ],
     },
     {
@@ -5578,10 +5600,11 @@ export const definitions: DefinitionWithExtend[] = [
     },
     {
         // https://github.com/Koenkk/zigbee2mqtt/issues/32729
-        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_it1u8ahz"]),
+        fingerprint: tuya.fingerprint("TS0505B", ["_TZ3210_it1u8ahz", "_TZB210_azjhlyvy"]),
         model: "TS0505B_2",
         vendor: "Tuya",
         description: "Zigbee GU10/E14 5W smart bulb",
+        whiteLabel: [tuya.whitelabel("MiBoxer", "FUTC04ZR", "6W RGB+CCT LED garden light (Zigbee 3.0 + 2.4G)", ["_TZB210_azjhlyvy"])],
         extend: [tuya.modernExtend.tuyaLight({colorTemp: {range: [153, 500]}, color: {modes: ["hs"], applyRedFix: true}})],
         configure: (device, coordinatorEndpoint) => {
             device.getEndpoint(1).saveClusterAttributeKeyValue("lightingColorCtrl", {colorCapabilities: 29});
@@ -7372,6 +7395,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE284_f5efvtbv",
             "_TZE204_lbhh5o6z",
             "_TZE284_lbhh5o6z",
+            "_TZE28C1000000_lbhh5o6z",
             "_TZE204_58of2pfn",
         ]),
         model: "TS0601_switch_4_gang_1",
@@ -7391,7 +7415,7 @@ export const definitions: DefinitionWithExtend[] = [
             {vendor: "Moes", model: "WS-EUB1-ZG"},
             {vendor: "AVATTO", model: "ZGB-WS-EU"},
             tuya.whitelabel("AVATTO", "WSMD-4", "4 gang switch", ["_TZE204_f5efvtbv", "_TZE284_f5efvtbv"]),
-            tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z", "_TZE284_lbhh5o6z"]),
+            tuya.whitelabel("AVATTO", "ZWSMD-4", "4 gang switch", ["_TZE204_lbhh5o6z", "_TZE284_lbhh5o6z", "_TZE28C1000000_lbhh5o6z"]),
             tuya.whitelabel("Tuya", "MG-ZG04W", "4 gang switch", ["_TZE204_mexisfik"]),
             tuya.whitelabel("Tuya", "DIY-DC-04", "4 gang relay board", ["_TZE204_58of2pfn"]),
         ],
@@ -7480,6 +7504,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_lmgrbuwf",
             "_TZE204_wskr3up8",
             "_TZE204_gxbdnfrh",
+            "_TZE28C1000000_gxbdnfrh",
             "_TZE284_g1enhdsi",
             "_TZE284_r731zlxk",
             "_TZE284_znkkcauq",
@@ -7490,8 +7515,8 @@ export const definitions: DefinitionWithExtend[] = [
         description: "6 gang switch",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         configure: async (device, coordinatorEndpoint) => {
-            if (device.manufacturerName === "_TZE204_gxbdnfrh") {
-                // DP only device, the genOnOff bind fails with INVALID_EP on some units
+            if (["_TZE204_gxbdnfrh", "_TZE28C1000000_gxbdnfrh", "_TZE284_znkkcauq"].includes(device.manufacturerName)) {
+                // DP only devices, the genOnOff bind fails with INVALID_EP on some units
                 await tuya.configureMagicPacket(device, coordinatorEndpoint);
             } else {
                 const endpoint = device.getEndpoint(1);
@@ -7511,7 +7536,7 @@ export const definitions: DefinitionWithExtend[] = [
                 tuya.exposes.powerOnBehavior(),
                 tuya.exposes.indicatorModeNoneRelayPos(),
             ];
-            if (isDummyDevice(device) || device.manufacturerName === "_TZE204_gxbdnfrh") {
+            if (isDummyDevice(device) || ["_TZE204_gxbdnfrh", "_TZE28C1000000_gxbdnfrh"].includes(device.manufacturerName)) {
                 exps.push(
                     ...["l1", "l2", "l3", "l4", "l5", "l6"].map((ep) =>
                         e
@@ -7560,7 +7585,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Mercator Ikuü", "SSW06G", "6 Gang switch", ["_TZE200_wnp4d4va"]),
             tuya.whitelabel("Nova Digital", "NTZB-04-W-B", "4 gang switch with 2 gang socket 4x4", ["_TZE204_lmgrbuwf"]),
             tuya.whitelabel("Nova Digital", "FZB-6", "6 gang switch 4x4", ["_TZE204_wskr3up8"]),
-            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh"]),
+            tuya.whitelabel("Nova Digital", "SA-6", "Safira smart switch - 6 gang", ["_TZE204_gxbdnfrh", "_TZE28C1000000_gxbdnfrh"]),
             tuya.whitelabel("Ekaza", "EKAT-T3074-6WZ", "6 gang switch", ["_TZE284_g1enhdsi"]),
             tuya.whitelabel("Ekaza", "EKGD-T4085P-4Z", "4 gang switch with 2 gang socket 4x4", ["_TZE284_znkkcauq"]),
             tuya.whitelabel("JWCOM", "SA-ZB417F-BR", "6 gang switch", ["_TZE284_1iii6x0y"]),
@@ -8453,6 +8478,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("LUUMR", "10024773", "Smart LED C35 matt E14 4,2 W", ["_TZ3210_claeh5ds"]),
             tuya.whitelabel("LUUMR", "10010339", "Smart LED G9 2,5W CCT Clear", ["_TZ3210_tqwyiitv"]),
             tuya.whitelabel("ECODO", "ECD-SS12", "Sunset smart downlight 12 W, 1800-5700K", ["_TZ3210_rnj5wxxg"]),
+            tuya.whitelabel("ECODO", "DR-MW-2436", "24-36W tunable white smart LED driver", ["_TZ3210_3632cjza"]),
         ],
         extend: [
             tuya.modernExtend.tuyaLight({
@@ -8541,6 +8567,7 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "TH09Z", "Temperature and humidity sensor", ["_TZ3000_isw9u95y", "_TZ3000_yupc0pb7"]),
             tuya.whitelabel("Tuya", "ZTH05_1", "Temperature and humidity sensor", ["_TZ3000_bgsigers"]),
             tuya.whitelabel("Tuya", "TS0201_2", "Temperature and humidity sensor", ["_TZ3000_yujem9ee"]),
+            tuya.whitelabel("Shenzhen Forever Young Technology", "UZ-05T", "Temperature and humidity sensor", ["Wing"]),
         ],
     },
     {
@@ -9983,7 +10010,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: [{modelID: "TS0003", manufacturerName: "_TZ3000_mw1pqqqt"}],
+        fingerprint: tuya.fingerprint("TS0003", ["_TZ3000_mw1pqqqt", "_TZ3210_n0wbkysi"]),
         model: "_TZ3000_mw1pqqqt",
         description: "3 channel USB switch",
         vendor: "Tuya",
@@ -11947,6 +11974,119 @@ export const definitions: DefinitionWithExtend[] = [
                 [39, "scale_protection", tuya.valueConverter.onOff],
                 [47, "local_temperature_calibration", tuya.valueConverter.raw],
                 [101, "pi_heating_demand", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_nhxzhga5"]),
+        model: "ME173",
+        vendor: "Ecobuy Well",
+        description: "Thermostatic radiator valve",
+        extend: [tuya.modernExtend.tuyaBase({dp: true, timeStart: "1970"})],
+        exposes: [
+            e.child_lock(),
+            e.battery(),
+            e
+                .climate()
+                .withSetpoint("current_heating_setpoint", 5, 35, 0.5, ea.STATE_SET)
+                .withLocalTemperature(ea.STATE)
+                .withSystemMode(["off", "heat", "auto"], ea.STATE_SET)
+                .withPreset(["schedule", "manual", "off", "eco", "comfort", "boost"])
+                .withRunningState(["idle", "heat"], ea.STATE)
+                .withLocalTemperatureCalibration(-9, 9, 1, ea.STATE_SET),
+            ...tuya.exposes.scheduleAllDays(ea.STATE_SET, "HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C HH:MM/C"),
+            e.eco_temperature().withValueMin(10).withValueMax(20).withValueStep(0.5),
+            e.comfort_temperature().withValueMin(10).withValueMax(25).withValueStep(0.5),
+            e.binary("window_detection", ea.STATE_SET, "ON", "OFF").withDescription("Enable open window detection"),
+            e.binary("window_open", ea.STATE, "OPEN", "CLOSE").withDescription("Window status"),
+            e
+                .binary("scale_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription('Opens the valve fully for 30 seconds every two weeks to prevent scaling (displays "Ad")'),
+            e
+                .binary("frost_protection", ea.STATE_SET, "ON", "OFF")
+                .withDescription("Opens the valve below 5 В°C and closes it again at 8 В°C, also when the valve is off"),
+            e.numeric("error", ea.STATE).withDescription('If NTC is damaged, "Er" will be on the TRV display.'),
+            e.enum("display_orientation", ea.STATE_SET, ["left", "right"]).withDescription("Display orientation"),
+            e
+                .numeric("boost_time", ea.STATE_SET)
+                .withUnit("min")
+                .withValueMin(0)
+                .withValueMax(180)
+                .withDescription("Duration of the boost preset, which heats at 35 В°C"),
+            e.numeric("boost_timeset_countdown", ea.STATE).withUnit("min").withDescription("Remaining boost time"),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [
+                    2,
+                    null,
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        fromMap: {
+                            0: {deviceMode: "schedule", systemMode: "auto", preset: "schedule"},
+                            1: {deviceMode: "manual", systemMode: "heat", preset: "manual"},
+                            2: {deviceMode: "off", systemMode: "off", preset: "off"},
+                            3: {deviceMode: "eco", systemMode: "heat", preset: "eco"},
+                            4: {deviceMode: "comfort", systemMode: "heat", preset: "comfort"},
+                            5: {deviceMode: "boost", systemMode: "heat", preset: "boost"},
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    "preset",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            schedule: new tuya.Enum(0),
+                            manual: new tuya.Enum(1),
+                            off: new tuya.Enum(2),
+                            eco: new tuya.Enum(3),
+                            comfort: new tuya.Enum(4),
+                            boost: new tuya.Enum(5),
+                        },
+                    }),
+                ],
+                [
+                    2,
+                    "system_mode",
+                    tuya.valueConverter.thermostatSystemModeAndPresetMap({
+                        toMap: {
+                            auto: new tuya.Enum(0),
+                            heat: new tuya.Enum(1),
+                            off: new tuya.Enum(2),
+                        },
+                    }),
+                ],
+                [3, "running_state", tuya.valueConverterBasic.lookup({heat: tuya.enum(0), idle: tuya.enum(1)})],
+                [4, "current_heating_setpoint", tuya.valueConverter.divideBy10],
+                [5, "local_temperature", tuya.valueConverter.divideBy10],
+                [6, "battery", tuya.valueConverter.raw],
+                [7, "child_lock", tuya.valueConverter.lockUnlock],
+                [14, "window_detection", tuya.valueConverter.onOff],
+                [15, "window_open", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1)})],
+                [28, "schedule_monday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(1, 6)],
+                [29, "schedule_tuesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(2, 6)],
+                [30, "schedule_wednesday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(3, 6)],
+                [31, "schedule_thursday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(4, 6)],
+                [32, "schedule_friday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(5, 6)],
+                [33, "schedule_saturday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(6, 6)],
+                [34, "schedule_sunday", tuya.valueConverter.thermostatScheduleDayMultiDPWithDayNumber(7, 6)],
+                [35, "error", tuya.valueConverter.raw],
+                [36, "frost_protection", tuya.valueConverter.onOff],
+                [39, "scale_protection", tuya.valueConverter.onOff],
+                [
+                    47,
+                    "local_temperature_calibration",
+                    {
+                        // Whole degrees; reported back as int8 or int32
+                        from: (v: number) => (v > 0x7fffffff ? v - 0x100000000 : v > 127 ? v - 256 : v),
+                        to: (v: number) => v,
+                    },
+                ],
+                [101, "comfort_temperature", tuya.valueConverter.divideBy10],
+                [103, "boost_time", tuya.valueConverter.raw],
+                [104, "boost_timeset_countdown", tuya.valueConverter.raw],
+                [105, "eco_temperature", tuya.valueConverter.divideBy10],
+                [107, "display_orientation", tuya.valueConverterBasic.lookup({left: tuya.enum(0), right: tuya.enum(1)})],
             ],
         },
     },
@@ -14724,7 +14864,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd", "_TZ3000_ovbvmhiq"]),
+        fingerprint: tuya.fingerprint("TS0726", ["_TZ3002_l8bfzlcd", "_TZ3000_ovbvmhiq", "_TZ3002_wowrpxxu"]),
         model: "TS0726_1_gang",
         vendor: "Tuya",
         description: "1 gang switch with neutral wire",
@@ -16478,7 +16618,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "DIN mount RCBO with smart energy metering",
         fromZigbee: [legacy.fromZigbee.hoch_din],
         toZigbee: [legacy.toZigbee.hoch_din, tzLocal.TS0601_rcbo_threshold],
-        exposes: [
+        exposes: (device) => [
             e.text("meter_number", ea.STATE).withDescription("Meter number"),
             e.binary("state", ea.STATE_SET, "ON", "OFF").withDescription("State"),
             e.text("alarm", ea.STATE).withDescription("Alarm text"),
@@ -16525,7 +16665,8 @@ export const definitions: DefinitionWithExtend[] = [
             e
                 .numeric("under_voltage_threshold", ea.STATE_SET)
                 .withUnit("V")
-                .withValueMin(100)
+                // _TZE200_hkdl5fmv has been observed reporting 50 V with under-voltage trip disabled.
+                .withValueMin(device?.manufacturerName === "_TZE200_hkdl5fmv" ? 50 : 100)
                 .withValueMax(215)
                 .withValueStep(1)
                 .withDescription("Under voltage threshold")
@@ -18097,7 +18238,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Smart button",
         extend: [tuyaBase()],
-        exposes: [e.battery(), e.battery_voltage(), e.action(["single", "double"])],
+        exposes: [e.battery(), e.battery_voltage(), e.action(["single", "double", "hold"])],
         fromZigbee: [tuya.fz.on_off_action, fz.battery],
         toZigbee: [],
         configure: tuya.configureMagicPacket,
@@ -19233,24 +19374,34 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 [101, "ac_frequency", tuya.valueConverter.divideBy100],
                 [102, "voltage_a", tuya.valueConverter.divideBy10],
-                [103, "current_a", tuya.valueConverter.divideBy1000],
-                [104, "power_a", tuya.valueConverter.raw],
-                [105, "voltage_b", tuya.valueConverter.divideBy10],
+                [103, null, sdm01Variant("current_a", tuya.valueConverter.divideBy1000, "voltage_a", tuya.valueConverter.divideBy10)],
+                [104, null, sdm01Variant("power_a", tuya.valueConverter.raw, "current_a", tuya.valueConverter.divideBy1000)],
+                [105, null, sdm01Variant("voltage_b", tuya.valueConverter.divideBy10, "power_a", tuya.valueConverter.raw)],
                 [106, "current_b", tuya.valueConverter.divideBy1000],
                 [107, "power_b", tuya.valueConverter.raw],
-                [108, "voltage_c", tuya.valueConverter.divideBy10],
-                [109, "current_c", tuya.valueConverter.divideBy1000],
-                [110, "power_c", tuya.valueConverter.raw],
+                [108, null, sdm01Variant("voltage_c", tuya.valueConverter.divideBy10, "power_factor_a", tuya.valueConverter.raw)],
+                [109, null, sdm01Variant("current_c", tuya.valueConverter.divideBy1000, "energy_a", tuya.valueConverter.divideBy100)],
+                [110, null, sdm01Variant("power_c", tuya.valueConverter.raw, "energy_produced_a", tuya.valueConverter.divideBy100)],
                 [111, "power", tuya.valueConverter.raw],
-                [112, "energy_a", tuya.valueConverter.divideBy100],
-                [114, "energy_b", tuya.valueConverter.divideBy100],
+                [112, null, sdm01Variant("energy_a", tuya.valueConverter.divideBy100, "voltage_b", tuya.valueConverter.divideBy10)],
+                [114, null, sdm01Variant("energy_b", tuya.valueConverter.divideBy100, "power_b", tuya.valueConverter.raw)],
                 [116, "energy_c", tuya.valueConverter.divideBy100],
-                [113, "energy_produced_a", tuya.valueConverter.divideBy100],
+                [113, null, sdm01Variant("energy_produced_a", tuya.valueConverter.divideBy100, "current_b", tuya.valueConverter.divideBy1000)],
                 [115, "energy_produced_b", tuya.valueConverter.divideBy100],
-                [117, "energy_produced_c", tuya.valueConverter.divideBy100],
-                [118, "power_factor_a", tuya.valueConverter.raw],
-                [119, "power_factor_b", tuya.valueConverter.raw],
+                [117, null, sdm01Variant("energy_produced_c", tuya.valueConverter.divideBy100, "power_factor_b", tuya.valueConverter.raw)],
+                [118, null, sdm01Variant("power_factor_a", tuya.valueConverter.raw, "energy_b", tuya.valueConverter.divideBy100)],
+                [119, null, sdm01Variant("power_factor_b", tuya.valueConverter.raw, "energy_produced_b", tuya.valueConverter.divideBy100)],
                 [120, "power_factor_c", tuya.valueConverter.raw],
+                [23, "produced_energy", sdm01V2Only(tuya.valueConverter.divideBy100)],
+                [29, "power", sdm01V2Only(tuya.valueConverter.raw)],
+                [32, "ac_frequency", sdm01V2Only(tuya.valueConverter.divideBy100)],
+                [50, "power_factor", sdm01V2Only(tuya.valueConverter.raw)],
+                [121, "voltage_c", sdm01V2Only(tuya.valueConverter.divideBy10)],
+                [122, "current_c", sdm01V2Only(tuya.valueConverter.divideBy1000)],
+                [123, "power_c", sdm01V2Only(tuya.valueConverter.raw)],
+                [126, "power_factor_c", sdm01V2Only(tuya.valueConverter.raw)],
+                [127, "energy_c", sdm01V2Only(tuya.valueConverter.divideBy100)],
+                [128, "energy_produced_c", sdm01V2Only(tuya.valueConverter.divideBy100)],
             ],
         },
     },
@@ -24401,6 +24552,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         description: "Water level sensor",
         whiteLabel: [tuya.whitelabel("Tuya", "ME202WZ", "Water level sensor", ["_TZE284_mxujdmxo"])],
+        options: [
+            e
+                .binary("filter_level_jumps", ea.SET, true, false)
+                .withDescription(
+                    "Ignore false echoes by dropping levels jumping more than 5 cm, unless read steadily for 12 hours. Leave disabled for " +
+                        "small or fast-changing tanks (e.g. filled by a pump) where the level would get stuck. Levels below zero, or above an " +
+                        "exposed installation height, are always dropped (default false).",
+                ),
+        ],
         extend: [
             m.forcePowerSource({powerSource: "Mains (single phase)"}),
             tuya.modernExtend.tuyaBase({dp: true, forceTimeUpdates: true, queryOnConfigure: true}),
@@ -24415,7 +24575,7 @@ export const definitions: DefinitionWithExtend[] = [
             te.liquidMaximalPercent(),
             te.liquidMinimalPercent(),
 
-            ...(!device || ["_TZE284_kyyu8rbj"].includes(device.manufacturerName)
+            ...(!device || me201wzWithInstallationHeight.includes(device.manufacturerName)
                 ? [te.liquidDepthMax(), te.liquidInstallationHeight()]
                 : [te.liquidDepthMax().withValueMax(10)]),
             te.relaySwitch(),
@@ -30941,7 +31101,7 @@ export const definitions: DefinitionWithExtend[] = [
         fingerprint: [{modelID: "Excellux", manufacturerName: "DTS1XM9"}],
         model: "ZG-109TDS",
         vendor: "Excellux",
-        description: "Probe Temperature with EC && TDS && Salinity && SG && ht(humidity and temperature) Sensor",
+        description: "Water Quality Probe with Temperature, EC, TDS, Salinity, SG, and Air Humidity + Temperature Sensor",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             e
@@ -31231,7 +31391,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "EZ-104UPT",
         vendor: "Excellux",
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
-        description: "Contact sensor and vibration sensor",
+        description: "4-in-1 Environmental sensor",
         exposes: [
             e
                 .enum("uv_warning", ea.STATE, ["Low", "Moderate", "High", "Very High", "Extreme"])
@@ -32119,6 +32279,37 @@ export const definitions: DefinitionWithExtend[] = [
                     }),
                 ],
                 [130, "fault", tuya.valueConverter.raw],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_lqhqj73n"]),
+        model: "TS0601_lqhqj73n",
+        vendor: "Tuya",
+        description: "Outdoor roller blind motor",
+        extend: [tuya.modernExtend.tuyaBase({dp: true})],
+        exposes: [
+            te.coverPosition(),
+            te.motorDirection(),
+            e.enum("motor_state", ea.STATE, ["opening", "closing"]).withDescription("Current motor activity"),
+            e.binary("motor_fault", ea.STATE, true, false).withDescription("Motor fault"),
+            e.battery(),
+            e.enum("obstacle_sensitivity", ea.STATE_SET, ["off", "high", "medium", "low"]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [1, "state", tuya.valueConverter.coverAction],
+                [2, "position", tuya.valueConverter.coverPositionInverted],
+                [3, "position", tuya.valueConverter.coverPositionInverted],
+                [5, "motor_direction", tuya.valueConverter.tubularMotorDirection],
+                [7, "motor_state", tuya.valueConverterBasic.lookup({opening: tuya.enum(0), closing: tuya.enum(1)})],
+                [12, "motor_fault", {from: (v) => (Number(v) & 1) === 1}],
+                [13, "battery", tuya.valueConverter.raw],
+                [
+                    104,
+                    "obstacle_sensitivity",
+                    tuya.valueConverterBasic.lookup({off: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)}),
+                ],
             ],
         },
     },

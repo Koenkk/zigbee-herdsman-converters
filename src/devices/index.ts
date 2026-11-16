@@ -53,6 +53,7 @@ import {definitions as cleode} from "./cleode";
 import {definitions as cleverio} from "./cleverio";
 import {definitions as climax} from "./climax";
 import {definitions as commercialElectric} from "./commercial_electric";
+import {definitions as control4} from "./control4";
 import {definitions as coselig} from "./coselig";
 import {definitions as cree} from "./cree";
 import {definitions as ctm} from "./ctm";
@@ -84,6 +85,7 @@ import {definitions as ecodim} from "./ecodim";
 import {definitions as ecolink} from "./ecolink";
 import {definitions as ecosmart} from "./ecosmart";
 import {definitions as ecozy} from "./ecozy";
+import {definitions as edflab} from "./edflab";
 import {definitions as edp} from "./edp";
 import {definitions as efekta} from "./efekta";
 import {definitions as eglo} from "./eglo";
@@ -160,6 +162,7 @@ import {definitions as imou} from "./imou";
 import {definitions as innr} from "./innr";
 import {definitions as inovelli} from "./inovelli";
 import {definitions as insta} from "./insta";
+import {definitions as intelbras} from "./intelbras";
 import {definitions as intuis} from "./intuis";
 import {definitions as iolloi} from "./iolloi";
 import {definitions as iotperfect} from "./iotperfect";
@@ -190,6 +193,7 @@ import {definitions as letsled} from "./letsled";
 import {definitions as letv} from "./letv";
 import {definitions as leviton} from "./leviton";
 import {definitions as lg} from "./lg";
+import {definitions as libraSoft} from "./librasoft";
 import {definitions as lidl} from "./lidl";
 import {definitions as lifecontrol} from "./lifecontrol";
 import {definitions as lightsolutions} from "./lightsolutions";
@@ -459,6 +463,7 @@ const definitions: DefinitionWithExtend[] = [
     ...cleverio,
     ...climax,
     ...commercialElectric,
+    ...control4,
     ...coselig,
     ...cree,
     ...ctm,
@@ -490,6 +495,7 @@ const definitions: DefinitionWithExtend[] = [
     ...ecolink,
     ...ecosmart,
     ...ecozy,
+    ...edflab,
     ...edp,
     ...efekta,
     ...ekaza,
@@ -564,6 +570,7 @@ const definitions: DefinitionWithExtend[] = [
     ...innr,
     ...inovelli,
     ...insta,
+    ...intelbras,
     ...intuis,
     ...iolloi,
     ...iotperfect,
@@ -595,6 +602,7 @@ const definitions: DefinitionWithExtend[] = [
     ...letv,
     ...leviton,
     ...lg,
+    ...libraSoft,
     ...lidl,
     ...lifecontrol,
     ...lightsolutions,

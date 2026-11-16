@@ -231,7 +231,8 @@ export const definitions: DefinitionWithExtend[] = [
         model: "12242",
         vendor: "EGLO",
         description: "ST64 adjustable white filament bulb",
-        extend: [m.light({colorTemp: {range: [153, 454]}})],
+        extend: [m.light({colorTemp: {range: [153, 454]}, levelConfig: {features: ["current_level_startup"]}})],
+        whiteLabel: [{vendor: "EGLO", model: "12245", description: "G125 globe adjustable white filament bulb"}],
     },
     {
         zigbeeModel: ["EGLO_ZM_RGB_TW"],
