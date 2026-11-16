@@ -26721,7 +26721,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "HYSYIOT",
         description: "PIR and millimeter-wave radar human presence sensor",
         extend: [
-            tuyaBase({dp: true}),
+            tuyaBase(),
             m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
             m.battery(),
             tuya.modernExtend.dpBatteryState({dp: 3, type: tuya.dataTypes.enum}),
