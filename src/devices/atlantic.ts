@@ -26,8 +26,10 @@ interface ThermorHvacThermostat {
         connectedLoad: number;
         windowDetection: number;
         windowOpen: number;
+        effectiveHeatingSetpoint: number;
         heatingDemand: number;
         powerBoardTemperature: number;
+        internalTemperature: number;
     };
     commands: never;
     commandResponses: never;
@@ -240,6 +242,25 @@ export const definitions: DefinitionWithExtend[] = [
         model: "100050072300",
         vendor: "Atlantic Group",
         description: "Sauter Kartala connected radiator horizontal 1000W",
+        fromZigbee: [
+            {
+                cluster: "hvacThermostat",
+                type: ["attributeReport", "readResponse"],
+                convert: (model, msg, publish, options, meta) => {
+                    if (msg.data.heatingDemand !== undefined) {
+                        return {running_state: msg.data.heatingDemand > 0 ? "heat" : "idle"};
+                    }
+                },
+            } satisfies Fz.Converter<"hvacThermostat", ThermorHvacThermostat, ["attributeReport", "readResponse"]>,
+        ],
+        toZigbee: [
+            {
+                key: ["running_state"],
+                convertGet: async (entity, key, meta) => {
+                    await entity.read<"hvacThermostat", ThermorHvacThermostat>("hvacThermostat", ["heatingDemand"]);
+                },
+            } satisfies Tz.Converter,
+        ],
         extend: [
             m.deviceAddCustomCluster("hvacThermostat", {
                 name: "hvacThermostat",
@@ -253,10 +274,22 @@ export const definitions: DefinitionWithExtend[] = [
                         write: true,
                     },
                     windowOpen: {name: "windowOpen", ID: 0x4298, type: Zcl.DataType.BOOLEAN, manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP},
+                    effectiveHeatingSetpoint: {
+                        name: "effectiveHeatingSetpoint",
+                        ID: 0x42ab,
+                        type: Zcl.DataType.INT16,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
                     heatingDemand: {
                         name: "heatingDemand",
                         ID: 0x42ac,
                         type: Zcl.DataType.UINT8,
+                        manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
+                    },
+                    internalTemperature: {
+                        name: "internalTemperature",
+                        ID: 0x42b4,
+                        type: Zcl.DataType.INT16,
                         manufacturerCode: Zcl.ManufacturerCode.ATLANTIC_GROUP,
                     },
                 },
@@ -264,10 +297,12 @@ export const definitions: DefinitionWithExtend[] = [
                 commandsResponse: {},
             }),
             m.identify(),
+            // runningState is unsupported and heatingState is only set while heating at full power, running_state is mapped from heatingDemand instead
             m.thermostat({
                 localTemperature: {},
                 setpoints: {values: {occupiedHeatingSetpoint: {min: 7, max: 28, step: 0.5}}},
                 systemMode: {values: ["off", "heat"]},
+                runningState: {values: ["idle", "heat"], toZigbee: {skip: true}, configure: {skip: true}},
             }),
             m.occupancy(),
             m.electricityMeter({
@@ -302,6 +337,33 @@ export const definitions: DefinitionWithExtend[] = [
                 access: "STATE",
                 unit: "%",
                 description: "Heating duty cycle",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "effective_heating_setpoint",
+                cluster: "hvacThermostat",
+                attribute: "effectiveHeatingSetpoint",
+                access: "STATE",
+                unit: "°C",
+                scale: 100,
+                description: "Setpoint actually applied by the radiator (7 °C while a window is open)",
+            }),
+            m.numeric<"hvacThermostat", ThermorHvacThermostat>({
+                name: "internal_temperature",
+                cluster: "hvacThermostat",
+                attribute: "internalTemperature",
+                access: "STATE",
+                unit: "°C",
+                scale: 100,
+                entityCategory: "diagnostic",
+                description: "Internal temperature of the radiator",
+            }),
+            m.enumLookup({
+                name: "keypad_lockout",
+                cluster: "hvacUserInterfaceCfg",
+                attribute: "keypadLockout",
+                lookup: {unlocked: 0, partial: 1, settings_locked: 2, full: 5},
+                description:
+                    "Restricted access, can only be changed over Zigbee: partial = some settings disabled, settings_locked = only temperature adjustable, full = everything locked",
             }),
         ],
     },
