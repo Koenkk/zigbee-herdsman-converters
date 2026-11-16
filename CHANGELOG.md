@@ -1,5 +1,26 @@
 # Changelog
 
+## [26.133.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.132.0...v26.133.0) (2026-11-16)
+
+
+### Features
+
+* **add:** 100050072300 ([#13787](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13787)) ([1fb2ba2](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1fb2ba2aba2ca37a947735d0ccb9c1655b9653c0))
+* **add:** FL 290 C ([#13843](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13843)) ([017cbbe](https://github.com/Koenkk/zigbee-herdsman-converters/commit/017cbbeeb3d4c9baf51d7e62fb4bf99cb136617f))
+* **add:** HS209Z ([#13701](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13701)) ([b7ff61e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b7ff61e373dcca5d4dcb6ac88bbd62b00b516987))
+* **add:** T3E_mua6ucdj ([#13834](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13834)) ([3cf3fac](https://github.com/Koenkk/zigbee-herdsman-converters/commit/3cf3fac6fbb4cbc20e205cbfdfd3d4652d0d0736))
+* **add:** VB-FTW-A19, VB-RGBTW-A19 ([#13829](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13829)) ([f368dcd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/f368dcd1336b59d88702c98905ba30b7103d9db2))
+* Repenic Ltd. RD-250ZG: expose sleep, sunrise and moonlight schedules ([#13791](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13791)) ([868dd0a](https://github.com/Koenkk/zigbee-herdsman-converters/commit/868dd0ab37c4c95743dcaf47897072c564466875))
+* SONOFF TP-WGZBA: expose `ntc_temperature` as a numeric sensor ([#13741](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13741)) ([b09d9a4](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b09d9a46fcee1f8e3df281fa6629b4be2b89e05e))
+* Tuya ZP01: expose `sensitivity` and `keep_time` ([#13840](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13840)) ([240b645](https://github.com/Koenkk/zigbee-herdsman-converters/commit/240b645caf5f17daaaab821f729ccd5935480c01))
+
+
+### Bug Fixes
+
+* Chayo devices: report the updated brand name ([#13841](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13841)) ([c52672f](https://github.com/Koenkk/zigbee-herdsman-converters/commit/c52672f3ad1acb925e816354a022765c389f14a0))
+* **detect:** Detect `_TZE2841000000_kyyu8rbj` and `_TZE2841000000_7uqwvoua` as Tuya ME201WZ ([bdbd553](https://github.com/Koenkk/zigbee-herdsman-converters/commit/bdbd553087fa6203edf84257b192b51a174334a3))
+* Tuya ME201WZ: clarify that `liquid_depth_max` sets the full tank depth ([#13808](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13808)) ([ab9491b](https://github.com/Koenkk/zigbee-herdsman-converters/commit/ab9491b21b347b23187c38a267b6ac2a7ea6f7f4))
+
 ## [26.132.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.131.0...v26.132.0) (2026-11-15)
 
 
