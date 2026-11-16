@@ -2568,7 +2568,7 @@ const me201wzLiquidDepthMax = () =>
 // gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
 // Small or pump-filled tanks really change faster than that, so the jump check is opt-in (readings outside the tank are always
 // dropped).
-const me201wzWithInstallationHeight = ["_TZE284_kyyu8rbj"];
+const me201wzWithInstallationHeight = ["_TZE284_kyyu8rbj", "_TZE2841000000_kyyu8rbj", "_TZE2841000000_7uqwvoua"];
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device, filterJumps: boolean) => {
     const depth = result.liquid_depth as number | undefined;
     const percent = result.liquid_level_percent as number | undefined;
@@ -2629,13 +2629,25 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             const dp = Object.fromEntries((msg.data.dpValues as Tuya.DpValue[]).map((d) => [d.dp, tuya.getDataValue(d)]));
             const result: KeyValue = {};
             if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
-            if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
+            // Firmware ME201Z.x reports the depth on DP114 instead of DP2
+            const depth = dp[2] ?? dp[114];
+            if (depth !== undefined) result.liquid_depth = (depth as number) / 100;
             if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
             me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps === true));
         }
         return me201wzFiltered.get(msg);
     },
 };
+
+// Firmware ME201Z.x uses DP115/DP116 instead of DP19/DP21 for the installation height and max depth, write both.
+const me201wzSetting = (newDp: number): Tuya.ValueConverterSingle => ({
+    from: (v: number) => v / 100,
+    to: async (v: number, meta) => {
+        const endpoint = meta.device.getEndpoint(1);
+        await tuya.sendDataPointValue(endpoint, newDp, Math.round(v * 100), "dataRequest", 1);
+        return Math.round(v * 100);
+    },
+});
 
 const hhst001DeadzoneScale = (device?: {manufacturerName?: string}) =>
     ["_TZE284_6l44ypoc", "_TZE284_qvmmpbye"].includes(device?.manufacturerName) ? 10 : 1;
@@ -24579,7 +24591,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE284_mxujdmxo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE284_mxujdmxo", "_TZE2841000000_kyyu8rbj", "_TZE2841000000_7uqwvoua"]),
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
@@ -24623,13 +24635,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "voltage", tvc.divideBy10], // power_level
                 [7, "max_set", tvc.raw],
                 [8, "min_set", tvc.raw],
-                [19, "installation_height", tvc.divideBy100],
-                [21, "liquid_depth_max", tvc.divideBy100],
+                [19, "installation_height", me201wzSetting(115)],
+                [21, "liquid_depth_max", me201wzSetting(116)],
                 [22, null, me201wzLevel],
                 [24, "relay_switch", tvc.onOff],
                 [101, "pump_mode", tvc.pumpMode],
                 [102, "pump_control", tvc.pumpControl], // auto_pump_control
                 [103, "version", tuya.valueConverter.raw],
+                [114, null, me201wzLevel],
+                [115, "installation_height", tvc.divideBy100],
+                [116, "liquid_depth_max", tvc.divideBy100],
             ],
         },
     },
