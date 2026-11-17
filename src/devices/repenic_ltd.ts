@@ -192,4 +192,15 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
     },
+    {
+        zigbeeModel: ["RST-2GCCZG"],
+        model: "RST-2GCCZG",
+        vendor: "Repenic Ltd.",
+        description: "2 channel smart plug with power monitoring",
+        extend: [
+            m.deviceEndpoints({endpoints: {l1: 1, l2: 2}}),
+            m.onOff({powerOnBehavior: true, endpointNames: ["l1", "l2"]}),
+            m.electricityMeter({endpointNames: ["l1", "l2"]}),
+        ],
+    },
 ];
