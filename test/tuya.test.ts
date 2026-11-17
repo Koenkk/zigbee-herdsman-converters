@@ -1,12 +1,105 @@
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, beforeEach, describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice, type Tz} from "../src/index";
 import * as legacy from "../src/lib/legacy";
+import * as globalStore from "../src/lib/store";
 import * as tuya from "../src/lib/tuya";
-import type {Definition, Fz, KeyValueAny} from "../src/lib/types";
+import type {Definition, Fz, KeyValue, KeyValueAny, OnEvent} from "../src/lib/types";
 import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
+    describe("tuyaBase data queries", () => {
+        beforeEach(() => vi.useFakeTimers());
+        afterEach(() => {
+            vi.clearAllTimers();
+            vi.useRealTimers();
+            globalStore.clear();
+        });
+        const setup = (args: Parameters<typeof tuya.modernExtend.tuyaBase>[0] = {}) => {
+            const extension = tuya.modernExtend.tuyaBase(args);
+            const device = mockDevice({modelID: "TS0601", endpoints: [{ID: 2}]});
+            const command = vi.mocked(device.endpoints[0].command);
+            const base = {device, state: {}, deviceExposesChanged: () => {}};
+            const emit = async (event: OnEvent.Event) => {
+                for (const handler of extension.onEvent) await handler(event);
+            };
+            return {
+                extension,
+                device,
+                command,
+                start: (options: KeyValue = {}) => emit({type: "start", data: {...base, options}}),
+                changeOptions: (from: KeyValue, to: KeyValue) => emit({type: "deviceOptionsChanged", data: {...base, options: to, from, to}}),
+                announce: () => emit({type: "deviceAnnounce", data: {...base, options: {}}}),
+            };
+        };
+
+        it("exposes unrestricted query intervals with a disabled default and preserves other timers", async () => {
+            const {extension, device, command, start, changeOptions} = setup();
+            expect(extension.options.map((option) => option.name)).toEqual(["time_start", "data_query_interval"]);
+            const option = tuya.options.dataQueryInterval();
+            expect([option.unit, option.value_min, option.value_max]).toEqual(["s", undefined, undefined]);
+            const otherTimer = {};
+            globalStore.putValue(device.ieeeAddr, "query_interval", otherTimer);
+            await start();
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(command).not.toHaveBeenCalled();
+            expect(globalStore.getValue(device.ieeeAddr, "query_interval")).toBe(otherTimer);
+            await changeOptions({}, {data_query_interval: 2.5});
+            await vi.advanceTimersByTimeAsync(2500);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it.each([
+            {seconds: 60, disabled: 0},
+            {seconds: 15, disabled: -1},
+        ])("uses a $seconds-second default, accepts changes and disables with $disabled", async ({seconds, disabled}) => {
+            const {command, start, changeOptions} = setup({queryIntervalSeconds: seconds});
+            await start();
+            await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
+            expect(command).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+            await changeOptions({}, {data_query_interval: 2.5});
+            await vi.advanceTimersByTimeAsync(2499);
+            expect(command).toHaveBeenCalledTimes(1);
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledTimes(2);
+            await changeOptions({data_query_interval: 2.5}, {data_query_interval: disabled});
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(command).toHaveBeenCalledTimes(2);
+            await changeOptions({data_query_interval: disabled}, {});
+            await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
+            expect(command).toHaveBeenCalledTimes(2);
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledTimes(3);
+        });
+
+        it.each([0, -1])("keeps announce/configure support and cannot restart an in-flight query after disabling with %s", async (disabled) => {
+            const {extension, command, start, changeOptions, announce} = setup({
+                dp: true,
+                queryOnConfigure: true,
+                queryOnDeviceAnnounce: true,
+                queryIntervalSeconds: 3,
+            });
+            expect(extension.configure).toContain(tuya.configureQuery);
+            expect(extension.fromZigbee).toContain(tuya.fz.datapoints);
+            expect(extension.toZigbee).toContain(tuya.tz.datapoints);
+            await announce();
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+            command.mockClear();
+            const pending = Promise.withResolvers<Record<string, never>>();
+            command.mockReturnValueOnce(pending.promise);
+            await start();
+            await vi.advanceTimersByTimeAsync(3000);
+            expect(command).toHaveBeenCalledTimes(1);
+            await changeOptions({}, {data_query_interval: disabled});
+            pending.resolve({});
+            await vi.advanceTimersByTimeAsync(9000);
+            expect(command).toHaveBeenCalledTimes(1);
+            expect(vi.getTimerCount()).toBe(0);
+        });
+    });
+
     describe("tuyaWeatherForecast", () => {
         it("uses forecast fields 1 through 3 and includes their humidity in the payload", async () => {
             const {toZigbee} = tuya.modernExtend.tuyaWeatherForecast();
