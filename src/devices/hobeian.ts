@@ -1904,7 +1904,10 @@ export const definitions: DefinitionWithExtend[] = [
             await ignoreUnsupportedAttribute(async () => {
                 await endpoint.write<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", {tuyaOperationMode: 1});
             }, "tuyaOperationMode write");
-            await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
+            // _TZ3000_gwkzibhs with swBuildId 0114012026 replies UNSUPPORTED_ATTRIBUTE to the tuyaOperationMode read as well.
+            await ignoreUnsupportedAttribute(async () => {
+                await endpoint.read<"genOnOff", tuya.TuyaGenOnOff>("genOnOff", ["tuyaOperationMode"]);
+            }, "tuyaOperationMode read");
             try {
                 await endpoint.read(0xe001, [0xd011]);
             } catch {

@@ -1084,4 +1084,38 @@ export default {
             configureReporting: {},
         });
     });
+
+    test("input(msTemperatureMeasurement), output(genOta)", async () => {
+        const device = mockDevice({
+            modelID: "ota_device",
+            manufacturerName: "vendor",
+            endpoints: [{inputClusters: ["msTemperatureMeasurement"], outputClusters: ["genOta"]}],
+        });
+        expect((await findByDevice(device, true)).ota).toBe(true);
+        expect((await generateExternalDefinitionSource(device)).trim()).toEqual(
+            `
+import * as m from 'zigbee-herdsman-converters/lib/modernExtend';
+
+export default {
+    zigbeeModel: ['ota_device'],
+    model: 'ota_device',
+    vendor: 'vendor',
+    description: 'Automatically generated definition',
+    extend: [m.temperature()],
+    ota: true,
+};
+`.trim(),
+        );
+    });
+
+    test("input(genOnOff), output(genOta_2)", async () => {
+        const device = mockDevice({modelID: "ota_device_2", endpoints: [{inputClusters: ["genOnOff"]}, {ID: 2, outputClusters: ["genOta"]}]});
+        expect((await findByDevice(device, true)).ota).toBe(true);
+    });
+
+    test("input(genOta) does not enable OTA", async () => {
+        const device = mockDevice({modelID: "ota_server", endpoints: [{inputClusters: ["genOta"], outputClusters: []}]});
+        expect((await findByDevice(device, true)).ota).toBeUndefined();
+        expect(await generateExternalDefinitionSource(device)).not.toContain("ota:");
+    });
 });
