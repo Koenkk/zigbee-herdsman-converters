@@ -1318,7 +1318,7 @@ const tuyaOptions = {
         new exposes.Numeric("data_query_interval", ea.SET)
             .withUnit("s")
             .withDescription(
-                `Interval between Tuya datapoint queries in seconds (default: ${defaultSeconds}). Set to 0 or a negative value to disable polling.`,
+                `Interval between Tuya datapoint queries (useful if your device does not automatically report data). Set to 0 or a negative value to disable polling. Default for this device: ${defaultSeconds}`,
             ),
     timeStart: (defaultOption: string) =>
         e
