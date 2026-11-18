@@ -38,8 +38,8 @@ const valueConverterLocal = {
         yellow: tuya.enum(4),
         magenta: tuya.enum(5),
         cyan: tuya.enum(6),
-        warmwhite: tuya.enum(7),
-        warmyellow: tuya.enum(8),
+        warm_white: tuya.enum(7),
+        warm_yellow: tuya.enum(8),
     }),
     relayStatus: tuya.valueConverterBasic.lookup({
         power_off: tuya.enum(0),
@@ -54,8 +54,8 @@ const valueConverterLocal = {
         yellow: tuya.enum(4),
         magenta: tuya.enum(5),
         cyan: tuya.enum(6),
-        warmwhite: tuya.enum(7),
-        warmyellow: tuya.enum(8),
+        warm_white: tuya.enum(7),
+        warm_yellow: tuya.enum(8),
     }),
     radarConfig: tuya.valueConverterBasic.lookup({
         none: tuya.enum(0),
