@@ -1725,6 +1725,12 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
+function validateDualRailPosition(value: number): number {
+    utils.assertNumber(value, "position");
+    if (!Number.isFinite(value) || value < 0 || value > 100) throw new Error("Position must be between 0 and 100");
+    return value;
+}
+
 const ts130fPositionKey = "ts130f_position";
 
 // SDM01 variants share the same fingerprint and applicationVersion, the newer one (v2) is detected from datapoints only it reports.
@@ -1743,6 +1749,23 @@ const sdm01Variant = (v1Key: string, v1: Tuya.ValueConverterSingle, v2Key: strin
 });
 
 const fzLocal = {
+    dualRailDatapoints: {
+        ...tuya.fz.datapoints,
+        convert: (model, msg, publish, options, meta) => {
+            // Reject malformed actual positions before generic decoding can publish a false rail state.
+            const dpValues = msg.data.dpValues.filter((dp) => {
+                if (dp.dp !== 3 && dp.dp !== 102) return true;
+                if (dp.datatype !== tuya.dataTypes.number || dp.data.length !== 4) return false;
+                const value = tuya.getDataValue(dp);
+                return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100;
+            });
+            return tuya.fz.datapoints.convert(model, {...msg, data: {...msg.data, dpValues}}, publish, options, meta);
+        },
+    } satisfies Fz.Converter<
+        "manuSpecificTuya",
+        undefined,
+        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+    >,
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
     // as raw lightingColorCtrl frames without updating colorTemperature.
     FUT035ZrfColorTemp: {
@@ -7379,27 +7402,81 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h", "_TZE210_yqwse3h5"]),
+        fingerprint: [...tuya.fingerprint("TS0301", ["_TZE210_inpjmc0h", "_TZE210_yqwse3h5"]), {modelID: "YKV24SAED", manufacturerName: "Yooksmart"}],
         model: "TS0301_dual_rail",
         vendor: "Tuya",
+        whiteLabel: [{vendor: "Yooksmart", model: "YKV24SAED", fingerprint: [{modelID: "YKV24SAED", manufacturerName: "Yooksmart"}]}],
         description: "Top-down bottom-up dual motor shade",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        extend: [tuya.modernExtend.tuyaBase(), m.deviceEndpoints({endpoints: {top: 1, bottom: 1}})],
+        fromZigbee: [fzLocal.dualRailDatapoints],
+        toZigbee: [tuya.tz.datapoints],
         exposes: [
-            te.coverPosition().withEndpoint("bottom").withDescription("Bottom rail"),
-            te.coverPosition().withEndpoint("top").withDescription("Top rail"),
+            ...[
+                te.coverPosition().withEndpoint("top").withDescription("Top rail"),
+                te.coverPosition().withEndpoint("bottom").withDescription("Bottom rail"),
+            ].map((cover) => {
+                const top = cover.endpoint === "top";
+                cover.features[0]
+                    .withLabel(top ? "Top rail control" : "Bottom rail control")
+                    .withDescription(
+                        top ? "Open lowers the top rail. Close raises the top rail." : "Open raises the bottom rail. Close lowers the bottom rail.",
+                    );
+                cover.features[1]
+                    .withLabel(top ? "Opening from top" : "Opening from bottom")
+                    .withDescription(
+                        top
+                            ? "Opening from the top: 0% = no opening; 100% = maximum opening."
+                            : "Opening from the bottom: 0% = no opening; 100% = maximum opening.",
+                    );
+                return cover;
+            }),
             e.battery(),
         ],
         meta: {
             tuyaDatapoints: [
                 // Bottom rail - DP109 is control, DP101 is set position, DP102 is current position
-                [109, "state_bottom", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)})],
-                [101, "position_bottom", tuya.valueConverter.coverPositionInverted],
-                [102, "position_bottom", tuya.valueConverter.coverPositionInverted],
+                [
+                    109,
+                    "state_bottom",
+                    {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)}).to},
+                    {optimistic: false},
+                ],
+                [
+                    101,
+                    "position_bottom",
+                    {to: (v: number, meta: Tz.Meta) => tuya.valueConverter.coverPositionInverted.to(validateDualRailPosition(v), meta)},
+                    {optimistic: false},
+                ],
+                [
+                    102,
+                    "position_bottom",
+                    {
+                        from: (v, meta, options, publish) =>
+                            tuya.valueConverter.coverPositionInverted.from(v, meta, options, ({state}) => publish({state_bottom: state})),
+                    },
+                ],
                 // Top rail - DP1 is control, DP2 is set position, DP3 is current position
                 // Note: State commands are reversed for Home Assistant compatibility with top-down operation
-                [1, "state_top", tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)})],
-                [2, "position_top", tuya.valueConverter.coverPosition],
-                [3, "position_top", tuya.valueConverter.coverPosition],
+                [
+                    1,
+                    "state_top",
+                    {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)}).to},
+                    {optimistic: false},
+                ],
+                [
+                    2,
+                    "position_top",
+                    {to: (v: number, meta: Tz.Meta) => tuya.valueConverter.coverPosition.to(validateDualRailPosition(v), meta)},
+                    {optimistic: false},
+                ],
+                [
+                    3,
+                    "position_top",
+                    {
+                        from: (v, meta, options, publish) =>
+                            tuya.valueConverter.coverPosition.from(v, meta, options, ({state}) => publish({state_top: state})),
+                    },
+                ],
                 // Battery
                 [13, "battery", tuya.valueConverter.raw],
             ],
