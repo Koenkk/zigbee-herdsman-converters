@@ -13,7 +13,7 @@ const tvc = tuya.valueConverter;
 
 export const definitions: DefinitionWithExtend[] = [
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_sonkaxrd", "_TZE2841000000_sonkaxrd"]),
         model: "E12",
         vendor: "Nous",
         description: "Carbon monoxide alarm",
