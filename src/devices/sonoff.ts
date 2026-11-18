@@ -685,16 +685,25 @@ const sonoffTpWgzbaOverheatProtectionTemperatureRange = {min: 20, max: 50, step:
 const sonoffTpWgzbaTemperatureControlHistoryValueOffset = 9;
 const sonoffTpWgzbaTemperatureControlHistoryCacheTimeoutMs = 30 * 1000;
 
-const formatSonoffTpWgzbaNtcTemperature = (value: unknown): string => {
+const sonoffTpWgzbaNtcSensorStatusValues = ["ok", ...Object.values(sonoffTpWgzbaNtcTemperatureStatusLookup)];
+
+/**
+ * Split the raw NTC attribute into a temperature and a sensor status.
+ * The device reports either a temperature (0.01 °C) or a reserved fault code on the same attribute;
+ * on a fault the temperature is `null` so Home Assistant shows it as unknown.
+ */
+const parseSonoffTpWgzbaNtcTemperature = (value: unknown): {temperature: number | null; status: string} => {
     utils.assertNumber(value, "currentNtcTemperature");
     const rawValue = value & 0xffff;
     const status = sonoffTpWgzbaNtcTemperatureStatusLookup[rawValue as keyof typeof sonoffTpWgzbaNtcTemperatureStatusLookup];
-    if (status !== undefined) return status;
+    if (status !== undefined) return {temperature: null, status};
 
     const signedValue = rawValue >= 0x8000 ? rawValue - 0x10000 : rawValue;
-    if (signedValue < sonoffTpWgzbaNtcTemperatureMinimumRaw) return sonoffTpWgzbaNtcTemperatureStatusLookup[32768];
+    if (signedValue < sonoffTpWgzbaNtcTemperatureMinimumRaw) {
+        return {temperature: null, status: sonoffTpWgzbaNtcTemperatureStatusLookup[32768]};
+    }
 
-    return `${(signedValue / sonoffTpWgzbaTemperatureScale).toFixed(2)} °C`;
+    return {temperature: signedValue / sonoffTpWgzbaTemperatureScale, status: "ok"};
 };
 
 type SonoffTrvzbtTemperatureControlHistoryType = "day" | "month" | "half_year";
@@ -4786,24 +4795,33 @@ const sonoffExtend = {
     },
     tpWgzbaNtcTemperature: (): ModernExtend => {
         const clusterName = "customSonoffTpWgzba";
-        const key = "ntc_temperature";
-        const exposes = e
-            .text(key, ea.STATE)
-            .withLabel("NTC temperature")
-            .withCategory("diagnostic")
-            .withDescription("Current external NTC temperature or sensor status.");
+        const exposes = [
+            e
+                .numeric("ntc_temperature", ea.STATE)
+                .withLabel("NTC temperature")
+                .withUnit("°C")
+                .withDescription("Current external NTC temperature, null when the sensor reports a fault (see ntc_sensor_status).")
+                // The device reports this every few seconds and the probe signal is noisy, so keep it out of the HA database unless enabled
+                .withHomeAssistant({enabledByDefault: false}),
+            e
+                .enum("ntc_sensor_status", ea.STATE, sonoffTpWgzbaNtcSensorStatusValues)
+                .withLabel("NTC sensor status")
+                .withCategory("diagnostic")
+                .withDescription("Status of the external NTC sensor."),
+        ];
         const fromZigbee: Fz.Converter<typeof clusterName, SonoffTpWgzba, ["attributeReport", "readResponse"]>[] = [
             {
                 cluster: clusterName,
                 type: ["attributeReport", "readResponse"],
                 convert: (model, msg) => {
                     if (msg.data.currentNtcTemperature === undefined) return;
-                    return {[key]: formatSonoffTpWgzbaNtcTemperature(msg.data.currentNtcTemperature)};
+                    const {temperature, status} = parseSonoffTpWgzbaNtcTemperature(msg.data.currentNtcTemperature);
+                    return {ntc_temperature: temperature, ntc_sensor_status: status};
                 },
             },
         ];
 
-        return {exposes: [exposes], fromZigbee, isModernExtend: true};
+        return {exposes, fromZigbee, isModernExtend: true};
     },
     cyclicTimedIrrigation: (): ModernExtend => {
         const exposes = e

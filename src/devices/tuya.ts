@@ -26,6 +26,8 @@ const ea = exposes.access;
 const te = tuya.exposes;
 const tvc = tuya.valueConverter;
 
+const t3eAction = (action: string) => ({from: (value: unknown) => (value === 0 ? {action} : {})});
+
 const fzZosung = zosung.fzZosung;
 const tzZosung = zosung.tzZosung;
 const ez = zosung.presetsZosung;
@@ -2558,11 +2560,15 @@ const sp107eLedChips = {
     SK6812: tuya.enum(9),
 };
 
+// On both ME201WZ variants DP 21 is the full-tank depth (bottom to full level), and the level percentage is relative to it.
+const me201wzLiquidDepthMax = () =>
+    te.liquidDepthMax().withDescription("Maximum liquid depth, from the tank bottom up to the full level (the level percentage is relative to it)");
+
 // The ME201WZ regularly picks up false echoes (e.g. -1.1 m, 5 m, 0.24 m), sometimes for hours. A real level changes
 // gradually, so drop readings outside the tank or jumping > 5 cm, unless the new level has been read steadily for 12 hours.
 // Small or pump-filled tanks really change faster than that, so the jump check is opt-in (readings outside the tank are always
 // dropped).
-const me201wzWithInstallationHeight = ["_TZE284_kyyu8rbj"];
+const me201wzWithInstallationHeight = ["_TZE284_kyyu8rbj", "_TZE2841000000_kyyu8rbj", "_TZE2841000000_7uqwvoua"];
 const me201wzFilterGlitches = (result: KeyValue, state: KeyValue, device: Zh.Device, filterJumps: boolean) => {
     const depth = result.liquid_depth as number | undefined;
     const percent = result.liquid_level_percent as number | undefined;
@@ -2623,13 +2629,25 @@ const me201wzLevel: Tuya.ValueConverterSingle = {
             const dp = Object.fromEntries((msg.data.dpValues as Tuya.DpValue[]).map((d) => [d.dp, tuya.getDataValue(d)]));
             const result: KeyValue = {};
             if (dp[1] !== undefined) result.liquid_state = tvc.level.from(dp[1] as number, meta, options);
-            if (dp[2] !== undefined) result.liquid_depth = (dp[2] as number) / 100;
+            // Firmware ME201Z.x reports the depth on DP114 instead of DP2
+            const depth = dp[2] ?? dp[114];
+            if (depth !== undefined) result.liquid_depth = (depth as number) / 100;
             if (dp[22] !== undefined) result.liquid_level_percent = dp[22];
             me201wzFiltered.set(msg, me201wzFilterGlitches(result, meta.state, meta.device, options?.filter_level_jumps === true));
         }
         return me201wzFiltered.get(msg);
     },
 };
+
+// Firmware ME201Z.x uses DP115/DP116 instead of DP19/DP21 for the installation height and max depth, write both.
+const me201wzSetting = (newDp: number): Tuya.ValueConverterSingle => ({
+    from: (v: number) => v / 100,
+    to: async (v: number, meta) => {
+        const endpoint = meta.device.getEndpoint(1);
+        await tuya.sendDataPointValue(endpoint, newDp, Math.round(v * 100), "dataRequest", 1);
+        return Math.round(v * 100);
+    },
+});
 
 const hhst001DeadzoneScale = (device?: {manufacturerName?: string}) =>
     ["_TZE284_6l44ypoc", "_TZE284_qvmmpbye"].includes(device?.manufacturerName) ? 10 : 1;
@@ -5806,7 +5824,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.whitelabel("Tuya", "809WZT", "Motion sensor", ["_TZ3040_bb6xaihh"]),
             tuya.whitelabel("Niceboy", "ORBIS Motion Sensor", "Motion sensor", ["_TZ3000_qomxlryd"]),
             tuya.whitelabel("Luminea", "ZX-5311", "Motion sensor", ["_TZ3000_jmrgyl7o"]),
-            tuya.whitelabel("Tuya", "ZP01", "Motion sensor", ["_TZ3000_lf56vpxj", "_TZ3040_o4mkahkc"]),
             tuya.whitelabel("Tuya", "HW500A", "Motion sensor", ["_TZ3000_bsvqrxru"]),
             tuya.whitelabel("Nedis", "ZBSM10WT", "Motion sensor", ["_TZ3000_nss8amz9"]),
         ],
@@ -5820,6 +5837,33 @@ export const definitions: DefinitionWithExtend[] = [
 
             return exps;
         },
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            try {
+                await reporting.batteryPercentageRemaining(endpoint);
+                await reporting.batteryVoltage(endpoint);
+            } catch {
+                /* Fails for some https://github.com/Koenkk/zigbee2mqtt/issues/13708 */
+            }
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0202", ["_TZ3000_lf56vpxj", "_TZ3040_o4mkahkc"]),
+        model: "ZP01",
+        vendor: "Tuya",
+        description: "Motion sensor",
+        fromZigbee: [fz.ias_occupancy_alarm_1, fz.battery, fz.ias_occupancy_alarm_1_report, fzLocal.ZM35HQ_attr],
+        toZigbee: [tzLocal.ZM35HQ_attr],
+        exposes: [
+            e.occupancy(),
+            e.battery_low(),
+            e.battery(),
+            e.battery_voltage(),
+            e.tamper(),
+            e.enum("sensitivity", ea.ALL, ["low", "medium", "high"]).withDescription("PIR sensor sensitivity"),
+            e.enum("keep_time", ea.ALL, [30, 60, 120]).withDescription("PIR keep time in seconds"),
+        ],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
@@ -16087,7 +16131,7 @@ export const definitions: DefinitionWithExtend[] = [
         ],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.relay_din_led_indicator],
         whiteLabel: [
-            tuya.whitelabel("Tongou", "TO-Q-SY1-JZT", "Din smart relay (with power monitoring via polling)", ["_TZ3000_qeuvnohg"]),
+            tuya.whitelabel("Chayo", "TO-Q-SY1-JZT", "Din smart relay (with power monitoring via polling)", ["_TZ3000_qeuvnohg"]),
             tuya.whitelabel("TOMZN", "TOB9Z-63M", "Din smart relay (with power monitoring via polling)", ["_TZ3000_6l1pjfqe"]),
             tuya.whitelabel("Nous", "DZ", "DIN Switch (with power monitoring via polling)", ["_TZ3000_2iiimqs9"]),
         ],
@@ -16128,7 +16172,7 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [tuyaBase()],
         fromZigbee: [fz.on_off, tuya.fz.power_outage_memory, tuya.fz.relay_din_led_indicator],
         toZigbee: [tz.on_off, tuya.tz.power_on_behavior_1, tuya.tz.relay_din_led_indicator],
-        whiteLabel: [tuya.whitelabel("Tongou", "TO-Q-SY1-ZT", "Din smart relay (without power monitoring)", ["_TZ3000_gzvniqjb"])],
+        whiteLabel: [tuya.whitelabel("Chayo", "TO-Q-SY1-ZT", "Din smart relay (without power monitoring)", ["_TZ3000_gzvniqjb"])],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(1);
             await reporting.bind(endpoint, coordinatorEndpoint, ["genOnOff"]);
@@ -18348,7 +18392,7 @@ export const definitions: DefinitionWithExtend[] = [
             device.save();
         },
         whiteLabel: [
-            tuya.whitelabel("Tongou", "TO-Q-SY2-163JZT", "Smart circuit breaker", ["_TZ3000_cayepv1a", "_TZ3000_yi0n4xfd"]),
+            tuya.whitelabel("Chayo", "TO-Q-SY2-163JZT", "Smart circuit breaker", ["_TZ3000_cayepv1a", "_TZ3000_yi0n4xfd"]),
             tuya.whitelabel("EARU", "EAKCB-T-M-Z", "Smart circuit breaker", ["_TZ3000_lepzuhto"]),
             tuya.whitelabel("EARU", "EAYCB-Z-2P", "Smart circuit breaker with leakage protection", ["_TZ3000_zrm3oxsh"]),
             tuya.whitelabel("UNSH", "SMKG-1KNL-EU-Z", "Smart circuit Breaker", ["_TZ3000_qystbcjg"]),
@@ -22162,7 +22206,7 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_tuhfx7tf",
         ]),
         model: "TOWSMR1",
-        vendor: "Tongou",
+        vendor: "Chayo",
         description: "Single-phase multifunction RCBO (DIN Module)",
         extend: [
             tuya.modernExtend.tuyaBase({
@@ -22172,13 +22216,13 @@ export const definitions: DefinitionWithExtend[] = [
             }),
         ],
         whiteLabel: [
-            tuya.whitelabel("Tongou", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", [
+            tuya.whitelabel("Chayo", "TOWSMR1-40A-AC", "Single-phase multifunction RCBO (DIN Module)", [
                 "_TZE284_432zhuwe",
                 "_TZE204_432zhuwe",
                 "_TZE204_kobbcyum",
             ]),
-            tuya.whitelabel("Tongou", "TOWSMR1-40A-A", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_s5vuaadg"]),
-            tuya.whitelabel("Tongou", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf", "_TZE204_tuhfx7tf"]),
+            tuya.whitelabel("Chayo", "TOWSMR1-40A-A", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_s5vuaadg"]),
+            tuya.whitelabel("Chayo", "TOWSMR1-20A-AC", "Single-phase multifunction RCBO (DIN Module)", ["_TZE284_tuhfx7tf", "_TZE204_tuhfx7tf"]),
         ],
         exposes: (device, options) => {
             const exps: Expose[] = [
@@ -22435,7 +22479,7 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: [{modelID: "TS0601", manufacturerName: "_TZE284_6ocnqlhn"}],
         model: "TO-Q-SYS-JZT",
-        vendor: "Tongou",
+        vendor: "Chayo",
         description: "Din rail smart meter",
         extend: [
             tuya.modernExtend.tuyaBase({
@@ -23388,11 +23432,11 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_lyqazpe6",
         ]),
         model: "TOQCB2-80",
-        vendor: "Tongou",
+        vendor: "Chayo",
         description: "Smart circuit breaker",
         // queryIntervalSeconds: is doing a pooling to update the device's parameters, now defined to update data every 3 minutes.
         extend: [tuya.modernExtend.tuyaBase({dp: true, queryIntervalSeconds: 3 * 60})],
-        whiteLabel: [tuya.whitelabel("Tongou", "TOQCB2-80-2P", "Smart circuit breaker (2P)", ["_TZE284_mrffaamu", "_TZE204_mrffaamu"])],
+        whiteLabel: [tuya.whitelabel("Chayo", "TOQCB2-80-2P", "Smart circuit breaker (2P)", ["_TZE284_mrffaamu", "_TZE204_mrffaamu"])],
         exposes: [
             tuya.exposes.switch(),
             e.energy(),
@@ -24547,7 +24591,7 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
-        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE284_mxujdmxo"]),
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE284_kyyu8rbj", "_TZE284_mxujdmxo", "_TZE2841000000_kyyu8rbj", "_TZE2841000000_7uqwvoua"]),
         model: "ME201WZ",
         vendor: "Tuya",
         description: "Water level sensor",
@@ -24576,8 +24620,8 @@ export const definitions: DefinitionWithExtend[] = [
             te.liquidMinimalPercent(),
 
             ...(!device || me201wzWithInstallationHeight.includes(device.manufacturerName)
-                ? [te.liquidDepthMax(), te.liquidInstallationHeight()]
-                : [te.liquidDepthMax().withValueMax(10)]),
+                ? [me201wzLiquidDepthMax(), te.liquidInstallationHeight()]
+                : [me201wzLiquidDepthMax().withValueMax(10)]),
             te.relaySwitch(),
             te.pumpMode(),
             te.autoPumpControl(),
@@ -24591,13 +24635,16 @@ export const definitions: DefinitionWithExtend[] = [
                 [5, "voltage", tvc.divideBy10], // power_level
                 [7, "max_set", tvc.raw],
                 [8, "min_set", tvc.raw],
-                [19, "installation_height", tvc.divideBy100],
-                [21, "liquid_depth_max", tvc.divideBy100],
+                [19, "installation_height", me201wzSetting(115)],
+                [21, "liquid_depth_max", me201wzSetting(116)],
                 [22, null, me201wzLevel],
                 [24, "relay_switch", tvc.onOff],
                 [101, "pump_mode", tvc.pumpMode],
                 [102, "pump_control", tvc.pumpControl], // auto_pump_control
                 [103, "version", tuya.valueConverter.raw],
+                [114, null, me201wzLevel],
+                [115, "installation_height", tvc.divideBy100],
+                [116, "liquid_depth_max", tvc.divideBy100],
             ],
         },
     },
@@ -26880,73 +26927,54 @@ export const definitions: DefinitionWithExtend[] = [
         model: "HS209Z",
         vendor: "HYSYIOT",
         description: "PIR and millimeter-wave radar human presence sensor",
-        extend: [tuyaBase({dp: true})],
-        fromZigbee: [fz.ias_occupancy_alarm_1, fz.ias_occupancy_alarm_1_report, fz.battery],
-        meta: {
-            tuyaDatapoints: [
-                [1, "occupancy", tuya.valueConverter.trueFalse0],
-                [
-                    3,
-                    "battery_state",
-                    tuya.valueConverterBasic.lookup({
-                        low: tuya.enum(0),
-                        middle: tuya.enum(1),
-                        high: tuya.enum(2),
-                    }),
-                ],
-                [4, "battery", tuya.valueConverter.raw],
-                [12, "pir_delay", tuya.valueConverter.raw],
-                [103, "detection_distance", tuya.valueConverter.raw],
-                [104, "static_sensitivity", tuya.valueConverter.raw],
-                [
-                    105,
-                    "motion_state",
-                    tuya.valueConverterBasic.lookup({
-                        none: tuya.enum(0),
-                        large: tuya.enum(1),
-                        small: tuya.enum(2),
-                        static: tuya.enum(3),
-                    }),
-                ],
-                [107, "indicator", tuya.valueConverter.onOff],
-                [123, "detection_sensitivity", tuya.valueConverter.raw],
-            ],
-        },
-        exposes: [
-            e.occupancy().withDescription("Indicates whether the device detected occupancy"),
-            e.battery().withDescription("Remaining battery in %"),
-            e.battery_low().withDescription("Indicates if the battery is low"),
-            e.enum("battery_state", ea.STATE, ["low", "middle", "high"]).withDescription("Battery level state: low, middle, or high"),
-            e
-                .numeric("pir_delay", ea.STATE_SET)
-                .withValueMin(30)
-                .withValueMax(120)
-                .withValueStep(30)
-                .withUnit("s")
-                .withDescription("PIR occupancy detection delay / keep time"),
-            e
-                .numeric("detection_distance", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(500)
-                .withValueStep(1)
-                .withUnit("cm")
-                .withDescription("Radar detection distance"),
-            e
-                .numeric("static_sensitivity", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Radar static detection sensitivity"),
-            e
-                .numeric("detection_sensitivity", ea.STATE_SET)
-                .withValueMin(1)
-                .withValueMax(10)
-                .withValueStep(1)
-                .withDescription("Radar motion detection sensitivity"),
-            e
-                .enum("motion_state", ea.STATE, ["none", "large", "small", "static"])
-                .withDescription("Radar motion state detail (none, large, small, static)"),
-            e.binary("indicator", ea.STATE_SET, "ON", "OFF").withDescription("LED indicator light mode"),
+        extend: [
+            tuyaBase(),
+            m.iasZoneAlarm({zoneType: "occupancy", zoneAttributes: ["alarm_1", "battery_low"]}),
+            m.battery(),
+            tuya.modernExtend.dpBatteryState({dp: 3, type: tuya.dataTypes.enum}),
+            dpNumeric({
+                name: "pir_delay",
+                dp: 12,
+                type: tuya.dataTypes.number,
+                valueMin: 30,
+                valueMax: 28800,
+                valueStep: 30,
+                unit: "s",
+                description: "PIR occupancy keep time",
+            }),
+            dpNumeric({
+                name: "detection_distance",
+                dp: 103,
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 500,
+                unit: "cm",
+                description: "Radar detection distance",
+            }),
+            dpNumeric({
+                name: "static_sensitivity",
+                dp: 104,
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 10,
+                description: "Radar static detection sensitivity",
+            }),
+            dpNumeric({
+                name: "detection_sensitivity",
+                dp: 123,
+                type: tuya.dataTypes.number,
+                valueMin: 1,
+                valueMax: 10,
+                description: "Radar motion detection sensitivity",
+            }),
+            dpBinary({
+                name: "indicator",
+                dp: 107,
+                type: tuya.dataTypes.bool,
+                valueOn: ["ON", true],
+                valueOff: ["OFF", false],
+                description: "LED indicator",
+            }),
         ],
     },
 
@@ -26999,9 +27027,9 @@ export const definitions: DefinitionWithExtend[] = [
     {
         fingerprint: tuya.fingerprint("TS0601", ["_TZE284_pglpvdar", "_TZE284_4hdbt6rn"]),
         model: "TO-Q-SA1",
-        vendor: "Tongou",
+        vendor: "Chayo",
         description: "Zigbee energy meter (transformer clamp)",
-        whiteLabel: [tuya.whitelabel("Tongou", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
+        whiteLabel: [tuya.whitelabel("Chayo", "TOSA1-01WXJAT2A", "Smart energy meter, two wire", ["_TZE284_4hdbt6rn"])],
         extend: [
             tuya.modernExtend.tuyaBase({
                 dp: true,
@@ -32329,6 +32357,114 @@ export const definitions: DefinitionWithExtend[] = [
                     "obstacle_sensitivity",
                     tuya.valueConverterBasic.lookup({off: tuya.enum(0), high: tuya.enum(1), medium: tuya.enum(2), low: tuya.enum(3)}),
                 ],
+            ],
+        },
+    },
+    {
+        fingerprint: tuya.fingerprint("TS0601", ["_TZE200_mua6ucdj"]),
+        model: "T3E_mua6ucdj",
+        vendor: "Tuya",
+        description: "T3E touch panel with 3 relays and scene buttons",
+        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {l1: 1, l2: 1, l3: 1}})],
+        exposes: [
+            ...[1, 2, 3].map((i) => e.switch().withEndpoint(`l${i}`)),
+            ...Array.from({length: 12}, (_, i) =>
+                e.binary(`scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`, ea.STATE_SET, "ON", "OFF").withDescription("Panel scene switch"),
+            ),
+            e.action([
+                "scene_1",
+                "scene_2",
+                "scene_3",
+                "scene_4",
+                "scene_5",
+                "scene_6",
+                "smart_curtain_open",
+                "smart_curtain_stop",
+                "smart_curtain_close",
+                "roller_shutter_down",
+                "roller_shutter_stop",
+                "roller_shutter_up",
+                "blinds_open",
+                "blinds_stop",
+                "blinds_close",
+                "screen_down",
+                "screen_stop",
+                "screen_up",
+                "gauze_curtain_open",
+                "gauze_curtain_stop",
+                "gauze_curtain_close",
+                "smart_window_open",
+                "smart_window_stop",
+                "smart_window_close",
+                "air_conditioner_on",
+                "air_conditioner_off",
+                "air_conditioner_cooling",
+                "air_conditioner_heating",
+                ...Array.from({length: 12}, (_, i) => {
+                    const name = `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`;
+                    return [`${name}_on`, `${name}_off`];
+                }).flat(),
+            ]),
+        ],
+        meta: {
+            tuyaDatapoints: [
+                [24, "state_l1", tuya.valueConverter.onOff],
+                [25, "state_l2", tuya.valueConverter.onOff],
+                [26, "state_l3", tuya.valueConverter.onOff],
+                // Receive mappings must come first: the Tuya receiver uses the first matching DP.
+                ...Array.from({length: 12}, (_, i): Tuya.MetaTuyaDataPointsSingle => {
+                    const name = `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`;
+                    return [
+                        130 + i,
+                        null,
+                        {
+                            from: (value) =>
+                                typeof value === "boolean" ? {[name]: value ? "ON" : "OFF", action: `${name}_${value ? "on" : "off"}`} : {},
+                        },
+                    ];
+                }),
+                ...Array.from(
+                    {length: 12},
+                    (_, i): Tuya.MetaTuyaDataPointsSingle => [
+                        130 + i,
+                        `scene_switch_${Math.floor(i / 4) + 1}_${(i % 4) + 1}`,
+                        {
+                            to: (value) => {
+                                if (value !== "ON" && value !== "OFF") throw new Error("Expected ON or OFF");
+                                return value === "ON";
+                            },
+                        },
+                        {optimistic: false},
+                    ],
+                ),
+                [5, null, t3eAction("scene_1")],
+                [6, null, t3eAction("scene_2")],
+                [7, null, t3eAction("scene_3")],
+                [8, null, t3eAction("scene_4")],
+                [9, null, t3eAction("scene_5")],
+                [10, null, t3eAction("scene_6")],
+                [104, null, t3eAction("smart_curtain_open")],
+                [105, null, t3eAction("smart_curtain_stop")],
+                [106, null, t3eAction("smart_curtain_close")],
+                [107, null, t3eAction("roller_shutter_down")],
+                [108, null, t3eAction("roller_shutter_stop")],
+                [109, null, t3eAction("roller_shutter_up")],
+                [110, null, t3eAction("blinds_open")],
+                [111, null, t3eAction("blinds_stop")],
+                [112, null, t3eAction("blinds_close")],
+                [115, null, t3eAction("screen_down")],
+                [116, null, t3eAction("screen_stop")],
+                [117, null, t3eAction("screen_up")],
+                [118, null, t3eAction("gauze_curtain_open")],
+                [119, null, t3eAction("gauze_curtain_stop")],
+                [120, null, t3eAction("gauze_curtain_close")],
+                [121, null, t3eAction("smart_window_open")],
+                [122, null, t3eAction("smart_window_stop")],
+                [123, null, t3eAction("smart_window_close")],
+                [124, null, t3eAction("air_conditioner_on")],
+                [125, null, t3eAction("air_conditioner_off")],
+                [126, null, t3eAction("air_conditioner_cooling")],
+                [127, null, t3eAction("air_conditioner_heating")],
             ],
         },
     },
