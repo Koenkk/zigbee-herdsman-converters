@@ -9736,9 +9736,11 @@ export const definitions: DefinitionWithExtend[] = [
         model: "ZBCurtain",
         vendor: "SONOFF",
         description: "Zigbee smart curtain motor",
+        version: "0.0.1",
         fromZigbee: [fz.cover_position_tilt, fz.battery],
         toZigbee: [tz.cover_state, tz.cover_position_tilt],
         exposes: [e.cover_position(), e.battery()],
+        extend: [m.forcePowerSource({powerSource: "Battery"})],
     },
     {
         zigbeeModel: ["SA-029-1", "SA-028-1"],
