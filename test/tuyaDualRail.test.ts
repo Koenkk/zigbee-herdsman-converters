@@ -55,7 +55,7 @@ const setup = async (manufacturer = "_TZE210_yqwse3h5", ieeeAddr = "0x0000000000
         const meta: Tz.Meta = {device, mapped: definition, state: {}, message, options, publish: vi.fn(), endpoint_name: endpointName};
         return setter.convertSet(endpoint, key, message[key], meta);
     };
-    return {device, definition, endpoint, reader, report, reportRaw, set};
+    return {device, definition, endpoint, reader, report, reportRaw, set, setter};
 };
 
 describe("TS0301 dual rail", () => {
@@ -98,6 +98,77 @@ describe("TS0301 dual rail", () => {
             const {result, publish} = await reportRaw(dpValues, {}, {position_top: 37, state_top: "OPEN", position_bottom: 0, state_bottom: "CLOSE"});
             expect(result, JSON.stringify(value)).toEqual({[`position_${rail}`]: sibling === 3 ? 25 : 75, battery: 90});
             expect(publish).toHaveBeenCalledExactlyOnceWith({[`state_${rail}`]: "OPEN"});
+        }
+    });
+
+    it.each([
+        {name: "wrong datatype", datatype: 4, data: [30]},
+        {name: "wrong numeric length", datatype: 2, data: [30]},
+        {name: "out of range", datatype: 2, data: [0, 0, 0, 101]},
+    ])("preserves valid siblings and cached invalid rails through real ZCL frames: $name", async ({datatype, data}) => {
+        for (const invalidDP of [3, 102]) {
+            const {device, definition, endpoint, reader} = await setup();
+            const transaction = sequence++ % 256;
+            const siblingDP = invalidDP === 3 ? 102 : 3;
+            const siblingRail = invalidDP === 3 ? "bottom" : "top";
+            const raw = Buffer.from([
+                0x09,
+                transaction,
+                0x02,
+                0x00,
+                transaction, // Tuya dataReport with sequence and three DP records.
+                invalidDP,
+                datatype,
+                0,
+                data.length,
+                ...data,
+                siblingDP,
+                2,
+                0,
+                4,
+                0,
+                0,
+                0,
+                80,
+                13,
+                2,
+                0,
+                4,
+                0,
+                0,
+                0,
+                75,
+            ]);
+            const frame = Zcl.Frame.fromBuffer(0xef00, Zcl.Header.fromBuffer(raw), raw, {});
+            expect(frame.command.name).toBe("dataReport");
+            expect(frame.payload.dpValues).toHaveLength(3);
+            const state = {position_top: 66, state_top: "CLOSE", position_bottom: 55, state_bottom: "CLOSE"};
+            const publish = vi.fn();
+            const result = await reader.convert(
+                definition,
+                {
+                    device,
+                    endpoint,
+                    type: "commandDataReport",
+                    cluster: "manuSpecificTuya",
+                    data: frame.payload,
+                    meta: {zclTransactionSequenceNumber: frame.header.transactionSequenceNumber, rawData: raw},
+                },
+                publish,
+                {},
+                {device, mapped: definition, state} as Fz.Meta,
+            );
+            const position = invalidDP === 3 ? 20 : 80;
+            expect(result).toEqual({[`position_${siblingRail}`]: position, battery: 75});
+            expect(publish).toHaveBeenCalledExactlyOnceWith({[`state_${siblingRail}`]: "OPEN"});
+            expect(state).toEqual({position_top: 66, state_top: "CLOSE", position_bottom: 55, state_bottom: "CLOSE"});
+            expect({...state, ...result, ...publish.mock.calls[0][0]}).toEqual({
+                position_top: invalidDP === 3 ? 66 : 80,
+                state_top: invalidDP === 3 ? "CLOSE" : "OPEN",
+                position_bottom: invalidDP === 3 ? 20 : 55,
+                state_bottom: invalidDP === 3 ? "OPEN" : "CLOSE",
+                battery: 75,
+            });
         }
     });
 
@@ -273,6 +344,50 @@ describe("TS0301 dual rail", () => {
         }
     });
 
+    // Captured convertSet handoffs from the real Z2M onMQTTMessage, not a caller reimplementation.
+    // https://github.com/Koenkk/zigbee2mqtt/blob/3c841fdfd66c92239921ef84fde8f039c64e1662/lib/extension/publish.ts#L153-L250
+    // Z2M strips only the selected rail's suffix, appends that key, and calls once for physical endpoint 1.
+    // These fixtures protect the converter boundary; they do not run Z2M or exercise broker/radio timing.
+    it.each([
+        {
+            endpoint_name: "top",
+            value: 30,
+            message: {position_bottom: 40, position: 30},
+            expected: [
+                [101, 60],
+                [2, 30],
+            ],
+        },
+        {
+            endpoint_name: "bottom",
+            value: 40,
+            message: {position_top: 30, position: 40},
+            expected: [
+                [2, 30],
+                [101, 60],
+            ],
+        },
+    ])("accepts the captured Z2M two-position handoff with $endpoint_name first", async ({endpoint_name, value, message, expected}) => {
+        const {device, definition, endpoint, setter} = await setup();
+        expect(definition.endpoint(device)).toEqual({top: 1, bottom: 1});
+        const meta: Tz.Meta = {device, mapped: definition, state: {}, options: {}, publish: vi.fn(), endpoint_name, message};
+        expect(await setter.convertSet(endpoint, "position", value, meta)).toEqual({state: {}});
+        expect(vi.mocked(endpoint.command).mock.calls.map((call) => call[2])).toEqual(
+            expected.map(([dp, raw]) => ({seq: 1, dpValues: [{dp, datatype: 2, data: Buffer.from([0, 0, 0, raw])}]})),
+        );
+    });
+
+    it.each([
+        {endpoint_name: "top", key: "position", value: 30, message: {state_bottom: "STOP", position: 30}, missing: "state_bottom"},
+        {endpoint_name: "bottom", key: "state", value: "STOP", message: {position_top: 30, state: "STOP"}, missing: "position_top"},
+    ])("documents the inherited mixed position/STOP failure with $endpoint_name first", async ({endpoint_name, key, value, message, missing}) => {
+        const {device, definition, endpoint, setter} = await setup();
+        const meta: Tz.Meta = {device, mapped: definition, state: {}, options: {}, publish: vi.fn(), endpoint_name, message};
+        await expect(setter.convertSet(endpoint, key, value, meta)).rejects.toThrow(`No datapoint defined for '${missing}'`);
+        expect(endpoint.command).not.toHaveBeenCalled();
+        expect(meta.publish).not.toHaveBeenCalled();
+    });
+
     it("sends a combined payload as sequential separate SDK commands after ACK, not physical arrival", async () => {
         const {endpoint, set} = await setup();
         let acknowledge: () => void;
@@ -339,7 +454,12 @@ describe("TS0301 dual rail", () => {
         expect(second.endpoint.command).not.toHaveBeenCalled();
         const packet = [tuya.dpValueFromNumberValue(3, 20), tuya.dpValueFromNumberValue(102, 40), tuya.dpValueFromNumberValue(13, 81)];
         expect((await first.reportRaw(packet, {}, {}, 42)).result).toEqual({position_top: 20, position_bottom: 60, battery: 81});
-        expect((await second.reportRaw(packet, {}, {}, 42)).result).toEqual({position_top: 20, position_bottom: 60, battery: 81});
+        const duplicate = await first.reportRaw(packet, {}, {}, 42);
+        expect(duplicate.result).toBeUndefined();
+        expect(duplicate.publish).not.toHaveBeenCalled();
+        const independent = await second.reportRaw(packet, {}, {}, 42);
+        expect(independent.result).toEqual({position_top: 20, position_bottom: 60, battery: 81});
+        expect(independent.publish.mock.calls).toEqual([[{state_top: "OPEN"}], [{state_bottom: "OPEN"}]]);
     });
 
     it.each(["top", "bottom"])("rejects invalid %s position before writing", async (rail) => {
