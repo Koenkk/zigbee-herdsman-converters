@@ -229,6 +229,7 @@ import {definitions as mindy} from "./mindy";
 import {definitions as modular} from "./modular";
 import {definitions as moes} from "./moes";
 import {definitions as mowe} from "./mowe";
+import {definitions as movesmart} from "./movesmart";
 import {definitions as msh} from "./msh";
 import {definitions as mullerLicht} from "./muller_licht";
 import {definitions as multir} from "./multir";
@@ -636,6 +637,7 @@ const definitions: DefinitionWithExtend[] = [
     ...modular,
     ...moes,
     ...mowe,
+    ...movesmart,
     ...msh,
     ...mullerLicht,
     ...multir,
