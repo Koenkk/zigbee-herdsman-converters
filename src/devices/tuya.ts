@@ -1002,6 +1002,22 @@ const spm02Thresholds: Tuya.ValueConverterSingle = {
 };
 
 const tzLocal = {
+    dualRailDatapoints: {
+        ...tuya.tz.datapoints,
+        convertSet: async (entity, key, value, meta) => {
+            const entries = Object.entries(meta.message);
+            const positionKey = (attr: string) => (attr === "position" && meta.endpoint_name ? `position_${meta.endpoint_name}` : attr);
+            const top = entries.find(([attr]) => positionKey(attr) === "position_top");
+            const bottom = entries.find(([attr]) => positionKey(attr) === "position_bottom");
+            if (entries.length === 2 && top && bottom) {
+                // Z2M can move the selected endpoint's position key to the end; preserve top-before-bottom dispatch.
+                validateDualRailPosition(top[1]);
+                validateDualRailPosition(bottom[1]);
+                return await tuya.tz.datapoints.convertSet(entity, key, value, {...meta, message: Object.fromEntries([top, bottom])});
+            }
+            return tuya.tz.datapoints.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -1725,7 +1741,7 @@ const tzLocal = {
     } satisfies Tz.Converter,
 };
 
-function validateDualRailPosition(value: number): number {
+function validateDualRailPosition(value: unknown): number {
     utils.assertNumber(value, "position");
     if (!Number.isFinite(value) || value < 0 || value > 100) throw new Error("Position must be between 0 and 100");
     return value;
@@ -7409,7 +7425,7 @@ export const definitions: DefinitionWithExtend[] = [
         description: "Top-down bottom-up dual motor shade",
         extend: [tuya.modernExtend.tuyaBase(), m.deviceEndpoints({endpoints: {top: 1, bottom: 1}})],
         fromZigbee: [fzLocal.dualRailDatapoints],
-        toZigbee: [tuya.tz.datapoints],
+        toZigbee: [tzLocal.dualRailDatapoints],
         exposes: [
             ...[
                 te.coverPosition().withEndpoint("top").withDescription("Top rail"),

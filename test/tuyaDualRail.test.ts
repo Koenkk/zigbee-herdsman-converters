@@ -14,7 +14,7 @@ const setup = async (manufacturer = "_TZE210_yqwse3h5", ieeeAddr = "0x0000000000
     const device = deviceFor(manufacturer === "Yooksmart" ? "YKV24SAED" : "TS0301", manufacturer, ieeeAddr);
     const definition = await findByDevice(device);
     const endpoint = device.getEndpoint(1);
-    const setter = definition.toZigbee.find((converter) => converter === tuya.tz.datapoints);
+    const setter = definition.toZigbee.find((converter) => !converter.key);
     const reader = definition.fromZigbee.find(
         (converter) =>
             converter.cluster === "manuSpecificTuya" &&
@@ -51,7 +51,7 @@ const setup = async (manufacturer = "_TZE210_yqwse3h5", ieeeAddr = "0x0000000000
             state,
         );
     const set = (message: KeyValue, options: KeyValue = {}, endpointName?: string) => {
-        const key = Object.keys(message)[0];
+        const key = endpointName && Object.hasOwn(message, "position") ? "position" : Object.keys(message)[0];
         const meta: Tz.Meta = {device, mapped: definition, state: {}, message, options, publish: vi.fn(), endpoint_name: endpointName};
         return setter.convertSet(endpoint, key, message[key], meta);
     };
@@ -354,8 +354,8 @@ describe("TS0301 dual rail", () => {
             value: 30,
             message: {position_bottom: 40, position: 30},
             expected: [
-                [101, 60],
                 [2, 30],
+                [101, 60],
             ],
         },
         {
@@ -375,6 +375,50 @@ describe("TS0301 dual rail", () => {
         expect(vi.mocked(endpoint.command).mock.calls.map((call) => call[2])).toEqual(
             expected.map(([dp, raw]) => ({seq: 1, dpValues: [{dp, datatype: 2, data: Buffer.from([0, 0, 0, raw])}]})),
         );
+    });
+
+    it.each([
+        {endpoint_name: undefined, message: {position_bottom: 0, position_top: 80}},
+        {endpoint_name: undefined, message: {position_top: 80, position_bottom: 0}},
+        {endpoint_name: "top", message: {position_bottom: 0, position: 80}},
+        {endpoint_name: "bottom", message: {position: 0, position_top: 80}},
+    ])("orders paired targets top first without mutating the caller: $endpoint_name $message", async ({endpoint_name, message}) => {
+        const {endpoint, set} = await setup();
+        const before = Object.entries(message);
+        Object.freeze(message);
+        expect(await set(message, {}, endpoint_name)).toEqual({state: {}});
+        expect(vi.mocked(endpoint.command).mock.calls.map((call) => call[2])).toEqual([
+            {seq: 1, dpValues: [{dp: 2, datatype: 2, data: Buffer.from([0, 0, 0, 80])}]},
+            {seq: 1, dpValues: [{dp: 101, datatype: 2, data: Buffer.from([0, 0, 0, 100])}]},
+        ]);
+        expect(Object.entries(message)).toEqual(before);
+        expect(vi.mocked(endpoint.command).mock.calls.every((call) => JSON.stringify(call[3]) === '{"disableDefaultResponse":true}')).toBe(true);
+    });
+
+    it.each(["top", "bottom"])("preflights invalid paired %s targets before either write", async (rail) => {
+        const {endpoint, set} = await setup();
+        for (const invalid of [-1, 101, Number.NaN, Number.POSITIVE_INFINITY, "50", null]) {
+            for (const endpointName of [undefined, "top", "bottom"]) {
+                const message = {position_bottom: rail === "bottom" ? invalid : 0, position_top: rail === "top" ? invalid : 80};
+                const entries = Object.entries(message).map(([key, value]) => [key === `position_${endpointName}` ? "position" : key, value]);
+                await expect(set(Object.fromEntries(entries), {}, endpointName)).rejects.toThrow();
+            }
+        }
+        expect(endpoint.command).not.toHaveBeenCalled();
+    });
+
+    it("delegates non-pair messages intact, including extra operations and unknown keys", async () => {
+        const {device, definition, endpoint, setter} = await setup();
+        const delegate = vi.spyOn(tuya.tz.datapoints, "convertSet").mockResolvedValueOnce({state: {}});
+        const message = {position_bottom: 0, position_top: 80, state_bottom: "STOP", unknown: 1};
+        const meta: Tz.Meta = {device, mapped: definition, state: {}, options: {}, publish: vi.fn(), message};
+        try {
+            await setter.convertSet(endpoint, "position_top", 80, meta);
+            expect(delegate).toHaveBeenCalledExactlyOnceWith(endpoint, "position_top", 80, meta);
+            expect(delegate.mock.calls[0][3]).toBe(meta);
+        } finally {
+            delegate.mockRestore();
+        }
     });
 
     it.each([
