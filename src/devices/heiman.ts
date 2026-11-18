@@ -2886,6 +2886,47 @@ export const definitions: DefinitionWithExtend[] = [
         exposes: [e.battery(), e.temperature(), e.humidity()],
     },
     {
+        zigbeeModel: ["H1-E"],
+        model: "H1-E",
+        vendor: "Heiman",
+        description: "Smart Temperature & humidity sensor",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint1.read("msTemperatureMeasurement", [0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["humidityOffset", "temperatureOffset", "rebootedCount", "rejoinedCount", "reportedPackages"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["msRelativeHumidity"]);
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        extend: [
+            m.battery(),
+            heimanExtend.heimanClusterSpecial(),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                lookup: {celsius: 0, fahrenheit: 1},
+                description: "Temperature unit displayed on the device screen",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+    },
+    {
         zigbeeModel: ["GASSensor-EM", "358e4e3e03c644709905034dae81433e"],
         model: "HS1CG-E",
         vendor: "Heiman",
