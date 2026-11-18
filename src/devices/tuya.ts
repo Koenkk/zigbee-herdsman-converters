@@ -1002,6 +1002,26 @@ const spm02Thresholds: Tuya.ValueConverterSingle = {
 };
 
 const tzLocal = {
+    dualRailDatapoints: {
+        ...tuya.tz.datapoints,
+        convertSet: async (entity, key, value, meta) => {
+            const entries = Object.entries(meta.message);
+            const positionKey = (attr: string) => (attr === "position" && meta.endpoint_name ? `position_${meta.endpoint_name}` : attr);
+            for (const [attr, target] of entries) {
+                if (["position_top", "position_bottom"].includes(positionKey(attr))) {
+                    utils.assertNumber(target, "position");
+                    if (!Number.isFinite(target) || target < 0 || target > 100) throw new Error("Position must be between 0 and 100");
+                }
+            }
+            const top = entries.find(([attr]) => positionKey(attr) === "position_top");
+            const bottom = entries.find(([attr]) => positionKey(attr) === "position_bottom");
+            if (entries.length === 2 && top && bottom) {
+                // Z2M can move the selected endpoint's position key to the end; preserve top-before-bottom dispatch.
+                return await tuya.tz.datapoints.convertSet(entity, key, value, {...meta, message: Object.fromEntries([top, bottom])});
+            }
+            return tuya.tz.datapoints.convertSet(entity, key, value, meta);
+        },
+    } satisfies Tz.Converter,
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
     TS0301_dual_rail_2: {
         key: ["state", "position"],
@@ -1743,6 +1763,22 @@ const sdm01Variant = (v1Key: string, v1: Tuya.ValueConverterSingle, v2Key: strin
 });
 
 const fzLocal = {
+    dualRailDatapoints: {
+        ...tuya.fz.datapoints,
+        convert: (model, msg, publish, options, meta) => {
+            // Filter before decoding: an empty numeric DP otherwise becomes a false closed position.
+            const dpValues = msg.data.dpValues.filter(
+                (dp) =>
+                    (dp.dp !== 3 && dp.dp !== 102) ||
+                    (dp.datatype === tuya.dataTypes.number && dp.data.length === 4 && Buffer.from(dp.data).readUInt32BE(0) <= 100),
+            );
+            return tuya.fz.datapoints.convert(model, {...msg, data: {...msg.data, dpValues}}, publish, options, meta);
+        },
+    } satisfies Fz.Converter<
+        "manuSpecificTuya",
+        undefined,
+        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
+    >,
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
     // as raw lightingColorCtrl frames without updating colorTemperature.
     FUT035ZrfColorTemp: {
@@ -2680,6 +2716,11 @@ const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverter
         return {[meta.device.meta.openingMode === "tilt" ? "tilt" : "position"]: value, state: value === 0 ? "CLOSE" : "OPEN"};
     },
 });
+
+// Keep tuyaBase's setup and handlers; replace only this shade's generic DP converters.
+const dualRailBase = tuya.modernExtend.tuyaBase({dp: true});
+dualRailBase.fromZigbee = dualRailBase.fromZigbee.map((converter) => (converter === tuya.fz.datapoints ? fzLocal.dualRailDatapoints : converter));
+dualRailBase.toZigbee = dualRailBase.toZigbee.map((converter) => (converter === tuya.tz.datapoints ? tzLocal.dualRailDatapoints : converter));
 
 export const definitions: DefinitionWithExtend[] = [
     {
@@ -7384,7 +7425,7 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Tuya",
         whiteLabel: [{vendor: "Yooksmart", model: "YKV24SAED", fingerprint: tuya.fingerprint("YKV24SAED", ["Yooksmart"])}],
         description: "Top-down bottom-up dual motor shade",
-        extend: [tuya.modernExtend.tuyaBase({dp: true}), m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
+        extend: [dualRailBase, m.deviceEndpoints({endpoints: {bottom: 1, top: 1}})],
         exposes: [
             te.coverPosition().withEndpoint("bottom").withDescription("Bottom rail"),
             te.coverPosition().withEndpoint("top").withDescription("Top rail"),
@@ -7394,8 +7435,13 @@ export const definitions: DefinitionWithExtend[] = [
             tuyaDatapoints: [
                 // Bottom rail - DP109 is control, DP101 is set position, DP102 is current position
                 // Only the current position DPs are used to publish state, control and set position DPs are write-only
-                [109, "state_bottom", {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)}).to}],
-                [101, "position_bottom", {to: tuya.valueConverter.coverPositionInverted.to}],
+                [
+                    109,
+                    "state_bottom",
+                    {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(0), CLOSE: tuya.enum(1), STOP: tuya.enum(2)}).to},
+                    {optimistic: false},
+                ],
+                [101, "position_bottom", {to: tuya.valueConverter.coverPositionInverted.to}, {optimistic: false}],
                 [
                     102,
                     "position_bottom",
@@ -7406,8 +7452,13 @@ export const definitions: DefinitionWithExtend[] = [
                 ],
                 // Top rail - DP1 is control, DP2 is set position, DP3 is current position
                 // Note: State commands are reversed for Home Assistant compatibility with top-down operation
-                [1, "state_top", {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)}).to}],
-                [2, "position_top", {to: tuya.valueConverter.coverPosition.to}],
+                [
+                    1,
+                    "state_top",
+                    {to: tuya.valueConverterBasic.lookup({OPEN: tuya.enum(1), CLOSE: tuya.enum(0), STOP: tuya.enum(2)}).to},
+                    {optimistic: false},
+                ],
+                [2, "position_top", {to: tuya.valueConverter.coverPosition.to}, {optimistic: false}],
                 [
                     3,
                     "position_top",
