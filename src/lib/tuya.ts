@@ -2638,8 +2638,7 @@ export const valueConverter = {
                 schedule_holiday: programmingMode.slice(6, 8).join(" "),
             };
         },
-        to: async (v: string, meta: Tz.Meta) => {
-            const dpId = 109;
+        to: (v: string, meta: Tz.Meta) => {
             const payload: number[] = [];
             let weekdayFormat: string;
             let holidayFormat: string;
@@ -2693,9 +2692,8 @@ export const valueConverter = {
             scheduleToRaw("schedule_weekday", weekdayFormat, 6, payload, meta);
             scheduleToRaw("schedule_holiday", holidayFormat, 2, payload, meta);
 
-            const entity = meta.device.endpoints[0];
-            const sendCommand = utils.getMetaValue(entity, meta.mapped, "tuyaSendCommand", undefined, "dataRequest");
-            await sendDataPointRaw(entity, dpId, Buffer.from(payload), sendCommand, 1);
+            // Returned as raw payload, tuyaBase sends it to the datapoint of the matching entry
+            return payload;
         },
     },
     // biome-ignore lint/style/useNamingConvention: ignored using `--suppress`
