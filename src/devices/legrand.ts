@@ -915,4 +915,21 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.onOff(endpoint);
         },
     },
+    {
+        zigbeeModel: [" MGSI - Indoor Sensor"],
+        model: "CB0450",
+        vendor: "Legrand",
+        description: "Céliane with Netatmo indoor temperature and humidity sensor",
+        extend: [
+            m.temperature(),
+            m.humidity(),
+            m.battery({
+                percentage: true,
+                percentageReporting: false,
+                voltage: true,
+                voltageReporting: false,
+                voltageToPercentage: "3V_2100",
+            }),
+        ],
+    },
 ];
