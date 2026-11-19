@@ -2090,6 +2090,26 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
+        // Warning sound for MO24-001 (confirmed): mode, level and strobe aren't
+    // functional on this device, only duration matters. Home Assistant's
+    // siren card always sends {mode, level, duration} regardless of which
+    // composite features are declared, so mode/level are accepted here but
+    // ignored. WarningControl is fixed at 0x20 (mode=fire, no strobe, low
+    // level); duration 0 (or mode 'stop') stops the warning.
+    heiman_mo24_warning: {
+        key: ["warning"],
+        convertSet: async (entity, key, value, meta) => {
+            utils.assertObject(value);
+            const duration = value.mode === "stop" ? 0 : ((value.duration as number) ?? 10);
+            await entity.command("ssIasWd", "startWarning", {
+                startwarninginfo: duration > 0 ? 0x20 : 0x00,
+                warningduration: duration,
+                strobedutycycle: 0,
+                strobelevel: 0,
+            });
+            return {state: {warning: value}};
+        },
+    } satisfies Tz.Converter,    
 };
 
 const fzLocal = {
@@ -2312,6 +2332,19 @@ const fzLocal = {
             };
         },
     } satisfies Fz.Converter<"ssIasZone", undefined, "commandStatusChangeNotification">,
+    // High temperature alarm for MO24-001 (confirmed): the device sends a
+    // generic ZCL Alarms 'alarm' command referencing the temperature
+    // measurement cluster (0x0402); alarmcode 0x01 means the high
+    // temperature alarm is active, any other code clears it.
+    heiman_mo24_high_temperature_alarm: {
+        cluster: "genAlarms",
+        type: ["commandAlarm"],
+        convert: (model, msg, publish, options, meta) => {
+            if (msg.data.clusterid === 0x0402) {
+                return {high_temperature: msg.data.alarmcode === 1};
+            }
+        },
+    } satisfies Fz.Converter<"genAlarms", undefined, "commandAlarm">,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2458,6 +2491,88 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.batteryPercentageRemaining(endpoint);
         },
         exposes: [e.smoke(), e.battery_low(), e.battery(), e.test()],
+    },
+    {
+        zigbeeModel: ["MO24-001"],
+        model: "MO24-001",
+        vendor: "Heiman",
+        description: "Smart smoke alarm",
+        fromZigbee: [fzLocal.heiman_mo24_high_temperature_alarm],
+        toZigbee: [tzLocal.heiman_mo24_warning],
+        // Best-effort default so the entity doesn't start as "unknown" in
+        // Home Assistant. Only takes effect if Z2M already has cached state
+        // for this device (e.g. after a restart) - on a brand new pairing
+        // there's no cached state yet to seed, so it may still show
+        // "unknown" until the device first reports.
+        onEvent: [
+            (event) => {
+                if ((event.type === "start" || event.type === "deviceJoined") && event.data.state.high_temperature === undefined) {
+                    event.data.state.high_temperature = false;
+                }
+            },
+        ],
+        exposes: [
+            e.binary("high_temperature", ea.STATE, true, false).withDescription("Indicates whether the high temperature alarm is active"),
+            e
+                .composite("warning", "warning", ea.SET)
+                .withFeature(
+                    e
+                        .numeric("duration", ea.SET)
+                        .withUnit("s")
+                        .withValueMin(0)
+                        .withValueMax(0xffff)
+                        .withDescription("Duration in seconds of the alarm"),
+                )
+                .withDescription("Start (duration > 0) or stop (0) the audible warning sound"),
+        ],
+        extend: [
+            m.battery(),
+            m.identify(),
+            m.temperature(),
+            m.iasZoneAlarm({zoneType: "smoke", zoneAttributes: ["alarm_1", "tamper", "battery_low", "test"]}),
+            // Temperature calibration offset (confirmed: INT8, scale x10, range -10..10 C)
+            m.numeric({
+                name: "temperature_calibration",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf006, type: Zcl.DataType.INT8},
+                description: "Temperature calibration offset",
+                unit: "°C",
+                valueMin: -10,
+                valueMax: 10,
+                valueStep: 0.1,
+                scale: 10,
+                access: "ALL",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: 0x120b},
+            }),
+            // Smoke detected in optical chamber / pre-alarm (confirmed: UINT8, 0/1)
+            m.binary({
+                name: "smoke_chamber",
+                cluster: "ssIasZone",
+                attribute: {ID: 0xf009, type: Zcl.DataType.UINT8},
+                description: "Indicates whether smoke is detected in the optical chamber (pre-alarm)",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE_GET",
+                reporting: {min: 0, max: 60000, change: 1},
+                zigbeeCommandOptions: {manufacturerCode: 0x120b},
+            }),
+            // Hush: set when the alarm sounded and someone pressed the device's
+            // button to silence it - i.e. an indication that the alarm is being
+            // responded to / the room is being handled.
+            m.binary({
+                name: "hush",
+                cluster: "ssIasZone",
+                attribute: {ID: 0xf003, type: Zcl.DataType.UINT16},
+                description: "Indicates the alarm was manually silenced at the device after sounding, i.e. someone is responding to it",
+                label: "Acknowledged",
+                valueOn: [true, 1],
+                valueOff: [false, 0],
+                access: "STATE_GET",
+                reporting: {min: 0, max: 3600, change: 0},
+                zigbeeCommandOptions: {manufacturerCode: 0x120b},
+            }),
+        ],
     },
     {
         zigbeeModel: ["GASSensor-N", "GASSensor-N-3.0", "d90d7c61c44d468a8e906ca0841e0a0c"],
