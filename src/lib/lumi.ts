@@ -2137,7 +2137,7 @@ export interface AqaraFp400Radar {
 }
 export interface AqaraFp400Location {
     attributes: {activityState: number};
-    commands: never;
+    commands: {subscribeLocationData: {timeout: number}};
     commandResponses: never;
 }
 export interface AqaraFp400Sensitivity {
@@ -2190,7 +2190,9 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
         attributes: {
             activityState: {name: "activityState", ID: 0x0007, type: Zcl.DataType.ENUM8},
         },
-        commands: {},
+        commands: {
+            subscribeLocationData: {name: "subscribeLocationData", ID: 0x00, parameters: [{name: "timeout", type: Zcl.DataType.UINT16}]},
+        },
         commandsResponse: {},
     },
     aqaraFp400Sensitivity: {
@@ -2261,6 +2263,34 @@ function fp400DecodeAttributeSync(cluster: string | number, data: unknown): KeyV
         offset += 3 + fp400TypeSizes[type];
     }
     return values;
+}
+
+/**
+ * Decodes a position event (0xFC0C, 0x8B event 0): `4C <count u16>`, then per target a structure of typed fields of
+ * which 0 is the id, 1 and 2 are x and y (cm) and 8 is the native zone (0 when in none). Ember coordinators deliver only
+ * the first 80 bytes of a frame (zigbee-herdsman#1886), so targets whose position did not arrive are left out.
+ */
+function fp400DecodeTargets(data: unknown): {id: number; x: number; y: number; zone?: number}[] | undefined {
+    const frame = fp400ParseFrame(data);
+    const payload = frame?.payload;
+    if (frame?.command !== 0x8b || payload.length < 5 || payload.readUInt16LE(0) !== 0 || payload[2] !== Zcl.DataType.STRUCT) return;
+    const targets = [];
+    let offset = 5;
+    for (let i = 0; i < payload.readUInt16LE(3) && offset + 2 <= payload.length; i++) {
+        const fields = payload.readUInt16LE(offset);
+        const values: number[] = [];
+        offset += 2;
+        while (values.length < fields && offset < payload.length) {
+            const size = fp400TypeSizes[payload[offset]];
+            if (size === undefined) return;
+            if (offset + 1 + size > payload.length) break;
+            values.push(fp400ReadValue(payload, offset + 1, payload[offset]));
+            offset += 1 + size;
+        }
+        if (values.length >= 3) targets.push({id: values[0], x: values[1], y: values[2], zone: values[8]});
+        if (values.length < fields) break;
+    }
+    return targets;
 }
 
 /**
@@ -2601,6 +2631,64 @@ function fp400Room(): ModernExtend[] {
                 },
             })),
         },
+        fp400FromRoom({
+            isModernExtend: true,
+            options: [
+                e
+                    .binary("tracking", ea.SET, true, false)
+                    .withDescription(
+                        "Ask the sensor for the positions of the people it tracks and publish them, at most once a second (default false)",
+                    ),
+            ],
+            exposes: [
+                e
+                    .list(
+                        "targets",
+                        ea.STATE,
+                        e
+                            .composite("target", "target", ea.STATE)
+                            .withFeature(e.numeric("id", ea.STATE))
+                            .withFeature(e.numeric("x", ea.STATE).withUnit("cm").withDescription("Sideways from the sensor, negative to its left"))
+                            .withFeature(e.numeric("y", ea.STATE).withUnit("cm").withDescription("Distance ahead of the sensor"))
+                            .withFeature(e.numeric("zone", ea.STATE).withDescription("Native zone the target is in, 0 when in none")),
+                    )
+                    .withDescription("Positions of the people (and pets) the sensor tracks, while the tracking option is on"),
+            ],
+            fromZigbee: [
+                {
+                    cluster: "aqaraFp400Location",
+                    type: ["raw"],
+                    convert: (model, msg, publish, options, meta) => {
+                        if (options.tracking !== true) return;
+                        const targets = fp400DecodeTargets(msg.data);
+                        if (!targets) return;
+                        // About 7 reports a second arrive: publish one a second at most, and a new number of targets at once.
+                        const last = globalStore.getValue(msg.device.ieeeAddr, "fp400_targets");
+                        const now = Date.now();
+                        if (last?.count === targets.length && now - last.time < 1000) return;
+                        globalStore.putValue(msg.device.ieeeAddr, "fp400_targets", {time: now, count: targets.length});
+                        return {targets};
+                    },
+                } satisfies Fz.Converter<"aqaraFp400Location", AqaraFp400Location, ["raw"]>,
+            ],
+        }),
+        // The sensor sends positions only while subscribed to them, for at most 3 minutes per subscription.
+        modernExtend.poll({
+            key: "fp400_tracking",
+            optionKey: "tracking",
+            defaultIntervalSeconds: 60,
+            poll: async (device, options) => {
+                if (options.tracking !== true) return;
+                await device
+                    .getEndpoint(1)
+                    .command<"aqaraFp400Location", "subscribeLocationData", AqaraFp400Location>(
+                        "aqaraFp400Location",
+                        "subscribeLocationData",
+                        {timeout: 180},
+                        {manufacturerCode},
+                    );
+            },
+        }),
         {
             isModernExtend: true,
             configure: [
@@ -2624,6 +2712,7 @@ function fp400Room(): ModernExtend[] {
 export const fp400 = {
     clusters: fp400Clusters,
     parseFrame: fp400ParseFrame,
+    decodeTargets: fp400DecodeTargets,
     decodeAttributeSync: fp400DecodeAttributeSync,
 };
 

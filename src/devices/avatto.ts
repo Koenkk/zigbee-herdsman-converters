@@ -462,10 +462,12 @@ export const definitions: DefinitionWithExtend[] = [
             "_TZE204_fjms2pi9",
             "_TZE284_fjms2pi9",
             "_TZE28C1000000_jtbgusdc",
+            "_TZE28C1000000_fjms2pi9",
         ]),
         model: "ZDMS16-2",
         vendor: "AVATTO",
         description: "Zigbee Module 2 channels Dimmer",
+        whiteLabel: [tuya.whitelabel("Nova Digital", "MS-DM-ZB-2", "Zigbee Module 2 channels Dimmer", ["_TZE28C1000000_fjms2pi9"])],
         extend: [tuya.modernExtend.tuyaBase({dp: true})],
         exposes: [
             tuya.exposes.lightBrightnessWithMinMax().withEndpoint("l1"),

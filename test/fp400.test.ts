@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from "vitest";
+import {afterEach, describe, expect, it, vi} from "vitest";
 import {Zcl} from "zigbee-herdsman";
 import {findByDevice} from "../src/index";
 import {fp400} from "../src/lib/lumi";
@@ -10,7 +10,57 @@ const hex = (value: string) => Buffer.from(value.replace(/\s/g, ""), "hex");
 // Attribute-sync frames captured from real FP400s: passive capture of an Aqara M3 hub session in
 // bobtekkk/aqara-fp400-zone-card, test/fixtures/fp400-attribute-sync.json.
 
+// Position frames: Koenkk/zigbee2mqtt#33146 (firmware 60, Ember coordinator, cut at 80 bytes) and firmware 63 on Z-Stack.
+const POSITIONS_CUT_AT_80_BYTES = hex(
+    "1c5f11758b00004c0300" +
+        "0900200029220029150129000029000021a00f300030fe2000" +
+        "0900200129cfff290402290000290b0021d007300030fe2000" +
+        "0900200229beff29010029000029000021d00730",
+);
+const POSITIONS_APP_63_THREE = hex(
+    "1c5f11568b00004c0300" +
+        "0900200029fdfe29e50029010029000021a00f300030fe2000" +
+        "0900200129e6ff29880029630029200021d007300030fe2000" +
+        "0900200529c3ff293c01291c00290f0021d007300030fe2000",
+);
+
 describe("FP400 codec", () => {
+    describe("position events", () => {
+        it("decodes a whole three-target frame", () => {
+            expect(fp400.decodeTargets(POSITIONS_APP_63_THREE)).toStrictEqual([
+                {id: 0, x: -259, y: 229, zone: 0},
+                {id: 1, x: -26, y: 136, zone: 0},
+                {id: 5, x: -61, y: 316, zone: 0},
+            ]);
+        });
+
+        it("keeps every position of a frame an Ember coordinator cut at 80 bytes", () => {
+            expect(fp400.decodeTargets(POSITIONS_CUT_AT_80_BYTES)).toStrictEqual([
+                {id: 0, x: 34, y: 277, zone: 0},
+                {id: 1, x: -49, y: 516, zone: 0},
+                {id: 2, x: -66, y: 1, zone: undefined},
+            ]);
+        });
+
+        it("decodes the native zone", () => {
+            expect(fp400.decodeTargets(hex("1c5f11348b00004c010009002001293800296401290f00293b0021a00f300030fe2002"))).toStrictEqual([
+                {id: 1, x: 56, y: 356, zone: 2},
+            ]);
+        });
+
+        it("decodes an empty room", () => {
+            expect(fp400.decodeTargets(hex("1c5f11758b00004c0000"))).toStrictEqual([]);
+        });
+
+        it.each([
+            ["another event", "1c5f116f8b030000"],
+            ["another element type", "1c5f11758b00004d0000"],
+            ["an unknown field type", "1c5f11758b00004c0100090038"],
+        ])("ignores %s", (_, frame) => {
+            expect(fp400.decodeTargets(hex(frame))).toBeUndefined();
+        });
+    });
+
     describe("raw frames", () => {
         it("ignores anything but a buffer", () => {
             expect(fp400.parseFrame(undefined)).toBeUndefined();
@@ -219,6 +269,7 @@ describe("FP400 definition", () => {
                     "illuminance_2",
                     "human_count",
                     "activity_state",
+                    "targets",
                     "installation_height_min",
                     "installation_height_max",
                     ...SETTINGS,
@@ -287,6 +338,57 @@ describe("FP400 definition", () => {
             } finally {
                 vi.useRealTimers();
             }
+        });
+    });
+
+    describe("tracking", () => {
+        const EMPTY_ROOM = hex("1c5f11758b00004c0000");
+        const track = async (device: Zh.Device, frame: Buffer, options: KeyValue = {tracking: true}, endpoint = 1) =>
+            (await receive(device, endpoint, "aqaraFp400Location", "raw", frame, options)).state;
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it("publishes the positions of the tracked targets from the room, while the tracking option is on", async () => {
+            expect((await track(sensor(), POSITIONS_APP_63_THREE)).targets).toHaveLength(3);
+            expect(await track(sensor(), POSITIONS_APP_63_THREE, {})).toStrictEqual({});
+            expect(await track(sensor(), POSITIONS_APP_63_THREE, {tracking: true}, 3)).toStrictEqual({});
+        });
+
+        it("publishes once a second at most, and a new number of targets at once", async () => {
+            vi.useFakeTimers();
+            const device = sensor();
+            expect(await track(device, POSITIONS_APP_63_THREE)).toHaveProperty("targets");
+            vi.advanceTimersByTime(500);
+            expect(await track(device, POSITIONS_APP_63_THREE)).toStrictEqual({});
+            expect(await track(device, EMPTY_ROOM)).toStrictEqual({targets: []});
+            vi.advanceTimersByTime(999);
+            expect(await track(device, EMPTY_ROOM)).toStrictEqual({});
+            vi.advanceTimersByTime(1);
+            expect(await track(device, EMPTY_ROOM)).toStrictEqual({targets: []});
+        });
+
+        it("subscribes to the positions every minute while the tracking option is on", async () => {
+            vi.useFakeTimers();
+            const device = sensor();
+            const definition = await findByDevice(device);
+            const subscriptions = () =>
+                vi.mocked(device.getEndpoint(1).command).mock.calls.filter(([, command]) => command === "subscribeLocationData");
+            const base = {device, state: {}, deviceExposesChanged: vi.fn()};
+            await definition.onEvent({type: "start", data: {...base, options: {}}});
+            await vi.advanceTimersByTimeAsync(60000);
+            expect(subscriptions()).toHaveLength(0);
+            await definition.onEvent({type: "deviceOptionsChanged", data: {...base, options: {tracking: true}, from: {}, to: {tracking: true}}});
+            for (const count of [1, 2, 3]) {
+                await vi.advanceTimersByTimeAsync(60000);
+                expect(subscriptions()).toHaveLength(count);
+            }
+            expect(subscriptions()[0]).toStrictEqual(["aqaraFp400Location", "subscribeLocationData", {timeout: 180}, {manufacturerCode: 0x115f}]);
+            await definition.onEvent({type: "deviceOptionsChanged", data: {...base, options: {}, from: {tracking: true}, to: {}}});
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(subscriptions()).toHaveLength(3);
+            await definition.onEvent({type: "stop", data: {ieeeAddr: device.ieeeAddr}});
         });
     });
 

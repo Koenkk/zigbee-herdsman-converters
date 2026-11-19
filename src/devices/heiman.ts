@@ -2617,6 +2617,34 @@ export const definitions: DefinitionWithExtend[] = [
         },
     },
     {
+        zigbeeModel: ["L1-E"],
+        model: "L1-E",
+        vendor: "Heiman",
+        description: "Smart Water leakage sensor",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint = device.getEndpoint(1);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint);
+            await endpoint.read("ssIasZone", ["zoneStatus", "zoneState", "iasCieAddr", "zoneId"]);
+            await endpoint.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["indicatorLightLevelControlOf1", "rebootedCount", "rejoinedCount", "reportedPackages"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+        },
+        extend: [
+            m.battery(),
+            m.iasZoneAlarm({zoneType: "water_leak", zoneAttributes: ["alarm_1", "battery_low"]}),
+            heimanExtend.heimanClusterSpecial(),
+            heimanExtend.heimanClusterIndicatorLight("alarm_indicator"),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
+    },
+    {
         fingerprint: [{modelID: "RC-N", manufacturerName: "HEIMAN"}],
         model: "HS1RC-N",
         vendor: "Heiman",
@@ -2856,6 +2884,47 @@ export const definitions: DefinitionWithExtend[] = [
             await reporting.humidity(endpoint2);
         },
         exposes: [e.battery(), e.temperature(), e.humidity()],
+    },
+    {
+        zigbeeModel: ["H1-E"],
+        model: "H1-E",
+        vendor: "Heiman",
+        description: "Smart Temperature & humidity sensor",
+        configure: async (device, coordinatorEndpoint) => {
+            const endpoint1 = device.getEndpoint(1);
+            await reporting.bind(endpoint1, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement", "heimanClusterSpecial"]);
+            await reporting.batteryPercentageRemaining(endpoint1);
+            await endpoint1.read("msTemperatureMeasurement", ["measuredValue"]);
+            await endpoint1.read("msTemperatureMeasurement", [0xf002], {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD});
+            await endpoint1.read<"heimanClusterSpecial", HeimanPrivateCluster>(
+                "heimanClusterSpecial",
+                ["humidityOffset", "temperatureOffset", "rebootedCount", "rejoinedCount", "reportedPackages"],
+                {
+                    manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD,
+                },
+            );
+            const endpoint2 = device.getEndpoint(2);
+            await reporting.bind(endpoint2, coordinatorEndpoint, ["msRelativeHumidity"]);
+            await endpoint2.read("msRelativeHumidity", ["measuredValue"]);
+        },
+        extend: [
+            m.battery(),
+            heimanExtend.heimanClusterSpecial(),
+            m.enumLookup({
+                name: "temperature_display_mode",
+                cluster: "msTemperatureMeasurement",
+                attribute: {ID: 0xf002, type: Zcl.DataType.UINT8},
+                lookup: {celsius: 0, fahrenheit: 1},
+                description: "Temperature unit displayed on the device screen",
+                entityCategory: "config",
+                zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.HEIMAN_TECHNOLOGY_CO_LTD},
+            }),
+            heimanExtend.temperatureOffset(),
+            heimanExtend.humidityOffset(),
+            heimanExtend.reportedPackages(),
+            heimanExtend.rejoinedCount(),
+            heimanExtend.rebootedCount(),
+        ],
     },
     {
         zigbeeModel: ["GASSensor-EM", "358e4e3e03c644709905034dae81433e"],

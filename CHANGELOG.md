@@ -1,5 +1,28 @@
 # Changelog
 
+## [26.134.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.133.0...v26.134.0) (2026-11-18)
+
+
+### Features
+
+* **add:** L1-E, H1-E ([#13852](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13852)) ([b231387](https://github.com/Koenkk/zigbee-herdsman-converters/commit/b231387c0bef699cbd8dcacf9d05f24bbc7988c9))
+* **add:** RST-2GCCZG ([#13844](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13844)) ([1022a77](https://github.com/Koenkk/zigbee-herdsman-converters/commit/1022a779f3ef11cd8671d963ad1a7a39d8719421))
+* Aqara FP400: expose positions of tracked people and pets ([#13836](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13836)) ([38192bd](https://github.com/Koenkk/zigbee-herdsman-converters/commit/38192bdc3adb1407acebeb8fba8080c8c167e8c3))
+* Plugwise 170-01: expose `override_outdoor_temperature` and `weather_icon` on the home screen ([#13857](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13857)) ([e5a2f27](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e5a2f2788139b69207ecadccdc99a71aaab977f1))
+* SONOFF MINI-ZB2GS-L: expose external switch actions ([#13854](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13854)) ([9836843](https://github.com/Koenkk/zigbee-herdsman-converters/commit/9836843e25b2397ec79f0a1e3c21e3b8e26e8a13))
+
+
+### Bug Fixes
+
+* **detect:** Detect `_TZ3000_sjb7pafq` as AVATTO ZWSM16-2 and `_TZ3000_9il3ag1z` as AVATTO ZWSM16-DC-1 ([#13855](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13855)) ([e8bab44](https://github.com/Koenkk/zigbee-herdsman-converters/commit/e8bab441def982a2b7f3d98807f16068b7c51898))
+* **detect:** Detect `_TZE2841000000_sonkaxrd` as Nous E12 https://github.com/Koenkk/zigbee2mqtt/issues/33731 ([197f8a7](https://github.com/Koenkk/zigbee-herdsman-converters/commit/197f8a795cea6ea75508b7ee2c1dced1410f22d2))
+* **detect:** Detect `_TZE28C1000000_ac0fhfiq` as Tuya TS0601_bidirectional_energy meter ([#13849](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13849)) ([0d5153e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/0d5153eb41e03c79b0046db02902eb983ee9b7f0))
+* **detect:** Detect `_TZE28C1000000_cvub6xbb` as Tuya TGM50-ZB https://github.com/Koenkk/zigbee2mqtt/issues/33732 ([499256d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/499256d998205a39cb9c0752637cc24ed91c41ae))
+* **detect:** Detect `_TZE28C1000000_fjms2pi9` as Nova Digital MS-DM-ZB-2 ([#13851](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13851)) ([a8f94f3](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a8f94f39a084c2f3f566aab637842256c92919e6))
+* Sber SBDV-00199 and SBDV-00200: stop exposing unsupported button mode ([#13850](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13850)) ([d61906d](https://github.com/Koenkk/zigbee-herdsman-converters/commit/d61906d6318a8f34f45e91c7330d378ea3e529f5))
+* Schneider Electric EKO07259: revert exposing `temperature_ambient` and `temperature_floor` ([#13706](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13706)) ([2fde05e](https://github.com/Koenkk/zigbee-herdsman-converters/commit/2fde05ec771103fa7bb246a30cb02677537faeb1))
+* Zemismart ZMS-206: fix warm white and warm yellow color control ([#13847](https://github.com/Koenkk/zigbee-herdsman-converters/issues/13847)) ([a395e57](https://github.com/Koenkk/zigbee-herdsman-converters/commit/a395e578f6515604bd774cff992ccad2f69dc967))
+
 ## [26.133.0](https://github.com/Koenkk/zigbee-herdsman-converters/compare/v26.132.0...v26.133.0) (2026-11-16)
 
 
