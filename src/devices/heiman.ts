@@ -2344,7 +2344,7 @@ const fzLocal = {
                 return {high_temperature: msg.data.alarmcode === 1};
             }
         },
-    } satisfies Fz.Converter<"genAlarms", undefined, "commandAlarm">,
+    } satisfies Fz.Converter<"genAlarms", undefined, ["commandAlarm"]>,
 };
 
 export const definitions: DefinitionWithExtend[] = [
@@ -2504,13 +2504,11 @@ export const definitions: DefinitionWithExtend[] = [
         // for this device (e.g. after a restart) - on a brand new pairing
         // there's no cached state yet to seed, so it may still show
         // "unknown" until the device first reports.
-        onEvent: [
-            (event) => {
-                if ((event.type === "start" || event.type === "deviceJoined") && event.data.state.high_temperature === undefined) {
-                    event.data.state.high_temperature = false;
-                }
-            },
-        ],
+        onEvent: (event) => {
+            if ((event.type === "start" || event.type === "deviceJoined") && event.data.state.high_temperature === undefined) {
+                event.data.state.high_temperature = false;
+            }
+        },
         exposes: [
             e.binary("high_temperature", ea.STATE, true, false).withDescription("Indicates whether the high temperature alarm is active"),
             e
