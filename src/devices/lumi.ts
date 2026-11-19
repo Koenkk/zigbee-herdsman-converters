@@ -6847,7 +6847,7 @@ export const definitions: DefinitionWithExtend[] = [
             m.illuminance({endpointNames: ["2"], reporting: false}),
             ...lumi.lumiModernExtend.fp400Settings(),
             ...lumi.lumiModernExtend.fp400Room(),
-            lumi.lumiModernExtend.fp400Areas(),
+            ...lumi.lumiModernExtend.fp400Areas(),
             m.identify(),
             lumi.lumiModernExtend.lumiZigbeeOTA(),
             // Herdsman cannot parse Aqara's 0x8A/0x8B frames and answers each with a Default Response (UNSUP_COMMAND):

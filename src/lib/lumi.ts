@@ -2121,7 +2121,6 @@ export interface AqaraFp400Config {
         entryExitRegion: Buffer;
         interferenceRegion: Buffer;
         monitoringRegion: Buffer;
-        learningReportingTimeout: number;
         humanCountEnabled: number;
         aiHighPrecision: number;
         aiAdaptiveSensitivity: number;
@@ -2131,9 +2130,7 @@ export interface AqaraFp400Config {
         detectionDirection: number;
         proximityDistance: number;
     };
-    commands: {
-        startLearning: Record<string, never>;
-    };
+    commands: {startLearning: Record<string, never>};
     commandResponses: never;
 }
 export interface AqaraFp400Radar {
@@ -2170,7 +2167,6 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             entryExitRegion: {name: "entryExitRegion", ID: 0x0012, type: Zcl.DataType.OCTET_STR, write: true},
             interferenceRegion: {name: "interferenceRegion", ID: 0x0013, type: Zcl.DataType.OCTET_STR, write: true},
             monitoringRegion: {name: "monitoringRegion", ID: 0x0014, type: Zcl.DataType.OCTET_STR, write: true},
-            learningReportingTimeout: {name: "learningReportingTimeout", ID: 0x0016, type: Zcl.DataType.UINT16},
             humanCountEnabled: {name: "humanCountEnabled", ID: 0x0023, type: Zcl.DataType.BOOLEAN, write: true},
             aiHighPrecision: {name: "aiHighPrecision", ID: 0x0029, type: Zcl.DataType.BOOLEAN, write: true},
             aiAdaptiveSensitivity: {name: "aiAdaptiveSensitivity", ID: 0x002a, type: Zcl.DataType.BOOLEAN, write: true},
@@ -2180,9 +2176,7 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
             detectionDirection: {name: "detectionDirection", ID: 0x002e, type: Zcl.DataType.ENUM8, write: true, max: 1},
             proximityDistance: {name: "proximityDistance", ID: 0x002f, type: Zcl.DataType.ENUM8, write: true, max: 2},
         },
-        commands: {
-            startLearning: {name: "startLearning", ID: 0x03, parameters: []},
-        },
+        commands: {startLearning: {name: "startLearning", ID: 0x03, parameters: []}},
         commandsResponse: {},
     },
     aqaraFp400Radar: {
@@ -2216,18 +2210,6 @@ const fp400Clusters: Record<Fp400ClusterName, Cluster> = {
     },
 };
 
-// Region masks and zone cells: 20 rows of 16 cells of 50 cm, one bit per cell (bit row * 16 + column, most significant
-// bit first). Row 0 is nearest the sensor; column 0 is x = +350..400 cm, x = 0 falls between columns 7 and 8.
-const FP400_ROWS = 20;
-const FP400_COLUMNS = 16;
-const FP400_MASK_BYTES = (FP400_ROWS * FP400_COLUMNS) / 8;
-
-export interface Fp400Rectangle {
-    rowStart: number;
-    rowEnd: number;
-    columnStart: number;
-    columnEnd: number;
-}
 // Sizes of the ZCL types that appear in FP400 structures and attribute records.
 const fp400TypeSizes: Record<number, number> = {
     [Zcl.DataType.BOOLEAN]: 1,
@@ -2263,13 +2245,6 @@ function fp400ParseFrame(data: unknown): {command: number; payload: Buffer} | un
     return {command: data[4], payload: data.subarray(5)};
 }
 
-/** An 0x8B event: `<event id u16> <payload>`. */
-function fp400ParseEvent(data: unknown): {event: number; payload: Buffer} | undefined {
-    const frame = fp400ParseFrame(data);
-    if (frame?.command !== 0x8b || frame.payload.length < 2) return;
-    return {event: frame.payload.readUInt16LE(0), payload: frame.payload.subarray(2)};
-}
-
 // The attribute records the sensor sends with 0x8A, as captured from an Aqara hub; anything else is not trusted.
 const fp400SyncAttributes: Record<string, Record<number, {type: number; name: string}>> = {
     msOccupancySensing: {0: {type: Zcl.DataType.BITMAP8, name: "occupancy"}},
@@ -2294,51 +2269,6 @@ function fp400DecodeAttributeSync(cluster: string | number, data: unknown): KeyV
         offset += 3 + fp400TypeSizes[type];
     }
     return values;
-}
-
-/** Normalises a region mask read from the sensor; an empty octet string means that no cell is set. */
-function fp400Mask(value: unknown): Buffer {
-    if (!Buffer.isBuffer(value)) throw new Error("Region mask is not an octet string");
-    if (value.length === 0) return Buffer.alloc(FP400_MASK_BYTES);
-    if (value.length !== FP400_MASK_BYTES) throw new Error(`Region mask has ${value.length} bytes, expected ${FP400_MASK_BYTES}`);
-    return Buffer.from(value);
-}
-
-function fp400MaskFromHex(value: unknown, property: string): Buffer {
-    if (typeof value !== "string" || !/^[0-9a-fA-F]*$/.test(value) || value.length !== FP400_MASK_BYTES * 2) {
-        throw new Error(`${property} must be ${FP400_MASK_BYTES * 2} hexadecimal characters (${FP400_ROWS} rows of ${FP400_COLUMNS} cells)`);
-    }
-    return Buffer.from(value, "hex");
-}
-
-/** Reads a rectangle of cells as MQTT sends it (`row_start`, `row_end`, `column_start`, `column_end`). */
-function fp400ValidateRectangle(value: unknown, property: string): Fp400Rectangle {
-    const {row_start: rowStart, row_end: rowEnd, column_start: columnStart, column_end: columnEnd} = isObject(value) ? value : {};
-    if (
-        ![rowStart, rowEnd, columnStart, columnEnd].every(Number.isInteger) ||
-        rowStart < 0 ||
-        rowEnd >= FP400_ROWS ||
-        columnStart < 0 ||
-        columnEnd >= FP400_COLUMNS ||
-        rowStart > rowEnd ||
-        columnStart > columnEnd
-    ) {
-        throw new Error(`${property} needs rows 0-${FP400_ROWS - 1} and columns 0-${FP400_COLUMNS - 1}, each start not after its end`);
-    }
-    return {rowStart, rowEnd, columnStart, columnEnd};
-}
-
-/** Returns a copy of `mask` with the cells of `rectangle` set or cleared. */
-function fp400EditMask(mask: Buffer, rectangle: Fp400Rectangle, set: boolean): Buffer {
-    const result = Buffer.from(mask);
-    for (let row = rectangle.rowStart; row <= rectangle.rowEnd; row++) {
-        for (let column = rectangle.columnStart; column <= rectangle.columnEnd; column++) {
-            const bit = row * FP400_COLUMNS + column;
-            if (set) result[bit >> 3] |= 0x80 >> (bit & 7);
-            else result[bit >> 3] &= ~(0x80 >> (bit & 7));
-        }
-    }
-    return result;
 }
 
 /**
@@ -2486,13 +2416,13 @@ const fp400SettingSpecs: Fp400SettingSpec[] = [
         name: "ai_entry_exit_recognition",
         cluster: "aqaraFp400Config",
         attribute: "aiEntryExitRecognition",
-        description: "Let the AI model find the room's doorways (they show in entry_exit_mask_hex)",
+        description: "Let the AI model find the room's doorways",
     },
     {
         name: "ai_interference_recognition",
         cluster: "aqaraFp400Config",
         attribute: "aiInterferenceRecognition",
-        description: "Let the AI model find sources of false movement such as fans (they show in interference_mask_hex)",
+        description: "Let the AI model find sources of false movement such as fans",
     },
     {
         name: "coordinate_reverse",
@@ -2564,8 +2494,8 @@ function fp400Settings(): ModernExtend[] {
 }
 
 /**
- * Room-level additions: the sensor's tilt reading and limits, people count and activity, spatial learning, the
- * absence-timeout bounds, attribute-sync frames, the pairing initialisation, and polling what is not reported.
+ * Room-level additions: the sensor's tilt reading and limits, people count and activity, the absence-timeout bounds,
+ * attribute-sync frames, the pairing initialisation, and polling what is not reported.
  */
 function fp400Room(): ModernExtend[] {
     const diagnostic = {zigbeeCommandOptions: {manufacturerCode}, access: "STATE_GET", reporting: false, entityCategory: "diagnostic"} as const;
@@ -2655,61 +2585,6 @@ function fp400Room(): ModernExtend[] {
                 if (failed.length) logger.debug(`FP400 '${device.ieeeAddr}': ${failed.length} of ${reads.length} polled reads failed`, NS);
             },
         }),
-        modernExtend.numeric<"aqaraFp400Config", AqaraFp400Config>({
-            name: "learning_reporting_timeout",
-            cluster: "aqaraFp400Config",
-            attribute: "learningReportingTimeout",
-            unit: "s",
-            description: "Reporting timeout of spatial learning, as the sensor reports it",
-            ...diagnostic,
-        }),
-        {
-            isModernExtend: true,
-            exposes: [
-                e
-                    .enum("spatial_learning", ea.SET, ["start"])
-                    .withCategory("config")
-                    .withDescription("Have the sensor learn the empty room; keep everyone out until learning_state is result_received"),
-                e
-                    .enum("learning_state", ea.STATE, ["accepted", "result_received"])
-                    .withCategory("diagnostic")
-                    .withDescription("Spatial learning: accepted when the sensor took the command, result_received when it reported the result"),
-                e
-                    .numeric("learning_result_code", ea.STATE)
-                    .withCategory("diagnostic")
-                    .withDescription("Result the sensor reported for spatial learning; 0 is believed to mean success"),
-            ],
-            fromZigbee: [
-                {
-                    cluster: "aqaraFp400Config",
-                    type: ["raw"],
-                    convert: (model, msg, publish, options, meta) => {
-                        const event = fp400ParseEvent(msg.data);
-                        if (msg.endpoint.ID === 1 && event?.event === 3 && event.payload.length === 1) {
-                            return {learning_state: "result_received", learning_result_code: event.payload[0]};
-                        }
-                    },
-                } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["raw"]>,
-            ],
-            toZigbee: [
-                {
-                    key: ["spatial_learning"],
-                    convertSet: async (entity, key, value, meta) => {
-                        if (value !== "start") throw new Error("Send start to begin spatial learning");
-                        await meta.device
-                            .getEndpoint(1)
-                            .command<"aqaraFp400Config", "startLearning", AqaraFp400Config>(
-                                "aqaraFp400Config",
-                                "startLearning",
-                                {},
-                                {manufacturerCode},
-                            );
-                        // A result from an earlier run no longer applies.
-                        return {state: {learning_state: "accepted", learning_result_code: null}};
-                    },
-                },
-            ],
-        },
         {
             isModernExtend: true,
             exposes: [
@@ -2841,229 +2716,86 @@ function fp400Room(): ModernExtend[] {
 }
 
 /**
- * Splits a converter that serves several independent keys into one converter per key. Zigbee2MQTT calls a converter
- * at most once per message and expects it to handle all of its keys itself, so with one shared converter, a message
- * setting two of these keys would apply only the first.
+ * The entry/exit, interference and monitoring areas, as 80 hexadecimal characters: 20 rows (0 nearest the sensor) of 16
+ * columns of 50 cm cells, one bit per cell, most significant bit first. The monitoring mask marks the cells left out.
  */
-function fp400PerKey(converter: Tz.Converter): Tz.Converter[] {
-    return converter.key.map((key) => ({...converter, key: [key]}));
-}
-
-/**
- * Runs `task` after the device's earlier ones. Zigbee2MQTT handles a device's set commands concurrently, and two
- * read-modify-write edits of the same mask would otherwise overwrite each other.
- */
-async function fp400Exclusive<T>(device: Zh.Device, task: () => Promise<T>): Promise<T> {
-    const previous: Promise<unknown> = globalStore.getValue(device.ieeeAddr, "fp400_lock") ?? Promise.resolve();
-    const run = previous.then(task);
-    globalStore.putValue(
-        device.ieeeAddr,
-        "fp400_lock",
-        run.catch(() => {}),
-    );
-    return await run;
-}
-
-// Bytes of the monitoring mask per metre of depth: a row of 16 cells is 2 bytes and 0.5 m deep.
-const FP400_MASK_BYTES_PER_M = 4;
-
-/**
- * The monitored area as a depth in metres, when it is one: the monitoring mask lists the cells left out, so a depth
- * leaves out every row from some row on (all bits clear up to a whole row, all set after it). Null for any other mask,
- * such as an area drawn cell by cell. An empty mask leaves nothing out: 10 m, the whole grid.
- */
-function fp400MaskDepth(mask: unknown): number | null {
-    if (!Buffer.isBuffer(mask)) return null;
-    const cells = mask.length === 0 ? Buffer.alloc(FP400_MASK_BYTES) : mask;
-    if (cells.length !== FP400_MASK_BYTES) return null;
-    const firstLeftOut = cells.findIndex((byte) => byte !== 0);
-    const cut = firstLeftOut === -1 ? cells.length : firstLeftOut;
-    const wholeRows = cut % 2 === 0 && cells.subarray(cut).every((byte) => byte === 0xff);
-    return wholeRows ? cut / FP400_MASK_BYTES_PER_M : null;
-}
-
-/** The monitoring mask for a depth: rows up to `metres` monitored, the rest left out. */
-function fp400DepthMask(metres: number): Buffer {
-    const mask = Buffer.alloc(FP400_MASK_BYTES, 0xff);
-    mask.fill(0x00, 0, metres * FP400_MASK_BYTES_PER_M);
-    return mask;
-}
-
-type Fp400RegionAttribute = "entryExitRegion" | "interferenceRegion" | "monitoringRegion";
-
-// The three areas the sensor keeps as cell masks. The monitoring mask stores the cells that are *not* monitored.
-const fp400Regions: {attribute: Fp400RegionAttribute; edit: string; hex: string; excluded: boolean; description: string}[] = [
-    {
-        attribute: "entryExitRegion",
-        edit: "entry_exit_region_edit",
-        hex: "entry_exit_mask_hex",
-        excluded: false,
-        description: "Entrances and exits (doorways): the sensor picks up and drops targets faster in these cells.",
-    },
-    {
-        attribute: "interferenceRegion",
-        edit: "interference_region_edit",
-        hex: "interference_mask_hex",
-        excluded: false,
-        description: "Interference sources (a fan, a curtain, a TV): the sensor ignores movement in these cells.",
-    },
-    {
-        attribute: "monitoringRegion",
-        edit: "monitoring_region_edit",
-        hex: "edge_mask_hex",
-        excluded: true,
-        description: "Monitored area: the sensor ignores the cells outside it, for example behind a wall or a window.",
-    },
-];
-
-function fp400RegionState(region: (typeof fp400Regions)[number], value: unknown): KeyValue {
-    const state: KeyValue = region.attribute === "monitoringRegion" ? {detection_depth: fp400MaskDepth(value)} : {};
-    try {
-        state[region.hex] = fp400Mask(value).toString("hex");
-    } catch {
-        // Not a mask: keep the last one.
-    }
-    return state;
-}
-
-/** Changes a mask: reads it, writes `change(mask)` and checks that the sensor reads it back. */
-async function fp400WriteRegion(
-    device: Zh.Device,
-    region: (typeof fp400Regions)[number],
-    change: (mask: Buffer) => Buffer,
-    unconfirmed = "The sensor did not confirm the new area",
-): Promise<KeyValue> {
-    return await fp400Exclusive(device, async () => {
-        const endpoint = device.getEndpoint(1);
-        const read = async () =>
-            (await endpoint.read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", [region.attribute], {manufacturerCode}))[region.attribute];
-        const mask = change(fp400Mask(await read()));
-        const payload: Partial<AqaraFp400Config["attributes"]> = {};
-        payload[region.attribute] = mask;
-        await endpoint.write<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", payload, {manufacturerCode});
-        const written = await read();
-        if (!Buffer.isBuffer(written) || !fp400Mask(written).equals(mask)) throw new Error(unconfirmed);
-        return fp400RegionState(region, written);
-    });
-}
-
-/**
- * The entry/exit, interference and monitoring areas: 20 rows (0 nearest the sensor) of 16 columns (0 at x = +4 m,
- * 15 at x = -4 m) of 50 cm cells. Each can be edited a rectangle at a time or written as 80 hexadecimal characters,
- * and `detection_depth` cuts the monitored area across its full width.
- */
-function fp400Areas(): ModernExtend {
-    const powerLoss = " Firmware 51 forgets this when it loses power; firmware 63 keeps it.";
-    return {
-        isModernExtend: true,
-        exposes: [
-            ...fp400Regions.flatMap((region) => [
-                e
-                    .composite(region.edit, region.edit, ea.SET)
-                    .withFeature(e.enum("operation", ea.SET, ["add", "remove"]))
-                    .withFeature(e.numeric("row_start", ea.SET).withValueMin(0).withValueMax(19))
-                    .withFeature(e.numeric("row_end", ea.SET).withValueMin(0).withValueMax(19))
-                    .withFeature(e.numeric("column_start", ea.SET).withValueMin(0).withValueMax(15))
-                    .withFeature(e.numeric("column_end", ea.SET).withValueMin(0).withValueMax(15))
-                    .withCategory("config")
-                    .withDescription(
-                        `${region.description} Adds or removes a rectangle of cells, keeping the others. Rows 0-19 go away from the sensor in 50 cm steps; columns 0-15 run from 4 m to its right to 4 m to its left.${powerLoss}`,
-                    ),
-                e
-                    .text(region.hex, ea.ALL)
-                    .withCategory("config")
-                    .withDescription(
-                        `${region.description} All cells as 80 hexadecimal characters, one bit per cell, row by row${region.excluded ? "; a set bit marks a cell outside the monitored area" : ""}.${powerLoss}`,
-                    ),
-            ]),
-            e
-                .numeric("detection_depth", ea.ALL)
-                .withUnit("m")
-                .withValueMin(0.5)
-                .withValueMax(10)
-                .withValueStep(0.5)
-                .withCategory("config")
-                .withDescription("Depth of the monitored area, the full grid width up to this distance from the sensor (10 m: all of it)"),
-        ],
-        fromZigbee: [
-            {
-                cluster: "aqaraFp400Config",
-                type: ["attributeReport", "readResponse"],
-                convert: (model, msg, publish, options, meta) => {
-                    if (msg.endpoint.ID !== 1) return;
-                    const state: KeyValue = {};
-                    for (const region of fp400Regions) {
-                        if (msg.data[region.attribute] !== undefined) Object.assign(state, fp400RegionState(region, msg.data[region.attribute]));
-                    }
-                    return state;
-                },
-            } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["attributeReport", "readResponse"]>,
-        ],
-        toZigbee: [
-            ...fp400PerKey({
-                key: fp400Regions.map((region) => region.edit),
-                convertSet: async (entity, key, value, meta) => {
-                    const region = fp400Regions.find((region) => region.edit === key);
-                    if (!isObject(value) || !["add", "remove"].includes(value.operation)) throw new Error(`${key} needs operation add or remove`);
-                    const rectangle = fp400ValidateRectangle(value, key);
-                    const set = (value.operation === "add") !== region.excluded;
-                    return {state: await fp400WriteRegion(meta.device, region, (mask) => fp400EditMask(mask, rectangle, set))};
-                },
+function fp400Areas(): ModernExtend[] {
+    const regions = [
+        {
+            name: "entry_exit_mask_hex",
+            attribute: "entryExitRegion",
+            description: "Entrances and exits: targets are picked up and dropped faster here",
+        },
+        {
+            name: "interference_mask_hex",
+            attribute: "interferenceRegion",
+            description: "Interference sources (a fan, a curtain): movement here is ignored",
+        },
+        {name: "edge_mask_hex", attribute: "monitoringRegion", description: "Cells outside the monitored area: everything here is ignored"},
+    ] as const;
+    return [
+        ...regions.map(
+            ({name, attribute, description}): ModernExtend => ({
+                isModernExtend: true,
+                exposes: [
+                    e.text(name, ea.ALL).withCategory("config").withDescription(`${description} (80 hexadecimal characters, one bit per cell)`),
+                ],
+                fromZigbee: [
+                    {
+                        cluster: "aqaraFp400Config",
+                        type: ["attributeReport", "readResponse"],
+                        convert: (model, msg, publish, options, meta) => {
+                            const value = msg.data[attribute];
+                            if (msg.endpoint.ID === 1 && Buffer.isBuffer(value)) return {[name]: value.toString("hex").padEnd(80, "0")};
+                        },
+                    } satisfies Fz.Converter<"aqaraFp400Config", AqaraFp400Config, ["attributeReport", "readResponse"]>,
+                ],
+                toZigbee: [
+                    {
+                        key: [name],
+                        convertSet: async (entity, key, value, meta) => {
+                            if (typeof value !== "string" || !/^[0-9a-fA-F]{80}$/.test(value))
+                                throw new Error(`${key} must be 80 hexadecimal characters`);
+                            const payload: Partial<AqaraFp400Config["attributes"]> = {[attribute]: Buffer.from(value, "hex")};
+                            await meta.device
+                                .getEndpoint(1)
+                                .write<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", payload, {manufacturerCode});
+                            return {state: {[key]: value.toLowerCase()}};
+                        },
+                        convertGet: async (entity, key, meta) => {
+                            await meta.device
+                                .getEndpoint(1)
+                                .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", [attribute], {manufacturerCode});
+                        },
+                    },
+                ],
             }),
-            ...fp400PerKey({
-                key: fp400Regions.map((region) => region.hex),
-                convertSet: async (entity, key, value, meta) => {
-                    const region = fp400Regions.find((region) => region.hex === key);
-                    const mask = fp400MaskFromHex(value, key);
-                    return {state: await fp400WriteRegion(meta.device, region, () => mask)};
-                },
-                convertGet: async (entity, key, meta) => {
-                    const region = fp400Regions.find((region) => region.hex === key);
-                    await meta.device
-                        .getEndpoint(1)
-                        .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", [region.attribute], {manufacturerCode});
-                },
-            }),
-            {
-                key: ["detection_depth"],
-                convertSet: async (entity, key, value, meta) => {
-                    assertNumber(value, key);
-                    const halfMetres = value * 2;
-                    if (!Number.isInteger(halfMetres) || halfMetres < 1 || halfMetres > FP400_ROWS) {
-                        throw new Error("detection_depth goes in 0.5 m steps, from 0.5 to 10 m");
-                    }
-                    const monitoring = fp400Regions.find((region) => region.attribute === "monitoringRegion");
-                    const depthOnly = (current: Buffer) => {
-                        // A depth replaces the whole mask, so it would wipe an area drawn cell by cell.
-                        if (fp400MaskDepth(current) === null) {
-                            throw new Error("The monitored area is drawn cell by cell; change it with edge_mask_hex or monitoring_region_edit");
-                        }
-                        return fp400DepthMask(value);
-                    };
-                    return {state: await fp400WriteRegion(meta.device, monitoring, depthOnly, "The sensor did not confirm the new detection depth")};
-                },
-                convertGet: async (entity, key, meta) => {
-                    await meta.device
-                        .getEndpoint(1)
-                        .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", ["monitoringRegion"], {manufacturerCode});
-                },
-            },
-        ],
-        configure: [
-            async (device) => {
-                // One mask per read: three would not fit an 80-byte frame.
-                for (const region of fp400Regions) {
-                    try {
-                        await device
+        ),
+        {
+            isModernExtend: true,
+            exposes: [
+                e
+                    .enum("spatial_learning", ea.SET, ["start"])
+                    .withCategory("config")
+                    .withDescription("Have the sensor learn the empty room; keep everyone out"),
+            ],
+            toZigbee: [
+                {
+                    key: ["spatial_learning"],
+                    convertSet: async (entity, key, value, meta) => {
+                        await meta.device
                             .getEndpoint(1)
-                            .read<"aqaraFp400Config", AqaraFp400Config>("aqaraFp400Config", [region.attribute], {manufacturerCode});
-                    } catch (error) {
-                        logger.debug(`FP400 '${device.ieeeAddr}': reading ${region.attribute} failed (${error})`, NS);
-                    }
-                }
-            },
-        ],
-    };
+                            .command<"aqaraFp400Config", "startLearning", AqaraFp400Config>(
+                                "aqaraFp400Config",
+                                "startLearning",
+                                {},
+                                {manufacturerCode},
+                            );
+                    },
+                },
+            ],
+        },
+    ];
 }
 
 export const fp400 = {
@@ -3071,10 +2803,6 @@ export const fp400 = {
     parseFrame: fp400ParseFrame,
     decodeTargets: fp400DecodeTargets,
     decodeAttributeSync: fp400DecodeAttributeSync,
-    mask: fp400Mask,
-    maskFromHex: fp400MaskFromHex,
-    editMask: fp400EditMask,
-    validateRectangle: fp400ValidateRectangle,
 };
 
 export const lumiModernExtend = {
