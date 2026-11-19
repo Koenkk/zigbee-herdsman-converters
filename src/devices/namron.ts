@@ -3187,7 +3187,36 @@ export const definitions: DefinitionWithExtend[] = [
         model: "4512788",
         vendor: "Namron",
         description: "Zigbee smart plug dimmer 150W",
-        extend: [m.light({effect: false, configureReporting: true}), m.electricityMeter({cluster: "electrical"})],
+        ota: true,
+        meta: {disableDefaultResponse: false},
+        extend: [
+            m.light({effect: false, configureReporting: true, levelConfig: {features: ["on_level", "execute_if_off"]}}),
+            m.electricityMeter({
+                power: {multiplier: 1, divisor: 10},
+                voltage: {multiplier: 1, divisor: 10},
+                current: {multiplier: 1, divisor: 100},
+                energy: {multiplier: 1, divisor: 100},
+            }),
+            m.numeric({
+                name: "dimming_speed",
+                cluster: "genLevelCtrl",
+                attribute: "defaultMoveRate",
+                description: "Default move rate used when dimming.",
+                valueMin: 1,
+                valueMax: 10,
+                access: "ALL",
+                entityCategory: "config",
+            }),
+            m.enumLookup({
+                name: "dimmer_mode",
+                cluster: "genLevelCtrl",
+                attribute: {ID: 0xb000, type: Zcl.DataType.ENUM8},
+                description: "Dimmer type: trailing edge (RC) or leading edge (RL).",
+                lookup: {trailing_edge: 0, leading_edge: 1},
+                access: "ALL",
+                entityCategory: "config",
+            }),
+        ],
     },
 
     {
