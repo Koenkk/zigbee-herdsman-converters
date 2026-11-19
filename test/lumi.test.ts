@@ -1481,6 +1481,20 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             expect(device.meta.w100Protocol).toStrictEqual("ha");
         });
 
+        it("probes on device announce unless the protocol is forced", async () => {
+            const read = vi.fn(() => Promise.reject(new Error("Status 'UNSUPPORTED_ATTRIBUTE'")));
+            const device = setup({}, read);
+            const definition = await findByDevice(device);
+            const data = {device, state: {}, deviceExposesChanged: vi.fn()};
+
+            await definition.onEvent?.({type: "deviceAnnounce", data: {...data, options: {thermostat_protocol: "legacy"}}});
+            expect(read).not.toHaveBeenCalled();
+
+            await definition.onEvent?.({type: "deviceAnnounce", data: {...data, options: {}}});
+            expect(read).toHaveBeenCalledTimes(1);
+            expect(device.meta.w100Protocol).toStrictEqual("legacy");
+        });
+
         it("lets the option override the detected protocol", () => {
             const device = setup({w100Protocol: "ha"});
             expect(w100.getProtocol(device, {})).toStrictEqual("ha");

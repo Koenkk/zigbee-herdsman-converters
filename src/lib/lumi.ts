@@ -2768,7 +2768,10 @@ export const lumiModernExtend = {
             if (event.type === "deviceAnnounce") {
                 // The W100 forgets the thermostat subscription and the setpoint step after a reboot, write them again.
                 const {device, options, state, deviceExposesChanged} = event.data;
-                await w100.probeProtocol(device, deviceExposesChanged);
+                // No probe when the protocol is forced by the user.
+                if (!["legacy", "ha"].includes(options?.thermostat_protocol as string)) {
+                    await w100.probeProtocol(device, deviceExposesChanged);
+                }
                 if (w100.getProtocol(device, options) !== "ha") return;
                 const endpoint = device.getEndpoint(1);
                 try {
