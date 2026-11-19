@@ -1762,23 +1762,30 @@ const sdm01Variant = (v1Key: string, v1: Tuya.ValueConverterSingle, v2Key: strin
         meta.device.meta.sdm01V2 ? {[v2Key]: v2.from(value, meta, options, publish, msg)} : {[v1Key]: v1.from(value, meta, options, publish, msg)},
 });
 
+const dualRailPosition = (rail: "top" | "bottom"): Tuya.ValueConverterSingle => ({
+    from: (_value, meta, options, _publish, msg) => {
+        const dp = rail === "top" ? 3 : 102;
+        // The decoded value loses the datatype and length. Use the last valid raw report for this rail.
+        const entries: Tuya.DpValue[] = msg?.data.dpValues ?? [];
+        const report = entries.findLast(
+            (entry) =>
+                entry.dp === dp &&
+                entry.datatype === tuya.dataTypes.number &&
+                entry.data.length === 4 &&
+                Buffer.from(entry.data).readUInt32BE(0) <= 100,
+        );
+        if (!report) return null;
+
+        const converter = rail === "top" ? tuya.valueConverter.coverPosition : tuya.valueConverter.coverPositionInverted;
+        const state: KeyValue = {};
+        const position = converter.from(tuya.getDataValue(report) as number, meta, options, ({state: value}) => {
+            state[`state_${rail}`] = value;
+        });
+        return {...state, [`position_${rail}`]: position};
+    },
+});
+
 const fzLocal = {
-    dualRailDatapoints: {
-        ...tuya.fz.datapoints,
-        convert: (model, msg, publish, options, meta) => {
-            // Filter before decoding: an empty numeric DP otherwise becomes a false closed position.
-            const dpValues = msg.data.dpValues.filter(
-                (dp) =>
-                    (dp.dp !== 3 && dp.dp !== 102) ||
-                    (dp.datatype === tuya.dataTypes.number && dp.data.length === 4 && Buffer.from(dp.data).readUInt32BE(0) <= 100),
-            );
-            return tuya.fz.datapoints.convert(model, {...msg, data: {...msg.data, dpValues}}, publish, options, meta);
-        },
-    } satisfies Fz.Converter<
-        "manuSpecificTuya",
-        undefined,
-        ["commandDataResponse", "commandDataReport", "commandDataReportAlt", "commandActiveStatusReport", "commandActiveStatusReportAlt"]
-    >,
     // FUT035Z+ (_TZB210_ue01a0s2) reports RF color temperature changes
     // as raw lightingColorCtrl frames without updating colorTemperature.
     FUT035ZrfColorTemp: {
@@ -2717,9 +2724,8 @@ const am43Position = (converter: Tuya.ValueConverterSingle): Tuya.ValueConverter
     },
 });
 
-// Keep tuyaBase's setup and handlers; replace only this shade's generic DP converters.
+// Keep tuyaBase's setup and handlers; replace only this shade's DP sender.
 const dualRailBase = tuya.modernExtend.tuyaBase({dp: true});
-dualRailBase.fromZigbee = dualRailBase.fromZigbee.map((converter) => (converter === tuya.fz.datapoints ? fzLocal.dualRailDatapoints : converter));
 dualRailBase.toZigbee = dualRailBase.toZigbee.map((converter) => (converter === tuya.tz.datapoints ? tzLocal.dualRailDatapoints : converter));
 
 export const definitions: DefinitionWithExtend[] = [
@@ -7442,14 +7448,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {optimistic: false},
                 ],
                 [101, "position_bottom", {to: tuya.valueConverter.coverPositionInverted.to}, {optimistic: false}],
-                [
-                    102,
-                    "position_bottom",
-                    {
-                        from: (v, meta, options, publish) =>
-                            tuya.valueConverter.coverPositionInverted.from(v, meta, options, (p) => publish({state_bottom: p.state})),
-                    },
-                ],
+                [102, null, dualRailPosition("bottom")],
                 // Top rail - DP1 is control, DP2 is set position, DP3 is current position
                 // Note: State commands are reversed for Home Assistant compatibility with top-down operation
                 [
@@ -7459,14 +7458,7 @@ export const definitions: DefinitionWithExtend[] = [
                     {optimistic: false},
                 ],
                 [2, "position_top", {to: tuya.valueConverter.coverPosition.to}, {optimistic: false}],
-                [
-                    3,
-                    "position_top",
-                    {
-                        from: (v, meta, options, publish) =>
-                            tuya.valueConverter.coverPosition.from(v, meta, options, (p) => publish({state_top: p.state})),
-                    },
-                ],
+                [3, null, dualRailPosition("top")],
                 // Battery
                 [13, "battery", tuya.valueConverter.raw],
             ],

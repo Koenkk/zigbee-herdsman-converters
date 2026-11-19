@@ -61,7 +61,8 @@ const setup = async (manufacturer = "_TZE210_yqwse3h5", ieeeAddr = "0x0000000000
 describe("TS0301 dual rail", () => {
     it("keeps modern base setup without registering a second datapoint reader or sender", async () => {
         const {definition, reader, setter} = await setup();
-        expect(definition.fromZigbee.filter((converter) => converter === tuya.fz.datapoints || converter === reader)).toEqual([reader]);
+        expect(reader).toBe(tuya.fz.datapoints);
+        expect(definition.fromZigbee.filter((converter) => converter === tuya.fz.datapoints)).toEqual([reader]);
         expect(definition.toZigbee.filter((converter) => !converter.key)).toEqual([setter]);
         expect(definition.configure).toBeDefined();
         expect(definition.fromZigbee.some((converter) => converter.type.includes("commandMcuSyncTime"))).toBe(true);
@@ -92,6 +93,19 @@ describe("TS0301 dual rail", () => {
         expect(publish).not.toHaveBeenCalled();
     });
 
+    it.each([3, 102])("keeps the last valid DP%s measurement in a single frame", async (dp) => {
+        const {reportRaw} = await setup();
+        const rail = dp === 3 ? "top" : "bottom";
+        const {result, publish} = await reportRaw([
+            {dp, datatype: 2, data: Buffer.alloc(0)},
+            tuya.dpValueFromNumberValue(dp, 0),
+            tuya.dpValueFromNumberValue(dp, 30),
+            {dp, datatype: 4, data: Buffer.from([30])},
+        ]);
+        expect(result).toEqual({[`position_${rail}`]: dp === 3 ? 30 : 70, [`state_${rail}`]: "OPEN"});
+        expect(publish).not.toHaveBeenCalled();
+    });
+
     it.each([3, 102])("ignores malformed DP%s without dropping its valid sibling or battery", async (dp) => {
         const {reportRaw} = await setup();
         const sibling = dp === 3 ? 102 : 3;
@@ -115,8 +129,8 @@ describe("TS0301 dual rail", () => {
             const wire = Buffer.concat(entries.map(({dp, datatype, data}) => Buffer.concat([Buffer.from([dp, datatype, 0, data.length]), data])));
             const dpValues = new BuffaloZcl(wire).read(Zcl.BuffaloZclDataType.LIST_TUYA_DATAPOINT_VALUES, {});
             const {result, publish} = await reportRaw(dpValues, {}, {position_top: 37, state_top: "OPEN", position_bottom: 0, state_bottom: "CLOSE"});
-            expect(result, JSON.stringify(value)).toEqual({[`position_${rail}`]: sibling === 3 ? 25 : 75, battery: 90});
-            expect(publish).toHaveBeenCalledExactlyOnceWith({[`state_${rail}`]: "OPEN"});
+            expect(result, JSON.stringify(value)).toEqual({[`position_${rail}`]: sibling === 3 ? 25 : 75, [`state_${rail}`]: "OPEN", battery: 90});
+            expect(publish).not.toHaveBeenCalled();
         }
     });
 
@@ -178,10 +192,10 @@ describe("TS0301 dual rail", () => {
                 {device, mapped: definition, state} as Fz.Meta,
             );
             const position = invalidDP === 3 ? 20 : 80;
-            expect(result).toEqual({[`position_${siblingRail}`]: position, battery: 75});
-            expect(publish).toHaveBeenCalledExactlyOnceWith({[`state_${siblingRail}`]: "OPEN"});
+            expect(result).toEqual({[`position_${siblingRail}`]: position, [`state_${siblingRail}`]: "OPEN", battery: 75});
+            expect(publish).not.toHaveBeenCalled();
             expect(state).toEqual({position_top: 66, state_top: "CLOSE", position_bottom: 55, state_bottom: "CLOSE"});
-            expect({...state, ...result, ...publish.mock.calls[0][0]}).toEqual({
+            expect({...state, ...result}).toEqual({
                 position_top: invalidDP === 3 ? 66 : 80,
                 state_top: invalidDP === 3 ? "CLOSE" : "OPEN",
                 position_bottom: invalidDP === 3 ? 20 : 55,
@@ -242,9 +256,9 @@ describe("TS0301 dual rail", () => {
                 expect(await set({[`state_${rail}`]: "CLOSE"}, {invert_cover: invert})).toEqual({state: {}});
                 const position = rail === "top" ? (invert ? 100 - raw : raw) : invert ? raw : 100 - raw;
                 const {result, publish} = await report([[rail === "top" ? 3 : 102, raw]], {invert_cover: invert}, state);
-                expect(result).toEqual({[`position_${rail}`]: position});
-                expect(publish).toHaveBeenCalledExactlyOnceWith({[`state_${rail}`]: position === 0 ? "CLOSE" : "OPEN"});
-                state = {...state, ...result, ...publish.mock.calls[0][0]};
+                expect(result).toEqual({[`position_${rail}`]: position, [`state_${rail}`]: position === 0 ? "CLOSE" : "OPEN"});
+                expect(publish).not.toHaveBeenCalled();
+                state = {...state, ...result};
             }
         }
         expect(state).toEqual({
@@ -259,10 +273,10 @@ describe("TS0301 dual rail", () => {
         const {report} = await setup();
         const options = {invert_cover: invert};
         const top = await report([[3, 23]], options);
-        expect(top.result).toEqual({position_top: invert ? 77 : 23});
-        expect(top.publish).toHaveBeenCalledWith({state_top: "OPEN"});
+        expect(top.result).toEqual({position_top: invert ? 77 : 23, state_top: "OPEN"});
+        expect(top.publish).not.toHaveBeenCalled();
         const bottom = await report([[102, 68]], options);
-        expect(bottom.result).toEqual({position_bottom: invert ? 68 : 32});
+        expect(bottom.result).toEqual({position_bottom: invert ? 68 : 32, state_bottom: "OPEN"});
         expect(
             (
                 await report(
@@ -273,7 +287,7 @@ describe("TS0301 dual rail", () => {
                     options,
                 )
             ).result,
-        ).toEqual({position_top: invert ? 77 : 23, position_bottom: invert ? 68 : 32});
+        ).toEqual({position_top: invert ? 77 : 23, position_bottom: invert ? 68 : 32, state_top: "OPEN", state_bottom: "OPEN"});
     });
 
     it("keeps cached measurements on target/battery-only packets and starts cold without invented values", async () => {
@@ -293,7 +307,7 @@ describe("TS0301 dual rail", () => {
             expect(Object.values(result)).not.toContain(undefined);
             state = {...state, ...result};
         }
-        expect(state).toEqual({position_top: 20, position_bottom: 70, battery: 72});
+        expect(state).toEqual({position_top: 20, position_bottom: 70, state_top: "OPEN", state_bottom: "OPEN", battery: 72});
         expect(
             (
                 await report([
@@ -303,7 +317,7 @@ describe("TS0301 dual rail", () => {
                     [102, 64],
                 ])
             ).result,
-        ).toEqual({position_top: 17, position_bottom: 36});
+        ).toEqual({position_top: 17, position_bottom: 36, state_top: "OPEN", state_bottom: "OPEN"});
     });
 
     it.each([false, true])("encodes both rail targets with invert_cover=%s", async (invert) => {
@@ -501,13 +515,14 @@ describe("TS0301 dual rail", () => {
         await first.set({position_top: 40});
         expect(second.endpoint.command).not.toHaveBeenCalled();
         const packet = [tuya.dpValueFromNumberValue(3, 20), tuya.dpValueFromNumberValue(102, 40), tuya.dpValueFromNumberValue(13, 81)];
-        expect((await first.reportRaw(packet, {}, {}, 42)).result).toEqual({position_top: 20, position_bottom: 60, battery: 81});
+        const expected = {position_top: 20, position_bottom: 60, state_top: "OPEN", state_bottom: "OPEN", battery: 81};
+        expect((await first.reportRaw(packet, {}, {}, 42)).result).toEqual(expected);
         const duplicate = await first.reportRaw(packet, {}, {}, 42);
         expect(duplicate.result).toBeUndefined();
         expect(duplicate.publish).not.toHaveBeenCalled();
         const independent = await second.reportRaw(packet, {}, {}, 42);
-        expect(independent.result).toEqual({position_top: 20, position_bottom: 60, battery: 81});
-        expect(independent.publish.mock.calls).toEqual([[{state_top: "OPEN"}], [{state_bottom: "OPEN"}]]);
+        expect(independent.result).toEqual(expected);
+        expect(independent.publish).not.toHaveBeenCalled();
     });
 
     it.each(["top", "bottom"])("rejects invalid %s position before writing", async (rail) => {
@@ -574,7 +589,12 @@ describe("TS0301 dual rail", () => {
                         {invert_cover: invert},
                     )
                 ).result,
-            ).toEqual({position_top: top, position_bottom: bottom});
+            ).toEqual({
+                position_top: top,
+                position_bottom: bottom,
+                state_top: top === 0 ? "CLOSE" : "OPEN",
+                state_bottom: bottom === 0 ? "CLOSE" : "OPEN",
+            });
         }
     });
 
