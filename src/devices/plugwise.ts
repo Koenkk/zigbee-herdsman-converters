@@ -45,6 +45,17 @@ interface PlugwiseHvacThermostat {
         plugwiseMaxBoilerSetpoint: number;
         plugwiseWeatherIcon: number;
         plugwiseOutdoorTemp: number;
+        plugwisePreset: number;
+        plugwisePresetHomeHeatingSetpoint: number;
+        plugwisePresetHomeCoolingSetpoint: number;
+        plugwisePresetAsleepHeatingSetpoint: number;
+        plugwisePresetAsleepCoolingSetpoint: number;
+        plugwisePresetAwayHeatingSetpoint: number;
+        plugwisePresetAwayCoolingSetpoint: number;
+        plugwisePresetVacationHeatingSetpoint: number;
+        plugwisePresetVacationCoolingSetpoint: number;
+        plugwisePresetNoFrostHeatingSetpoint: number;
+        plugwisePresetNoFrostCoolingSetpoint: number;
     };
     commands: {
         plugwiseCalibrateValve: Record<string, never>;
@@ -144,6 +155,83 @@ const plugwiseExtend = {
                     manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
                     write: true,
                 },
+                plugwisePreset: {
+                    name: "plugwisePreset",
+                    ID: 0x0051,
+                    type: Zcl.DataType.ENUM8,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetHomeHeatingSetpoint: {
+                    name: "plugwisePresetHomeHeatingSetpoint",
+                    ID: 0x0052,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetHomeCoolingSetpoint: {
+                    name: "plugwisePresetHomeCoolingSetpoint",
+                    ID: 0x0053,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetAsleepHeatingSetpoint: {
+                    name: "plugwisePresetAsleepHeatingSetpoint",
+                    ID: 0x0054,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetAsleepCoolingSetpoint: {
+                    name: "plugwisePresetAsleepCoolingSetpoint",
+                    ID: 0x0055,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetAwayHeatingSetpoint: {
+                    name: "plugwisePresetAwayHeatingSetpoint",
+                    ID: 0x0056,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetAwayCoolingSetpoint: {
+                    name: "plugwisePresetAwayCoolingSetpoint",
+                    ID: 0x0057,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetVacationHeatingSetpoint: {
+                    name: "plugwisePresetVacationHeatingSetpoint",
+                    ID: 0x0058,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetVacationCoolingSetpoint: {
+                    name: "plugwisePresetVacationCoolingSetpoint",
+                    ID: 0x0059,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetNoFrostHeatingSetpoint: {
+                    name: "plugwisePresetNoFrostHeatingSetpoint",
+                    ID: 0x0060,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
+                plugwisePresetNoFrostCoolingSetpoint: {
+                    name: "plugwisePresetNoFrostCoolingSetpoint",
+                    ID: 0x0061,
+                    type: Zcl.DataType.INT16,
+                    manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V,
+                    write: true,
+                },
             },
             commands: {
                 plugwiseCalibrateValve: {name: "plugwiseCalibrateValve", ID: 0xa0, parameters: []},
@@ -201,6 +289,31 @@ const plugwiseExtend = {
             zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
             access: "ALL",
             ...args,
+        }),
+    preset: () =>
+        m.enumLookup<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: "preset",
+            cluster: "hvacThermostat",
+            attribute: "plugwisePreset",
+            lookup: {home: 0x00, asleep: 0x01, away: 0x02, vacation: 0x03, no_frost: 0x04},
+            description: "Active preset. Selecting a preset applies its setpoints for the current system mode.",
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+        }),
+    presetSetpoint: (preset: string, mode: "heating" | "cooling", attribute: keyof PlugwiseHvacThermostat["attributes"]) =>
+        m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
+            name: `${preset}_${mode}_setpoint`,
+            cluster: "hvacThermostat",
+            attribute,
+            description: `${mode === "heating" ? "Heating" : "Cooling"} setpoint of the ${preset} preset. A change takes effect the next time this preset is selected.`,
+            zigbeeCommandOptions: {manufacturerCode: Zcl.ManufacturerCode.PLUGWISE_B_V},
+            access: "ALL",
+            unit: "°C",
+            scale: 100,
+            valueMin: 5,
+            valueMax: 30,
+            valueStep: 0.5,
+            entityCategory: "config",
         }),
     outdoorTemperature: (args?: Partial<m.NumericArgs<"hvacThermostat", PlugwiseHvacThermostat>>) =>
         m.numeric<"hvacThermostat", PlugwiseHvacThermostat>({
@@ -603,7 +716,7 @@ export const definitions: DefinitionWithExtend[] = [
         model: "170-01",
         vendor: "Plugwise",
         description: "Emma Wired Pro / Emma Wireless",
-        version: "0.0.5",
+        version: "0.0.6",
         ota: true,
         extend: [
             plugwiseExtend.plugwiseHvacThermostatCluster(),
@@ -702,6 +815,17 @@ export const definitions: DefinitionWithExtend[] = [
             }),
             plugwiseExtend.outdoorTemperature(),
             plugwiseExtend.weatherIcon(),
+            plugwiseExtend.preset(),
+            plugwiseExtend.presetSetpoint("home", "heating", "plugwisePresetHomeHeatingSetpoint"),
+            plugwiseExtend.presetSetpoint("home", "cooling", "plugwisePresetHomeCoolingSetpoint"),
+            plugwiseExtend.presetSetpoint("asleep", "heating", "plugwisePresetAsleepHeatingSetpoint"),
+            plugwiseExtend.presetSetpoint("asleep", "cooling", "plugwisePresetAsleepCoolingSetpoint"),
+            plugwiseExtend.presetSetpoint("away", "heating", "plugwisePresetAwayHeatingSetpoint"),
+            plugwiseExtend.presetSetpoint("away", "cooling", "plugwisePresetAwayCoolingSetpoint"),
+            plugwiseExtend.presetSetpoint("vacation", "heating", "plugwisePresetVacationHeatingSetpoint"),
+            plugwiseExtend.presetSetpoint("vacation", "cooling", "plugwisePresetVacationCoolingSetpoint"),
+            plugwiseExtend.presetSetpoint("no_frost", "heating", "plugwisePresetNoFrostHeatingSetpoint"),
+            plugwiseExtend.presetSetpoint("no_frost", "cooling", "plugwisePresetNoFrostCoolingSetpoint"),
             plugwiseExtend.dhwTemperature({
                 reporting: {min: "1_MINUTE", max: 870, change: 0.1},
             }),
