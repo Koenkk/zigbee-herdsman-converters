@@ -360,7 +360,6 @@ export const definitions: DefinitionWithExtend[] = [
             tuya.modernExtend.tuyaBase({
                 dp: true,
                 queryOnConfigure: true,
-                queryIntervalSeconds: 30,
             }),
         ],
         exposes: [
