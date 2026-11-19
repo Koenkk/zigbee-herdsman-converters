@@ -9,13 +9,15 @@ import {mockDevice} from "./utils";
 
 describe("lib/tuya", () => {
     describe("tuyaBase data queries", () => {
+        const maxIntervalSeconds = 20 * 24 * 60 * 60;
+        const invalidIntervals = [maxIntervalSeconds + 0.001, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN];
         beforeEach(() => vi.useFakeTimers());
         afterEach(() => {
             vi.clearAllTimers();
             vi.useRealTimers();
             globalStore.clear();
         });
-        const setup = (args: Parameters<typeof tuya.modernExtend.tuyaBase>[0] = {}) => {
+        const setup = (args: Parameters<typeof tuya.modernExtend.tuyaBase>[0] = {dp: true}) => {
             const extension = tuya.modernExtend.tuyaBase(args);
             const device = mockDevice({modelID: "TS0601", endpoints: [{ID: 2}]});
             const command = vi.mocked(device.endpoints[0].command);
@@ -33,27 +35,79 @@ describe("lib/tuya", () => {
             };
         };
 
-        it("exposes unrestricted query intervals with a disabled default and preserves other timers", async () => {
-            const {extension, device, command, start, changeOptions} = setup();
+        it("exposes query intervals with a disabled default for DP devices", async () => {
+            const {extension, command, start, changeOptions} = setup();
             expect(extension.options.map((option) => option.name)).toEqual(["time_start", "data_query_interval"]);
             const option = tuya.options.dataQueryInterval();
-            expect([option.unit, option.value_min, option.value_max]).toEqual(["s", undefined, undefined]);
-            const otherTimer = {};
-            globalStore.putValue(device.ieeeAddr, "query_interval", otherTimer);
+            expect([option.unit, option.value_min, option.value_max]).toEqual(["s", undefined, maxIntervalSeconds]);
             await start();
             await vi.advanceTimersByTimeAsync(120000);
             expect(command).not.toHaveBeenCalled();
-            expect(globalStore.getValue(device.ieeeAddr, "query_interval")).toBe(otherTimer);
             await changeOptions({}, {data_query_interval: 2.5});
             await vi.advanceTimersByTimeAsync(2500);
             expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it("does not expose or start data queries for non-DP devices and preserves their timers", async () => {
+            const {extension, device, command, start, changeOptions} = setup({});
+            expect(extension.options.map((option) => option.name)).toEqual(["time_start"]);
+            const otherTimer = {};
+            globalStore.putValue(device.ieeeAddr, "query_interval", otherTimer);
+            await start({data_query_interval: 1});
+            await changeOptions({data_query_interval: 1}, {data_query_interval: 2});
+            await vi.advanceTimersByTimeAsync(120000);
+            expect(command).not.toHaveBeenCalled();
+            expect(vi.getTimerCount()).toBe(0);
+            expect(globalStore.getValue(device.ieeeAddr, "query_interval")).toBe(otherTimer);
+        });
+
+        it("preserves explicitly configured fixed queries for non-DP devices without exposing an option", async () => {
+            const {extension, command, start} = setup({queryIntervalSeconds: 60});
+            expect(extension.options.map((option) => option.name)).toEqual(["time_start"]);
+            expect(extension.fromZigbee).not.toContain(tuya.fz.datapoints);
+            await start({data_query_interval: 0});
+            await vi.advanceTimersByTimeAsync(59999);
+            expect(command).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it.each([0.1, maxIntervalSeconds])("accepts a valid interval of %s seconds", async (seconds) => {
+            const {command, start} = setup();
+            await start({data_query_interval: seconds});
+            await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
+            expect(command).not.toHaveBeenCalled();
+            await vi.advanceTimersByTimeAsync(1);
+            expect(command).toHaveBeenCalledExactlyOnceWith("manuSpecificTuya", "dataQuery", {});
+        });
+
+        it.each(invalidIntervals)("clears existing queries before rejecting interval %s", async (seconds) => {
+            const {command, start, changeOptions} = setup();
+            const enabled = {data_query_interval: 1};
+            const invalid = {data_query_interval: seconds};
+            await start(enabled);
+            await expect(changeOptions(enabled, invalid)).rejects.toThrow();
+            expect(vi.getTimerCount()).toBe(0);
+            await vi.advanceTimersByTimeAsync(5000);
+            expect(command).not.toHaveBeenCalled();
+
+            const pending = Promise.withResolvers<Record<string, never>>();
+            command.mockReturnValueOnce(pending.promise);
+            await start(enabled);
+            await vi.advanceTimersByTimeAsync(1000);
+            expect(command).toHaveBeenCalledTimes(1);
+            await expect(changeOptions(enabled, invalid)).rejects.toThrow();
+            pending.resolve({});
+            await vi.advanceTimersByTimeAsync(5000);
+            expect(command).toHaveBeenCalledTimes(1);
+            expect(vi.getTimerCount()).toBe(0);
         });
 
         it.each([
             {seconds: 60, disabled: 0},
             {seconds: 15, disabled: -1},
         ])("uses a $seconds-second default, accepts changes and disables with $disabled", async ({seconds, disabled}) => {
-            const {command, start, changeOptions} = setup({queryIntervalSeconds: seconds});
+            const {command, start, changeOptions} = setup({dp: true, queryIntervalSeconds: seconds});
             await start();
             await vi.advanceTimersByTimeAsync(seconds * 1000 - 1);
             expect(command).not.toHaveBeenCalled();
