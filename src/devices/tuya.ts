@@ -23130,7 +23130,7 @@ export const definitions: DefinitionWithExtend[] = [
                 .text("schedule_sunday", ea.STATE_SET)
                 .withLabel("Schedule for sunday")
                 .withDescription("Default: 06:00/20.0 11:30/20.0 13:30/20.0 17:30/20.0"),
-            e.enum("factory_reset", ea.STATE_SET, ["factory reset"]).withLabel("Factory reset").withDescription("Reset all settings to factory ones"),
+            e.enum("factory_reset", ea.STATE_SET, ["factory_reset"]).withLabel("Factory reset").withDescription("Reset all settings to factory ones"),
         ],
         meta: {
             tuyaDatapoints: [
@@ -23148,7 +23148,7 @@ export const definitions: DefinitionWithExtend[] = [
                 [24, "local_temperature", tuya.valueConverter.divideBy10],
                 [26, "min_temperature", tuya.valueConverter.divideBy10],
                 [27, "local_temperature_calibration", tuya.valueConverter.raw],
-                [28, "factory_reset", tuya.valueConverterBasic.lookup({"factory reset": true})],
+                [28, "factory_reset", tuya.valueConverterBasic.lookup({factory_reset: true})],
                 [
                     36,
                     "running_state",
@@ -25014,7 +25014,7 @@ export const definitions: DefinitionWithExtend[] = [
                     "Bedroom",
                     "Livingroom",
                     "Meetingroom",
-                    "Factory default",
+                    "factory_default",
                 ])
                 .withDescription("Presets"),
             e
@@ -25057,7 +25057,7 @@ export const definitions: DefinitionWithExtend[] = [
                         Bedroom: tuya.enum(4),
                         Livingroom: tuya.enum(5),
                         Meetingroom: tuya.enum(6),
-                        "Factory default": tuya.enum(7),
+                        factory_default: tuya.enum(7),
                     }),
                 ],
                 [
