@@ -2090,7 +2090,7 @@ const tzLocal = {
             }
         },
     } satisfies Tz.Converter,
-        // Warning sound for MO24-001 (confirmed): mode, level and strobe aren't
+    // Warning sound for MO24-001 (confirmed): mode, level and strobe aren't
     // functional on this device, only duration matters. Home Assistant's
     // siren card always sends {mode, level, duration} regardless of which
     // composite features are declared, so mode/level are accepted here but
@@ -2109,7 +2109,7 @@ const tzLocal = {
             });
             return {state: {warning: value}};
         },
-    } satisfies Tz.Converter,    
+    } satisfies Tz.Converter, 
 };
 
 const fzLocal = {
