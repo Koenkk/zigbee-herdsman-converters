@@ -7728,9 +7728,8 @@ async function w100SendPMTSD(entity: Zh.Endpoint | Zh.Group, pmtsd: W100Pmtsd, m
     const counter = Math.floor(Math.random() * 256);
     fixedHeader[4] = counter;
 
-    // Lumi frame header integrity byte, same algorithm as `lumiHeader` in `lumiExternalSensor`.
-    fixedHeader[5] = (512 - fixedHeader.slice(0, 5).reduce((sum, b) => sum + b, 0)) & 0xff;
-
+    // Byte 5 (Lumi header integrity) is intentionally left at 0: this is what the W100 has always received from
+    // this converter, and frames with a computed integrity byte are suspected to block the W100 (legacy firmware).
     const fullPayload = [...fixedHeader, ...pmtsdBytes];
 
     await entity.write(64704, {65522: {value: Buffer.from(fullPayload), type: 65}}, {manufacturerCode: 4447, disableDefaultResponse: true});
@@ -7777,8 +7776,6 @@ const w100HaModeLookup: Record<string, number> = {off: 0, heat: 1, auto: 2, cool
 const w100HaFanLookup: Record<string, number> = {low: 1, medium: 2, high: 3, auto: 5};
 const w100SetpointSteps = ["0.1", "0.5", "1"];
 const w100DefaultSetpointStep = 0.5;
-const w100ProbeMinIntervalMs = 30 * 60 * 1000;
-const w100LastProbeKey = "w100_last_probe";
 
 export const w100 = {
     decodeHaState: (buffer: Buffer): W100HaState => {
@@ -7872,7 +7869,7 @@ export const w100 = {
      * Returns undefined when the device did not answer (e.g. sleeping), in that case nothing is changed.
      */
     probeProtocol: async (device: Zh.Device, deviceExposesChanged?: () => void): Promise<W100Protocol | undefined> => {
-        globalStore.putValue(device, w100LastProbeKey, Date.now());
+        logger.info(`Aqara W100: probing thermostat protocol of '${device.ieeeAddr}'`, NS);
         let protocol: W100Protocol;
         try {
             await device
@@ -7888,12 +7885,6 @@ export const w100 = {
         }
         if (w100.setProtocol(device, protocol)) deviceExposesChanged?.();
         return protocol;
-    },
-    /** Probes the protocol when it is still unknown, at most once every 30 minutes. Does not block. */
-    probeProtocolIfUnknown: (device: Zh.Device, deviceExposesChanged: () => void) => {
-        if (device.meta?.w100Protocol !== undefined) return;
-        if (Date.now() - (globalStore.getValue(device, w100LastProbeKey, 0) as number) < w100ProbeMinIntervalMs) return;
-        w100.probeProtocol(device, deviceExposesChanged).catch((error) => logger.debug(`Aqara W100: probe failed (${error})`, NS));
     },
     writeSetpointStep: async (entity: Zh.Endpoint | Zh.Group, options: KeyValue | undefined) => {
         // TODO: encoding to confirm with Aqara, assumed to be °C x 100 like the setpoint.
@@ -9291,8 +9282,6 @@ export const fromZigbee = {
                     logger.debug(`Aqara W100: thermostat state received: ${haState.toString("hex")}`, NS);
                     Object.assign(result, w100.haStateToPayload(w100.decodeHaState(haState)));
                 }
-            } else {
-                w100.probeProtocolIfUnknown(meta.device, meta.deviceExposesChanged);
             }
             if (msg.data[65522]) {
                 const base = w100EnsureDefaults(meta);

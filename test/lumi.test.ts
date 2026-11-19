@@ -1409,10 +1409,6 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
         // biome-ignore lint/suspicious/noExplicitAny: test
         (exposes.find((e) => e.type === "climate") as any).features.find((f: Expose) => f.name === "occupied_heating_setpoint").value_step;
 
-    afterEach(() => {
-        globalStore.clear();
-    });
-
     describe("TLV codec", () => {
         it("decodes the Aqara example frame", () => {
             expect(w100.decodeHaState(exampleFrame)).toStrictEqual({mode: 3, setpoint: 26.5, fan: 5});
@@ -1582,7 +1578,7 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
             );
         });
 
-        it("sends a PMTSD frame with a valid Lumi header with the legacy protocol", async () => {
+        it("sends a PMTSD frame with the legacy protocol", async () => {
             const device = setup();
             const endpoint = device.getEndpoint(1);
             const state = {thermostat_mode: "ON", system_mode: "cool", occupied_heating_setpoint: 22, fan_mode: "auto"};
@@ -1591,7 +1587,7 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
 
             const frame = vi.mocked(endpoint.write).mock.calls[0][1][65522].value as Buffer;
             expect(frame.subarray(frame.length - 15).toString("ascii")).toStrictEqual("P0_M0_T23_S0_D0");
-            expect((frame[0] + frame[1] + frame[2] + frame[3] + frame[4] + frame[5]) & 0xff).toStrictEqual(0);
+            expect(frame[5]).toStrictEqual(0);
         });
     });
 });
