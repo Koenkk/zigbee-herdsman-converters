@@ -2109,7 +2109,7 @@ const tzLocal = {
             });
             return {state: {warning: value}};
         },
-    } satisfies Tz.Converter, 
+    } satisfies Tz.Converter,
 };
 
 const fzLocal = {
