@@ -52,6 +52,18 @@ const ZNCLBL01LM_RUNNING_STORE_KEY = "ZNCLBL01LM_running";
 const ZNCLBL01LM_TERMINAL_POSITION_STORE_KEY = "ZNCLBL01LM_terminal_position";
 const ZNCLBL01LM_TERMINAL_TARGET_POSITION_STORE_KEY = "ZNCLBL01LM_terminal_target_position";
 
+/**
+ * Aqara LLKZMK12LM firmware 33 (date code 20250917) and newer report energy (0x95) in kWh,
+ * older firmware (e.g. 27, date code 20230606) reports it in Wh.
+ * `dateCode` is checked too because it is re-read after an OTA update, `applicationVersion` only on interview.
+ * https://github.com/Koenkk/zigbee2mqtt/issues/22148
+ * https://github.com/Koenkk/zigbee2mqtt/issues/31471
+ */
+const llkzmk12lmReportsEnergyInKwh = (device: Zh.Device) => {
+    const dateCode = /^\d{8}/.exec(device.dateCode ?? "")?.[0];
+    return (device.applicationVersion ?? 0) >= 33 || (dateCode !== undefined && dateCode >= "20250917");
+};
+
 declare type Day = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
 export interface TrvScheduleConfigEvent {
@@ -559,9 +571,8 @@ export const numericAttributes2Payload = async (
             case "149":
                 assertNumber(value);
                 payload.energy = value; // 0x95
-                if (["LLKZMK12LM"].includes(model.model)) {
-                    assertNumber(payload.energy);
-                    payload.energy = payload.energy / 1000;
+                if (["LLKZMK12LM"].includes(model.model) && !llkzmk12lmReportsEnergyInKwh(meta.device)) {
+                    payload.energy = value / 1000;
                 }
                 // Consumption is deprecated
                 payload.consumption = payload.energy;
