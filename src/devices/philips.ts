@@ -365,10 +365,10 @@ export const definitions: DefinitionWithExtend[] = [
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}}), m.identify()],
     },
     {
-        zigbeeModel: ['LTA023'],
-        model: '929003855001',
-        vendor: 'Signify Netherlands B.V.',
-        description: 'Hue White Ambiance A67 1600lm with Bluetooth E27',
+        zigbeeModel: ["LTA023"],
+        model: "929003855001",
+        vendor: "Signify Netherlands B.V.",
+        description: "Hue White Ambiance A67 1600lm with Bluetooth E27",
         extend: [philips.m.light({colorTemp: {range: [50, 1000]}}), m.identify()],
     },
     {
