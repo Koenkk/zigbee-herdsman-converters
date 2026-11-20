@@ -713,13 +713,15 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Hive",
         description: "Heating thermostat remote control",
         meta: {battery: {voltageToPercentage: "3V_2100"}},
-        fromZigbee: [fz.battery],
-        toZigbee: [],
-        exposes: [e.battery()],
+        endpoint: () => ({default: 9}),
+        fromZigbee: [fz.battery, fz.temperature],
+        toZigbee: [tz.temperature, tz.battery_percentage_remaining],
+        exposes: [e.battery(), e.temperature()],
         configure: async (device, coordinatorEndpoint) => {
             const endpoint = device.getEndpoint(9);
-            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg"]);
+            await reporting.bind(endpoint, coordinatorEndpoint, ["genPowerCfg", "msTemperatureMeasurement"]);
             await reporting.batteryVoltage(endpoint);
+            await reporting.temperature(endpoint);
         },
     },
     {
