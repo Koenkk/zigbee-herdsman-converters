@@ -2777,16 +2777,7 @@ export const lumiModernExtend = {
                 if (!["legacy", "ha"].includes(options?.thermostat_protocol as string)) {
                     await w100.probeProtocol(device, deviceExposesChanged);
                 }
-                if (w100.getProtocol(device, options) !== "ha") return;
-                const endpoint = device.getEndpoint(1);
-                try {
-                    await w100.writeSetpointStep(endpoint, options);
-                    if (state.thermostat_mode === "ON") {
-                        await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, options, true);
-                    }
-                } catch (error) {
-                    logger.warning(`Aqara W100: failed to restore thermostat state of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
-                }
+                await w100.restore(device, options, state);
             } else if (event.type === "deviceOptionsChanged") {
                 const {device, from, to, state, deviceExposesChanged} = event.data;
                 const changed = (key: string) => from?.[key] !== to?.[key];
@@ -2804,7 +2795,17 @@ export const lumiModernExtend = {
                 }
             }
         };
-        return {exposes: [exposes], options, onEvent: [onEvent], isModernExtend: true};
+        // After a reset (e.g. 3 presses on the reset button) the W100 reconnects without a device announce: it only sends
+        // a genBasic modelId report, then reports its default thermostat state. Restore it as after a device announce.
+        const reconnect = {
+            cluster: "genBasic",
+            type: ["attributeReport"],
+            convert: async (model, msg, publish, options, meta) => {
+                if (msg.data.modelId === undefined) return;
+                await w100.restore(msg.device, options, meta.state);
+            },
+        } satisfies Fz.Converter<"genBasic", undefined, ["attributeReport"]>;
+        return {exposes: [exposes], options, onEvent: [onEvent], fromZigbee: [reconnect], isModernExtend: true};
     },
     addManuSpecificLumiCluster: () =>
         modernExtend.deviceAddCustomCluster("manuSpecificLumi", {
@@ -7977,6 +7978,25 @@ export const w100 = {
             {manufacturerCode},
         );
         logger.info(`Aqara W100: thermostat state written: ${value.toString("hex")}`, NS);
+    },
+    /**
+     * The W100 forgets the subscription, the setpoint step and the limits after a reboot: write them again (HA protocol).
+     * Runs at most once every 10 seconds, a reconnection can trigger it several times.
+     */
+    restore: async (device: Zh.Device, options: KeyValue, state: KeyValue) => {
+        if (w100.getProtocol(device, options) !== "ha") return;
+        if (Date.now() - (globalStore.getValue(device, "w100_last_restore", 0) as number) < 10000) return;
+        globalStore.putValue(device, "w100_last_restore", Date.now());
+        logger.info(`Aqara W100: restoring thermostat state of '${device.ieeeAddr}'`, NS);
+        const endpoint = device.getEndpoint(1);
+        try {
+            await w100.writeSetpointStep(endpoint, options);
+            if (state.thermostat_mode === "ON") {
+                await w100.writeHaState(endpoint, {...w100Defaults, ...state} as W100State, options, true);
+            }
+        } catch (error) {
+            logger.warning(`Aqara W100: failed to restore thermostat state of '${device.ieeeAddr}' (${(error as Error).message})`, NS);
+        }
     },
     /** Writes a 0x0174 value without any valid tag, the W100 leaves the thermostat mode. */
     unsubscribe: async (entity: Zh.Endpoint | Zh.Group) => {

@@ -1709,6 +1709,51 @@ describe("Aqara W100 (TH-S04D) thermostat protocol", () => {
         });
     });
 
+    describe("reconnection (HA protocol)", () => {
+        afterEach(() => {
+            globalStore.clear();
+        });
+
+        const report = async (device: Zh.Device, state: KeyValueAny, options: KeyValueAny = {}) => {
+            const definition = await findByDevice(device);
+            for (const c of definition.fromZigbee.filter((c) => c.cluster === "genBasic")) {
+                // @ts-expect-error mock message
+                await c.convert(
+                    definition,
+                    {data: {modelId: "lumi.sensor_ht.agl001"}, device, endpoint: device.getEndpoint(1), type: "attributeReport"},
+                    vi.fn(),
+                    options,
+                    {
+                        device,
+                        state,
+                        deviceExposesChanged: vi.fn(),
+                    },
+                );
+            }
+        };
+
+        it("restores the step, the state and the limits after a reset without device announce", async () => {
+            const device = setup({w100Protocol: "ha"});
+            const state = {thermostat_mode: "ON", system_mode: "cool", occupied_heating_setpoint: 26.5, fan_mode: "auto"};
+
+            await report(device, state);
+            await report(device, state);
+
+            const writes = vi.mocked(device.getEndpoint(1).write).mock.calls;
+            expect(writes.length).toStrictEqual(2);
+            expect(writes[0][1]).toStrictEqual({373: {value: 50, type: Zcl.DataType.UINT16}});
+            expect((writes[1][1][372].value as Buffer).subarray(0, 10)).toStrictEqual(exampleFrame);
+        });
+
+        it("does nothing with the legacy protocol", async () => {
+            const device = setup();
+
+            await report(device, {thermostat_mode: "ON"});
+
+            expect(device.getEndpoint(1).write).not.toHaveBeenCalled();
+        });
+    });
+
     describe("fromZigbee legacy protocol", () => {
         const convert = async (device: Zh.Device, frame: Buffer, state: KeyValueAny) => {
             const definition = await findByDevice(device);
