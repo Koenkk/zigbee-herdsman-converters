@@ -2972,7 +2972,10 @@ export const definitions: DefinitionWithExtend[] = [
         vendor: "Moes",
         description: "Smart 1-phase energy power meter with CT sensor clamp",
         whiteLabel: [tuya.whitelabel("Moes", "ZM7LT1", "Single-phase energy meter with CT clamp", ["_TZE284_y7hpvgyp"])],
-        extend: [zosung.zosungExtend.addZosungIRTransmitCluster(), tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true})],
+        extend: [
+            zosung.zosungExtend.addZosungIRTransmitCluster(),
+            tuya.modernExtend.tuyaBase({dp: true, queryOnConfigure: true, queryIntervalSeconds: 60}),
+        ],
         fromZigbee: moesMeterSegments,
         exposes: (device) => {
             const isZM7LT1 = device?.manufacturerName === "_TZE284_y7hpvgyp";
